@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module
+  version="2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd"
+>
+  <info
+    organisation="ca.bc.gov.cpf"
+    module="cpf-app"
+    revision="${application.version}" />
+  <configurations>
+    <conf
+      name="compile"
+      description="Build Time dependencies" />
+    <conf
+      name="test"
+      extends="compile"
+      description="Test Time dependencies" />
+    <conf
+      name="runtime"
+      description="Run Time dependencies" />
+    <conf
+      name="provided"
+      visibility="public"
+      description="this is much like compile, but indicates you expect the JDK or a container to provide it. It is only available on the compilation classpath, and is not transitive." />
+  </configurations>
+  <dependencies>
+    <dependency
+      org="ca.bc.gov.open.cpf"
+      name="ca.bc.gov.open.cpf.base.war.app"
+      rev="${ca.bc.gov.open.cpf.version}"
+      transitive="false"
+    >
+      <artifact
+        name="ca.bc.gov.open.cpf.base.war.app"
+        ext="war" />
+
+    </dependency>
+    <dependency
+      org="ca.bc.gov.open.cpf"
+      name="ca.bc.gov.open.cpf.db.oracle"
+      rev="${ca.bc.gov.open.cpf.version}"
+    >
+      <artifact
+        name="ca.bc.gov.open.cpf.db.oracle"
+        ext="jar" />
+    </dependency>
+
+    <dependency
+      org="javax.servlet"
+      name="servlet-api"
+      rev="2.4"
+      conf="provided->compile(*),provided(*),runtime(*),master(*)"
+    >
+      <artifact
+        name="servlet-api"
+        ext="jar" />
+    </dependency>
+
+
+    <dependency
+      org="commons-digester"
+      name="commons-digester"
+      rev="1.8.1"
+    >
+      <artifact
+        name="commons-digester"
+        ext="jar" />
+      <exclude
+        module="commons-beanutils" />
+      <exclude
+        module="commons-logging" />
+    </dependency>
+
+    <dependency
+      org="gov.bc.ca"
+      name="commons-discovery"
+      rev="00_00_02"
+      conf="provided->compile(*),provided(*),runtime(*),master(*)"
+    >
+      <artifact
+        name="commons-discovery"
+        ext="jar" />
+    </dependency>
+
+    <dependency
+      org="gov.bc.ca"
+      name="jaxrpc"
+      rev="01_01_00"
+      conf="provided->compile(*),provided(*),runtime(*),master(*)"
+    >
+      <artifact
+        name="jaxrpc"
+        ext="jar" />
+    </dependency>
+
+    <dependency
+      org="gov.bc.ca"
+      name="saaj"
+      rev="01_02_00"
+      conf="provided->compile(*),provided(*),runtime(*),master(*)"
+    >
+      <artifact
+        name="saaj"
+        ext="jar" />
+    </dependency>
+
+    <dependency
+      org="gov.bc.ca"
+      name="webade"
+      rev="04_02_00"
+      conf="provided->compile(*),provided(*),runtime(*),master(*)"
+    >
+      <artifact
+        name="webade"
+        ext="jar" />
+    </dependency>
+
+    <dependency
+      org="gov.bc.ca"
+      name="webade-user"
+      rev="04_02_02"
+      conf="provided->compile(*),provided(*),runtime(*),master(*)"
+    >
+      <artifact
+        name="webade-user"
+        ext="jar" />
+    </dependency>
+  </dependencies>
+</ivy-module>
