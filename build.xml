@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="cpf" default="cleanDeploy">
+  <target name="clean">
+    <delete failonerror="false">
+      <fileset dir="${user.home}/.ivy2/cache">
+        <include name="**/*SNAPSHOT.*" />
+      </fileset>
+    </delete>
+    <ant dir="cpf-app-war" target="clean" />
+    <ant dir="cpf-worker-war" target="clean" />
+    <ant dir="cpf-ear" target="clean" />
+  </target>
+
+  <target name="compile">
+    <ant dir="cpf-app-war">
+      <target name="prepare" />
+    </ant>
+    <ant dir="cpf-worker-war">
+      <target name="prepare" />
+    </ant>
+  </target>
+
+  <target name="build">
+    <ant dir="cpf-app-war" target="build" />
+    <ant dir="cpf-worker-war" target="build" />
+    <ant dir="cpf-ear" target="build" />
+  </target>
+
+  <target name="deploy" depends="build">
+    <ant dir="cpf-ear" target="deploy" />
+  </target>
+
+  <target name="cleanDeploy" depends="clean,deploy">
+  </target>
+</project>

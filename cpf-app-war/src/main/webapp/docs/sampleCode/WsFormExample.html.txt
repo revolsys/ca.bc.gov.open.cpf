@@ -1,0 +1,86 @@
+  <html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Submit Job</title>
+  </head>
+  <body>
+      <form action="http://WebServicesUrl/ws/apps/mapTileByLocation/1.0.0/jobs" enctype="multipart/form-data" method="post">
+    <dl>
+      <dt>
+        <label for="numRequests">Num Requests</label>
+      </dt>
+      <dd>
+        <input name="numRequests" type="text" size="50" maxlength="255" />
+      </dd>
+      <dt>
+        <label for="inputDataContentType">Input Data Content Type</label>
+      </dt>
+      <dd>
+        <select name="inputDataContentType">
+          <option>text/csv</option>
+          <option>application/json</option>
+        </select>
+      </dd>
+      <dt>
+        <label for="inputDataUrl">Input Data Url</label>
+      </dt>
+      <dd>
+        <input name="inputDataUrl" type="text" size="50" maxlength="255" />
+      </dd>
+      <dt>
+        <label for="inputData">Input Data</label>
+      </dt>
+      <dd>
+        <input name="inputData" type="file" />
+      </dd>
+      <dt>
+        <label for="resultDataContentType">Result Data Content Type</label>
+      </dt>
+      <dd>
+        <select name="resultDataContentType">
+          <option>text/csv</option>
+          <option>application/json</option>
+          <option>application/xhtml+xml</option>
+          <option>text/xml</option>
+          <option>application/vnd.google-earth.kml+xml</option>
+        </select>
+      </dd>
+      <dt>
+        <label for="notificationUrl">Notification Url</label>
+      </dt>
+      <dd>
+        <input name="notificationUrl" type="text" size="50" maxlength="255" />
+      </dd>
+      <dt>
+        <label for="mapGridName">Map Grid Name</label>
+      </dt>
+      <dd>
+        <select name="mapGridName">
+          <option value="">-</option>
+          <option>NTS 1:1 000 000</option>
+          <option>NTS 1:500 000</option>
+          <option>NTS 1:250 000</option>
+          <option>NTS 1:125 000</option>
+          <option>NTS 1:50 000</option>
+          <option>NTS 1:25 000</option>
+          <option>BCGS 1:20 000</option>
+          <option>BCGS 1:10 000</option>
+          <option>BCGS 1:5000</option>
+          <option>BCGS 1:2500</option>
+          <option>BCGS 1:2000</option>
+          <option>BCGS 1:1250</option>
+          <option>BCGS 1:1000</option>
+          <option>BCGS 1:500</option>
+          <option>MTO</option>
+        </select>
+      </dd>
+      <dt>
+        <label for="numBoundaryPoints">Num Boundary Points</label>
+      </dt>
+      <dd>
+        <input name="numBoundaryPoints" type="text" size="50" maxlength="255" />
+      </dd>
+    </dl>
+    <input name="Submit" type="submit" value="submit" />
+  </form>
+  </body>
+</html>

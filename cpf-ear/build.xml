@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:oracle="antlib:oracle" name="cpf-ear" default="build">
+  <property name="configName" value="default" />
+  <property file="../build.properties" />
+  <property file="../config/${configName}.properties" />
+
+	<property name="ear.file" location="target/cpf.ear" />
+	
+	<import file="../install/ant/ant-oracle.xml" />
+	
+	<available file="/apps_ux/oraapp/oc4jdeploy1013.sh" property="govInstall" />
+	
+	<target name="clean">
+		<delete dir="target" />
+	</target>
+
+	<target name="ear">
+		<mkdir dir="target" />
+		<ear destfile="${ear.file}"
+		     basedir="src/main/application"
+		     appxml="src/main/application/META-INF/application.xml"
+		>
+			<include name="src/main/application" />
+			<exclude name="META-INF/application.xml" />
+			<fileset dir="../cpf-app-war/target/">
+				<include name="cpf-app.war" />
+			</fileset>
+			<fileset dir="../cpf-worker-war/target/">
+				<include name="cpf-worker.war" />
+			</fileset>
+			<metainf dir="src/main/application/META-INF">
+				<include name="**" />
+				<exclude name="application.xml" />
+			</metainf>
+		</ear>
+	</target>
+
+	<target name="build" depends="ear">
+	</target>
+
+	<target name="deployOc4j" unless="govInstall">
+		<mkdir dir="../log" />
+
+		<oracle:deploy deployerUri="${oc4jDeployerUrl}"
+		               userid="${oc4jUsername}"
+		               password="${oc4jPassword}"
+		               file="${ear.file}"
+		               deploymentName="cpf"
+		               bindAllWebApps="default-web-site"
+		               logfile="../log/deploy-ear.log"
+		/>
+	</target>
+
+	<target name="deployGov" if="govInstall">
+		<mkdir dir="../log" />
+		<copy file="${ear.file}" todir="/apps_ux/cpf/deployment" />
+		<exec executable="/apps_ux/oraapp/oc4jdeploy1013.sh"
+		      failonerror="true"
+		>
+			<arg value="cpf" />
+			<arg value="deploy" />
+		</exec>
+	</target>
+
+	<target name="deploy" depends="build,deployOc4j,deployGov">
+	</target>
+</project>

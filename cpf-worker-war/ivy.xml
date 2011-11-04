@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module
+  version="2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd"
+>
+  <info
+    organisation="ca.bc.gov.cpf"
+    module="cpf-worker"
+    revision="${application.version}" />
+  <dependencies>
+    <dependency
+      org="ca.bc.gov.open.cpf"
+      name="ca.bc.gov.open.cpf.base.war.worker"
+      rev="${ca.bc.gov.open.cpf.version}"
+      transitive="false"
+      conf="*->*,!sources,!javadoc"
+    >
+      <artifact
+        name="ca.bc.gov.open.cpf.base.war.worker"
+        ext="war" />
+
+    </dependency>
+  </dependencies>
+</ivy-module>
