@@ -13,8 +13,7 @@
 
   <property name="ivy.settings.file" location="../ivysettings.xml" />
   <property file="../build.properties" />
-  <property name="configName" value="default" />
-  <property file="../config/${configName}.properties" />
+  <property file="/apps_ux/cpf/config/default.properties" />
 
   <ivy:info file="ivy.xml" />
 
