@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ca.bc.gov.cpf</groupId>
+  <artifactId>cpf</artifactId>
+  <packaging>pom</packaging>
+  <name>BCGOV Cloud Processing Framework</name>
+  <version>TRUNK-SNAPSHOT</version>
+
+  <modules>
+    <module>cpf-worker-war</module>
+    <module>cpf-app-war</module>
+    <module>cpf-ear</module>
+  </modules>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <ca.bc.gov.open.cpf.version>TRUNK-SNAPSHOT</ca.bc.gov.open.cpf.version>
+    <databaseVendor>oracle</databaseVendor>
+    <ca.bc.gov.open.cpf.plugin.directory>/apps_ux/cpf/plugins</ca.bc.gov.open.cpf.plugin.directory>
+  </properties>
+</project>

@@ -11,6 +11,11 @@
     http://www.springframework.org/schema/util/spring-util-3.0.xsd
   "
 >
+  <bean
+    id="cpfDefaultProperties"
+    class="com.revolsys.collection.AttributeMap"
+    p:properties="file:/apps_ux/cpf/config/default.properties" />
+    
   <util:map
     id="cpfApiProperties"
     map-class="com.revolsys.collection.AttributeMap"
@@ -29,20 +34,12 @@
     <entry
       key="cpfDataSource.password"
       value="${ca.bc.gov.cpf.db.password}" />
-    <entry
-      key="cpfDataSource.config"
-    >
+    <entry key="cpfDataSource.config">
       <map>
-        <entry
-          key="connCacheProperties"
-        >
+        <entry key="connCacheProperties">
           <props>
-            <prop
-              key="MinLimit"
-            >1</prop>
-            <prop
-              key="MaxLimit"
-            >${ca.bc.gov.cpf.db.maxConnections}</prop>
+            <prop key="MinLimit">1</prop>
+            <prop key="MaxLimit">${ca.bc.gov.cpf.db.maxConnections}</prop>
           </props>
         </entry>
       </map>
@@ -50,12 +47,10 @@
 
     <entry
       key="serverRenameFilter.serverUrl"
-      value="${ca.bc.gov.cpf.app.baseUrl}"
-    />
+      value="${ca.bc.gov.cpf.app.baseUrl}" />
 
     <entry
       key="secureServerRenameFilter.serverUrl"
-      value="${ca.bc.gov.cpf.app.secureBaseUrl}"
-    />
+      value="${ca.bc.gov.cpf.app.secureBaseUrl}" />
   </util:map>
 </beans>

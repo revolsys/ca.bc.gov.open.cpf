@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ca.bc.gov.cpf</groupId>
+  <artifactId>cpf-app-war</artifactId>
+  <packaging>war</packaging>
+  <name>BCGOV Cloud Processing Framework WAR APP</name>
+  <version>TRUNK-SNAPSHOT</version>
+  <parent>
+    <groupId>ca.bc.gov.cpf</groupId>
+    <artifactId>cpf</artifactId>
+    <version>TRUNK-SNAPSHOT</version>
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>ca.bc.gov.open.cpf.base.war.app</artifactId>
+      <version>${ca.bc.gov.open.cpf.version}</version>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>ca.bc.gov.open.cpf.db.oracle</artifactId>
+      <version>${ca.bc.gov.open.cpf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.bc.gov</groupId>
+      <artifactId>webade-user</artifactId>
+      <version>04_02_00</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.bc.gov</groupId>
+      <artifactId>webade</artifactId>
+      <version>04_02_00</version>
+    </dependency>
+  </dependencies>
+</project>

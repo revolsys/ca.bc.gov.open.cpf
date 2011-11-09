@@ -11,20 +11,25 @@
     http://www.springframework.org/schema/util/spring-util-3.0.xsd
   "
 >
+  <bean
+    id="cpfDefaultProperties"
+    class="com.revolsys.collection.AttributeMap"
+    p:properties="file:/apps_ux/cpf/config/default.properties" />
+    
   <util:map
     id="cpfWorkerProperties"
     map-class="com.revolsys.collection.AttributeMap"
   >
     <entry
-      key="cpfWorker.webServiceUrl"
+      key="cpfInternalWebServiceUrl"
       value="${ca.bc.gov.cpf.app.baseUrl}" />
       
     <entry
-      key="cpfWorker.consumerKey"
+      key="cpfInternalConsumerKey"
       value="${ca.bc.gov.cpf.ws.consumerKey}" />
       
     <entry
-      key="cpfWorker.consumerSecret"
+      key="cpfInternalConsumerSecret"
       value="${ca.bc.gov.cpf.ws.consumerSecret}" />
       
     <entry
