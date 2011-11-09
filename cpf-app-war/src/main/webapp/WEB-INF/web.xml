@@ -159,11 +159,4 @@
     <location>/error.jsp?subTitle=I'm sorry there was an error
       generating the page you requested.</location>
   </error-page>
-
-  <jsp-config>
-    <taglib>
-      <taglib-uri>http://java.sun.com/jstl/core</taglib-uri>
-      <taglib-location>/WEB-INF/tld/c-1.1.2.tld</taglib-location>
-    </taglib>
-  </jsp-config>
 </web-app>

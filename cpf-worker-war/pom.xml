@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ca.bc.gov.cpf</groupId>
+  <artifactId>cpf-worker-war</artifactId>
+  <packaging>war</packaging>
+  <name>BCGOV Cloud Processing Framework WAR Worker</name>
+  <version>TRUNK-SNAPSHOT</version>
+  <parent>
+    <groupId>ca.bc.gov.cpf</groupId>
+    <artifactId>cpf</artifactId>
+    <version>TRUNK-SNAPSHOT</version>
+  </parent>
+  <dependencies>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>ca.bc.gov.open.cpf.base.war.worker</artifactId>
+      <version>${ca.bc.gov.open.cpf.version}</version>
+      <type>war</type>
+    </dependency>
+  </dependencies>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+</project>
