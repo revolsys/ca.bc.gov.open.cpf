@@ -575,6 +575,14 @@ div.actionMenu ul li a {
   white-space: nowrap;
 }
 
+form dl dt {
+  font-weight: bold;
+}
+
+form dl dd div.fieldDescription {
+  font-size: 0.8em;
+  color: #999999;
+}
 
 #canvas {
   width: 100%;
