@@ -33,7 +33,7 @@
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ca.bc.gov.open.cpf.version>TRUNK-SNAPSHOT</ca.bc.gov.open.cpf.version>
+    <ca.bc.gov.open.cpf.version>3.0.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
     <databaseVendor>oracle</databaseVendor>
     <ca.bc.gov.open.cpf.plugin.directory>/apps_ux/cpf/plugins</ca.bc.gov.open.cpf.plugin.directory>
   </properties>
