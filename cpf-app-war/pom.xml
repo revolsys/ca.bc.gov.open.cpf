@@ -15,16 +15,22 @@
     <artifactId>cpf</artifactId>
     <version>TRUNK-SNAPSHOT</version>
   </parent>
+  
   <dependencies>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
-      <artifactId>ca.bc.gov.open.cpf.base.war.app</artifactId>
+      <artifactId>cpf-war-app</artifactId>
       <version>${ca.bc.gov.open.cpf.version}</version>
       <type>war</type>
     </dependency>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
-      <artifactId>ca.bc.gov.open.cpf.db.oracle</artifactId>
+      <artifactId>cpf-api-core</artifactId>
+      <version>${ca.bc.gov.open.cpf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>cpf-db-oracle</artifactId>
       <version>${ca.bc.gov.open.cpf.version}</version>
     </dependency>
     <dependency>
@@ -38,4 +44,9 @@
       <version>04_02_00</version>
     </dependency>
   </dependencies>
+
+  <properties>
+    <webContextPath>/pub/cpf</webContextPath>
+    <skipWebDeploy>false</skipWebDeploy>
+  </properties>
 </project>

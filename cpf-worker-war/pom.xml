@@ -15,15 +15,18 @@
     <artifactId>cpf</artifactId>
     <version>TRUNK-SNAPSHOT</version>
   </parent>
+  
   <dependencies>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
-      <artifactId>ca.bc.gov.open.cpf.base.war.worker</artifactId>
+      <artifactId>cpf-war-worker</artifactId>
       <version>${ca.bc.gov.open.cpf.version}</version>
       <type>war</type>
     </dependency>
   </dependencies>
+  
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <webContextPath>/pub/cpf-worker</webContextPath>
+    <skipWebDeploy>false</skipWebDeploy>
   </properties>
 </project>
