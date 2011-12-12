@@ -40,7 +40,7 @@
     </dependency>
     <dependency>
       <groupId>ca.bc.gov</groupId>
-      <artifactId>webade-developer</artifactId>
+      <artifactId>webade</artifactId>
       <version>4.2.0</version>
     </dependency>
   </dependencies>
