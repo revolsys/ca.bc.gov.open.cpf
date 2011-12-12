@@ -38,6 +38,11 @@
       <artifactId>webade</artifactId>
       <version>4.2.0</version>
     </dependency>
+    <dependency>
+      <groupId>ca.bc.gov</groupId>
+      <artifactId>webade-user</artifactId>
+      <version>4.2.0</version>
+    </dependency>
   </dependencies>
 
   <properties>
