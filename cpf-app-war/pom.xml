@@ -15,7 +15,7 @@
     <artifactId>cpf</artifactId>
     <version>TRUNK-SNAPSHOT</version>
   </parent>
-  
+
   <dependencies>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
@@ -29,19 +29,19 @@
       <version>${ca.bc.gov.open.cpf.version}</version>
     </dependency>
     <dependency>
-      <groupId>ca.bc.gov.open.cpf</groupId>
-      <artifactId>cpf-db-oracle</artifactId>
-      <version>${ca.bc.gov.open.cpf.version}</version>
+      <groupId>com.revolsys.open</groupId>
+      <artifactId>com.revolsys.open.gis.oracle</artifactId>
+      <version>${com.revolsys.open.version}</version>
     </dependency>
     <dependency>
       <groupId>ca.bc.gov</groupId>
-      <artifactId>webade-user</artifactId>
-      <version>04_02_00</version>
+      <artifactId>webade-connection</artifactId>
+      <version>4.2.0</version>
     </dependency>
     <dependency>
       <groupId>ca.bc.gov</groupId>
-      <artifactId>webade</artifactId>
-      <version>04_02_00</version>
+      <artifactId>webade-developer</artifactId>
+      <version>4.2.0</version>
     </dependency>
   </dependencies>
 

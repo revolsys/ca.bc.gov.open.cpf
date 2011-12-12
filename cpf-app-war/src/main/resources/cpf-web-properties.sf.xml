@@ -24,7 +24,7 @@
       key="businessApplicationClassLoader.libDirectories"
     >
       <set>
-        <value>/apps_ux/cpf/deployment/plugins/</value>
+        <value>/apps_ux/cpf/plugins/</value>
       </set>
     </entry>
 
