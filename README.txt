@@ -48,6 +48,12 @@ INSTALLATION INSTRUCTIONS
   ssh cpf@smolder.geobc.gov.bc.ca
     password = ********
 
+####### OC4j migration###
+
+undeploy from oc4j
+map to tomcat 7
+change perms on /apps_ux/logs/cpf and delete old logs
+
 2. DOWNLOAD SOURCE CODE FROM SUBVERSION
 
 cd /apps_ux/cpf
