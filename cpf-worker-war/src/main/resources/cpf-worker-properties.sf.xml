@@ -15,7 +15,7 @@
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="file:/apps_ux/cpf/config/default.properties" />
-    
+
   <util:map
     id="cpfWorkerProperties"
     map-class="com.revolsys.collection.AttributeMap"
@@ -23,21 +23,18 @@
     <entry
       key="cpfInternalWebServiceUrl"
       value="${ca.bc.gov.cpf.app.baseUrl}" />
-      
+
     <entry
       key="cpfInternalConsumerKey"
       value="${ca.bc.gov.cpf.ws.consumerKey}" />
-      
+
     <entry
       key="cpfInternalConsumerSecret"
       value="${ca.bc.gov.cpf.ws.consumerSecret}" />
-      
+
     <entry
-      key="businessApplicationClassLoader.libDirectories"
-    >
-      <set>
-        <value>/apps_ux/cpf/deployment/plugins/</value>
-      </set>
-    </entry>
+      key="businessApplicationDirectoryModuleLoader.file"
+      value="/apps_ux/cpf/deployment/plugins/" />
+
   </util:map>
 </beans>

@@ -15,29 +15,20 @@
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="file:/apps_ux/cpf/config/default.properties" />
-    
+
   <util:map
     id="cpfWebProperties"
     map-class="com.revolsys.collection.AttributeMap"
   >
     <entry
-      key="businessApplicationClassLoader.libDirectories"
-    >
-      <set>
-        <value>/apps_ux/cpf/plugins/</value>
-      </set>
-    </entry>
+      key="businessApplicationDirectoryModuleLoader.file"
+      value="/apps_ux/cpf/plugins/" />
 
-
-    <entry
-      key="batchJobService.authorizationService"
-    >
+    <entry key="batchJobService.authorizationService">
       <bean
         class="ca.bc.gov.open.cpf.api.security.service.ChainedAuthorizationService"
       >
-        <property
-          name="authorizationServices"
-        >
+        <property name="authorizationServices">
           <list>
             <bean
               class="ca.bc.gov.cpf.web.app.WebAdeAuthorizationService"
@@ -50,9 +41,7 @@
     <entry
       key="batchJobService.baseUrl"
       value="${ca.bc.gov.cpf.app.baseUrl}" />
-    <entry
-      key="batchJobService.userClassBaseUrls"
-    >
+    <entry key="batchJobService.userClassBaseUrls">
       <map>
         <entry
           key="http://gov.bc.ca/"
