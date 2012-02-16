@@ -33,8 +33,8 @@
     </dependency>
     <dependency>
       <groupId>com.oracle</groupId>
-      <artifactId>ojdbc5</artifactId>
-      <version>11.1.0.6.0</version>
+      <artifactId>ojdbc6</artifactId>
+      <version>11.2.0.3</version>
     </dependency>
     <dependency>
       <groupId>ca.bc.gov</groupId>
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>ca.bc.gov</groupId>
       <artifactId>webade-developer</artifactId>
-      <version>4.2.0</version>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
