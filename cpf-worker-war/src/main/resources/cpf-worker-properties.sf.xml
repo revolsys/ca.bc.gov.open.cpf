@@ -31,10 +31,5 @@
     <entry
       key="cpfInternalConsumerSecret"
       value="${ca.bc.gov.cpf.ws.consumerSecret}" />
-
-    <entry
-      key="businessApplicationDirectoryModuleLoader.file"
-      value="/apps_ux/cpf/deployment/plugins/" />
-
   </util:map>
 </beans>

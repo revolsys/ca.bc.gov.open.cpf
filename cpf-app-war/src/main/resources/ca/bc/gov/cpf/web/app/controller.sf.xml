@@ -9,9 +9,9 @@
   "
 >
   <bean
-    name="/secure/ws/,/secure/ws/**"
+    name="/secure/,/secure/**"
     class="com.revolsys.ui.web.controller.PathAliasController"
-    p:prefix="/secure/ws"
-    p:aliasPrefix="/ws" />
+    p:prefix="/secure"
+    p:aliasPrefix="" />
 
 </beans>

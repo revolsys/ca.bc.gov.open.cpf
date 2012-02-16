@@ -14,14 +14,13 @@
     http://www.springframework.org/schema/security/spring-security-3.0.xsd
   "
 >
-  <tx:annotation-driven
-    transaction-manager="ca.bc.gov.open.cpf.api.transactionManager" />
+  <tx:annotation-driven transaction-manager="ca.bc.gov.open.cpf.api.transactionManager" />
 
   <security:http
     realm="CPF Siteminder"
     use-expressions="true"
     auto-config="false"
-    security-context-repository-ref="cpfSitemenderSpringSecurityContext"
+    security-context-repository-ref="cpfSiteminderSpringSecurityContext"
     entry-point-ref="cpfSiteminderEntryPoint"
     access-decision-manager-ref="cpfSiteminderAccessDecisionManager"
   >
@@ -40,15 +39,35 @@
     <security:intercept-url
       pattern="/j_spring_openid_security_check"
       access="permitAll" />
-
-    <security:logout
-      logout-url="/secure/logout"
-      logout-success-url="/secure/" />
-    <security:anonymous />
+    <security:anonymous granted-authority="IS_AUTHENTICATED_ANONYMOUSLY" />
+    <security:custom-filter
+      ref="cpfSiteminderLogoutFilter"
+      position="LOGOUT_FILTER" />
   </security:http>
 
   <bean
-    id="cpfSitemenderSpringSecurityContext"
+    id="cpfSiteminderLogoutFilter"
+    class="org.springframework.security.web.authentication.logout.LogoutFilter"
+    p:filterProcessesUrl="/secure/logout"
+  >
+    <constructor-arg
+      index="0"
+      value="/secure/ws/" />
+    <constructor-arg index="1">
+      <list>
+        <bean
+          class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler" />
+        <ref bean="cpfSiteminderLogoutHandler" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean
+    id="cpfSiteminderLogoutHandler"
+    class="ca.bc.gov.cpf.web.app.WebAdeLogout" />
+
+  <bean
+    id="cpfSiteminderSpringSecurityContext"
     class="com.revolsys.ui.web.security.HttpSessionSecurityContextRepository"
     p:springSecurityContextKey="CPF_SITEMINDER_SECURITY_CONTEXT" />
 
@@ -67,11 +86,8 @@
     class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider"
     p:preAuthenticatedUserDetailsService-ref="cpfSiteminderUserDetailsServiceWrapper" />
 
-  <security:authentication-manager
-    alias="cpfSiteminderAuthenticationManager"
-  >
-    <security:authentication-provider
-      ref="cpfSiteminderPreauthAuthProvider" />
+  <security:authentication-manager alias="cpfSiteminderAuthenticationManager">
+    <security:authentication-provider ref="cpfSiteminderPreauthAuthProvider" />
   </security:authentication-manager>
 
   <bean
@@ -81,26 +97,28 @@
 
   <bean
     id="cpfSiteminderUserDetailsService"
-    class="ca.bc.gov.open.cpf.api.security.service.UserAccountByExternalNameDetailsService"
+    class="ca.bc.gov.cpf.web.app.WebAdeUserDetailsService"
     p:UserAccountDao-ref="ca.bc.gov.open.cpf.api.domain.UserAccount-dao"
-    p:UserAccountClass="http://gov.bc.ca/"
-    p:autoCreateUsers="true" />
+    p:userAccountSecurityService-ref="userAccountSecurityService" />
 
   <bean
     id="cpfSiteminderAccessDecisionManager"
     class="org.springframework.security.access.vote.UnanimousBased"
     p:allowIfAllAbstainDecisions="true"
   >
-    <property
-      name="decisionVoters"
-    >
+    <property name="decisionVoters">
       <list>
         <bean
-          class="org.springframework.security.access.vote.RoleVoter" />
+          class="org.springframework.security.web.access.expression.WebExpressionVoter" />
         <bean
           class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
           p:prefix="/secure/ws/users/" />
       </list>
     </property>
   </bean>
+  
+  <bean
+   id="cpfSiteMinderAuthorizationService"
+              class="ca.bc.gov.cpf.web.app.WebAdeAuthorizationService"
+              p:UserAccountDao-ref="ca.bc.gov.open.cpf.api.domain.UserAccount-dao" />
 </beans>

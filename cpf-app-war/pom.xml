@@ -5,15 +5,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
-  <groupId>ca.bc.gov.cpf</groupId>
   <artifactId>cpf-app-war</artifactId>
   <packaging>war</packaging>
   <name>BCGOV Cloud Processing Framework WAR APP</name>
-  <version>TRUNK-SNAPSHOT</version>
   <parent>
     <groupId>ca.bc.gov.cpf</groupId>
     <artifactId>cpf</artifactId>
-    <version>TRUNK-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <dependencies>
@@ -25,13 +23,18 @@
     </dependency>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
-      <artifactId>cpf-api-core</artifactId>
+      <artifactId>cpf-api-app</artifactId>
       <version>${ca.bc.gov.open.cpf.version}</version>
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.gis.oracle</artifactId>
+      <artifactId>com.revolsys.open.gis.${cpfDatabaseVendor}</artifactId>
       <version>${com.revolsys.open.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle</groupId>
+      <artifactId>ojdbc5</artifactId>
+      <version>11.1.0.6.0</version>
     </dependency>
     <dependency>
       <groupId>ca.bc.gov</groupId>
@@ -43,10 +46,22 @@
       <artifactId>webade-user</artifactId>
       <version>4.2.0</version>
     </dependency>
+    <dependency>
+      <groupId>ca.bc.gov</groupId>
+      <artifactId>webade-developer</artifactId>
+      <version>4.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.4</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <properties>
     <webContextPath>/pub/cpf</webContextPath>
     <skipWebDeploy>false</skipWebDeploy>
+    <cpfDatabaseVendor>oracle</cpfDatabaseVendor>
   </properties>
 </project>

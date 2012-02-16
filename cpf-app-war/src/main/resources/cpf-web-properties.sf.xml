@@ -21,8 +21,14 @@
     map-class="com.revolsys.collection.AttributeMap"
   >
     <entry
-      key="businessApplicationDirectoryModuleLoader.file"
-      value="/apps_ux/cpf/plugins/" />
+      key="mavenRepository.root"
+      value="file:/apps_ux/cpf/repository/" />
+
+    <entry key="mavenRepository.repositoryLocations">
+      <list>
+        <value>http://poplar.idir.bcgov:8081/artifactory/repo/</value>
+      </list>
+    </entry>
 
     <entry key="batchJobService.authorizationService">
       <bean
@@ -30,9 +36,7 @@
       >
         <property name="authorizationServices">
           <list>
-            <bean
-              class="ca.bc.gov.cpf.web.app.WebAdeAuthorizationService"
-              p:UserAccountDao-ref="ca.bc.gov.open.cpf.api.domain.UserAccount-dao" />
+            <ref bean="cpfSiteMinderAuthorizationService" />
           </list>
         </property>
       </bean>
@@ -48,5 +52,21 @@
           value="${ca.bc.gov.cpf.app.secureBaseUrl}" />
       </map>
     </entry>
+
+    <entry
+      key="sideMenu.title"
+      value="B.C. Home" />
+
+    <entry
+      key="sideMenu.uri"
+      value="http://www.gov.bc.ca/" />
+
+    <entry
+      key="adminSideMenu.title"
+      value="B.C. Home" />
+
+    <entry
+      key="adminSideMenu.uri"
+      value="http://www.gov.bc.ca/" />
   </util:map>
 </beans>

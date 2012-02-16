@@ -15,7 +15,28 @@
   <artifactId>cpf</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Cloud Processing Framework</name>
-  <version>TRUNK-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
+
+  <developers>
+    <developer>
+      <name>Paul Austin</name>
+      <organization>Revolution Systems Inc.</organization>
+      <organizationUrl>http://www.revolsys.com/</organizationUrl>
+      <email>paul.austin@revolsys.com</email>
+      <timezone>PST</timezone>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:svn:http://poplar.idir.bcgov/svn/cpf/source/trunk/</connection>
+    <developerConnection>scm:svn:https://poplar.idir.bcgov:88/svn/cpf/source/trunk/</developerConnection>
+    <url>https://apps.gov.bc.ca/gov/wsvn/TC7.cpf-source</url>
+  </scm>
+
+  <organization>
+    <name>The Province of British Columbia</name>
+    <url>http://www.gov.bc.ca/</url>
+  </organization>
 
   <modules>
     <module>cpf-app-war</module>
