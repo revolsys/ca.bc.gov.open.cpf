@@ -15,7 +15,7 @@
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="file:/apps_ux/cpf/config/default.properties" />
-    
+
   <util:map
     id="cpfApiProperties"
     map-class="com.revolsys.collection.AttributeMap"

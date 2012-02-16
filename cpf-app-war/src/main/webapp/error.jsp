@@ -10,8 +10,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
   <head>
     <title><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</title>
-    <link href="<c:url value="/css/rs.css" />" rel="stylesheet" type="text/css" />
-    <link href="<c:url value="/css/cpf.css" />" rel="stylesheet" type="text/css" />
     <link href="<c:url value="/css/bcgov.css" />" rel="stylesheet" type="text/css" />
     <style type="text/css">
 div.header {

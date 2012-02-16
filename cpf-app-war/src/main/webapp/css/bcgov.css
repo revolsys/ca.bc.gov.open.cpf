@@ -9,7 +9,7 @@ h1 {
   color: #039;
   font-family: Verdana, Arial, Helvetica, sans-serif;
   line-height: 1;
-  font-size: 1.5em;
+  font-size: 1.6em;
   margin-bottom: 12px;
 }
 
@@ -17,6 +17,7 @@ h2 {
   color: #039;
   font-family: Verdana, Arial, Helvetica, sans-serif;
   line-height: 1;
+  font-style: italic;
   font-size: 1.4em;
   margin-bottom: 12px;
 }
@@ -35,7 +36,7 @@ h3 {
   color: #039;
   font-family: Verdana, Arial, Helvetica, sans-serif;
   line-height: 1;
-  font-size: 1.3em;
+  font-size: 1.2em;
   margin-bottom: 12px;
 }
 
@@ -43,7 +44,8 @@ h4 {
   color: #039;
   font-family: Verdana, Arial, Helvetica, sans-serif;
   line-height: 1;
-  font-size: 1.2em;
+  font-size: 1.1em;
+  font-style: italic;
   margin-bottom: 12px;
 }
 
@@ -51,7 +53,7 @@ h5 {
   color: #039;
   font-family: Verdana, Arial, Helvetica, sans-serif;
   line-height: 1;
-  font-size: 1.1em;
+  font-size: 1em;
   margin-bottom: 12px;
 }
 
@@ -59,6 +61,7 @@ h6 {
   font-family: Verdana, Arial, Helvetica, sans-serif;
   line-height: 1;
   font-size: 1em;
+  font-style: italic;
   margin-bottom: 12px;
 }
 
@@ -66,6 +69,7 @@ dt {
   float: left;
   font-weight: bold;
   margin: 0px;
+  text-align: right;
   width: 15em;
 }
 
@@ -84,6 +88,10 @@ div.header {
   background-image: url(../images/bc_sun_logo_horiz.gif);
   background-position: top left;
   background-repeat: no-repeat;
+  background-color: #ffffff;
+  border-width: 0px;
+  margin-bottom: 0px;
+  padding:0px;
 }
 
 div.headerContent {
@@ -94,39 +102,35 @@ div.headerContent {
   padding: 5px;
 }
 
+div.headerContent div.title {
+  color: #039;
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  line-height: 1;
+  font-size: 26px;
+  padding-top: 12px;
+}
+
+div.columns {
+  width: 950px;
+  overflow: hidden;
+}
+
 div.breadcrumb {
-  margin-left: 164px;
   border-bottom: 1px solid #999999;
-  border-left: 1px solid #999999;
-  padding: 9px 5px 0px 5px;
+  margin-left: 164px;
+  padding: 9px 5px 0px 10px;
   height: 21px;
-  font-size: 80%;
 }
 
-div.breadcrumb ul {
-  list-style: none;
-  margin: 0px;
-  margin-bottom: 3px;
-  padding: 0px;
+div.bodyContainer {
+  margin: 0px 0px 0px 0px;
 }
 
-div.breadcrumb ul li {
-  display: inline;
-  color: #999999;
+div.bodyContent {
+  margin-left: 164px;
+  padding: 5px 0px 5px 10px;
 }
-
-div.breadcrumb ul li a {
-  color: #999999;
-  padding-right: 1.5em;
-  background-image: url(../images/crumbs.gif);
-  background-position: top right;
-  background-repeat: no-repeat;
-}
-
-div.breadcrumb ul li a:hover {
-  text-decoration: underline;
-}
-
 
 a.help {
   background-image: url(../images/icon_help.gif);
@@ -154,21 +158,24 @@ a.button {
   text-decoration: none;
   white-space: nowrap;
 }
+
 div.buttons {
   margin: 5px;
 }
 
 div.sideNav {
-  background-image: url(../images/nav_grey_bottom.gif);
-  background-position: bottom left;
-  background-repeat: no-repeat;
-  float: left;
-  padding-bottom: 8px;
   width: 164px;
+  border-width: 0px;
+  border-right: 1px solid #999999;
+  margin: 0px 0px -990px 0px;
+  padding: 0px 0px 1000px 0px;
 }
 
 div.sideMenu {
-  padding: 0px;
+  padding: 0px 0px 8px 0px;
+  background-image: url(../images/nav_grey_bottom.gif);
+  background-position: bottom left;
+  background-repeat: no-repeat;
 }
 
 div.sideMenu div.title {
@@ -219,10 +226,15 @@ div.sideMenu ul li.completed {
   list-style-image: url(../images/left_checkedbox.gif);
 }
 
-div.bodyContent {
-  border-left: 1px solid #999999;
-  margin: 0px 0px 0px 164px;
-  padding: 5px 0px 5px 10px;
+div.sideMenu ul li:nth-of-type(even) {
+  background-color: white;
+}
+
+div.footnotes {
+  font-size: 0.7em;
+  margin: 0px;
+  padding: 4px 0px;
+  color: #666666;
 }
 
 div.footerMenu {
@@ -260,14 +272,14 @@ div.footerMenu a {
   padding: 4px 5px;
 }
 
-
 div.resources dt {
-  background:  url(../images/left_blue_arrow.gif) no-repeat center left;
+  background: url(../images/left_blue_arrow.gif) no-repeat center left;
   float: none;
   padding: 0px 0px 0px 10px;
   font-weight: bold;
   margin: 0px;
   width: 100%;
+  text-align: left;
 }
 
 div.resources dd {
@@ -276,271 +288,9 @@ div.resources dd {
   padding-left: 0px;
 }
 
-
-div.object > table > tr > th {
-  font-weight: bold;
-  padding: 1px 2px 1px 2px;
-  border-right: 1px solid #aaaaaa;
-  text-align: left;
-  vertical-align: top;
-}
-
-div.object > table > tr > td {
-  padding: 1px 2px 1px 5px;
-  vertical-align: top;
-}
-
-div.objectList {
-  border: 1px solid #666666;
-  width: auto;
-}
-  
-div.objectList table.data {
-  border: 2px solid #6699CC;
-  padding: 1px;
-  width: 100%;
-}
-
-div.objectList table.data caption {
-  text-align: left;
-  font-size: 10px;
-  padding: 2px;
-  border: 2px solid #6699CC;
-  border-bottom-width: 0px;
-}
-
-div.objectList table.data td,
-div.objectList table.data th {
-  padding: 2px 3px 2px 3px;
-}
-
-div.objectList table.data thead {
-  background-color: #a2c8ff;
-}
-
-div.objectList table.data thead th {
-  color: #0046a0;
-  border-right: 1px solid white;
-}
-
-div.objectList table.data thead th:last-child {
-  border-right-width: 0px;
-}
-
-
-div.objectList table.data tbody td {
-  border-right: 1px solid #cccccc;
-  border-bottom: 1px solid #cccccc;
-}
-
-div.objectList table.data tbody td:last-child {
-   border-right-width: 0px;
-}
-
-div.objectList table.data tbody tr:last-child td {
-   border-bottom-width: 0px;
-}
-
-
-
-div.objectList table.data tbody tr.selected td {
-  background-color: #fff7b4;
-}
-div.objectList table.data tbody tr.even td {
-  background-color: #eeeeee;
-  border-right-color: white;
-}
-
-div.objectView {
-  border: 1px solid #666666;
-  width: auto;
-}
-  
-div.objectView table.data {
-  border: 2px solid #6699CC;
-  padding: 1px;
-  width: 100%;
-}
-
-div.objectView table.data th {
-  background-color: #a2c8ff;
-  border-bottom: 1px solid white;
-  padding: 3px 4px 3px 4px;
-  text-align: left;
-}
-
-div.objectView table.data td {
-  border-bottom: 1px solid #cccccc;
-  padding: 3px 4px 3px 4px;
-}
-
-div.objectView table.data tr.even td {
-  background-color: #eeeeee;
-}
-
-div.objectView table.data tr.lastRow th,
-div.objectView table.data tr.lastRow td
- {
-  border-bottom-width: 0px;
-}
-div.pager {
-}
-
-div.pager table {
-  width: 100%;
-}
-div.pager td {
-  padding: 2px 4px;
-  vertical-align: middle;
-}
-div.pager td.first,
-div.pager td.previous,
-div.pager td.next,
-div.pager td.last
-{
-  padding: 0px;
-  background-repeat:no-repeat;
-  background-position: center center; 
-  width: 16px;
-}
-div.pager td.first {
-  background-image: url('../images/arrow_first.png');
-}
-div.pager td.previous {
-  background-image: url('../images/arrow_left.png');
-}
-div.pager td.next {
-  background-image: url('../images/arrow_right.png');
-}
-div.pager td.last {
-  background-image: url('../images/arrow_last.png');
-}
-div.pager td.first a,
-div.pager td.previous a,
-div.pager td.next a,
-div.pager td.last a
-{
-  display: block;
-  text-decoration: none;
-  overflow: hidden;
-  width: 16px;
-}
-div.pager td.first a span,
-div.pager td.previous a span,
-div.pager td.next a span,
-div.pager td.last a span {
-  padding-left: 16px;
-}
-div.pager a img {
-  border-width: 0px;
-}
-div.pager span.selected {
-  font-weight: bold;
-}
-
-div.pager td.pages {
-  text-align: center;
-}
-div.pager a {
-  color: #999999;
-}
-div.form > div {
-  margin: 0px;
-  padding: 0px;
-  height: auto;
-}
-
-div.form div.field {
-  margin: 4px 2px;
-  font-size: 11px;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  overflow: hidden;
-  width: 100%;
-}
-
-div.form div.field div.label {
-  width: 14em;
-  float: left;
-  font-weight: bold;
-  text-align: left;
-  margin: 1px 0px 3px 0px;
-  padding-left: 10px;
-}
-
-div.form div.field div.contents {
-  float: left;
-  padding: 0px 0px 0px 0em;
-}
-
-div.form div.field div.instructions {
-  color: #999999;
-  padding: 0px 0px 0px 15.5em;
-}
-
-div.form div.field div.errors {
-  color: red;
-  font-weight: bold;
-  padding: 0px 0px 0px 15.5em;
-}
-
-div.form div.field div.fieldActions {
-  margin-bottom: 7px;
-}
-
-div.form div.field div.fieldActions a {
-  color: #666666;
-  font-size: 10px;
-}
-
 div.form div.required {
   background: url(../images/asterisk.gif) no-repeat 3px 5px;
   padding-left: 10px;
-}
-div.labelAbove form div.field div.label {
-  width: auto;
-  float: none;
-}
-
-div.labelAbove form div.field div.contents {
-  margin-left: 0em;
-  padding-left: 10px;
-}
-
-div.labelAbove form div.field div.errors {
-  margin-left: 0em;
-  padding-left: 10px;
-}
-
-div.labelAbove form div.field div.instructions {
-  margin-left: 0em;
-  padding-left: 10px;
-}
-
-div.labelAboveNoPadding form div.field div.label {
-  width: auto;
-  float: none;
-  padding-left: 0px;
-}
-
-div.labelAboveNoPadding form div.field div.contents {
-  margin-left: 0em;
-  padding-left: 0px;
-}
-
-div.labelAboveNoPadding form div.field div.errors {
-  margin-left: 0em;
-  padding-left: 0px;
-}
-
-div.labelAboveNoPadding form div.field div.instructions {
-  margin-left: 0em;
-  padding-left: 0px;
-}
-
-div.objectList tbody.search td input {
-  width: 100%;
-  border: 1px solid black;
-  background-color: #cccccc;
 }
 
 div.actionMenu {
@@ -574,401 +324,3 @@ div.actionMenu ul li a {
   text-decoration: none;
   white-space: nowrap;
 }
-
-form dl dt {
-  font-weight: bold;
-}
-
-form dl dd div.fieldDescription {
-  font-size: 0.8em;
-  color: #999999;
-}
-
-#canvas {
-  width: 100%;
-  margin: 0 auto;
-  padding: 0;
-  text-align: center;
-}
-#main {
-  float: left;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  text-align: left;
-  display: inline;
-}
-
-/* top nav */
-.headerbar {
-  width: 100%;
-  height: 4em;
-  margin: 0;
-  padding: 0;
-}
-div.header_content {
-  height: 100%;
-  width: 100%;
-  text-align: center;
-  vertical-align:top;
-}
-#top_banner { 
-  vertical-align:text-top;
-  float:left;
-  font-size:150%;
-  padding-top:.8em;
-  padding-left: 10em;
-}
-#top_banner a {
-  color: #003399;
-}
-#top_banner a:hover {
-  text-decoration: none;
-  color: #fff;
-}
-
-#top_nav { 
-  font-weight: bolder; 
-  padding-top:1.2em; 
-  vertical-align: text-top; 
-  text-align:right;
-  float:right;
-  padding-right:1em;
-}
-#top_nav div {
-  float:left;
-}
-#top_nav a {
-  font-size: 1em; 
-  color: #666;
-  text-decoration: none;
-  border-bottom: 1px solid transparent; 
-  vertical-align: top;
-  text-align:center;
-}
-#top_nav a:hover {
-  color: #000;
-  text-decoration:none;
-  border-bottom: 1px dotted #333;
-  list-style-image: none;
-}
-
-
-
-#bottomnav {
-  font-size:x-small;
-  text-decoration:none;
-}
-#bottomnav a {
-  color:#444;
-}
-#bottomnav a:hover {
-  color:#9C1D46;
-}
-.copyright {
-  font-weight: normal;
-}
-#bottomnavcontainer {
-  font-size:7.5pt;
-  text-align:center;
-  color:#333;
-}
-#bottomnavcontainer a:hover{
-  color:#9C1D46;
-}
-.accesskeys a em,#bottomnav a em {
-  font-style:normal;
-  text-decoration:underline;
-}
-.bpfFooter  { 
-  font-size: 100%;
-  color: #444;
-  text-align: center;
-  width:100%;
-  font-weight: lighter;
-}
-.bpfFooter:hover { 
-  color: #000;
-}
-pre.bpfFooter {
-  font-family:Arial, Verdana, sans-serif;
-}
-/* scripalicious movable image styles */
-#imgList {
-  margin:0;
-  margin-top:5px;
-  padding:0;
-  list-style-type: none;
-  width:100%;
-}
-#imgList li {
-  float:left;
-  margin:0;
-  margin-top:2px;
-  padding:2px;
-  border:1px solid transparent;
-}
-#imgList li img {
-  border:3px solid transparent;
-  cursor: move;
-}
-  
-/* gallery fader styles */
-.rotateImgDIV {
-  position:absolute;
-  overflow:hidden;
-  padding:0;
-  margin:0;
-}
-.rotateTxtDIV {
-  position:absolute;
-  margin-left:2px;
-  margin-top:0;
-  color: #000;
-  font-size:130%;
-  background:#ccc;
-  /* display: none; */
-  filter:alpha(opacity=55); /* IE's opacity*/
-  -moz-opacity:.55;
-  opacity: 0.55;
-}
-
-/* autocomplete lists */
-div.autocomplete {
-  border:1px solid #808080;
-  background-color:#FFFFFF;
-  width: 15em;
-}
-div.autocomplete ul {
-  list-style-type:none;
-  margin:0px;
-  padding:0px;
-}
-div.autocomplete ul li.selected { 
-  background-color: #ffb;
-}
-div.autocomplete ul li {
-  list-style-type:none;
-  display:block;
-  margin:0;
-  padding:2px;
-  cursor:pointer;
-}
-
-
-/* page result number navigation */
-div.page {
-  background-color:transparent;
-  color:#CCC;
-  padding:0 2px;
-  margin: auto 1px;
-  vertical-align:middle;
-}
-div.page:hover {
-  background-color:#CCC;
-}
-div.page a:hover {
-  color:#9C1D46;
-  text-decoration:none;
-}
-div.thispage {
-  background-color:#9C1D46;
-  padding:0 3px 2px 2px;
-  vertical-align:middle;
-}
-div.thispage a {
-  color:#DDD;
-}
-div.thispage a:hover {
-  text-decoration:none;
-}
-
-/* next / prev and breadcrumb navigation */
-#prev {
-  position: relative;
-  left: 9px;
-  padding-top: 0.7em;
-  padding-left: 1.2em;
-  background-image:url(../images/right_blue_arrow.gif);
-  background-position: left;
-  background-repeat: no-repeat;
-  float: left;
-  height: 21px;
-  font-size: 80%;
-}
-#next {
-  padding-top: 0.7em;
-  padding-right: 1.2em;
-  background-image: url(../images/left_blue_arrow.gif);
-  background-position: right;
-  background-repeat: no-repeat;
-  text-align:right;
-  height: 21px;
-  font-size: 80%;
-}
-
-#breadcrumb {
-  border-bottom: 1px solid #999999;
-  padding: 9px 0 0 9px;
-  height: 21px;
-  font-size: 80%;
-}
-
-/* faq */
-.q {
-  font-weight: bold;
-  padding-top: 1.2em;
-  margin-bottom: .5em;
-  margin-top: 0;
-}
-
-.a {
-  padding-top: 0;
-  margin-top: 0;
-}
-
-/* api reference */
-#table-api {
-  margin-bottom: 4em;
-}
-#api-ref {
-  padding-left: 1.5em;
-  margin: 0;
-}
-
-.bodyContent li {
-  padding-bottom: .6em;
-  list-style-position: outside;
-  list-style-image: url(../images/left_blue_arrow.gif);
-}
-/* end table */
-#table-last {
-  margin-bottom: 4em;
-}
-
-/* demos page */
-.demo li {
-  line-height: 150%;
-  list-style-position: outside;
-}
-
-/* screen shots */
-.screenshot {
-  padding-bottom: .5em;
-}
-.screenshot img {
-  /* border: 1px solid #999; */
-  width: 560px;
-}
-
-/* external link */
-.external {
-  padding-right: 11px;
-  background: url(../images/external.png) top right no-repeat;
-  text-decoration: none;
-}
-
-/* code snippets using pre formatting */
-.precode {
-  font-family: Courier New;
-  white-space: -moz-pre-wrap;
-  white-space: -pre-wrap;
-  white-space: -o-pre-wrap;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-/* business application */
-.appDesc {
-  width: 100%;
-}
-.appDesc th {
-  text-align: left;
-}
-
-/* general */
-img {
-  border: none;
-  vertical-align:middle;
-  text-align:center;
-  padding:0;
-  margin:0;
-}
-tr {
-  vertical-align:top;
-}
-td {
-  text-align:left;
-  vertical-align:top;
-}
-a {
-  text-decoration:none;
-}
-a:hover {
-  text-decoration:underline;
-}
-p {
-  margin: 1em 0 1em 0;
-  padding: 0;
-  font-weight: normal;
-  line-height:150%;
-}
-h1 {
-  font-weight:bold;
-  font-size:140%;
-  margin-top:1em;
-  margin-bottom:.8em;
-  color:#000000;
-}
-a:hover h1 {
-  color: #003399;
-}
-h2 {
-  font-weight:bold;
-  font-size:120%;
-  margin-top:1em;
-  margin-bottom:.8em;
-  color:#000000;
-}
-
-a:hover h2 {
-  color: #003399;
-}
-h3 {
-  font-weight:bold;
-  font-size:110%;
-  margin-top:1.2em;
-  margin-bottom:.8em;
-  color:#000000;
-}
-a:hover h3 {
-  color: #003399;
-}
-
-h4 {
-  font-size:100%;
-}
-
-div.clear {
-  clear: both;
-}
-
-table {
-  border-collapse: collapse;
-}
-
-th {
-  font-weight: bold;
-  background-color: #eee;
-}
-  
-td, th {
-  border:1px solid black;
-  padding: .5em;
-}
-
-.clear {
-  float: none;
-  clear: both;
-}
-

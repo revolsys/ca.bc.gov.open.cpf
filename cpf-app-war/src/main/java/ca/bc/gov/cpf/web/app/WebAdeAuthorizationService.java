@@ -29,24 +29,31 @@ public class WebAdeAuthorizationService extends BaseAuthorizationService {
   private Map<String, Application> webAdeApplications = new HashMap<String, Application>();
 
   @Override
-  public boolean canAccessResource(final String businessApplicationName,
-    final String consumerKey, final String resourceClass,
+  public boolean canAccessResource(
+    final String businessApplicationName,
+    final String consumerKey,
+    final String resourceClass,
     final String resourceId) {
     return canAccessResource(businessApplicationName, consumerKey,
       resourceClass, resourceId, "any");
   }
 
   @Override
-  public boolean canAccessResource(final String businessApplicationName,
-    final String consumerKey, final String resourceClass,
-    final String resourceId, final String actionName) {
+  public boolean canAccessResource(
+    final String businessApplicationName,
+    final String consumerKey,
+    final String resourceClass,
+    final String resourceId,
+    final String actionName) {
     return canPerformAction(businessApplicationName, consumerKey, resourceClass
       + ":" + resourceId + ":" + actionName);
   }
 
   @Override
-  public boolean canPerformAction(final String businessApplicationName,
-    final String consumerKey, final String actionName) {
+  public boolean canPerformAction(
+    final String businessApplicationName,
+    final String consumerKey,
+    final String actionName) {
     final Application webAdeApplication = getWebAdeApplication(businessApplicationName);
     if (webAdeApplication == null) {
       return false;
@@ -77,7 +84,8 @@ public class WebAdeAuthorizationService extends BaseAuthorizationService {
 
   @Override
   public Map<String, Object> getUserAttributes(
-    final String businessApplicationName, final String consumerKey) {
+    final String businessApplicationName,
+    final String consumerKey) {
     final Map<String, Object> userAttributes = new LinkedHashMap<String, Object>();
     final WebADEUserInfo userInfo = getUserInfo(businessApplicationName,
       consumerKey);
@@ -99,48 +107,53 @@ public class WebAdeAuthorizationService extends BaseAuthorizationService {
     return userAttributes;
   }
 
-  protected UserCredentials getUserCredentials(
-    final String businessApplicationName, final String consumerKey) {
+  public UserCredentials getUserCredentials(
+    final String businessApplicationName,
+    final String consumerKey) {
+    WebADEUserInfo userInfo = getUserInfo(businessApplicationName,consumerKey);
+    return userInfo.getUserCredentials();
+  }
+
+  private UserCredentials getUserCredentials(final String consumerKey) {
     final UserCredentials userCredentials = new UserCredentials();
-    final String username = getUsername(consumerKey);
-    userCredentials.setUserGuid(new GUID(username));
+    userCredentials.setUserGuid(new GUID(consumerKey));
     return userCredentials;
   }
 
-  protected WebADEUserInfo getUserInfo(final String businessApplicationName,
+  public WebADEUserInfo getUserInfo(
+    final String businessApplicationName,
     final String consumerKey) {
-    final UserCredentials userCredentials = getUserCredentials(
-      businessApplicationName, consumerKey);
     try {
       final Application webAdeApplication = getWebAdeApplication(businessApplicationName);
       if (webAdeApplication == null) {
         return null;
       } else {
         final UserInfoService userInfoService = webAdeApplication.getUserInfoService();
-        final WebADEUserInfo userInfo = userInfoService.getWebADEUserInfo(userCredentials);
+        final UserCredentials userCredentials = getUserCredentials(consumerKey);
+           final WebADEUserInfo userInfo = userInfoService.getWebADEUserInfo(userCredentials);
         return userInfo;
       }
     } catch (final UserInfoServiceException e) {
       throw new RuntimeException("Unable to get WebADE user info for "
-        + userCredentials.getUserGuid(), e);
+        + consumerKey, e);
     }
   }
 
-  protected WebADEUserPermissions getUserPermissions(
-    final String businessApplicationName, final String consumerKey) {
-    final UserCredentials userCredentials = getUserCredentials(
-      businessApplicationName, consumerKey);
+  public WebADEUserPermissions getUserPermissions(
+    final String businessApplicationName,
+    final String consumerKey) {
     try {
       final Application webAdeApplication = getWebAdeApplication(businessApplicationName);
       if (webAdeApplication == null) {
         return null;
       } else {
-        final WebADEUserPermissions userPermissions = webAdeApplication.getWebADEUserPermissions(userCredentials);
+        final UserCredentials userCredentials = getUserCredentials(consumerKey);
+            final WebADEUserPermissions userPermissions = webAdeApplication.getWebADEUserPermissions(userCredentials);
         return userPermissions;
       }
     } catch (final WebADEException e) {
       throw new RuntimeException("Unable to get WebADE user permissions for "
-        + userCredentials.getUserGuid(), e);
+        + consumerKey, e);
     }
   }
 
@@ -164,7 +177,7 @@ public class WebAdeAuthorizationService extends BaseAuthorizationService {
           webAdeApplication = WebADEApplicationUtils.createApplication(businessApplicationName);
         } catch (final WebADEException e) {
           LOG.error("Unable to get WebADE application for "
-            + businessApplicationName);
+            + businessApplicationName, e);
         }
         webAdeApplications.put(businessApplicationName, webAdeApplication);
       }
@@ -173,8 +186,10 @@ public class WebAdeAuthorizationService extends BaseAuthorizationService {
   }
 
   @Override
-  public boolean isInGroup(final String businessApplicationName,
-    final String consumerKey, final String groupName) {
+  public boolean isInGroup(
+    final String businessApplicationName,
+    final String consumerKey,
+    final String groupName) {
     final Application webAdeApplication = getWebAdeApplication(businessApplicationName);
     if (webAdeApplication == null) {
       return false;
