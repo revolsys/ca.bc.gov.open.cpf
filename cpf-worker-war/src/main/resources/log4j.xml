@@ -11,7 +11,7 @@
   >
     <param
       name="file"
-      value="/apps_ux/logs/cpf/cpf-worker.log" />
+      value="/apps/apps_log4j/cpf/cpf-worker.log" />
     <param
       name="append"
       value="false" />

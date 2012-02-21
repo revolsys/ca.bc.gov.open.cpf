@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletContext;
 
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,15 +16,26 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.ServletContextAware;
 
 import ca.bc.gov.open.cpf.api.dao.UserAccountDao;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
+import ca.bc.gov.webade.Application;
+import ca.bc.gov.webade.http.HttpRequestUtils;
+import ca.bc.gov.webade.user.GUID;
 import ca.bc.gov.webade.user.UserCredentials;
+import ca.bc.gov.webade.user.WebADEUserInfo;
+import ca.bc.gov.webade.user.service.UserInfoService;
+import ca.bc.gov.webade.user.service.UserInfoServiceException;
 
-public class WebAdeUserDetailsService implements UserDetailsService {
+public class WebAdeUserDetailsService implements UserDetailsService,
+  ServletContextAware {
+
+  private Application application;
 
   /** The data access object for {@link UserAccount} objects. */
   private UserAccountDao userAccountDao;
@@ -55,18 +67,6 @@ public class WebAdeUserDetailsService implements UserDetailsService {
     return userDetailsChecker;
   }
 
-  private WebAdeAuthorizationService webAdeAuthorizationService;
-
-  public WebAdeAuthorizationService getWebAdeAuthorizationService() {
-    return webAdeAuthorizationService;
-  }
-
-  @Resource(name = "cpfSiteMinderAuthorizationService")
-  public void setWebAdeAuthorizationService(
-    WebAdeAuthorizationService webAdeAuthorizationService) {
-    this.webAdeAuthorizationService = webAdeAuthorizationService;
-  }
-
   /**
    * Load the external user which has the {@link #userAccountClass} and external
    * user name. If the user does not exist in the database create a new external
@@ -80,22 +80,34 @@ public class WebAdeUserDetailsService implements UserDetailsService {
   public UserDetails loadUserByUsername(final String consumerKey) {
     UserAccount user = userAccountDao.getByConsumerKey(consumerKey);
     if (user == null) {
-      UserCredentials userCredentials = webAdeAuthorizationService.getUserCredentials(
-        "CPF", consumerKey);
-      SecurityContext context = SecurityContextHolder.getContext();
-      String userAccountClass = "BCGOV_" + userCredentials.getUserTypeCode();
-      String userId = userCredentials.getSourceDirectory() + "\\"
-        + userCredentials.getAccountName();
+      try {
+        final UserInfoService userInfoService = application.getUserInfoService();
+        UserCredentials userCredentials = new UserCredentials();
+        userCredentials.setUserGuid(new GUID(consumerKey));
 
-      final String consumerSecret = UUID.randomUUID().toString();
-      user = new UserAccount();
-      user.setUserAccountName(userId);
-      user.setUserAccountClass(userAccountClass);
-      user.setConsumerKey(consumerKey);
-      user.setConsumerSecret(consumerSecret);
-      context.setAuthentication(new UsernamePasswordAuthenticationToken(
-        consumerKey, consumerSecret));
-      userAccountDao.persist(user);
+        final WebADEUserInfo userInfo = userInfoService.getWebADEUserInfo(userCredentials);
+        userCredentials = userInfo.getUserCredentials();
+
+        final SecurityContext context = SecurityContextHolder.getContext();
+        final String userAccountClass = "BCGOV_"
+          + userCredentials.getUserTypeCode();
+        final String userId = userCredentials.getSourceDirectory() + "\\"
+          + userCredentials.getAccountName();
+
+        final String consumerSecret = UUID.randomUUID().toString();
+        user = new UserAccount();
+        user.setUserAccountName(userId);
+        user.setUserAccountClass(userAccountClass);
+        user.setConsumerKey(consumerKey);
+        user.setConsumerSecret(consumerSecret);
+        final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+          consumerKey, consumerSecret);
+        context.setAuthentication(authentication);
+        userAccountDao.persist(user);
+      } catch (final UserInfoServiceException e) {
+        throw new UsernameNotFoundException("Unable to get user info for "
+          + consumerKey, e);
+      }
     }
     final String userName = user.getUserAccountName();
     final String userPassword = user.getConsumerSecret();
@@ -113,6 +125,11 @@ public class WebAdeUserDetailsService implements UserDetailsService {
       userDetailsChecker.check(userDetails);
     }
     return userDetails;
+  }
+
+  @Override
+  public void setServletContext(final ServletContext context) {
+    this.application = HttpRequestUtils.getApplication(context);
   }
 
   /**
