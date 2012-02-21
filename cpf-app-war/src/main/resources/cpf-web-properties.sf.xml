@@ -14,7 +14,7 @@
   <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
-    p:properties="file:/apps/app_config/cpf/cpf.properties" />
+    p:properties="file:/apps/config/cpf/cpf.properties" />
 
   <util:map
     id="cpfWebProperties"
@@ -22,7 +22,7 @@
   >
     <entry
       key="mavenRepository.root"
-      value="file:/apps_ux/cpf/repository/" />
+      value="file:${ca.bc.gov.cpf.repositoryDirectory}" />
 
     <entry key="mavenRepository.repositoryLocations">
       <list>
