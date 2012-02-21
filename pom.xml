@@ -46,7 +46,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <databaseVendor>oracle</databaseVendor>
-    <ca.bc.gov.open.cpf.plugin.directory>/apps_ux/cpf/plugins</ca.bc.gov.open.cpf.plugin.directory>
     <skipWebDeploy>true</skipWebDeploy>
   </properties>
 </project>
