@@ -22,7 +22,7 @@
   >
     <entry
       key="mavenRepository.root"
-      value="file:${ca.bc.gov.cpf.repositoryDirectory}" />
+      value="file://${ca.bc.gov.cpf.repositoryDirectory}" />
 
     <entry key="mavenRepository.repositoryLocations">
       <list>
