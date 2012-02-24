@@ -29,7 +29,7 @@
 
   <scm>
     <connection>scm:svn:http://poplar.idir.bcgov/svn/cpf/source/trunk/</connection>
-    <developerConnection>scm:svn:https://poplar.idir.bcgov:88/svn/cpf/source/trunk/</developerConnection>
+    <developerConnection>scm:svn:http://maps.bcgov:90/svn/cpf/source/trunk/</developerConnection>
     <url>https://apps.gov.bc.ca/gov/wsvn/TC7.cpf-source</url>
   </scm>
 
