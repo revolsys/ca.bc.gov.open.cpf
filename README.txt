@@ -1,27 +1,23 @@
 ********************************************************************************
-* gvws
+* Cloud Processing Framework
 *
-* $URL$
-* $Author$
-* $Date$
-* $Revision$
-* Release:       
-* Creation Date: 
+* $URL: https://poplar.idir.bcgov:88/svn/cpf/trunk/install/readme.txt $
+* $Author: cpf $
+* $Date: 2011-04-14 10:46:13 -0700 (Thu, 14 Apr 2011) $
+* $Revision: 34 $
+* Release: 2.0.0
 *
-* Modification History
-*                   
 ********************************************************************************
 
 OVERVIEW
 --------
-This file describes the steps to configure, build and install the gvws
-(1.0.0) plug-in to be deployed to the Cloud Processing Framework CPF running
-on a UNIX Oracle Application Server (10.1.3) and a Unix Oracle version 10g
-database.
+This file describes the steps to configure, build and install the Cloud
+Processing Framework (2.0.0) on a UNIX Oracle Application Server (10.1.3)
+and a Unix Oracle version 10g database.
 
 These instructions are for the Ministry's database administrator and Java
 Application Delivery Specialist, and assume familiarity with standard Oracle
-administrative functions. gvws is the officially assigned application short
+administrative functions. CPF is the officially assigned application short
 name.
 
 REQUIREMENTS
@@ -30,7 +26,7 @@ Prior to installing the application, the following requirements must be
 verified:
  - This installation assumes installation of the web application on Oracle 
    10g Release 3 (10.1.3)
- - the UNIX user gvws has been created and is using the Korn Shell (ksh).
+ - the UNIX user cpf has been created and is using the Korn Shell (ksh).
  - The Ant tool is installed on the Java Application Delivery Server and is
    available in the path.
  - Oracle must be installed and running on the server.
@@ -43,44 +39,28 @@ verified:
    set to the directory where J2SE is installed.
  - The application uses several new frameworks that are not accounted for in the
    standard.
- - The Cloud Processing Framework must be installed.
-
-ENHANCEMENTS
-------------
-1. 
-
-BUG FIXES
----------
-1.
- 
-MODIFIED COMPONENTS
--------------------
-1.
-
-
-OBSOLETE COMPONENTS
--------------------
-1.
-
-FILES IN THIS RELEASE
----------------------
-See subversion for a difference between this release and the last release
 
 INSTALLATION INSTRUCTIONS
 -------------------------
 
 1. LOGIN TO THE APPLICATION SERVER
 
-  ssh gvws@smolder.geobc.gov.bc.ca
+  ssh cpf@smolder.geobc.gov.bc.ca
     password = ********
+
+####### OC4j migration###
+
+undeploy from oc4j
+map to tomcat 7
+change perms on /apps_ux/logs/cpf and delete old logs
 
 2. DOWNLOAD SOURCE CODE FROM SUBVERSION
 
-cd /apps_ux/gvws
+cd /apps_ux/cpf
 
-If /apps_ux/gvws/source does not exist checkout the source from Subversion.
+If /apps_ux/cpf/source does not exist checkout the source from Subversion.
 
-svn co --username gvws https://poplar.idir.bcgov:88/svn/gvws/trunk/ source
+svn co --username cpf https://poplar.idir.bcgov:88/svn/cpf/trunk/ source
 
 NOTE: If prompted for a certificate validation error, accept the certificate
 permanently.
@@ -88,49 +68,40 @@ permanently.
 NOTE: If you are prompted to store the password encrypted enter yes. The
 directory the password is stored in can only be read by the current user.
 
-If /apps_ux/gvws/source does exist update it to the latest revision.
+If /apps_ux/cpf/source does exist update it to the latest revision.
 
 svn up source
 
 2. RUN THE DATABASE SCRIPTS
 
-************************************ DEVELOPER NOTE ****************************
-Delete any sections that are not applicable.
-********************************************************************************
-
 2.1. Run the DBA database scripts
 
-  cd /apps_ux/gvws/source/ddl
-  ./gvws-dba.sh GEODLV
+  cd /apps_ux/cpf/source/ddl
+  ./cpf-dba.sh GEODLV
 
 NOTE: If there were any errors STOP and contact the developer before continuing.
 The log file is in ../log/dba.log.
 
-************************************ DEVELOPER NOTE ****************************
-Edit gvws-dba.sh and gvws-dba-all.sql for your application, or delete them if
-they are not required.
 
-Change GEODLV to the TNS name or the database instance to deploy to in delivery.
-********************************************************************************
+2.2. Run the WebAde database scripts
 
-2.2. Run the application database scripts
+  cd /apps_ux/cpf/source/ddl
+  ./complete/cpf-webade.sh GEODLV
 
-  cd /apps_ux/gvws/source/ddl
-  ./ddl.sh GEODLV
+NOTE: If there were any errors STOP and contact the developer before continuing.
+The log file is in ../log/webade.log.
+
+2.3. Run the application database scripts
+
+  cd /apps_ux/cpf/source/ddl/complete
+  ./cpf-ddl.sh GEODLV
 
 NOTE: If there were any errors STOP and contact the developer before continuing.
 The log file is in ../log/ddl.log.
 
-************************************ DEVELOPER NOTE ****************************
-Edit ddl.sh and ddl-all.sql for your application, or delete them if
-they are not required.
-
-Change GEODLV to the TNS name or the database instance to deploy to in delivery.
-********************************************************************************
-
 3. CONFIGURE THE APPLICATION
 
-cd /apps_ux/gvws/source/config
+cd /apps_ux/cpf/source/config
 
 If default.properties does not exist copy the sample to create it.
 
@@ -142,43 +113,36 @@ vi default.properties
 
 The following property values must be configured for each environment.
 
-************************************ DEVELOPER NOTE ****************************
-Add a list of each property name and value in the format shown below, leave a
-blank line between each property.
+ca.bc.gov.cpf.app.serverUrl      The URL to the server cpf is deployed to
+ca.bc.gov.cpf.db.url             The JDBC URL to the cpf database
+ca.bc.gov.cpf.db.user            The PROXY_CPF_WEB user account (DON'T CHANGE)
+ca.bc.gov.cpf.db.password        The password for the PROXY_CPF_WEB user account
+ca.bc.gov.cpf.db.maxConnections  The maximum number of database connections
 
-propertyName - Description of the property, indent each line by 4 spaces if the
-   description wraps multiple lines.
-********************************************************************************
+ca.bc.gov.cpf.ws.consumerKey     The internal web service user (DON'T CHANGE)
+ca.bc.gov.cpf.ws.consumerSecret  The password for the internal web service user
+
+ca.bc.gov.cpf.fromEmail          The email address any emails will be sent from
+ca.bc.gov.cpf.mailServer         The mail server to send emails via
+
 
 4. CREATE DEPLOYMENT DIRECTORY
 
-If the /apps_ux/cpf/deployment/plugins/gvws/ directory does not exist follow
+If the /apps_ux/cpf/deployment/plugins/ directory does not exist follow
 these instructions to create it.
 
-cd /apps_ux/cpf/deployment/plugins
-mkdir gvws
-chmod 755 gvws
+mkdir -p /apps_ux/cpf/deployment/plugins
+chmod 775 /apps_ux/cpf/deployment/plugins
 
-5. BUILD AND DEPLOY PLUGIN
+5. BUILD AND DEPLOY
 
-Compile and deploy the plug-in to the CPF plug-ins directory.
+Compile and deploy the application to the OC4J server.
 
-  cd /apps_ux/gvws/source
+  cd /apps_ux/cpf/source
   ant
 
 NOTE: If there was an error compiling the application it will not be deployed.
 STOP and contact the developer before continuing.
-  
-6. RESTART THE CPF APPLICATION
-
-When a plug-in has been deployed the CPF web application must be restarted using
-the OC4j Enterprise Manager. There is no need to re-compile the CPF.
-
-1. Login to the OC4J enterprise manager.
-2. Select the Applications tab.
-3. Click on the cpf application.
-4. Click the Restart button.
-5. Click the Yes button.
 
 7. NOTIFICATION
 

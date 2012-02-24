@@ -2,10 +2,7 @@
 <project
   xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="
-    http://maven.apache.org/POM/4.0.0
-    http://maven.apache.org/maven-v4_0_0.xsd
-  "
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
   <parent>
@@ -13,11 +10,12 @@
     <artifactId>cpf-parent</artifactId>
     <version>3.0.0.DLV-SNAPSHOT</version>
   </parent>
-  <groupId>ca.bc.gov</groupId>
-  <artifactId>gvws</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
-  <name>Geometry Validation Web Service</name>
+  
+  <groupId>ca.bc.gov.cpf</groupId>
+  <artifactId>cpf</artifactId>
+  <packaging>pom</packaging>
+  <name>BCGOV Cloud Processing Framework</name>
+  <version>3.0.0.DLV-SNAPSHOT</version>
 
   <developers>
     <developer>
@@ -40,12 +38,14 @@
     <url>http://www.gov.bc.ca/</url>
   </organization>
 
-  <dependencies>
-    <dependency>
-      <groupId>ca.bc.gov.open.cpf</groupId>
-      <artifactId>cpf-api-plugin</artifactId>
-      <version>${ca.bc.gov.open.cpf.version}</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
+  <modules>
+    <module>cpf-app-war</module>
+    <module>cpf-worker-war</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <databaseVendor>oracle</databaseVendor>
+    <skipWebDeploy>true</skipWebDeploy>
+  </properties>
 </project>
