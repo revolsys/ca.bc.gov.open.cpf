@@ -40,31 +40,16 @@
       pattern="/j_spring_openid_security_check"
       access="permitAll" />
     <security:anonymous granted-authority="IS_AUTHENTICATED_ANONYMOUSLY" />
-    <security:custom-filter
-      ref="cpfSiteminderLogoutFilter"
-      position="LOGOUT_FILTER" />
+    <security:logout
+      logout-url="/secure/logout"
+      invalidate-session="true"
+      success-handler-ref="cpfSiteminderLogoutSuccess" />
   </security:http>
 
   <bean
-    id="cpfSiteminderLogoutFilter"
-    class="org.springframework.security.web.authentication.logout.LogoutFilter"
-    p:filterProcessesUrl="/secure/logout"
-  >
-    <constructor-arg
-      index="0"
-      value="/secure/ws/" />
-    <constructor-arg index="1">
-      <list>
-        <bean
-          class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler" />
-        <ref bean="cpfSiteminderLogoutHandler" />
-      </list>
-    </constructor-arg>
-  </bean>
-
-  <bean
-    id="cpfSiteminderLogoutHandler"
-    class="ca.bc.gov.cpf.web.app.WebAdeLogout" />
+    id="cpfSiteminderLogoutSuccess"
+    class="ca.bc.gov.cpf.web.app.SiteminderLogout"
+    p:logoutUrl="/secure/ws/" />
 
   <bean
     id="cpfSiteminderSpringSecurityContext"
@@ -77,8 +62,7 @@
 
   <bean
     id="cpfSiteminderFilter"
-    class="org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter"
-    p:principalRequestHeader="SMGOV_USERGUID"
+    class="ca.bc.gov.cpf.web.app.SiteminderAuthenticationFilter"
     p:authenticationManager-ref="cpfSiteminderAuthenticationManager" />
 
   <bean
@@ -97,7 +81,7 @@
 
   <bean
     id="cpfSiteminderUserDetailsService"
-    class="ca.bc.gov.cpf.web.app.WebAdeUserDetailsService"
+    class="ca.bc.gov.cpf.web.app.SiteminderUserDetailsService"
     p:UserAccountDao-ref="ca.bc.gov.open.cpf.api.domain.UserAccount-dao"
     p:userAccountSecurityService-ref="userAccountSecurityService" />
 
@@ -116,9 +100,4 @@
       </list>
     </property>
   </bean>
-  
-  <bean
-   id="cpfSiteMinderAuthorizationService"
-              class="ca.bc.gov.cpf.web.app.WebAdeAuthorizationService"
-              p:UserAccountDao-ref="ca.bc.gov.open.cpf.api.domain.UserAccount-dao" />
 </beans>

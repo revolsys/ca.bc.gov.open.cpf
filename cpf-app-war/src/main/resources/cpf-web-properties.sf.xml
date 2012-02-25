@@ -12,9 +12,14 @@
   "
 >
   <bean
+    id="bcgovGlobalProperties"
+    class="com.revolsys.collection.AttributeMap"
+    p:properties="file:///apps/config/global.properties" />
+    
+  <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
-    p:properties="file:/apps/config/cpf/cpf.properties" />
+    p:properties="file:///apps/config/cpf/cpf.properties" />
 
   <util:map
     id="cpfWebProperties"
@@ -28,18 +33,6 @@
       <list>
         <value>http://apps.gov.bc.ca/gov/artifactory/repo/</value>
       </list>
-    </entry>
-
-    <entry key="batchJobService.authorizationService">
-      <bean
-        class="ca.bc.gov.open.cpf.api.security.service.ChainedAuthorizationService"
-      >
-        <property name="authorizationServices">
-          <list>
-            <ref bean="cpfSiteMinderAuthorizationService" />
-          </list>
-        </property>
-      </bean>
     </entry>
 
     <entry

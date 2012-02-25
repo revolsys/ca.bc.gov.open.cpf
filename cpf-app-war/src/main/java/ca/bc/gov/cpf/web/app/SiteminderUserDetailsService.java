@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,24 +16,16 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.ServletContextAware;
 
 import ca.bc.gov.open.cpf.api.dao.UserAccountDao;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
-import ca.bc.gov.webade.Application;
-import ca.bc.gov.webade.http.HttpRequestUtils;
-import ca.bc.gov.webade.user.GUID;
-import ca.bc.gov.webade.user.UserCredentials;
-import ca.bc.gov.webade.user.WebADEUserInfo;
-import ca.bc.gov.webade.user.service.UserInfoService;
-import ca.bc.gov.webade.user.service.UserInfoServiceException;
 
-public class WebAdeUserDetailsService implements UserDetailsService,
-  ServletContextAware {
+import com.revolsys.ui.web.utils.HttpRequestUtils;
+
+public class SiteminderUserDetailsService implements UserDetailsService {
 
   /** The data access object for {@link UserAccount} objects. */
   private UserAccountDao userAccountDao;
@@ -42,8 +34,6 @@ public class WebAdeUserDetailsService implements UserDetailsService,
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
   private UserAccountSecurityService userAccountSecurityService;
-
-  private ServletContext context;
 
   /**
    * Get the data access object for {@link UserAccount} objects.
@@ -77,39 +67,27 @@ public class WebAdeUserDetailsService implements UserDetailsService,
    */
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public UserDetails loadUserByUsername(final String consumerKey) {
+  public UserDetails loadUserByUsername(String consumerKey) {
     UserAccount user = userAccountDao.getByConsumerKey(consumerKey);
     if (user == null) {
-      try {
-        final UserInfoService userInfoService = getApplication().getUserInfoService();
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUserGuid(new GUID(consumerKey));
+      HttpServletRequest request = HttpRequestUtils.getHttpServletRequest();
 
-        final WebADEUserInfo userInfo = userInfoService.getWebADEUserInfo(userCredentials);
-        userCredentials = userInfo.getUserCredentials();
+      final SecurityContext context = SecurityContextHolder.getContext();
+      final String userAccountClass = "BCGOV";
+      final String userId = request.getHeader("SMGOV_USERGUID");
 
-        final SecurityContext context = SecurityContextHolder.getContext();
-        final String userAccountClass = "BCGOV_"
-          + userCredentials.getUserTypeCode();
-        final String userId = userCredentials.getSourceDirectory() + "\\"
-          + userCredentials.getAccountName();
-
-        final String consumerSecret = UUID.randomUUID().toString();
-        user = new UserAccount();
-        user.setUserAccountName(userId);
-        user.setUserAccountClass(userAccountClass);
-        user.setConsumerKey(consumerKey);
-        user.setConsumerSecret(consumerSecret);
-        final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-          consumerKey, consumerSecret);
-        context.setAuthentication(authentication);
-        userAccountDao.persist(user);
-      } catch (final UserInfoServiceException e) {
-        throw new UsernameNotFoundException("Unable to get user info for "
-          + consumerKey, e);
-      }
+      final String consumerSecret = UUID.randomUUID().toString();
+      user = new UserAccount();
+      user.setUserAccountName(userId);
+      user.setUserAccountClass(userAccountClass);
+      user.setConsumerKey(consumerKey);
+      user.setConsumerSecret(consumerSecret);
+      final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+        consumerKey, consumerSecret);
+      context.setAuthentication(authentication);
+      userAccountDao.persist(user);
     }
-    final String userName = user.getUserAccountName();
+    final String userName = user.getConsumerKey();
     final String userPassword = user.getConsumerSecret();
     final boolean active = user.isActive();
     Collection<GrantedAuthority> authorities;
@@ -125,15 +103,6 @@ public class WebAdeUserDetailsService implements UserDetailsService,
       userDetailsChecker.check(userDetails);
     }
     return userDetails;
-  }
-
-  @Override
-  public void setServletContext(final ServletContext context) {
-    this.context = context;
-  }
-
-  private Application getApplication() {
-    return HttpRequestUtils.getApplication(context);
   }
 
   /**
