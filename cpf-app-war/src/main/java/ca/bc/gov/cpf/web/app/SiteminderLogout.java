@@ -4,19 +4,19 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.util.StringUtils;
 
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.util.UrlUtil;
 
-public class WebAdeLogout implements LogoutHandler {
+public class SiteminderLogout implements LogoutSuccessHandler {
   private String logoutUrl;
 
   public String getLogoutUrl() {
@@ -28,14 +28,10 @@ public class WebAdeLogout implements LogoutHandler {
   }
 
   @Override
-  public void logout(
+  public void onLogoutSuccess(
     HttpServletRequest request,
     HttpServletResponse response,
-    Authentication authentication) {
-    HttpSession session = request.getSession(false);
-    if (session != null) {
-      session.invalidate();
-    }
+    Authentication authentication) throws IOException, ServletException {
     for (Cookie cookie : request.getCookies()) {
       if (cookie.getName().equals("WEBADEUSERGUID")) {
         cookie.setPath("/");
@@ -48,11 +44,8 @@ public class WebAdeLogout implements LogoutHandler {
       Map<String, String> parameters = new LinkedHashMap<String, String>();
       parameters.put("returl", Page.getAbsoluteUrl("/secure/"));
       parameters.put("retname", "Cloud Processing Framework");
-      String url = UrlUtil.getUrl(logoutUrl, parameters);
-      try {
-        response.sendRedirect(url);
-      } catch (IOException e) {
-      }
+      String url = UrlUtil.getUrl(Page.getAbsoluteUrl(logoutUrl), parameters);
+      response.sendRedirect(url);
     }
   }
 }

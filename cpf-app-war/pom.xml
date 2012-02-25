@@ -37,21 +37,6 @@
       <version>11.2.0.3</version>
     </dependency>
     <dependency>
-      <groupId>ca.bc.gov</groupId>
-      <artifactId>webade</artifactId>
-      <version>4.2.0</version>
-    </dependency>
-    <dependency>
-      <groupId>ca.bc.gov</groupId>
-      <artifactId>webade-user</artifactId>
-      <version>4.2.0</version>
-    </dependency>
-    <dependency>
-      <groupId>ca.bc.gov</groupId>
-      <artifactId>webade-developer</artifactId>
-      <version>4.2.0</version>
-    </dependency>
-    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.4</version>

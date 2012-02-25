@@ -32,12 +32,5 @@
         <value>userAccountSecurityService</value>
       </list>
     </property>
-    <property
-      name="exportBeanNames"
-    >
-      <list>
-        <value>cpfSiteMinderAuthorizationService</value>
-      </list>
-    </property>
   </bean>
 </beans>

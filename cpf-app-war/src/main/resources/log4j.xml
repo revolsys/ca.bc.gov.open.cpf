@@ -24,13 +24,6 @@
       value="ERROR" />
   </logger>
 
-  <logger
-    name="ca.bc.gov.webade"
-  >
-    <level
-      value="ERROR" />
-  </logger>
-
   <root >
     <level value="ERROR" />
     <appender-ref ref="FileLog"/>
