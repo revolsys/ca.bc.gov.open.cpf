@@ -84,6 +84,16 @@ public class SiteminderUserDetailsService implements UserDetailsService {
       userName = request.getHeader("SM_UNIVERSALID");
       userName = userName.replace('\\', ':');
       userName = userName.replace('/', ':');
+      int index = userName.indexOf(':');
+      if (index == -1) {
+        if (userType.equalsIgnoreCase("INTERNAL")) {
+          userName = "IDIR:" + userName;
+        } else if (userType.equalsIgnoreCase("BUSINESS")) {
+          userName = "BCEID:" + userName;
+        } else {
+          userName = "MYID:" + userName;
+        }
+      }
 
       final String consumerSecret = UUID.randomUUID().toString();
       user = new UserAccount();
