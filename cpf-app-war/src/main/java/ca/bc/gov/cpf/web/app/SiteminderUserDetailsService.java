@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -18,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.dao.UserAccountDao;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -57,6 +59,8 @@ public class SiteminderUserDetailsService implements UserDetailsService {
     return userDetailsChecker;
   }
 
+  private static final String USER_ACCOUNT_CLASS = "BCGOV";
+
   /**
    * Load the external user which has the {@link #userAccountClass} and external
    * user name. If the user does not exist in the database create a new external
@@ -67,34 +71,59 @@ public class SiteminderUserDetailsService implements UserDetailsService {
    */
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public UserDetails loadUserByUsername(String consumerKey) {
-    UserAccount user = userAccountDao.getByConsumerKey(consumerKey);
+  public UserDetails loadUserByUsername(String userGuid) {
+    UserAccount user = userAccountDao.getByUserAccountName(USER_ACCOUNT_CLASS,
+      userGuid);
+
+    String userName;
+    String userType = null;
     if (user == null) {
       HttpServletRequest request = HttpRequestUtils.getHttpServletRequest();
-
+      userType = request.getHeader("SMGOV_USERTYPE");
       final SecurityContext context = SecurityContextHolder.getContext();
-      final String userAccountClass = "BCGOV";
-      final String userId = request.getHeader("SMGOV_USERGUID");
+      userName = request.getHeader("SM_UNIVERSALID");
+      userName = userName.replace('\\', ':');
+      userName = userName.replace('/', ':');
 
       final String consumerSecret = UUID.randomUUID().toString();
       user = new UserAccount();
-      user.setUserAccountName(userId);
-      user.setUserAccountClass(userAccountClass);
-      user.setConsumerKey(consumerKey);
+      user.setUserAccountName(userGuid);
+      user.setUserAccountClass(USER_ACCOUNT_CLASS);
+      user.setConsumerKey(userName);
       user.setConsumerSecret(consumerSecret);
       final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-        consumerKey, consumerSecret);
+        userName, consumerSecret);
       context.setAuthentication(authentication);
       userAccountDao.persist(user);
+    } else {
+      userName = user.getConsumerKey();
+
     }
-    final String userName = user.getConsumerKey();
+    if (StringUtils.hasText(userType)) {
+      userType = userType.toUpperCase();
+    } else {
+      int index = userName.indexOf(':');
+      if (index == -1) {
+        userType = "INDIVIDUAL";
+      } else {
+        String userTypeCode = userName.substring(0, index);
+        if (userTypeCode.equalsIgnoreCase("IDIR")) {
+          userType = "INTERNAL";
+        } else if (userTypeCode.equalsIgnoreCase("BCEID")) {
+          userType = "BUSINESS";
+        } else {
+          userType = "INDIVIDUAL";
+        }
+      }
+    }
     final String userPassword = user.getConsumerSecret();
     final boolean active = user.isActive();
     Collection<GrantedAuthority> authorities;
     if (userAccountSecurityService == null) {
       authorities = new ArrayList<GrantedAuthority>();
     } else {
-      authorities = userAccountSecurityService.getGrantedAuthorities(consumerKey);
+      authorities = userAccountSecurityService.getGrantedAuthorities(user);
+      authorities.add(new GrantedAuthorityImpl("ROLE_BCGOV_" + userType));
     }
     final User userDetails = new User(userName, userPassword, active, true,
       true, true, authorities);
