@@ -16,13 +16,12 @@ public class SiteminderAuthenticationFilter extends
    *           {@code true}.
    */
   protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-    String principal = request.getHeader("SM_USER");
+    String principal = request.getHeader("SMGOV_USERGUID");
     if (principal == null) {
       throw new PreAuthenticatedCredentialsNotFoundException(
         " SM_USER header not found in request.");
     } else {
-      String user = principal.replace('\\', ':');
-      return user;
+      return principal;
     }
   }
 
