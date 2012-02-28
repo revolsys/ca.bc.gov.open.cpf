@@ -48,8 +48,7 @@
 
   <bean
     id="cpfSiteminderLogoutSuccess"
-    class="ca.bc.gov.cpf.web.app.SiteminderLogout"
-    p:logoutUrl="/secure/ws/" />
+    class="ca.bc.gov.cpf.web.app.SiteminderLogout" />
 
   <bean
     id="cpfSiteminderSpringSecurityContext"
@@ -83,6 +82,7 @@
     id="cpfSiteminderUserDetailsService"
     class="ca.bc.gov.cpf.web.app.SiteminderUserDetailsService"
     p:UserAccountDao-ref="ca.bc.gov.open.cpf.api.domain.UserAccount-dao"
+    p:UserGroupDao-ref="ca.bc.gov.open.cpf.api.domain.UserGroup-dao"
     p:userAccountSecurityService-ref="userAccountSecurityService" />
 
   <bean

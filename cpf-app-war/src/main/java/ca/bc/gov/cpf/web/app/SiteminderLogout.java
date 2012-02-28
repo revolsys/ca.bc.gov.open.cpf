@@ -1,7 +1,9 @@
 package ca.bc.gov.cpf.web.app;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -17,6 +19,9 @@ import com.revolsys.ui.web.config.Page;
 import com.revolsys.util.UrlUtil;
 
 public class SiteminderLogout implements LogoutSuccessHandler {
+  private static final List<String> DELETE_COOKIES = Arrays.asList(
+    "WEBADEUSERGUID", "SMSESSION");
+
   private String logoutUrl;
 
   public String getLogoutUrl() {
@@ -33,19 +38,21 @@ public class SiteminderLogout implements LogoutSuccessHandler {
     HttpServletResponse response,
     Authentication authentication) throws IOException, ServletException {
     for (Cookie cookie : request.getCookies()) {
-      if (cookie.getName().equals("WEBADEUSERGUID")) {
+      if (DELETE_COOKIES.contains(cookie.getName())) {
         cookie.setPath("/");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
       }
     }
 
+    String url = Page.getAbsoluteUrl("/secure/");
+
     if (StringUtils.hasText(logoutUrl)) {
       Map<String, String> parameters = new LinkedHashMap<String, String>();
-      parameters.put("returl", Page.getAbsoluteUrl("/secure/"));
+      parameters.put("returl", url);
       parameters.put("retname", "Cloud Processing Framework");
-      String url = UrlUtil.getUrl(Page.getAbsoluteUrl(logoutUrl), parameters);
-      response.sendRedirect(url);
+      url = UrlUtil.getUrl(Page.getAbsoluteUrl(logoutUrl), parameters);
     }
+    response.sendRedirect(url);
   }
 }
