@@ -61,5 +61,9 @@
     <entry
       key="adminSideMenu.uri"
       value="http://www.gov.bc.ca/" />
+
+    <entry
+      key="cpfSiteminderLogoutSuccess.logoutUrl"
+      value="https://logon.gov.bc.ca/clp-cgi/logoff.cgi" />
   </util:map>
 </beans>

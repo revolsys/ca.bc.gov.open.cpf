@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -19,23 +20,29 @@ import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.dao.UserAccountDao;
+import ca.bc.gov.open.cpf.api.dao.UserGroupDao;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
+import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
 import com.revolsys.ui.web.utils.HttpRequestUtils;
 
 public class SiteminderUserDetailsService implements UserDetailsService {
 
+  private static final String USER_ACCOUNT_CLASS = "BCGOV";
+
   /** The data access object for {@link UserAccount} objects. */
   private UserAccountDao userAccountDao;
+
+  private UserAccountSecurityService userAccountSecurityService;
 
   /** The class to use to check that the user is valid. */
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
-  private UserAccountSecurityService userAccountSecurityService;
+  /** The data access object for {@link UserGroup} objects. */
+  private UserGroupDao userGroupDao;
 
   /**
    * Get the data access object for {@link UserAccount} objects.
@@ -59,7 +66,9 @@ public class SiteminderUserDetailsService implements UserDetailsService {
     return userDetailsChecker;
   }
 
-  private static final String USER_ACCOUNT_CLASS = "BCGOV";
+  public UserGroupDao getUserGroupDao() {
+    return userGroupDao;
+  }
 
   /**
    * Load the external user which has the {@link #userAccountClass} and external
@@ -71,27 +80,23 @@ public class SiteminderUserDetailsService implements UserDetailsService {
    */
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public UserDetails loadUserByUsername(String userGuid) {
+  public UserDetails loadUserByUsername(final String userGuid) {
     UserAccount user = userAccountDao.getByUserAccountName(USER_ACCOUNT_CLASS,
       userGuid);
 
-    String userName;
-    String userType = null;
+    String username;
     if (user == null) {
-      HttpServletRequest request = HttpRequestUtils.getHttpServletRequest();
-      userType = request.getHeader("SMGOV_USERTYPE");
+      final HttpServletRequest request = HttpRequestUtils.getHttpServletRequest();
+      final String userType = request.getHeader("SMGOV_USERTYPE");
       final SecurityContext context = SecurityContextHolder.getContext();
-      userName = request.getHeader("SM_UNIVERSALID");
-      userName = userName.replace('\\', ':');
-      userName = userName.replace('/', ':');
-      int index = userName.indexOf(':');
+      username = request.getHeader("SM_UNIVERSALID").toLowerCase();
+      username = username.replace('\\', ':');
+      final int index = username.indexOf(':');
       if (index == -1) {
         if (userType.equalsIgnoreCase("INTERNAL")) {
-          userName = "IDIR:" + userName;
-        } else if (userType.equalsIgnoreCase("BUSINESS")) {
-          userName = "BCEID:" + userName;
+          username = "idir:" + username;
         } else {
-          userName = "MYID:" + userName;
+          username = "bceid:" + username;
         }
       }
 
@@ -99,33 +104,17 @@ public class SiteminderUserDetailsService implements UserDetailsService {
       user = new UserAccount();
       user.setUserAccountName(userGuid);
       user.setUserAccountClass(USER_ACCOUNT_CLASS);
-      user.setConsumerKey(userName);
+      user.setConsumerKey(username);
       user.setConsumerSecret(consumerSecret);
       final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-        userName, consumerSecret);
+        username, consumerSecret);
       context.setAuthentication(authentication);
       userAccountDao.persist(user);
     } else {
-      userName = user.getConsumerKey();
+      username = user.getConsumerKey();
 
     }
-    if (StringUtils.hasText(userType)) {
-      userType = userType.toUpperCase();
-    } else {
-      int index = userName.indexOf(':');
-      if (index == -1) {
-        userType = "INDIVIDUAL";
-      } else {
-        String userTypeCode = userName.substring(0, index);
-        if (userTypeCode.equalsIgnoreCase("IDIR")) {
-          userType = "INTERNAL";
-        } else if (userTypeCode.equalsIgnoreCase("BCEID")) {
-          userType = "BUSINESS";
-        } else {
-          userType = "INDIVIDUAL";
-        }
-      }
-    }
+
     final String userPassword = user.getConsumerSecret();
     final boolean active = user.isActive();
     Collection<GrantedAuthority> authorities;
@@ -133,9 +122,16 @@ public class SiteminderUserDetailsService implements UserDetailsService {
       authorities = new ArrayList<GrantedAuthority>();
     } else {
       authorities = userAccountSecurityService.getGrantedAuthorities(user);
-      authorities.add(new GrantedAuthorityImpl("ROLE_BCGOV_" + userType));
+      String userTypeRole;
+      if (username.startsWith("idir:")) {
+        userTypeRole = "ROLE_BCGOV_INTERNAL";
+      } else {
+        userTypeRole = "ROLE_BCGOV_EXTERNAL";
+      }
+      authorities.add(new GrantedAuthorityImpl(userTypeRole));
+
     }
-    final User userDetails = new User(userName, userPassword, active, true,
+    final User userDetails = new User(username, userPassword, active, true,
       true, true, authorities);
 
     if (userDetailsChecker != null) {
@@ -154,6 +150,16 @@ public class SiteminderUserDetailsService implements UserDetailsService {
     this.userAccountDao = userAccountDao;
   }
 
+  @PostConstruct
+  public void init() {
+    UserGroup.createUserGroup(userGroupDao, "USER_TYPE", "ROLE_BCGOV",
+      "BC Government All Users");
+    UserGroup.createUserGroup(userGroupDao, "USER_TYPE", "ROLE_BCGOV_INTERNAL",
+      "BC Government Internal Users");
+    UserGroup.createUserGroup(userGroupDao, "USER_TYPE", "ROLE_BCGOV_EXTERNAL",
+      "BC Government External Users");
+  }
+
   @Resource(name = "userAccountSecurityService")
   public void setUserAccountSecurityService(
     final UserAccountSecurityService userAccountSecurityService) {
@@ -167,5 +173,9 @@ public class SiteminderUserDetailsService implements UserDetailsService {
    */
   public void setUserDetailsChecker(final UserDetailsChecker userDetailsChecker) {
     this.userDetailsChecker = userDetailsChecker;
+  }
+
+  public void setUserGroupDao(final UserGroupDao userGroupDao) {
+    this.userGroupDao = userGroupDao;
   }
 }
