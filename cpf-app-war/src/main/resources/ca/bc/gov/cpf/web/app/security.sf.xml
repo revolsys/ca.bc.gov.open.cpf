@@ -96,6 +96,9 @@
           class="org.springframework.security.web.access.expression.WebExpressionVoter" />
         <bean
           class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
+          p:prefix="/ws/users/" />
+        <bean
+          class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
           p:prefix="/secure/ws/users/" />
       </list>
     </property>
