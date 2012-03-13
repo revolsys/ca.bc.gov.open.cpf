@@ -22,16 +22,16 @@
     </layout>
   </appender>
 
-  <logger name="ca.bc.gov">
+  <logger name="ca.bc.gov.cpf">
+    <level value="INFO" />
+  </logger>
+
+  <logger name="ca.bc.gov.open.cpf">
     <level value="INFO" />
   </logger>
 
   <logger name="ca.bc.gov.open.cpf.client.api.httpclient">
     <level value="ERROR" />
-  </logger>
-
-  <logger name="ca.bc.gov.open.cpf.module">
-    <level value="INFO" />
   </logger>
 
   <root>
