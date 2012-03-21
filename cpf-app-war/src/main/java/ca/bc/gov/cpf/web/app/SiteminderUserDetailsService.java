@@ -1,6 +1,5 @@
 package ca.bc.gov.cpf.web.app;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -8,6 +7,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +30,12 @@ import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 import com.revolsys.ui.web.utils.HttpRequestUtils;
 
 public class SiteminderUserDetailsService implements UserDetailsService {
+
+  private static final String ROLE_BCGOV = "ROLE_BCGOV";
+
+  private static final String ROLE_BCGOV_EXTERNAL = "ROLE_BCGOV_EXTERNAL";
+
+  private static final String ROLE_BCGOV_INTERNAL = "ROLE_BCGOV_INTERNAL";
 
   private static final String USER_ACCOUNT_CLASS = "BCGOV";
 
@@ -68,6 +74,16 @@ public class SiteminderUserDetailsService implements UserDetailsService {
 
   public UserGroupDao getUserGroupDao() {
     return userGroupDao;
+  }
+
+  @PostConstruct
+  public void init() {
+    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
+      "BCGOV", "BC Government All Users");
+    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
+      "BCGOV_INTERNAL", "BC Government Internal Users");
+    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
+      "BCGOV_EXTERNAL", "BC Government External Users");
   }
 
   /**
@@ -117,20 +133,16 @@ public class SiteminderUserDetailsService implements UserDetailsService {
 
     final String userPassword = user.getConsumerSecret();
     final boolean active = user.isActive();
-    Collection<GrantedAuthority> authorities;
-    if (userAccountSecurityService == null) {
-      authorities = new ArrayList<GrantedAuthority>();
-    } else {
-      authorities = userAccountSecurityService.getGrantedAuthorities(user);
-      String userTypeRole;
-      if (username.startsWith("idir:")) {
-        userTypeRole = "ROLE_BCGOV_INTERNAL";
-      } else {
-        userTypeRole = "ROLE_BCGOV_EXTERNAL";
-      }
-      authorities.add(new GrantedAuthorityImpl(userTypeRole));
+    Collection<GrantedAuthority> authorities = userAccountSecurityService.getGrantedAuthorities(user);
 
+    String userTypeRole;
+    if (username.startsWith("idir:")) {
+      userTypeRole = ROLE_BCGOV_INTERNAL;
+    } else {
+      userTypeRole = ROLE_BCGOV_EXTERNAL;
     }
+    authorities.add(new GrantedAuthorityImpl(userTypeRole));
+    authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV));
     final User userDetails = new User(username, userPassword, active, true,
       true, true, authorities);
 
@@ -150,17 +162,8 @@ public class SiteminderUserDetailsService implements UserDetailsService {
     this.userAccountDao = userAccountDao;
   }
 
-  @PostConstruct
-  public void init() {
-    UserGroup.createUserGroup(userGroupDao, "USER_TYPE", "ROLE_BCGOV",
-      "BC Government All Users");
-    UserGroup.createUserGroup(userGroupDao, "USER_TYPE", "ROLE_BCGOV_INTERNAL",
-      "BC Government Internal Users");
-    UserGroup.createUserGroup(userGroupDao, "USER_TYPE", "ROLE_BCGOV_EXTERNAL",
-      "BC Government External Users");
-  }
-
   @Resource(name = "userAccountSecurityService")
+  @Required
   public void setUserAccountSecurityService(
     final UserAccountSecurityService userAccountSecurityService) {
     this.userAccountSecurityService = userAccountSecurityService;
