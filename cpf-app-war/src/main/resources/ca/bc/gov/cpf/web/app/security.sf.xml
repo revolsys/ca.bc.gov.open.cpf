@@ -23,10 +23,16 @@
     security-context-repository-ref="cpfSiteminderSpringSecurityContext"
     entry-point-ref="cpfSiteminderEntryPoint"
     access-decision-manager-ref="cpfSiteminderAccessDecisionManager"
+
   >
+
     <security:custom-filter
       position="PRE_AUTH_FILTER"
       ref="cpfSiteminderFilter" />
+
+    <security:intercept-url
+      pattern="/secure/admin/**"
+      access="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />
 
     <security:intercept-url
       pattern="/secure/ws/internal/**"
@@ -93,7 +99,13 @@
     <property name="decisionVoters">
       <list>
         <bean
-          class="org.springframework.security.web.access.expression.WebExpressionVoter" />
+          class="org.springframework.security.web.access.expression.WebExpressionVoter"
+        >
+          <property name="expressionHandler">
+            <bean
+              class="com.revolsys.spring.security.DefaultWebSecurityExpressionHandler" />
+          </property>
+        </bean>
         <bean
           class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
           p:prefix="/ws/users/" />
