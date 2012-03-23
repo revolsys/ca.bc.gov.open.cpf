@@ -1,6 +1,8 @@
 package ca.bc.gov.cpf.web.app;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
@@ -25,17 +27,25 @@ import ca.bc.gov.open.cpf.api.dao.UserAccountDao;
 import ca.bc.gov.open.cpf.api.dao.UserGroupDao;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
+import ca.bc.gov.open.cpf.api.security.service.GrantedAuthorityService;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
 import com.revolsys.ui.web.utils.HttpRequestUtils;
 
-public class SiteminderUserDetailsService implements UserDetailsService {
+public class SiteminderUserDetailsService implements UserDetailsService,
+  GrantedAuthorityService {
 
-  private static final String ROLE_BCGOV = "ROLE_BCGOV";
+  private static final String ROLE_BCGOV_ALL = "ROLE_BCGOV_ALL";
 
   private static final String ROLE_BCGOV_EXTERNAL = "ROLE_BCGOV_EXTERNAL";
 
   private static final String ROLE_BCGOV_INTERNAL = "ROLE_BCGOV_INTERNAL";
+
+  private static final String ROLE_BCGOV_BUSINESS = "ROLE_BCGOV_BUSINESS";
+
+  private static final String ROLE_BCGOV_INDIVIDUAL = "ROLE_BCGOV_INDIVIDUAL";
+
+  private static final String ROLE_BCGOV_VERIFIED_INDIVIDUAL = "ROLE_BCGOV_VERIFIED_INDIVIDUAL";
 
   private static final String USER_ACCOUNT_CLASS = "BCGOV";
 
@@ -49,6 +59,32 @@ public class SiteminderUserDetailsService implements UserDetailsService {
 
   /** The data access object for {@link UserGroup} objects. */
   private UserGroupDao userGroupDao;
+
+  @Override
+  public List<GrantedAuthority> getGrantedAuthorities(
+    final UserAccount userAccount) {
+    final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    if (userAccount.getUserAccountClass().equals(USER_ACCOUNT_CLASS)) {
+      final String username = userAccount.getConsumerKey();
+      if (username.startsWith("idir:")) {
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_INTERNAL));
+      } else if (username.startsWith("bceid:")) {
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_EXTERNAL));
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_BUSINESS));
+      } else if (username.startsWith("vin:")) {
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_EXTERNAL));
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_VERIFIED_INDIVIDUAL));
+      } else if (username.startsWith("ind:")) {
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_EXTERNAL));
+        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_INDIVIDUAL));
+      }
+    }
+    return authorities;
+  }
 
   /**
    * Get the data access object for {@link UserAccount} objects.
@@ -79,11 +115,19 @@ public class SiteminderUserDetailsService implements UserDetailsService {
   @PostConstruct
   public void init() {
     userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
-      "BCGOV", "BC Government All Users");
+      "BCGOV_ALL", "BC Government All Users");
     userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
       "BCGOV_INTERNAL", "BC Government Internal Users");
     userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
       "BCGOV_EXTERNAL", "BC Government External Users");
+    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
+      "BCGOV_BUSINESS", "BC Government External Business Users");
+    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
+      "BCGOV_INDIVIDUAL", "BC Government External Individual Users");
+    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
+      "BCGOV_VERIFIED_INDIVIDUAL",
+      "BC Government External Verified Individual Users");
+    userAccountSecurityService.addGrantedAuthorityService(this);
   }
 
   /**
@@ -111,8 +155,12 @@ public class SiteminderUserDetailsService implements UserDetailsService {
       if (index == -1) {
         if (userType.equalsIgnoreCase("INTERNAL")) {
           username = "idir:" + username;
-        } else {
+        } else if (userType.equalsIgnoreCase("BUSINESS")) {
           username = "bceid:" + username;
+        } else if (userType.equalsIgnoreCase("VERIFIED INDIVIDUAL")) {
+          username = "vin:" + username;
+        } else if (userType.equalsIgnoreCase("INDIVIDUAL")) {
+          username = "ind:" + username;
         }
       }
 
@@ -133,16 +181,8 @@ public class SiteminderUserDetailsService implements UserDetailsService {
 
     final String userPassword = user.getConsumerSecret();
     final boolean active = user.isActive();
-    Collection<GrantedAuthority> authorities = userAccountSecurityService.getGrantedAuthorities(user);
+    final Collection<GrantedAuthority> authorities = userAccountSecurityService.getGrantedAuthorities(user);
 
-    String userTypeRole;
-    if (username.startsWith("idir:")) {
-      userTypeRole = ROLE_BCGOV_INTERNAL;
-    } else {
-      userTypeRole = ROLE_BCGOV_EXTERNAL;
-    }
-    authorities.add(new GrantedAuthorityImpl(userTypeRole));
-    authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV));
     final User userDetails = new User(username, userPassword, active, true,
       true, true, authorities);
 

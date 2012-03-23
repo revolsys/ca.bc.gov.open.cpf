@@ -10,12 +10,17 @@
 >
 
   <bean
+    name="/secure/"
+    class="com.revolsys.ui.web.controller.ViewNameController"
+    p:viewName="redirect:/secure/ws/" />
+
+  <bean
     name="/secure/index"
     class="com.revolsys.ui.web.controller.ViewNameController"
     p:viewName="redirect:/secure/ws/" />
 
   <bean
-    name="/secure/,/secure/**"
+    name="/secure/**"
     class="com.revolsys.ui.web.controller.PathAliasController"
     p:prefix="/secure"
     p:aliasPrefix="" />
