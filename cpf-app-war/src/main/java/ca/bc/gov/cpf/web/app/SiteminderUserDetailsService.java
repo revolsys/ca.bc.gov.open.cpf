@@ -27,25 +27,25 @@ import ca.bc.gov.open.cpf.api.dao.UserAccountDao;
 import ca.bc.gov.open.cpf.api.dao.UserGroupDao;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
-import ca.bc.gov.open.cpf.api.security.service.GrantedAuthorityService;
+import ca.bc.gov.open.cpf.api.security.service.GroupNameService;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
 import com.revolsys.ui.web.utils.HttpRequestUtils;
 
 public class SiteminderUserDetailsService implements UserDetailsService,
-  GrantedAuthorityService {
+  GroupNameService {
 
-  private static final String ROLE_BCGOV_ALL = "ROLE_BCGOV_ALL";
+  private static final String BCGOV_ALL = "BCGOV_ALL";
 
-  private static final String ROLE_BCGOV_EXTERNAL = "ROLE_BCGOV_EXTERNAL";
+  private static final String BCGOV_EXTERNAL = "BCGOV_EXTERNAL";
 
-  private static final String ROLE_BCGOV_INTERNAL = "ROLE_BCGOV_INTERNAL";
+  private static final String BCGOV_INTERNAL = "BCGOV_INTERNAL";
 
-  private static final String ROLE_BCGOV_BUSINESS = "ROLE_BCGOV_BUSINESS";
+  private static final String BCGOV_BUSINESS = "BCGOV_BUSINESS";
 
-  private static final String ROLE_BCGOV_INDIVIDUAL = "ROLE_BCGOV_INDIVIDUAL";
+  private static final String BCGOV_INDIVIDUAL = "BCGOV_INDIVIDUAL";
 
-  private static final String ROLE_BCGOV_VERIFIED_INDIVIDUAL = "ROLE_BCGOV_VERIFIED_INDIVIDUAL";
+  private static final String BCGOV_VERIFIED_INDIVIDUAL = "BCGOV_VERIFIED_INDIVIDUAL";
 
   private static final String USER_ACCOUNT_CLASS = "BCGOV";
 
@@ -61,29 +61,28 @@ public class SiteminderUserDetailsService implements UserDetailsService,
   private UserGroupDao userGroupDao;
 
   @Override
-  public List<GrantedAuthority> getGrantedAuthorities(
-    final UserAccount userAccount) {
-    final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+  public List<String> getGroupNames(final UserAccount userAccount) {
+    final List<String> groupNames = new ArrayList<String>();
     if (userAccount.getUserAccountClass().equals(USER_ACCOUNT_CLASS)) {
       final String username = userAccount.getConsumerKey();
       if (username.startsWith("idir:")) {
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_INTERNAL));
+        groupNames.add(BCGOV_ALL);
+        groupNames.add(BCGOV_INTERNAL);
       } else if (username.startsWith("bceid:")) {
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_EXTERNAL));
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_BUSINESS));
+        groupNames.add(BCGOV_ALL);
+        groupNames.add(BCGOV_EXTERNAL);
+        groupNames.add(BCGOV_BUSINESS);
       } else if (username.startsWith("vin:")) {
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_EXTERNAL));
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_VERIFIED_INDIVIDUAL));
+        groupNames.add(BCGOV_ALL);
+        groupNames.add(BCGOV_EXTERNAL);
+        groupNames.add(BCGOV_VERIFIED_INDIVIDUAL);
       } else if (username.startsWith("ind:")) {
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_ALL));
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_EXTERNAL));
-        authorities.add(new GrantedAuthorityImpl(ROLE_BCGOV_INDIVIDUAL));
+        groupNames.add(BCGOV_ALL);
+        groupNames.add(BCGOV_EXTERNAL);
+        groupNames.add(BCGOV_INDIVIDUAL);
       }
     }
-    return authorities;
+    return groupNames;
   }
 
   /**
@@ -181,7 +180,11 @@ public class SiteminderUserDetailsService implements UserDetailsService,
 
     final String userPassword = user.getConsumerSecret();
     final boolean active = user.isActive();
-    final Collection<GrantedAuthority> authorities = userAccountSecurityService.getGrantedAuthorities(user);
+    List<String> groupNames = userAccountSecurityService.getGroupNames(user);
+    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    for (String groupName : groupNames) {
+      authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
+    }
 
     final User userDetails = new User(username, userPassword, active, true,
       true, true, authorities);
