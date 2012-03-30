@@ -5,12 +5,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>ca.bc.gov.open.cpf</groupId>
-    <artifactId>cpf-parent</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
-  </parent>
-  
+
   <groupId>ca.bc.gov.cpf</groupId>
   <artifactId>cpf</artifactId>
   <packaging>pom</packaging>
@@ -43,9 +38,60 @@
     <module>cpf-worker-war</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>tomcat7Deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven2-plugin</artifactId>
+            <version>1.1.3</version>
+            <executions>
+              <execution>
+                <id>redeploy</id>
+                <goals>
+                  <goal>deployer-redeploy</goal>
+                </goals>
+                <phase>install</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <container>
+                <containerId>tomcat7x</containerId>
+                <type>remote</type>
+              </container>
+              <configuration>
+                <type>runtime</type>
+                <properties>
+                  <cargo.remote.uri>${tomcat7ManagerUrl}</cargo.remote.uri>
+                  <cargo.remote.username>${tomcat7ManagerUsername}</cargo.remote.username>
+                  <cargo.remote.password>${tomcat7ManagerPassword}</cargo.remote.password>
+                </properties>
+              </configuration>
+              <deployer>
+                <type>remote</type>
+                <deployables>
+                  <deployable>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>${project.artifactId}</artifactId>
+                    <type>war</type>
+                  </deployable>
+                </deployables>
+              </deployer>
+              <skip>${skipWebDeploy}</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <databaseVendor>oracle</databaseVendor>
     <skipWebDeploy>true</skipWebDeploy>
+    <com.revolsys.open.version>2012.03.29.RELEASE</com.revolsys.open.version>
+    <ca.bc.gov.open.cpf.version>3.0.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
   </properties>
 </project>

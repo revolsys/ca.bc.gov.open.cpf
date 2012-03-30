@@ -1,14 +1,7 @@
--- Z:\Documents\eclipse\ca.bc.gov.cpf\cpf-ddl\complete\cpf-ddl.sqs
+-- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-ddl.sqs
 --
--- Generated for Oracle 10g on Tue Mar 22  20:25:22 2011 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Fri Mar 30  15:28:59 2012 by Server Generator 10.1.2.9.28
  
-PROMPT Creating Sequence 'CPF_TPS_SEQ'
-CREATE SEQUENCE CPF_TPS_SEQ
- NOMAXVALUE
- NOMINVALUE
- NOCYCLE
-/
-
 PROMPT Creating Sequence 'CPF_CP_SEQ'
 CREATE SEQUENCE CPF_CP_SEQ
  NOMAXVALUE
@@ -23,15 +16,15 @@ CREATE SEQUENCE CPF_UA_SEQ
  NOCYCLE
 /
 
-PROMPT Creating Sequence 'CPF_SGM_SEQ'
-CREATE SEQUENCE CPF_SGM_SEQ
+PROMPT Creating Sequence 'CPF_UG_SEQ'
+CREATE SEQUENCE CPF_UG_SEQ
  NOMAXVALUE
  NOMINVALUE
  NOCYCLE
 /
 
-PROMPT Creating Sequence 'CPF_SG_SEQ'
-CREATE SEQUENCE CPF_SG_SEQ
+PROMPT Creating Sequence 'CPF_UGP_SEQ'
+CREATE SEQUENCE CPF_UGP_SEQ
  NOMAXVALUE
  NOMINVALUE
  NOCYCLE
@@ -46,13 +39,6 @@ CREATE SEQUENCE CPF_BJ_SEQ
 
 PROMPT Creating Sequence 'CPF_BJRQ_SEQ'
 CREATE SEQUENCE CPF_BJRQ_SEQ
- NOMAXVALUE
- NOMINVALUE
- NOCYCLE
-/
-
-PROMPT Creating Sequence 'CPF_GP_SEQ'
-CREATE SEQUENCE CPF_GP_SEQ
  NOMAXVALUE
  NOMINVALUE
  NOCYCLE

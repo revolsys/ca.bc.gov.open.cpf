@@ -1,8 +1,62 @@
--- Z:\Documents\eclipse\ca.bc.gov.cpf\cpf-ddl\complete\cpf-ddl.tab
+-- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-ddl.tab
 --
--- Generated for Oracle 10g on Tue Mar 22  20:25:20 2011 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Fri Mar 30  15:28:59 2012 by Server Generator 10.1.2.9.28
  
 
+
+PROMPT Creating Table 'CPF_USER_GROUP_PERMISSIONS'
+CREATE TABLE CPF_USER_GROUP_PERMISSIONS
+ (USER_GROUP_PERMISSION_ID NUMBER(19,0) NOT NULL
+ ,MODULE_NAME VARCHAR2(255) NOT NULL
+ ,USER_GROUP_ID NUMBER(19) NOT NULL
+ ,RESOURCE_CLASS VARCHAR2(255) NOT NULL
+ ,RESOURCE_ID VARCHAR2(4000) NOT NULL
+ ,ACTION_NAME VARCHAR2(255) NOT NULL
+ ,ACTIVE_IND NUMBER(1,0) NOT NULL
+ ,WHO_CREATED VARCHAR2(36) NOT NULL
+ ,WHEN_CREATED TIMESTAMP NOT NULL
+ ,WHO_UPDATED VARCHAR2(36) NOT NULL
+ ,WHEN_UPDATED TIMESTAMP NOT NULL
+ )
+ PCTFREE 10
+ TABLESPACE CPF_TABLES
+/
+
+COMMENT ON TABLE CPF_USER_GROUP_PERMISSIONS IS 'USER GROUP PERMISSION represents a permission for a member of a USER GROUP to perfom an action on a given resource for a module.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.USER_GROUP_PERMISSION_ID IS 'USER GROUP PERMISSION ID is a unique surrogate identifier for the object USER GROUP PERMISSION.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.MODULE_NAME IS 'MODULE NAME contains the name of the CPF application module the USER GROUP PERMISSION was created for.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.USER_GROUP_ID IS 'USER GROUP ID is a unique surrogate identifier for the object USER GROUP.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.RESOURCE_CLASS IS 'This is the classification of the RESOURCE NAME. For example URL (web page), JavaClass, JavaObject.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.RESOURCE_ID IS 'This is the unqiue id of the resource the permission applies to. For example a url, java class name, java class name and object identifier.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.ACTION_NAME IS 'This is the name of the action the user is granted permission to perform (e.g. any, edit, view).'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.ACTIVE_IND IS 'This is the true (1), false (0) indicator if the object is active or has been deleted.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.WHO_CREATED IS 'This is the database or web user that created the object.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.WHEN_CREATED IS 'This is the date that the object was created.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
+/
+
+COMMENT ON COLUMN CPF_USER_GROUP_PERMISSIONS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
+/
 
 PROMPT Creating Table 'CPF_BATCH_JOB_RESULTS'
 CREATE TABLE CPF_BATCH_JOB_RESULTS
@@ -13,7 +67,7 @@ CREATE TABLE CPF_BATCH_JOB_RESULTS
  ,BATCH_JOB_REQUEST_ID NUMBER(19,0)
  ,DOWNLOAD_TIMESTAMP TIMESTAMP
  ,REQUEST_SEQUENCE_NUMBER NUMBER(19,0)
- ,RESULT_DATA BLOB
+ ,RESULT_DATA CHAR(2000)
  ,RESULT_DATA_URL VARCHAR2(2000)
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
@@ -75,13 +129,13 @@ CREATE TABLE CPF_BATCH_JOB_REQUESTS
  ,ERROR_CODE VARCHAR2(255)
  ,ERROR_DEBUG_MESSAGE VARCHAR2(4000)
  ,ERROR_MESSAGE VARCHAR2(4000)
- ,INPUT_DATA BLOB
+ ,INPUT_DATA CHAR(2000)
  ,INPUT_DATA_URL VARCHAR2(2000)
  ,INPUT_DATA_CONTENT_TYPE VARCHAR2(255)
- ,RESULT_DATA BLOB
+ ,RESULT_DATA CHAR(2000)
  ,RESULT_DATA_URL VARCHAR2(2000)
- ,STRUCTURED_INPUT_DATA CLOB
- ,STRUCTURED_RESULT_DATA CLOB
+ ,STRUCTURED_INPUT_DATA CHAR(2000)
+ ,STRUCTURED_RESULT_DATA CHAR(2000)
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
  ,WHO_UPDATED VARCHAR2(36) NOT NULL
@@ -132,10 +186,10 @@ COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.RESULT_DATA IS 'This is the binary resu
 COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.RESULT_DATA_URL IS 'This is the URL returned from a business application containing the result data for the BATCH JOB REQUEST. For business applications which return opaque result data either this or the RESULT DATA must be specified for successful BATCH JOB REQUESTS.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.STRUCTURED_INPUT_DATA IS 'This is the CSV encoding structured input data to be pased to the business application for the BATCH JOB REQUEST. The CSV encoding will have a header row with the names of the input fields and a single data row containing the input field values.  For business applications which accept structured result data either this  must be specified.'
+COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.STRUCTURED_INPUT_DATA IS 'This is the structured input data for the BATCH JOB used to create the BATCH JOB REQUESTS. Either this or the STRUCTURED INPUT DATA URL can be specified for a business application which supports structured input data.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.STRUCTURED_RESULT_DATA IS 'This is the CSV encoding structured result data returned from the business application for the BATCH JOB REQUEST. The CSV encoding will have a header row with the names of the result fields and a single data row containing the result field values.  For business applications which return structuredresult data this must be specified for successful BATCH JOB REQUESTS.'
+COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.STRUCTURED_RESULT_DATA IS 'This is the JSON encoded structured result data returned from the business application for the BATCH JOB REQUEST. For business applications which return structuredresult data this must be specified for successful BATCH JOB REQUESTS.'
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.WHO_CREATED IS 'This is the database or web user that created the object.'
@@ -165,11 +219,12 @@ CREATE TABLE CPF_BATCH_JOBS
  ,WHEN_STATUS_CHANGED TIMESTAMP NOT NULL
  ,BUSINESS_APPLICATION_PARAMS VARCHAR2(4000)
  ,COMPLETED_TIMESTAMP TIMESTAMP
- ,STRUCTURED_INPUT_DATA CLOB
+ ,STRUCTURED_INPUT_DATA BLOB
  ,STRUCTURED_INPUT_DATA_URL VARCHAR2(255)
  ,INPUT_DATA_CONTENT_TYPE VARCHAR2(255)
  ,LAST_SCHEDULED_TIMESTAMP TIMESTAMP
  ,NOTIFICATION_URL VARCHAR2(2000)
+ ,PROPERTIES VARCHAR2(4000)
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
  ,WHO_UPDATED VARCHAR2(36) NOT NULL
@@ -235,6 +290,9 @@ COMMENT ON COLUMN CPF_BATCH_JOBS.LAST_SCHEDULED_TIMESTAMP IS 'This is the timest
 COMMENT ON COLUMN CPF_BATCH_JOBS.NOTIFICATION_URL IS 'This is the http, https, or mailto URL to be notified when the BATCH JOB has been completed and is ready for download.'
 /
 
+COMMENT ON COLUMN CPF_BATCH_JOBS.PROPERTIES IS 'PROPERTIES contains a JSON encoded map of additional properties associated with a BATCH JOB.'
+/
+
 COMMENT ON COLUMN CPF_BATCH_JOBS.WHO_CREATED IS 'This is the database or web user that created the object.'
 /
 
@@ -247,108 +305,22 @@ COMMENT ON COLUMN CPF_BATCH_JOBS.WHO_UPDATED IS 'This is the database or web use
 COMMENT ON COLUMN CPF_BATCH_JOBS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
 /
 
-PROMPT Creating Table 'CPF_GRANTED_PERMISSIONS'
-CREATE TABLE CPF_GRANTED_PERMISSIONS
- (GRANTED_PERMISSION_ID NUMBER(19,0) NOT NULL
- ,SUBJECT_CLASS VARCHAR2(255) NOT NULL
- ,SUBJECT_ID VARCHAR2(255) NOT NULL
- ,RESOURCE_CLASS VARCHAR2(255) NOT NULL
- ,RESOURCE_ID VARCHAR2(4000) NOT NULL
- ,ACTION_NAME VARCHAR2(255) NOT NULL
- ,GRANTED_IND NUMBER(1,0) NOT NULL
- ,ACTIVE_IND NUMBER(1,0) NOT NULL
- ,WHO_CREATED VARCHAR2(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR2(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
+PROMPT Creating Table 'CPF_USER_GROUP_ACCOUNT_XREF'
+CREATE TABLE CPF_USER_GROUP_ACCOUNT_XREF
+ (USER_GROUP_ID NUMBER(19,0) NOT NULL
+ ,USER_ACCOUNT_ID NUMBER(19,0) NOT NULL
  )
  PCTFREE 10
  TABLESPACE CPF_TABLES
 /
 
-COMMENT ON TABLE CPF_GRANTED_PERMISSIONS IS 'The GRANTED PERMISSION represents a permission on an object (e.g. web page or database row) granted to a subject (e.g. user or group). This is a generic class which can be extended to support new types of object, subjects, or permissions.'
+COMMENT ON TABLE CPF_USER_GROUP_ACCOUNT_XREF IS 'USER GROUP ACCOUNT XREF represents a relationship between a USER GROUP and the USER ACCOUNT that is a member of that group.'
 /
 
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.GRANTED_PERMISSION_ID IS 'This is the unique identifier of the SEC GRANTED PERMISSION.'
+COMMENT ON COLUMN CPF_USER_GROUP_ACCOUNT_XREF.USER_GROUP_ID IS 'USER GROUP ID is a unique surrogate identifier for the object USER GROUP.'
 /
 
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.SUBJECT_CLASS IS 'This is the classification of the SUBJECT NAME. For example ExternalUser, Group.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.SUBJECT_ID IS 'This is the name of the subject the permission is granted to. For example the CONSUMER KEY of a SECURITY EXTERNAL USER, or the name of a SEC GROUP.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.RESOURCE_CLASS IS 'This is the classification of the RESOURCE NAME. For example URL (web page), JavaClass, JavaObject.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.RESOURCE_ID IS 'This is the name of the resource the permission applies to. For example a url, java class name, java class name and object identifier.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.ACTION_NAME IS 'This is the 32 character mask of actions (permissions) which are granted. Each character represents a different permission. For example position 1 could be (r)ead position with the character R, 2 (w)rite. The full list of flags will be defined in the application. The period (.) character is used if the permission is not granted for a specific flag.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.GRANTED_IND IS 'This is the true (1), false (0) flag that permission is either granted or denied.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.ACTIVE_IND IS 'This is the true (1), false (0) indicator if the object is active or has been deleted.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.WHO_CREATED IS 'This is the database or web user that created the object.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.WHEN_CREATED IS 'This is the date that the object was created.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
-/
-
-COMMENT ON COLUMN CPF_GRANTED_PERMISSIONS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
-/
-
-PROMPT Creating Table 'CPF_SECURITY_GROUP_MEMBERSHIPS'
-CREATE TABLE CPF_SECURITY_GROUP_MEMBERSHIPS
- (SECURITY_GROUP_MEMBERSHIP_ID NUMBER(19,0) NOT NULL
- ,SECURITY_GROUP_ID NUMBER(19,0) NOT NULL
- ,SUBJECT_CLASS VARCHAR2(255) NOT NULL
- ,SUBJECT_ID VARCHAR2(4000) NOT NULL
- ,ACTIVE_IND NUMBER(1,0) NOT NULL
- ,WHO_CREATED VARCHAR2(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR2(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- )
- PCTFREE 10
- TABLESPACE CPF_TABLES
-/
-
-COMMENT ON TABLE CPF_SECURITY_GROUP_MEMBERSHIPS IS 'The SECURITY GROUP MEMBERSHIP represents a subject (e.g. USER ACCOUNT or SECURITY) which is a member of a SECURITY GROUP. This is a generic class which can support new subjects as required.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.SECURITY_GROUP_MEMBERSHIP_ID IS 'This is the unique identifier of the SEC GROUP MEMBERSHIP.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.SECURITY_GROUP_ID IS 'This is the unique identifier of the SECURITY GROUP.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.SUBJECT_CLASS IS 'This is the classification of the type of SUBJECT NAME which can be a member of a group. For example ExternalUser or Group.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.SUBJECT_ID IS 'This is the name of the subject which is a member of the group. For example a CONSUMER KEY from a SECURITY EXTERNAL USER or a name of a SECURITY GROUP.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.ACTIVE_IND IS 'This is the true (1), false (0) indicator if the object is active or has been deleted.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.WHO_CREATED IS 'This is the database or web user that created the object.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.WHEN_CREATED IS 'This is the date that the object was created.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUP_MEMBERSHIPS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
+COMMENT ON COLUMN CPF_USER_GROUP_ACCOUNT_XREF.USER_ACCOUNT_ID IS 'USER ACCOUNT ID is a unique surrogate identifier for the object USER ACCOUNT.'
 /
 
 PROMPT Creating Table 'CPF_USER_ACCOUNTS'
@@ -358,8 +330,6 @@ CREATE TABLE CPF_USER_ACCOUNTS
  ,USER_NAME VARCHAR2(4000) NOT NULL
  ,CONSUMER_KEY VARCHAR2(36) NOT NULL
  ,CONSUMER_SECRET VARCHAR2(36) NOT NULL
- ,DISABLED_IND NUMBER(1,0) NOT NULL
- ,DISABLED_COMMENT VARCHAR2(4000)
  ,ACTIVE_IND NUMBER(1,0) NOT NULL
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
@@ -376,22 +346,16 @@ COMMENT ON TABLE CPF_USER_ACCOUNTS IS 'The USER ACCOUNTS represents a user accou
 COMMENT ON COLUMN CPF_USER_ACCOUNTS.USER_ACCOUNT_ID IS 'This is the unique identifier for the USER ACCOUNT.'
 /
 
-COMMENT ON COLUMN CPF_USER_ACCOUNTS.USER_ACCOUNT_CLASS IS 'This is the classification for the EXTERNAL USER NAME, for example http://openid.net/ or http://idir.bcgov/.'
+COMMENT ON COLUMN CPF_USER_ACCOUNTS.USER_ACCOUNT_CLASS IS 'This is the classification for the USER NAME, for example http://openid.net/ or http://idir.bcgov/.'
 /
 
-COMMENT ON COLUMN CPF_USER_ACCOUNTS.USER_NAME IS 'This is the external user name, for example an OpenID, IDIR account name, or email address.'
+COMMENT ON COLUMN CPF_USER_ACCOUNTS.USER_NAME IS 'This is the user name, for example an OpenID, IDIR account name, or email address.'
 /
 
-COMMENT ON COLUMN CPF_USER_ACCOUNTS.CONSUMER_KEY IS 'This is the system generated unique user identifier for the external user.'
+COMMENT ON COLUMN CPF_USER_ACCOUNTS.CONSUMER_KEY IS 'This is the system generated unique user identifier for the user account.'
 /
 
-COMMENT ON COLUMN CPF_USER_ACCOUNTS.CONSUMER_SECRET IS 'This is the system generated password/encryption key for the external user.'
-/
-
-COMMENT ON COLUMN CPF_USER_ACCOUNTS.DISABLED_IND IS 'This is the true (1), false (0) indicator that the user account has been disabled to prevent user login.'
-/
-
-COMMENT ON COLUMN CPF_USER_ACCOUNTS.DISABLED_COMMENT IS 'This is a comment why the user account was disabled.'
+COMMENT ON COLUMN CPF_USER_ACCOUNTS.CONSUMER_SECRET IS 'This is the system generated password/encryption key for the user account.'
 /
 
 COMMENT ON COLUMN CPF_USER_ACCOUNTS.ACTIVE_IND IS 'This is the true (1), false (0) indicator if the object is active or has been deleted.'
@@ -409,52 +373,14 @@ COMMENT ON COLUMN CPF_USER_ACCOUNTS.WHO_UPDATED IS 'This is the database or web 
 COMMENT ON COLUMN CPF_USER_ACCOUNTS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
 /
 
-PROMPT Creating Table 'CPF_SECURITY_GROUPS'
-CREATE TABLE CPF_SECURITY_GROUPS
- (SECURITY_GROUP_ID NUMBER(19,0) NOT NULL
- ,NAME VARCHAR2(255) NOT NULL
- ,DESCRIPTION VARCHAR2(4000)
- ,ACTIVE_IND NUMBER(1,0) NOT NULL
- ,WHO_CREATED VARCHAR2(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR2(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- )
- PCTFREE 10
- TABLESPACE CPF_TABLES
-/
-
-COMMENT ON TABLE CPF_SECURITY_GROUPS IS 'The SECURITY GROUP represents a named group of external users or other groups to which authorities or permissions can be granted to. The members of the group are defined in the SECURITY GROUP MEMBERSHIP.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.SECURITY_GROUP_ID IS 'This is the unique identifier of the SECURITY GROUP.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.NAME IS 'This is the name of the SEC GROUP.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.DESCRIPTION IS 'This is a description of the security group.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.ACTIVE_IND IS 'This is the true (1), false (0) indicator if the object is active or has been deleted.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.WHO_CREATED IS 'This is the database or web user that created the object.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.WHEN_CREATED IS 'This is the date that the object was created.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
-/
-
-COMMENT ON COLUMN CPF_SECURITY_GROUPS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
-/
-
 PROMPT Creating Table 'CPF_CONFIG_PROPERTIES'
 CREATE TABLE CPF_CONFIG_PROPERTIES
  (CONFIG_PROPERTY_ID NUMBER(19,0) NOT NULL
+ ,ENVIRONMENT_NAME VARCHAR2(255) NOT NULL
+ ,MODULE_NAME VARCHAR2(255) NOT NULL
+ ,COMPONENT_NAME VARCHAR2(255) NOT NULL
  ,PROPERTY_NAME VARCHAR2(255) NOT NULL
+ ,PROPERTY_VALUE_TYPE VARCHAR2(255) NOT NULL
  ,PROPERTY_VALUE VARCHAR2(4000)
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
@@ -470,7 +396,19 @@ COMMENT ON TABLE CPF_CONFIG_PROPERTIES IS 'The CONFIG PROPERTY represents a valu
 COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.CONFIG_PROPERTY_ID IS 'This is the unique key for the CONFIG PROPERTY.'
 /
 
+COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.ENVIRONMENT_NAME IS 'ENVIRONMENT NAME contains the host name of web server instance name that the configuration property should be applied to.'
+/
+
+COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.MODULE_NAME IS 'MODULE NAME contains the name of the CPF application module the configuration property should be applied to.'
+/
+
+COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.COMPONENT_NAME IS 'COMPONENT NAME contains the name of the component within a CPF application module the configuration property should be applied to.'
+/
+
 COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.PROPERTY_NAME IS 'This is the name of the configuration property. It can contain multiple parts separated by a period to set the value of a nested property. For example mapTileByLocation.maximumConcurrentRequests.'
+/
+
+COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.PROPERTY_VALUE_TYPE IS 'PROPERTY VALUE TYPE contains the data type name used to convert the PROPERTY VALUE to a Java data type (e.g. string, int, double, boolean, GEOMETRY).'
 /
 
 COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.PROPERTY_VALUE IS 'This is the value to set for the property.'
@@ -488,68 +426,49 @@ COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.WHO_UPDATED IS 'This is the database or 
 COMMENT ON COLUMN CPF_CONFIG_PROPERTIES.WHEN_UPDATED IS 'This is the date that the object was last updated.'
 /
 
-PROMPT Creating Table 'CPF_TIME_PERIOD_STATISTICS'
-CREATE TABLE CPF_TIME_PERIOD_STATISTICS
- (TIME_PERIOD_STATISTIC_ID NUMBER(19,0) NOT NULL
- ,STATISTIC_TYPE VARCHAR2(4000) NOT NULL
- ,CLASS_NAME VARCHAR2(4000) NOT NULL
- ,OBJECT_ID VARCHAR2(4000) NOT NULL
- ,FROM_TIMESTAMP TIMESTAMP NOT NULL
- ,TO_TIMESTAMP TIMESTAMP NOT NULL
- ,TIME_PERIOD_LENGTH NUMBER(19,0) NOT NULL
- ,STATISTIC_COUNT NUMBER(10,0) NOT NULL
- ,STATISTIC_VALUE NUMBER(30,6) NOT NULL
- ,COLLECTION_LOCATION VARCHAR2(4000) NOT NULL
+PROMPT Creating Table 'CPF_USER_GROUPS'
+CREATE TABLE CPF_USER_GROUPS
+ (USER_GROUP_ID NUMBER(19,0) NOT NULL
+ ,MODULE_NAME VARCHAR2(255) NOT NULL
+ ,USER_GROUP_NAME VARCHAR2(255) NOT NULL
+ ,DESCRIPTION VARCHAR2(4000)
+ ,ACTIVE_IND NUMBER(1,0) NOT NULL
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
  ,WHO_UPDATED VARCHAR2(36) NOT NULL
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
+ PCTFREE 10
  TABLESPACE CPF_TABLES
 /
 
-COMMENT ON TABLE CPF_TIME_PERIOD_STATISTICS IS 'The TIME PERIOD STATISTIC represents a statistic collected over a specified time period for an indvidual object or for all objects of a class of objects. For example the number of BatchJobRequests processed in a given hour.'
+COMMENT ON TABLE CPF_USER_GROUPS IS 'USER GROUP represents a named group of CPF or external users that can be granted permissions via USER GROUP PERMISSION. The members of the group are defined in the USER GROUP ACCOUNT XFREF.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.TIME_PERIOD_STATISTIC_ID IS 'This is the unique key for the TIME PERIOD STATISTIC.'
+COMMENT ON COLUMN CPF_USER_GROUPS.USER_GROUP_ID IS 'USER GROUP ID is a unique surrogate identifier for the object USER GROUP.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.STATISTIC_TYPE IS 'This is the name of the type of statistic collected (e.g. numberOfRequestsProcessed).'
+COMMENT ON COLUMN CPF_USER_GROUPS.MODULE_NAME IS 'MODULE NAME contains the name of the CPF application module the USER GROUP was created for.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.CLASS_NAME IS 'This is the name of the class (e.g. ca.gov.bc.bpf.BatchJob) the statistic was collected for.'
+COMMENT ON COLUMN CPF_USER_GROUPS.USER_GROUP_NAME IS 'This is the name of the SECURITY GROUP.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.OBJECT_ID IS 'This is the unique identifier of the object the statistic was collected for. Can be null if it is a summary for all objects in the class.'
+COMMENT ON COLUMN CPF_USER_GROUPS.DESCRIPTION IS 'This is a description of the security group.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.FROM_TIMESTAMP IS 'The is the timestamp of the start of the time period the statistic was collected for.'
+COMMENT ON COLUMN CPF_USER_GROUPS.ACTIVE_IND IS 'This is the true (1), false (0) indicator if the object is active or has been deleted.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.TO_TIMESTAMP IS 'The is the timestamp of the end of the time period the statistic was collected for.'
+COMMENT ON COLUMN CPF_USER_GROUPS.WHO_CREATED IS 'This is the database or web user that created the object.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.TIME_PERIOD_LENGTH IS 'The is the length of the time period in seconds, for example 1 minute would have the value 60.'
+COMMENT ON COLUMN CPF_USER_GROUPS.WHEN_CREATED IS 'This is the date that the object was created.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.STATISTIC_COUNT IS 'This is the number of items that the statistic value was collected for.'
+COMMENT ON COLUMN CPF_USER_GROUPS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
 /
 
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.STATISTIC_VALUE IS 'This is the value of the statistic collected.'
-/
-
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.COLLECTION_LOCATION IS 'This is the location where the statistic was collected (e.g. the IP address of a server).'
-/
-
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.WHO_CREATED IS 'This is the database or web user that created the object.'
-/
-
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.WHEN_CREATED IS 'This is the date that the object was created.'
-/
-
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
-/
-
-COMMENT ON COLUMN CPF_TIME_PERIOD_STATISTICS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
+COMMENT ON COLUMN CPF_USER_GROUPS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
 /
 

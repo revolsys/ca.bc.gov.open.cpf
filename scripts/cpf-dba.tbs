@@ -1,6 +1,6 @@
--- Z:\Documents\eclipse\ca.bc.gov.cpf\cpf-ddl\complete\cpf-dba.tbs
+-- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-dba.tbs
 --
--- Generated for Oracle 10g on Thu Mar 17  11:57:01 2011 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Fri Mar 30  15:15:48 2012 by Server Generator 10.1.2.9.28
  
  
 PROMPT Creating Tablespace 'CPF_TABLES' 
