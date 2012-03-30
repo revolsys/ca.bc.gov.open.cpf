@@ -32,7 +32,6 @@ public class SiteminderLogout implements LogoutSuccessHandler {
     this.logoutUrl = logoutUrl;
   }
 
-  @Override
   public void onLogoutSuccess(
     HttpServletRequest request,
     HttpServletResponse response,

@@ -1,4 +1,4 @@
-SPOOL ../../log/ddl.log
+SPOOL cpf-ddl.log
 
 @cpf-dba.rle
 
@@ -8,5 +8,8 @@ SPOOL ../../log/ddl.log
 @cpf-ddl.sqs
 @cpf-ddl.grt
 @cpf-ddl-data.sql
+
+GRANT CPF_USER TO PROXY_CPF_WEB 
+/
 
 exit

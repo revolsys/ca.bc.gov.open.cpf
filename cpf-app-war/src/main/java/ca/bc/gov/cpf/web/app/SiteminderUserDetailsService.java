@@ -60,7 +60,6 @@ public class SiteminderUserDetailsService implements UserDetailsService,
   /** The data access object for {@link UserGroup} objects. */
   private UserGroupDao userGroupDao;
 
-  @Override
   public List<String> getGroupNames(final UserAccount userAccount) {
     final List<String> groupNames = new ArrayList<String>();
     if (userAccount.getUserAccountClass().equals(USER_ACCOUNT_CLASS)) {
@@ -137,7 +136,6 @@ public class SiteminderUserDetailsService implements UserDetailsService,
    * @param guid The external user name to login as.
    * @return The UserDetals object for the user.
    */
-  @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public UserDetails loadUserByUsername(final String userGuid) {
     UserAccount user = userAccountDao.getByUserAccountName(USER_ACCOUNT_CLASS,

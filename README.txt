@@ -1,150 +1,164 @@
-********************************************************************************
-* Cloud Processing Framework
-*
-* $URL: https://poplar.idir.bcgov:88/svn/cpf/trunk/install/readme.txt $
-* $Author: cpf $
-* $Date: 2011-04-14 10:46:13 -0700 (Thu, 14 Apr 2011) $
-* $Revision: 34 $
-* Release: 2.0.0
-*
-********************************************************************************
+Description
+-----------
+Project:           cpf
+Title:             Cloud Processing Framework Web Application
+Version:           3.0.0
 
-OVERVIEW
---------
-This file describes the steps to configure, build and install the Cloud
-Processing Framework (2.0.0) on a UNIX Oracle Application Server (10.1.3)
-and a Unix Oracle version 10g database.
+Software/Hardware Requirements
+------------------------------
+Oracle:                       N/A
+Java:                         6+
+Maven:                        3.0.3+
+App Server:                   Tomcat 7+
+App Server Additional Memory: 100MB
 
-These instructions are for the Ministry's database administrator and Java
-Application Delivery Specialist, and assume familiarity with standard Oracle
-administrative functions. CPF is the officially assigned application short
-name.
 
-REQUIREMENTS
+1. Database Installation
 ------------------------
-Prior to installing the application, the following requirements must be
-verified:
- - This installation assumes installation of the web application on Oracle 
-   10g Release 3 (10.1.3)
- - the UNIX user cpf has been created and is using the Korn Shell (ksh).
- - The Ant tool is installed on the Java Application Delivery Server and is
-   available in the path.
- - Oracle must be installed and running on the server.
- - an appropriate database instance has been created and is running on the
-   server.
- - the Ministry standard application delivery directory structure is in place as
-   defined in the Application Delivery Standards and Java Application Delivery
-   Standards documents.
- - J2SE 1.5.0+ is installed on the server. The JAVA_HOME environment variable is
-   set to the directory where J2SE is installed.
- - The application uses several new frameworks that are not accounted for in the
-   standard.
 
-INSTALLATION INSTRUCTIONS
+1.1 Download SQL Scripts from Subversion
+
+svn co http://maps.bcgov/svn/geomark/source/trunk/scripts
+cd scripts
+
+1.2 Run the DBA scripts to create the tablespaces and users
+
+sqlplus system@GEODLV @cpf-dba-all.sql
+
+The two user accounts require a new password to be set, you will be prompted
+for these passwords.
+
+CPF_PW              The password for the CPF user account
+PROXY_CPF_WEB_PW    The password for the PROXY_CPF_WEB user account
+
+1.3 Run the scripts to create the CPF roles and database objects
+
+./cpf-ddl.sh GEODLV
+
+The two user accounts require a new password to be set, you will be prompted
+for these passwords.
+
+CPF_ADMIN_PW   The password used for the initial admin user cpf_admin.
+CPF_WORKER_PW  The password used by the cpf_worker account that is used by the
+               worker process. This must be entered in the configuration file in
+               step #2.
+               
+2. Configuration Files
+----------------------
+
+CPF requires a configuration file on each server.
+
+Property                           Description
+-------------------------------    ------------------------------------------
+ca.bc.gov.cpf.app.baseUrl          The HTTP URL to the server cpf is deployed to
+ca.bc.gov.cpf.app.secureBaseUrl    The HTTPS URL to the server cpf is deployed to
+ca.bc.gov.cpf.db.url               The JDBC URL to the cpf database
+ca.bc.gov.cpf.db.user              The PROXY_CPF_WEB user account (DON'T CHANGE)
+ca.bc.gov.cpf.db.password          The password for the PROXY_CPF_WEB user account
+ca.bc.gov.cpf.db.maxConnections    The maximum number of database connections
+ca.bc.gov.cpf.ws.consumerKey       The internal web service user (DON'T CHANGE)    
+ca.bc.gov.cpf.ws.consumerSecret    The password for the internal web service user
+ca.bc.gov.cpf.fromEmail            The email address any emails will be sent from
+ca.bc.gov.cpf.mailServer           The mail server to send emails via
+ca.bc.gov.cpf.repositoryDirectory  The directory to store maven artifacts
+
+
+Create the directory and configuration file.
+
+mkdir -p /apps/config/cpf
+cd /apps/config/cpf
+vi cpf.properties
+
+Sample Values
+-------------
+The latest sample config file can be obtained from:
+
+https://maps.bcgov/svn/cpf/config/delivery/trunk/sample-cpf.properties
+
+It contains the following values for the delivery environment.
+
+ca.bc.gov.cpf.app.baseUrl=http\://delivery.apps.gov.bc.ca/pub/cpf
+ca.bc.gov.cpf.app.secureBaseUrl=https\://delivery.apps.gov.bc.ca/pub/cpf/secure
+ca.bc.gov.cpf.db.url=jdbc\:oracle\:thin\:@fry.geobc.gov.bc.ca\:1521\:GEODLV
+ca.bc.gov.cpf.db.user=proxy_cpf_web
+ca.bc.gov.cpf.db.password=cpf_2009
+ca.bc.gov.cpf.db.maxConnections=20
+
+ca.bc.gov.cpf.ws.consumerKey=cpf_worker
+ca.bc.gov.cpf.ws.consumerSecret=cpf_2009
+
+ca.bc.gov.cpf.fromEmail=noreply@gov.bc.ca
+ca.bc.gov.cpf.mailServer=apps.smtp.gov.bc.ca
+
+ca.bc.gov.cpf.repositoryDirectory=/tmp/cpf/repository/
+
+3. Ministry Continuous Integration System
+-----------------------------------------
+
+Create a new deploy job using the Ministry Continuous Integration System.
+
+http://apps.gov.bc.ca/gov/standards/index.php/Migration_Task_with_CIS
+
+Job name:                       revolys-cpf-deploy
+Subversion:                     http://maps.bcgov/svn/cpf/source/trunk
+MVN Goals and options:          clean install
+Ministry Artifacts Repository:  Yes
+Deploy to Tomcat:               Yes
+
+4. Compilation & Deployment
+---------------------------
+
+Build the revolys-cpf-deploy job using the Ministry Continuous Integration
+System.
+
+5. Post Build Actions
+---------------------
+
+5.1 CPF Admin Users
 -------------------------
 
-1. LOGIN TO THE APPLICATION SERVER
+a. Open https://delivery.apps.gov.bc.ca/pub/cpf/secure/admin/ and login using
+   your IDIR account. Get each GLOBAL ADMIN user to do this so a proxy user
+   account is created in CPF.
+b. You will get a 403 error which is expected.
+c. Open https://delivery.apps.gov.bc.ca/pub/cpf/admin/
+d. Login using user cpf_admin with the password created in step #1.2
+e. Click the User Groups link on the menu on the left side of the page
+f. Click the ADMIN User Group link in the table on that page
+g. Click the User Accounts for Group section to open it
+h. Search for the user name by typing at least 3 characters in the Username box
+   (e.g. pxau). Select one of the names and click the add button.
+i. Repeat for each GLOBAL ADMIN user.
+k. Open https://delivery.apps.gov.bc.ca/pub/cpf/secure/admin/ and verify you
+   have access to the siteminder enabled version of the site.
+l. Click the User Accounts link on the menu on the left side of the page
+m. Click on the cpf_admin Consumer Key link on the table in that page
+n. Click the edit button
+o. Uncheck the Active checkbox
+p. Click Save. The cpf_admin account is now disabled and admin access requires
+   Siteminder login by one of the admin users via the link in step #a.
 
-  ssh cpf@smolder.geobc.gov.bc.ca
-    password = ********
+5.2 CPF Module Deployment
+-------------------------
 
-####### OC4j migration###
+Follow the CPF Module Deployment of each CPF module to be deployed.
 
-undeploy from oc4j
-map to tomcat 7
-change perms on /apps_ux/logs/cpf and delete old logs
+6. Notification
+---------------
 
-2. DOWNLOAD SOURCE CODE FROM SUBVERSION
+Notify all developers and contributors listed in the pom.xml that the deployment
+is complete.
 
-cd /apps_ux/cpf
+7. Perform Release 
+------------------
 
-If /apps_ux/cpf/source does not exist checkout the source from Subversion.
+This step is performed before migration of an application to the production
+environment. The migration occurs after the developer has tested the application
+in the delivery environment and the business area have completed the user
+acceptance testing in the test environment.
 
-svn co --username cpf https://poplar.idir.bcgov:88/svn/cpf/trunk/ source
+Use the Ministry Continuous Integration System to tag the version in Subversion,
+build the release version and deploy it to the Ministry Artifacts Repository.
 
-NOTE: If prompted for a certificate validation error, accept the certificate
-permanently.
-
-NOTE: If you are prompted to store the password encrypted enter yes. The
-directory the password is stored in can only be read by the current user.
-
-If /apps_ux/cpf/source does exist update it to the latest revision.
-
-svn up source
-
-2. RUN THE DATABASE SCRIPTS
-
-2.1. Run the DBA database scripts
-
-  cd /apps_ux/cpf/source/ddl
-  ./cpf-dba.sh GEODLV
-
-NOTE: If there were any errors STOP and contact the developer before continuing.
-The log file is in ../log/dba.log.
-
-
-2.2. Run the WebAde database scripts
-
-  cd /apps_ux/cpf/source/ddl
-  ./complete/cpf-webade.sh GEODLV
-
-NOTE: If there were any errors STOP and contact the developer before continuing.
-The log file is in ../log/webade.log.
-
-2.3. Run the application database scripts
-
-  cd /apps_ux/cpf/source/ddl/complete
-  ./cpf-ddl.sh GEODLV
-
-NOTE: If there were any errors STOP and contact the developer before continuing.
-The log file is in ../log/ddl.log.
-
-3. CONFIGURE THE APPLICATION
-
-cd /apps_ux/cpf/source/config
-
-If default.properties does not exist copy the sample to create it.
-
-cp sample-default.properties default.properties
-
-Edit default.properties to configure it for the application.
-
-vi default.properties
-
-The following property values must be configured for each environment.
-
-ca.bc.gov.cpf.app.serverUrl      The URL to the server cpf is deployed to
-ca.bc.gov.cpf.db.url             The JDBC URL to the cpf database
-ca.bc.gov.cpf.db.user            The PROXY_CPF_WEB user account (DON'T CHANGE)
-ca.bc.gov.cpf.db.password        The password for the PROXY_CPF_WEB user account
-ca.bc.gov.cpf.db.maxConnections  The maximum number of database connections
-
-ca.bc.gov.cpf.ws.consumerKey     The internal web service user (DON'T CHANGE)
-ca.bc.gov.cpf.ws.consumerSecret  The password for the internal web service user
-
-ca.bc.gov.cpf.fromEmail          The email address any emails will be sent from
-ca.bc.gov.cpf.mailServer         The mail server to send emails via
-
-
-4. CREATE DEPLOYMENT DIRECTORY
-
-If the /apps_ux/cpf/deployment/plugins/ directory does not exist follow
-these instructions to create it.
-
-mkdir -p /apps_ux/cpf/deployment/plugins
-chmod 775 /apps_ux/cpf/deployment/plugins
-
-5. BUILD AND DEPLOY
-
-Compile and deploy the application to the OC4J server.
-
-  cd /apps_ux/cpf/source
-  ant
-
-NOTE: If there was an error compiling the application it will not be deployed.
-STOP and contact the developer before continuing.
-
-7. NOTIFICATION
-
-Alert the Project Manager, the Application Manager, the Business Analyst,
-and the IMB Delivery Specialist that the delivery is complete.
+Release Version:          3.0.0
+Next Development Version: 3.0.1-SNAPSHOT

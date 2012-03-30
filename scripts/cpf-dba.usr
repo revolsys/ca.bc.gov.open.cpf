@@ -1,6 +1,6 @@
--- Z:\Documents\eclipse\ca.bc.gov.cpf\cpf-ddl\complete\cpf-dba.usr
+-- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-dba.usr
 --
--- Generated for Oracle 10g on Thu Mar 17  11:57:01 2011 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Fri Mar 30  15:15:49 2012 by Server Generator 10.1.2.9.28
  
 
 PROMPT Creating User 'CPF'
@@ -21,10 +21,10 @@ GRANT CREATE SEQUENCE TO CPF
 GRANT CREATE VIEW TO CPF 
 /
 
-GRANT CREATE ROLE TO CPF 
+GRANT CREATE SYNONYM TO CPF 
 /
 
-GRANT CREATE SYNONYM TO CPF 
+GRANT CREATE ROLE TO CPF 
 /
 
 GRANT CREATE TABLE TO CPF 
@@ -39,5 +39,4 @@ QUOTA UNLIMITED ON CPF_TABLES
 /
 GRANT CREATE SESSION TO PROXY_CPF_WEB 
 /
-
 
