@@ -58,6 +58,21 @@ li {
   </head>
 
   <body>
+<c:choose>
+  <c:when test="${param.plain == 'true'}">
+    <div class="title"><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</div>
+    <div class="message">
+<c:if test="${requestScope['javax.servlet.error.message'] != null}">
+        <div class="errorMessage"><c:out value="${requestScope['javax.servlet.error.message']}" escapeXml="false" /></div>
+</c:if>     
+      <ul>
+        <li>To return to the previous page <a href="javascript:history.go(-1)">click
+        here</a></li>
+        <li>To return to the home page <a href="<c:url value="/" />">click here</a></li>
+      </ul>
+    </div>
+  </c:when>
+  <c:otherwise>
     <div class="body">
       <div class="header">
         <div class="headerContent">
@@ -88,5 +103,7 @@ li {
         </ul>
       </div>
     </div>
+  </c:otherwise>
+</c:choose>
   </body>
 </html>
