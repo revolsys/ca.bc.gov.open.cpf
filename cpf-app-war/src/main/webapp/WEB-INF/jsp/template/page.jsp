@@ -29,7 +29,7 @@
 <c:choose>
   <c:when test="${param.plain == 'true'}">
     <c:if test="${!empty(body)}">
-<c:import url="${body}" />
+<c:import url="${body}" charEncoding="UTF-8" />
     </c:if>
   </c:when>
   <c:otherwise>
@@ -42,11 +42,11 @@
       <div class="columns">
         <div>
           <div class="sideNav">
-            <c:import url="/view/menu/sideMenu" />
+            <c:import url="/view/menu/sideMenu" charEncoding="UTF-8" />
           </div>
           <div class="bodyContainer">
             <div class="breadcrumbs">  <c:if test="${!empty(breadcrumbUrl)}">
-          <c:import url="${breadcrumbUrl}" />
+          <c:import url="${breadcrumbUrl}" charEncoding="UTF-8" />
     </c:if>
   </div>
             <div class="bodyContent">
@@ -54,7 +54,7 @@
             <h1><c:out value="${pageHeading}" /></h1>
             </c:if>
   <c:if test="${!empty(body)}">
-            <c:import url="${body}" />
+            <c:import url="${body}" charEncoding="UTF-8" />
   </c:if>
             </div>
           </div>
