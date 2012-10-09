@@ -1,7 +1,6 @@
 package ca.bc.gov.cpf.web.app;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,17 +22,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import ca.bc.gov.open.cpf.api.dao.UserAccountDao;
-import ca.bc.gov.open.cpf.api.dao.UserGroupDao;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
-import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.security.service.GroupNameService;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
+import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.ui.web.utils.HttpRequestUtils;
 
 public class SiteminderUserDetailsService implements UserDetailsService,
   GroupNameService {
+
+  private CpfDataAccessObject dataAccessObject;
 
   private static final String BCGOV_ALL = "BCGOV_ALL";
 
@@ -49,21 +50,17 @@ public class SiteminderUserDetailsService implements UserDetailsService,
 
   private static final String USER_ACCOUNT_CLASS = "BCGOV";
 
-  /** The data access object for {@link UserAccount} objects. */
-  private UserAccountDao userAccountDao;
-
   private UserAccountSecurityService userAccountSecurityService;
 
   /** The class to use to check that the user is valid. */
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
-  /** The data access object for {@link UserGroup} objects. */
-  private UserGroupDao userGroupDao;
-
-  public List<String> getGroupNames(final UserAccount userAccount) {
+  @Override
+  public List<String> getGroupNames(final DataObject userAccount) {
     final List<String> groupNames = new ArrayList<String>();
-    if (userAccount.getUserAccountClass().equals(USER_ACCOUNT_CLASS)) {
-      final String username = userAccount.getConsumerKey();
+    if (userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS).equals(
+      USER_ACCOUNT_CLASS)) {
+      final String username = userAccount.getValue(UserAccount.CONSUMER_KEY);
       if (username.startsWith("idir:")) {
         groupNames.add(BCGOV_ALL);
         groupNames.add(BCGOV_INTERNAL);
@@ -84,15 +81,6 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     return groupNames;
   }
 
-  /**
-   * Get the data access object for {@link UserAccount} objects.
-   * 
-   * @return The data access object for {@link UserAccount} objects.
-   */
-  public UserAccountDao getUserAccountDao() {
-    return userAccountDao;
-  }
-
   public UserAccountSecurityService getUserAccountSecurityService() {
     return userAccountSecurityService;
   }
@@ -106,24 +94,20 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     return userDetailsChecker;
   }
 
-  public UserGroupDao getUserGroupDao() {
-    return userGroupDao;
-  }
-
   @PostConstruct
   public void init() {
-    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
-      "BCGOV_ALL", "BC Government All Users");
-    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
-      "BCGOV_INTERNAL", "BC Government Internal Users");
-    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
-      "BCGOV_EXTERNAL", "BC Government External Users");
-    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
-      "BCGOV_BUSINESS", "BC Government External Business Users");
-    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
-      "BCGOV_INDIVIDUAL", "BC Government External Individual Users");
-    userAccountSecurityService.createUserGroup(userGroupDao, "USER_TYPE",
-      "BCGOV_VERIFIED_INDIVIDUAL",
+
+    dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_ALL",
+      "BC Government All Users");
+    dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INTERNAL",
+      "BC Government Internal Users");
+    dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_EXTERNAL",
+      "BC Government External Users");
+    dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_BUSINESS",
+      "BC Government External Business Users");
+    dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INDIVIDUAL",
+      "BC Government External Individual Users");
+    dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_VERIFIED_INDIVIDUAL",
       "BC Government External Verified Individual Users");
     userAccountSecurityService.addGrantedAuthorityService(this);
   }
@@ -136,9 +120,10 @@ public class SiteminderUserDetailsService implements UserDetailsService,
    * @param guid The external user name to login as.
    * @return The UserDetals object for the user.
    */
+  @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public UserDetails loadUserByUsername(final String userGuid) {
-    UserAccount user = userAccountDao.getByUserAccountName(USER_ACCOUNT_CLASS,
+    DataObject user = dataAccessObject.getUserAccount(USER_ACCOUNT_CLASS,
       userGuid);
 
     String username;
@@ -162,25 +147,23 @@ public class SiteminderUserDetailsService implements UserDetailsService,
       }
 
       final String consumerSecret = UUID.randomUUID().toString();
-      user = new UserAccount();
-      user.setUserAccountName(userGuid);
-      user.setUserAccountClass(USER_ACCOUNT_CLASS);
-      user.setConsumerKey(username);
-      user.setConsumerSecret(consumerSecret);
       final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
         username, consumerSecret);
       context.setAuthentication(authentication);
-      userAccountDao.persist(user);
+
+      user = dataAccessObject.createUserAccount(USER_ACCOUNT_CLASS, userGuid,
+        username, consumerSecret);
     } else {
-      username = user.getConsumerKey();
+      username = user.getValue(UserAccount.CONSUMER_KEY);
 
     }
 
-    final String userPassword = user.getConsumerSecret();
-    final boolean active = user.isActive();
-    List<String> groupNames = userAccountSecurityService.getGroupNames(user);
-    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-    for (String groupName : groupNames) {
+    final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
+    final boolean active = DataObjectUtil.getBoolean(user,
+      UserAccount.ACTIVE_IND);
+    final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
+    final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    for (final String groupName : groupNames) {
       authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
     }
 
@@ -193,21 +176,12 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     return userDetails;
   }
 
-  /**
-   * Set the data access object for {@link UserAccount} objects.
-   * 
-   * @param userAccountDao The data access object for {@link UserAccount}
-   *          objects.
-   */
-  public void setUserAccountDao(final UserAccountDao userAccountDao) {
-    this.userAccountDao = userAccountDao;
-  }
-
   @Resource(name = "userAccountSecurityService")
   @Required
   public void setUserAccountSecurityService(
     final UserAccountSecurityService userAccountSecurityService) {
     this.userAccountSecurityService = userAccountSecurityService;
+    dataAccessObject = userAccountSecurityService.getDataAccessObject();
   }
 
   /**
@@ -219,7 +193,4 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     this.userDetailsChecker = userDetailsChecker;
   }
 
-  public void setUserGroupDao(final UserGroupDao userGroupDao) {
-    this.userGroupDao = userGroupDao;
-  }
 }

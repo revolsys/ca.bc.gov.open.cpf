@@ -1,22 +1,20 @@
-<%@ page 
+<%@ page
   contentType="text/html; charset=UTF-8"
-  session="false"
   pageEncoding="UTF-8"
+  session="false"
 %><%@
-  taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"
-%><?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-  <head>
-    <title><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</title>
-    <link href="<c:url value="/css/bcgov.css" />" rel="stylesheet" type="text/css" />
-    <style type="text/css">
-div.header {
-  border-bottom: 1px solid #999999;
-}
-div.header div.headerContent {
-  border-width: 0px;
+  taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en">
+<head>
+<title><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</title>
+<link href="<c:url value="/css/rs.css" />" rel="stylesheet" type="text/css" />
+<link href="<c:url value="/css/cpf.css" />" rel="stylesheet" type="text/css" />
+<link href="<c:url value="/css/bcgov.css" />" rel="stylesheet" type="text/css" />
+<style type="text/css">
+div.body {
+  margin: 10px auto 10px auto;
+  width: 80%;
 }
 
 div.content {
@@ -47,44 +45,61 @@ div.content div.message {
 li {
   margin-bottom: 10px;
 }
+
 .errorMessage {
   overflow: auto;
   height: 50%;
   width: 90%;
 }
-    </style>
-  </head>
+</style>
+</head>
 
-  <body>
-    <div class="body">
-      <div class="header">
-        <div class="headerContent">
-          <a href="<c:url value="/help" />" class="help">Help</a>
-        </div>
+<body>
+  <c:choose>
+    <c:when test="${param.plain == 'true'}">
+      <div class="title">
+        <c:out value="${requestScope['javax.servlet.error.status_code']}" />
+        Error
       </div>
-      <div class="content">
-        <div class="title"><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</div>
-        <div class="message">
-<c:if test="${requestScope['javax.servlet.error.message'] != null}">
-            <div class="errorMessage"><c:out value="${requestScope['javax.servlet.error.message']}" escapeXml="false" /></div>
-</c:if>     
-          <ul>
-            <li>To return to the previous page <a href="javascript:history.go(-1)">click
-            here</a></li>
-            <li>To return to the home page <a href="<c:url value="/" />">click here</a></li>
-          </ul>
-        </div>
-      </div>
-    
-      <div class="footerMenu">
-        <div class="title">Web Services Security (v 1.0.0)</div>
+      <div class="message">
+        <c:if test="${requestScope['javax.servlet.error.message'] != null}">
+          <div class="errorMessage">
+            <c:out value="${requestScope['javax.servlet.error.message']}" escapeXml="false" />
+          </div>
+        </c:if>
         <ul>
-          <li><a href="http://www.gov.bc.ca/com/copy" title="COPYRIGHT">COPYRIGHT</a></li>
-          <li><a href="http://www.gov.bc.ca/com/disc" title="DISCLAIMER">DISCLAIMER</a></li>
-          <li><a href="http://www.gov.bc.ca/com/priv" title="PRIVACY">PRIVACY</a></li>
-          <li><a href="http://www.gov.bc.ca/com/accessibility" title="ACCESSIBILITY" >ACCESSIBILITY</a></li>
+          <li>To return to the previous page <a href="javascript:history.go(-1)">click here</a></li>
+          <li>To return to the home page <a href="<c:url value="/" />">click here</a></li>
         </ul>
       </div>
-    </div>
-  </body>
+    </c:when>
+    <c:otherwise>
+      <div class="body">
+        <div class="header">
+          <div class="headerContent">
+            <div class="title">Cloud Processing Framework</div>
+          </div>
+        </div>
+        <div class="content">
+          <div class="title">
+            <c:out value="${requestScope['javax.servlet.error.status_code']}" />
+            Error
+          </div>
+          <div class="message">
+            <c:if test="${requestScope['javax.servlet.error.message'] != null}">
+              <div class="errorMessage">
+                <c:out value="${requestScope['javax.servlet.error.message']}" escapeXml="false" />
+              </div>
+            </c:if>
+            <ul>
+              <li>To return to the previous page <a href="javascript:history.go(-1)">click
+                  here</a></li>
+              <li>To return to the home page <a href="<c:url value="/" />">click here</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </c:otherwise>
+  </c:choose>
+</body>
 </html>

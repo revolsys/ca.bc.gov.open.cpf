@@ -1,6 +1,6 @@
 -- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-ddl.ind
 --
--- Generated for Oracle 10g on Fri Mar 30  15:28:59 2012 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Thu Sep 27  09:23:57 2012 by Server Generator 10.1.2.9.28
   
 
 PROMPT Creating Index 'CPF_UGP_CPF_UG_FK_I'

@@ -10,7 +10,7 @@
   <artifactId>cpf</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Cloud Processing Framework</name>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>4.0.0-SNAPSHOT</version>
 
   <developers>
     <developer>
@@ -23,9 +23,9 @@
   </developers>
 
   <scm>
-    <connection>scm:svn:http://maps.bcgov/svn/cpf/source/trunk/</connection>
-    <developerConnection>scm:svn:https://maps.bcgov/svn/cpf/source/trunk/</developerConnection>
-    <url>http://apps.gov.bc.ca/gov/wsvn/TC7.cpf-source</url>
+    <connection>scm:svn:http://apps.bcgov/svn/cpf/source/trunk/</connection>
+    <developerConnection>scm:svn:https://apps.bcgov/svn/cpf/source/trunk/</developerConnection>
+    <url>http://apps.bcgov/wsvn/TC7.cpf-source</url>
   </scm>
 
   <organization>
@@ -105,7 +105,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <databaseVendor>oracle</databaseVendor>
     <skipWebDeploy>true</skipWebDeploy>
-    <com.revolsys.open.version>2012.05.28.RELEASE</com.revolsys.open.version>
-    <ca.bc.gov.open.cpf.version>3.0.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
+    <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
+    <ca.bc.gov.open.cpf.version>4.0.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
   </properties>
 </project>

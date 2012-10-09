@@ -1,6 +1,6 @@
 -- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-ddl.tab
 --
--- Generated for Oracle 10g on Fri Mar 30  15:28:59 2012 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Thu Sep 27  09:23:57 2012 by Server Generator 10.1.2.9.28
  
 
 
@@ -123,6 +123,7 @@ PROMPT Creating Table 'CPF_BATCH_JOB_REQUESTS'
 CREATE TABLE CPF_BATCH_JOB_REQUESTS
  (BATCH_JOB_REQUEST_ID NUMBER(19,0) NOT NULL
  ,BATCH_JOB_ID NUMBER(19,0) NOT NULL
+ ,BATCH_JOB_RESULT_ID NUMBER(19,0)
  ,REQUEST_SEQUENCE_NUMBER NUMBER(19,0) NOT NULL
  ,COMPLETED_IND NUMBER(1,0) NOT NULL
  ,STARTED_IND NUMBER(1,0) NOT NULL
@@ -151,6 +152,9 @@ COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.BATCH_JOB_REQUEST_ID IS 'This is the un
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.BATCH_JOB_ID IS 'This is the unique key for the BATCH JOB.'
+/
+
+COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.BATCH_JOB_RESULT_ID IS 'This is the unique key for the BATCH JOB RESULT.'
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.REQUEST_SEQUENCE_NUMBER IS 'This is the sequence number of the BATCH JOB REQUEST within a batch job. The sequence numbers start at one for the first input data record and increase by one for each subsequent record.'
@@ -202,6 +206,36 @@ COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.WHO_UPDATED IS 'This is the database or
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
+/
+
+PROMPT Creating Table 'CPF_APPLICATION_STATISTICS'
+CREATE TABLE CPF_APPLICATION_STATISTICS
+ (APPLICATION_STATISTIC_ID NUMBER(19) NOT NULL
+ ,BUSINESS_APPLICATION_NAME VARCHAR2(255) NOT NULL
+ ,START_TIMESTAMP DATE NOT NULL
+ ,DURATION_TYPE VARCHAR2(10) NOT NULL
+ ,STATISTIC_VALUES VARCHAR2(4000) NOT NULL
+ )
+ PCTFREE 10
+ TABLESPACE CPF_TABLES
+/
+
+COMMENT ON TABLE CPF_APPLICATION_STATISTICS IS 'The APPLICATION STATISTIC object represents a collection of statistic values for a business application during a time peroid hour, day, month, year). The statistics are stored as a JSON map of keys/values to allow additional statistics to be added in the future. The statistic values are processed by the application and are not intended to be queried using SQL.'
+/
+
+COMMENT ON COLUMN CPF_APPLICATION_STATISTICS.APPLICATION_STATISTIC_ID IS 'This is the unique key for the APPLICATION STATISTIC.'
+/
+
+COMMENT ON COLUMN CPF_APPLICATION_STATISTICS.BUSINESS_APPLICATION_NAME IS 'This is the name of the business application the statistic was created for.'
+/
+
+COMMENT ON COLUMN CPF_APPLICATION_STATISTICS.START_TIMESTAMP IS 'This is the timestamp of the start of the duration the statistic was created for.'
+/
+
+COMMENT ON COLUMN CPF_APPLICATION_STATISTICS.DURATION_TYPE IS 'This is the type of duration (e.g. hour, day, month, year).'
+/
+
+COMMENT ON COLUMN CPF_APPLICATION_STATISTICS.STATISTIC_VALUES IS 'This is the JSON encoded map of statistic name/values.'
 /
 
 PROMPT Creating Table 'CPF_BATCH_JOBS'
