@@ -60,7 +60,8 @@ ca.bc.gov.cpf.ws.consumerKey       The internal web service user (DON'T CHANGE)
 ca.bc.gov.cpf.ws.consumerSecret    The password for the internal web service user
 ca.bc.gov.cpf.fromEmail            The email address any emails will be sent from
 ca.bc.gov.cpf.mailServer           The mail server to send emails via
-ca.bc.gov.cpf.repositoryDirectory  The directory to store maven artifacts
+ca.bc.gov.cpf.repositoryServer     The maven repository to download plugins from
+ca.bc.gov.cpf.repositoryDirectory  The cache directory to store maven artifacts
 
 
 Create the directory and configuration file.
