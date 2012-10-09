@@ -35,7 +35,8 @@
 
     <entry key="mavenRepository.repositoryLocations">
       <list>
-        <value>http://apps.gov.bc.ca/gov/artifactory/repo/</value>
+        <value>${ca.bc.gov.cpf.repositoryServer}</value>
+        <value>http://apps.bcgov/artifactory/repo</value>
       </list>
     </entry>
 
