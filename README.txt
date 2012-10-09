@@ -18,7 +18,7 @@ App Server Additional Memory: 100MB
 
 1.1 Download SQL Scripts from Subversion
 
-svn co http://maps.bcgov/svn/geomark/source/trunk/scripts
+svn co http://maps.bcgov/svn/cpf/source/trunk/scripts
 cd scripts
 
 1.2 Run the DBA scripts to create the tablespaces and users

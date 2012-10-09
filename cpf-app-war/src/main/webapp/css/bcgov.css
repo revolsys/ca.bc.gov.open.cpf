@@ -2,67 +2,7 @@ body {
   color: #333333;
   font-size: 12px;
   font-family: Verdana, Arial, Helvetica, sans-serif;
-  margin: 0px;
-}
-
-h1 {
-  color: #039;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  line-height: 1;
-  font-size: 1.6em;
-  margin-bottom: 12px;
-}
-
-h2 {
-  color: #039;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  line-height: 1;
-  font-style: italic;
-  font-size: 1.4em;
-  margin-bottom: 12px;
-}
-
-h2.subhead {
-  color: #039;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  line-height: 1;
-  font-size: 1.2em;
-  font-weight: normal;
-  color: #999;
-  margin: -9px 0 12px 0;
-}
-
-h3 {
-  color: #039;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  line-height: 1;
-  font-size: 1.2em;
-  margin-bottom: 12px;
-}
-
-h4 {
-  color: #039;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  line-height: 1;
-  font-size: 1.1em;
-  font-style: italic;
-  margin-bottom: 12px;
-}
-
-h5 {
-  color: #039;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  line-height: 1;
-  font-size: 1em;
-  margin-bottom: 12px;
-}
-
-h6 {
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  line-height: 1;
-  font-size: 1em;
-  font-style: italic;
-  margin-bottom: 12px;
+  margin: 0px 1em 0px 1em;
 }
 
 dt {
@@ -80,26 +20,24 @@ dd {
 }
 
 div.body {
-  margin: 0px auto 0px auto;
-  width: 950px;
+  min-width: 950px;
 }
 
 div.header {
-  background-image: url(../images/bc_sun_logo_horiz.gif);
-  background-position: top left;
-  background-repeat: no-repeat;
-  background-color: #ffffff;
+  background-image: none;
   border-width: 0px;
-  margin-bottom: 0px;
-  padding:0px;
+  margin: 0px;
+  padding: 0px;
 }
 
 div.headerContent {
-  margin-left: 164px;
-  border-bottom: 1px solid #999999;
-  border-left: 1px solid #999999;
+  background-image: url(../images/bc_sun_logo_horiz.gif);
+  background-position: top 30px;
+  background-repeat: no-repeat;
+  margin: 0px;
+  padding: 0px 0px 0px 18%;
+  background-color: #ffffff;
   height: 50px;
-  padding: 5px;
 }
 
 div.headerContent div.title {
@@ -111,16 +49,17 @@ div.headerContent div.title {
   padding-top: 12px;
 }
 
-div.columns {
-  width: 950px;
-  overflow: hidden;
+div.columns_2_1 {
+  border-right: 1px solid #999999;
+  box-sizing: border-box;
 }
 
 div.breadcrumb {
+  border-top: 1px solid #999999;
   border-bottom: 1px solid #999999;
-  margin-left: 164px;
   padding: 9px 5px 0px 10px;
-  height: 21px;
+  height: 20px;
+  margin-left: 0px;
 }
 
 div.bodyContainer {
@@ -128,8 +67,9 @@ div.bodyContainer {
 }
 
 div.bodyContent {
-  margin-left: 164px;
-  padding: 5px 0px 5px 10px;
+  padding: 5px 10px 5px 10px;
+  word-wrap: break-word;
+  margin-left: 0px;
 }
 
 a.help {
@@ -146,47 +86,39 @@ a.help {
   text-decoration: none;
 }
 
-a.button {
-  background-color: #ffcc33;
-  border: 1px solid #cc9900;
-  color: black;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: bold;
-  margin-right: 3px;
-  padding: 3px 3px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
 div.buttons {
   margin: 5px;
 }
 
 div.sideNav {
-  width: 164px;
-  border-width: 0px;
+  background-color: #cccccc;
+  width: 100%;
+  margin: 0px -10px 0px 1px;
+  padding: 0px 0px 5px 0px;
   border-right: 1px solid #999999;
-  margin: 0px 0px -990px 0px;
-  padding: 0px 0px 1000px 0px;
+  border-top: 1px solid #999999;
+  border-bottom: 1px solid #999999;
+  border-left: 1px solid #999999;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 0px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 0px;
+  width: 100%;
 }
 
 div.sideMenu {
-  padding: 0px 0px 8px 0px;
-  background-image: url(../images/nav_grey_bottom.gif);
-  background-position: bottom left;
-  background-repeat: no-repeat;
+  padding: 0px;
+  background-color: white;
 }
 
 div.sideMenu div.title {
+  background-image: none;
   background-color: #6699CC;
-  background-image: url(../images/blue_top.gif);
-  background-position: top left;
-  background-repeat: no-repeat;
+  border-top-right-radius: 0px;
   color: #0066CC;
   font: bold 11px Verdana, Arial, Helvetica, sans-serif;
   padding: 10px 2px 5px 11px;
-  height: 16px;
+  height: 15px;
 }
 
 div.sideMenu div.title a {
@@ -195,9 +127,6 @@ div.sideMenu div.title a {
 }
 
 div.sideMenu ul {
-  border-color: #999999;
-  border-style: solid;
-  border-width: 0px 0px 0px 1px;
   margin: 0px;
   padding: 10px 5px 10px 15px;
   font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -230,6 +159,10 @@ div.sideMenu ul li:nth-of-type(even) {
   background-color: white;
 }
 
+div.sideMenu ul li:last-child {
+  border-bottom-right-radius: 0px;
+}
+
 div.footnotes {
   font-size: 0.7em;
   margin: 0px;
@@ -237,39 +170,25 @@ div.footnotes {
   color: #666666;
 }
 
-div.footerMenu {
+div.footer {
+  background-image: none;
+  background-color: #ffffff;
+  border-width: 0px;
+  border-radius: 0px;
   border-top: 1px solid #999999;
-  font-size: 0.7em;
+  clear: both;
+  color: #666666;
+  font-family: Verdana, Arial, Helvetica, sans-serif;
   font-weight: bold;
   margin: 0px;
-  padding: 4px 0px;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-size: 10px;
-  color: #666666;
-  clear: both;
+  margin-left: 18%;
+  padding: 4px 0px 0px 4px;
+  background-color: #ffffff;
 }
 
-div.footerMenu div.title {
-  float: left;
-  font-weight: normal;
-}
-
-div.footerMenu ul {
-  text-align: right;
-  margin: 0em;
-  list-style: none outside none;
-  padding: 0em;
-}
-
-div.footerMenu ul li {
-  display: inline;
-}
-
-div.footerMenu a {
+div.footer a {
   border-left: 1px solid #999999;
-  color: #999999;
-  text-decoration: none;
-  padding: 4px 5px;
+  color: #666666;
 }
 
 div.resources dt {
@@ -288,39 +207,7 @@ div.resources dd {
   padding-left: 0px;
 }
 
-div.form div.required {
-  background: url(../images/asterisk.gif) no-repeat 3px 5px;
-  padding-left: 10px;
-}
-
-div.actionMenu {
-  background-position: 0px 7px;
-  background-image: url(../images/line_dot_595.gif);
-  background-repeat: repeat-x;
-  margin-top: 10px;
-  padding: 15px 0px 10px 0px;
-}
-
-div.actionMenu ul {
-  margin: 0em 0em 0em 0em;
-  list-style: none outside none;
-  padding: 0em;
-  line-height: 25px;
-}
-
-div.actionMenu ul li {
-  display: inline;
-}
-
-div.actionMenu ul li a {
-  background-color: #ffcc33;
-  border: 1px solid #cc9900;
-  color: black;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
-  font-weight: bold;
-  margin-right: 3px;
-  padding: 3px 3px;
-  text-decoration: none;
-  white-space: nowrap;
+div.objectView>table.data>tbody>tr>th {
+  text-align: right;
+  max-width: 30%;
 }

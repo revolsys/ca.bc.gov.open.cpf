@@ -8,6 +8,31 @@
     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
   "
 >
+  <bean
+    id="footerMenu"
+    class="com.revolsys.ui.model.Menu"
+  >
+    <property name="menus">
+      <list>
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="COPYRIGHT"
+          p:uri="http://www2.gov.bc.ca/gov/admin/copyright.page" />
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="DISCLAIMER"
+          p:uri="http://www2.gov.bc.ca/gov/admin/disclaimer.page" />
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="PRIVACY"
+          p:uri="http://www2.gov.bc.ca/gov/admin/privacy.page" />
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="ACCESSIBILITY"
+          p:uri="http://www2.gov.bc.ca/gov/admin/accessibility.page" />
+      </list>
+    </property>
+  </bean>
 
   <bean
     name="/secure/"

@@ -35,7 +35,7 @@
       access="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />
 
     <security:intercept-url
-      pattern="/secure/ws/internal/**"
+      pattern="/secure/worker/**"
       access="denyAll" />
 
     <security:intercept-url
@@ -87,8 +87,6 @@
   <bean
     id="cpfSiteminderUserDetailsService"
     class="ca.bc.gov.cpf.web.app.SiteminderUserDetailsService"
-    p:UserAccountDao-ref="ca.bc.gov.open.cpf.api.domain.UserAccount-dao"
-    p:UserGroupDao-ref="ca.bc.gov.open.cpf.api.domain.UserGroup-dao"
     p:userAccountSecurityService-ref="userAccountSecurityService" />
 
   <bean
