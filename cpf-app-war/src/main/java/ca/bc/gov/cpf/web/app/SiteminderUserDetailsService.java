@@ -29,7 +29,7 @@ import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
-import com.revolsys.ui.web.utils.HttpRequestUtils;
+import com.revolsys.ui.web.utils.HttpServletUtils;
 
 public class SiteminderUserDetailsService implements UserDetailsService,
   GroupNameService {
@@ -128,7 +128,7 @@ public class SiteminderUserDetailsService implements UserDetailsService,
 
     String username;
     if (user == null) {
-      final HttpServletRequest request = HttpRequestUtils.getHttpServletRequest();
+      final HttpServletRequest request = HttpServletUtils.getRequest();
       final String userType = request.getHeader("SMGOV_USERTYPE");
       final SecurityContext context = SecurityContextHolder.getContext();
       username = request.getHeader("SM_UNIVERSALID").toLowerCase();
