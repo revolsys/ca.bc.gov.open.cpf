@@ -120,7 +120,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <databaseVendor>oracle</databaseVendor>
     <skipWebDeploy>true</skipWebDeploy>
-    <com.revolsys.open.version>2011.11.01.RELEASE</com.revolsys.open.version>
+    <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
     <ca.bc.gov.open.cpf.version>4.0.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
   </properties>
 </project>
