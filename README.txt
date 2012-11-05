@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Cloud Processing Framework Web Application
-Version:           3.0.0
+Version:           4.0.0
 
 Software/Hardware Requirements
 ------------------------------
@@ -18,7 +18,7 @@ App Server Additional Memory: 100MB
 
 1.1 Download SQL Scripts from Subversion
 
-svn co http://maps.bcgov/svn/cpf/source/trunk/scripts
+svn co http://apps.bcgov/svn/cpf/source/trunk/scripts
 cd scripts
 
 1.2 Run the DBA scripts to create the tablespaces and users
@@ -66,6 +66,9 @@ ca.bc.gov.cpf.repositoryDirectory  The cache directory to store maven artifacts
 
 Create the directory and configuration file.
 
+NOTE: Configuration for delivery, test and production can be managed in
+subversion https://apps.bcgov/svn/cpf/config/ and checked out to this directory.
+
 mkdir -p /apps/config/cpf
 cd /apps/config/cpf
 vi cpf.properties
@@ -74,7 +77,7 @@ Sample Values
 -------------
 The latest sample config file can be obtained from:
 
-https://maps.bcgov/svn/cpf/config/delivery/trunk/sample-cpf.properties
+https://apps.bcgov/svn/cpf/config/delivery/trunk/cpf.properties
 
 It contains the following values for the delivery environment.
 
@@ -83,28 +86,47 @@ ca.bc.gov.cpf.app.secureBaseUrl=https\://delivery.apps.gov.bc.ca/pub/cpf/secure
 ca.bc.gov.cpf.db.url=jdbc\:oracle\:thin\:@fry.geobc.gov.bc.ca\:1521\:GEODLV
 ca.bc.gov.cpf.db.user=proxy_cpf_web
 ca.bc.gov.cpf.db.password=cpf_2009
-ca.bc.gov.cpf.db.maxConnections=20
-
+ca.bc.gov.cpf.db.maxConnections=50
 ca.bc.gov.cpf.ws.consumerKey=cpf_worker
 ca.bc.gov.cpf.ws.consumerSecret=cpf_2009
-
 ca.bc.gov.cpf.fromEmail=noreply@gov.bc.ca
 ca.bc.gov.cpf.mailServer=apps.smtp.gov.bc.ca
-
+ca.bc.gov.cpf.repositoryServer=http://apps.bcgov/artifactory/repo/
 ca.bc.gov.cpf.repositoryDirectory=/tmp/cpf/repository/
 
 3. Ministry Continuous Integration System
 -----------------------------------------
 
-Create a new deploy job using the Ministry Continuous Integration System.
+The application can be build and deployed using the  Ministry Continuous
+Integration System, use the Ministry Standards below as a Guide.
 
-http://apps.gov.bc.ca/gov/standards/index.php/Migration_Task_with_CIS
+http://apps.bcgov/standards/index.php/Migration_Task_with_CIS
 
-Job name:                       revolys-cpf-deploy
-Subversion:                     http://maps.bcgov/svn/cpf/source/trunk
-MVN Goals and options:          clean install
-Ministry Artifacts Repository:  Yes
-Deploy to Tomcat:               Yes
+Create a new maven 2/3 job with the following parameters.
+
+Project name:                       revolys-cpf-deploy
+Description:                        Build the CPF web application and deploy to Tomcat.
+Source Code Management: 
+  (*) Subversion:
+    Repository URL:                 http://apps.bcgov/svn/cpf/source/trunk/
+MVN Goals and options:              clean install
+E-Mail Notification:                leo.lou@gov.bc.ca paul.austin@revolsys.com
+Resolve Artifacts from Artifactory: Yes
+Post-build Actions:
+ Deploy artifacts to Artifactory:
+   Artifactory Server:              http://delivery.apps.bcgov/artifactory/
+     Target releases repository:    libs-release-local
+     Target snapshots repository:   libs-snapshot-local
+  Deploy war/ear to a container:
+    WAR/EAR files:                  **/*.war
+    Container:                      Tomcat 7.x
+      Manager user name:            catbot
+      Manager password:             ********
+      Tomcat URL:                   http://localhost:9501/
+  Build other projects:              # Other than in delivery leave blank. 
+                                    # Manually build other projects.
+                                    # Do not allow other projects to be auto
+                                    # built when this project is built.
 
 4. Compilation & Deployment
 ---------------------------
@@ -142,7 +164,7 @@ p. Click Save. The cpf_admin account is now disabled and admin access requires
 5.2 CPF Module Deployment
 -------------------------
 
-Follow the CPF Module Deployment of each CPF module to be deployed.
+Follow the README.txt file for each CPF plug-in to be deployed to the CPF.
 
 6. Notification
 ---------------
@@ -153,13 +175,36 @@ is complete.
 7. Perform Release 
 ------------------
 
-This step is performed before migration of an application to the production
-environment. The migration occurs after the developer has tested the application
-in the delivery environment and the business area have completed the user
-acceptance testing in the test environment.
+This step is performed before migration of an application to the test or
+production environment.
 
-Use the Ministry Continuous Integration System to tag the version in Subversion,
-build the release version and deploy it to the Ministry Artifacts Repository.
+The migration to test occurs after the developer has tested the application in
+the delivery environment. The migration to production occurs after the business
+area has tested the application in the test environment.
 
-Release Version:          3.0.0
-Next Development Version: 3.0.1-SNAPSHOT
+7.1 Update snapshot dependencies
+--------------------------------
+
+Before performing a release the -SNAPSHOT dependencies for the project's
+dependencies must be updated to release candidate versions for test and
+release versions for production. Edit the pom.xml file replacing the version
+number in the value of the following properties that can be found at the bottom
+of the pom.xml file. Commit the changes to the pom.xml before preparing a
+release.
+
+This property is the version of the http://apps.bcgov/svn/cpf/api-source project.
+
+<ca.bc.gov.open.cpf.version>4.0.0</ca.bc.gov.open.cpf.version> 
+
+7.2 Perform and prepare the release
+-----------------------------------
+
+Perform a maven release using the following settings.
+
+ * Test Migration
+
+Test Version:             4.0.0.RC[1..9] Increment for each migration to test
+
+ * Production Migration
+Release Version:          4.0.0
+Next Development Version: 4.0.1-SNAPSHOT

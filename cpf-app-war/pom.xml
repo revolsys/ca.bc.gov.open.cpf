@@ -27,16 +27,6 @@
       <version>${ca.bc.gov.open.cpf.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.gis.${cpfDatabaseVendor}</artifactId>
-      <version>${com.revolsys.open.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.oracle</groupId>
-      <artifactId>ojdbc6</artifactId>
-      <version>11.2.0.3</version>
-    </dependency>
-    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.4</version>
@@ -47,6 +37,5 @@
   <properties>
     <webContextPath>/pub/cpf</webContextPath>
     <skipWebDeploy>false</skipWebDeploy>
-    <cpfDatabaseVendor>oracle</cpfDatabaseVendor>
   </properties>
 </project>
