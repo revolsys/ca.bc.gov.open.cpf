@@ -44,6 +44,75 @@
           <target>1.6</target>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Specification-Title>${project.name}</Specification-Title>
+              <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+              <Specification-Version>${project.version}</Specification-Version>
+              <Implementation-Title>${project.name}</Implementation-Title>
+              <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+              <Implementation-Version>${project.version}</Implementation-Version>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <createChecksum>true</createChecksum>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.2</version>
+        <configuration>
+          <includePom>true</includePom>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <executions>
+          <execution>
+            <id>javadoc-html</id>
+            <phase>install</phase>
+            <configuration>
+              <quiet>true</quiet>
+              <show>public</show>
+            </configuration>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.1.1</version>
+        <configuration>
+          <archiveClasses>false</archiveClasses>
+          <attachClasses>false</attachClasses>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -101,6 +170,7 @@
     </profile>
   </profiles>
 
+  <!-- Required but set to dummy values as deployment is done to artifactory -->
   <distributionManagement>
     <repository>
       <id>bcgov-releases</id>
@@ -118,9 +188,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <databaseVendor>oracle</databaseVendor>
     <skipWebDeploy>true</skipWebDeploy>
-    <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
     <ca.bc.gov.open.cpf.version>4.0.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
   </properties>
 </project>
