@@ -189,6 +189,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <skipWebDeploy>true</skipWebDeploy>
-    <ca.bc.gov.open.cpf.version>${project.version}</ca.bc.gov.open.cpf.version>
+    <ca.bc.gov.open.cpf.version>4.0.0-RC2</ca.bc.gov.open.cpf.version>
   </properties>
 </project>
