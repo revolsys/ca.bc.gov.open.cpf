@@ -6,7 +6,7 @@
   <artifactId>cpf</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Cloud Processing Framework</name>
-  <version>4.0.0-RC2</version>
+  <version>4.0.0-SNAPSHOT</version>
 
   <developers>
     <developer>
@@ -19,9 +19,9 @@
   </developers>
 
   <scm>
-    <connection>scm:svn:http://apps.bcgov/svn/cpf/source/tags/4.0.0-RC2</connection>
-    <developerConnection>scm:svn:https://apps.bcgov/svn/cpf/source/tags/4.0.0-RC2</developerConnection>
-    <url>http://apps.bcgov/wsvn/TC7.cpf-source/tags/4.0.0-RC2</url>
+    <connection>scm:svn:http://apps.bcgov/svn/cpf/source/trunk/</connection>
+    <developerConnection>scm:svn:https://apps.bcgov/svn/cpf/source/trunk/</developerConnection>
+    <url>http://apps.bcgov/wsvn/TC7.cpf-source</url>
   </scm>
 
   <organization>
