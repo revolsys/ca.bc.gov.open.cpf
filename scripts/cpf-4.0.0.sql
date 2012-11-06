@@ -10,7 +10,7 @@ CREATE TABLE CPF_APPLICATION_STATISTICS
  ,STATISTIC_VALUES VARCHAR2(4000) NOT NULL
  )
  PCTFREE 10
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_APPLICATION_STATISTICS IS 'The APPLICATION STATISTIC object represents a collection of statistic values for a business application during a time peroid hour, day, month, year). The statistics are stored as a JSON map of keys/values to allow additional statistics to be added in the future. The statistic values are processed by the application and are not intended to be queried using SQL.'
@@ -37,7 +37,7 @@ ALTER TABLE CPF_APPLICATION_STATISTICS
   (APPLICATION_STATISTIC_ID)
  USING INDEX 
  PCTFREE 10
- TABLESPACE CPF_INDEXES)
+ TABLESPACE CPF_NDX)
 /
 
 
