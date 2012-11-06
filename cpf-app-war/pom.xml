@@ -7,7 +7,7 @@
   <parent>
     <groupId>ca.bc.gov.cpf</groupId>
     <artifactId>cpf</artifactId>
-    <version>4.0.0-RC1</version>
+    <version>4.0.1-SNAPSHOT</version>
   </parent>
 
   <dependencies>
