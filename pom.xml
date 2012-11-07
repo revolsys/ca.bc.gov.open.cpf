@@ -113,6 +113,19 @@
           <attachClasses>false</attachClasses>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>1.3.1</version>
+        <configuration>
+          <properties>
+            <property>
+              <name>ca.bc.gov.open.cpf.version</name>
+              <version>[1.5.0,1.6.0-!)</version>
+            </property>
+          </properties>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -170,19 +183,38 @@
     </profile>
   </profiles>
 
-  <!-- Required but set to dummy values as deployment is done to artifactory -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>ca.bc.gov.open.cpf</groupId>
+        <artifactId>cpf-war-app</artifactId>
+        <version>${ca.bc.gov.open.cpf.version}</version>
+        <type>war</type>
+      </dependency>
+      <dependency>
+        <groupId>ca.bc.gov.open.cpf</groupId>
+        <artifactId>cpf-api-app</artifactId>
+        <version>${ca.bc.gov.open.cpf.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ca.bc.gov.open.cpf</groupId>
+        <artifactId>cpf-war-worker</artifactId>
+        <version>${ca.bc.gov.open.cpf.version}</version>
+        <type>war</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  
   <distributionManagement>
     <repository>
-      <id>bcgov-releases</id>
-      <name>libs-releases-local</name>
-      <url>file:///tmp/m2</url>
-      <uniqueVersion>false</uniqueVersion>
+      <id>release</id>
+      <name>http://apps.bcgov-releases</name>
+      <url>http://apps.bcgov/artifactory/libs-release-local</url>
     </repository>
     <snapshotRepository>
-      <id>bcgov-snapshots</id>
-      <name>libs-snapshots-local</name>
-      <url>file:///tmp/m2</url>
-      <uniqueVersion>false</uniqueVersion>
+      <id>snapshot</id>
+      <name>http://apps.bcgov-snapshots</name>
+      <url>http://apps.bcgov/artifactory/libs-snapshot-local</url>
     </snapshotRepository>
   </distributionManagement>
 
