@@ -18,13 +18,11 @@
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
       <artifactId>cpf-war-app</artifactId>
-      <version>${ca.bc.gov.open.cpf.version}</version>
       <type>war</type>
     </dependency>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
       <artifactId>cpf-api-app</artifactId>
-      <version>${ca.bc.gov.open.cpf.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

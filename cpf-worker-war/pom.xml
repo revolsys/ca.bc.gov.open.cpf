@@ -18,7 +18,6 @@
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
       <artifactId>cpf-war-worker</artifactId>
-      <version>${ca.bc.gov.open.cpf.version}</version>
       <type>war</type>
     </dependency>
   </dependencies>
