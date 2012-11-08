@@ -184,29 +184,17 @@ The migration to test occurs after the developer has tested the application in
 the delivery environment. The migration to production occurs after the business
 area has tested the application in the test environment.
 
-7.1 Update snapshot dependencies
---------------------------------
+Perform a Maven release using the following settings.
 
-Before performing a release the -SNAPSHOT dependencies for the project's
-dependencies must be updated to release candidate versions for test and
-release versions for production. Edit the pom.xml file replacing the version
-number in the value of the following properties that can be found at the bottom
-of the pom.xml file. Commit the changes to the pom.xml before preparing a
-release.
+Update property dependencies to latest RC or release version:
+  ca.bc.gov.open.cpf.version: 4.0.0+
 
-This property is the version of the http://apps.bcgov/svn/cpf/api-source project.
+Test Migration
+**************
 
-<ca.bc.gov.open.cpf.version>4.0.0</ca.bc.gov.open.cpf.version> 
+Test Version:                 4.0.0.RC# Increment for each migration to test
 
-7.2 Perform and prepare the release
------------------------------------
-
-Perform a maven release using the following settings.
-
- * Test Migration
-
-Test Version:             4.0.0.RC[1..9] Increment for each migration to test
-
- * Production Migration
-Release Version:          4.0.0
-Next Development Version: 4.0.1-SNAPSHOT
+Production Migration
+********************
+Release Version:              4.0.0
+Next Development Version:     4.0.1-SNAPSHOT
