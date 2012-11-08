@@ -52,6 +52,7 @@ Property                           Description
 -------------------------------    ------------------------------------------
 ca.bc.gov.cpf.app.baseUrl          The HTTP URL to the server cpf is deployed to
 ca.bc.gov.cpf.app.secureBaseUrl    The HTTPS URL to the server cpf is deployed to
+ca.bc.gov.cpf.app.internalUrl      TheHTTP URL to the private Tomcat server (behind the reverse proxy) cpf is deployed to
 ca.bc.gov.cpf.db.url               The JDBC URL to the cpf database
 ca.bc.gov.cpf.db.user              The PROXY_CPF_WEB user account (DON'T CHANGE)
 ca.bc.gov.cpf.db.password          The password for the PROXY_CPF_WEB user account
@@ -83,6 +84,7 @@ It contains the following values for the delivery environment.
 
 ca.bc.gov.cpf.app.baseUrl=http\://delivery.apps.gov.bc.ca/pub/cpf
 ca.bc.gov.cpf.app.secureBaseUrl=https\://delivery.apps.gov.bc.ca/pub/cpf/secure
+ca.bc.gov.cpf.app.internalUrl=http\://localhost\:9501/pub/cpf
 ca.bc.gov.cpf.db.url=jdbc\:oracle\:thin\:@fry.geobc.gov.bc.ca\:1521\:GEODLV
 ca.bc.gov.cpf.db.user=proxy_cpf_web
 ca.bc.gov.cpf.db.password=cpf_2009

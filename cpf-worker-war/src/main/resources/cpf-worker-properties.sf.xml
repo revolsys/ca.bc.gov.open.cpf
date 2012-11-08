@@ -27,7 +27,7 @@
   >
     <entry
       key="cpfInternalWebServiceUrl"
-      value="${ca.bc.gov.cpf.app.baseUrl}" />
+      value="${ca.bc.gov.cpf.app.internalUrl}" />
 
     <entry
       key="cpfInternalConsumerKey"

@@ -121,7 +121,7 @@
           <properties>
             <property>
               <name>ca.bc.gov.open.cpf.version</name>
-              <version>[1.5.0,1.6.0-!)</version>
+              <version>[4.0.0,),[4.0.0.RC,)</version>
             </property>
           </properties>
         </configuration>
