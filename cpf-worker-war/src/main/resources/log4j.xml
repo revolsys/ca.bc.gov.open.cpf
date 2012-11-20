@@ -7,14 +7,17 @@
 >
   <appender
     name="FileLog"
-    class="org.apache.log4j.FileAppender"
+    class="org.apache.log4j.rolling.RollingFileAppender"
   >
-    <param
-      name="file"
-      value="/apps/logs/cpf/cpf-worker.log" />
-    <param
-      name="append"
-      value="false" />
+    <rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+      <param
+        name="ActiveFileName"
+        value="/apps/logs/cpf/cpf-worker.log" />
+      <param
+        name="FileNamePattern"
+        value="/apps/logs/cpf/cpf-worker.%d.log" />
+    </rollingPolicy>
+
     <layout class="org.apache.log4j.PatternLayout">
       <param
         name="ConversionPattern"
