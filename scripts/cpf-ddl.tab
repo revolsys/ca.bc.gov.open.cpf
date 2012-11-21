@@ -1,6 +1,6 @@
 -- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-ddl.tab
 --
--- Generated for Oracle 10g on Fri Oct 12  10:42:54 2012 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Tue Nov 20  16:24:53 2012 by Server Generator 10.1.2.9.28
  
 
 
@@ -19,7 +19,7 @@ CREATE TABLE CPF_USER_GROUP_PERMISSIONS
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
  PCTFREE 10
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_USER_GROUP_PERMISSIONS IS 'USER GROUP PERMISSION represents a permission for a member of a USER GROUP to perfom an action on a given resource for a module.'
@@ -67,14 +67,14 @@ CREATE TABLE CPF_BATCH_JOB_RESULTS
  ,BATCH_JOB_REQUEST_ID NUMBER(19,0)
  ,DOWNLOAD_TIMESTAMP TIMESTAMP
  ,REQUEST_SEQUENCE_NUMBER NUMBER(19,0)
- ,RESULT_DATA BLOB
+ ,RESULT_DATA CHAR(2000)
  ,RESULT_DATA_URL VARCHAR2(2000)
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
  ,WHO_UPDATED VARCHAR2(36) NOT NULL
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_BATCH_JOB_RESULTS IS 'The BATCH JOB RESULT is a result file generated after the execution of a BATCH JOB. For structured output data one file will be generated containing all the results. For opaque output data one file will be created for each BATCH JOB REQUEST. A BATCH JOB may also have one file containing any errors generated.'
@@ -130,19 +130,19 @@ CREATE TABLE CPF_BATCH_JOB_REQUESTS
  ,ERROR_CODE VARCHAR2(255)
  ,ERROR_DEBUG_MESSAGE VARCHAR2(4000)
  ,ERROR_MESSAGE VARCHAR2(4000)
- ,INPUT_DATA BLOB
+ ,INPUT_DATA CHAR(2000)
  ,INPUT_DATA_URL VARCHAR2(2000)
  ,INPUT_DATA_CONTENT_TYPE VARCHAR2(255)
- ,RESULT_DATA BLOB
+ ,RESULT_DATA CHAR(2000)
  ,RESULT_DATA_URL VARCHAR2(2000)
- ,STRUCTURED_INPUT_DATA CLOB
- ,STRUCTURED_RESULT_DATA CLOB
+ ,STRUCTURED_INPUT_DATA CHAR(2000)
+ ,STRUCTURED_RESULT_DATA CHAR(2000)
  ,WHO_CREATED VARCHAR2(36) NOT NULL
  ,WHEN_CREATED TIMESTAMP NOT NULL
  ,WHO_UPDATED VARCHAR2(36) NOT NULL
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_BATCH_JOB_REQUESTS IS 'The BATCH JOB REQUEST represents a single request to execute a BusinessApplication within a BATCH JOB. It contains the input data, result data and any permanent errors.'
@@ -217,7 +217,7 @@ CREATE TABLE CPF_APPLICATION_STATISTICS
  ,STATISTIC_VALUES VARCHAR2(4000) NOT NULL
  )
  PCTFREE 10
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_APPLICATION_STATISTICS IS 'The APPLICATION STATISTIC object represents a collection of statistic values for a business application during a time peroid hour, day, month, year). The statistics are stored as a JSON map of keys/values to allow additional statistics to be added in the future. The statistic values are processed by the application and are not intended to be queried using SQL.'
@@ -264,7 +264,7 @@ CREATE TABLE CPF_BATCH_JOBS
  ,WHO_UPDATED VARCHAR2(36) NOT NULL
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_BATCH_JOBS IS 'The BATCH JOB object represents a batch of requests to a BusinessApplication.'
@@ -345,7 +345,7 @@ CREATE TABLE CPF_USER_GROUP_ACCOUNT_XREF
  ,USER_ACCOUNT_ID NUMBER(19,0) NOT NULL
  )
  PCTFREE 10
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_USER_GROUP_ACCOUNT_XREF IS 'USER GROUP ACCOUNT XREF represents a relationship between a USER GROUP and the USER ACCOUNT that is a member of that group.'
@@ -371,7 +371,7 @@ CREATE TABLE CPF_USER_ACCOUNTS
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
  PCTFREE 10
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_USER_ACCOUNTS IS 'The USER ACCOUNTS represents a user account created for an internal or external user, for example a OpenID account, BC Government IDIR account, or email address.'
@@ -421,7 +421,7 @@ CREATE TABLE CPF_CONFIG_PROPERTIES
  ,WHO_UPDATED VARCHAR2(36) NOT NULL
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_CONFIG_PROPERTIES IS 'The CONFIG PROPERTY represents a value to set for a property overriding the default value provided in the application code.'
@@ -473,7 +473,7 @@ CREATE TABLE CPF_USER_GROUPS
  ,WHEN_UPDATED TIMESTAMP NOT NULL
  )
  PCTFREE 10
- TABLESPACE CPF_TABLES
+ TABLESPACE CPF
 /
 
 COMMENT ON TABLE CPF_USER_GROUPS IS 'USER GROUP represents a named group of CPF or external users that can be granted permissions via USER GROUP PERMISSION. The members of the group are defined in the USER GROUP ACCOUNT XFREF.'

@@ -1,6 +1,6 @@
 -- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-ddl.grt
 --
--- Generated for Oracle 10g on Fri Oct 12  10:42:54 2012 by Server Generator 10.1.2.9.28
+-- Generated for Oracle 10g on Tue Nov 20  16:24:54 2012 by Server Generator 10.1.2.9.28
  
 
 PROMPT Granting Object Privileges
