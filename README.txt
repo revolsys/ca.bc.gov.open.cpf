@@ -59,7 +59,7 @@ ca.bc.gov.cpf.db.password          The password for the PROXY_CPF_WEB user accou
 ca.bc.gov.cpf.db.maxConnections    The maximum number of database connections
 ca.bc.gov.cpf.ws.consumerKey       The internal web service user (DON'T CHANGE)    
 ca.bc.gov.cpf.ws.consumerSecret    The password for the internal web service user
-ca.bc.gov.cpf.fromEmail            The email address any emails will be sent from
+batchJobService.fromEmail          The email address any emails will be sent from
 ca.bc.gov.cpf.mailServer           The mail server to send emails via
 ca.bc.gov.cpf.repositoryServer     The maven repository to download plugins from
 ca.bc.gov.cpf.repositoryDirectory  The cache directory to store maven artifacts
@@ -84,15 +84,15 @@ It contains the following values for the delivery environment.
 
 ca.bc.gov.cpf.app.baseUrl=http\://delivery.apps.gov.bc.ca/pub/cpf
 ca.bc.gov.cpf.app.secureBaseUrl=https\://delivery.apps.gov.bc.ca/pub/cpf/secure
-ca.bc.gov.cpf.app.internalUrl=http\://localhost\:9501/pub/cpf
+ca.bc.gov.cpf.app.internalUrl=http\://delivery.apps.gov.bc.ca/pub/cpf
 ca.bc.gov.cpf.db.url=jdbc\:oracle\:thin\:@fry.geobc.gov.bc.ca\:1521\:GEODLV
 ca.bc.gov.cpf.db.user=proxy_cpf_web
 ca.bc.gov.cpf.db.password=cpf_2009
 ca.bc.gov.cpf.db.maxConnections=50
 ca.bc.gov.cpf.ws.consumerKey=cpf_worker
 ca.bc.gov.cpf.ws.consumerSecret=cpf_2009
-ca.bc.gov.cpf.fromEmail=noreply@gov.bc.ca
-ca.bc.gov.cpf.mailServer=apps.smtp.gov.bc.ca
+batchJobService.fromEmail=noreply@gov.bc.ca
+mailSender.fromEmail=apps.smtp.gov.bc.ca
 ca.bc.gov.cpf.repositoryServer=http://apps.bcgov/artifactory/repo/
 ca.bc.gov.cpf.repositoryDirectory=/tmp/cpf/repository/
 
