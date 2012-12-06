@@ -1,0 +1,12 @@
+[
+  {
+    "name": "BcGeocoder.geoCoderUrl",
+    "type": "string",
+    "value": "http://apps.gov.bc.ca/pub/app_gc/lookup.do"
+  },
+  {
+    "name": "BcGeocoder.maxResults",
+    "type": "int",
+    "value": "5"
+  }
+]

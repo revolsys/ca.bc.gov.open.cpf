@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<script type="text/javascript"
+  src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"
+></script>
+<script type="text/javascript"
+  src="../../../../cpf-war-app/src/main/webapp/js/cpf_client.js"
+></script>
+<script type="text/javascript">
+	var cpfClient;
+	$(window).load(function() {
+		cpfClient = new CpfClient("http://localhost/cpf/ws");
+	});
+</script>
+</head>
+<body>
+  <h1>CPF JavaScript Test</h1>
+
+  <p>
+    <a href="#" onclick="cpfClient.getUserId(function(x){alert(x)},function(x,y){alert(y)})">Get userid</a>
+  </p>
+</body>
+</html>

@@ -1,0 +1,12 @@
+td.NUM_SUBMITTED_REQUESTS,
+td.NUM_COMPLETED_REQUESTS,
+td.NUM_FAILED_REQUESTS,
+td.NUM_EXECUTING_REQUESTS,
+td.submittedJobsCount,
+td.completedJobsCount,
+td.completedRequestsCount,
+td.applicationExecutedGroupsCount,
+td.applicationExecutedRequestsCount,
+td.applicationExecutedFailedRequestsCount {
+  text-align: right;
+}

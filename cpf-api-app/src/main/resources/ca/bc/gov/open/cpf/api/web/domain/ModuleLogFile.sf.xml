@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  "
+>
+
+  <bean
+    id="ca.bc.gov.open.cpf.api.web.builder.ModuleLogFile-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.ModuleLogFileUiBuilder"
+    p:directory="#{businessApplicationRegistry.logDirectory}"
+  >
+    <property name="pages">
+      <list>
+
+        <bean
+          class="com.revolsys.ui.web.config.Page"
+          p:name="moduleList"
+          p:title="Module Log Files"
+          p:path="/admin/modules/{moduleName}/logFiles/"
+          p:permission="hasRole('ROLE_ADMIN')  or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')" />
+        <bean
+          class="com.revolsys.ui.web.config.Page"
+          p:name="moduleView"
+          p:title="Module Log File {date}"
+          p:path="/admin/modules/{moduleName}/logFiles/{moduleLogFileId}/" />
+      </list>
+    </property>
+
+    <property name="views">
+      <map>
+        <entry key="list">
+          <list>
+            <value>date</value>
+            <value>moduleName</value>
+            <value>size</value>
+            <bean
+              p:name="moduleView"
+              class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+              p:label="Download"
+              p:cssClass="ui-auto-button-disk"
+              p:target="_top" />
+          </list>
+        </entry>
+      </map>
+    </property>
+
+    <property name="listSortOrder">
+      <map>
+        <entry key="list">
+          <list>
+            <list>
+              <value type="int">0</value>
+              <value>desc</value>
+            </list>
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+</beans>

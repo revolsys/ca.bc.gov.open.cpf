@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:security="http://www.springframework.org/schema/security"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/security
+    http://www.springframework.org/schema/security/spring-security-3.0.xsd
+  "
+>
+
+  <bean
+    name="/openid/login"
+    class="com.revolsys.ui.web.controller.TemplateController"
+    p:viewName="/jsp/openid/login"
+  >
+    <property
+      name="attributes"
+    >
+      <map>
+        <entry
+          key="title"
+          value="OpenID Login"
+        >
+        </entry>
+        <entry
+          key="cssLinks"
+        >
+          <list>
+            <value>/css/rs.css</value>
+            <value>/css/cpf.css</value>
+            <value>/css/login.css</value>
+          </list>
+        </entry>
+        <entry
+          key="javascriptLinks"
+        >
+          <list>
+            <value>/js/openid.js</value>
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+  <bean
+    name="/openid/ws/,/openid/ws/**"
+    class="com.revolsys.ui.web.controller.PathAliasController"
+    p:prefix="/openid/ws"
+    p:aliasPrefix="/ws" />
+
+</beans>

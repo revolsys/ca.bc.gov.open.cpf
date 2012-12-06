@@ -1,0 +1,84 @@
+{+include("../../../../cpf-war-app/src/main/webapp/Templates/docTemplateHeader.html")+}
+<h1>Cloud Processing Framework - JavaScript API</h1>
+<for each="thisClass" in="data">
+  <if test="thisClass.alias != '_global_'">
+    <div class="javaClass" id="{+ thisClass.alias +}">
+      <div class="title"><a name="{+ thisClass.alias +}">{+ thisClass.alias +}</a></div>
+  
+      <div class="content">
+        <if test="!thisClass.isBuiltin() && (thisClass.isNamespace || thisClass.is('CONSTRUCTOR'))">
+          <div class="title">Constructors</div>
+          <div class="javaMethod">
+            <div class="title"><a name="{+ thisClass.alias +}.{+ thisClass.alias +}">{+ thisClass.alias +}<code>{+ makeSignature(thisClass.params) +}</code></a></div>
+            <div class="content">
+            {+ thisClass.desc +}
+              <if test="thisClass.params.length">
+                <div class="title">Parameters</div>
+                <div class="simpleDataTable">
+                  <table style="width:auto;margin-left:0px">
+                    <thead>
+                      <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <for each="item" in="thisClass.params">
+                      <tr>
+                        <td>{+ item.name +}</td>
+                        <td>{+ item.type +}</td>
+                        <td>{+ item.desc +}</td>
+                      </tr>
+                      </for>
+                    </tbody>
+                  </table>
+                </div>
+              </if>
+            </div>
+          </div>
+        </if>  
+        <if test="thisClass.methods.length">
+          {! var ownMethods = thisClass.methods.filter(function($){return $.memberOf == thisClass.alias  && !$.isNamespace}).sort(makeSortby("name")); !}
+        
+          <if test="defined(ownMethods) && ownMethods.length">
+            <div class="title">Methods</div>
+            <for each="member" in="ownMethods">
+              <div class="javaMethod">
+                <div class="title"><a name="{+ thisClass.alias +}.{+ member.name +}">{+ member.name.replace(/\^\d+$/, '') +} <code>{+ makeSignature(member.params) +}</code></a></div>
+                <div class="content">
+                  {+ member.desc +}
+                  <if test="member.params.length">
+                    <div class="title">Parameters</div>
+                    <div class="simpleDataTable">
+                      <table style="width:auto;margin-left:0px">
+                        <thead>
+                          <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <for each="item" in="member.params">
+                          <tr>
+                            <td>{+ item.name +}</td>
+                            <td>{+ item.type +}</td>
+                            <td>{+ item.desc +}</td>
+                          </tr>
+                          </for>
+                        </tbody>
+                      </table>
+                    </div>
+                  </if>
+                </div>
+              </div>
+            </for>
+          </if>
+        </if>
+      </div>
+    </div>
+  </if>
+</for>
+
+{+include("../../../../cpf-war-app/src/main/webapp/Templates/docTemplateFooter.html")+}

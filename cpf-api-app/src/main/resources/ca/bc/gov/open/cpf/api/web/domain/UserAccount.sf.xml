@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  "
+>
+  <bean
+    name="/CPF/CPF_USER_ACCOUNTS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.UserAccountUiBuilder"
+    p:dataStore-ref="cpfDataStore"
+  >
+    <property name="pages">
+      <list>
+        <bean
+          p:name="list"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="User Accounts"
+          p:path="/admin/userAccounts/"
+          p:permission="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY')" />
+          
+        <bean
+          p:name="view"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="User Account {consumerKey}"
+          p:path="/admin/userAccounts/{consumerKey}/" />
+          
+        <bean
+          p:name="edit"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Edit User Account {consumerKey}"
+          p:path="/admin/userAccounts/{consumerKey}/edit/"
+          p:permission="#userAccountClass.equals('CPF')" />
+          
+        <bean
+          p:name="delete"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Delete User Account {consumerKey}"
+          p:path="/admin/userAccounts/{consumerKey}/delete/"
+          p:permission="#userAccountClass.equals('CPF')" />
+          
+        <bean
+          p:name="add"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Add User Account"
+          p:path="/admin/userAccounts/add/" />
+          
+        <bean
+          p:name="searchLikeName"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/userAccounts/searchLikeName.json" />
+
+        <bean
+          p:name="groupList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="User Accounts for Group"
+          p:path="/admin/userGroups/{userGroupName}/members/" />
+          
+        <bean
+          p:name="groupMemberAdd"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/userGroups/{userGroupName}/members/add/" />
+          
+        <bean
+          p:name="groupMemberDelete"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/userGroups/{userGroupName}/members/{consumerKey}/delete/" />
+
+        <bean
+          p:name="moduleGroupList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="User Accounts for Group"
+          p:path="/admin/modules/{moduleName}/userGroups/{userGroupName}/members/"
+          p:permission="#userGroupName.startsWith(#moduleName)" />
+          
+        <bean
+          p:name="moduleGroupMemberAdd"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/modules/{moduleName}/userGroups/{userGroupName}/members/add/"
+          p:permission="#userGroupName.startsWith(#moduleName)" />
+          
+        <bean
+          p:name="moduleGroupMemberDelete"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/modules/{moduleName}/userGroups/{userGroupName}/members/{consumerKey}/delete/"
+          p:permission="#userGroupName.startsWith(#moduleName)" />
+
+        <bean
+          p:name="moduleAdminGroupList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="User Accounts for Group"
+          p:path="/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members/" />
+          
+        <bean
+          p:name="moduleAdminGroupMemberAdd"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members/add/" />
+          
+        <bean
+          p:name="moduleAdminGroupMemberDelete"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members/{consumerKey}/delete/" />
+
+      </list>
+    </property>
+
+    <property name="serializers">
+      <list>
+        <bean
+          p:name="CONSUMER_KEY_VIEW"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+          p:key="CONSUMER_KEY"
+          p:pageName="view" />
+        <bean
+          p:name="ACTIVE_IND"
+          class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer"
+          p:label="Active" />
+        <bean
+          p:name="actions"
+          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+          p:label=""
+        >
+          <property name="serializers">
+            <list>
+              <bean
+                p:name="delete"
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:label="Delete"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="consumerKey"
+                      value="CONSUMER_KEY" />
+                    <entry
+                      key="userAccountClass"
+                      value="USER_ACCOUNT_CLASS" />
+                  </map>
+                </property>
+              </bean>
+            </list>
+          </property>
+        </bean>
+        <bean
+          p:name="WHO_CREATED"
+          p:label="Created By"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
+        <bean
+          p:name="WHEN_CREATED"
+          p:label="Creation Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="WHO_CREATED"
+          p:label="Modified By"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
+        <bean
+          p:name="WHEN_UPDATED"
+          p:label="Modification Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+      </list>
+    </property>
+
+    <property name="fields">
+      <map>
+        <entry key="CONSUMER_KEY">
+          <bean
+            p:name="CONSUMER_KEY"
+            class="com.revolsys.ui.html.fields.TextField"
+            p:size="70"
+            p:maxLength="255"
+            p:required="true" />
+        </entry>
+        <entry key="USER_ACCOUNT_CLASS">
+          <bean
+            p:name="USER_ACCOUNT_CLASS"
+            class="com.revolsys.ui.html.fields.AutoCompleteTextField"
+            p:required="true"
+            p:dataUrl="/users/properties/userAccountClass" />
+        </entry>
+        <entry key="USER_NAME">
+          <bean
+            p:name="USER_NAME"
+            class="com.revolsys.ui.html.fields.TextField"
+            p:required="true" />
+        </entry>
+        <entry key="CONSUMER_SECRET">
+          <bean
+            p:name="CONSUMER_SECRET"
+            class="com.revolsys.ui.html.fields.TextField"
+            p:size="70"
+            p:maxLength="255"
+            p:required="true" />
+        </entry>
+        <entry key="ACTIVE_IND">
+          <bean
+            p:name="ACTIVE_IND"
+            class="com.revolsys.ui.html.fields.CheckBox01Field" />
+        </entry>
+      </map>
+    </property>
+    <property name="views">
+      <map>
+        <entry key="list">
+          <list>
+            <value>CONSUMER_KEY_VIEW</value>
+            <value>USER_ACCOUNT_CLASS</value>
+            <value>USER_NAME</value>
+            <value>ACTIVE_IND</value>
+            <value>actions</value>
+          </list>
+        </entry>
+        <entry key="view">
+          <list>
+            <value>USER_ACCOUNT_ID</value>
+            <value>CONSUMER_KEY</value>
+            <value>USER_ACCOUNT_CLASS</value>
+            <value>USER_NAME</value>
+            <value>ACTIVE_IND</value>
+            <value>WHO_CREATED</value>
+            <value>WHEN_CREATED</value>
+            <value>WHO_UPDATED</value>
+            <value>WHEN_UPDATED</value>
+            <value>actions</value>
+          </list>
+        </entry>
+        <entry key="groupList">
+          <list>
+            <value>CONSUMER_KEY_VIEW</value>
+            <value>USER_ACCOUNT_CLASS</value>
+            <value>USER_NAME</value>
+            <value>ACTIVE_IND</value>
+            <bean
+              p:name="groupActions"
+              class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+              p:label=""
+            >
+              <property name="serializers">
+                <list>
+                  <bean
+                    p:name="groupMemberDelete"
+                    class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                    p:label="Delete"
+                  >
+                    <property name="parameterNames">
+                      <list>
+                        <value>CONSUMER_KEY</value>
+                      </list>
+                    </property>
+                  </bean>
+                </list>
+              </property>
+            </bean>
+          </list>
+        </entry>
+        <entry key="moduleGroupList">
+          <list>
+            <value>CONSUMER_KEY_VIEW</value>
+            <value>USER_ACCOUNT_CLASS</value>
+            <value>USER_NAME</value>
+            <value>ACTIVE_IND</value>
+            <bean
+              p:name="moduleGroupActions"
+              class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+              p:label=""
+            >
+              <property name="serializers">
+                <list>
+                  <bean
+                    p:name="moduleGroupMemberDelete"
+                    class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                    p:label="Delete"
+                  >
+                    <property name="parameterNames">
+                      <list>
+                        <value>CONSUMER_KEY</value>
+                      </list>
+                    </property>
+                  </bean>
+                </list>
+              </property>
+            </bean>
+          </list>
+        </entry>
+        <entry key="moduleAdminGroupList">
+          <list>
+            <value>CONSUMER_KEY_VIEW</value>
+            <value>USER_ACCOUNT_CLASS</value>
+            <value>USER_NAME</value>
+            <value>ACTIVE_IND</value>
+            <bean
+              p:name="moduleGroupAdminActions"
+              class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+              p:label=""
+            >
+              <property name="serializers">
+                <list>
+                  <bean
+                    p:name="moduleAdminGroupMemberDelete"
+                    class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                    p:label="Delete"
+                  >
+                    <property name="parameterNames">
+                      <list>
+                        <value>CONSUMER_KEY</value>
+                      </list>
+                    </property>
+                  </bean>
+                </list>
+              </property>
+            </bean>
+          </list>
+        </entry>
+      </map>
+    </property>
+    <property name="keyLists">
+      <map>
+        <entry key="add">
+          <list>
+            <value>CONSUMER_KEY</value>
+            <value>CONSUMER_SECRET</value>
+            <value>ACTIVE_IND</value>
+          </list>
+        </entry>
+        <entry key="edit">
+          <list>
+            <value>CONSUMER_KEY</value>
+            <value>CONSUMER_SECRET</value>
+            <value>ACTIVE_IND</value>
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+</beans>

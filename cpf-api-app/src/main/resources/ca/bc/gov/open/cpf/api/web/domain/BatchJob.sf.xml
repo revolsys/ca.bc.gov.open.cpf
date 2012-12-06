@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  "
+>
+
+  <bean
+    name="/CPF/CPF_BATCH_JOBS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobUiBuilder"
+    p:dataStore-ref="cpfDataStore"
+  >
+    <property name="pages">
+      <list>
+        <bean
+          p:name="list"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Batch Jobs"
+          p:path="/admin/jobs/"
+          p:permission="hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*_ADMIN')" />
+        <bean
+          p:name="moduleAppList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Batch Jobs"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/" />
+        <bean
+          p:name="moduleAppView"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Batch Job {batchJobId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/" />
+
+        <bean
+          p:name="clientList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Jobs"
+          p:path="/ws/users/{remoteUser}/jobs/" />
+        <bean
+          p:name="clientView"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Job"
+          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/" />
+        <bean
+          p:name="clientAppList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Jobs"
+          p:path="/ws/users/{remoteUser}/apps/{businessApplicationName}/jobs/" />
+      </list>
+    </property>
+
+    <property name="serializers">
+      <list>
+        <bean
+          p:name="BATCH_JOB_ID_CLIENT_LINK"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+          p:key="BATCH_JOB_ID"
+          p:label="ID"
+          p:pageName="clientView"
+        >
+          <property name="parameterKeys">
+            <map>
+              <entry
+                key="batchJobId"
+                value="BATCH_JOB_ID" />
+            </map>
+          </property>
+        </bean>
+        <bean
+          p:name="BUSINESS_APPLICATION_NAME_LINK"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+          p:key="BUSINESS_APPLICATION_NAME.name"
+          p:label="Business Application"
+          p:pageName="moduleView"
+        >
+          <property name="parameterKeys">
+            <map>
+              <entry
+                key="moduleName"
+                value="module.name" />
+              <entry
+                key="businessApplicationName"
+                value="name" />
+            </map>
+          </property>
+        </bean>
+        <bean
+          p:name="CLIENT_BUSINESS_APPLICATION_NAME_LINK"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+          p:key="BUSINESS_APPLICATION_NAME.title"
+          p:label="Business Application"
+          p:pageName="clientView"
+        >
+          <property name="parameterKeys">
+            <map>
+              <entry
+                key="businessApplicationName"
+                value="name" />
+              <entry
+                key="businessApplicationVersion"
+                value="version" />
+            </map>
+          </property>
+        </bean>
+        <bean
+          p:name="MODULE_NAME_LINK"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+          p:key="BUSINESS_APPLICATION_NAME.module.name"
+          p:label="Module"
+          p:pageName="view"
+        >
+          <property name="parameterKeys">
+            <map>
+              <entry
+                key="moduleName"
+                value="name" />
+            </map>
+          </property>
+          <property name="properties">
+            <map>
+              <entry key="searchable">
+                <value type="boolean">false</value>
+              </entry>
+              <entry key="sortable">
+                <value type="boolean">false</value>
+              </entry>
+            </map>
+          </property>
+        </bean>
+        <bean
+          p:name="WHO_CREATED"
+          p:label="Created By"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
+        <bean
+          p:name="WHEN_CREATED"
+          p:label="Start Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="WHO_CREATED"
+          p:label="Modified By"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
+        <bean
+          p:name="WHEN_UPDATED"
+          p:label="Modification Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="LAST_SCHEDULED_TIMESTAMP"
+          p:label="Most Recent Request Scheduled Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="COMPLETED_TIMESTAMP"
+          p:label="Completion Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="businessApplicationParameterMap"
+          class="com.revolsys.ui.html.serializer.key.MapTableKeySerializer"
+          p:keyLabel="Parameter"
+          p:valueLabel="Value" />
+        <bean
+          p:name="propertyMap"
+          class="com.revolsys.ui.html.serializer.key.MapTableKeySerializer"
+          p:keyLabel="Name"
+          p:valueLabel="Value" />
+
+        <bean
+          p:name="NUM_SUBMITTED_REQUESTS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Submitted Requests" />
+
+        <bean
+          p:name="NUM_EXECUTING_REQUESTS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Executing Requests" />
+
+        <bean
+          p:name="NUM_COMPLETED_REQUESTS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Completed Requests" />
+
+        <bean
+          p:name="NUM_FAILED_REQUESTS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Failed Requests" />
+
+      </list>
+    </property>
+
+    <property name="views">
+      <map>
+        <entry key="list">
+          <list>
+            <bean
+              p:name="BATCH_JOB_ID"
+              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+              p:label="ID"
+              p:pageName="moduleAppView"
+            >
+              <property name="parameterKeys">
+                <map>
+                  <entry
+                    key="moduleName"
+                    value="BUSINESS_APPLICATION_NAME.module.name" />
+                  <entry
+                    key="businessApplicationName"
+                    value="BUSINESS_APPLICATION_NAME" />
+                  <entry
+                    key="batchJobId"
+                    value="BATCH_JOB_ID" />
+                </map>
+              </property>
+            </bean>
+            <value>WHEN_CREATED</value>
+            <value>BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
+            <value>USER_ID</value>
+            <value>MODULE_NAME_LINK</value>
+          </list>
+        </entry>
+
+        <entry key="clientList">
+          <list>
+            <value>BATCH_JOB_ID_CLIENT_LINK</value>
+            <value>CLIENT_BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>WHEN_CREATED</value>
+            <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
+          </list>
+        </entry>
+        <entry key="clientAppList">
+          <list>
+            <value>BATCH_JOB_ID_CLIENT_LINK</value>
+            <value>WHEN_CREATED</value>
+            <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+          </list>
+        </entry>
+        <entry key="clientView">
+          <list>
+            <value>BATCH_JOB_ID_CLIENT_LINK</value>
+            <value>JOB_STATUS</value>
+            <value>USER_ID</value>
+            <value>CLIENT_BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>businessApplicationParameterMap</value>
+            <value>RESULT_DATA_CONTENT_TYPE</value>
+            <value>WHEN_CREATED</value>
+            <value>COMPLETED_TIMESTAMP</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_EXECUTING_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
+          </list>
+        </entry>
+
+        <entry key="moduleAppList">
+          <list>
+            <bean
+              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+              p:name="BATCH_JOB_ID"
+              p:label="ID"
+              p:pageName="moduleAppView"
+            >
+              <property name="parameterKeys">
+                <map>
+                  <entry
+                    key="moduleName"
+                    value="BUSINESS_APPLICATION_NAME.module.name" />
+                  <entry
+                    key="businessApplicationName"
+                    value="BUSINESS_APPLICATION_NAME" />
+                  <entry
+                    key="batchJobId"
+                    value="BATCH_JOB_ID" />
+                </map>
+              </property>
+            </bean>
+            <value>WHEN_CREATED</value>
+            <value>BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
+            <value>USER_ID</value>
+            <value>MODULE_NAME_LINK</value>
+          </list>
+        </entry>
+        <entry key="moduleAppView">
+          <list>
+            <value>BATCH_JOB_ID</value>
+            <value>BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>USER_ID</value>
+            <value>JOB_STATUS</value>
+            <value>businessApplicationParameterMap</value>
+            <value>INPUT_DATA_CONTENT_TYPE</value>
+            <value>STRUCTURED_INPUT_DATA_URL</value>
+            <value>RESULT_DATA_CONTENT_TYPE</value>
+            <value>WHEN_CREATED</value>
+            <value>COMPLETED_TIMESTAMP</value>
+            <value>NOTIFICATION_URL</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_EXECUTING_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
+            <value>LAST_SCHEDULED_TIMESTAMP</value>
+            <value>propertyMap</value>
+            <value>WHO_CREATED</value>
+            <value>WHO_UPDATED</value>
+            <value>WHEN_UPDATED</value>
+          </list>
+        </entry>
+      </map>
+    </property>
+
+    <property name="listSortOrder">
+      <map>
+        <entry key="list">
+          <list>
+            <list>
+              <value type="int">1</value>
+              <value>desc</value>
+            </list>
+          </list>
+        </entry>
+        <entry key="clientList">
+          <list>
+            <list>
+              <value type="int">0</value>
+              <value>desc</value>
+            </list>
+          </list>
+        </entry>
+        <entry key="clientAppList">
+          <list>
+            <list>
+              <value type="int">0</value>
+              <value>desc</value>
+            </list>
+          </list>
+        </entry>
+        <entry key="moduleAppList">
+          <list>
+            <list>
+              <value type="int">1</value>
+              <value>desc</value>
+            </list>
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+</beans>

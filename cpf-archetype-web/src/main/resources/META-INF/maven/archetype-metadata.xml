@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor
+  xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0
+    http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd
+  "
+  name="cpf-archetype-web"
+>
+  <requiredProperties>
+    <requiredProperty key="modulePrefix" />
+    <requiredProperty key="databaseVendor" />
+    <requiredProperty key="cpfDirectory" />
+    <requiredProperty key="mavenCacheDirectory" />
+  </requiredProperties>
+  <fileSets>
+    <fileSet
+      filtered="true"
+      encoding="UTF-8"
+    >
+      <directory>sample-config</directory>
+      <includes>
+        <include>**/*.*</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+  <modules>
+    <module
+      id="${rootArtifactId}.app"
+      dir="__rootArtifactId__.app"
+      name="CPF Application WAR"
+    >
+      <fileSets>
+        <fileSet
+          filtered="true"
+          encoding="UTF-8"
+        >
+          <directory>src/main</directory>
+          <includes>
+            <include>resources/**/*.*</include>
+            <include>webapp/**/*.*</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module
+      id="${rootArtifactId}.worker"
+      dir="__rootArtifactId__.worker"
+      name="CPF Worker WAR"
+    >
+      <fileSets>
+        <fileSet
+          filtered="true"
+          encoding="UTF-8"
+        >
+          <directory>src/main</directory>
+          <includes>
+            <include>resources/**/*.*</include>
+            <include>webapp/**/*.*</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+  </modules>
+</archetype-descriptor>

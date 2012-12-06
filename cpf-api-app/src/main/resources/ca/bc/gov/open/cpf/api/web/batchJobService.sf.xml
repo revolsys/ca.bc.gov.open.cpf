@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  "
+>
+  <bean
+    id="configPropertyLoader"
+    class="ca.bc.gov.open.cpf.api.controller.DaoConfigPropertyLoader" />
+
+  <bean
+    id="mavenRepository"
+    class="com.revolsys.maven.MavenRepositoryCache"
+    p:root="/cpf/repository"
+  >
+    <property name="repositoryLocations">
+      <list></list>
+    </property>
+  </bean>
+
+  <bean
+    id="configPropertyModuleLoader"
+    class="ca.bc.gov.open.cpf.api.controller.ConfigPropertyModuleLoader"
+    p:mavenRepository-ref="mavenRepository" />
+
+  <bean
+    id="businessApplicationRegistry"
+    class="ca.bc.gov.open.cpf.plugin.api.BusinessApplicationRegistry"
+    p:configPropertyLoader-ref="configPropertyLoader"
+  >
+    <property name="moduleLoaders">
+      <set>
+        <ref bean="configPropertyModuleLoader" />
+      </set>
+    </property>
+  </bean>
+
+  <bean
+    id="authorizationService"
+    class="ca.bc.gov.open.cpf.api.security.service.BaseAuthorizationService" />
+
+  <bean
+    id="batchJobService"
+    class="ca.bc.gov.open.cpf.api.scheduler.BatchJobService"
+    p:businessApplicationRegistry-ref="businessApplicationRegistry"
+    p:authorizationService-ref="authorizationService"
+    p:mailSender-ref="mailSender"
+    p:fromEmail="noreply@localhost"
+    p:baseUrl="http://localhost/cpf" />
+</beans>

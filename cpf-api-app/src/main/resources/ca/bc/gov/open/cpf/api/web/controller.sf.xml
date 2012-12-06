@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+    http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+  "
+>
+
+  <bean
+    id="multipartResolver"
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+    p:maxUploadSize="20000000" />
+
+  <bean
+    class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"
+    p:alwaysUseFullPath="true"
+  >
+    <property name="interceptors">
+      <list>
+        <ref bean="cpfAttributeInterceptor" />
+      </list>
+    </property>
+  </bean>
+
+  <bean
+    id="htmlUiBuilderFactory"
+    class="com.revolsys.ui.html.builder.HtmlUiBuilderFactory" />
+
+  <bean
+    class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"
+    p:alwaysUseFullPath="true"
+  >
+    <property name="interceptors">
+      <list>
+        <ref bean="cpfAttributeInterceptor" />
+      </list>
+    </property>
+    <property name="pathMatcher">
+      <bean class="com.revolsys.ui.web.controller.UriTemplatePathMatcher" />
+    </property>
+  </bean>
+
+  <util:map id="mediaTypes">
+    <entry
+      key="html"
+      value="text/html" />
+    <entry
+      key="xhtml"
+      value="application/xhtml+xml" />
+    <entry
+      key="wadl"
+      value="application/vnd.sun.wadl+xml" />
+    <entry
+      key="uri-list"
+      value="text/uri-list" />
+    <entry
+      key="xml"
+      value="text/xml" />
+    <entry
+      key="json"
+      value="application/json" />
+  </util:map>
+
+  <bean
+    class="com.revolsys.ui.web.rest.interceptor.AnnotationMethodHandlerAdapter"
+    p:defaultMediaType="text/html"
+    p:alwaysUseFullPath="true"
+    p:mediaTypes-ref="mediaTypes"
+  >
+    <property name="messageConverters">
+      <list>
+        <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+        <bean class="com.revolsys.ui.web.rest.converter.PageInfoHttpMessageConverter" />
+        <bean class="com.revolsys.gis.web.rest.converter.DataObjectReaderHttpMessageConverter" />
+        <bean class="com.revolsys.gis.web.rest.converter.DataObjectHttpMessageConverter" />
+        <bean class="com.revolsys.ui.web.rest.converter.MapHttpMessageConverter" />
+        <bean class="com.revolsys.ui.web.rest.converter.ElementHttpMessageConverter" />
+        <bean class="com.revolsys.ui.web.rest.converter.ListOfMapHttpMessageConverter" />
+      </list>
+    </property>
+  </bean>
+
+  <bean class="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" />
+
+  <bean class="com.revolsys.ui.web.exception.RsExceptionResolver" />
+
+  <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter" />
+
+  <bean class="com.revolsys.ui.web.rest.interceptor.HttpMessageConverterViewController" />
+
+  <bean
+    id="cpfClientService"
+    class="ca.bc.gov.open.cpf.api.web.rest.ClientWebService"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
+    id="cpfInternal"
+    class="ca.bc.gov.open.cpf.api.web.service.InternalWebService"
+    p:configPropertyLoader-ref="configPropertyLoader"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
+    name="/view/breadcrumb"
+    class="com.revolsys.ui.web.controller.BreadcrumbController"
+    p:addSlash="true" />
+
+  <bean class="com.revolsys.ui.web.controller.MenuViewController" />
+
+  <bean
+    id="viewResolver"
+    class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+    p:alwaysInclude="true"
+    p:prefix="/WEB-INF"
+    p:suffix=".jsp" />
+</beans>

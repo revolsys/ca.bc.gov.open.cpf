@@ -1,0 +1,70 @@
+package ca.bc.gov.open.cpf.api.security.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.domain.UserAccount;
+import ca.bc.gov.open.cpf.api.domain.UserGroup;
+
+import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.gis.data.model.DataObjectUtil;
+
+public class UserAccountSecurityService {
+  private static final Logger LOG = LoggerFactory.getLogger(UserAccountSecurityService.class);
+
+  private final List<GroupNameService> grantedAuthorityServices = new ArrayList<GroupNameService>();
+
+  private CpfDataAccessObject dataAccessObject;
+
+  public void addGrantedAuthorityService(
+    final GroupNameService grantedAuthorityService) {
+    grantedAuthorityServices.add(grantedAuthorityService);
+  }
+
+  public CpfDataAccessObject getDataAccessObject() {
+    return dataAccessObject;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public List<String> getGroupNames(final DataObject userAccount) {
+    final List<String> groupNames = new ArrayList<String>();
+    try {
+      if (userAccount != null
+        && DataObjectUtil.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
+        final String userType = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
+        groupNames.add("USER");
+        groupNames.add(userType);
+        final Set<DataObject> groups = dataAccessObject.getUserGroupsForUserAccount(userAccount);
+        if (groups != null) {
+          for (final DataObject userGroup : groups) {
+            final String groupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
+            groupNames.add(groupName);
+          }
+        }
+        for (final GroupNameService authorityService : grantedAuthorityServices) {
+          final List<String> names = authorityService.getGroupNames(userAccount);
+          if (names != null) {
+            groupNames.addAll(names);
+          }
+        }
+      }
+    } catch (final Throwable t) {
+      LOG.error(
+        "Unable to load authorities for user "
+          + userAccount.getValue(UserAccount.CONSUMER_KEY), t);
+    }
+    return groupNames;
+  }
+
+  public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
+    this.dataAccessObject = dataAccessObject;
+  }
+
+}

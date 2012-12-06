@@ -1,0 +1,22 @@
+table {
+  border: 1px solid black;
+  border-collapse:collapse;
+  border-spacing:0;
+  width: 100%;
+}
+
+th {
+  border: 1px solid #bbbbbb;
+  background-color: #eeeeee;
+  font-weight: bold;
+  padding: 1px 2px;
+  text-align: left;
+  vertical-align: top;
+}
+
+td {
+  border: 1px solid #bbbbbb;
+  padding: 1px 3px;
+  text-align: left;
+  vertical-align: top;
+}

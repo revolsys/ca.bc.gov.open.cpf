@@ -1,0 +1,31 @@
+<h3>Error Result Data File</h3>
+<p>If there were any requests that could not be processed by the application due to bad input
+  data or a non-recoverable error then the result files will include an errorResultData file.</p>
+
+<p>The error result data file is a CSV file with the following fields.</p>
+
+
+<div class="objectList">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>sequenceNumber</td>
+        <td>The index of the original request that the error is for.</td>
+      </tr>
+      <tr>
+        <td>errorCode</td>
+        <td>A short description of the type of error.</td>
+      </tr>
+      <tr>
+        <td>errorMessage</td>
+        <td>A detailed description of the specifics of the error.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

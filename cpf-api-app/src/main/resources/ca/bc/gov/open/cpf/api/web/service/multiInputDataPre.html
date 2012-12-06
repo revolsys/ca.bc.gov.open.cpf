@@ -1,0 +1,40 @@
+
+<p>
+  <button type="button" onclick="addMultiInputDataRow('File')">Add File</button>
+  <button type="button" onclick="addMultiInputDataRow('Url')">Add URL</button>
+</p>
+<div id="multiInputDataTable" class="simpleDataTable">
+  <table>
+    <thead>
+      <th style="width: 20%">MIME Type</th>
+      <th style="width: 60%">Input Data File or URL</th>
+      <th style="width: 20%">Actions</th>
+    </thead>
+  </table>
+</div>
+<input style="height: 0px; border-width: 0px; padding: 0px" class="required" type="text"
+  name="multiInputDataCount" value="" />
+<div style="display: none">
+  <div id="multiInputDataUrlTemplate">
+    <div class="fieldComponent">
+      <div class="contents">
+        <input class="required" name="inputDataUrl" type="text" size="40" maxlength="1000"
+          class="url" />
+      </div>
+    </div>
+  </div>
+  <div id="multiInputDataFileTemplate">
+    <div class="fieldComponent">
+      <div class="contents">
+        <input class="required" name="inputData" type="file" />
+      </div>
+    </div>
+  </div>
+
+  <div id="multiInputDataActionsTemplate">
+    <button type="button" class="ui-auto-button-trash" onclick="deleteMultiInputDataRow(this)">Remove</button>
+  </div>
+
+  <div id="multiInputDataMimeTypeTemplate" class="fieldComponent">
+    <div class="fieldComponent">
+      <div class="contents">

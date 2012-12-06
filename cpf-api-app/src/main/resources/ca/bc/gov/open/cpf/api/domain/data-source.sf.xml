@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+  "
+>
+
+  <bean
+    id="cpfDataSource"
+    name="ca.bc.gov.open.cpf.api.dataSource"
+    class="com.revolsys.jdbc.io.JdbcDataSourceFactoryBean"
+    p:url="jdbc:postgresql:cpf"
+    p:username="proxy_cpf_web"
+    p:password="cpf_2009"
+    lazy-init="true"
+  >
+    <property name="config">
+      <map>
+        <entry
+          key="maxConnections"
+          value="10" />
+      </map>
+    </property>
+  </bean>
+
+  <bean
+    id="cpfDataStore"
+    class="com.revolsys.jdbc.io.JdbcDataObjectStoreFactoryBean"
+    lazy-init="true"
+    p:dataSource-ref="cpfDataSource"
+  >
+    <property name="properties">
+      <map>
+        <entry
+          key="label"
+          value="CPF" />
+        <entry key="typeMetaDataProperties">
+          <map>
+            <entry key="/CPF/CPF_BATCH_JOBS">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_BJ" />
+              </list>
+            </entry>
+            <entry key="/CPF/CPF_BATCH_JOB_REQUESTS">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_BJRQ" />
+              </list>
+            </entry>
+            <entry key="/CPF/CPF_BATCH_JOB_RESULTS">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_BJRS" />
+              </list>
+            </entry>
+            <entry key="/CPF/CPF_CONFIG_PROPERTIES">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_CP" />
+              </list>
+            </entry>
+            <entry key="/CPF/CPF_USER_ACCOUNTS">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_UA" />
+              </list>
+            </entry>
+            <entry key="/CPF/CPF_USER_GROUPS">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_UG" />
+              </list>
+            </entry>
+            <entry key="/CPF/CPF_USER_GROUP_PERMISSIONS">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_UGP" />
+              </list>
+            </entry>
+            <entry key="/CPF/CPF_APPLICATION_STATISTICS">
+              <list>
+                <bean
+                  class="com.revolsys.gis.data.model.ShortNameProperty"
+                  p:shortName="CPF_AS" />
+              </list>
+            </entry>
+          </map>
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+  <bean
+    id="cpfDataAccessObject"
+    class="ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject"
+    p:dataStore-ref="cpfDataStore" />
+
+  <tx:annotation-driven transaction-manager="ca.bc.gov.open.cpf.api.transactionManager" />
+
+  <bean
+    id="ca.bc.gov.open.cpf.api.transactionManager"
+    name="transactionManager"
+    class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+    p:dataSource-ref="cpfDataSource" />
+</beans>

@@ -1,0 +1,45 @@
+<hr />
+<h2>Result Data</h2>
+
+<p>When the batch job is completed the batch job status page will include a 'Results' tab with a
+  list of the result files. The list includes the following columns.</p>
+
+<div class="objectList">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Batch Job Result Type</td>
+        <td>The type of result file. The following types are supported.
+          <ul>
+            <li>structuredResultData</li>
+            <li>errorResultData</li>
+            <li>opaqueResultData</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>Request Sequence Number</td>
+        <td>For opaqueResultData the index of the original request that the file was generated
+          for. Requests that caused an error will not have a result file. A description of the error
+          can be obtained from the errorResultData file.</td>
+      </tr>
+      <tr>
+        <td>Result Data Content Type</td>
+        <td>The MIME type of the contents of the file.</td>
+      </tr>
+      <tr>
+        <td>Download</td>
+        <td>A button to download the file.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Result Data Content Types</h3>
+<p>The application supports returning the result data in the following MIME types.</p>

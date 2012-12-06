@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xmlns:security="http://www.springframework.org/schema/security"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/security
+    http://www.springframework.org/schema/security/spring-security-3.0.xsd
+  "
+>
+  <tx:annotation-driven transaction-manager="ca.bc.gov.open.cpf.api.transactionManager" />
+
+  <security:http
+    realm="CPF OpenID"
+    use-expressions="true"
+    auto-config="false"
+    entry-point-ref="cpfOpenIdFilterEntryPoint"
+    security-context-repository-ref="cpfOpenIdSpringSecurityContext"
+    access-decision-manager-ref="cpfOpenIdAccessDecisionManager"
+  >
+    <security:custom-filter
+      after="PRE_AUTH_FILTER"
+      ref="cpfOpenIdFilter" />
+
+    <security:intercept-url
+      pattern="/openid/login/**"
+      access="permitAll" />
+
+    <security:intercept-url
+      pattern="/openid/worker/**"
+      access="denyAll" />
+
+    <security:intercept-url
+      pattern="/openid/**"
+      access="isFullyAuthenticated() and hasRole('ROLE_USER')" />
+
+    <security:intercept-url
+      pattern="/j_spring_openid_security_check"
+      access="permitAll" />
+
+    <security:logout
+      logout-url="/openid/logout"
+      logout-success-url="/openid/ws/" />
+    <security:anonymous granted-authority="IS_AUTHENTICATED_ANONYMOUSLY" />
+  </security:http>
+
+  <security:authentication-manager>
+    <security:authentication-provider
+      user-service-ref="cpfOpenIdUserDetailsService"
+    >
+    </security:authentication-provider>
+  </security:authentication-manager>
+
+  <bean
+    id="cpfOpenIdSpringSecurityContext"
+    class="com.revolsys.ui.web.security.HttpSessionSecurityContextRepository"
+    p:springSecurityContextKey="CPF_OPENID_SECURITY_CONTEXT" />
+
+  <bean
+    id="cpfOpenIdAuthenticationManager"
+    class="org.springframework.security.authentication.ProviderManager"
+  >
+    <property name="providers">
+      <list>
+        <ref local="cpfOpenIdAuthenticationProvider" />
+      </list>
+    </property>
+  </bean>
+
+  <bean
+    id="cpfOpenIdAuthenticationProvider"
+    class="org.springframework.security.openid.OpenIDAuthenticationProvider"
+    p:userDetailsService-ref="cpfOpenIdUserDetailsService"
+  >
+  </bean>
+
+  <bean
+    id="cpfOpenIdFilter"
+    class="org.springframework.security.openid.OpenIDAuthenticationFilter"
+    p:authenticationManager-ref="cpfOpenIdAuthenticationManager"
+    p:filterProcessesUrl="/j_spring_openid_security_check"
+  >
+    <property name="authenticationFailureHandler">
+      <bean
+        class="org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler"
+        p:defaultFailureUrl="/openid/login"
+      >
+        <property name="exceptionMappings">
+          <map>
+            <entry
+              key="org.springframework.security.DisabledException"
+              value="/openid/login/disabled" />
+          </map>
+        </property>
+      </bean>
+    </property>
+  </bean>
+
+  <bean
+    id="cpfOpenIdFilterEntryPoint"
+    class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"
+    p:loginFormUrl="/openid/login" />
+
+  <bean
+    id="cpfOpenIdUserDetailsService"
+    class="ca.bc.gov.open.cpf.openid.OpenIdUserDetailsService"
+    p:userAccountClass="OPENID"
+    p:autoCreateUsers="true" />
+
+  <bean
+    id="cpfOpenIdAccessDecisionManager"
+    class="org.springframework.security.access.vote.UnanimousBased"
+    p:allowIfAllAbstainDecisions="true"
+  >
+    <property name="decisionVoters">
+      <list>
+        <bean class="org.springframework.security.web.access.expression.WebExpressionVoter" />
+        <bean
+          class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
+          p:prefix="/openid/ws/users/" />
+      </list>
+    </property>
+  </bean>
+
+</beans>

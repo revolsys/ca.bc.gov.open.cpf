@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  "
+>
+  <bean
+    name="/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobResultUiBuilder"
+    p:dataStore-ref="cpfDataStore"
+  >
+    <property name="pages">
+      <list>
+        <bean
+          p:name="moduleAppJobList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Batch Job {batchJobId} Results"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/" />
+        <bean
+          p:name="moduleAppJobView"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Batch Job {batchJobId} Result {batchJobResultId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}/" />
+        <bean
+          p:name="download"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}/download" />
+        <bean
+          p:name="clientList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Results"
+          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/results/" />
+        <bean
+          p:name="clientView"
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/results/{batchJobResultId}/" />
+      </list>
+    </property>
+    <property name="serializers">
+      <list>
+        <bean
+          p:name="DOWNLOAD_TIMESTAMP"
+          p:label="Download Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="download"
+          class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+          p:label="Download"
+          p:cssClass="ui-auto-button-disk"
+          p:target="_top" />
+        <bean
+          p:name="WHO_CREATED"
+          p:label="Created By"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
+        <bean
+          p:name="WHEN_CREATED"
+          p:label="Creation Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="WHO_CREATED"
+          p:label="Modified By"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
+        <bean
+          p:name="WHEN_UPDATED"
+          p:label="Modification Time"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+      </list>
+    </property>
+    <property name="views">
+      <map>
+        <entry key="moduleAppJobList">
+          <list>
+            <bean
+              p:name="BATCH_JOB_RESULT_ID"
+              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+              p:pageName="moduleAppJobView"
+              p:label="ID" />
+            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <value>BATCH_JOB_RESULT_TYPE</value>
+            <value>WHEN_CREATED</value>
+            <value>DOWNLOAD_TIMESTAMP</value>
+            <value>download</value>
+          </list>
+        </entry>
+        <entry key="moduleAppJobView">
+          <list>
+            <value>BATCH_JOB_RESULT_ID</value>
+            <bean
+              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+              p:name="BATCH_JOB_ID"
+              p:label="Batch Job"
+              p:pageName="moduleAppView"
+              p:uiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder" />
+            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <bean
+              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+              p:name="BATCH_JOB_REQUEST_ID"
+              p:label="Request"
+              p:pageName="moduleAppJobView"
+              p:uiBuilder-ref="/CPF/CPF_BATCH_JOB_REQUESTS-htmlbuilder" />
+            <value>BATCH_JOB_RESULT_TYPE</value>
+            <value>RESULT_DATA_CONTENT_TYPE</value>
+            <value>DOWNLOAD_TIMESTAMP</value>
+            <value>download</value>
+            <value>WHO_CREATED</value>
+            <value>WHEN_CREATED</value>
+            <value>WHO_UPDATED</value>
+            <value>WHEN_UPDATED</value>
+          </list>
+        </entry>
+        <entry key="clientList">
+          <list>
+            <value>BATCH_JOB_RESULT_TYPE</value>
+            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <value>RESULT_DATA_CONTENT_TYPE</value>
+            <bean
+              p:name="clientView"
+              class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+              p:label="Download"
+              p:cssClass="ui-auto-button-disk"
+              p:target="_top" />
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+</beans>

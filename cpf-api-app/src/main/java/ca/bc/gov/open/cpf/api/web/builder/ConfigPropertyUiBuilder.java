@@ -1,0 +1,270 @@
+package ca.bc.gov.open.cpf.api.web.builder;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
+
+import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
+import ca.bc.gov.open.cpf.plugin.api.module.Module;
+
+import com.revolsys.gis.data.io.DataObjectStore;
+import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.ui.html.fields.Field;
+import com.revolsys.ui.html.form.Form;
+import com.revolsys.ui.html.view.Element;
+import com.revolsys.ui.html.view.ElementContainer;
+import com.revolsys.ui.html.view.TabElementContainer;
+
+@Controller
+public class ConfigPropertyUiBuilder extends CpfUiBuilder {
+
+  public ConfigPropertyUiBuilder() {
+    super("configProperty", ConfigProperty.CONFIG_PROPERTY,
+      "CONFIG_PROPERTY_ID", "Config Property", "Config Properties");
+  }
+
+  @RequestMapping(value = {
+    "/admin/configProperties/add"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
+  @ResponseBody
+  @PreAuthorize(ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public Element pageCpfAdd(final HttpServletRequest request,
+    final HttpServletResponse response) throws IOException, ServletException {
+    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    defaultValues.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL);
+
+    return super.createObjectAddPage(defaultValues, null, "preInsert");
+  }
+
+  @RequestMapping(value = {
+    "/admin/configProperties/{configPropertyId}/edit"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
+  @ResponseBody
+  @PreAuthorize(ADMIN)
+  public Element pageCpfEdit(final HttpServletRequest request,
+    final HttpServletResponse response,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    final DataObject configProperty = loadObject(configPropertyId);
+    return super.createObjectEditPage(configProperty, null);
+  }
+
+  @RequestMapping(value = {
+    "/admin/configProperties"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN)
+  public Object pageCpfList(final HttpServletRequest request,
+    final HttpServletResponse response) throws IOException {
+    final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(ConfigProperty.MODULE_NAME, GLOBAL_MODULE_NAMES);
+    parameters.put("filter", filter);
+
+    return createDataTableHandler(request, "list", parameters);
+  }
+
+  @RequestMapping(value = {
+    "/admin/configProperties/{configPropertyId}"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN)
+  public ElementContainer pageCpfView(final HttpServletRequest request,
+    final HttpServletResponse response,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null) {
+      String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
+      if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
+        String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
+        if (componentName.equals(ConfigProperty.GLOBAL)) {
+          TabElementContainer tabs = new TabElementContainer();
+          addObjectViewPage(tabs, configProperty, null);
+          return tabs;
+        }
+      }
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/configProperties/add"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
+  @ResponseBody
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public Element pageModuleAdd(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, ServletException {
+    hasModule(request, moduleName);
+    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    defaultValues.put(ConfigProperty.MODULE_NAME, moduleName);
+    defaultValues.put(ConfigProperty.COMPONENT_NAME,
+      ConfigProperty.MODULE_BEAN_PROPERTY);
+
+    return createObjectAddPage(defaultValues, "module", "preInsertModule");
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/configProperties/{configPropertyId}/delete"
+  }, method = RequestMethod.POST)
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void pageModuleDelete(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    hasModule(request, moduleName);
+
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
+        ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      getDataStore().delete(configProperty);
+      redirectPage("moduleList");
+      return;
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  @RequestMapping(value = {
+    "/admin/configProperties/{configPropertyId}/delete"
+  }, method = RequestMethod.POST)
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void pageCpfDelete(final HttpServletRequest request,
+    final HttpServletResponse response,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null) {
+      String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
+      if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
+        String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
+        if (componentName.equals(ConfigProperty.GLOBAL)) {
+          DataObjectStore dataStore = getDataStore();
+          dataStore.delete(configProperty);
+          redirectPage("list");
+          return;
+        }
+      }
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/configProperties/{configPropertyId}/edit"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
+  @ResponseBody
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  public Element pageModuleEdit(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    hasModule(request, moduleName);
+
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
+        ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      return createObjectEditPage(configProperty, "module");
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/configProperties"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  public Object pageModuleList(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, NoSuchRequestHandlingMethodException {
+    hasModule(request, moduleName);
+
+    final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(ConfigProperty.MODULE_NAME, moduleName);
+    filter.put(ConfigProperty.COMPONENT_NAME,
+      ConfigProperty.MODULE_BEAN_PROPERTY);
+    parameters.put("filter", filter);
+
+    return createDataTableHandlerOrRedirect(request, response, "moduleList",
+      Module.class, "view", parameters);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/configProperties/{configPropertyId}"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  public Element pageModuleView(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    hasModule(request, moduleName);
+
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
+        ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      TabElementContainer tabs = new TabElementContainer();
+      addObjectViewPage(tabs, configProperty, "module");
+      return tabs;
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  private static final List<String> GLOBAL_MODULE_NAMES = Arrays.asList("CPF",
+    "CPF_WORKER");
+
+  @Override
+  public boolean preInsert(final Form form, final DataObject configProperty) {
+    final Field field = form.getField(ConfigProperty.MODULE_NAME);
+    final String moduleName = field.getValue();
+    if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
+      return true;
+    } else {
+      field.addValidationError("Module name must be either CPF or CPF_WORKER");
+      return false;
+    }
+  }
+
+  public boolean preInsertModule(final Form form, final DataObject object) {
+    return true;
+  }
+
+}

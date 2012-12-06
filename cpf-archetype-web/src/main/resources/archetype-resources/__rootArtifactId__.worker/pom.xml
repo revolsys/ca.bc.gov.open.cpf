@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/maven-v4_0_0.xsd
+  "
+>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>${groupId}</groupId>
+  <artifactId>${rootArtifactId}.worker</artifactId>
+  <packaging>war</packaging>
+  <version>${version}</version>
+  <name>CPF Worker WAR</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>cpf-war-worker</artifactId>
+      <version>${ca.bc.gov.open.cpf.version}</version>
+      <type>war</type>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <skipWebDeploy>false</skipWebDeploy>
+  </properties>
+</project>

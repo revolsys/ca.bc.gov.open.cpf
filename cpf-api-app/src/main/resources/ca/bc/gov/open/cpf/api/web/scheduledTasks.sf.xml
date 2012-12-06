@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:task="http://www.springframework.org/schema/task"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task-3.0.xsd
+  "
+>
+  <task:scheduler id="ca.bc.gov.open.cpf.api.taskScheduler" />
+
+  <bean
+    id="removeOldBatchJobs"
+    class="ca.bc.gov.open.cpf.api.scheduler.spi.adminjobs.RemoveOldBatchJobs"
+    p:daysToKeepOldJobs="7" />
+
+  <task:scheduled-tasks scheduler="ca.bc.gov.open.cpf.api.taskScheduler">
+    <task:scheduled
+      ref="removeOldBatchJobs"
+      method="removeOldJobs"
+      cron="0 0 0 * * *" />
+
+    <task:scheduled
+      ref="batchJobService"
+      method="deleteLogFiles"
+      cron="0 0 0 * * *" />
+
+    <task:scheduled
+      ref="batchJobService"
+      method="resetHungWorkers"
+      cron="0 0/5 * * * *" />
+
+    <task:scheduled
+      ref="batchJobService"
+      method="collateStatistics"
+      cron="5 0 * * * *" />
+
+  </task:scheduled-tasks>
+</beans>

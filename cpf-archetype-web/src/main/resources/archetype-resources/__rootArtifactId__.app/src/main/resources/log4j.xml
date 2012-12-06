@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration
+  xmlns:log4j="http://jakarta.apache.org/log4j/"
+  debug="false"
+>
+  <appender
+    name="FileLog"
+    class="org.apache.log4j.FileAppender"
+  >
+    <param
+      name="file"
+      value="${cpfDirectory}/log/cpf-app.log" />
+    <param
+      name="append"
+      value="false" />
+    <layout class="org.apache.log4j.PatternLayout">
+      <param
+        name="ConversionPattern"
+        value="%d\t%p\t%c\t%m%n" />
+    </layout>
+  </appender>
+
+  <logger name="ca.bc.gov.open">
+    <level value="DEBUG" />
+  </logger>
+
+  <logger name="ca.bc.gov.open.cpf.client.api.httpclient">
+    <level value="ERROR" />
+  </logger>
+
+  <logger name="ca.bc.gov.open.cpf.api.security">
+    <level value="ERROR" />
+  </logger>
+
+  <root>
+    <level value="ERROR" />
+    <appender-ref ref="FileLog" />
+  </root>
+</log4j:configuration>

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+  "
+>
+  <util:list id="statSummaryList">
+    <bean
+      p:pageName="moduleAppView"
+      p:name="id"
+      class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+    >
+      <property name="parameterKeys">
+        <map>
+          <entry
+            key="moduleName"
+            value="moduleName" />
+          <entry
+            key="businessApplicationName"
+            value="businessApplicationName" />
+          <entry
+            key="statisticId"
+            value="id" />
+        </map>
+      </property>
+      <property name="properties">
+        <map>
+          <entry
+            key="width"
+            value="120px" />
+        </map>
+      </property>
+    </bean>
+    <value>module.name_link</value>
+    <value>module.started</value>
+    <value>businessApplication.name_link</value>
+    <value>submittedJobsCount</value>
+    <value>completedJobsCount</value>
+    <value>applicationExecutedGroupsCount</value>
+    <value>applicationExecutedRequestsCount</value>
+    <value>applicationExecutedFailedRequestsCount</value>
+  </util:list>
+
+  <bean
+    id="ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationStatisticsUiBuilder"
+  >
+    <property name="pages">
+      <list>
+
+        <bean
+          p:name="summary"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Dashboard"
+          p:path="/admin/dashboard/" />
+
+        <bean
+          p:name="hourList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Hour"
+          p:path="/admin/dashboard/hour/" />
+
+        <bean
+          p:name="dayList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Today"
+          p:path="/admin/dashboard/day/" />
+
+        <bean
+          p:name="monthList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Month"
+          p:path="/admin/dashboard/month/" />
+
+        <bean
+          p:name="yearList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Year"
+          p:path="/admin/dashboard/year/" />
+
+        <bean
+          p:name="moduleAppList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Dashboard"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard/" />
+
+        <bean
+          p:name="moduleAppView"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Dashboard for {businessApplicationName}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard/{statisticId}/" />
+      </list>
+    </property>
+    <property name="labels">
+      <map>
+        <entry
+          key="module.started"
+          value="Module Started" />
+        <entry
+          key="submittedJobsCount"
+          value="# Jobs Submitted" />
+        <entry
+          key="completedJobsCount"
+          value="# Jobs Completed" />
+        <entry
+          key="completedRequestsCount"
+          value="# Requests Completed" />
+        <entry
+          key="applicationExecutedGroupsCount"
+          value="# App Groups Executed" />
+        <entry
+          key="applicationExecutedRequestsCount"
+          value="# App Requests Completed" />
+        <entry
+          key="applicationExecutedFailedRequestsCount"
+          value="# App Requests Failed" />
+      </map>
+    </property>
+
+    <property name="views">
+      <map>
+        <entry
+          key="hourList"
+          value-ref="statSummaryList" />
+
+        <entry
+          key="dayList"
+          value-ref="statSummaryList" />
+        <entry
+          key="monthList"
+          value-ref="statSummaryList" />
+        <entry
+          key="yearList"
+          value-ref="statSummaryList" />
+
+        <entry key="moduleAppList">
+          <list>
+            <bean
+              p:pageName="moduleAppView"
+              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+              p:name="id"
+            >
+              <property name="properties">
+                <map>
+                  <entry
+                    key="width"
+                    value="120px" />
+                </map>
+              </property>
+            </bean>
+            <value>durationType</value>
+            <value>submittedJobsCount</value>
+            <value>completedJobsCount</value>
+            <value>applicationExecutedGroupsCount</value>
+            <value>applicationExecutedRequestsCount</value>
+            <value>applicationExecutedFailedRequestsCount</value>
+          </list>
+        </entry>
+      </map>
+    </property>
+
+    <property name="listSortOrder">
+      <map>
+        <entry key="moduleAppList">
+          <list>
+            <list>
+              <value type="int">0</value>
+              <value>desc</value>
+            </list>
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+</beans>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge">
+    
+    <!-- TemplateBeginEditable name="doctitle" -->
+    <title>Untitled Document</title>
+    <!-- TemplateEndEditable -->
+    
+    <link
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      REL="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/geomark.css" rel="stylesheet" type="text/css" />
+     
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+
+<!-- TemplateBeginEditable name="head" -->
+<!-- TemplateEndEditable -->
+  </head>
+
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Geomark Web Service - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../" title="Home">Home</a></li>
+                    <li><a href="../geomarks/index.kml" title="Create Geomark in Google Earth">Create Geomark in Google Earth</a></li>
+                    <li><a href="../geomarks#file" title="Create Geomark from File">Create Geomark from File</a></li>
+                    <li><a href="../geomarks#clipboard" title="Create Geomark from Clipboard">Create Geomark from Clipboard</a></li>
+                    <li><a href="../geomarks#geomarks" title="Create Geomark from Geomarks">Create Geomark from Geomarks</a></li>
+                    <li><a href="../docs/" title="API (for developers)">API (for developers)</a></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                  
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../">HOME</a></li>
+<li>Developer Guide</li>
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- TemplateBeginEditable name="body" -->
+<!-- TemplateEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title"> Geomark Web Service (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
