@@ -40,39 +40,27 @@ import com.revolsys.ui.web.utils.HttpServletUtils;
 @Controller
 public class UserGroupUiBuilder extends CpfUiBuilder {
 
+  private static final List<String> GLOBAL_GROUP_NAMES = Arrays.asList("ADMIN",
+    "USER_TYPE", "GLOBAL", "WORKER");
+
   public UserGroupUiBuilder() {
     super("userGroup", UserGroup.USER_GROUP, UserGroup.USER_GROUP_NAME,
       "User Group", "User Groups");
     setIdParameterName("userGroupName");
   }
 
-  public void userGroupName(final XmlWriter out, final Object object) {
-    final DataObject dataObject = (DataObject)object;
-    final long userGroupId = DataObjectUtil.getLong(dataObject,
-      UserGroup.USER_GROUP_ID);
-
-    CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
-    DataObject userGroup = dataAccessObject.getUserGroup(userGroupId);
-
-    String name = userGroup.getValue(UserGroup.USER_GROUP_NAME);
-    out.text(name);
-  }
-
-  private static final List<String> GLOBAL_GROUP_NAMES = Arrays.asList("ADMIN",
-    "USER_TYPE", "GLOBAL", "WORKER");
-
   public void adminUserGroupLink(final XmlWriter out, final Object object) {
     final DataObject userGroup = (DataObject)object;
 
-    Map<String, String> parameterNames = new HashMap<String, String>();
+    final Map<String, String> parameterNames = new HashMap<String, String>();
     parameterNames.put("userGroupName", "userGroupName");
 
-    Map<String, Object> linkObject = new HashMap<String, Object>();
-    Object userGroupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
+    final Map<String, Object> linkObject = new HashMap<String, Object>();
+    final Object userGroupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
     linkObject.put(UserGroup.USER_GROUP_NAME, userGroupName);
     linkObject.put("userGroupName", userGroupName);
 
-    String moduleName = userGroup.getValue(UserGroup.MODULE_NAME);
+    final String moduleName = userGroup.getValue(UserGroup.MODULE_NAME);
     String pageName;
     if (GLOBAL_GROUP_NAMES.contains(moduleName)) {
       pageName = "groupView";
@@ -109,7 +97,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
       parameters.put("serverSide", Boolean.TRUE);
 
       if (!userGroup.getValue(UserGroup.MODULE_NAME).equals("USER_TYPE")) {
-        UserAccountUiBuilder userAccountUiBuilder = getBuilder(UserAccount.USER_ACCOUNT);
+        final UserAccountUiBuilder userAccountUiBuilder = getBuilder(UserAccount.USER_ACCOUNT);
         userAccountUiBuilder.addMembersDataTable(tabs, membersPrefix);
       }
 
@@ -130,6 +118,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleAdminList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
@@ -152,6 +141,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element pageModuleAdminView(final HttpServletRequest request,
     final HttpServletResponse response,
     final @PathVariable String userGroupName,
@@ -209,6 +199,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   })
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageModuleUserGroupEdit(final HttpServletRequest request,
     final HttpServletResponse response,
     final @PathVariable String userGroupName,
@@ -231,6 +222,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleUserGroupList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
@@ -253,6 +245,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element pageModuleUserGroupView(final HttpServletRequest request,
     final HttpServletResponse response,
     final @PathVariable String userGroupName,
@@ -266,6 +259,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_SECURITY)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageUserAccountList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String consumerKey)
     throws IOException, NoSuchRequestHandlingMethodException {
@@ -345,6 +339,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_SECURITY)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageUserGroupList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     return createDataTableHandler(request, "groupList");
@@ -369,8 +364,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
           final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
           dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
         }
-        redirectToTab( UserAccount.USER_ACCOUNT, "view",
-          "userAccountList");
+        redirectToTab(UserAccount.USER_ACCOUNT, "view", "userAccountList");
         return;
       }
     }
@@ -382,6 +376,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_SECURITY)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element pageUserGroupView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String userGroupName)
     throws IOException, ServletException {
@@ -422,7 +417,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
   @Override
   public boolean preUpdate(final Form form, final DataObject userGroup) {
-    Long userGroupId = DataObjectUtil.getLong(userGroup,
+    final Long userGroupId = DataObjectUtil.getLong(userGroup,
       UserGroup.USER_GROUP_ID);
     final Field nameField = form.getField(UserGroup.USER_GROUP_NAME);
     String groupName = nameField.getValue();
@@ -453,5 +448,17 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
       nameField.addValidationError("Group name is already used");
       return false;
     }
+  }
+
+  public void userGroupName(final XmlWriter out, final Object object) {
+    final DataObject dataObject = (DataObject)object;
+    final long userGroupId = DataObjectUtil.getLong(dataObject,
+      UserGroup.USER_GROUP_ID);
+
+    final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+    final DataObject userGroup = dataAccessObject.getUserGroup(userGroupId);
+
+    final String name = userGroup.getValue(UserGroup.USER_GROUP_NAME);
+    out.text(name);
   }
 }

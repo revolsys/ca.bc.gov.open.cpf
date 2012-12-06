@@ -40,6 +40,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
   public CpfUiBuilder(final String typePath, final String title) {
     super(typePath, title);
   }
+
   public CpfUiBuilder(final String typePath, final String title,
     final String pluralTitle) {
     super(typePath, title, pluralTitle);
@@ -71,6 +72,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
     final String businessApplicationName) {
     return businessApplicationRegistry.getBusinessApplication(businessApplicationName);
   }
+
   public BusinessApplication getBusinessApplication(
     final String businessApplicationName,
     final String businessApplicationVersion) {
@@ -226,7 +228,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
   }
 
   @Resource(name = "batchJobService")
-  public void setBatchJobService(BatchJobService batchJobService) {
+  public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
   }
 

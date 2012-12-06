@@ -70,15 +70,6 @@ public class BusinessApplicationStatistics {
     return new BusinessApplicationStatistics(businessApplicationName, id);
   }
 
-  public String getParentId() {
-    int dashIndex = id.lastIndexOf('-');
-    if (dashIndex == -1) {
-      return null;
-    } else {
-      return id.substring(0, dashIndex);
-    }
-  }
-
   public static String getId(final String durationType) {
     final Date date = new Date();
     return getId(durationType, date);
@@ -118,14 +109,6 @@ public class BusinessApplicationStatistics {
   private String businessApplicationName;
 
   private Integer databaseId;
-
-  public Integer getDatabaseId() {
-    return databaseId;
-  }
-
-  public void setDatabaseId(Integer databaseId) {
-    this.databaseId = databaseId;
-  }
 
   private long completedFailedRequestsCount;
 
@@ -257,18 +240,6 @@ public class BusinessApplicationStatistics {
     }
   }
 
-  public String getParentDurationType() {
-    if (durationType.equals(HOUR)) {
-      return DAY;
-    } else if (durationType.equals(DAY)) {
-      return MONTH;
-    } else if (durationType.equals(MONTH)) {
-      return YEAR;
-    } else {
-      return null;
-    }
-  }
-
   public long addStatistic(final String statisticName, final Long value) {
     Long totalValue = JavaBeanUtil.getProperty(this, statisticName);
     if (value > 0) {
@@ -291,7 +262,7 @@ public class BusinessApplicationStatistics {
         }
         final long time = stopWatch.getTotalTimeMillis();
         addStatistic(name, time);
-      } catch (IllegalStateException e) {
+      } catch (final IllegalStateException e) {
       }
     }
   }
@@ -440,6 +411,10 @@ public class BusinessApplicationStatistics {
     return formatTime(getCompletedTime());
   }
 
+  public Integer getDatabaseId() {
+    return databaseId;
+  }
+
   public String getDurationType() {
     return durationType;
   }
@@ -530,6 +505,27 @@ public class BusinessApplicationStatistics {
 
   public String getId() {
     return id;
+  }
+
+  public String getParentDurationType() {
+    if (durationType.equals(HOUR)) {
+      return DAY;
+    } else if (durationType.equals(DAY)) {
+      return MONTH;
+    } else if (durationType.equals(MONTH)) {
+      return YEAR;
+    } else {
+      return null;
+    }
+  }
+
+  public String getParentId() {
+    final int dashIndex = id.lastIndexOf('-');
+    if (dashIndex == -1) {
+      return null;
+    } else {
+      return id.substring(0, dashIndex);
+    }
   }
 
   public long getPostProcessedJobsAverageTime() {
@@ -726,6 +722,10 @@ public class BusinessApplicationStatistics {
 
   public void setCompletedTime(final long completedTime) {
     this.completedTime = completedTime;
+  }
+
+  public void setDatabaseId(final Integer databaseId) {
+    this.databaseId = databaseId;
   }
 
   public void setDurationType(final String durationType) {

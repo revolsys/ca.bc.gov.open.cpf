@@ -42,6 +42,55 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   }
 
   @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  protected void doStart() {
+    if (isEnabled() && !isStarted()) {
+      try {
+        clearModuleError();
+
+        final ClassLoader classLoader = getClassLoader();
+        final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
+          classLoader, false);
+        if (configUrls.size() == 1) {
+          final URL configUrl = configUrls.get(0);
+          setConfigUrl(configUrl);
+          setClassLoader(classLoader);
+        } else if (configUrls.isEmpty()) {
+          addModuleError("No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
+        } else {
+          addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
+        }
+        if (!hasError()) {
+          super.doStart();
+        }
+      } catch (final Throwable e) {
+        addModuleError(e);
+      }
+      if (hasError()) {
+        stop();
+      } else {
+        final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+        batchJobService.collateStatistics();
+      }
+    }
+  }
+
+  @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  protected void doStop() {
+    if (isStarted()) {
+      final List<String> businessApplicationNames = getBusinessApplicationNames();
+      setStartedDate(null);
+
+      super.doStop();
+      setClassLoader(null);
+      setConfigUrl(null);
+      final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+      batchJobService.scheduleSaveStatistics(businessApplicationNames);
+    }
+  }
+
+  @Override
   public ClassLoader getClassLoader() {
     ClassLoader classLoader = super.getClassLoader();
     if (classLoader == null) {
@@ -99,53 +148,6 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   public void setModuleDescriptor(final String mavenModuleId) {
     this.mavenModuleId = mavenModuleId;
-  }
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  protected void doStart() {
-    if (isEnabled() && !isStarted()) {
-      try {
-        clearModuleError();
-
-        final ClassLoader classLoader = getClassLoader();
-        final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
-          classLoader, false);
-        if (configUrls.size() == 1) {
-          final URL configUrl = configUrls.get(0);
-          setConfigUrl(configUrl);
-          setClassLoader(classLoader);
-        } else if (configUrls.isEmpty()) {
-          addModuleError("No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
-        } else {
-          addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
-        }
-        if (!hasError()) {
-          super.doStart();
-        }
-      } catch (final Throwable e) {
-        addModuleError(e);
-      }
-      if (hasError()) {
-        stop();
-      } else {
-        BatchJobService batchJobService = moduleLoader.getBatchJobService();
-        batchJobService.collateStatistics();
-      }
-    }
-  }
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  protected void doStop() {
-    if (isStarted()) {
-      List<String> businessApplicationNames = getBusinessApplicationNames();
-      setStartedDate(null);
-
-      super.doStop();
-      setClassLoader(null);
-      setConfigUrl(null);
-      BatchJobService batchJobService = moduleLoader.getBatchJobService();
-      batchJobService.scheduleSaveStatistics(businessApplicationNames);
-    }
   }
 
   @Override

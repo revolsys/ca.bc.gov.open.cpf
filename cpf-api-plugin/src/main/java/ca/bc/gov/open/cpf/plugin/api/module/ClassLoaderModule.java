@@ -149,6 +149,8 @@ public class ClassLoaderModule implements Module {
     });
   }
 
+  private boolean started = false;
+
   public ClassLoaderModule(
     final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName) {
@@ -350,6 +352,7 @@ public class ClassLoaderModule implements Module {
     return businessApplicationNames;
   }
 
+  @Override
   public PluginAdaptor getBusinessApplicationPlugin(
     final BusinessApplication application, String logLevel) {
     if (application == null) {
@@ -381,7 +384,7 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public PluginAdaptor getBusinessApplicationPlugin(
-    final String businessApplicationName, String logLevel) {
+    final String businessApplicationName, final String logLevel) {
     final BusinessApplication application = getBusinessApplication(businessApplicationName);
     if (application == null) {
       return null;
@@ -628,12 +631,12 @@ public class ClassLoaderModule implements Module {
         }
       }
 
-      DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-      Attribute resultDataContentType = requestMetaData.getAttribute("resultDataContentType");
+      final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+      final Attribute resultDataContentType = requestMetaData.getAttribute("resultDataContentType");
       final Map<String, String> resultDataContentTypeMap = businessApplication.getResultDataContentTypes();
       resultDataContentType.setAllowedValues(resultDataContentTypeMap);
 
-      String defaultResultDataContentType = BusinessApplication.getDefaultMimeType(resultDataContentTypeMap);
+      final String defaultResultDataContentType = BusinessApplication.getDefaultMimeType(resultDataContentTypeMap);
       resultDataContentType.setDefaultValue(defaultResultDataContentType);
 
       try {
@@ -688,8 +691,9 @@ public class ClassLoaderModule implements Module {
    * @param geometryConfiguration The geometry configuration.
    * @return The geometry factory.
    */
-  private GeometryFactory getGeometryFactory(GeometryFactory geometryFactory,
-    final String message, final GeometryConfiguration geometryConfiguration) {
+  private GeometryFactory getGeometryFactory(
+    final GeometryFactory geometryFactory, final String message,
+    final GeometryConfiguration geometryConfiguration) {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       LOG.warn(message + " srid must be >= 0");
@@ -925,7 +929,7 @@ public class ClassLoaderModule implements Module {
   }
 
   private BusinessApplication loadBusinessApplication(
-    Map<String, BusinessApplication> businessApplicationsByName,
+    final Map<String, BusinessApplication> businessApplicationsByName,
     final String moduleName, final String pluginClassName) {
     try {
       if (isEnabled()) {
@@ -949,9 +953,9 @@ public class ClassLoaderModule implements Module {
   @SuppressWarnings("unchecked")
   private void loadBusinessApplications() {
     final Set<String> businessApplicationNames = new TreeSet<String>();
-    Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<BusinessApplication, String>();
+    final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<BusinessApplication, String>();
     moduleError = null;
-    Map<String, BusinessApplication> businessApplicationsByName = new HashMap<String, BusinessApplication>();
+    final Map<String, BusinessApplication> businessApplicationsByName = new HashMap<String, BusinessApplication>();
     LOG.debug("Loading spring config file " + configUrl);
     final GenericApplicationContext applicationContext = new GenericApplicationContext();
     try {
@@ -983,12 +987,12 @@ public class ClassLoaderModule implements Module {
               final BusinessApplication businessApplication = loadBusinessApplication(
                 businessApplicationsByName, name, pluginClassName);
               if (businessApplication != null) {
-                String businessApplicationName = businessApplication.getName();
+                final String businessApplicationName = businessApplication.getName();
                 businessApplicationNames.add(businessApplicationName);
                 businessApplicationsToBeanNames.put(businessApplication,
                   beanName);
                 businessApplication.setProperties(defaultProperties);
-                Map<String, Object> properties = propertiesByName.get(businessApplicationName);
+                final Map<String, Object> properties = propertiesByName.get(businessApplicationName);
                 businessApplication.setProperties(properties);
               }
             } else {
@@ -1102,9 +1106,9 @@ public class ClassLoaderModule implements Module {
 
             final DefaultValue defaultValueMetadata = method.getAnnotation(DefaultValue.class);
             if (defaultValueMetadata != null) {
-              String defaultValueString = defaultValueMetadata.value();
-              Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
-              Object defaultValue = StringConverterRegistry.toObject(
+              final String defaultValueString = defaultValueMetadata.value();
+              final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
+              final Object defaultValue = StringConverterRegistry.toObject(
                 dataTypeClass, defaultValueString);
               attribute.setDefaultValue(defaultValue);
             }
@@ -1290,8 +1294,6 @@ public class ClassLoaderModule implements Module {
     this.remoteable = remoteable;
   }
 
-  private boolean started = false;
-
   public void setStartedDate(final Date date) {
     this.startedDate = date;
   }
@@ -1299,12 +1301,18 @@ public class ClassLoaderModule implements Module {
   @Override
   @PostConstruct
   public void start() {
-    getBusinessApplicationRegistry().startModule(name);
+    final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
+    if (businessApplicationRegistry != null) {
+      businessApplicationRegistry.startModule(name);
+    }
   }
 
   @Override
   public void stop() {
-    getBusinessApplicationRegistry().stopModule(name);
+    final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
+    if (businessApplicationRegistry != null) {
+      businessApplicationRegistry.stopModule(name);
+    }
   }
 
 }

@@ -75,19 +75,18 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}/download"
-      },
-      method = {
+      }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void getModuleAppJobDownload(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName, @PathVariable
-    final String businessApplicationName, @PathVariable
-    final Long batchJobId, @PathVariable
-    final Long batchJobResultId) throws NoSuchRequestHandlingMethodException,
-    IOException {
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId,
+    @PathVariable final Long batchJobResultId)
+    throws NoSuchRequestHandlingMethodException, IOException {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
@@ -135,12 +134,10 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void getUserJobResult(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String userId, @PathVariable
-    final long batchJobId, @PathVariable
-    final long resultId) throws NoSuchRequestHandlingMethodException,
-    IOException {
-    CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+    final HttpServletResponse response, @PathVariable final String userId,
+    @PathVariable final long batchJobId, @PathVariable final long resultId)
+    throws NoSuchRequestHandlingMethodException, IOException {
+    final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
     final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
 
     if (batchJob != null) {
@@ -214,12 +211,12 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
     "/ws/users/{userId}/jobs/{batchJobId}/results"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getUserJobResults(final HttpServletRequest request,
-    @PathVariable("userId")
-    final String userId, @PathVariable("batchJobId")
-    final long batchJobId) throws NoSuchRequestHandlingMethodException {
-    CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+    @PathVariable("userId") final String userId,
+    @PathVariable("batchJobId") final long batchJobId)
+    throws NoSuchRequestHandlingMethodException {
+    final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
     final DataObject batchJob = dataAccessObject.getBatchJob(userId, batchJobId);
     if (batchJob == null) {
       throw new NoSuchRequestHandlingMethodException(request);
@@ -233,9 +230,9 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
 
         return createDataTableMap(request, "clientList", parameters);
       } else if (isHtmlPage(request)) {
-        Map<String, Object> parameters = new HashMap<String, Object>();
+        final Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("serverSide", false);
-        TabElementContainer tabs = new TabElementContainer();
+        final TabElementContainer tabs = new TabElementContainer();
         addTabDataTable(tabs, BatchJob.BATCH_JOB, "clientList", parameters);
         return tabs;
       } else {
@@ -273,15 +270,14 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results"
-      },
-      method = RequestMethod.GET)
+      }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleAppJobList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName, @PathVariable
-    final String businessApplicationName, @PathVariable
-    final Long batchJobId) throws IOException,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId) throws IOException,
     NoSuchRequestHandlingMethodException {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
@@ -299,24 +295,24 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}"
-      },
-      method = RequestMethod.GET)
+      }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ElementContainer pageModuleAppJobView(
     final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable
-    final String moduleName, @PathVariable
-    final String businessApplicationName, @PathVariable
-    final Long batchJobId, @PathVariable
-    final Long batchJobResultId) throws IOException, ServletException {
+    @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId,
+    @PathVariable final Long batchJobResultId) throws IOException,
+    ServletException {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
     final DataObject batchJobResult = getBatchJobResult(batchJobId,
       batchJobResultId);
 
-    TabElementContainer tabs = new TabElementContainer();
+    final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, batchJobResult, "moduleAppJob");
     return tabs;
   }

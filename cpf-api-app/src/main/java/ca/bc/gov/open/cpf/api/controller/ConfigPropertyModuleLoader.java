@@ -79,6 +79,10 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     dataAccessObject.deleteConfigPropertiesForModule(moduleName);
   }
 
+  public BatchJobService getBatchJobService() {
+    return batchJobService;
+  }
+
   @Override
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
     return businessApplicationRegistry;
@@ -371,10 +375,6 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   @javax.annotation.Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
-  }
-
-  public BatchJobService getBatchJobService() {
-    return batchJobService;
   }
 
   @Override

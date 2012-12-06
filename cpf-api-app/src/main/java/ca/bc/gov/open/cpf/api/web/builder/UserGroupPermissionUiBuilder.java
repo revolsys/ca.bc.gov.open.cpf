@@ -55,7 +55,8 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
-      Long groupId = DataObjectUtil.getLong(group, UserGroup.USER_GROUP_ID);
+      final Long groupId = DataObjectUtil.getLong(group,
+        UserGroup.USER_GROUP_ID);
       final Map<String, Object> parameters = new HashMap<String, Object>();
       parameters.put(UserGroupPermission.MODULE_NAME, moduleName);
       parameters.put(UserGroupPermission.USER_GROUP_ID, groupId);
@@ -90,8 +91,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
             userGroupId)) {
             final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
             dataAccessObject.delete(permission);
-            redirectToTab( UserGroup.USER_GROUP, "moduleView",
-              "moduleList");
+            redirectToTab(UserGroup.USER_GROUP, "moduleView", "moduleList");
             return;
           }
         }
@@ -139,6 +139,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleUserGroupPermissionList(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
@@ -167,7 +168,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
         "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}"
       }, method = RequestMethod.GET)
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   @ResponseBody
   public Element pageModuleUserGroupPermissionView(
     final HttpServletRequest request, final HttpServletResponse response,
@@ -185,7 +186,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
           final Number userGroupId = group.getIdValue();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
-            TabElementContainer tabs = new TabElementContainer();
+            final TabElementContainer tabs = new TabElementContainer();
             addObjectViewPage(tabs, permission, "module");
             return tabs;
           }

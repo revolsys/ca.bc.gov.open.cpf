@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,10 +37,40 @@ import com.revolsys.ui.html.view.TabElementContainer;
 @Controller
 public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
 
+  public BusinessApplicationStatisticsUiBuilder() {
+    super("statistic", "Business Application Statistic",
+      "Business Application Statistics");
+    setIdParameterName("statisticId");
+    setIdPropertyName("id");
+  }
+
+  public void businessApplication(final XmlWriter out, final Object object) {
+    final DataObject batchJob = (DataObject)object;
+    final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+
+    final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+    final BusinessApplicationUiBuilder appBuilder = getBuilder(BusinessApplication.class);
+    final Map<String, String> parameterKeys = new HashMap<String, String>();
+    parameterKeys.put("moduleName", "moduleName");
+    parameterKeys.put("businessApplicationName", "name");
+    appBuilder.serializeLink(out, businessApplication, "name", "moduleView",
+      parameterKeys);
+  }
+
+  public ModelAndView createStatsViewPage(final String businessApplicationName,
+    final BusinessApplicationStatistics stats) {
+    final ModelMap model = new ModelMap();
+    model.put("title", businessApplicationName + " Statistics " + stats.getId());
+    model.put("statisitcs", stats);
+    model.put("body",
+      "/WEB-INF/jsp/builder/businessApplicationStatisticsView.jsp");
+    return new ModelAndView("/jsp/template/page", model);
+  }
+
   @Override
-  public Object getProperty(Object object, String keyName) {
+  public Object getProperty(final Object object, final String keyName) {
     if (object instanceof BusinessApplicationStatistics) {
-      BusinessApplicationStatistics statistics = (BusinessApplicationStatistics)object;
+      final BusinessApplicationStatistics statistics = (BusinessApplicationStatistics)object;
       if (keyName.equals("businessApplication")) {
         final String businessApplicationName = statistics.getBusinessApplicationName();
 
@@ -67,34 +99,28 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     return super.getProperty(object, keyName);
   }
 
-  public void businessApplication(final XmlWriter out, final Object object) {
-    final DataObject batchJob = (DataObject)object;
-    final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-
-    final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-    final BusinessApplicationUiBuilder appBuilder = getBuilder(BusinessApplication.class);
-    final Map<String, String> parameterKeys = new HashMap<String, String>();
-    parameterKeys.put("moduleName", "moduleName");
-    parameterKeys.put("businessApplicationName", "name");
-    appBuilder.serializeLink(out, businessApplication, "name", "moduleView",
-      parameterKeys);
+  public List<BusinessApplicationStatistics> getStatistics(
+    final BusinessApplication businessApplication) {
+    final String businessApplicationName = businessApplication.getName();
+    final BatchJobService batchJobService = getBatchJobService();
+    final List<BusinessApplicationStatistics> statistics = batchJobService.getStatisticsList(businessApplicationName);
+    Collections.reverse(statistics);
+    return statistics;
   }
 
-  public BusinessApplicationStatisticsUiBuilder() {
-    super("statistic", "Business Application Statistic",
-      "Business Application Statistics");
-    setIdParameterName("statisticId");
-    setIdPropertyName("id");
-  }
-
-  public ModelAndView createStatsViewPage(final String businessApplicationName,
-    final BusinessApplicationStatistics stats) {
-    final ModelMap model = new ModelMap();
-    model.put("title", businessApplicationName + " Statistics " + stats.getId());
-    model.put("statisitcs", stats);
-    model.put("body",
-      "/WEB-INF/jsp/builder/businessApplicationStatisticsView.jsp");
-    return new ModelAndView("/jsp/template/page", model);
+  public List<BusinessApplicationStatistics> getSummaryStatistics(
+    final String durationType) {
+    final BatchJobService batchJobService = getBatchJobService();
+    final String statisticId = BusinessApplicationStatistics.getId(durationType);
+    final List<BusinessApplication> apps = getBusinessApplications();
+    final List<BusinessApplicationStatistics> statistics = new ArrayList<BusinessApplicationStatistics>();
+    for (final BusinessApplication businessApplication : apps) {
+      final String businessApplicationName = businessApplication.getName();
+      final BusinessApplicationStatistics statistic = batchJobService.getStatistics(
+        businessApplicationName, statisticId);
+      statistics.add(statistic);
+    }
+    return statistics;
   }
 
   @RequestMapping(value = {
@@ -102,15 +128,15 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageBusinessApplicationList(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable
-    String moduleName, final @PathVariable
-    String businessApplicationName) throws IOException,
+    final HttpServletResponse response, final @PathVariable String moduleName,
+    final @PathVariable String businessApplicationName) throws IOException,
     NoSuchRequestHandlingMethodException {
     final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
       moduleName, businessApplicationName);
     if (businessApplication != null) {
-      InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
+      final InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
         this, "getStatistics", businessApplication);
       return createDataTableHandlerOrRedirect(request, response,
         "moduleAppList", rowCallback, BusinessApplication.class, "moduleView");
@@ -118,19 +144,36 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     throw new NoSuchRequestHandlingMethodException(request);
   }
 
-  @RequestMapping(value = {
-    "/admin/dashboard/{durationType}"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
-  public Object pageSummaryList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String durationType) throws IOException,
-    NoSuchRequestHandlingMethodException {
-    InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
-      this, "getSummaryStatistics", durationType);
-    return createDataTableHandlerOrRedirect(request, response, durationType
-      + "List", rowCallback, this, "summary");
+  @RequestMapping(
+      value = {
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard/{statisticId}"
+      }, method = RequestMethod.GET)
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public ModelAndView pageBusinessApplicationView(
+    final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable String moduleName,
+    final @PathVariable String businessApplicationName,
+    final @PathVariable String statisticId) throws IOException,
+    ServletException {
+    try {
+      final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
+        moduleName, businessApplicationName);
+      if (businessApplication != null) {
+        final BatchJobService batchJobService = getBatchJobService();
+        final BusinessApplicationStatistics statistics = batchJobService.getStatistics(
+          businessApplicationName, statisticId);
+
+        if (statistics != null) {
+          final ModelAndView viewPage = createStatsViewPage(
+            businessApplicationName, statistics);
+
+          return viewPage;
+        }
+      }
+    } catch (final IllegalArgumentException e) {
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
   }
 
   @RequestMapping(value = {
@@ -138,6 +181,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageIndex(final HttpServletRequest request) {
     setPageTitle(request, "summary");
 
@@ -157,60 +201,19 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     return tabs;
   }
 
-  public List<BusinessApplicationStatistics> getStatistics(
-    final BusinessApplication businessApplication) {
-    String businessApplicationName = businessApplication.getName();
-    BatchJobService batchJobService = getBatchJobService();
-    final List<BusinessApplicationStatistics> statistics = batchJobService.getStatisticsList(businessApplicationName);
-    Collections.reverse(statistics);
-    return statistics;
-  }
-
-  public List<BusinessApplicationStatistics> getSummaryStatistics(
-    final String durationType) {
-    BatchJobService batchJobService = getBatchJobService();
-    String statisticId = BusinessApplicationStatistics.getId(durationType);
-    List<BusinessApplication> apps = getBusinessApplications();
-    final List<BusinessApplicationStatistics> statistics = new ArrayList<BusinessApplicationStatistics>();
-    for (BusinessApplication businessApplication : apps) {
-      String businessApplicationName = businessApplication.getName();
-      BusinessApplicationStatistics statistic = batchJobService.getStatistics(
-        businessApplicationName, statisticId);
-      statistics.add(statistic);
-    }
-    return statistics;
-  }
-
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard/{statisticId}"
-      },
-      method = RequestMethod.GET)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  public ModelAndView pageBusinessApplicationView(
-    final HttpServletRequest request, final HttpServletResponse response,
-    final @PathVariable
-    String moduleName, final @PathVariable
-    String businessApplicationName, final @PathVariable
-    String statisticId) throws IOException, ServletException {
-    try {
-      final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
-        moduleName, businessApplicationName);
-      if (businessApplication != null) {
-        BatchJobService batchJobService = getBatchJobService();
-        final BusinessApplicationStatistics statistics = batchJobService.getStatistics(
-          businessApplicationName, statisticId);
-
-        if (statistics != null) {
-          final ModelAndView viewPage = createStatsViewPage(
-            businessApplicationName, statistics);
-
-          return viewPage;
-        }
-      }
-    } catch (IllegalArgumentException e) {
-    }
-    throw new NoSuchRequestHandlingMethodException(request);
+  @RequestMapping(value = {
+    "/admin/dashboard/{durationType}"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public Object pageSummaryList(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String durationType)
+    throws IOException, NoSuchRequestHandlingMethodException {
+    final InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
+      this, "getSummaryStatistics", durationType);
+    return createDataTableHandlerOrRedirect(request, response, durationType
+      + "List", rowCallback, this, "summary");
   }
 
 }

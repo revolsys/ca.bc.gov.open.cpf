@@ -1,0 +1,19 @@
+
+SQL*Plus: Release 10.2.0.4.0 - Production on Thu Sep 27 11:27:13 2012
+
+Copyright (c) 1982, 2007, Oracle.  All Rights Reserved.
+
+Enter password: 
+
+Connected to:
+Oracle Database 11g Release 11.2.0.1.0 - 64bit Production
+
+INFO: Tablespace CPF exists so no need to create again
+INFO: Tablespace CPF_NDX exists so no need to create again
+INFO: Role CPF_WEB_PROXY exists so no need to create again
+INFO: User CPF exists so no need to create again
+INFO: User PROXY_CPF_WEB exists so no need to create again
+
+PL/SQL procedure successfully completed.
+
+Disconnected from Oracle Database 11g Release 11.2.0.1.0 - 64bit Production

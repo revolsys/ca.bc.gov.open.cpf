@@ -124,13 +124,6 @@ public class ClientWebService {
   private static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance(
     DateFormat.DEFAULT, DateFormat.SHORT);
 
-  public final PageInfo userAppJobsPage = new PageInfo(
-    "{businessApplicationTitle} jobs for user {userId}");
-
-  public final PageInfo userJobPage = new PageInfo("Job {batchJobId} Status");
-
-  public final PageInfo userJobsPage = new PageInfo("Jobs for user {userId}");
-
   public static void checkPermission(
     final BusinessApplication businessApplication) {
     final EvaluationContext evaluationContext = getSecurityEvaluationContext();
@@ -190,6 +183,13 @@ public class ClientWebService {
     return MediaTypeUtil.isPreferedMediaType(request, MediaType.TEXT_HTML);
   }
 
+  public final PageInfo userAppJobsPage = new PageInfo(
+    "{businessApplicationTitle} jobs for user {userId}");
+
+  public final PageInfo userJobPage = new PageInfo("Job {batchJobId} Status");
+
+  public final PageInfo userJobsPage = new PageInfo("Jobs for user {userId}");
+
   private final PageInfo appPage = new PageInfo("{businessApplicationTitle}");
 
   private final PageInfo appsPage = new PageInfo("Business Applications");
@@ -218,7 +218,7 @@ public class ClientWebService {
 
   private CpfDataAccessObject dataAccessObject;
 
-  private Map<String, RawContent> rawContent = new HashMap<String, RawContent>();
+  private final Map<String, RawContent> rawContent = new HashMap<String, RawContent>();
 
   private final PageInfo rootPage = new PageInfo("Web Services");
 
@@ -321,7 +321,7 @@ public class ClientWebService {
       "inputDataContentType", defaultInputType, true, inputDataContentTypes);
 
     if (businessApplication.isPerRequestInputData()) {
-      ElementContainer container = new ElementContainer();
+      final ElementContainer container = new ElementContainer();
       addRawContent(container,
         "ca/bc/gov/open/cpf/api/web/service/multiInputDataPre.html");
       container.add(inputDataContentType);
@@ -339,11 +339,11 @@ public class ClientWebService {
   }
 
   private void addNotificationFields(final ElementContainer container) {
-    EmailAddressField emailField = new EmailAddressField("notificationEmail",
-      false);
+    final EmailAddressField emailField = new EmailAddressField(
+      "notificationEmail", false);
     TableHeadingDecorator.addRow(container, emailField, "Notification Email",
       "The email address to send the job status to when the job is completed.");
-    UrlField urlField = new UrlField("notificationUrl", false);
+    final UrlField urlField = new UrlField("notificationUrl", false);
     TableHeadingDecorator.addRow(
       container,
       urlField,
@@ -351,7 +351,8 @@ public class ClientWebService {
       "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL");
   }
 
-  private void addRawContent(ElementContainer container, String resource) {
+  private void addRawContent(final ElementContainer container,
+    final String resource) {
     RawContent content = rawContent.get(resource);
     if (content == null) {
       synchronized (rawContent) {
@@ -439,10 +440,32 @@ public class ClientWebService {
   }
 
   @RequestMapping(value = {
+    "/ws/users/{userId}/jobs/{batchJobId}"
+  }, method = RequestMethod.DELETE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void deleteUserJob(final HttpServletRequest request,
+    final HttpServletResponse response,
+    @PathVariable("userId") final String userId,
+    @PathVariable("batchJobId") final long batchJobId)
+    throws NoSuchRequestHandlingMethodException {
+    final DataObject batchJob = dataAccessObject.getBatchJob(userId, batchJobId);
+    if (batchJob == null) {
+      throw new NoSuchRequestHandlingMethodException(request);
+    } else {
+      if (dataAccessObject.deleteBatchJob(batchJobId) == 0) {
+        throw new RuntimeException("Unable to delete job " + batchJobId);
+      } else {
+        response.setStatus(HttpServletResponse.SC_OK);
+      }
+      // TODO remove from scheduler
+    }
+  }
+
+  @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getApp(
     final HttpServletRequest request,
     final HttpServletResponse response,
@@ -487,17 +510,17 @@ public class ClientWebService {
     "/ws/apps"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getApps(final HttpServletRequest request,
     final HttpServletResponse response) {
     final List<BusinessApplication> applications = getBusinessApplications();
     request.setAttribute("title", "Business Applications");
     if (HtmlUiBuilder.isDataTableCallback(request)) {
-      List<BusinessApplication> businessApplications = getBusinessApplications();
+      final List<BusinessApplication> businessApplications = getBusinessApplications();
       return businessAppBuilder.createDataTableMap(request,
         businessApplications, "clientList");
     } else if (isHtmlPage(request)) {
-      String url = Page.getFullUrl("/ws/#businessApplication_clientList");
+      final String url = Page.getFullUrl("/ws/#businessApplication_clientList");
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
       response.setHeader("Location", url);
       return null;
@@ -528,7 +551,7 @@ public class ClientWebService {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getAppVersion(
     final HttpServletRequest request,
     final HttpServletResponse response,
@@ -551,7 +574,7 @@ public class ClientWebService {
 
         if (isHtmlPage(request)) {
           request.setAttribute("pageHeading", businessApplication.getTitle());
-          ElementContainer container = new ElementContainer();
+          final ElementContainer container = new ElementContainer();
           final String description = businessApplication.getDescription();
           if (StringUtils.hasText(description)) {
             container.add(new RawContent("<p>" + description + "</p>"));
@@ -620,7 +643,7 @@ public class ClientWebService {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}/multiple"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getAppVersionMultiple(
     final HttpServletRequest request,
     final HttpServletResponse response,
@@ -694,7 +717,7 @@ public class ClientWebService {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}/single"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getAppVersionSingle(
     final HttpServletRequest request,
     final HttpServletResponse response,
@@ -801,7 +824,7 @@ public class ClientWebService {
         final DataObject parameters = new ArrayDataObject(requestMetaData);
         for (final Attribute attribute : requestMetaData.getAttributes()) {
           final String name = attribute.getName();
-           String value = request.getParameter(name);
+          String value = request.getParameter(name);
           boolean hasValue = StringUtils.hasText(value);
           if (attribute.getType() == DataTypes.BOOLEAN) {
             if ("on".equals(value)) {
@@ -840,10 +863,10 @@ public class ClientWebService {
         final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
         final List<DataObject> results = DataObjectUtil.getObjects(
           resultMetaData, list);
-        for (Entry<String, Object> entry : businessApplication.getProperties()
+        for (final Entry<String, Object> entry : businessApplication.getProperties()
           .entrySet()) {
-          String name = entry.getKey();
-          Object value = entry.getValue();
+          final String name = entry.getKey();
+          final Object value = entry.getValue();
           request.setAttribute(name, value);
         }
 
@@ -929,7 +952,7 @@ public class ClientWebService {
 
       addRawContent(container,
         "ca/bc/gov/open/cpf/api/web/service/inputData.html");
-      Map<String, String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
+      final Map<String, String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
       container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI,
         inputDataContentTypes.keySet()));
 
@@ -960,7 +983,7 @@ public class ClientWebService {
 
       addRawContent(container,
         "ca/bc/gov/open/cpf/api/web/service/resultFiles.html");
-      Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
+      final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
       container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI,
         resultDataContentTypes.keySet()));
       if (businessApplication.isPerRequestResultData()) {
@@ -991,7 +1014,7 @@ public class ClientWebService {
     "/ws/authenticated"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> getAuthenticated() {
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
       "Authenticated");
@@ -1006,7 +1029,7 @@ public class ClientWebService {
   private BusinessApplication getBusinessApplication(
     final HttpServletRequest request, final HttpServletResponse response,
     final String businessApplicationName,
-    final String businessApplicationVersion, String pageName)
+    final String businessApplicationVersion, final String pageName)
     throws NoSuchRequestHandlingMethodException {
     final BusinessApplication businessApplication = batchJobService.getBusinessApplication(
       businessApplicationName, businessApplicationVersion);
@@ -1103,7 +1126,7 @@ public class ClientWebService {
     "/ws/", "/ws/index"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getRoot(final HttpServletRequest request) {
     if (isHtmlPage(request)) {
       request.setAttribute("title", "Cloud Processing Framework");
@@ -1134,12 +1157,12 @@ public class ClientWebService {
     "/ws/users/{userId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getUser(final HttpServletRequest request,
     final HttpServletResponse response,
     @PathVariable("userId") final String userId) {
     if (isHtmlPage(request)) {
-      String url = Page.getFullUrl("/ws/");
+      final String url = Page.getFullUrl("/ws/");
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
       response.setHeader("Location", url);
       return null;
@@ -1160,7 +1183,7 @@ public class ClientWebService {
     "/ws/users/{userId}/apps/{businessApplicationName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getUserApp(
     final HttpServletRequest request,
     final HttpServletResponse response,
@@ -1196,7 +1219,7 @@ public class ClientWebService {
     "/ws/users/{userId}/apps/{businessApplicationName}/jobs"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getUserAppJobs(
     final HttpServletRequest request,
     final HttpServletResponse response,
@@ -1262,12 +1285,12 @@ public class ClientWebService {
     "/ws/users/{userId}/apps"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getUserApps(final HttpServletRequest request,
     final HttpServletResponse response,
     @PathVariable("userId") final String userId) {
     if (isHtmlPage(request)) {
-      String url = Page.getFullUrl("/ws/#businessApplication_clientList");
+      final String url = Page.getFullUrl("/ws/#businessApplication_clientList");
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
       response.setHeader("Location", url);
       return null;
@@ -1294,7 +1317,7 @@ public class ClientWebService {
     "/ws/users/{userId}/jobs/{batchJobId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getUserJob(final HttpServletRequest request,
     @PathVariable("userId") final String userId,
     @PathVariable("batchJobId") final long batchJobId)
@@ -1314,7 +1337,7 @@ public class ClientWebService {
         }
         return tabs;
       } else {
-        String url = batchJobUiBuilder.getPageUrl("clientView");
+        final String url = batchJobUiBuilder.getPageUrl("clientView");
         final Map<String, Object> batchJobMap = BatchJobService.toMap(batchJob,
           url, batchJobUiBuilder.getTimeUntilNextCheck(batchJob));
         return batchJobMap;
@@ -1323,32 +1346,10 @@ public class ClientWebService {
   }
 
   @RequestMapping(value = {
-    "/ws/users/{userId}/jobs/{batchJobId}"
-  }, method = RequestMethod.DELETE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void deleteUserJob(final HttpServletRequest request,
-    final HttpServletResponse response,
-    @PathVariable("userId") final String userId,
-    @PathVariable("batchJobId") final long batchJobId)
-    throws NoSuchRequestHandlingMethodException {
-    final DataObject batchJob = dataAccessObject.getBatchJob(userId, batchJobId);
-    if (batchJob == null) {
-      throw new NoSuchRequestHandlingMethodException(request);
-    } else {
-      if (dataAccessObject.deleteBatchJob(batchJobId) == 0) {
-        throw new RuntimeException("Unable to delete job " + batchJobId);
-      } else {
-        response.setStatus(HttpServletResponse.SC_OK);
-      }
-      // TODO remove from scheduler
-    }
-  }
-
-  @RequestMapping(value = {
     "/ws/users/{userId}/jobs"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getUserJobs(final HttpServletRequest request,
     final HttpServletResponse response,
     @PathVariable("userId") final String userId) {
@@ -1363,7 +1364,7 @@ public class ClientWebService {
       return batchJobUiBuilder.createDataTableMap(request, "clientList",
         parameters);
     } else if (isHtmlPage(request)) {
-      String url = Page.getFullUrl("/ws/#batchJob_clientList");
+      final String url = Page.getFullUrl("/ws/#batchJob_clientList");
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
       response.setHeader("Location", url);
       return null;
@@ -1394,14 +1395,14 @@ public class ClientWebService {
     "/ws/users"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getUsers(final HttpServletRequest request,
-    HttpServletResponse response) {
+    final HttpServletResponse response) {
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     final Authentication authentication = securityContext.getAuthentication();
     final String userId = authentication.getName();
     if (isHtmlPage(request)) {
-      String url = Page.getFullUrl("/ws/");
+      final String url = Page.getFullUrl("/ws/");
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
       response.setHeader("Location", url);
       return null;
@@ -1624,7 +1625,7 @@ public class ClientWebService {
           ModuleLog.info(moduleName, "Job submit multiple", "End multiple",
             stopWatch, logData);
         }
-        Map<String, Object> statistics = new HashMap<String, Object>();
+        final Map<String, Object> statistics = new HashMap<String, Object>();
         statistics.put("submittedJobsTime", stopWatch);
         statistics.put("submittedJobsCount", 1);
         InvokeMethodAfterCommit.invoke(batchJobService, "addStatistics",
@@ -1803,7 +1804,7 @@ public class ClientWebService {
         ModuleLog.infoAfterCommit(moduleName, "Job submit single", "End",
           stopWatch, logData);
       }
-      Map<String, Object> statistics = new HashMap<String, Object>();
+      final Map<String, Object> statistics = new HashMap<String, Object>();
       statistics.put("submittedJobsTime", stopWatch);
       statistics.put("submittedJobsCount", 1);
 

@@ -54,7 +54,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
   private final Object MODULE_ADD_SYNC = new Object();
 
-  private Callable<Collection<? extends Object>> modulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
+  private final Callable<Collection<? extends Object>> modulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
     this, "getModules");
 
   public ModuleUiBuilder() {
@@ -71,6 +71,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   })
   @ResponseBody
   @PreAuthorize(ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element createModulePageAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
     final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -138,7 +139,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     final Menu actionMenu = new Menu();
     actionMenu.addMenuItem(new Menu("Cancel", getPageUrl("list", parameters)));
     actionMenu.addMenuItem(new Menu("Refresh", getPageUrl("add", parameters)));
-    String name = form.getName();
+    final String name = form.getName();
     actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name
       + "').submit()"));
 
@@ -156,9 +157,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   })
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element createModulePageEdit(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, ServletException {
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
       final Form form = new Form(typeName);
@@ -204,7 +206,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
       final Menu actionMenu = new Menu();
       addMenuItem(actionMenu, null, "view", "Cancel", "_top");
       addMenuItem(actionMenu, null, "edit", "Revert to Saved", "_top");
-      String name = form.getName();
+      final String name = form.getName();
       actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name
         + "').submit()"));
 
@@ -224,6 +226,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_SECURITY_OR_ANY_MODULE_ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object createModulePageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     return createDataTableHandler(request, "list", modulesCallable);
@@ -234,9 +237,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element createModulePageView(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, ServletException {
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, module, null);
@@ -253,14 +257,16 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
     parameters.put("serverSide", Boolean.TRUE);
 
-    addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleList", parameters);
+    addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleList",
+      parameters);
 
     addTabDataTable(tabs, UserGroup.USER_GROUP, "moduleList", parameters);
 
     addTabDataTable(tabs, UserGroup.USER_GROUP, "moduleAdminList", parameters);
 
     parameters.put("serverSide", Boolean.FALSE);
-    addTabDataTable(tabs, ModuleLogFile.class.getName(), "moduleList", parameters);
+    addTabDataTable(tabs, ModuleLogFile.class.getName(), "moduleList",
+      parameters);
 
     return tabs;
   }
@@ -284,8 +290,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @PreAuthorize(ADMIN)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, ServletException {
     final Module module = getModule(request, moduleName);
     moduleLoader.deleteModule(module);
     referrerRedirect(request);
@@ -297,8 +303,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleRestart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, ServletException {
     final Module module = getModule(request, moduleName);
     module.restart();
     referrerRedirect(request);
@@ -310,8 +316,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleStart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, ServletException {
     final Module module = getModule(request, moduleName);
     module.start();
     referrerRedirect(request);
@@ -323,8 +329,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleStop(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable final String moduleName)
+    throws IOException, ServletException {
     final Module module = getModule(request, moduleName);
     module.stop();
     referrerRedirect(request);

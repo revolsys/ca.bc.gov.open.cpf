@@ -99,10 +99,6 @@
           p:typeName="/CPF/CPF_USER_GROUPS"
           p:pageName="groupList"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
-        <bean
-          class="com.revolsys.ui.model.Menu"
-          p:title="Logout"
-          p:uri="/logout" />
       </list>
     </property>
   </bean>

@@ -64,11 +64,16 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @PreAuthorize(ADMIN_OR_MODULE_ANY_ADMIN_EXCEPT_SECURITY)
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     final List<BusinessApplication> businessApplications = getBusinessApplications();
     final Map<String, Object> parameters = Collections.emptyMap();
-    return createDataTable(request, "list", parameters, businessApplications);
+    ElementContainer table = createDataTable(request, "list", parameters, businessApplications);
+    
+    TabElementContainer tabs = new TabElementContainer();
+    tabs.add("Business Applications", table);
+    return tabs;
   }
 
   @RequestMapping(value = {
@@ -79,9 +84,9 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageModuleEdit(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable
-    String moduleName, final @PathVariable
-    String businessApplicationName) throws IOException, ServletException {
+    final HttpServletResponse response, final @PathVariable String moduleName,
+    final @PathVariable String businessApplicationName) throws IOException,
+    ServletException {
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     final BusinessApplication businessApplication = businessApplicationRegistry.getModuleBusinessApplication(
       moduleName, businessApplicationName);
@@ -162,7 +167,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       final Menu actionMenu = new Menu();
       addMenuItem(actionMenu, null, viewName, "Cancel", "_top");
       addMenuItem(actionMenu, null, pageName, "Revert to Saved", "_top");
-      String name = form.getName();
+      final String name = form.getName();
       actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name
         + "').submit()"));
 
@@ -183,11 +188,12 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleList(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable
-    String moduleName) throws IOException, NoSuchRequestHandlingMethodException {
+    final HttpServletResponse response, final @PathVariable String moduleName)
+    throws IOException, NoSuchRequestHandlingMethodException {
     final Module module = getModule(request, moduleName);
-    Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
+    final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
       module, "getBusinessApplications");
     return createDataTableHandlerOrRedirect(request, response, "moduleList",
       rowsCallable, Module.class, "view");
@@ -198,10 +204,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element pageModuleView(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable
-    String moduleName, final @PathVariable
-    String businessApplicationName) throws IOException, ServletException {
+    final HttpServletResponse response, final @PathVariable String moduleName,
+    final @PathVariable String businessApplicationName) throws IOException,
+    ServletException {
     final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
       moduleName, businessApplicationName);
     if (businessApplication != null) {

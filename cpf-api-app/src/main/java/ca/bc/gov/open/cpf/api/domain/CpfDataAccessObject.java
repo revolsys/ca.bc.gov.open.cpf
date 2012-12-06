@@ -225,74 +225,6 @@ public class CpfDataAccessObject {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public void saveStatistics(final BusinessApplicationStatistics statistics) {
-    Integer databaseId = statistics.getDatabaseId();
-    final String businessApplicationName = statistics.getBusinessApplicationName();
-    final String durationType = statistics.getDurationType();
-    final Date startTime = statistics.getStartTime();
-
-    final Map<String, Long> values = statistics.toMap();
-    if (values.isEmpty()) {
-      if (databaseId != null) {
-        deleteBusinessApplicationStatistics(databaseId);
-      }
-    } else {
-      final String valuesString = JsonMapIoFactory.toString(values);
-
-      final DataObject applicationStatistics;
-      if (databaseId == null) {
-        insertStatistics(statistics, businessApplicationName, durationType,
-          startTime, valuesString);
-      } else if (statistics.isModified()) {
-        applicationStatistics = dataStore.load(
-          BusinessApplicationStatistics.APPLICATION_STATISTICS, databaseId);
-        if (applicationStatistics == null) {
-          insertStatistics(statistics, businessApplicationName, durationType,
-            startTime, valuesString);
-        } else {
-          applicationStatistics.setValue(
-            BusinessApplicationStatistics.STATISTIC_VALUES, valuesString);
-          dataStore.update(applicationStatistics);
-        }
-      }
-
-      statistics.setModified(false);
-    }
-  }
-
-  private void insertStatistics(final BusinessApplicationStatistics statistics,
-    final String businessApplicationName, final String durationType,
-    final Date startTime, final String valuesString) {
-    Integer databaseId;
-    final DataObject applicationStatistics;
-    databaseId = ((Number)dataStore.createPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
-    applicationStatistics = dataStore.create(BusinessApplicationStatistics.APPLICATION_STATISTICS);
-    applicationStatistics.setValue(
-      BusinessApplicationStatistics.APPLICATION_STATISTIC_ID, databaseId);
-    applicationStatistics.setValue(
-      BusinessApplicationStatistics.BUSINESS_APPLICATION_NAME,
-      businessApplicationName);
-    applicationStatistics.setValue(
-      BusinessApplicationStatistics.START_TIMESTAMP, startTime);
-    applicationStatistics.setValue(BusinessApplicationStatistics.DURATION_TYPE,
-      durationType);
-    applicationStatistics.setValue(
-      BusinessApplicationStatistics.STATISTIC_VALUES, valuesString);
-    dataStore.insert(applicationStatistics);
-    statistics.setDatabaseId(databaseId);
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  public int deleteBusinessApplicationStatistics(
-    final Integer businessApplicationStatisticsId) {
-    final Query query = new Query(
-      BusinessApplicationStatistics.APPLICATION_STATISTICS);
-    query.addFilter(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
-      businessApplicationStatisticsId);
-    return dataStore.delete(query);
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
   public int deleteBatchJobRequests(final Long batchJobId) {
     final Query query = new Query(BatchJobRequest.BATCH_JOB_REQUEST);
     query.addFilter(BatchJobRequest.BATCH_JOB_ID, batchJobId);
@@ -307,10 +239,31 @@ public class CpfDataAccessObject {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
+  public int deleteBusinessApplicationStatistics(
+    final Integer businessApplicationStatisticsId) {
+    final Query query = new Query(
+      BusinessApplicationStatistics.APPLICATION_STATISTICS);
+    query.addFilter(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
+      businessApplicationStatisticsId);
+    return dataStore.delete(query);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
   public int deleteConfigPropertiesForModule(final String moduleName) {
     final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
     query.addFilter(ConfigProperty.MODULE_NAME, moduleName);
     return dataStore.delete(query);
+  }
+
+  public void deleteUserAccount(final DataObject userAccount) {
+    final Number userAccountId = userAccount.getIdValue();
+
+    final Query membersQuery = new Query(
+      UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
+    membersQuery.addFilter(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
+    dataStore.delete(membersQuery);
+
+    delete(userAccount);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
@@ -362,27 +315,6 @@ public class CpfDataAccessObject {
   @Transactional(propagation = Propagation.REQUIRED)
   public DataObject getBatchJob(final long batchJobId) {
     return dataStore.load(BatchJob.BATCH_JOB, batchJobId);
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  public boolean isBatchJobCompleted(final long batchJobId) {
-    if (dataStore instanceof JdbcDataObjectStore) {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
-      return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
-    }
-    return false;
-  }
-  @Transactional(propagation = Propagation.REQUIRED)
-  public boolean hasBatchJobUnexecutedJobs(final long batchJobId) {
-    if (dataStore instanceof JdbcDataObjectStore) {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS - NUM_EXECUTING_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
-      return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
-    }
-    return false;
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
@@ -695,6 +627,11 @@ public class CpfDataAccessObject {
     }
   }
 
+  @Transactional(propagation = Propagation.REQUIRED)
+  public DataObject getUserGroup(final long userGroupId) {
+    return dataStore.load(UserGroup.USER_GROUP, userGroupId);
+  }
+
   public DataObject getUserGroup(final String groupName) {
     final Query query = new Query(UserGroup.USER_GROUP);
     query.addFilter(UserGroup.USER_GROUP_NAME, groupName);
@@ -763,6 +700,86 @@ public class CpfDataAccessObject {
     }
   }
 
+  @Transactional(propagation = Propagation.REQUIRED)
+  public boolean hasBatchJobUnexecutedJobs(final long batchJobId) {
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS - NUM_EXECUTING_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
+      return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
+    }
+    return false;
+  }
+
+  private void insertStatistics(final BusinessApplicationStatistics statistics,
+    final String businessApplicationName, final String durationType,
+    final Date startTime, final String valuesString) {
+    Integer databaseId;
+    final DataObject applicationStatistics;
+    databaseId = ((Number)dataStore.createPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
+    applicationStatistics = dataStore.create(BusinessApplicationStatistics.APPLICATION_STATISTICS);
+    applicationStatistics.setValue(
+      BusinessApplicationStatistics.APPLICATION_STATISTIC_ID, databaseId);
+    applicationStatistics.setValue(
+      BusinessApplicationStatistics.BUSINESS_APPLICATION_NAME,
+      businessApplicationName);
+    applicationStatistics.setValue(
+      BusinessApplicationStatistics.START_TIMESTAMP, startTime);
+    applicationStatistics.setValue(BusinessApplicationStatistics.DURATION_TYPE,
+      durationType);
+    applicationStatistics.setValue(
+      BusinessApplicationStatistics.STATISTIC_VALUES, valuesString);
+    dataStore.insert(applicationStatistics);
+    statistics.setDatabaseId(databaseId);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public boolean isBatchJobCompleted(final long batchJobId) {
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
+      return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
+    }
+    return false;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public void saveStatistics(final BusinessApplicationStatistics statistics) {
+    final Integer databaseId = statistics.getDatabaseId();
+    final String businessApplicationName = statistics.getBusinessApplicationName();
+    final String durationType = statistics.getDurationType();
+    final Date startTime = statistics.getStartTime();
+
+    final Map<String, Long> values = statistics.toMap();
+    if (values.isEmpty()) {
+      if (databaseId != null) {
+        deleteBusinessApplicationStatistics(databaseId);
+      }
+    } else {
+      final String valuesString = JsonMapIoFactory.toString(values);
+
+      final DataObject applicationStatistics;
+      if (databaseId == null) {
+        insertStatistics(statistics, businessApplicationName, durationType,
+          startTime, valuesString);
+      } else if (statistics.isModified()) {
+        applicationStatistics = dataStore.load(
+          BusinessApplicationStatistics.APPLICATION_STATISTICS, databaseId);
+        if (applicationStatistics == null) {
+          insertStatistics(statistics, businessApplicationName, durationType,
+            startTime, valuesString);
+        } else {
+          applicationStatistics.setValue(
+            BusinessApplicationStatistics.STATISTIC_VALUES, valuesString);
+          dataStore.update(applicationStatistics);
+        }
+      }
+
+      statistics.setModified(false);
+    }
+  }
+
   public void setBatchJobRequestsStarted(final List<Long> batchJobRequestIds) {
     if (dataStore instanceof JdbcDataObjectStore) {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
@@ -820,6 +837,28 @@ public class CpfDataAccessObject {
 
   }
 
+  public int updateBatchJobExecutionCounts(final Long batchJobId,
+    final int numExecutingRequests, final int numCompletedRequests,
+    final int numFailedRequests) {
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
+        + "NUM_EXECUTING_REQUESTS = NUM_EXECUTING_REQUESTS + ?, "
+        + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
+        + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
+        + "WHERE BATCH_JOB_ID = ?";
+      try {
+        return JdbcUtils.executeUpdate(dataSource, sql, numExecutingRequests,
+          numCompletedRequests, numFailedRequests, batchJobId);
+      } catch (final SQLException e) {
+        throw new RuntimeException("Unable to reset started status", e);
+      }
+    }
+
+    return 0;
+  }
+
   /**
    * Update the request execution/failed counts for all the {@link BatchJob}s
    * which are in the processing or requestsCreated status.
@@ -839,27 +878,6 @@ public class CpfDataAccessObject {
         + "WHERE JOB_STATUS IN ('processing', 'requestsCreated') AND BUSINESS_APPLICATION_NAME = ?";
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, businessApplicationName);
-      } catch (final SQLException e) {
-        throw new RuntimeException("Unable to reset started status", e);
-      }
-    }
-
-    return 0;
-  }
-
-  public int updateBatchJobExecutionCounts(final Long batchJobId,
-    int numExecutingRequests, int numCompletedRequests, int numFailedRequests) {
-    if (dataStore instanceof JdbcDataObjectStore) {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "NUM_EXECUTING_REQUESTS = NUM_EXECUTING_REQUESTS + ?, "
-        + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
-        + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
-        + "WHERE BATCH_JOB_ID = ?";
-      try {
-        return JdbcUtils.executeUpdate(dataSource, sql, numExecutingRequests,
-          numCompletedRequests, numFailedRequests, batchJobId);
       } catch (final SQLException e) {
         throw new RuntimeException("Unable to reset started status", e);
       }
@@ -1007,21 +1025,5 @@ public class CpfDataAccessObject {
     } finally {
       writer.close();
     }
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  public DataObject getUserGroup(long userGroupId) {
-    return dataStore.load(UserGroup.USER_GROUP, userGroupId);
-  }
-
-  public void deleteUserAccount(DataObject userAccount) {
-    final Number userAccountId = userAccount.getIdValue();
-
-    final Query membersQuery = new Query(
-      UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
-    membersQuery.addFilter(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
-    dataStore.delete(membersQuery);
-
-    delete(userAccount);
   }
 }

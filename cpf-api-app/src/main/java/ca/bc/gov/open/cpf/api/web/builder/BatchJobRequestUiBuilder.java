@@ -18,6 +18,8 @@ import org.apache.log4j.Logger;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,20 +68,19 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}/inputData"
-      },
-      method = {
+      }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void getModuleAppJobRequestInputDataDownload(
     final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable
-    final String moduleName, @PathVariable
-    final String businessApplicationName, @PathVariable
-    final Long batchJobId, @PathVariable
-    final Long batchJobRequestId) throws NoSuchRequestHandlingMethodException,
-    IOException {
+    @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId,
+    @PathVariable final Long batchJobRequestId)
+    throws NoSuchRequestHandlingMethodException, IOException {
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
     final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
@@ -117,20 +118,19 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}/resultData"
-      },
-      method = {
+      }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void getModuleAppJobRequestResultDataDownload(
     final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable
-    final String moduleName, @PathVariable
-    final String businessApplicationName, @PathVariable
-    final Long batchJobId, @PathVariable
-    final Long batchJobRequestId) throws NoSuchRequestHandlingMethodException,
-    IOException {
+    @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId,
+    @PathVariable final Long batchJobRequestId)
+    throws NoSuchRequestHandlingMethodException, IOException {
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
     final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
@@ -166,15 +166,14 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests"
-      },
-      method = RequestMethod.GET)
+      }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleAppJobList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable
-    final String moduleName, @PathVariable
-    final String businessApplicationName, @PathVariable
-    final Long batchJobId) throws IOException,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId) throws IOException,
     NoSuchRequestHandlingMethodException {
 
     getModuleBusinessApplication(moduleName, businessApplicationName);
@@ -193,23 +192,23 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}"
-      },
-      method = RequestMethod.GET)
+      }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ElementContainer pageModuleAppJobView(
     final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable
-    final String moduleName, @PathVariable
-    final String businessApplicationName, @PathVariable
-    final Long batchJobId, @PathVariable
-    final Long batchJobRequestId) throws IOException, ServletException {
+    @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId,
+    @PathVariable final Long batchJobRequestId) throws IOException,
+    ServletException {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
     final DataObject batchJobRequest = getBatchJobRequest(batchJobId,
       batchJobRequestId);
 
-    TabElementContainer tabs = new TabElementContainer();
+    final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, batchJobRequest, "moduleAppJob");
     return tabs;
   }

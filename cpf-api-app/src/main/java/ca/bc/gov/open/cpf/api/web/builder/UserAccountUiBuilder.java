@@ -56,10 +56,53 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
     setIdParameterName("consumerKey");
   }
 
+  public void addMembersDataTable(final TabElementContainer container,
+    final String prefix) throws NoSuchRequestHandlingMethodException {
+    final Map<String, Object> parameters = new HashMap<String, Object>();
+    parameters.put("serverSide", Boolean.TRUE);
+    parameters.put("deferLoading", 0);
+    parameters.put("tabbed", true);
+
+    final String pageName = prefix + "List";
+    final HttpServletRequest request = getRequest();
+    final ElementContainer element = createDataTable(request, pageName,
+      parameters);
+    if (element != null) {
+
+      final String addUrl = getPageUrl(prefix + "MemberAdd");
+      final Form form = new Form(prefix + "MemberAdd", addUrl);
+
+      final ElementContainer fieldContainer = new ElementContainer(
+        new TableBody());
+      form.add(fieldContainer);
+
+      final String searchUrl = getPageUrl("searchLikeName");
+      final AutoCompleteTextField consumerKeyField = new AutoCompleteTextField(
+        "consumerKey", searchUrl, true);
+
+      final FieldWithSubmitButton submitField = new FieldWithSubmitButton(
+        consumerKeyField, "add", "Add");
+      final FieldLabelDecorator usernameLabel = new FieldLabelDecorator(
+        "Username");
+      usernameLabel.setInstructions("Search for a user by typing 3 or more consecutive characters from any part of the Consumer Key or User Account Name. The matching users will be displayed in a pop-up list. Select the required user and click the Add button.");
+      submitField.setDecorator(usernameLabel);
+
+      final TableRow row = new TableRow();
+      row.add(submitField, usernameLabel);
+      fieldContainer.add(row);
+
+      element.add(0, form);
+
+      final String tabId = getTypeName() + "_" + pageName;
+      final String title = getPageTitle(pageName);
+      container.add(tabId, title, element);
+    }
+  }
+
   public ModelAndView addUserGroupMembership(final HttpServletRequest request,
     final HttpServletResponse response, final String moduleName,
     final String userGroupName, final String moduleGroupName,
-    final String consumerKey, String parentPageName, String tabName)
+    final String consumerKey, final String parentPageName, final String tabName)
     throws NoSuchRequestHandlingMethodException {
     if (StringUtils.hasText(consumerKey)) {
       if (moduleName != null) {
@@ -79,7 +122,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
         } else {
           final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
           dataAccessObject.createUserGroupAccountXref(userGroup, userAccount);
-          redirectToTab( UserGroup.USER_GROUP, parentPageName, tabName);
+          redirectToTab(UserGroup.USER_GROUP, parentPageName, tabName);
           return null;
         }
       }
@@ -96,6 +139,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_SECURITY_OR_ANY_MODULE_ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ArrayListOfMap<Object> autocompleteUserName(
     final HttpServletRequest request, final HttpServletResponse response,
     @RequestParam final String term) throws IOException, ServletException {
@@ -119,10 +163,10 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   }
 
   public Object createUserGroupMembersList(final HttpServletRequest request,
-    final HttpServletResponse response, String prefix, final String moduleName,
-    final String userGroupName, final String groupModuleName)
-    throws NoSuchRequestHandlingMethodException {
-    String pageName = prefix + "List";
+    final HttpServletResponse response, final String prefix,
+    final String moduleName, final String userGroupName,
+    final String groupModuleName) throws NoSuchRequestHandlingMethodException {
+    final String pageName = prefix + "List";
     if (isDataTableCallback(request)) {
       if (moduleName != null) {
         hasModule(request, moduleName);
@@ -132,56 +176,13 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
         && (moduleName == null || userGroup.getValue(UserGroup.MODULE_NAME)
           .equals(groupModuleName))) {
 
-        CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
-        ResultPager<DataObject> userAccounts = dataAccessObject.getUserAccountsForUserGroup(userGroup);
+        final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+        final ResultPager<DataObject> userAccounts = dataAccessObject.getUserAccountsForUserGroup(userGroup);
         return createDataTableMap(request, userAccounts, pageName);
       }
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
-      return redirectToTab( UserGroup.USER_GROUP, prefix + "View",
-        pageName);
-    }
-  }
-
-  public void addMembersDataTable(TabElementContainer container, String prefix)
-    throws NoSuchRequestHandlingMethodException {
-    final Map<String, Object> parameters = new HashMap<String, Object>();
-    parameters.put("serverSide", Boolean.TRUE);
-    parameters.put("deferLoading", 0);
-    parameters.put("tabbed", true);
-
-    String pageName = prefix + "List";
-    HttpServletRequest request = getRequest();
-    final ElementContainer element = createDataTable(request, pageName,
-      parameters);
-    if (element != null) {
-
-      final String addUrl = getPageUrl(prefix + "MemberAdd");
-      final Form form = new Form(prefix + "MemberAdd", addUrl);
-
-      ElementContainer fieldContainer = new ElementContainer(new TableBody());
-      form.add(fieldContainer);
-
-      final String searchUrl = getPageUrl("searchLikeName");
-      final AutoCompleteTextField consumerKeyField = new AutoCompleteTextField(
-        "consumerKey", searchUrl, true);
-
-      final FieldWithSubmitButton submitField = new FieldWithSubmitButton(
-        consumerKeyField, "add", "Add");
-      final FieldLabelDecorator usernameLabel = new FieldLabelDecorator(
-        "Username");
-      usernameLabel.setInstructions("Search for a user by typing 3 or more consecutive characters from any part of the Consumer Key or User Account Name. The matching users will be displayed in a pop-up list. Select the required user and click the Add button.");
-      submitField.setDecorator(usernameLabel);
-
-      final TableRow row = new TableRow();
-      row.add(submitField, usernameLabel);
-      fieldContainer.add(row);
-
-      element.add(0, form);
-
-      String tabId = getTypeName() + "_" + pageName;
-      String title = getPageTitle(pageName);
-      container.add(tabId, title, element);
+      return redirectToTab(UserGroup.USER_GROUP, prefix + "View", pageName);
     }
   }
 
@@ -224,6 +225,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleAdminUserGroupMemberList(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
@@ -268,6 +270,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleUserGroupMemberList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String userGroupName) throws IOException,
@@ -329,6 +332,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_SECURITY)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageUserAccountList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     return createDataTableHandler(request, "list");
@@ -339,6 +343,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_SECURITY)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ElementContainer pageUserAccountView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String consumerKey)
     throws IOException, ServletException {
@@ -391,6 +396,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageUserGroupMemberList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String userGroupName)
     throws IOException, ServletException {
@@ -418,7 +424,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
 
   @Override
   public boolean preUpdate(final Form form, final DataObject userAccount) {
-    Long userAccountId = DataObjectUtil.getLong(userAccount,
+    final Long userAccountId = DataObjectUtil.getLong(userAccount,
       UserAccount.USER_ACCOUNT_ID);
     final Field consumerKeyField = form.getField(UserAccount.CONSUMER_KEY);
     String consumerKey = consumerKeyField.getValue();
@@ -441,8 +447,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   protected void removeUserGroupMembership(final HttpServletRequest request,
     final HttpServletResponse response, final String moduleName,
     final String userGroupName, final String moduleGroupName,
-    final String consumerKey, final Boolean confirm, String parentPageName,
-    String tabName) throws ServletException {
+    final String consumerKey, final Boolean confirm,
+    final String parentPageName, final String tabName) throws ServletException {
     if (moduleName != null) {
       hasModule(request, moduleName);
     }
@@ -457,7 +463,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
           final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
           dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
         }
-        redirectToTab( UserGroup.USER_GROUP, parentPageName, tabName);
+        redirectToTab(UserGroup.USER_GROUP, parentPageName, tabName);
         return;
       }
     }

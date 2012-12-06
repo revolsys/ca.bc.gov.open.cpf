@@ -35,6 +35,9 @@ import com.revolsys.ui.html.view.TabElementContainer;
 @Controller
 public class ConfigPropertyUiBuilder extends CpfUiBuilder {
 
+  private static final List<String> GLOBAL_MODULE_NAMES = Arrays.asList("CPF",
+    "CPF_WORKER");
+
   public ConfigPropertyUiBuilder() {
     super("configProperty", ConfigProperty.CONFIG_PROPERTY,
       "CONFIG_PROPERTY_ID", "Config Property", "Config Properties");
@@ -57,12 +60,39 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(value = {
+    "/admin/configProperties/{configPropertyId}/delete"
+  }, method = RequestMethod.POST)
+  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void pageCpfDelete(final HttpServletRequest request,
+    final HttpServletResponse response,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null) {
+      final String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
+      if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
+        final String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
+        if (componentName.equals(ConfigProperty.GLOBAL)) {
+          final DataObjectStore dataStore = getDataStore();
+          dataStore.delete(configProperty);
+          redirectPage("list");
+          return;
+        }
+      }
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  @RequestMapping(value = {
     "/admin/configProperties/{configPropertyId}/edit"
   }, method = {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
   @PreAuthorize(ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageCpfEdit(final HttpServletRequest request,
     final HttpServletResponse response,
     @PathVariable final Integer configPropertyId) throws IOException,
@@ -76,6 +106,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageCpfList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
@@ -92,17 +123,18 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ElementContainer pageCpfView(final HttpServletRequest request,
     final HttpServletResponse response,
     @PathVariable final Integer configPropertyId) throws IOException,
     ServletException {
     final DataObject configProperty = loadObject(configPropertyId);
     if (configProperty != null) {
-      String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
+      final String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
       if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
-        String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
+        final String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
         if (componentName.equals(ConfigProperty.GLOBAL)) {
-          TabElementContainer tabs = new TabElementContainer();
+          final TabElementContainer tabs = new TabElementContainer();
           addObjectViewPage(tabs, configProperty, null);
           return tabs;
         }
@@ -155,38 +187,13 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(value = {
-    "/admin/configProperties/{configPropertyId}/delete"
-  }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void pageCpfDelete(final HttpServletRequest request,
-    final HttpServletResponse response,
-    @PathVariable final Integer configPropertyId) throws IOException,
-    ServletException {
-
-    final DataObject configProperty = loadObject(configPropertyId);
-    if (configProperty != null) {
-      String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
-      if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
-        String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
-        if (componentName.equals(ConfigProperty.GLOBAL)) {
-          DataObjectStore dataStore = getDataStore();
-          dataStore.delete(configProperty);
-          redirectPage("list");
-          return;
-        }
-      }
-    }
-    throw new NoSuchRequestHandlingMethodException(request);
-  }
-
-  @RequestMapping(value = {
     "/admin/modules/{moduleName}/configProperties/{configPropertyId}/edit"
   }, method = {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Integer configPropertyId) throws IOException,
@@ -208,6 +215,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, NoSuchRequestHandlingMethodException {
@@ -230,6 +238,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Integer configPropertyId) throws IOException,
@@ -241,15 +250,12 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
         ConfigProperty.MODULE_BEAN_PROPERTY)) {
-      TabElementContainer tabs = new TabElementContainer();
+      final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, configProperty, "module");
       return tabs;
     }
     throw new NoSuchRequestHandlingMethodException(request);
   }
-
-  private static final List<String> GLOBAL_MODULE_NAMES = Arrays.asList("CPF",
-    "CPF_WORKER");
 
   @Override
   public boolean preInsert(final Form form, final DataObject configProperty) {

@@ -1,6 +1,5 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-
 public interface UserGroupPermission {
   String RESOURCE_CLASS = "RESOURCE_CLASS";
 

@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,6 +45,7 @@ public class ModuleLogFileUiBuilder extends HtmlUiBuilder<ModuleLogFile>
   }, method = {
     RequestMethod.GET, RequestMethod.POST
   })
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void createObjectViewPage(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String moduleName,
     final @PathVariable String logName) throws IOException, ServletException {
@@ -74,26 +77,6 @@ public class ModuleLogFileUiBuilder extends HtmlUiBuilder<ModuleLogFile>
     return directory;
   }
 
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/logFiles"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
-  public Object getModuleLogFileListPage(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable String moduleName)
-    throws IOException, NoSuchRequestHandlingMethodException {
-    final ModuleUiBuilder moduleBuilder = getBuilder(Module.class);
-
-    // Check to see if the user can access the module
-    moduleBuilder.getModule(request, moduleName);
-
-    Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
-      this, "getLogFiles", moduleName);
-
-    return createDataTableHandlerOrRedirect(request, response, "moduleList",
-      rowsCallable, Module.class, "view");
-  }
-
   public List<ModuleLogFile> getLogFiles(final String moduleName) {
     final List<ModuleLogFile> files = new ArrayList<ModuleLogFile>();
 
@@ -105,6 +88,27 @@ public class ModuleLogFileUiBuilder extends HtmlUiBuilder<ModuleLogFile>
       }
     }
     return files;
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/logFiles"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public Object getModuleLogFileListPage(final HttpServletRequest request,
+    final HttpServletResponse response, final @PathVariable String moduleName)
+    throws IOException, NoSuchRequestHandlingMethodException {
+    final ModuleUiBuilder moduleBuilder = getBuilder(Module.class);
+
+    // Check to see if the user can access the module
+    moduleBuilder.getModule(request, moduleName);
+
+    final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
+      this, "getLogFiles", moduleName);
+
+    return createDataTableHandlerOrRedirect(request, response, "moduleList",
+      rowsCallable, Module.class, "view");
   }
 
   public void setDirectory(final File directory) {

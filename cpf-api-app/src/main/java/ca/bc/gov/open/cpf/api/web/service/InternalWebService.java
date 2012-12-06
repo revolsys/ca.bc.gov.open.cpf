@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,6 +88,7 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}")
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, Object> getBatchJobRequestExecutionGroup(
     final HttpServletRequest request,
     @PathVariable("workerId") final String workerId,
@@ -142,6 +145,7 @@ public class InternalWebService {
   }
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestId}/inputData")
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void getBatchJobRequestOpaqueInputData(
     @PathVariable("workerId") final String workerId,
     final HttpServletResponse response, @PathVariable final long batchJobId,
@@ -216,6 +220,7 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/config/{environmentName}/{componentName}")
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> getModuleBeanConfigProperties(
     @PathVariable final String moduleName,
     @PathVariable final String environmentName,
@@ -244,6 +249,7 @@ public class InternalWebService {
     "/worker/modules/{moduleName}/{moduleTime}/urls/{urlId}"
   }, method = RequestMethod.GET)
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void getModuleUrl(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Long moduleTime, @PathVariable final int urlId)
@@ -274,6 +280,7 @@ public class InternalWebService {
     "/worker/modules/{moduleName}/{moduleTime}/urls"
   }, method = RequestMethod.GET)
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, Object> getModuleUrls(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Long moduleTime)
@@ -303,6 +310,7 @@ public class InternalWebService {
       value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/results",
       method = RequestMethod.POST)
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, ? extends Object> postBatchJobRequestExecutionGroupResults(
     @PathVariable("workerId") final String workerId,
     @PathVariable("batchJobId") final String batchJobId,
@@ -321,6 +329,7 @@ public class InternalWebService {
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestId}/resultData")
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, ? extends Object> postBatchJobRequestOpaqueOutputData(
     @PathVariable("workerId") final String workerId,
     @PathVariable final Long batchJobId, @PathVariable final String groupId,
@@ -368,9 +377,32 @@ public class InternalWebService {
     }
   }
 
+  @RequestMapping(value = "/worker/workers/{workerId}/jobs/groups/nextId",
+      method = RequestMethod.POST)
+  @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public Map<String, Object> postNextBatchJobExecutionGroupId(
+    @PathVariable("workerId") final String workerId, @RequestParam(
+        value = "moduleName", required = false) final List<String> moduleNames) {
+    checkRunning();
+    try {
+      batchJobService.setWorkerConnected(workerId, true);
+      final Map<String, Object> response = batchJobService.getNextBatchJobRequestExecutionGroup(
+        workerId, moduleNames);
+      return response;
+    } catch (final Throwable e) {
+      LOG.error(e.getMessage(), e);
+      throw new HttpMessageNotWritableException(
+        "Unable to get execution group id", e);
+    } finally {
+      batchJobService.setWorkerConnected(workerId, false);
+    }
+  }
+
   @RequestMapping(value = "/worker/workers/{workerId}/message",
       method = RequestMethod.POST)
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, Object> postWorkerMessage(
     @PathVariable("workerId") final String workerId,
     @RequestBody final Map<String, Object> message) {
@@ -381,12 +413,12 @@ public class InternalWebService {
         final Map<String, Object> response = new NamedLinkedHashMap<String, Object>(
           "MessageResponse");
         response.put("workerId", "workerId");
-        String action = (String)message.get("action");
+        final String action = (String)message.get("action");
         if (action != null) {
           if ("ping".equals(action)) {
             return response;
           } else if ("failedGroupId".equals(action)) {
-            String groupId = (String)message.get("groupId");
+            final String groupId = (String)message.get("groupId");
             batchJobService.cancelGroup(workerId, groupId);
           } else if ("moduleExcluded".equals(action)) {
             setModuleExcluded(workerId, message);
@@ -407,59 +439,10 @@ public class InternalWebService {
     }
   }
 
-  public void setModuleExcluded(final String workerId,
-    final Map<String, Object> message) {
-    String moduleName = (String)message.get("moduleName");
-    Number moduleTime = (Number)message.get("moduleTime");
-    String moduleNameTime = moduleName + ":" + moduleTime;
-    batchJobService.addWorkerStatePropertySetValue(workerId, "moduleExcludes",
-      moduleNameTime);
-    @SuppressWarnings("unchecked")
-    List<Map<String, Object>> logRecords = (List<Map<String, Object>>)message.get("logRecords");
-    if (logRecords != null && !logRecords.isEmpty()) {
-      final Map<String, Object> appLogData = new LinkedHashMap<String, Object>();
-      appLogData.put("moduleName", moduleName);
-      appLogData.put("moduleTime", moduleTime);
-      appLogData.put("workerId", workerId);
-      appLogData.put("logRecords", logRecords);
-      ModuleLog.info(moduleName, "Module failed to load ", "Application Log",
-        appLogData);
-    }
-  }
-
-  public void setModuleLoaded(final String workerId,
-    final Map<String, Object> message) {
-    String moduleName = (String)message.get("moduleName");
-    Number moduleTime = (Number)message.get("moduleTime");
-    String moduleNameTime = moduleName + ":" + moduleTime;
-    batchJobService.addWorkerStatePropertySetValue(workerId, "moduleLoaded",
-      moduleNameTime);
-  }
-
-  @RequestMapping(value = "/worker/workers/{workerId}/jobs/groups/nextId",
-      method = RequestMethod.POST)
-  @ResponseBody
-  public Map<String, Object> postNextBatchJobExecutionGroupId(
-    @PathVariable("workerId") final String workerId, @RequestParam(
-        value = "moduleName", required = false) final List<String> moduleNames) {
-    checkRunning();
-    try {
-      batchJobService.setWorkerConnected(workerId, true);
-      final Map<String, Object> response = batchJobService.getNextBatchJobRequestExecutionGroup(
-        workerId, moduleNames);
-      return response;
-    } catch (final Throwable e) {
-      LOG.error(e.getMessage(), e);
-      throw new HttpMessageNotWritableException(
-        "Unable to get execution group id", e);
-    } finally {
-      batchJobService.setWorkerConnected(workerId, false);
-    }
-  }
-
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{userId}/resourcePermission")
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> securityCanAccessResource(
     final HttpServletRequest request, @PathVariable final String moduleName,
     @PathVariable final String userId,
@@ -490,6 +473,7 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{userId}/actions/{actionName}/hasAccess")
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> securityCanPerformAction(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
@@ -517,6 +501,7 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{userId}/groups/{groupName}/memberOf")
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> securityIsMemberOfGroup(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
@@ -543,6 +528,7 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{userId}/attributes")
   @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, Object> securityUserAttributes(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
@@ -572,5 +558,34 @@ public class InternalWebService {
   @Resource(name = "cpfDataAccessObject")
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
+  }
+
+  public void setModuleExcluded(final String workerId,
+    final Map<String, Object> message) {
+    final String moduleName = (String)message.get("moduleName");
+    final Number moduleTime = (Number)message.get("moduleTime");
+    final String moduleNameTime = moduleName + ":" + moduleTime;
+    batchJobService.addWorkerStatePropertySetValue(workerId, "moduleExcludes",
+      moduleNameTime);
+    @SuppressWarnings("unchecked")
+    final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)message.get("logRecords");
+    if (logRecords != null && !logRecords.isEmpty()) {
+      final Map<String, Object> appLogData = new LinkedHashMap<String, Object>();
+      appLogData.put("moduleName", moduleName);
+      appLogData.put("moduleTime", moduleTime);
+      appLogData.put("workerId", workerId);
+      appLogData.put("logRecords", logRecords);
+      ModuleLog.info(moduleName, "Module failed to load ", "Application Log",
+        appLogData);
+    }
+  }
+
+  public void setModuleLoaded(final String workerId,
+    final Map<String, Object> message) {
+    final String moduleName = (String)message.get("moduleName");
+    final Number moduleTime = (Number)message.get("moduleTime");
+    final String moduleNameTime = moduleName + ":" + moduleTime;
+    batchJobService.addWorkerStatePropertySetValue(workerId, "moduleLoaded",
+      moduleNameTime);
   }
 }

@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,8 +68,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
       if (businessApplication == null) {
         return new BusinessApplication(businessApplicationName);
       } else {
-        HtmlUiBuilder<?> uiBuilder = getBuilder(businessApplication);
-        String subKey = JavaBeanUtil.getSubName(keyName);
+        final HtmlUiBuilder<?> uiBuilder = getBuilder(businessApplication);
+        final String subKey = JavaBeanUtil.getSubName(keyName);
         if (StringUtils.hasText(subKey)) {
           return uiBuilder.getProperty(businessApplication, subKey);
         } else {
@@ -98,6 +100,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ANY_ADMIN_EXCEPT_SECURITY)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     return createDataTableHandler(request, "list");
@@ -108,6 +111,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleAppList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName) throws IOException,
@@ -124,12 +128,12 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
       BusinessApplication.class, "moduleView", parameters);
   }
 
-
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}"
   }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ElementContainer pageModuleAppView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,

@@ -207,9 +207,9 @@ public class BatchJobScheduler extends
           scheduleQueuedJobs(out, businessApplicationName);
         }
         scheduleQueuedGroups(out);
-      } catch (ClosedException e) {
+      } catch (final ClosedException e) {
         return;
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         LOG.error("Error scheduling jobs", t);
       }
     }

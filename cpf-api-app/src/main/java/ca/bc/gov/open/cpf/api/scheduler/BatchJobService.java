@@ -189,107 +189,7 @@ public class BatchJobService implements ModuleEventListener {
 
   private BusinessApplicationRegistry businessApplicationRegistry;
 
-  private Map<String, Map<String, Object>> workerStateProperties = new HashMap<String, Map<String, Object>>();
-
-  public void setWorkerStateProperty(String workerId, String propertyName,
-    Object value) {
-    Map<String, Object> workerProperties = getWorkerStateProperties(workerId);
-    workerProperties.put(propertyName, value);
-  }
-
-  @SuppressWarnings("unchecked")
-  public <V> V getWorkerStateProperty(String workerId, String propertyName) {
-    Map<String, Object> workerProperties = getWorkerStateProperties(workerId);
-    return (V)workerProperties.get(propertyName);
-  }
-
-  public void addWorkerStatePropertySetValue(String workerId,
-    String propertyName, Object value) {
-    synchronized (workerStateProperties) {
-      Set<Object> set = getWorkerStateProperty(workerId, propertyName);
-      if (set == null) {
-        set = new LinkedHashSet<Object>();
-        setWorkerStateProperty(workerId, propertyName, set);
-      }
-      set.add(value);
-    }
-  }
-
-  public void addWorkerStatePropertyMapValue(String workerId,
-    String workerPropertyName, String propertyName, Object value) {
-    synchronized (workerStateProperties) {
-      Map<String, Object> map = getWorkerStateProperty(workerId, propertyName);
-      if (map == null) {
-        map = new LinkedHashMap<String, Object>();
-        setWorkerStateProperty(workerId, propertyName, map);
-      }
-      map.put(propertyName, value);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T> T removeWorkerStatePropertyMapValue(String workerId,
-    String workerPropertyName, String propertyName) {
-    synchronized (workerStateProperties) {
-      Map<String, Object> map = getWorkerStateProperty(workerId, propertyName);
-      if (map == null) {
-        return null;
-      } else {
-        return (T)map.remove(propertyName);
-      }
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T> T getWorkerStatePropertyMapValue(String workerId,
-    String workerPropertyName, String propertyName) {
-    synchronized (workerStateProperties) {
-      Map<String, Object> map = getWorkerStateProperty(workerId, propertyName);
-      if (map == null) {
-        return null;
-      } else {
-        return (T)map.get(propertyName);
-      }
-    }
-  }
-
-  public void removeWorkerStatePropertySetValue(String workerId,
-    String propertyName, Object value) {
-    synchronized (workerStateProperties) {
-      Set<Object> set = getWorkerStateProperty(workerId, propertyName);
-      if (set != null) {
-        set.remove(value);
-      }
-    }
-  }
-
-  public boolean hasWorkerStatePropertySetValue(String workerId,
-    String propertyName, Object value) {
-    synchronized (workerStateProperties) {
-      Set<Object> set = getWorkerStateProperty(workerId, propertyName);
-      if (set == null) {
-        return false;
-      } else {
-        return set.contains(value);
-      }
-    }
-  }
-
-  public void removeWorkerStateProperty(String workerId, String propertyName) {
-    Map<String, Object> workerProperties = getWorkerStateProperties(workerId);
-    workerProperties.remove(propertyName);
-  }
-
-  public Map<String, Object> getWorkerStateProperties(String workerId) {
-    synchronized (workerStateProperties) {
-      Map<String, Object> workerProperties = workerStateProperties.get(workerId);
-      if (workerProperties == null) {
-        workerProperties = new TreeMap<String, Object>();
-        workerStateProperties.put(workerId, workerProperties);
-      }
-      return workerProperties;
-    }
-  }
+  private final Map<String, Map<String, Object>> workerStateProperties = new HashMap<String, Map<String, Object>>();
 
   /** The email address messages are sent from. */
   private String fromEmail;
@@ -369,13 +269,13 @@ public class BatchJobService implements ModuleEventListener {
 
   protected void addStatisticRollUp(
     final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId,
-    String businessApplicationName, final String statisticsId,
-    Map<String, ? extends Object> values) {
+    final String businessApplicationName, final String statisticsId,
+    final Map<String, ? extends Object> values) {
     if (statisticsId != null) {
       final BusinessApplicationStatistics statistics = getStatistics(
         statisticsByAppAndId, businessApplicationName, statisticsId);
       statistics.addStatistics(values);
-      String parentStatisticsId = statistics.getParentId();
+      final String parentStatisticsId = statistics.getParentId();
       addStatisticRollUp(statisticsByAppAndId, businessApplicationName,
         parentStatisticsId, values);
     }
@@ -409,6 +309,31 @@ public class BatchJobService implements ModuleEventListener {
       statistics.getParentId(), statistics.toMap());
   }
 
+  public void addWorkerStatePropertyMapValue(final String workerId,
+    final String workerPropertyName, final String propertyName,
+    final Object value) {
+    synchronized (workerStateProperties) {
+      Map<String, Object> map = getWorkerStateProperty(workerId, propertyName);
+      if (map == null) {
+        map = new LinkedHashMap<String, Object>();
+        setWorkerStateProperty(workerId, propertyName, map);
+      }
+      map.put(propertyName, value);
+    }
+  }
+
+  public void addWorkerStatePropertySetValue(final String workerId,
+    final String propertyName, final Object value) {
+    synchronized (workerStateProperties) {
+      Set<Object> set = getWorkerStateProperty(workerId, propertyName);
+      if (set == null) {
+        set = new LinkedHashSet<Object>();
+        setWorkerStateProperty(workerId, propertyName, set);
+      }
+      set.add(value);
+    }
+  }
+
   public void cancelGroup(final String workerId, final String groupId) {
     if (groupId != null) {
       final BatchJobRequestExecutionGroup group = removeWorkerStatePropertyMapValue(
@@ -417,6 +342,21 @@ public class BatchJobService implements ModuleEventListener {
         group.resetId();
         schedule(group);
       }
+    }
+  }
+
+  public boolean canDeleteStatistic(
+    final BusinessApplicationStatistics statistics, final Date currentTime) {
+    final String durationType = statistics.getDurationType();
+
+    if (durationType.equals(BusinessApplicationStatistics.YEAR)) {
+      return false;
+    } else {
+      final String parentDurationType = statistics.getParentDurationType();
+      final String parentId = statistics.getParentId();
+      final String currentParentId = BusinessApplicationStatistics.getId(
+        parentDurationType, currentTime);
+      return parentId.compareTo(currentParentId) < 0;
     }
   }
 
@@ -433,42 +373,6 @@ public class BatchJobService implements ModuleEventListener {
     setStatisticsByAppAndId(statisticsByAppAndId);
   }
 
-  protected void saveStatistics(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
-    final Date currentTime = new Date(System.currentTimeMillis());
-    for (final Map<String, BusinessApplicationStatistics> statsById : statisticsByAppAndId.values()) {
-      saveStatistics(statsById, currentTime);
-    }
-  }
-
-  protected void saveStatistics(
-    final Map<String, BusinessApplicationStatistics> statsById,
-    final Date currentTime) {
-    for (Iterator<BusinessApplicationStatistics> iterator = statsById.values()
-      .iterator(); iterator.hasNext();) {
-      BusinessApplicationStatistics statistics = iterator.next();
-      if (canDeleteStatistic(statistics, currentTime)) {
-        iterator.remove();
-        Integer databaseId = statistics.getDatabaseId();
-        if (databaseId != null) {
-          dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
-        }
-      } else {
-        String durationType = statistics.getDurationType();
-        String currentId = BusinessApplicationStatistics.getId(durationType,
-          currentTime);
-        if (!currentId.equals(statistics.getId())) {
-          dataAccessObject.saveStatistics(statistics);
-        } else {
-          Integer databaseId = statistics.getDatabaseId();
-          if (databaseId != null) {
-            dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
-          }
-        }
-      }
-    }
-  }
-
   private void collateDatabaseStatistics(
     final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
     final Query query = new Query(
@@ -481,7 +385,7 @@ public class BatchJobService implements ModuleEventListener {
         final Date startTime = dbStatistics.getValue(BusinessApplicationStatistics.START_TIMESTAMP);
         final String durationType = dbStatistics.getValue(BusinessApplicationStatistics.DURATION_TYPE);
         final String businessApplicationName = dbStatistics.getValue(BusinessApplicationStatistics.BUSINESS_APPLICATION_NAME);
-        BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+        final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
         if (businessApplication != null) {
           final String statisticsId = BusinessApplicationStatistics.getId(
             durationType, startTime);
@@ -499,12 +403,12 @@ public class BatchJobService implements ModuleEventListener {
               if (previousDatabaseId == null) {
                 statistics.setDatabaseId(databaseId);
                 statistics.addStatistics(values);
-                String parentStatisticsId = statistics.getParentId();
+                final String parentStatisticsId = statistics.getParentId();
                 addStatisticRollUp(statisticsByAppAndId,
                   businessApplicationName, parentStatisticsId, values);
               } else if (!databaseId.equals(previousDatabaseId)) {
                 statistics.addStatistics(values);
-                String parentStatisticsId = statistics.getParentId();
+                final String parentStatisticsId = statistics.getParentId();
                 addStatisticRollUp(statisticsByAppAndId,
                   businessApplicationName, parentStatisticsId, values);
                 delete = true;
@@ -668,7 +572,7 @@ public class BatchJobService implements ModuleEventListener {
           dataObjectWriter.setProperties(application.getProperties());
           boolean written = false;
           try {
-            Map<String, Object> defaultProperties = new HashMap<String, Object>(
+            final Map<String, Object> defaultProperties = new HashMap<String, Object>(
               dataObjectWriter.getProperties());
             for (final DataObject batchJobRequest : structuredResults) {
               final String structuredResultData = batchJobRequest.getString(BatchJobRequest.STRUCTURED_RESULT_DATA);
@@ -677,10 +581,10 @@ public class BatchJobService implements ModuleEventListener {
                 batchJobRequest, BatchJobRequest.REQUEST_SEQUENCE_NUMBER);
               int i = 1;
               for (final Map<String, Object> structuredResultMap : results) {
-                DataObject structuredResult = DataObjectUtil.getObject(
+                final DataObject structuredResult = DataObjectUtil.getObject(
                   resultMetaData, structuredResultMap);
 
-                Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
+                final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
                 if (properties != null && !properties.isEmpty()) {
                   dataObjectWriter.setProperties(properties);
                 }
@@ -785,15 +689,15 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public PluginAdaptor getBusinessApplicationPlugin(
+    final BusinessApplication businessApplication) {
+    return businessApplicationRegistry.getBusinessApplicationPlugin(businessApplication);
+  }
+
+  public PluginAdaptor getBusinessApplicationPlugin(
     final String businessApplicationName,
     final String businessApplicationVersion) {
     return businessApplicationRegistry.getBusinessApplicationPlugin(
       businessApplicationName, businessApplicationVersion);
-  }
-
-  public PluginAdaptor getBusinessApplicationPlugin(
-    final BusinessApplication businessApplication) {
-    return businessApplicationRegistry.getBusinessApplicationPlugin(businessApplication);
   }
 
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
@@ -874,13 +778,13 @@ public class BatchJobService implements ModuleEventListener {
       if (running && group != null) {
         final BusinessApplication businessApplication = group.getBusinessApplication();
         final String businessApplicationName = businessApplication.getName();
-        Module module = businessApplication.getModule();
+        final Module module = businessApplication.getModule();
         final String moduleName = group.getModuleName();
-        Date startedDate = module.getStartedDate();
+        final Date startedDate = module.getStartedDate();
         if (startedDate == null) {
           schedule(group);
         } else {
-          long moduleStartTime = startedDate.getTime();
+          final long moduleStartTime = startedDate.getTime();
 
           response.put("workerId", workerId);
           response.put("moduleName", moduleName);
@@ -911,42 +815,6 @@ public class BatchJobService implements ModuleEventListener {
       }
     }
     return response;
-  }
-
-  public List<String> getWorkerModuleNames(String workerId,
-    List<String> moduleNames) {
-    if (moduleNames == null || moduleNames.isEmpty()) {
-      moduleNames = businessApplicationRegistry.getModuleNames();
-    }
-    Set<String> moduleExcludes = getWorkerStateProperty(workerId,
-      "moduleExcludes");
-    if (moduleExcludes != null) {
-      for (String moduleNameTime : new ArrayList<String>(moduleExcludes)) {
-        int index = moduleNameTime.lastIndexOf(':');
-        String moduleName = moduleNameTime.substring(0, index);
-        long moduleTime = Long.valueOf(moduleNameTime.substring(index + 1));
-
-        final Module module = businessApplicationRegistry.getModule(moduleName);
-        if (module == null) {
-          removeWorkerStatePropertySetValue(workerId, "moduleExcludes",
-            moduleNameTime);
-        } else {
-          if (module.getStartedDate().getTime() > moduleTime) {
-            removeWorkerStatePropertySetValue(workerId, "moduleExcludes",
-              moduleNameTime);
-          } else {
-            moduleNames.remove(moduleName);
-          }
-        }
-      }
-    }
-    return moduleNames;
-  }
-
-  private boolean isWorkerModuleLoaded(String workerId, String moduleName,
-    long moduleStartTime) {
-    return hasWorkerStatePropertySetValue(workerId, "moduleLoaded", moduleName
-      + ":" + moduleStartTime);
   }
 
   public Object getNonEmptyValue(final Map<String, ? extends Object> map,
@@ -1003,6 +871,80 @@ public class BatchJobService implements ModuleEventListener {
     return userClassBaseUrls;
   }
 
+  public List<String> getWorkerModuleNames(final String workerId,
+    List<String> moduleNames) {
+    if (moduleNames == null || moduleNames.isEmpty()) {
+      moduleNames = businessApplicationRegistry.getModuleNames();
+    }
+    final Set<String> moduleExcludes = getWorkerStateProperty(workerId,
+      "moduleExcludes");
+    if (moduleExcludes != null) {
+      for (final String moduleNameTime : new ArrayList<String>(moduleExcludes)) {
+        final int index = moduleNameTime.lastIndexOf(':');
+        final String moduleName = moduleNameTime.substring(0, index);
+        final long moduleTime = Long.valueOf(moduleNameTime.substring(index + 1));
+
+        final Module module = businessApplicationRegistry.getModule(moduleName);
+        if (module == null) {
+          removeWorkerStatePropertySetValue(workerId, "moduleExcludes",
+            moduleNameTime);
+        } else {
+          if (module.getStartedDate().getTime() > moduleTime) {
+            removeWorkerStatePropertySetValue(workerId, "moduleExcludes",
+              moduleNameTime);
+          } else {
+            moduleNames.remove(moduleName);
+          }
+        }
+      }
+    }
+    return moduleNames;
+  }
+
+  public Map<String, Object> getWorkerStateProperties(final String workerId) {
+    synchronized (workerStateProperties) {
+      Map<String, Object> workerProperties = workerStateProperties.get(workerId);
+      if (workerProperties == null) {
+        workerProperties = new TreeMap<String, Object>();
+        workerStateProperties.put(workerId, workerProperties);
+      }
+      return workerProperties;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public <V> V getWorkerStateProperty(final String workerId,
+    final String propertyName) {
+    final Map<String, Object> workerProperties = getWorkerStateProperties(workerId);
+    return (V)workerProperties.get(propertyName);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T> T getWorkerStatePropertyMapValue(final String workerId,
+    final String workerPropertyName, final String propertyName) {
+    synchronized (workerStateProperties) {
+      final Map<String, Object> map = getWorkerStateProperty(workerId,
+        propertyName);
+      if (map == null) {
+        return null;
+      } else {
+        return (T)map.get(propertyName);
+      }
+    }
+  }
+
+  public boolean hasWorkerStatePropertySetValue(final String workerId,
+    final String propertyName, final Object value) {
+    synchronized (workerStateProperties) {
+      final Set<Object> set = getWorkerStateProperty(workerId, propertyName);
+      if (set == null) {
+        return false;
+      } else {
+        return set.contains(value);
+      }
+    }
+  }
+
   @PostConstruct
   public void init() {
     running = true;
@@ -1014,6 +956,12 @@ public class BatchJobService implements ModuleEventListener {
 
   public boolean isRunning() {
     return running;
+  }
+
+  private boolean isWorkerModuleLoaded(final String workerId,
+    final String moduleName, final long moduleStartTime) {
+    return hasWorkerStatePropertySetValue(workerId, "moduleLoaded", moduleName
+      + ":" + moduleStartTime);
   }
 
   @Override
@@ -1379,6 +1327,36 @@ public class BatchJobService implements ModuleEventListener {
     return requestParameters;
   }
 
+  public void removeWorkerStateProperty(final String workerId,
+    final String propertyName) {
+    final Map<String, Object> workerProperties = getWorkerStateProperties(workerId);
+    workerProperties.remove(propertyName);
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T> T removeWorkerStatePropertyMapValue(final String workerId,
+    final String workerPropertyName, final String propertyName) {
+    synchronized (workerStateProperties) {
+      final Map<String, Object> map = getWorkerStateProperty(workerId,
+        propertyName);
+      if (map == null) {
+        return null;
+      } else {
+        return (T)map.remove(propertyName);
+      }
+    }
+  }
+
+  public void removeWorkerStatePropertySetValue(final String workerId,
+    final String propertyName, final Object value) {
+    synchronized (workerStateProperties) {
+      final Set<Object> set = getWorkerStateProperty(workerId, propertyName);
+      if (set != null) {
+        set.remove(value);
+      }
+    }
+  }
+
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void resetCreatingRequestsBatchJobs(final String moduleName,
     final String businessApplicationName) {
@@ -1412,7 +1390,7 @@ public class BatchJobService implements ModuleEventListener {
     synchronized (workerStateProperties) {
       workerIds = new ArrayList<String>(workerStateProperties.keySet());
     }
-    for (String workerId : workerIds) {
+    for (final String workerId : workerIds) {
       if (!connectedWorkerCounts.containsKey(workerId)) {
         final Timestamp workerTimestamp = getWorkerStateProperty(workerId,
           "lastConnectTime");
@@ -1467,6 +1445,69 @@ public class BatchJobService implements ModuleEventListener {
       ModuleLog.info(moduleName, businessApplicationName,
         "Job status for restart",
         Collections.singletonMap("count", numCleanedJobs));
+    }
+  }
+
+  protected void saveAllStatistics() {
+    List<String> businessApplicationNames;
+    synchronized (statisticsByAppAndId) {
+      businessApplicationNames = new ArrayList<String>(
+        statisticsByAppAndId.keySet());
+    }
+    saveStatistics(businessApplicationNames);
+  }
+
+  protected void saveStatistics(
+    final Collection<String> businessApplicationNames) {
+    for (final String businessApplicationName : businessApplicationNames) {
+      Map<String, BusinessApplicationStatistics> statisticsById;
+      synchronized (statisticsByAppAndId) {
+        statisticsById = statisticsByAppAndId.remove(businessApplicationName);
+      }
+      if (statisticsById != null) {
+        for (final BusinessApplicationStatistics statistics : statisticsById.values()) {
+          final String durationType = statistics.getDurationType();
+          if (durationType.equals(BusinessApplicationStatistics.HOUR)) {
+            dataAccessObject.saveStatistics(statistics);
+          }
+        }
+      }
+    }
+  }
+
+  protected void saveStatistics(
+    final Map<String, BusinessApplicationStatistics> statsById,
+    final Date currentTime) {
+    for (final Iterator<BusinessApplicationStatistics> iterator = statsById.values()
+      .iterator(); iterator.hasNext();) {
+      final BusinessApplicationStatistics statistics = iterator.next();
+      if (canDeleteStatistic(statistics, currentTime)) {
+        iterator.remove();
+        final Integer databaseId = statistics.getDatabaseId();
+        if (databaseId != null) {
+          dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
+        }
+      } else {
+        final String durationType = statistics.getDurationType();
+        final String currentId = BusinessApplicationStatistics.getId(
+          durationType, currentTime);
+        if (!currentId.equals(statistics.getId())) {
+          dataAccessObject.saveStatistics(statistics);
+        } else {
+          final Integer databaseId = statistics.getDatabaseId();
+          if (databaseId != null) {
+            dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
+          }
+        }
+      }
+    }
+  }
+
+  protected void saveStatistics(
+    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
+    final Date currentTime = new Date(System.currentTimeMillis());
+    for (final Map<String, BusinessApplicationStatistics> statsById : statisticsByAppAndId.values()) {
+      saveStatistics(statsById, currentTime);
     }
   }
 
@@ -1628,19 +1669,11 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public boolean canDeleteStatistic(BusinessApplicationStatistics statistics,
-    Date currentTime) {
-    String durationType = statistics.getDurationType();
-
-    if (durationType.equals(BusinessApplicationStatistics.YEAR)) {
-      return false;
-    } else {
-      String parentDurationType = statistics.getParentDurationType();
-      String parentId = statistics.getParentId();
-      String currentParentId = BusinessApplicationStatistics.getId(
-        parentDurationType, currentTime);
-      return parentId.compareTo(currentParentId) < 0;
-    }
+  public void scheduleSaveStatistics(final List<String> businessApplicationNames) {
+    final Map<String, Object> values = new HashMap<String, Object>();
+    values.put(StatisticsProcess.SAVE, Boolean.TRUE);
+    values.put("businessApplicationNames", businessApplicationNames);
+    sendStatistics(values);
   }
 
   /**
@@ -1787,9 +1820,9 @@ public class BatchJobService implements ModuleEventListener {
     final Long batchJobId, final Set<BatchJobRequestExecutionGroup> groups) {
 
     for (final BatchJobRequestExecutionGroup group : groups) {
-      int numExecutingRequests = group.getNumBatchJobRequests();
-      int numCompletedRequests = group.getNumCompletedRequests();
-      int numFailedRequests = group.getNumFailedRequests();
+      final int numExecutingRequests = group.getNumBatchJobRequests();
+      final int numCompletedRequests = group.getNumCompletedRequests();
+      final int numFailedRequests = group.getNumFailedRequests();
       dataAccessObject.updateBatchJobExecutionCounts(batchJobId,
         -numExecutingRequests, numCompletedRequests, numFailedRequests);
     }
@@ -2037,7 +2070,7 @@ public class BatchJobService implements ModuleEventListener {
             } else {
               geometry = geometryFactory.createGeometry(wkt, false);
             }
-          } catch (Throwable t) {
+          } catch (final Throwable t) {
             throw new IllegalArgumentException("invalid WKT geometry", t);
           }
         }
@@ -2050,7 +2083,7 @@ public class BatchJobService implements ModuleEventListener {
             "does not have a coordinate system (SRID) specified");
         }
         if (validateGeometry == true) {
-          IsValidOp validOp = new IsValidOp(geometry);
+          final IsValidOp validOp = new IsValidOp(geometry);
           if (!validOp.isValid()) {
             throw new IllegalArgumentException(validOp.getValidationError()
               .getMessage());
@@ -2090,6 +2123,12 @@ public class BatchJobService implements ModuleEventListener {
         new Timestamp(System.currentTimeMillis()));
     }
 
+  }
+
+  public void setWorkerStateProperty(final String workerId,
+    final String propertyName, final Object value) {
+    final Map<String, Object> workerProperties = getWorkerStateProperties(workerId);
+    workerProperties.put(propertyName, value);
   }
 
   /**
@@ -2154,38 +2193,5 @@ public class BatchJobService implements ModuleEventListener {
     }
     dataAccessObject.write(batchJobRequest);
     return status;
-  }
-
-  protected void saveStatistics(Collection<String> businessApplicationNames) {
-    for (String businessApplicationName : businessApplicationNames) {
-      Map<String, BusinessApplicationStatistics> statisticsById;
-      synchronized (statisticsByAppAndId) {
-        statisticsById = statisticsByAppAndId.remove(businessApplicationName);
-      }
-      if (statisticsById != null) {
-        for (BusinessApplicationStatistics statistics : statisticsById.values()) {
-          String durationType = statistics.getDurationType();
-          if (durationType.equals(BusinessApplicationStatistics.HOUR)) {
-            dataAccessObject.saveStatistics(statistics);
-          }
-        }
-      }
-    }
-  }
-
-  public void scheduleSaveStatistics(List<String> businessApplicationNames) {
-    final Map<String, Object> values = new HashMap<String, Object>();
-    values.put(StatisticsProcess.SAVE, Boolean.TRUE);
-    values.put("businessApplicationNames", businessApplicationNames);
-    sendStatistics(values);
-  }
-
-  protected void saveAllStatistics() {
-    List<String> businessApplicationNames;
-    synchronized (statisticsByAppAndId) {
-      businessApplicationNames = new ArrayList<String>(
-        statisticsByAppAndId.keySet());
-    }
-    saveStatistics(businessApplicationNames);
   }
 }
