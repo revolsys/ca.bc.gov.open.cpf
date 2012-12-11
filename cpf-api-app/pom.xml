@@ -51,9 +51,9 @@
               <useStandardDocletOptions>false</useStandardDocletOptions>
               <additionalparam>
                 -d ${project.build.directory}/site/rest-api
-                -doctitle "Cloud Processing Framework REST API"
+                -doctitle "Client REST API"
                 -htmlheader ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateHeader.html
-                -htmlfooter ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateFooter.html               </additionalparam>
+                -htmlfooter ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateFooter.html</additionalparam>
             </configuration>
             <goals>
               <goal>javadoc</goal>

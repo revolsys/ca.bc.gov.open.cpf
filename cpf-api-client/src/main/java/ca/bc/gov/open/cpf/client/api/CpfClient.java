@@ -68,8 +68,7 @@ public class CpfClient {
    * @param request The request.
    * @param jobParameters The parameters.s
    */
-  private void addJobParameters(
-    final HttpMultipartPost request,
+  private void addJobParameters(final HttpMultipartPost request,
     final Map<String, Object> jobParameters) {
     if (jobParameters != null && !jobParameters.isEmpty()) {
       for (final String parameterName : jobParameters.keySet()) {
@@ -125,8 +124,7 @@ public class CpfClient {
     final String businessApplicationName,
     final String businessApplicationVersion,
     final Map<String, Object> jobParameters,
-    final Collection<Resource> requests,
-    final String inputDataContentType,
+    final Collection<Resource> requests, final String inputDataContentType,
     final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -168,10 +166,8 @@ public class CpfClient {
   public String createJobWithOpaqueResourceSingleRequest(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final Resource request,
-    final String inputDataContentType,
-    final String resultContentType) {
+    final Map<String, Object> jobParameters, final Resource request,
+    final String inputDataContentType, final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/apps/" + businessApplicationName
@@ -212,8 +208,7 @@ public class CpfClient {
     final String businessApplicationName,
     final String businessApplicationVersion,
     final Map<String, Object> jobParameters,
-    final Collection<String> requestUrls,
-    final String inputDataContentType,
+    final Collection<String> requestUrls, final String inputDataContentType,
     final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -255,10 +250,8 @@ public class CpfClient {
   public String createJobWithOpaqueUrlSingleRequest(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final String inputDataUrl,
-    final String inputDataContentType,
-    final String resultContentType) {
+    final Map<String, Object> jobParameters, final String inputDataUrl,
+    final String inputDataContentType, final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/apps/" + businessApplicationName
@@ -280,10 +273,8 @@ public class CpfClient {
   public String createJobWithStructuredMultipleRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final int numRequests,
-    final String inputDataType,
-    final Resource inputData,
+    final Map<String, Object> jobParameters, final int numRequests,
+    final String inputDataType, final Resource inputData,
     final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -329,10 +320,8 @@ public class CpfClient {
   public String createJobWithStructuredMultipleRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final int numRequests,
-    final String inputDataUrl,
-    final String inputDataContentType,
+    final Map<String, Object> jobParameters, final int numRequests,
+    final String inputDataUrl, final String inputDataContentType,
     final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -379,8 +368,7 @@ public class CpfClient {
     final String businessApplicationName,
     final String businessApplicationVersion,
     final Map<String, Object> jobParameters,
-    final List<Map<String, Object>> requests,
-    final String resultContentType) {
+    final List<Map<String, Object>> requests, final String resultContentType) {
     final String inputDataType = "application/json";
     final int numRequests = requests.size();
 
@@ -420,10 +408,8 @@ public class CpfClient {
   public String createJobWithStructuredResourceMultipleRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final int numRequests,
-    final Resource inputData,
-    final String inputDataContentType,
+    final Map<String, Object> jobParameters, final int numRequests,
+    final Resource inputData, final String inputDataContentType,
     final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -447,8 +433,7 @@ public class CpfClient {
   public String createJobWithStructuredSingleRequest(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> parameters,
-    final String resultContentType) {
+    final Map<String, Object> parameters, final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/apps/" + businessApplicationName
@@ -484,10 +469,8 @@ public class CpfClient {
   public String createJobWithStructuredUrlMultipleRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final int numRequests,
-    final String inputDataUrl,
-    final String inputDataContentType,
+    final Map<String, Object> jobParameters, final int numRequests,
+    final String inputDataUrl, final String inputDataContentType,
     final String resultContentType) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -509,8 +492,23 @@ public class CpfClient {
   }
 
   /**
+   * <p>
    * Get the list of business application names available to the user on the CPF
    * server.
+   * </p>
+   * <p>
+   * The following code fragment shows an example of using the API.
+   * </p>
+   * 
+   * <pre style="border: 1px solid #666666; padding: 2px;">
+   * String baseUrl = &quot;http://apps.gov.bc.ca/pub/cpf/ws&quot;;
+   * String consumerKey = &quot;...&quot;;
+   * String consumerSecret = &quot;...&quot;;
+   * CpfClient client = new CpfClient(baseUrl, consumerKey, consumerSecret);
+   * 
+   * List&lt;String&gt; applicationNames = client.getBusinessApplicationNames();
+   * System.out.println(applicationNames);
+   * </pre>
    * 
    * @return The list of business application names.
    */
@@ -602,8 +600,7 @@ public class CpfClient {
    *          completed.
    * @return The reader maps containing the result fields.
    */
-  public Reader<Map<String, Object>> getJobErrorResults(
-    final String jobIdUrl,
+  public Reader<Map<String, Object>> getJobErrorResults(final String jobIdUrl,
     final long maxWait) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -659,8 +656,7 @@ public class CpfClient {
    * @return Ths list of maps that describe each of the result files.
    */
   @SuppressWarnings("unchecked")
-  public List<Map<String, Object>> getJobResultFileList(
-    final String jobIdUrl,
+  public List<Map<String, Object>> getJobResultFileList(final String jobIdUrl,
     final long maxWait) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
@@ -739,8 +735,7 @@ public class CpfClient {
   }
 
   public Reader<Map<String, Object>> getJobStructuredResults(
-    final String jobIdUrl,
-    final long maxWait) {
+    final String jobIdUrl, final long maxWait) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       for (final Map<String, Object> resultFile : getJobResultFileList(
@@ -829,8 +824,7 @@ public class CpfClient {
    * @param resultProcessor The processor to process the input stream returned
    *          from the web service.
    */
-  public void processResultFile(
-    final String jobResultUrl,
+  public void processResultFile(final String jobResultUrl,
     final ObjectProcessor<InputStream> resultProcessor) {
     OAuthHttpClient httpClient = httpClientPool.getClient();
     try {

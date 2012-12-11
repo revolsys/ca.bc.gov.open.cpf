@@ -1,31 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xml:lang="en">
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge">
     
-    <!-- TemplateBeginEditable name="doctitle" -->
-    <title>Cloud Processing Framework - API</title>
-    <!-- TemplateEndEditable -->
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>${docTitle}</title>
+<!-- InstanceEndEditable -->
     
     <link
-      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
-      REL="stylesheet" type="text/css" />
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
-      REL="stylesheet" type="text/css" />
+      rel="stylesheet" type="text/css" />
     <link href="/pub/cpf/css/rs.css" rel="stylesheet" type="text/css" />
     <link href="/pub/cpf/css/bcgov.css" rel="stylesheet" type="text/css" />
     <link href="/pub/cpf/css/cpf.css" rel="stylesheet" type="text/css" />
     <link href="javadoc.css" rel="stylesheet" type="text/css" />
+     
   
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
     <script type="text/javascript" src="javadoc.js"></script>
 
-<!-- TemplateBeginEditable name="head" -->
-<!-- TemplateEndEditable -->
+<!-- InstanceBeginEditable name="head" -->
+    <style type="text/css">
+td > ul {
+  margin: 0px;
+}
+    </style>
+<!-- InstanceEndEditable -->
   </head>
 
   <body>
@@ -46,7 +53,14 @@
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
                     <li><a href="/pub/cpf/" title="Home">Home</a></li>
-                    <li><a href="/pub/cpf/docs/" title="API (for developers)">API (for developers)</a></li>
+                    <li><a href="/pub/cpf/docs/client/">Client API</a><ul>
+                      <li><a href="/pub/cpf/docs/client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="/pub/cpf/docs/client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="/pub/cpf/docs/client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="/pub/cpf/docs/plugin/">Plug-in API</a><ul>
+                      <li><a href="/pub/cpf/docs/plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
                   </ul>
                   </div>
               </div>
@@ -58,11 +72,14 @@
                     <div class="breadcrumb">
 <ul>
 <li><a href="/pub/cpf/">HOME</a></li>
-<li>Developer Guide</li>
+<li><a href="/pub/cpf/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+<li>${docTitle}</li>
+<!-- InstanceEndEditable -->
 </ul>
 </div>
                   
                 </div>
                 <div class="bodyContent">
-<!-- TemplateBeginEditable name="body" -->
+<!-- InstanceBeginEditable name="body" -->
 

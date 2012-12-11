@@ -30,14 +30,14 @@
             </resource>
             <resource>
               <directory>../cpf-api-client/target/site</directory>
-              <targetPath>docs</targetPath>
+              <targetPath>docs/client/</targetPath>
               <includes>
                 <include>java-api/**</include>
               </includes>
             </resource>
             <resource>
               <directory>../cpf-api-client/target</directory>
-              <targetPath>docs</targetPath>
+              <targetPath>docs/client/</targetPath>
               <includes>
                 <include>javascript-api/**</include>
               </includes>
@@ -51,7 +51,7 @@
             </resource>
             <resource>
               <directory>../cpf-api-app/target/site</directory>
-              <targetPath>docs</targetPath>
+              <targetPath>docs/client/</targetPath>
               <includes>
                 <include>rest-api/**</include>
               </includes>

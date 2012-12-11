@@ -1,0 +1,7 @@
+psql:/tmp/cpf-dba-all.sql:37: INFO:  Role cpf_user already exists
+psql:/tmp/cpf-dba-all.sql:37: INFO:  Role cpf_viewer already exists
+psql:/tmp/cpf-dba-all.sql:37: INFO:  User CPF already exists
+psql:/tmp/cpf-dba-all.sql:37: INFO:  User PROXY_CPF_WEB already exists
+DO
+psql:/tmp/cpf-dba-all.sql:38: NOTICE:  role "proxy_cpf_web" is already a member of role "cpf_user"
+GRANT ROLE

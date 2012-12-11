@@ -78,7 +78,7 @@
               <useStandardDocletOptions>false</useStandardDocletOptions>
               <additionalparam>
                 -d ${project.build.directory}/site/java-api
-                -doctitle "CPF Web Service Client API"
+                -doctitle "Client Java API"
                 -htmlheader
                 ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateHeader.html
                 -htmlfooter

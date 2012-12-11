@@ -1455,7 +1455,9 @@ public class ClientWebService {
 
       if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(mediaType)) {
         final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
-        final Long batchJobId = dataAccessObject.createId(BatchJob.BATCH_JOB);
+
+        final DataObject batchJob = createBatchJob(request);
+        final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
         final Map<String, Object> logData = new LinkedHashMap<String, Object>();
         logData.put("batchJobId", batchJobId);
@@ -1464,8 +1466,6 @@ public class ClientWebService {
           ModuleLog.info(moduleName, "Job submit multiple", "Start", logData);
         }
 
-        final DataObject batchJob = createBatchJob(request);
-        batchJob.setIdValue(batchJobId);
         batchJob.setValue(BatchJob.BUSINESS_APPLICATION_NAME,
           businessApplicationName);
         batchJob.setValue(BatchJob.BUSINESS_APPLICATION_VERSION,
@@ -1660,10 +1660,9 @@ public class ClientWebService {
       final Module module = businessApplication.getModule();
       final String moduleName = module.getName();
 
-      final Long batchJobId = dataAccessObject.createId(BatchJob.BATCH_JOB);
       final DataObject batchJob = createBatchJob(request);
-      batchJob.setIdValue(batchJobId);
-
+      final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
+      
       final Map<String, Object> logData = new LinkedHashMap<String, Object>();
       logData.put("batchJobId", batchJobId);
       logData.put("businessApplicationName", businessApplicationName);
