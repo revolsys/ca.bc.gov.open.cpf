@@ -122,6 +122,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
     List<String> groupNames = userAccountSecurityService.getGroupNames(user);
     List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
     for (String groupName : groupNames) {
+      authorities.add(new GrantedAuthorityImpl(groupName));
       authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
     }
     final User userDetails = new User(userName, userPassword, active, true,

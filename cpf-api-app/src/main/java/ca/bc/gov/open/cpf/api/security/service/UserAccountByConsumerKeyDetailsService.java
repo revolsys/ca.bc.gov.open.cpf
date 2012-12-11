@@ -56,6 +56,7 @@ public class UserAccountByConsumerKeyDetailsService implements
       final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
       final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
       for (final String groupName : groupNames) {
+        authorities.add(new GrantedAuthorityImpl(groupName));
         authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
       }
       final User userDetails = new User(name, userPassword, active, true, true,

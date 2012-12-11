@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -994,6 +995,24 @@ public class ClassLoaderModule implements Module {
                 businessApplication.setProperties(defaultProperties);
                 final Map<String, Object> properties = propertiesByName.get(businessApplicationName);
                 businessApplication.setProperties(properties);
+                final String componentName = "APP_" + businessApplicationName;
+                ConfigPropertyLoader propertyLoader = getConfigPropertyLoader();
+                String moduleName = getName();
+                final Map<String, Object> configProperties = propertyLoader.getConfigProperties(
+                  moduleName, componentName);
+                if (configProperties != null) {
+                  for (Entry<String, Object> entry : configProperties.entrySet()) {
+                    String propertyName = entry.getKey();
+                    Object propertyValue = entry.getValue();
+                    try {
+                      JavaBeanUtil.setProperty(businessApplication,
+                        propertyName, propertyValue);
+                    } catch (Throwable t) {
+                      LOG.error("Unable to set " + businessApplicationName
+                        + "." + propertyName + "=" + propertyValue);
+                    }
+                  }
+                }
               }
             } else {
               addModuleError("Plugin bean scope " + scope
