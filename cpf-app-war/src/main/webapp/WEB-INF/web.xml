@@ -72,6 +72,16 @@
 
   <servlet-mapping>
     <servlet-name>cpf</servlet-name>
+    <url-pattern>/ws.json</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>cpf</servlet-name>
+    <url-pattern>/ws.xml</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>cpf</servlet-name>
     <url-pattern>/ws/*</url-pattern>
   </servlet-mapping>
 

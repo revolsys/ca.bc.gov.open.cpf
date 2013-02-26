@@ -92,7 +92,7 @@ ca.bc.gov.cpf.db.maxConnections=50
 ca.bc.gov.cpf.ws.consumerKey=cpf_worker
 ca.bc.gov.cpf.ws.consumerSecret=cpf_2009
 batchJobService.fromEmail=noreply@gov.bc.ca
-mailSender.fromEmail=apps.smtp.gov.bc.ca
+mailSender.host=apps.smtp.gov.bc.ca
 ca.bc.gov.cpf.repositoryServer=http://apps.bcgov/artifactory/repo/
 ca.bc.gov.cpf.repositoryDirectory=/tmp/cpf/repository/
 

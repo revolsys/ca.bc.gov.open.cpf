@@ -15,7 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.util.StringUtils;
 
-import com.revolsys.ui.web.config.Page;
+import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.UrlUtil;
 
 public class SiteminderLogout implements LogoutSuccessHandler {
@@ -44,13 +44,13 @@ public class SiteminderLogout implements LogoutSuccessHandler {
       }
     }
 
-    String url = Page.getAbsoluteUrl("/secure/");
+    String url = HttpServletUtils.getAbsoluteUrl("/secure/");
 
     if (StringUtils.hasText(logoutUrl)) {
       Map<String, String> parameters = new LinkedHashMap<String, String>();
       parameters.put("returl", url);
       parameters.put("retname", "Cloud Processing Framework");
-      url = UrlUtil.getUrl(Page.getAbsoluteUrl(logoutUrl), parameters);
+      url = UrlUtil.getUrl(HttpServletUtils.getAbsoluteUrl(logoutUrl), parameters);
     }
     response.sendRedirect(url);
   }
