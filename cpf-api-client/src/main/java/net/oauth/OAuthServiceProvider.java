@@ -23,6 +23,7 @@ import java.io.Serializable;
  * 
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public class OAuthServiceProvider implements Serializable {
 
   private static final long serialVersionUID = 3306534392621038574L;

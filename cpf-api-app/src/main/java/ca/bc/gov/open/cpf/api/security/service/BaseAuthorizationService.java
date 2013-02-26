@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Required;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
-import ca.bc.gov.open.cpf.plugin.api.module.ResourcePermission;
+import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;

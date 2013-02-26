@@ -155,11 +155,13 @@
           class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
         <bean
           p:name="businessApplicationParameterMap"
+          p:key="BUSINESS_APPLICATION_PARAMS"
           class="com.revolsys.ui.html.serializer.key.MapTableKeySerializer"
           p:keyLabel="Parameter"
           p:valueLabel="Value" />
         <bean
           p:name="propertyMap"
+          p:key="PROPERTIES"
           class="com.revolsys.ui.html.serializer.key.MapTableKeySerializer"
           p:keyLabel="Name"
           p:valueLabel="Value" />

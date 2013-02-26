@@ -12,6 +12,85 @@
   </parent>
   <artifactId>cpf-api-plugin</artifactId>
   <name>Cloud Processing Framework Business Application Plugin API</name>
+  
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <executions>
+          <execution>
+            <id>javadoc-html</id>
+            <phase>install</phase>
+            <configuration>
+              <quiet>true</quiet>
+              <show>public</show>
+            </configuration>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>java-api</id>
+            <phase>install</phase>
+
+            <configuration>
+              <name>java-api</name>
+              <outputDirectory>${project.build.directory}/site</outputDirectory>
+              <reportOutputDirectory>${project.build.directory}/site</reportOutputDirectory>
+              <destDir>apidocs</destDir>
+
+              <nodeprecated>true</nodeprecated>
+              <subpackages>ca.bc.gov.open.cpf.plugin.api</subpackages>
+              <docfilessubdirs>true</docfilessubdirs>
+              <use>false</use>
+              <notree>true</notree>
+              <noindex>true</noindex>
+              <nohelp>true</nohelp>
+              <nodeprecated>true</nodeprecated>
+              <quiet>true</quiet>
+              <show>public</show>
+              <useStandardDocletOptions>false</useStandardDocletOptions>
+              <windowtitle>CPF Java Plug-in API (${project.version})</windowtitle>
+            </configuration>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>javadoc-plugin-api</id>
+            <phase>install</phase>
+
+            <configuration>
+              <name>plugin-api</name>
+              <subpackages>ca.bc.gov.open.cpf.plugin.api</subpackages>
+              <doclet>com.revolsys.doclet.client.ClientDoclet</doclet>
+              <docletArtifact>
+                <groupId>com.revolsys.open</groupId>
+                <artifactId>com.revolsys.open.doclet</artifactId>
+                <version>${com.revolsys.open.version}</version>
+              </docletArtifact>
+
+              <useStandardDocletOptions>false</useStandardDocletOptions>
+              <additionalparam>
+                -d ${project.build.directory}/site/java-api
+                -doctitle "Plug-in Java API"
+                -htmlheader
+                ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateHeader.html
+                -htmlfooter
+                ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateFooter.html</additionalparam>
+            </configuration>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
   <dependencies>
     <dependency>
       <groupId>com.revolsys.open</groupId>

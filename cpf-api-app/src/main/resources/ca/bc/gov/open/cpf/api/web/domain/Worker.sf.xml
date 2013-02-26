@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  "
+>
+
+  <bean
+    id="ca.bc.gov.open.cpf.api.scheduler.Worker-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.WorkerUiBuilder"
+  >
+    <property name="pages">
+      <list>
+        <bean
+          class="com.revolsys.ui.web.config.Page"
+          p:name="list"
+          p:title="Workers"
+          p:path="/admin/workers/" />
+        <bean
+          class="com.revolsys.ui.web.config.Page"
+          p:name="view"
+          p:title="Worker {workerId}"
+          p:path="/admin/workers/{workerId}/" />
+      </list>
+    </property>
+    <property name="serializers">
+      <list>
+        <bean
+          p:name="id_link"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+          p:key="id"
+          p:label="ID"
+          p:pageName="view" />
+        <bean
+          p:name="lastConnectTime"
+          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+      </list>
+    </property>
+    <property name="views">
+      <map>
+        <entry key="list">
+          <list>
+            <value>id_link</value>
+            <value>lastConnectTime</value>
+          </list>
+        </entry>
+        <entry key="view">
+          <list>
+            <value>id</value>
+            <value>lastConnectTime</value>
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+</beans>

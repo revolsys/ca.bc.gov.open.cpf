@@ -3,6 +3,7 @@ package ca.bc.gov.open.cpf.client.httpclient;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("javadoc")
 public class OAuthHttpClientPool {
 
   private String webServiceUrl;
@@ -96,8 +97,9 @@ public class OAuthHttpClientPool {
       for (OAuthHttpClient client : clients) {
         client.close();
       }
+      Set<OAuthHttpClient> oldClients = clients;
       clients = null;
-      clients.notifyAll();
+      oldClients.notifyAll();
     }
   }
 }

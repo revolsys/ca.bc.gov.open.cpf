@@ -26,6 +26,7 @@ import java.util.Map;
  * 
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public class OAuthConsumer implements Serializable {
 
   private static final long serialVersionUID = -2258581186977818580L;

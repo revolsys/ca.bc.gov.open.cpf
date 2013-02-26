@@ -44,6 +44,7 @@ public class OAuthSchemeFactory implements AuthSchemeFactory {
    */
   public static final String DEFAULT_REALM = "defaultRealm";
 
+  @SuppressWarnings("javadoc")
   @Override
   public AuthScheme newInstance(final HttpParams params) {
     return new OAuthScheme((String)params.getParameter(DEFAULT_REALM));

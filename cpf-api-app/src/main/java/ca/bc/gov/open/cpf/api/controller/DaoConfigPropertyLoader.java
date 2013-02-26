@@ -8,7 +8,7 @@ import javax.annotation.Resource;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
-import ca.bc.gov.open.cpf.plugin.api.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;

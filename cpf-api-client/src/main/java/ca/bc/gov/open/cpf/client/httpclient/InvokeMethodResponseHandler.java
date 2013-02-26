@@ -8,6 +8,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 
+@SuppressWarnings("javadoc")
 public class InvokeMethodResponseHandler<T> implements ResponseHandler<T> {
 
   /** The object to invoke the method on. */

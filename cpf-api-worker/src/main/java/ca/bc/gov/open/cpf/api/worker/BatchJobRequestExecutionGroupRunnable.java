@@ -22,14 +22,14 @@ import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.api.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityServiceFactory;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.data.model.DataObject;
@@ -208,7 +208,12 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
               try {
                 plugin.execute();
               } finally {
-                pluginStopWatch.stop();
+                try {
+                  if (pluginStopWatch.isRunning()) {
+                    pluginStopWatch.stop();
+                  }
+                } catch (IllegalStateException e) {
+                }
                 final long pluginTime = pluginStopWatch.getTotalTimeMillis();
                 requestResult.put("pluginExecutionTime", pluginTime);
                 if (appLog.isDebugEnabled()) {
@@ -239,7 +244,12 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
                 resultFile.delete();
               }
             }
-            requestStopWatch.stop();
+            try {
+              if (requestStopWatch.isRunning()) {
+                requestStopWatch.stop();
+              }
+            } catch (IllegalStateException e) {
+            }
             requestResult.put("requestExecutionTime",
               requestStopWatch.getTotalTimeMillis());
             requestResult.put("logRecords", appLog.getLogRecords());
@@ -247,7 +257,12 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
         }
       }
-      groupStopWatch.stop();
+      try {
+        if (groupStopWatch.isRunning()) {
+          groupStopWatch.stop();
+        }
+      } catch (IllegalStateException e) {
+      }
       groupResponse.put("groupExecutionTime",
         groupStopWatch.getTotalTimeMillis());
       log.info("Group execution end " + groupId);

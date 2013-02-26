@@ -1,6 +1,7 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,13 +29,18 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.api.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.gis.cs.GeometryFactory;
+import com.revolsys.gis.data.io.DataObjectReader;
+import com.revolsys.gis.data.io.ListDataObjectReader;
+import com.revolsys.gis.data.model.ArrayDataObject;
 import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.gis.model.data.equals.EqualsRegistry;
@@ -69,8 +75,9 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response) throws IOException {
     final List<BusinessApplication> businessApplications = getBusinessApplications();
     final Map<String, Object> parameters = Collections.emptyMap();
-    ElementContainer table = createDataTable(request, "list", parameters, businessApplications);
-    
+    ElementContainer table = createDataTable(request, "list", parameters,
+      businessApplications);
+
     TabElementContainer tabs = new TabElementContainer();
     tabs.add("Business Applications", table);
     return tabs;
@@ -229,4 +236,65 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     throw new NoSuchRequestHandlingMethodException(request);
   }
 
+  @RequestMapping("/ws/sample/input")
+  @ResponseBody
+  public DataObjectReader getSampleInputData() {
+    DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl("/Buffer");
+    GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000, 1000);
+    metaData.setGeometryFactory(factory);
+    metaData.addAttribute("title", DataTypes.STRING);
+    metaData.addAttribute("buffer", DataTypes.DOUBLE);
+    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
+ 
+    List<DataObject> objects = new ArrayList<DataObject>();
+
+    DataObject object1 = new ArrayDataObject(metaData);
+    object1.setValue("title", "Buffered centroid of BC");
+    object1.setValue("buffer", 10000);
+    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357));
+    objects.add(object1);
+
+    DataObject object2 = new ArrayDataObject(metaData);
+    object2.setValue("title", "Stanley Park");
+    object2.setValue("buffer", 1000);
+    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637));
+    objects.add(object2);
+
+    ListDataObjectReader reader = new ListDataObjectReader(metaData, objects);
+    return reader;
+  }
+
+  @RequestMapping("/ws/sample/result")
+  @ResponseBody
+  public DataObjectReader getSampleResultData() {
+    DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl("/Buffer");
+    GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000, 1000);
+    metaData.setGeometryFactory(factory);
+    metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
+    metaData.addAttribute("resultNumber", DataTypes.INTEGER);
+    metaData.addAttribute("title", DataTypes.STRING);
+    metaData.addAttribute("buffer", DataTypes.DOUBLE);
+    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
+
+    List<DataObject> objects = new ArrayList<DataObject>();
+
+    DataObject object1 = new ArrayDataObject(metaData);
+    object1.setValue("sequenceNumber", 1);
+    object1.setValue("resultNumber", 1);
+    object1.setValue("title", "Buffered centroid of BC");
+    object1.setValue("buffer", 10000);
+    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357).buffer(10000));
+    objects.add(object1);
+
+    DataObject object2 = new ArrayDataObject(metaData);
+    object2.setValue("sequenceNumber", 2);
+    object2.setValue("resultNumber", 1);
+    object2.setValue("title", "Stanley Park");
+    object2.setValue("buffer", 1000);
+    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637).buffer(1000));
+    objects.add(object2);
+
+    ListDataObjectReader reader = new ListDataObjectReader(metaData, objects);
+    return reader;
+  }
 }

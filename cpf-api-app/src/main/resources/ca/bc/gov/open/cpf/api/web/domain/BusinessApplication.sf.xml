@@ -10,7 +10,7 @@
 >
 
   <bean
-    id="ca.bc.gov.open.cpf.plugin.api.BusinessApplication-htmlbuilder"
+    id="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationUiBuilder"
   >
     <property name="pages">

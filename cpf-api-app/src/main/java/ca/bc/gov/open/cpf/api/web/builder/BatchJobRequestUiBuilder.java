@@ -30,7 +30,7 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobRequest;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;

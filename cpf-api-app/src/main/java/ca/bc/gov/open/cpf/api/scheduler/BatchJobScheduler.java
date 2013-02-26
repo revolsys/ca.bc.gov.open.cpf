@@ -13,7 +13,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.SetQueue;
 import com.revolsys.parallel.channel.Channel;

@@ -36,6 +36,9 @@
       pattern="/worker/**"
       access="hasRole('ROLE_WORKER')" />
     <security:intercept-url
+      pattern="/ws**"
+      access="hasRole('ROLE_USER')" />
+    <security:intercept-url
       pattern="/ws/**"
       access="hasRole('ROLE_USER')" />
     <security:intercept-url

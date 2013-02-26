@@ -1,8 +1,8 @@
 package ca.bc.gov.open.cpf.api.security.service;
 
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
-import ca.bc.gov.open.cpf.plugin.api.security.AbstractSecurityServiceFactory;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.security.AbstractSecurityServiceFactory;
 
 public class AuthorizationServiceUserSecurityServiceFactory extends
   AbstractSecurityServiceFactory {

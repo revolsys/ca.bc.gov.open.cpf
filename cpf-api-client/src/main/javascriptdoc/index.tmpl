@@ -1,8 +1,18 @@
-{+include("../../../../cpf-war-app/src/main/webapp/Templates/docTemplateHeader.html")+}
-<h1>Cloud Processing Framework - JavaScript API</h1>
+{+include("../../../target/template/docTemplateHeader.html")+}
+<h1>CPF Client JavaScript API</h1>
+<p>The Cloud Processing Framework Client API for JavaScripts allows web browser based client
+applications to use the CPF REST Web Service API to query the available business applications,
+create batch jobs and download the results of batch jobs on behalf of their users.</p>
+
+<p>This API requires that the end user authenticate with the CPF REST Web Services. Applications
+must not expose their own CPF consumer key and consumer secret to user's of the application.</p>
+
+<p>For most business cases the <a href="../java-api">Client API for Java</a> is recommended. This
+is due to the limitations of cross domain HTTP requests and the asynchronous nature of the CPF.</p>
+
 <for each="thisClass" in="data">
   <if test="thisClass.alias != '_global_'">
-    <div class="javaClass" id="{+ thisClass.alias +}">
+    <div class="javaClass open" id="{+ thisClass.alias +}">
       <div class="title"><a name="{+ thisClass.alias +}">{+ thisClass.alias +}</a></div>
   
       <div class="content">
@@ -81,4 +91,4 @@
   </if>
 </for>
 
-{+include("../../../../cpf-war-app/src/main/webapp/Templates/docTemplateFooter.html")+}
+{+include("../../../target/template/docTemplateFooter.html")+}

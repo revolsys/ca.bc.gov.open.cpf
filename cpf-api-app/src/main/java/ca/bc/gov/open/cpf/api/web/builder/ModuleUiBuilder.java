@@ -27,8 +27,10 @@ import ca.bc.gov.open.cpf.api.controller.ConfigPropertyModule;
 import ca.bc.gov.open.cpf.api.controller.ConfigPropertyModuleLoader;
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.scheduler.Worker;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.maven.MavenRepository;
 import com.revolsys.parallel.process.InvokeMethodCallable;
@@ -43,6 +45,7 @@ import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
@@ -344,4 +347,36 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     this.moduleLoader = moduleLoader;
   }
 
+  public List<Module> getWorkerModules() {
+    String workerId = HttpServletUtils.getPathVariable("workerId");
+    final BatchJobService batchJobService = getBatchJobService();
+    final Worker worker = batchJobService.getWorker(workerId);
+    if (worker == null) {
+      throw new PageNotFoundException("The worker " + workerId
+        + " could not be found. It may no longer be connected.");
+    } else {
+      return worker.getLoadedModules();
+    }
+  }
+
+  private final Callable<Collection<? extends Object>> workerModulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
+    this, "getWorkerModules");
+
+  @RequestMapping(value = {
+    "/admin/workers/{workerId}/modules"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN)
+  public Object pageWorkerList(@PathVariable final String workerId)
+    throws IOException, NoSuchRequestHandlingMethodException {
+    BatchJobService batchJobService = getBatchJobService();
+    final Worker worker = batchJobService.getWorker(workerId);
+    if (worker == null) {
+      throw new PageNotFoundException("The worker " + workerId
+        + " could not be found. It may no longer be connected.");
+    } else {
+      return createDataTableHandlerOrRedirect(getRequest(), HttpServletUtils.getResponse(), "workerList",
+        workerModulesCallable, Worker.class, "view");
+    }
+  }
 }

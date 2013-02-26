@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Opaque Data - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      rel="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../ws/" title="Home">Home</a></li>
+                    <li><a href="client/">Client API</a><ul>
+                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="plugin/">Plug-in API</a><ul>
+                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+                    <li>Opaque Data</li>
+                    <!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+<h1>Opaque Data</h1>
+<p>Opaque data is a file of data that is passed directly to the business
+application without any processing by the CPF. For example a business application
+could convert an input GIF image to a JPEG image, or a web map service could
+return an PNG image of the requested map.</p>
+
+<p>For business applications that support opaque input data, one file is specified 
+for each request to be processed (e.g. a GIF image). A business application
+cannot support both opaque and structured input data. But it can support batch
+job parameters.</p>
+
+<p>For business applications that support opaque result data, one result file is 
+generated (e.g. a GIF image) for each request. A business application cannot 
+support both opaque and structured result data.</p>                  
+                <!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

@@ -32,6 +32,10 @@
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu"
           p:typeName="/CPF/CPF_BATCH_JOBS"
           p:pageName="clientList" />
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="API (for developers)"
+          p:uri="/docs/" />
       </list>
     </property>
   </bean>
@@ -80,11 +84,11 @@
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
-          p:typeName="ca.bc.gov.open.cpf.plugin.api.module.Module"
+          p:typeName="ca.bc.gov.open.cpf.plugin.impl.module.Module"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
-          p:typeName="ca.bc.gov.open.cpf.plugin.api.BusinessApplication"
+          p:typeName="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
@@ -98,6 +102,10 @@
         <bean
           p:typeName="/CPF/CPF_USER_GROUPS"
           p:pageName="groupList"
+          class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
+        <bean
+          p:typeName="ca.bc.gov.open.cpf.api.scheduler.Worker"
+          p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
       </list>
     </property>

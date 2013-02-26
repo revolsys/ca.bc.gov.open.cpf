@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 public class BatchJobRequestExecutionGroup {
   private final long batchJobId;
@@ -25,7 +26,7 @@ public class BatchJobRequestExecutionGroup {
 
   private final Timestamp scheduleTimestamp;
 
-  private final String userId;
+  private final String consumerKey;
 
   private final String moduleName;
 
@@ -33,11 +34,11 @@ public class BatchJobRequestExecutionGroup {
 
   private int numFailedRequests;
 
-  public BatchJobRequestExecutionGroup(final String userId,
+  public BatchJobRequestExecutionGroup(final String consumerKey,
     final long batchJobId, final BusinessApplication businessApplication,
     final Map<String, String> businessApplicationParameterMap,
     final String resultDataContentType, final Timestamp scheduleTimestamp) {
-    this.userId = userId;
+    this.consumerKey = consumerKey;
     this.batchJobId = batchJobId;
     this.businessApplication = businessApplication;
     this.moduleName = businessApplication.getModule().getName();
@@ -89,6 +90,10 @@ public class BatchJobRequestExecutionGroup {
     return id;
   }
 
+  public Module getModule() {
+    return businessApplication.getModule();
+  }
+
   public String getModuleName() {
     return moduleName;
   }
@@ -109,12 +114,16 @@ public class BatchJobRequestExecutionGroup {
     return resultDataContentType;
   }
 
+  public Timestamp getScheduleTimestamp() {
+    return scheduleTimestamp;
+  }
+
   public Timestamp getStartedTimestamp() {
     return scheduleTimestamp;
   }
 
-  public String getUserId() {
-    return userId;
+  public String getconsumerKey() {
+    return consumerKey;
   }
 
   @Override

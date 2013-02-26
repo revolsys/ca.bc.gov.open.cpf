@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
  * @author Dirk Balfanz
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public interface OAuthValidator {
 
   /**

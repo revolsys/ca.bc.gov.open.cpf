@@ -18,6 +18,7 @@ import java.math.BigInteger;
  * 
  * @author zhang
  */
+@SuppressWarnings("javadoc")
 class DerParser {
 
   // Classes

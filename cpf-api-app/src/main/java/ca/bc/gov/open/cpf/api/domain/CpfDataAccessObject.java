@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
-import ca.bc.gov.open.cpf.plugin.api.module.ResourcePermission;
+import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.ResultPager;
 import com.revolsys.converter.string.StringConverter;
@@ -318,9 +318,9 @@ public class CpfDataAccessObject {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public DataObject getBatchJob(final String userId, final long batchJobId) {
+  public DataObject getBatchJob(final String consumerKey, final long batchJobId) {
     final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.USER_ID, userId);
+    query.addFilter(BatchJob.USER_ID, consumerKey);
     query.addFilter(BatchJob.BATCH_JOB_ID, batchJobId);
     return dataStore.queryFirst(query);
   }
@@ -414,9 +414,9 @@ public class CpfDataAccessObject {
     }
   }
 
-  public List<DataObject> getBatchJobsForUser(final String userId) {
+  public List<DataObject> getBatchJobsForUser(final String consumerKey) {
     final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.USER_ID, userId);
+    query.addFilter(BatchJob.USER_ID, consumerKey);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
@@ -427,9 +427,9 @@ public class CpfDataAccessObject {
   }
 
   public List<DataObject> getBatchJobsForUserAndApplication(
-    final String userId, final String businessApplicationName) {
+    final String consumerKey, final String businessApplicationName) {
     final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.USER_ID, userId);
+    query.addFilter(BatchJob.USER_ID, consumerKey);
     query.addFilter(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
     final Reader<DataObject> reader = dataStore.query(query);
@@ -706,7 +706,11 @@ public class CpfDataAccessObject {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
       final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS - NUM_EXECUTING_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
-      return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
+      try {
+        return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
+      } catch (IllegalArgumentException e) {
+        return false;
+      }
     }
     return false;
   }
@@ -739,7 +743,11 @@ public class CpfDataAccessObject {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
       final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
-      return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
+      try {
+        return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
+      } catch (IllegalArgumentException e) {
+        return false;
+      }
     }
     return false;
   }
@@ -992,12 +1000,12 @@ public class CpfDataAccessObject {
     try {
       final SecurityContext securityContext = SecurityContextHolder.getContext();
       final Authentication authentication = securityContext.getAuthentication();
-      String userId;
+      String consumerKey;
       if (authentication == null) {
-        userId = "SYSTEM";
+        consumerKey = "SYSTEM";
         SecurityContextHolder.clearContext();
       } else {
-        userId = authentication.getName();
+        consumerKey = authentication.getName();
       }
       final Timestamp time = new Timestamp(System.currentTimeMillis());
       switch (object.getState()) {
@@ -1009,13 +1017,13 @@ public class CpfDataAccessObject {
             final Object id = dataStore.createPrimaryIdValue(metaData.getPath());
             object.setIdValue(id);
           }
-          object.setValue("WHO_CREATED", userId);
+          object.setValue("WHO_CREATED", consumerKey);
           object.setValue("WHEN_CREATED", time);
-          object.setValue("WHO_UPDATED", userId);
+          object.setValue("WHO_UPDATED", consumerKey);
           object.setValue("WHEN_UPDATED", time);
         break;
         case Persisted:
-          object.setValue("WHO_UPDATED", userId);
+          object.setValue("WHO_UPDATED", consumerKey);
           object.setValue("WHEN_UPDATED", time);
         break;
         default:

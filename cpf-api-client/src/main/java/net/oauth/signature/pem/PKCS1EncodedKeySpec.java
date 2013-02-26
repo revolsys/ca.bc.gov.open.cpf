@@ -38,6 +38,7 @@ import java.security.spec.RSAPrivateCrtKeySpec;
  * 
  * @author zhang
  */
+@SuppressWarnings("javadoc")
 public class PKCS1EncodedKeySpec {
 
   private RSAPrivateCrtKeySpec keySpec;

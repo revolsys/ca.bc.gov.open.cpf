@@ -25,6 +25,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
  * 
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public class OAuthCredentials extends UsernamePasswordCredentials {
   private static final long serialVersionUID = 1L;
 

@@ -31,6 +31,7 @@ import java.util.Map.Entry;
  * 
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public class OAuthAccessor implements Cloneable, Serializable {
 
   private static final long serialVersionUID = 5590788443138352999L;

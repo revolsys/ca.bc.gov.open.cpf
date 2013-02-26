@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -24,19 +25,55 @@ import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
 
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.io.ListReader;
 import com.revolsys.io.MapWriter;
 import com.revolsys.io.MapWriterFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.spring.ByteArrayResource;
-import com.revolsys.util.ObjectProcessor;
 
 /**
- * The CpfClient Java Client provides an easy to use application programming
- * interface to the Cloud Processing Framework Web Services. The Java Client
- * simplifies the task of developing Java applications to, amongst other things,
- * submit batch jobs, process the associated batch job results, close jobs, and
- * list jobs for a user.
+ * <p>
+ * The CPF Java (6+) client allows applications to use the <a
+ * href="../rest-api/">CPF Web Service REST API</a> to query the available
+ * business applications, create cloud jobs and download the results of cloud
+ * jobs on behalf of their users.
+ * </p>
+ * 
+ * <p><b>NOTE: The CpfClient is not thread safe. A separate instance must be
+ * created for each thread that uses the API.</b></p>
+ * 
+ * <p>The following code fragment shows an example of using the API for an application that
+ * accepts and returns <a href="../../structuredData.html">structured data</a>. Additional methods
+ * are provided for opaque data. The documentation of each method in this API provides an example
+ * of use.</p>
+ * <p><b>NOTE:</b> The examples are simplified versions of using the API. <b>They should not be considered
+ * the correct way to write an application.</b>. In the following example it waits a maximum of 2
+ * seconds (2000 milliseconds) to see if the structured result file is available. In the real world
+ * jobs will take a longer undetermined time to execute. Applications should use the
+ * <a href="../../notificationCallback.html">notification callback</a> mechanism rather than polling the
+ * server or if that is not possible something like the Java
+ * <a href="http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ScheduledExecutorService.html">ScheduledExecutorService</a>.</p>
+ * 
+ * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "92j025");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(jobId, 2000);
+      for (Map&lt;String, Object&gt; result : results) {
+        System.out.println(result);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
  */
 public class CpfClient {
   /** OAuth consumer key */
@@ -46,17 +83,26 @@ public class CpfClient {
   private OAuthHttpClientPool httpClientPool;
 
   /**
-   * The CloudProcessingFrameworkClient constructor.
+   * <p>Construct a new CpfClient connected to the specified server using the
+   * consumerKey and consumerSecret for authentication.</p>
    * 
-   * @param url The full URL of the Batch Job Web Services, including the
-   *          domain, port number and path e.g. http://localhost:8080/ws/
-   * @param consumerKey The oAuth Consumer Key (web services user name) to be
-   *          used.
-   * @param consumerSecret The oAuth Consumer Secret (password) authorising the
-   *          consumerKey.
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);</pre>
+   * 
+   * @param url The full URL of the Cloud Web Services, including the domain,
+   * port number and path e.g. https://apps.gov.bc.ca/cpf/ws/
+   * @param consumerKey The application's OAuth Consumer Key (user name) to
+   * connect to the service.
+   * @param consumerSecret The OAuth Consumer Secret (encryption key) used to
+   * sign the requests for the Consumer Key.
    */
-  public CpfClient(final String url, final String consumerKey,
+  public CpfClient(String url, final String consumerKey,
     final String consumerSecret) {
+    url = url.replaceAll("(/ws)?/*$", "");
     this.httpClientPool = new OAuthHttpClientPool(url, consumerKey,
       consumerSecret, 1);
     this.consumerKey = consumerKey;
@@ -69,7 +115,7 @@ public class CpfClient {
    * @param jobParameters The parameters.s
    */
   private void addJobParameters(final HttpMultipartPost request,
-    final Map<String, Object> jobParameters) {
+    final Map<String, ? extends Object> jobParameters) {
     if (jobParameters != null && !jobParameters.isEmpty()) {
       for (final String parameterName : jobParameters.keySet()) {
         final Object value = jobParameters.get(parameterName);
@@ -79,7 +125,21 @@ public class CpfClient {
   }
 
   /**
-   * Cleanup and shutdown the HTTP client and associated connections.
+   * <p>Close the connection to the CPF service. Once this method has been called
+   * the client can no longer be used and a new instance must be created. This should be called
+   * when the client is no longer needed to clean up resources.<p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    // Use the client
+  } finally {
+    client.closeConnection();
+  }</pre>
    */
   @PreDestroy
   public void closeConnection() {
@@ -89,12 +149,31 @@ public class CpfClient {
   }
 
   /**
-   * Close the Batch Job.
+   * <p>Delete the cloud job
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.deleteJob">Delete Job</a> REST API.</p>
    * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "92g025");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    // Download the results of the job
+    client.closeJob(jobId);
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param jobUrl The URL of the job to be closed.
    */
   public void closeJob(final String jobUrl) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       httpClient.deleteUrl(jobUrl);
     } catch (final IOException e) {
@@ -105,41 +184,70 @@ public class CpfClient {
   }
 
   /**
-   * Create a new cloud job on the CPF server for a business application that
-   * accepts opaque input data. This method can be used for multiple requests in
-   * the same job. The content of the opaque request data can be specified using
-   * collection a spring framework {@link Resource} objects.
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../opaqueData.html">opaque input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
+   * <p>The content of the opaque data for each request is specified using
+   * a spring framework <a href="http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/core/io/Resource.html">Resource</a> object.</p>
+   * 
+   * <p><b>NOTE: There is a limit of 20MB of data for a multipart/form-data HTTP request. For
+   * cloud jobs with large volumes of data make the data available on a HTTP server use the URL
+   * versions of this method instead.</b></p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("algorithmName", "MD5");
+
+    List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
+    requests.add(new ByteArrayResource("Test string".getBytes()));
+    // requests.add(new FileSystemResource(pathToFile));
+    
+    String jobId = client.createJobWithOpaqueResourceRequests("Digest",
+      "1.0.0", parameters, "text/plain", "application/json", requests);
+    // Download the results of the job
+    client.closeJob(jobId);
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
-   * @param requests The collection of resources for the requests.
-   * @param inputDataContentType The MIME content type used for all the
-   *          requests.
-   * @param resultContentType The MIME content type to return the result data
-   *          using.
+   * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
+   * requests.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
+   * using.
+   * @param requests The resource for the requests.
    * @return The cloud job id (URL) of the created job.
    */
-  public String createJobWithOpaqueResourceMultipleRequests(
+  public String createJobWithOpaqueResourceRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final Collection<Resource> requests, final String inputDataContentType,
-    final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final Map<String, Object> jobParameters, final String inputDataContentType,
+    final String resultContentType, final Collection<Resource> requests) {
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
 
       request.addParameter("numRequests", requests.size());
-      request.addParameter("resultDataContentType", resultContentType);
       for (final Resource inputData : requests) {
         request.addParameter("inputData", inputData, inputDataContentType);
         request.addParameter("inputDataContentType", inputDataContentType);
       }
+      request.addParameter("resultDataContentType", resultContentType);
+
       request.addParameter("media", "application/json");
       return httpClient.postResourceRedirect(request);
     } finally {
@@ -148,79 +256,116 @@ public class CpfClient {
   }
 
   /**
-   * Create a new cloud job on the CPF server for a business application that
-   * accepts opaque input data. This method can be used for a single request in
-   * the same job. The content of the opaque request data can be specified using
-   * a spring framework {@link Resoucrce} object.
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../opaqueData.html">opaque input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
+   * <p>The content of the opaque data for each request is specified using
+   * a spring framework <a href="http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/core/io/Resource.html">Resource</a> object.</p>
+   * 
+   * <p><b>NOTE: There is a limit of 20MB of data for a multipart/form-data HTTP request. For
+   * jobs with large volumes of data make the data available on a HTTP server use the URL
+   * versions of this method instead.</b></p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("algorithmName", "MD5");
+
+    List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
+    requests.add(new ByteArrayResource("Test string".getBytes()));
+    // requests.add(Resource resource = new FileSystemResource(pathToFile));
+
+    String jobId = client.createJobWithOpaqueResourceRequests("Digest",
+      "1.0.0", parameters, "text/plain", "application/json", requests);
+    // Download the results of the job
+    client.closeJob(jobId);
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
-   * @param request The resource for the requests.
-   * @param inputDataContentType The MIME content type used for all the
-   *          requests.
-   * @param resultContentType The MIME content type to return the result data
-   *          using.
+   * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
+   * requests.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
+   * using.
+   * @param requests The resource for the requests.
    * @return The cloud job id (URL) of the created job.
    */
-  public String createJobWithOpaqueResourceSingleRequest(
+  public String createJobWithOpaqueResourceRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters, final Resource request,
-    final String inputDataContentType, final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
-    try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/single/");
-
-      final HttpMultipartPost httpRequest = new HttpMultipartPost(httpClient,
-        url);
-      addJobParameters(httpRequest, jobParameters);
-
-      httpRequest.addParameter("inputData", request, inputDataContentType);
-      httpRequest.addParameter("inputDataContentType", inputDataContentType);
-      httpRequest.addParameter("resultDataContentType", resultContentType);
-
-      httpRequest.addParameter("media", "application/json");
-      return httpClient.postResourceRedirect(httpRequest);
-    } finally {
-      httpClientPool.releaseClient(httpClient);
-    }
+    final Map<String, Object> jobParameters, final String inputDataContentType,
+    final String resultContentType, final Resource... requests) {
+    return createJobWithOpaqueResourceRequests(businessApplicationName,
+      businessApplicationVersion, jobParameters, inputDataContentType,
+      resultContentType, Arrays.asList(requests));
   }
 
   /**
-   * Create a new cloud job on the CPF server for a business application that
-   * accepts opaque input data. This method can be used for multiple requests in
-   * the same job. The content of the opaque request data can be specified using
-   * collection of URLs.
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../opaqueData.html">opaque input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
+   * <p>The content of the opaque data for each request is specified using
+   * a URL to the data on a publicly accessible HTTP server.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("algorithmName", "MD5");
+
+    &lt;Resource&gt; inputDataUrls = new Array&lt;Resource&gt;();
+    inputDataUrls.add("https://apps.gov.bc.ca/pub/cpf/css/cpf.css");
+
+    String jobId = client.createJobWithOpaqueUrlRequests("Digest",
+      "1.0.0", parameters, "text/plain", "application/json", inputDataUrls);
+    // Download the results of the job
+    client.closeJob(jobId);
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
-   * @param requestUrls The collection of URLs for the requests.
-   * @param inputDataContentType The MIME content type used for all the
-   *          requests.
-   * @param resultContentType The MIME content type to return the result data
-   *          using.
+   * @param inputDataUrls The collection of URLs for the requests.
+   * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
+   * requests.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
+   * using.
    * @return The cloud job id (URL) of the created job.
    */
-  public String createJobWithOpaqueUrlMultipleRequests(
+  public String createJobWithOpaqueUrlRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final Collection<String> requestUrls, final String inputDataContentType,
-    final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final Map<String, ? extends Object> jobParameters,
+    final String inputDataContentType, final String resultContentType,
+    final Collection<String> inputDataUrls) {
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
 
-      request.addParameter("numRequests", requestUrls.size());
+      request.addParameter("numRequests", inputDataUrls.size());
       request.addParameter("resultDataContentType", resultContentType);
-      for (final String inputDataUrl : requestUrls) {
+      for (final String inputDataUrl : inputDataUrls) {
         request.addParameter("inputDataUrl", inputDataUrl);
         request.addParameter("inputDataContentType", inputDataContentType);
       }
@@ -232,143 +377,111 @@ public class CpfClient {
   }
 
   /**
-   * Create a new cloud job on the CPF server for a business application that
-   * accepts opaque input data. This method can be used for a single request in
-   * the same job. The content of the opaque request data can be specified using
-   * URL to the server to download the data from.
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../opaqueData.html">opaque input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
+   * <p>The content of the opaque data for each request is specified using
+   * a URL to the data on a publicly accessible HTTP server.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("algorithmName", "MD5");
+
+    String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/css/cpf.css";
+
+    String jobId = client.createJobWithOpaqueUrlRequests("Digest",
+      "1.0.0", parameters, "text/plain", "application/json", inputDataUrl);
+    // Download the results of the job
+    client.closeJob(jobId);
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
-   * @param requests The collection of resources for the requests.
-   * @param inputDataContentType The MIME content type used for all the
-   *          requests.
-   * @param resultContentType The MIME content type to return the result data
-   *          using.
+   * @param inputDataUrls The collection of resources for the requests.
+   * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
+   * requests.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
+   * using.
    * @return The cloud job id (URL) of the created job.
    */
-  public String createJobWithOpaqueUrlSingleRequest(
+  public String createJobWithOpaqueUrlRequests(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters, final String inputDataUrl,
-    final String inputDataContentType, final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
-    try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/single/");
-
-      final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
-      addJobParameters(request, jobParameters);
-
-      request.addParameter("inputDataUrl", inputDataUrl);
-      request.addParameter("inputDataContentType", inputDataContentType);
-      request.addParameter("resultDataContentType", resultContentType);
-
-      return httpClient.postResourceRedirect(request);
-    } finally {
-      httpClientPool.releaseClient(httpClient);
-    }
-  }
-
-  public String createJobWithStructuredMultipleRequests(
-    final String businessApplicationName,
-    final String businessApplicationVersion,
-    final Map<String, Object> jobParameters, final int numRequests,
-    final String inputDataType, final Resource inputData,
-    final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
-    try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/multiple/");
-
-      final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
-      addJobParameters(request, jobParameters);
-
-      request.addParameter("inputData", inputData, inputDataType);
-      request.addParameter("inputDataContentType", inputDataType);
-      request.addParameter("numRequests", numRequests);
-      request.addParameter("resultDataContentType", resultContentType);
-      request.addParameter("media", "application/json");
-
-      return httpClient.postResourceRedirect(request);
-    } finally {
-      httpClientPool.releaseClient(httpClient);
-    }
+    final Map<String, ? extends Object> jobParameters,
+    final String inputDataContentType, final String resultContentType,
+    final String... inputDataUrls) {
+    return createJobWithOpaqueUrlRequests(businessApplicationName,
+      businessApplicationVersion, jobParameters, inputDataContentType,
+      resultContentType, Arrays.asList(inputDataUrls));
   }
 
   /**
-   * Submit a new Batch Job request using a Url to specify the location of the
-   * Batch Job Request data.
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../structuredData.html">structured input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
-   * @param businessApplicationName The name of the web services business
-   *          application.
-   * @param businessApplicationVersion The version of the web services business
-   *          application.
-   * @param numRequests The number of business application requests in the batch
-   *          job.
-   * @param inputDataUrl The full URL of the input data file of Batch Job
-   *          Requests.
-   * @param inputDataContentType MIME type of the input batch job request data.
-   * @param resultContentType MIME type of the result data.
-   * @param jobParameters A map of additional parameters specific to the
-   *          requested Business Application associated with the batch job.
-   * @param waitForResponse Set to true to have the method return only when the
-   *          batch job has completed processing, or there is a problem
-   *          processing the request.
-   * @return A MapService of job status field name and value pairs.
-   */
-  public String createJobWithStructuredMultipleRequests(
-    final String businessApplicationName,
-    final String businessApplicationVersion,
-    final Map<String, Object> jobParameters, final int numRequests,
-    final String inputDataUrl, final String inputDataContentType,
-    final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+   * <p>The content of the structured data is specified as a list of requests. Each request is specified
+   * as a map containing the request parameters.</p>
+   * 
+   * <p><b>NOTE: There is a limit of 20MB of data for a multipart/form-data HTTP request. For
+   * jobs with large volumes of data make the data available on a HTTP server use the URL
+   * version of this method instead.</b></p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
+    jobParameters.put("mapGridName", "BCGS 1:20 000");
+    
+    List&lt;Map&lt;String,?extends Object&gt;&gt; requests = new ArrayList&lt;Map&lt;String,?extends Object&gt;&gt;();
+    requests.add(Collections.singletonMap("mapTileId", "92j025"));
+    requests.add(Collections.singletonMap("mapTileId", "92j016"));
+    
+    String jobId = client.createJobWithStructuredMultipleRequestsList(
+      "MapTileByTileId", "1.0.0", jobParameters, requests,"application/json");
     try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/multiple/");
-
-      final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
-      addJobParameters(request, jobParameters);
-
-      request.addParameter("numRequests", numRequests);
-      request.addParameter("inputDataUrl", inputDataUrl);
-      request.addParameter("inputDataContentType", inputDataContentType);
-      request.addParameter("resultContentType", resultContentType);
-
-      request.addParameter("media", "application/json");
-      return httpClient.postResourceRedirect(request);
+      List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
+        jobId, 5000);
+      for (Map&lt;String, Object&gt; result : results) {
+        System.out.println(result);
+      }
     } finally {
-      httpClientPool.releaseClient(httpClient);
+      client.closeJob(jobId);
     }
-  }
-
-  /**
-   * Submit a new Batch Job request, specifying a List of Maps as the source of
-   * the Batch Job Request data.
-   * 
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the web services business
-   *          application.
+   * application.
    * @param businessApplicationVersion The version of the web services business
-   *          application.
+   * application.
    * @param jobParameters A map of additional parameters specific to the
-   *          requested Business Application.
+   * requested Business Application.
    * @param requests A list of data Maps of the requests.
-   * @param resultContentType MIME type of the result data.
-   * @param numRequests The number of business application requests in the batch
-   *          job.
-   * @param waitForResponse Set to true to have the method return only when the
-   *          batch job has completed processing, or there is a problem
-   *          processing the request. * @param waitTimeout The maximum time
-   *          (milliseconds) to wait, after which the status of the incomplete
-   *          job will be returned, -1 for indefinite.
-   * @return A MapService of the job status field name and value pairs.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> of the result data.
+   * @return The cloud job id (URL) of the created job.
    */
-  public String createJobWithStructuredMultipleRequests(
+  public String createJobWithStructuredMultipleRequestsList(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters,
-    final List<Map<String, Object>> requests, final String resultContentType) {
+    final Map<String, ? extends Object> jobParameters,
+    final List<Map<String, ? extends Object>> requests,
+    final String resultContentType) {
     final String inputDataType = "application/json";
     final int numRequests = requests.size();
 
@@ -377,44 +490,85 @@ public class CpfClient {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     final MapWriter mapWriter = factory.getWriter(out);
 
-    for (final Map<String, Object> requestRecord : requests) {
+    for (final Map<String, ? extends Object> requestRecord : requests) {
       mapWriter.write(requestRecord);
     }
     mapWriter.close();
     final Resource inputData = new ByteArrayResource("data.json",
       out.toByteArray());
 
-    return createJobWithStructuredMultipleRequests(businessApplicationName,
-      businessApplicationVersion, jobParameters, numRequests, inputDataType,
-      inputData, resultContentType);
+    return createJobWithStructuredMultipleRequestsResource(
+      businessApplicationName, businessApplicationVersion, jobParameters,
+      numRequests, inputData, inputDataType, resultContentType);
   }
 
   /**
-   * Create a new cloud job on the CPF server for a business application that
-   * accepts structured input data. This method can be used for multiple
-   * requests in the same job. The content of the structured request data can be
-   * specified using a URL to the input data file.
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../structuredData.html">structured input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
+   * <p>The content of the structured in data for each request is specified using
+   * a spring framework <a href="http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/core/io/Resource.html">Resource</a> object.
+   * The resource must be encoded using the <a href="../../fileFormats.html">file format</a> specified by
+   * the inputDataContentType. The resource must contain one record containing the request parameters
+   * for each request to be processed by the business application.</p>
+   * 
+   * <p><b>NOTE: There is a limit of 20MB of data for a multipart/form-data HTTP request. For
+   * jobs with large volumes of data make the data available on a HTTP server use the URL
+   * version of this method instead.</b></p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
+    jobParameters.put("mapGridName", "NTS 1:500 000");
+
+    int numRequests = 48;
+    Resource inputData = new FileSystemResource(
+      "../cpf-war-app/src/main/webapp/docs/sample/NTS-500000-by-name.csv");
+
+    String jobId = client.createJobWithStructuredMultipleRequestsResource(
+      "MapTileByTileId", "1.0.0", jobParameters, numRequests, inputData,
+      "text/csv", "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
+        jobId, 30000);
+      for (Map&lt;String, Object&gt; result : results) {
+        System.out.println(result);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
-   * @param inputDataUrl The URL containing the request input data.
-   * @param inputDataContentType The MIME content type used for all the
-   *          requests.
-   * @param resultContentType The MIME content type to return the result data
-   *          using.
+   * @param numRequests The number of requests in the input data.
+   * @param inputData The resource containing the request input data.
+   * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
+   * requests.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
+   * using.
    * @return The cloud job id (URL) of the created job.
    */
-  public String createJobWithStructuredResourceMultipleRequests(
+  public String createJobWithStructuredMultipleRequestsResource(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters, final int numRequests,
+    final Map<String, ? extends Object> jobParameters, final int numRequests,
     final Resource inputData, final String inputDataContentType,
     final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -430,52 +584,68 @@ public class CpfClient {
     }
   }
 
-  public String createJobWithStructuredSingleRequest(
-    final String businessApplicationName,
-    final String businessApplicationVersion,
-    final Map<String, Object> parameters, final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
-    try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/single/");
-
-      final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
-      addJobParameters(request, parameters);
-
-      request.addParameter("resultDataContentType", resultContentType);
-
-      return httpClient.postResourceRedirect(request);
-    } finally {
-      httpClientPool.releaseClient(httpClient);
-    }
-  }
-
   /**
-   * Create a new cloud job on the CPF server for a business application that
-   * accepts structured input data. This method can be used for multiple
-   * requests in the same job. The content of the structured request data can be
-   * specified using a URL to the input data file.
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../structuredData.html">structured input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
+   * <p>The content of the structured in data for each request is specified using
+   * a URL to the data on a publicly accessible HTTP server.
+   * The data must be encoded using the <a href="../../fileFormats.html">file format</a> specified by
+   * the inputDataContentType. The data must contain one record containing the request parameters
+   * for each request to be processed by the business application.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
+    jobParameters.put("mapGridName", "NTS 1:500 000");
+
+    int numRequests = 48;
+
+    String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/docs/sample/NTS-500000-by-name.csv";
+    String jobId = client.createJobWithStructuredMultipleRequestsUrl(
+      "MapTileByTileId", "1.0.0", jobParameters, numRequests, inputDataUrl,
+      "text/csv", "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
+        jobId, 30000);
+      for (Map&lt;String, Object&gt; result : results) {
+        System.out.println(result);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
+   * @param numRequests The number of requests in the input data.
    * @param inputDataUrl The URL containing the request input data.
-   * @param inputDataContentType The MIME content type used for all the
-   *          requests.
-   * @param resultContentType The MIME content type to return the result data
-   *          using.
+   * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
+   * requests.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
+   * using.
    * @return The cloud job id (URL) of the created job.
    */
-  public String createJobWithStructuredUrlMultipleRequests(
+  public String createJobWithStructuredMultipleRequestsUrl(
     final String businessApplicationName,
     final String businessApplicationVersion,
-    final Map<String, Object> jobParameters, final int numRequests,
+    final Map<String, ? extends Object> jobParameters, final int numRequests,
     final String inputDataUrl, final String inputDataContentType,
     final String resultContentType) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -492,29 +662,164 @@ public class CpfClient {
   }
 
   /**
-   * <p>
-   * Get the list of business application names available to the user on the CPF
-   * server.
-   * </p>
-   * <p>
-   * The following code fragment shows an example of using the API.
-   * </p>
+   * <p>Create a new cloud job on the CPF server for a business application that
+   * accepts <a href="../../structuredData.html">structured input data</a>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    * 
-   * <pre style="border: 1px solid #666666; padding: 2px;">
-   * String baseUrl = &quot;http://apps.gov.bc.ca/pub/cpf/ws&quot;;
-   * String consumerKey = &quot;...&quot;;
-   * String consumerSecret = &quot;...&quot;;
-   * CpfClient client = new CpfClient(baseUrl, consumerKey, consumerSecret);
+   * <p>The job and request parameters for the single request in the job are specified using a
+   * map of parameter values.</p>
    * 
-   * List&lt;String&gt; applicationNames = client.getBusinessApplicationNames();
-   * System.out.println(applicationNames);
-   * </pre>
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "92j025");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
+        jobId, 5000);
+      for (Map&lt;String, Object&gt; result : results) {
+        System.out.println(result);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
+   * @param businessApplicationName The name of the business application.
+   * @param businessApplicationVersion The version of the business application.
+   * @param parameters The job and request parameters.
+   * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data using.
+   * @return The cloud job id (URL) of the created job.
+   */
+  public String createJobWithStructuredSingleRequest(
+    final String businessApplicationName,
+    final String businessApplicationVersion,
+    final Map<String, ? extends Object> parameters,
+    final String resultContentType) {
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
+    try {
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/single/");
+
+      final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
+      addJobParameters(request, parameters);
+
+      request.addParameter("resultDataContentType", resultContentType);
+
+      return httpClient.postResourceRedirect(request);
+    } finally {
+      httpClientPool.releaseClient(httpClient);
+    }
+  }
+  
+  /**
+   * <p>Get the specification of the instant execution service for a business application
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant">Get Business Applications Instant</a> REST API.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; specification = client.getBusinessApplicationInstantSpecification(
+      "MapTileByTileId", "1.0.0");
+    System.out.println(specification);
+   } finally {
+    client.closeConnection();
+  }</pre>
+   *
+   * @param businessApplicationName The name of the business application.
+   * @param businessApplicationVersion The version of the business application.
+   * @return The map containing the business application specification.
+   */
+  public Map<String, Object> getBusinessApplicationInstantSpecification(
+    final String businessApplicationName,
+    final String businessApplicationVersion) {
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
+    try {
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/instant/");
+      final Map<String, Object> result = httpClient.getJsonResource(url);
+      return result;
+    } finally {
+      httpClientPool.releaseClient(httpClient);
+    }
+  }
+
+  /**
+   * <p>Get the specification of the create job with multiple requests service for a business application
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a> REST API.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; specification = client.getBusinessApplicationMultipleSpecification(
+      "MapTileByTileId", "1.0.0");
+    System.out.println(specification);
+   } finally {
+    client.closeConnection();
+  }</pre>
+   *
+   * @param businessApplicationName The name of the business application.
+   * @param businessApplicationVersion The version of the business application.
+   * @return The map containing the business application specification.
+   */
+  public Map<String, Object> getBusinessApplicationMultipleSpecification(
+    final String businessApplicationName,
+    final String businessApplicationVersion) {
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
+    try {
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/multiple/");
+      final Map<String, Object> result = httpClient.getJsonResource(url);
+      return result;
+    } finally {
+      httpClientPool.releaseClient(httpClient);
+    }
+  }
+
+  /**
+   * <p>Get the list of business application names a user has access to
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications">Get Business Applications</a> REST API.</p>
+   *
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    &lt;Resource&gt; businessApplicationNames = client.getBusinessApplicationNames();
+    for (String businessApplicationName : businessApplicationNames) {
+      System.out.println(businessApplicationName);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
    * 
    * @return The list of business application names.
    */
   public List<String> getBusinessApplicationNames() {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
-    final String url = httpClient.getUrl("/apps/");
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
+    final String url = httpClient.getUrl("/ws/apps/");
     try {
       final Map<String, Object> result = httpClient.getJsonResource(url);
       @SuppressWarnings("unchecked")
@@ -536,21 +841,35 @@ public class CpfClient {
   }
 
   /**
-   * Get the specification of the business application. The specification
-   * includes description of the job paramerters, input data type and
-   * parameters, result data type and attributes.
+   * <p>Get the specification of the create job with a single request service for a business application
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a> REST API.</p>
    * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; specification = client.getBusinessApplicationSingleSpecification(
+      "MapTileByTileId", "1.0.0");
+    System.out.println(specification);
+   } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
    * @return The map containing the business application specification.
    */
-  public Map<String, Object> getBusinessApplicationSpecification(
+  public Map<String, Object> getBusinessApplicationSingleSpecification(
     final String businessApplicationName,
     final String businessApplicationVersion) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/" + businessApplicationVersion + "/specification/");
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/" + businessApplicationVersion
+        + "/single/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -559,17 +878,33 @@ public class CpfClient {
   }
 
   /**
-   * Get the list of version numbers supported by the business application.
+   * <p>Get the list of versions for a business application
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources">Get Business Applications Resources</a> REST API.</p>
    * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    &lt;Resource&gt; versions = client.getBusinessApplicationVersions("MapTileByTileId");
+    for (String version : versions) {
+      System.out.println(version);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The business application name.
    * @return The list of version numbers.
    */
   public List<String> getBusinessApplicationVersions(
     final String businessApplicationName) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/apps/" + businessApplicationName
-        + "/");
+      final String url = httpClient.getUrl("/ws/apps/"
+        + businessApplicationName + "/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       @SuppressWarnings("unchecked")
       final List<Map<String, Object>> items = (List<Map<String, Object>>)result.get("resources");
@@ -590,29 +925,89 @@ public class CpfClient {
   }
 
   /**
-   * Get the error records for a job. The results are returned using a
-   * {@link Reader} object that can be used to interate over the list of error
-   * records. Each error record is a map with fields sequenceNumber (to map back
-   * to the nput request), errorCode and errorMessage.
+   * <p>Get the list of error results for a job using the
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   *
+   * <p>Each error record is a map containing the following fields.</p>
+   *
+   * <div class="simpleDataTable">
+   *   <table>
+   *     <thead>
+   *       <tr>
+   *         <th>Field Name</th>
+   *         <th>Description</th>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <th>sequenceNumber</th>
+   *         <td>The sequence number of the request that caused the error.</td>
+   *       </tr>
+   *       <tr>
+   *         <th>errorCode</th>
+   *         <td>The <a href="#ca.bc.gov.open.cpf.client.api.ErrorCode">Error code</a>.</td>
+   *       </tr>
+   *       <tr>
+   *         <th>errorMessage</th>
+   *         <td>A more detailed message describing the error code.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   *
+   * <p><b>NOTE: This method loads all the error results into memory. If a larger number of
+   * errors were generated use the <a href="#ca.bc.gov.open.cpf.client.api.CpfClient.processJobErrorResults(String,long,ca.bc.gov.open.cpf.client.api.Callback)">processJobErrorResults</a>
+   * method.</b></p>
    * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "INVALID");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobErrorResults(
+        jobId, 2000);
+      for (Map&lt;String, Object&gt; error : results) {
+        System.out.println(error);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param jobIdUrl The job id URL.
    * @param maxWait The maximum number of milliseconds to wait for the job to be
-   *          completed.
+   * completed.
    * @return The reader maps containing the result fields.
    */
-  public Reader<Map<String, Object>> getJobErrorResults(final String jobIdUrl,
+  public List<Map<String, Object>> getJobErrorResults(final String jobIdUrl,
     final long maxWait) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       for (final Map<String, Object> resultFile : getJobResultFileList(
         jobIdUrl, maxWait)) {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("errorResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          return httpClient.getMapReader("error", resultUrl);
+          final Reader<Map<String, Object>> reader = httpClient.getMapReader(
+            "error", resultUrl);
+          try {
+            return reader.read();
+          } finally {
+            reader.close();
+          }
         }
       }
-      return new ListReader<Map<String, Object>>();
+      return Collections.emptyList();
     } finally {
       httpClientPool.releaseClient(httpClient);
     }
@@ -620,13 +1015,13 @@ public class CpfClient {
   }
 
   /**
-   * Get the list if job id Urls for a user.
-   * 
+   * Get the list if job id Urls for the path.
+   *
    * @param path The path to get the job id URLs from.
    * @return The list of job id URLs.
    */
   private List<String> getJobIdUrls(final String path) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl(path);
       final Map<String, Object> jobs = httpClient.getJsonResource(url);
@@ -635,7 +1030,7 @@ public class CpfClient {
       final List<String> jobIdUrls = new ArrayList<String>();
       if (resources != null) {
         for (final Map<String, Object> jobResource : resources) {
-          final String jobIdUrl = (String)jobResource.get("resourceUri");
+          final String jobIdUrl = (String)jobResource.get("batchJobUrl");
           if (jobIdUrl != null) {
             jobIdUrls.add(jobIdUrl);
           }
@@ -648,17 +1043,72 @@ public class CpfClient {
   }
 
   /**
-   * Get the list of result files for the job
+   * <p>Get the list of result file descriptions for a job using the
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
    * 
+   * <p>Each result file description contains the following fields.</p>
+   * 
+   * <div class="simpleDataTable">
+   *   <table>
+   *     <thead>
+   *       <tr>
+   *         <th>Field Name</th>
+   *         <th>Description</th>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <th>resourceUri</th>
+   *         <td>The URL the result file can be downloaded from.</td>
+   *       </tr>
+   *       <tr>
+   *         <th>title</th>
+   *         <td>A title of the result file (e.g. Batch Job 913 result 384).</td>
+   *       </tr>
+   *       <tr>
+   *         <th>batchJobResultType</th>
+   *         <td>The type of result file structuredResultData, opaqueResultData, or errorResultData.</td>
+   *       </tr>
+   *       <tr>
+   *         <th>batchJobResultContentType</th>
+   *         <td>The <a href="../../fileFormats.html">media type</a> of the data in the result file.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   *
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "INVALID");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; files = client.getJobResultFileList(jobId, 2000);
+      for (Map&lt;String, Object&gt; file : files) {
+        System.out.println(file);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param jobIdUrl The job id URL.
-   * @param maxWait The maximum number of milleseconds to wait for the job to be
-   *          completed.
-   * @return Ths list of maps that describe each of the result files.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be
+   * completed.
+   * @return The list of maps that describe each of the result files.
    */
   @SuppressWarnings("unchecked")
   public List<Map<String, Object>> getJobResultFileList(final String jobIdUrl,
     final long maxWait) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       if (isJobCompleted(jobIdUrl, maxWait)) {
         final String resultsUrl = jobIdUrl + "results/";
@@ -673,59 +1123,36 @@ public class CpfClient {
   }
 
   /**
-   * Get the status of the job including the URL to the results file list if it
-   * has been defined.
+   * <p>Get the <a href="../../jobStatus.html">cloud job status</a> using the
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
    * 
-   * <pre>
-   * The following status fields are returned with the job
-   * status: 
+   * <p>The following code fragment shows an example of using the API.</p>
    * 
-   * &lt;b&gt;id&lt;/b&gt;            - The id of this job, in the form of URL to the job. 
-   * &lt;b&gt;userId&lt;/b&gt;        - The oAuth Consumer Key of the user who submitted 
-   *                 the job.
-   * &lt;b&gt;businessApplicationName&lt;/b&gt; - the business application name associated 
-   *                 with this job. 
-   * &lt;b&gt;businessApplicationVersion&lt;/b&gt; - the version of the business application 
-   *                 associated with this job.
-   * &lt;b&gt;jobStatus&lt;/b&gt;     - The current processing status of this job.  A 
-   *                 completed job will have a status of &quot;resultsCreated&quot;, while
-   *                 a job that has yet to be queued for processing will have a 
-   *                 status of &quot;submitted&quot;.
-   * &lt;b&gt;millisecondsUntilNextCheck&lt;/b&gt; - The number of remaining milliseconds 
-   *                 estimated by the web services to complete processing of 
-   *                 this job. 0 if the job processing has completed. 
-   * &lt;b&gt;numSubmittedRequests&lt;/b&gt; - Initially this will be set to the value
-   *                 passed in with the job.  Once the input request data has 
-   *                 been validated, it will be updated to the actual number of
-   *                 requests in the Batch Job. 
-   * &lt;b&gt;numCompletedRequests&lt;/b&gt; - The current number of Batch Job Requests 
-   *                 successfully processed and returned by the Business 
-   *                 Application.
-   * &lt;b&gt;numFailedRequests&lt;/b&gt; - The current number of Batch Job Requests that 
-   *                 have failed processing by the Business Application.  If 
-   *                 any input request data fails validation, then the batch job
-   *                 is not processed at all by the Business Application, and
-   *                 the number of failed requests will be set to the number of
-   *                 submitted requests.
-   * &lt;b&gt;resultDataContentType&lt;/b&gt; - The desired MIME type of the generated
-   *                 result data files.  Supported MIME types include: text/csv,
-   *                 application/json, application/xhtml+xml, text/xml, 
-   *                 application/vnd.google-earth.kml+xml, 
-   *                 application/vnd.sun.wadl+xml and text/uri-list.  Each
-   *                 Business Application will specify which of these MIME types
-   *                 are supported.
-   * &lt;b&gt;resultsUrl&lt;/b&gt;    - If the job has completed successfully, and result data
-   *                 files have been generated, then this URL will list the URL
-   *                 and details of each result file associated with this job.
-   *                 This field will not be present if the job processing has
-   *                 not completed.
-   * </pre>
-   * 
-   * @param jobUrl WS URL of the Batch Job.
-   * @return jobStatusMap A map of the job status field name and value pairs.
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "INVALID");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      Map&lt;String, Object&gt; status = client.getJobStatus(jobId);
+      System.out.println(status);
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
+   * @param jobUrl WS URL of the Cloud Job.
+   * @return A map containing the <a href="../../jobStatus.html">cloud job status</a>.
    */
   public Map<String, Object> getJobStatus(final String jobUrl) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final Map<String, Object> jobStatusMap = httpClient.getJsonResource(jobUrl);
       return jobStatusMap;
@@ -734,16 +1161,86 @@ public class CpfClient {
     }
   }
 
-  public Reader<Map<String, Object>> getJobStructuredResults(
+  /**
+   * <p>Get the list of structured data results for a job using the
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   *
+   *
+   * <p>Each structured data record is a map containing the following fields.</p>
+   *
+   * <div class="simpleDataTable">
+   *   <table>
+   *     <thead>
+   *       <tr>
+   *         <th>Field Name</th>
+   *         <th>Description</th>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <th>sequenceNumber</th>
+   *         <td>The sequence number of the request that caused the error.</td>
+   *       </tr>
+   *       <tr>
+   *         <th>resultNumber</th>
+   *         <td>If the business application returned multiple results for a single request there
+   *         will be one record per result with an incrementing result number.</td>
+   *       </tr>
+   *       <tr>
+   *         <th><i>resultFieldName</i></th>
+   *         <td>One field for each of the business application specific result fields.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * <p><b>NOTE: This method loads all the structured data results into memory. If a larger number of
+   * results were generated use the <a href="#ca.bc.gov.open.cpf.client.api.CpfClient.processJobStructuredResults(String,long,ca.bc.gov.open.cpf.client.api.Callback)">processJobErrorResults</a>
+   * method.</b></p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "92j025");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(jobId, 2000);
+      for (Map&lt;String, Object&gt; result : results) {
+        System.out.println(result);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
+   * @param jobIdUrl The cloud job id (URL) of the job.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
+   * @return The list of results.
+   */
+  public List<Map<String, Object>> getJobStructuredResults(
     final String jobIdUrl, final long maxWait) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       for (final Map<String, Object> resultFile : getJobResultFileList(
         jobIdUrl, maxWait)) {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("structuredResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          return httpClient.getMapReader(resultUrl);
+          final Reader<Map<String, Object>> reader = httpClient.getMapReader(resultUrl);
+          try {
+            return reader.read();
+          } finally {
+            reader.close();
+          }
         }
       }
       throw new IllegalStateException("Cannot find structured result file for "
@@ -755,32 +1252,115 @@ public class CpfClient {
   }
 
   /**
-   * Get the list of all job id URLs the user created.
+   * <p>Get the job id URLs for all the user's jobs using the
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobs">Get Users Jobs</a> REST API.</p>
    * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "INVALID");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      &lt;Resource&gt; jobIds = client.getUserJobIdUrls();
+      for (String jobIdUrl : jobIds) {
+        System.out.println(jobIdUrl);
+      }
+      if (!jobIds.contains(jobId)) {
+        System.err.println("Missing job " + jobId);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @return The list of job id URLs.
    */
   public List<String> getUserJobIdUrls() {
-    final String path = "/users/" + consumerKey + "/jobs/";
+    final String path = "/ws/users/" + consumerKey + "/jobs/";
     return getJobIdUrls(path);
   }
 
   /**
-   * Get the list of all job id URLs the user created for the business
-   * application.
+   * <p>Get the job id URLs to the user's jobs for a business application using the
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsJobs">Get Business Applications Users Jobs</a> REST API.</p>
+   * Get the list of all job id URLs the user created.
    * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "INVALID");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      &lt;Resource&gt; jobIds = client.getUserJobIdUrls("MapTileByTileId");
+      for (String jobIdUrl : jobIds) {
+        System.out.println(jobIdUrl);
+      }
+      if (!jobIds.contains(jobId)) {
+        System.err.println("Missing job " + jobId);
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param businessApplicationName The name of the business application.
    * @return The list of job id URLs.
    */
   public List<String> getUserJobIdUrls(final String businessApplicationName) {
-    final String path = "/users/" + consumerKey + "/apps/"
+    final String path = "/ws/users/" + consumerKey + "/apps/"
       + businessApplicationName + "/jobs/";
     return getJobIdUrls(path);
   }
 
   /**
-   * Check to see if the job has been completed. If the job has not been
-   * completed within the maxWait number of milliseconds false will be returned.
+   * <p>Check the <a href="../../jobStatus.html">cloud job</a> status to see if it has been completed using the
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
    * 
+   * <p>If the job has not been completed within the maxWait number of milliseconds false will be
+   * returned.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "INVALID");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      boolean completed = client.isJobCompleted(jobId, 2000);
+      if (completed) {
+        System.out.println("Job Completed");
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param jobIdUrl The job id URL.
    * @param maxWait The maximum number of milliseconds to wait.
    * @return True if the job was completed, false otherwise.
@@ -796,7 +1376,10 @@ public class CpfClient {
         if ("resultsCreated".equals(jobStatus)) {
           return true;
         }
-        long sleepTime = ((Number)jobStatusMap.get("secondsToWaitForStatusCheck")).intValue();
+        long sleepTime = ((Number)jobStatusMap.get("secondsToWaitForStatusCheck")).intValue() * 1000L;
+        if (sleepTime == 0) {
+          sleepTime = 1000;
+        }
         sleepTime = Math.min(sleepTime, maxEnd - System.currentTimeMillis());
         if (sleepTime > 0) {
           synchronized (this) {
@@ -816,17 +1399,215 @@ public class CpfClient {
   }
 
   /**
-   * Download the result file for the job and process the returned input stream
-   * using the result processor. This method ensures that the input stream is
-   * closed correctly after being processed.
+   * <p>Process the list of error results for a job using the
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   *
+   * <p>Each error record is a map containing the following fields.</p>
+   *
+   * <div class="simpleDataTable">
+   *   <table>
+   *     <thead>
+   *       <tr>
+   *         <th>Field Name</th>
+   *         <th>Description</th>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <th>sequenceNumber</th>
+   *         <td>The sequence number of the request that caused the error.</td>
+   *       </tr>
+   *       <tr>
+   *         <th>errorCode</th>
+   *         <td>The <a href="#ca.bc.gov.open.cpf.client.api.ErrorCode">Error code</a>.</td>
+   *       </tr>
+   *       <tr>
+   *         <th>errorMessage</th>
+   *         <td>A more detailed message describing the error code.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   *
+   * <p>The callback method will be invoked for each record in the error file.</p>
    * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "INVALID");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      int numErrors = client.processJobErrorResults(jobId, 10000,
+        new Callback&lt;Map&lt;String, Object&gt;&gt;() {
+          public void process(Map&lt;String, Object&gt; error) {
+            System.out.println(error);
+          }
+        });
+      System.out.println(numErrors);
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
+   * @param jobIdUrl The cloud job id (URL) of the job.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
+   * @param callback The call back in the client application that will be called for each error record.
+   * @return The number of error results processed.
+   */
+  public int processJobErrorResults(final String jobIdUrl, final long maxWait,
+    final Callback<Map<String, Object>> callback) {
+    int i = 0;
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
+    try {
+      for (final Map<String, Object> resultFile : getJobResultFileList(
+        jobIdUrl, maxWait)) {
+        final String resultType = (String)resultFile.get("batchJobResultType");
+        if ("errorResultData".equals(resultType)) {
+          final String resultUrl = (String)resultFile.get("resourceUri");
+          final Reader<Map<String, Object>> reader = httpClient.getMapReader(resultUrl);
+          try {
+            for (final Map<String, Object> object : reader) {
+              callback.process(object);
+              i++;
+            }
+          } finally {
+            reader.close();
+          }
+        }
+        return i;
+      }
+      throw new IllegalStateException("Cannot find error result file for "
+        + jobIdUrl);
+    } finally {
+      httpClientPool.releaseClient(httpClient);
+    }
+  }
+
+  /**
+   * <p>Process the list of structured data results for a job using the
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   *
+   * <p>Each structured record is a map with the fields sequenceNumber (to map back
+   * to the input request), resultNumber (if multiple results were returned for a single request
+   * and the business application specific result fields.</p>
+   *
+   * <p>The callback method will be invoked for each record in the structured result data file.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "92j025");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      int numResults = client.processJobStructuredResults(jobId, 10000,
+        new Callback&lt;Map&lt;String, Object&gt;&gt;() {
+          public void process(Map&lt;String, Object&gt; result) {
+            System.out.println(result);
+          }
+        });
+      System.out.println(numResults);
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
+   * @param jobIdUrl The cloud job id (URL) of the job.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
+   * @param callback The call back in the client application that will be called for each result record.
+   * @return The number of results processed.
+   */
+  public int processJobStructuredResults(final String jobIdUrl,
+    final long maxWait, final Callback<Map<String, Object>> callback) {
+    int i = 0;
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
+    try {
+      for (final Map<String, Object> resultFile : getJobResultFileList(
+        jobIdUrl, maxWait)) {
+        final String resultType = (String)resultFile.get("batchJobResultType");
+        if ("structuredResultData".equals(resultType)) {
+          final String resultUrl = (String)resultFile.get("resourceUri");
+          final Reader<Map<String, Object>> reader = httpClient.getMapReader(resultUrl);
+          try {
+            for (final Map<String, Object> object : reader) {
+              callback.process(object);
+              i++;
+            }
+          } finally {
+            reader.close();
+          }
+        }
+        return i;
+      }
+      throw new IllegalStateException("Cannot find structured result file for "
+        + jobIdUrl);
+    } finally {
+      httpClientPool.releaseClient(httpClient);
+    }
+  }
+
+  /**
+   * <p>Process the result file for a job using the
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   *
+   * <p>The callback method will be invoked with the input stream to the file. This method ensures
+   * that the input stream is closed correctly after being processed.</p>
+   * 
+   * <p>The following code fragment shows an example of using the API.</p>
+   * 
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
+  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+  try {
+    Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
+    parameters.put("mapGridName", "BCGS 1:20 000");
+    parameters.put("mapTileId", "92j016");
+    String jobId = client.createJobWithStructuredSingleRequest(
+      "MapTileByTileId", "1.0.0", parameters, "application/json");
+    try {
+      List&lt;Map&lt;String, Object&gt;&gt; files = client.getJobResultFileList(
+        jobId, 5000);
+      for (Map&lt;String, Object&gt; file : files) {
+       String jobResultUrl = (String)file.get("resourceUri");
+      client.processResultFile(jobResultUrl , new Callback&lt;InputStream&gt;() {
+        public void process(InputStream in) {
+          // Read file from input stream
+        }
+      });
+      }
+    } finally {
+      client.closeJob(jobId);
+    }
+  } finally {
+    client.closeConnection();
+  }</pre>
+   *
    * @param jobResultUrl The URL to the job result file.
    * @param resultProcessor The processor to process the input stream returned
-   *          from the web service.
+   * from the web service.
    */
   public void processResultFile(final String jobResultUrl,
-    final ObjectProcessor<InputStream> resultProcessor) {
-    OAuthHttpClient httpClient = httpClientPool.getClient();
+    final Callback<InputStream> resultProcessor) {
+    final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final HttpResponse response = httpClient.getResource(jobResultUrl);
       final HttpEntity entity = response.getEntity();

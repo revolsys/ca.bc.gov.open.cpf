@@ -51,23 +51,44 @@
 
   <util:map id="mediaTypes">
     <entry
+      key="csv"
+      value="text/csv" />
+    <entry
+      key="geojson"
+      value="application/x-geo+json" />
+    <entry
+      key="gml"
+      value="application/gml+xml" />
+    <entry
+      key="kml"
+      value="application/vnd.google-earth.kml+xml" />
+    <entry
+      key="dbf"
+      value="application/dbf" />
+    <entry
       key="html"
       value="text/html" />
     <entry
-      key="xhtml"
-      value="application/xhtml+xml" />
+      key="json"
+      value="application/json" />
     <entry
-      key="wadl"
-      value="application/vnd.sun.wadl+xml" />
+      key="shp"
+      value="application/x-shp" />
+    <entry
+      key="shpz"
+      value="application/x-shp+zip" />
     <entry
       key="uri-list"
       value="text/uri-list" />
     <entry
+      key="wadl"
+      value="application/vnd.sun.wadl+xml" />
+    <entry
+      key="xhtml"
+      value="application/xhtml+xml" />
+    <entry
       key="xml"
       value="text/xml" />
-    <entry
-      key="json"
-      value="application/json" />
   </util:map>
 
   <bean
@@ -100,8 +121,7 @@
 
   <bean
     id="cpfClientService"
-    class="ca.bc.gov.open.cpf.api.web.rest.ClientWebService"
-    p:batchJobService-ref="batchJobService" />
+    class="ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework" />
 
   <bean
     id="cpfInternal"

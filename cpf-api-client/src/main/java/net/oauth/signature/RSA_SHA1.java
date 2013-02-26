@@ -67,6 +67,7 @@ import net.oauth.signature.pem.PKCS1EncodedKeySpec;
  * 
  * @author Dirk Balfanz
  */
+@SuppressWarnings("javadoc")
 public class RSA_SHA1 extends OAuthSignatureMethod {
 
   final static public String PRIVATE_KEY = "RSA-SHA1.PrivateKey";

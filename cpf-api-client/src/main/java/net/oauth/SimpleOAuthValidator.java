@@ -53,6 +53,7 @@ import net.oauth.signature.OAuthSignatureMethod;
  * @author Dirk Balfanz
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public class SimpleOAuthValidator implements OAuthValidator {
 
   /**

@@ -44,6 +44,7 @@ import net.oauth.signature.OAuthSignatureMethod;
  * 
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public class OAuthMessage {
 
   public String method;

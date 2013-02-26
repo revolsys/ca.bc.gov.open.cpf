@@ -56,6 +56,7 @@ import com.revolsys.spring.InputStreamResource;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 
+@SuppressWarnings("javadoc")
 public class OAuthHttpClient extends DefaultHttpClient {
   private static final Logger LOG = LoggerFactory.getLogger(OAuthHttpClient.class);
 

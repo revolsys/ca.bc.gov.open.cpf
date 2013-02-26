@@ -30,7 +30,7 @@
 
   <bean
     id="businessApplicationRegistry"
-    class="ca.bc.gov.open.cpf.plugin.api.BusinessApplicationRegistry"
+    class="ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry"
     p:configPropertyLoader-ref="configPropertyLoader"
   >
     <property name="moduleLoaders">

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Authentication - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      rel="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../ws/" title="Home">Home</a></li>
+                    <li><a href="client/">Client API</a><ul>
+                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="plugin/">Plug-in API</a><ul>
+                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+                    <li>Authentication</li>
+                    <!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+<h1>Authentication</h1>
+<p>The CPF web services can support multiple different types of authentication. Each type of 
+authentication has a different root URL for the web services.</p>
+
+<h2>2 legged O-OAuth</h2>
+<p>By default the CPF uses the <a href="http://oauth.net/core/1.0a/">2-legged OAuth 1.0</a>
+authentication scheme. In this scheme each client application is given a consumer key (username) and 
+consumer secret (signing key). The client application signs each request using the OAuth protocol.
+The server repeats the signing process and compares the results and the timestamp & N-Once to verify
+that the request has not already been processed.</p>
+
+<p>The OAuth authentication scheme is designed to be used by client applications written
+in programming languages such as Java or .Net. A <a href="client/java-api">Java Client</a> is 
+provided that implements the OAuth authentication schemes. Other programming languages will need to
+find or develop their own OAuth API. Applications can request consumer key and secret for use in 
+their application. A different consumer key and secret will be provided for each environment so the 
+application must use configuration parameters for them when deploying an application.<p>
+
+<p><b>NOTE:</b> The consumer secret must be kept secure within the application and not exposed to
+the users of the application. The signing of requests should therefore be done on the server rather
+than in JavaScript running on the client side in a web browser. The client application takes full
+responsibility for any access to CPF using their consumer key and consumer secret.</p> 
+
+<p>The following root URLs can be used in a Java or other programming language client or server side
+application to access the CPF web services.</p>
+
+<p>Production <a href="https://apps.gov.bc.ca/pub/cpf">https://apps.gov.bc.ca/pub/cpf</a></p>
+<p>Test <a href="https://test.apps.gov.bc.ca/pub/cpf">https://test.apps.gov.bc.ca/pub/cpf</a></p>
+<p>Delivery <a href="https://delivery.apps.gov.bc.ca/pub/cpf">https://delivery.apps.gov.bc.ca/pub/cpf</a></p>
+
+<p><b>NOTE:</b> If using a server outside the BC Government (e.g. log development instance or cloud
+deployment) replace the https://apps/gov.bc.ca/pub/cpf with the location the CPF web application
+was deployed to (e.g. http://localhost/cpf).</p>
+
+<h2>BC Government Common Login Page (Siteminder)</h2>
+<p>The deployment within the BC Government also includes a Siteminder secured version of the CPF web 
+services that allows an end user to login using the BC Government common login page with an internal
+IDIR or external <a href="https://www.bceid.ca">BCEID</a> account in a web browser. This can also be 
+used with the <a href="client/javascript-api">Client JavaScript API</a>, which will require the user 
+to manually authenticate using the common login page in a pop-up window. The CPF will use the
+end-user's IDIR or BCEID account for authorizing access to the CPF business applications.</p>
+
+<p><b>NOTE:</b> The end user must manually enter their username and password in the common login
+page the client applications themselves must NOT prompt or store the username or password.</p>
+
+<p>The following root URLs can be used in a web browser to access the BC Government common login
+page secured CPF web services. </p>
+
+<p>Production <a href="https://apps.gov.bc.ca/pub/cpf/secure">https://apps.gov.bc.ca/pub/cpf/secure</a></p>
+<p>Test <a href="https://test.apps.gov.bc.ca/pub/cpf/secure">https://test.apps.gov.bc.ca/pub/cpf/secure</a></p>
+<p>Delivery <a href="https://delivery.apps.gov.bc.ca/pub/cpf/secure">https://delivery.apps.gov.bc.ca/pub/cpf/secure</a></p>
+
+<!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

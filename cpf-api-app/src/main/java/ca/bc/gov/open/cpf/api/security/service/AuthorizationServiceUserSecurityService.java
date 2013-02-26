@@ -2,8 +2,8 @@ package ca.bc.gov.open.cpf.api.security.service;
 
 import java.util.Map;
 
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
-import ca.bc.gov.open.cpf.plugin.api.security.AbstractCachingSecurityService;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.security.AbstractCachingSecurityService;
 
 public class AuthorizationServiceUserSecurityService extends
   AbstractCachingSecurityService {

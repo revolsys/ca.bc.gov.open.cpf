@@ -3,27 +3,33 @@
 <html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Cloud Processing Framework - Developer Guide</title>
+<title>Developer Guide - CPF</title>
 <!-- InstanceEndEditable -->
-    
+
     <link
-      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
-      REL="stylesheet" type="text/css" />
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
-      REL="stylesheet" type="text/css" />
+      rel="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
-    <link href="../css/cpfk.css" rel="stylesheet" type="text/css" />
-     
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
   
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
     <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
 
 <!-- InstanceBeginEditable name="head" -->
     <style type="text/css">
@@ -33,7 +39,6 @@ td > ul {
     </style>
 <!-- InstanceEndEditable -->
   </head>
-
   <body>
     <div class="body">
       <div class="header">
@@ -51,7 +56,7 @@ td > ul {
                 <div class="sideMenu">
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
-                    <li><a href="../" title="Home">Home</a></li>
+                    <li><a href="../ws/" title="Home">Home</a></li>
                     <li><a href="client/">Client API</a><ul>
                       <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
                       <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
@@ -67,11 +72,10 @@ td > ul {
             <div class="column_2_2">
               <div class="bodyContainer">
                 <div class="breadcrumbs">
-                  
                     <div class="breadcrumb">
 <ul>
-<li><a href="../">HOME</a></li>
-<li><a href="../">Developer Guide</a></li>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
 <!-- InstanceEndEditable -->
 </ul>
@@ -80,55 +84,19 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-    <div>
-      <div>
-        <h1>Cloud Processing Framework - Developer Guide</h1>
+<h1>Cloud Processing Framework - Developer Guide</h1>
 
-        <h2>Cloud Processing Framework Overview</h2>
-    
-        <h2>Accessing the Cloud Processing Framework</h2>
-        <p>Cloud Processing Framework is a REST web service enabled application. The web service
-        can be used by end users using a web browser. In this mode the service
-        returns styled HTML pages that can be used without any programming.
-        The web service can also be accessed using a programming language using
-        the <a href="client/rest-api/">REST Web Service API</a>. Client API's that use
-        the <a href="client/rest-api/">REST Web Service API</a> are provided for the
-        <a href="java-api/">Java</a> and <a href="javascript-api/">JavaScript</a>
-        programming languages. Other programming languages can also access the
-        <a href="client/rest-api/">REST Web Service API</a> using custom code.<p>
-         
-        <h2>Client API Documentation and Download</h2>
-        <p>Use the links in the following table to view the Client API documentation or download the API libraries.</p>
-        <div class="simpleDataTable">
-          <table style="width: auto; margin-left:0px">
-            <thead>
-              <tr>
-                <th>API</th>
-                <th>Documentation</th>
-                <th>Download</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Client REST Web Service API</td>
-                <td><a href="client/rest-api/">API Docs</a></td>
-                <td>n/a</td>
-              </tr>
-              <tr>
-                <td>Client Java (6+)</td>
-                <td><a href="client/java-api/">API Docs</a></td>
-                <td><a href="../lib/cpf-api-client-${project.version}.jar">Download</a></td>
-              </tr>
-              <tr>
-                <td>Client JavaScript</td>
-                <td><a href="client/javascript-api/">API Docs</a></td>
-                <td><a href="../js/cpf_client.js">Download</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+<h2>Cloud Processing Framework Overview</h2>
+<p>The Cloud Processing Framework (CPF) Client APIs allows web applications to be developed using JavaScript, Java or another programming language to submit batch jobs to the CPF and to download the results of those jobs.</p>
+<p>The CPF is a framework for building, deploying and running request/response style web services (business applications).</p>
+<p>A business application accepts input parameters, performs some processing using those parameters and then returns the result of the processing.</p>
+<p>For example:</p>
+<ul>
+  <li>A web map image business application accepts the bounding box, map layers, image size and projection for a map image, it then creates a map image using those parameters and returns the image to the user.</li>
+  <li>A geo-coder business application accepts and address and city as parameters, searches the database for the address matches and returns the full address and the point location.</li>
+</ul>
+<p>The CPF extends the web service paradigm by adding support for asynchronous processing of a request to a business application and batching of multiple business application requests into a job for asynchronous processing. The asynchronous processing solves the issue of network timeouts/disconnects when waiting for a response for a request. The multiple requests in a single job solves several issues. For the user they only need to submit one request containing all the request parameters rather than thousands or millions of individual requests, this also reduces processing requirements on the clients. For the server/administrator it allows better control over access to the resource as the CPF can distribute the work across multiple worker servers and limit the number of concurrent requests.</p>
+<p>The asynchronous processing allows a user to submit the requests for a job with a single web service API call and disconnect from the CPF server. At a later time the user can check the status of the status of the job and if it is completed download the result of all the requests in the job.</p>
 <!-- InstanceEndEditable -->
                 </div>
               </div>

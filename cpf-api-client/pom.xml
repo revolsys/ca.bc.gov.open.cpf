@@ -78,7 +78,7 @@
               <useStandardDocletOptions>false</useStandardDocletOptions>
               <additionalparam>
                 -d ${project.build.directory}/site/java-api
-                -doctitle "Client Java API"
+                -doctitle "CPF Client Java API"
                 -htmlheader
                 ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateHeader.html
                 -htmlfooter
@@ -96,15 +96,29 @@
         <executions>
           <execution>
             <id>copy-resources</id>
-            <phase>validate</phase>
+            <phase>install</phase>
             <goals>
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/javascript-api</outputDirectory>
+              <outputDirectory>${basedir}/target/</outputDirectory>
               <resources>
+                <!--  copy javascript and css files from the java API -->
                 <resource>
-                  <directory>src/main/javascriptdoc/resources</directory>
+                  <targetPath>javascript-api</targetPath>
+                  <directory>target/site/java-api/</directory>
+                  <includes>
+                    <include>**/*.css</include>
+                    <include>**/*.js</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>../cpf-war-app/src/main/webapp/Templates/</directory>
+                  <targetPath>template</targetPath>
+                  <includes>
+                    <include>docTemplateHeader.html</include>
+                    <include>docTemplateFooter.html</include>
+                  </includes>
                   <filtering>true</filtering>
                 </resource>
               </resources>
@@ -179,4 +193,8 @@
       </exclusions>
     </dependency>
   </dependencies>
+  
+  <properties>
+   <docTitle>CPF Client JavaScript API</docTitle>
+  </properties>
 </project>

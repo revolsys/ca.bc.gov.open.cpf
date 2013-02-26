@@ -38,6 +38,7 @@ import net.oauth.OAuthMessage;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
+@SuppressWarnings("javadoc")
 public class OAuthUrlUtil {
 
   public static String addAuthenticationToUrl(

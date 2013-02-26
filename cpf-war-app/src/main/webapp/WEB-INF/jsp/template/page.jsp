@@ -5,7 +5,7 @@
 <html xml:lang="en">
 <head>
 <title><c:out value="${title}" /></title>
-<meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10">
+<meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10" />
 <c:forEach var="cssUrl" items="${cssUrls}">
   <link href="<c:url value="${cssUrl}" />" rel="stylesheet" type="text/css" />
 </c:forEach>

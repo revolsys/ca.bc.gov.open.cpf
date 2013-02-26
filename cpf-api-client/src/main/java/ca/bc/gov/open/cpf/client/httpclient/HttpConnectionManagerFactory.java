@@ -6,6 +6,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
 
+@SuppressWarnings("javadoc")
 public class HttpConnectionManagerFactory implements
   ClientConnectionManagerFactory {
 

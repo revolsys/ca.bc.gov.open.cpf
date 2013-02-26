@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.gis.data.io.DataObjectStore;
 import com.revolsys.gis.data.model.DataObject;

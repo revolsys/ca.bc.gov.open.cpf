@@ -18,6 +18,7 @@ package net.oauth;
 /**
  * An exception thrown by the OAuth library.
  */
+@SuppressWarnings("javadoc")
 public class OAuthException extends Exception {
 
   private static final long serialVersionUID = 1L;

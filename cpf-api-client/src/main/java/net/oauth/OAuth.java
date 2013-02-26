@@ -34,6 +34,7 @@ import java.util.Map.Entry;
  * 
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public class OAuth {
 
   /** A name/value pair. */
@@ -43,7 +44,7 @@ public class OAuth {
 
     private String value;
 
-    public Parameter(final String key, final String value) {
+   public Parameter(final String key, final String value) {
       this.key = key;
       this.value = value;
     }

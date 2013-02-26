@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Batch Job Processing - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      rel="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+    <style type="text/css">
+td > ul {
+  margin: 0px;
+}
+    </style>
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../ws/" title="Home">Home</a></li>
+                    <li><a href="client/">Client API</a><ul>
+                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="plugin/">Plug-in API</a><ul>
+                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+<li>Batch Job Processing</li>
+<!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+    <div>
+      <div>
+<h1>Batch Job Processing</h1>
+
+<p>A Job in the CPF is a collection of requests to be processed by a business application on behalf
+of a user. The CPF uses the business application to process each request in the job to create the 
+results. When all requests in a job have been completed the user can download the results.</p>
+
+<p>The following diagram shows all the steps required to process a job using the CPF. Boxes in blue
+are client specific tasks and those in green are CPF web service API calls.</p>
+
+<div class="diagram"><img src="images/jobProcessing.png" /></div>
+ 
+<p>Follow these instructions to see a demo of submitting a job to the CPF. You will need a  
+BC Government external <a href="https://www.bceid.ca">BCeID</a> or internal IDIR account to use the demo.</p>
+
+<ol>
+<li>Create the mapGrid.txt job request file on your local drive with the following contents.
+<pre>"mapGridName","numBoundaryPoints","mapTileId"
+"NTS 1:250 000",10,"92j"
+"BCGS 1:20 000",10,"92j016"
+"BCGS 1:20 000",,"92j025"</pre></li>
+<li>Using a web browser go to
+<a href="https://apps.gov.bc.ca/pub/cpf/secure/ws/apps/MapTileByTileId/1.0.0/multiple/">https://apps.gov.bc.ca/pub/cpf/secure/ws/apps/MapTileByTileId/1.0.0/multiple/</a>.</li>
+<li>Enter the values for the following parameters.
+<table>
+<tbody>
+<tr><th>Num Requests</th><td>3
+<tr><th>Input Data Content Type</th><td>text/csv</td></tr>
+<tr><th>Input Data</th><td>mapGrid.txt (select the file created in step #1)</td></tr>
+<tr><th>Result Data Content Type</th><td>text/html (Try the others as well as a later exercise)</td></tr>
+<tr><th>Map Grid Name</th><td>BCGS 1:20 000</td></tr>
+<tr><th>Num Boundary Points</th><td>5</td></tr>
+</tbody></table></li>
+<li>Click Submit, this is the submit job step.</li>
+<li>After a few seconds the job status HTML page will be displayed. The Id is the URL to this page,
+which can be saved and used later to check the status of the job.</li>
+<li>If the status page does not have a Results Url entry in the table refresh the page until it 
+appears. This is the Check Job Status step.</li>
+<li>Click on the Results Url link to view the list of result files, this is the list result files 
+step.</li>
+<li>If there were no errors there should be a single link on the result files page. Click this link 
+to download/view the results, this is the download result files step. The format of the result file 
+is the value entered in the Result Data Content Type on the job submission page. If there was an 
+error file it will always be returned as a CSV file.</li>
+</ol>
+
+<p>In the above example the business application returned structured data records as the result of 
+each request. The CPF merged these result records into a single file for download. Some business 
+applications will return a binary file for each request (e.g. JPG, PNG, PDF). In this case there 
+will be one file link on the results page for the result for each request in the job. The order of 
+the result file links will be the same as the order of the requests in the input file.</p>
+      </div>
+    </div>
+<!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

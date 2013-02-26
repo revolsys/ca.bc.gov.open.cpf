@@ -13,9 +13,9 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;

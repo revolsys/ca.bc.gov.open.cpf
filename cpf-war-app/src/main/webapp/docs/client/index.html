@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Client Developer Guide - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      rel="stylesheet" type="text/css" />
+    <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../../js/prettify.js"></script>
+    <script type="text/javascript" src="../../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+    <style type="text/css">
+td > ul {
+  margin: 0px;
+}
+    </style>
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../../ws/" title="Home">Home</a></li>
+                    <li><a href="../client/">Client API</a><ul>
+                      <li><a href="rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="../plugin/">Plug-in API</a><ul>
+                      <li><a href="../plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../../ws/">HOME</a></li>
+<li><a href="../../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+<li>Client API</li>
+<!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+    <div>
+      <div>
+        <h1>Client Developer Guide</h1>
+        <h2>Client Overview</h2>
+        <p>The Cloud Processing Framework (CPF) provides a REST web service API that can be used to develop client applications in JavaScript, Java or another programming language to submit batch jobs to the CPF and to download the results of those batch jobs. The API can also
+        be accessed directly in a web browser.</p>
+
+       <h2>Accessing the Cloud Processing Framework</h2>
+        <p>Cloud Processing Framework is a REST web service enabled application. The web service
+        can be used by end users using a web browser. In this mode the service
+        returns styled HTML pages that can be used without any programming.
+        The web service can also be accessed using a programming language using
+        the <a href="rest-api/">REST Web Service API</a>. Client API's that use
+        the <a href="rest-api/">REST Web Service API</a> are provided for the
+        <a href="java-api/">Java</a> and <a href="javascript-api/">JavaScript</a>
+        programming languages. Other programming languages can also access the
+        <a href="rest-api/">REST Web Service API</a> using custom code.<p>
+         <h3>Security</h3>
+         <p>Access to the REST web service API is limited to authorized users.</p>
+        <h2>API Documentation and Download</h2>
+        <p>Use the links in the following table to view the Client API documentation or download the API libraries.</p>
+        <div class="simpleDataTable">
+          <table style="width: auto; margin-left:0px">
+            <thead>
+              <tr>
+                <th>API</th>
+                <th>Documentation</th>
+                <th>Download</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Client REST Web Service API</td>
+                <td><a href="rest-api/">API Docs</a></td>
+                <td>n/a</td>
+              </tr>
+              <tr>
+                <td>Client Java (6+)</td>
+                <td><a href="java-api/">API Docs</a></td>
+                <td><a href="../../lib/cpf-api-client-${project.version}.jar">Download</a></td>
+              </tr>
+              <tr>
+                <td>Client JavaScript</td>
+                <td><a href="javascript-api/">API Docs</a></td>
+                <td><a href="../../js/cpf_client.js">Download</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+<!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

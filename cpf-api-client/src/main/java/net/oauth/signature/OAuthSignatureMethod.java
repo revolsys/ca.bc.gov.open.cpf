@@ -44,6 +44,7 @@ import net.oauth.OAuthProblemException;
  * 
  * @author John Kristian
  */
+@SuppressWarnings("javadoc")
 public abstract class OAuthSignatureMethod {
 
   /** An efficiently sortable wrapper around a parameter. */

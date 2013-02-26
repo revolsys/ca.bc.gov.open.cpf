@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
-import ca.bc.gov.open.cpf.plugin.api.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;

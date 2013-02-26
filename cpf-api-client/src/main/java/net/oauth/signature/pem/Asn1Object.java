@@ -9,6 +9,7 @@ import java.math.BigInteger;
  * 
  * @author zhang
  */
+@SuppressWarnings("javadoc")
 class Asn1Object {
 
   protected final int type;

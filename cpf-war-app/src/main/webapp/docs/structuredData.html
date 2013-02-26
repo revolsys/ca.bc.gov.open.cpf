@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Structured Data - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      rel="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../ws/" title="Home">Home</a></li>
+                    <li><a href="client/">Client API</a><ul>
+                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="plugin/">Plug-in API</a><ul>
+                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+                    <li>Structured Data</li>
+                    <!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+<h1>Structured Data</h1>
+<p>Many business applications either accept structured data for the input or
+output data for the requests.</p>
+
+<p>For structured input data the input data is specified in a structured data
+file that contains one record for each request in the batch job. Each record 
+contains the input parameters for that request. The records can be specified in 
+any of the supported <a href="fileFormats.html">file formats</a>.</p>
+
+<p>Structured data is a record that contains a value for a named attribute, each 
+named attribute can have a <a href="dataTypes.html">data type</a> and other
+metadata such as maximum length or decimal places. For example a geo-coder may
+have the address String attribute in the input data and the location Point
+attribute in the result data.</p>
+
+<p>For structured result data a single result file is created containing one 
+record for the result of each successful request.</p>                  
+                <!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

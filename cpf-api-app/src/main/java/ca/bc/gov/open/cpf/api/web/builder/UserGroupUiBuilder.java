@@ -26,7 +26,7 @@ import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.domain.UserGroupAccountXref;
 import ca.bc.gov.open.cpf.api.domain.UserGroupPermission;
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;

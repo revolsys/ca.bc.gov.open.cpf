@@ -9,10 +9,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.api.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.api.module.ClassLoaderModule;
-import ca.bc.gov.open.cpf.plugin.api.module.ClassLoaderModuleLoader;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
+import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModuleLoader;
 
 import com.revolsys.maven.MavenPom;
 import com.revolsys.maven.MavenRepository;

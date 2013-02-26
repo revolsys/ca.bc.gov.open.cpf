@@ -8,6 +8,7 @@ import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.springframework.core.io.Resource;
 
+@SuppressWarnings("javadoc")
 public class ResourceBody extends AbstractContentBody {
 
   private final Resource resource;

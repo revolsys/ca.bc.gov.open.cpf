@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Data Types - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      rel="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../ws/" title="Home">Home</a></li>
+                    <li><a href="client/">Client API</a><ul>
+                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="plugin/">Plug-in API</a><ul>
+                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+                    <li>Data Types</li>
+                    <!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+                  <h1>Data Types</h1>
+<p>The CPF supports common data types that can be used for batch job parameters,
+<a href="structuredData.html">structured data</a> parameters, and result fields
+for a business application. The CPF does not support custom data types or Enums,
+these must be converted to/from one of the standard data types by the business
+application.</p>
+
+<p>If the <a href="fileFormat.html">file format</a> supports the data type then
+the value must be encoded according to that file format.</p>
+
+<p>Otherwise the values must be converted to a string representation using the
+following rules.</p>
+
+<ul>
+  <li>UTF-8 or US-ASCII encoding must be used for strings and text files.</li>
+  <li>Numbers will use the sign (-) prefix for negative numbers, the digits
+  (0-9) for the integer portion, a period ('.') for decimal numbers, and the
+  digits (0-9) for the fractional part. For example -1234.56789.</li>
+  <li>Booleans use the values true and false.</li>
+  <li>Geometries can be encoded using OGC <a href="http://en.wikipedia.org/wiki/Well-known_text">Well-Known Text (WKT)</a>
+  or PostGIS <a href="http://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT">Extended-WKT (WKT)</a>.
+  For example <code>SRID=4326;POINT(-124 50)</code>.
+</ul>
+       
+<p>Internally the CPF converts all values to the string encoded form.</p>
+
+<p>The table below shows the supported data types.</p>
+        
+                  <div class="objectList">
+                    <table class="data">
+                      <thead>
+                        <tr>
+                          <th>Data Type</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr id="byte">
+                          <td>byte</td>
+                          <td>8-bit signed number.</td>
+                        </tr>
+                        <tr id="short">
+                          <td>short</td>
+                          <td>16-bit signed number.</td>
+                        </tr>
+                        <tr id="int">
+                          <td>int</td>
+                          <td>32-bit signed number.</td>
+                        </tr>
+                        <tr id="long">
+                          <td>long</td>
+                          <td>64-bit signed number.</td>
+                        </tr>
+                        <tr id="float">
+                          <td>float</td>
+                          <td>32-bit IEEE 754 floating point number.</td>
+                        </tr>
+                        <tr id="double">
+                          <td>double</td>
+                          <td>64-bit IEEE 754 floating point numbe.r</td>
+                        </tr>
+                        <tr id="boolean">
+                          <td>boolean</td>
+                          <td>true or false.</td>
+                        </tr>
+                        <tr id="String">
+                          <td>String</td>
+                          <td>A character string.</td>
+                        </tr>
+                        <tr id="URL">
+                          <td>URL</td>
+                          <td>A URL or the string encoding of a URL.</td>
+                        </tr>
+                        <tr id="Point">
+                          <td>Point</td>
+                          <td>A Point geometry.</td>
+                        </tr>
+                        <tr id="LineString">
+                          <td>LineString</td>
+                          <td>A LineString geometry.</td>
+                        </tr>
+                        <tr id="Polygon">
+                          <td>Polygon</td>
+                          <td>A Polygon geometry.</td>
+                        </tr>
+                        <tr id="MultiPoint">
+                          <td>MultiPoint</td>
+                          <td>A MultiPoint geometry.</td>
+                        </tr>
+                        <tr id="MultiLineString">
+                          <td>MultiLineString</td>
+                          <td>A MultiLineString geometry.</td>
+                        </tr>
+                        <tr id="MultiPolygon">
+                          <td>MultiPolygon</td>
+                          <td>A MultiPolygon geometry.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                <!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

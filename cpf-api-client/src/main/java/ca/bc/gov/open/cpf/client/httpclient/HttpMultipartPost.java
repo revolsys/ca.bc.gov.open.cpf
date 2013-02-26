@@ -24,6 +24,7 @@ import org.springframework.core.io.Resource;
  * Utility for HTTP Post messages and their associated response messages.
  */
 
+@SuppressWarnings("javadoc")
 public class HttpMultipartPost {
   private HttpClient httpclient = null;
 

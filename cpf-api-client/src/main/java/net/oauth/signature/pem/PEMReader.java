@@ -15,6 +15,7 @@ import net.oauth.signature.OAuthSignatureMethod;
  * 
  * @author zhang
  */
+@SuppressWarnings("javadoc")
 public class PEMReader {
 
   // Begin markers for all supported PEM files

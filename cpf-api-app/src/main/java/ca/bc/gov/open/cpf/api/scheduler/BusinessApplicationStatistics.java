@@ -257,8 +257,11 @@ public class BusinessApplicationStatistics {
     } else if (value instanceof StopWatch) {
       final StopWatch stopWatch = (StopWatch)value;
       try {
-        if (stopWatch.isRunning()) {
-          stopWatch.stop();
+        try {
+          if (stopWatch.isRunning()) {
+            stopWatch.stop();
+          }
+        } catch (IllegalStateException e) {
         }
         final long time = stopWatch.getTotalTimeMillis();
         addStatistic(name, time);

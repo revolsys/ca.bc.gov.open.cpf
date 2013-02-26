@@ -24,12 +24,12 @@ import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.api.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.api.log.ModuleLog;
-import ca.bc.gov.open.cpf.plugin.api.module.Module;
-import ca.bc.gov.open.cpf.plugin.api.module.ModuleLoader;
-import ca.bc.gov.open.cpf.plugin.api.module.ResourcePermission;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
+import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.types.DataTypes;

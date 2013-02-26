@@ -57,6 +57,20 @@
               </includes>
             </resource>
             <resource>
+              <directory>../cpf-api-plugin/target</directory>
+              <targetPath>lib</targetPath>
+              <includes>
+                <include>cpf-api-plugin-${project.version}.jar</include>
+              </includes>
+            </resource>
+            <resource>
+              <directory>../cpf-api-plugin/target/site</directory>
+              <targetPath>docs/plugin/</targetPath>
+              <includes>
+                <include>java-api/**</include>
+              </includes>
+            </resource>
+            <resource>
               <directory>src/main/webapp</directory>
               <filtering>true</filtering>
               <excludes>
