@@ -1,0 +1,657 @@
+> @cpf-dba.rle
+Creating Role 'CPF_USER'
+
+Error starting at line 6 in command:
+CREATE ROLE CPF_USER NOT IDENTIFIED
+Error at Command Line:6 Column:13
+Error report:
+SQL Error: ORA-01921: role name 'CPF_USER' conflicts with another user or role name
+01921. 00000 -  "role name '%s' conflicts with another user or role name"
+*Cause:    There is already a user or role with that name.
+*Action:   Specify a different role name.
+Creating Role 'CPF_VIEWER'
+
+Error starting at line 11 in command:
+CREATE ROLE CPF_VIEWER NOT IDENTIFIED
+Error at Command Line:11 Column:13
+Error report:
+SQL Error: ORA-01921: role name 'CPF_VIEWER' conflicts with another user or role name
+01921. 00000 -  "role name '%s' conflicts with another user or role name"
+*Cause:    There is already a user or role with that name.
+*Action:   Specify a different role name.
+> @cpf-ddl.tab
+Creating Table 'CPF_USER_GROUP_PERMISSIONS'
+
+Error starting at line 8 in command:
+CREATE TABLE CPF_USER_GROUP_PERMISSIONS
+ (USER_GROUP_PERMISSION_ID NUMBER(19,0) NOT NULL
+ ,MODULE_NAME VARCHAR2(255) NOT NULL
+ ,USER_GROUP_ID NUMBER(19) NOT NULL
+ ,RESOURCE_CLASS VARCHAR2(255) NOT NULL
+ ,RESOURCE_ID VARCHAR2(4000) NOT NULL
+ ,ACTION_NAME VARCHAR2(255) NOT NULL
+ ,ACTIVE_IND NUMBER(1,0) NOT NULL
+ ,WHO_CREATED VARCHAR2(36) NOT NULL
+ ,WHEN_CREATED TIMESTAMP NOT NULL
+ ,WHO_UPDATED VARCHAR2(36) NOT NULL
+ ,WHEN_UPDATED TIMESTAMP NOT NULL
+ )
+ PCTFREE 10
+ TABLESPACE CPF
+Error at Command Line:8 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+COMMENT on table cpf_user_group_permissions 'USER GROUP PERMISSION REPRESENTS A PERMISSION FOR A MEMBER OF A USER GROUP TO PERFOM AN ACTION ON A GIVEN RESOURCE FOR A MODULE.' succeeded.
+COMMENT on column cpf_user_group_permissions.user_group_permission_id 'USER GROUP PERMISSION ID IS A UNIQUE SURROGATE IDENTIFIER FOR THE OBJECT USER GROUP PERMISSION.' succeeded.
+COMMENT on column cpf_user_group_permissions.module_name 'MODULE NAME CONTAINS THE NAME OF THE CPF APPLICATION MODULE THE USER GROUP PERMISSION WAS CREATED FOR.' succeeded.
+COMMENT on column cpf_user_group_permissions.user_group_id 'USER GROUP ID IS A UNIQUE SURROGATE IDENTIFIER FOR THE OBJECT USER GROUP.' succeeded.
+COMMENT on column cpf_user_group_permissions.resource_class 'THIS IS THE CLASSIFICATION OF THE RESOURCE NAME. FOR EXAMPLE URL WEB PAGE), JAVACLASS, JAVAOBJECT.' succeeded.
+COMMENT on column cpf_user_group_permissions.resource_id 'THIS IS THE UNQIUE ID OF THE RESOURCE THE PERMISSION APPLIES TO. FOR EXAMPLE A URL, JAVA CLASS NAME, JAVA CLASS NAME AND OBJECT IDENTIFIER.' succeeded.
+COMMENT on column cpf_user_group_permissions.action_name 'THIS IS THE NAME OF THE ACTION THE USER IS GRANTED PERMISSION TO PERFORM E.G. ANY, EDIT, VIEW).' succeeded.
+COMMENT on column cpf_user_group_permissions.active_ind 'THIS IS THE TRUE 1), FALSE 0) INDICATOR IF THE OBJECT IS ACTIVE OR HAS BEEN DELETED.' succeeded.
+COMMENT on column cpf_user_group_permissions.who_created 'THIS IS THE DATABASE OR WEB USER THAT CREATED THE OBJECT.' succeeded.
+COMMENT on column cpf_user_group_permissions.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
+COMMENT on column cpf_user_group_permissions.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
+COMMENT on column cpf_user_group_permissions.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
+Creating Table 'CPF_BATCH_JOB_RESULTS'
+table CPF_BATCH_JOB_RESULTS created.
+COMMENT on table cpf_batch_job_results 'THE BATCH JOB RESULT IS A RESULT FILE GENERATED AFTER THE EXECUTION OF A BATCH JOB. FOR STRUCTURED OUTPUT DATA ONE FILE WILL BE GENERATED CONTAINING ALL THE RESULTS. FOR OPAQUE OUTPUT DATA ONE FILE WILL BE CREATED FOR EACH BATCH JOB REQUEST. A BATCH JOB MAY ALSO HAVE ONE FILE CONTAINING ANY ERRORS GENERATED.' succeeded.
+COMMENT on column cpf_batch_job_results.batch_job_result_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB RESULT.' succeeded.
+COMMENT on column cpf_batch_job_results.batch_job_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_job_results.batch_job_result_type 'THIS IS THE PURPOSE OF THE RESULT DATA STORED IN THE BATCH JOB RESULT. IT CAN HAVE THE VALUES STRUCTUREDRESULTDATA, OPAQUERESULTDATA, OR ERRORRESULTDATA.' succeeded.
+COMMENT on column cpf_batch_job_results.result_data_content_type 'THIS IS THE MIME CONTENT TYPE OF THE RESULT DATA OR RESULT DATA URL FOR THE BATCH JOB RESULT. FOR EXAMPLE TEXT/CSV OR APPLICATION/JSON.' succeeded.
+COMMENT on column cpf_batch_job_results.batch_job_request_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB REQUEST.' succeeded.
+COMMENT on column cpf_batch_job_results.download_timestamp 'THIS IS THE TIMESTAMP WHEN THE LAST BYTE WAS SENT TO THE CLIENT FOR RESULT DATA OR WHEN THE USER WAS REDIRECTED TO RESULT DATA URL.' succeeded.
+COMMENT on column cpf_batch_job_results.request_sequence_number 'THIS IS THE REQUEST SEQUENCE NUMBER OF THE BATCH JOB REQUEST IF THE BATCH JOB RESULT IS OF TYPE OPAQUERESULTDATA.' succeeded.
+COMMENT on column cpf_batch_job_results.result_data 'THIS IS THE BYTE CONTENT OF THE RESULT FILE FOR THE BATCH JOB RESULT. EITHER THIS OR THE RESULT DATA URL MUST BE SPECFIED.' succeeded.
+COMMENT on column cpf_batch_job_results.result_data_url 'THIS IS THE URL TO THE BYTE CONTENT OF THE RESULT FILE FOR THE BATCH JOB RESULT. EITHER THIS OR THE RESULT DATA MUST BE SPECFIED.' succeeded.
+COMMENT on column cpf_batch_job_results.who_created 'THIS IS THE DATABASE OR WEB USER THAT CREATED THE OBJECT.' succeeded.
+COMMENT on column cpf_batch_job_results.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
+COMMENT on column cpf_batch_job_results.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
+COMMENT on column cpf_batch_job_results.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
+Creating Table 'CPF_BATCH_JOB_REQUESTS'
+table CPF_BATCH_JOB_REQUESTS created.
+COMMENT on table cpf_batch_job_requests 'THE BATCH JOB REQUEST REPRESENTS A SINGLE REQUEST TO EXECUTE A BUSINESSAPPLICATION WITHIN A BATCH JOB. IT CONTAINS THE INPUT DATA, RESULT DATA AND ANY PERMANENT ERRORS.' succeeded.
+COMMENT on column cpf_batch_job_requests.batch_job_request_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB REQUEST.' succeeded.
+COMMENT on column cpf_batch_job_requests.batch_job_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_job_requests.batch_job_result_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB RESULT.' succeeded.
+COMMENT on column cpf_batch_job_requests.request_sequence_number 'THIS IS THE SEQUENCE NUMBER OF THE BATCH JOB REQUEST WITHIN A BATCH JOB. THE SEQUENCE NUMBERS START AT ONE FOR THE FIRST INPUT DATA RECORD AND INCREASE BY ONE FOR EACH SUBSEQUENT RECORD.' succeeded.
+COMMENT on column cpf_batch_job_requests.completed_ind 'THIS IS THE TRUE 1), FALSE 0) INDICATOR THAT THE BATCH JOB REQUEST WAS COMPLETED SUCCESSFULLY OR FAILED TO COMPLETE.' succeeded.
+COMMENT on column cpf_batch_job_requests.started_ind 'THIS IS THE TRUE 1), FALSE 0) INDICATOR THAT THE BATCH JOB REQUEST WAS STARTED TO BE PROCESSED.' succeeded.
+COMMENT on column cpf_batch_job_requests.error_code 'THIS IS AN ERROR CODE DESCRIBING THE REASON THE BATCH JOB REQUEST FAILED TO BE PROCESSED. THIS CODE IS DESIGNED TO BE PROCESSED BY THE CLIENT SOFTWARE. FOR EXAMPLE BAD_RESPONSE_DATA, MISSING_REQUIRED_PARAMETER, INVALID_PARAMETER_VALUE, INPUT_DATA_UNREADABLE, BAD_NUMBER_REQUESTS, TOO_MANY_REQUESTS, BAD_INPUT_DATA_TYPE, BAD_INPUT_DATA_VALUE, BAD_INPUT_DATA_VALUES, BAD_RESULT_DATA_TYPE, OR ERROR_PROCESSING_REQUEST.' succeeded.
+COMMENT on column cpf_batch_job_requests.error_debug_message 'THIS IS AN DEBUG ERROR MESSAGE DESCRIBING THE REASON THE BATCH JOB REQUEST FAILED TO BE PROCESSED. IT IS DESIGNED FOR THE APPLICATION ADMINISTRATORS TO DEBUG THE CAUSE OF AN ERROR. IT WILL NOT BE EXPOSED TO CLIENTS.' succeeded.
+COMMENT on column cpf_batch_job_requests.error_message 'THIS IS AN ERROR MESSAGE DESCRIBING THE REASON THE BATCH JOB REQUEST FAILED TO BE PROCESSED. IT IS DESIGNED TO BE READ BY THE CLIENT USERS. THE MESSAGE MAY INCLUDE A DESCRIPTION OF THE DATA WHICH CAUSED THE FAILURE.' succeeded.
+COMMENT on column cpf_batch_job_requests.input_data 'THIS IS THE BINARY OPAQUE INPUT DATA FOR A BUSINESS APPLICATION CONTAINING THE INPUT DATA FOR THE BATCH JOB REQUEST. FOR BUSINESS APPLICATIONS WHICH ACCEPT OPAQUE INPUT DATA EITHER THIS OR THE INPUT DATA URL MUST BE SPECIFIED.' succeeded.
+COMMENT on column cpf_batch_job_requests.input_data_url 'THIS IS THE CLIENT APPLICATION URL TO BINARY OPAQUE INPUT DATA FOR A BUSINESS APPLICATION CONTAINING THE INPUTDATA FOR THE BATCH JOB REQUEST. FOR BUSINESS APPLICATIONS WHICH ACCEPT OPAQUE INPUT DATA EITHER THIS OR THE INPUT DATA MUST BE SPECIFIED.' succeeded.
+COMMENT on column cpf_batch_job_requests.input_data_content_type 'THIS IS THE MIME CONTENT TYPE FORTHE INPUT DATA OR INPUT DATA URL FOR A BATCH JOB REQUEST. FOR BUSINESS APPLICATIONS ACCEPT OPAQUE INPUT DATA EITHER THIS MUST BE SPECIFIED. FOR EXAMPLE TEXT/CSV OR APPLICATION/JSON.' succeeded.
+COMMENT on column cpf_batch_job_requests.result_data 'THIS IS THE BINARY RESULT DATA RETURNED FROM A BUSINESS APPLICATION CONTAINING THE RESULT DATA FOR THE BATCH JOB REQUEST. FOR BUSINESS APPLICATIONS WHICH RETURN OPAQUE RESULT DATA EITHER THIS OR THE RESULT DATA URL MUST BE SPECIFIED FOR SUCCESSFUL BATCH JOB REQUESTS.' succeeded.
+COMMENT on column cpf_batch_job_requests.result_data_url 'THIS IS THE URL RETURNED FROM A BUSINESS APPLICATION CONTAINING THE RESULT DATA FOR THE BATCH JOB REQUEST. FOR BUSINESS APPLICATIONS WHICH RETURN OPAQUE RESULT DATA EITHER THIS OR THE RESULT DATA MUST BE SPECIFIED FOR SUCCESSFUL BATCH JOB REQUESTS.' succeeded.
+COMMENT on column cpf_batch_job_requests.structured_input_data 'THIS IS THE STRUCTURED INPUT DATA FOR THE BATCH JOB USED TO CREATE THE BATCH JOB REQUESTS. EITHER THIS OR THE STRUCTURED INPUT DATA URL CAN BE SPECIFIED FOR A BUSINESS APPLICATION WHICH SUPPORTS STRUCTURED INPUT DATA.' succeeded.
+COMMENT on column cpf_batch_job_requests.structured_result_data 'THIS IS THE JSON ENCODED STRUCTURED RESULT DATA RETURNED FROM THE BUSINESS APPLICATION FOR THE BATCH JOB REQUEST. FOR BUSINESS APPLICATIONS WHICH RETURN STRUCTUREDRESULT DATA THIS MUST BE SPECIFIED FOR SUCCESSFUL BATCH JOB REQUESTS.' succeeded.
+COMMENT on column cpf_batch_job_requests.who_created 'THIS IS THE DATABASE OR WEB USER THAT CREATED THE OBJECT.' succeeded.
+COMMENT on column cpf_batch_job_requests.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
+COMMENT on column cpf_batch_job_requests.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
+COMMENT on column cpf_batch_job_requests.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
+Creating Table 'CPF_APPLICATION_STATISTICS'
+
+Error starting at line 212 in command:
+CREATE TABLE CPF_APPLICATION_STATISTICS
+ (APPLICATION_STATISTIC_ID NUMBER(19) NOT NULL
+ ,BUSINESS_APPLICATION_NAME VARCHAR2(255) NOT NULL
+ ,START_TIMESTAMP DATE NOT NULL
+ ,DURATION_TYPE VARCHAR2(10) NOT NULL
+ ,STATISTIC_VALUES VARCHAR2(4000) NOT NULL
+ )
+ PCTFREE 10
+ TABLESPACE CPF
+Error at Command Line:212 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+COMMENT on table cpf_application_statistics 'THE APPLICATION STATISTIC OBJECT REPRESENTS A COLLECTION OF STATISTIC VALUES FOR A BUSINESS APPLICATION DURING A TIME PEROID HOUR, DAY, MONTH, YEAR). THE STATISTICS ARE STORED AS A JSON MAP OF KEYS/VALUES TO ALLOW ADDITIONAL STATISTICS TO BE ADDED IN THE FUTURE. THE STATISTIC VALUES ARE PROCESSED BY THE APPLICATION AND ARE NOT INTENDED TO BE QUERIED USING SQL.' succeeded.
+COMMENT on column cpf_application_statistics.application_statistic_id 'THIS IS THE UNIQUE KEY FOR THE APPLICATION STATISTIC.' succeeded.
+COMMENT on column cpf_application_statistics.business_application_name 'THIS IS THE NAME OF THE BUSINESS APPLICATION THE STATISTIC WAS CREATED FOR.' succeeded.
+COMMENT on column cpf_application_statistics.start_timestamp 'THIS IS THE TIMESTAMP OF THE START OF THE DURATION THE STATISTIC WAS CREATED FOR.' succeeded.
+COMMENT on column cpf_application_statistics.duration_type 'THIS IS THE TYPE OF DURATION HOUR, DAY, MONTH, YEAR).' succeeded.
+COMMENT on column cpf_application_statistics.statistic_values 'THIS IS THE JSON ENCODED OBJECT OF STATISTIC NAME/VALUES E.G. {''JOBSSUMBITTED'': 1, ''JOBSCOMPLETED'':11}.' succeeded.
+Creating Table 'CPF_BATCH_JOBS'
+table CPF_BATCH_JOBS created.
+COMMENT on table cpf_batch_jobs 'THE BATCH JOB OBJECT REPRESENTS A BATCH OF REQUESTS TO A BUSINESSAPPLICATION.' succeeded.
+COMMENT on column cpf_batch_jobs.batch_job_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.business_application_name 'THIS IS THE NAME OF THE BUSINESS APPLICATION TO BE INVOKED IN THIS JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.business_application_version 'THIS IS THE VERSION OF THE BUSINESS APPLICATION TO BE INVOKED IN THIS JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.job_status 'THIS IS THE CURRENT STATUS OF THE JOB SUBMITTED, REQUESTSCREATED, PROCESSING, PROCESSED, RESULTGENERATED, DOWNLOADINITIATED, DELETEINITIATED, DELETED).' succeeded.
+COMMENT on column cpf_batch_jobs.num_completed_requests 'THIS IS THE NUMBER OF BATCH JOB REQUESTS WHICH HAVE BEEN COMPLETED SUCCESSFULLY FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.num_executing_requests 'THIS IS THE NUMBER OF BATCH JOB REQUESTS CURRENTLY BEING EXECUTED FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.num_failed_requests 'THIS IS THE NUMBER OF BATCH JOB REQUESTS WHICH FAILED TO BE COMPLETED FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.num_submitted_requests 'THIS IS THE NUMBER OF BATCH JOB REQUESTS WHICH WERE SUBMITTED FOR THE BATCH JOB. THE VALUE IS PROVIDED BY THE END USER AND UPDATED IN THE JOB PRE-PROCESS.' succeeded.
+COMMENT on column cpf_batch_jobs.result_data_content_type 'THIS IS THE MIME CONTENT TYPE THE RESULTS OF THE BATCH JOB ARE TO BE RETURNED IN E.G. TEXT/CSV, APPLICATION/JSON, TEXT/XML). EACH BUSINESS APPLICATION HAS ITS OWN LIST OF SUPPORTED MIME TYPES.' succeeded.
+COMMENT on column cpf_batch_jobs.user_id 'THIS IS THE LOGIN USER IDENTIFIER OF THE USER WHO SUBMITTED THE JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.when_status_changed 'THIS IS THE TIMESTAMP WHEN THE STATUS OF THE JOB WAS LAST UPDATED.' succeeded.
+COMMENT on column cpf_batch_jobs.business_application_params 'THIS IS THE CSV ENCODED GLOBAL PARAMETERS TO BE PASSED TO THE BUSINESS APPLICATION FOR THE BATCH JOB. THE CSV ENCODING WILL HAVE A HEADER ROW WITH THE NAMES OF THE PARAMETERS AND A SINGLE DATA ROW CONTAINING THE PARAMETER VALUES.' succeeded.
+COMMENT on column cpf_batch_jobs.completed_timestamp 'THIS IS THE TIMESTAMP WHEN ALL OF THE BATCH JOB REQUESTS AND BATCH JOB RESULTS HAVE BEEN PROCESSED FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.structured_input_data 'THIS IS THE STRUCTURED INPUT DATA FOR THE BATCH JOB USED TO CREATE THE BATCH JOB REQUESTS. EITHER THIS OR THE STRUCTURED INPUT DATA URL CAN BE SPECIFIED FOR A BUSINESS APPLICATION WHICH SUPPORTS STRUCTURED INPUT DATA.' succeeded.
+COMMENT on column cpf_batch_jobs.structured_input_data_url 'THIS IS THE URL TO DOWNLOAD THE STRUCTURED INPUT DATA FOR THE BATCH JOB USED TO CREATE THE BATCH JOB REQUESTS. EITHER THIS OR THE STRUCTURED INPUT DATA CAN BE SPECIFIED FOR A BUSINESS APPLICATION WHICH SUPPORTS STRUCTURED INPUT DATA.' succeeded.
+COMMENT on column cpf_batch_jobs.input_data_content_type 'THIS IS THE MIME CONTENT-TYPE FOR THE STRUCTURED INPUT DATA. FOR EXAMPLE TEXT/CSV OR APPLICATION/JSON.' succeeded.
+COMMENT on column cpf_batch_jobs.last_scheduled_timestamp 'THIS IS THE TIMESTAMP WHEN THE MOST RECENT BATCH JOB REQUEST WAS SCHEDULED TO BE PROCESSED FOR THE BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.notification_url 'THIS IS THE HTTP, HTTPS, OR MAILTO URL TO BE NOTIFIED WHEN THE BATCH JOB HAS BEEN COMPLETED AND IS READY FOR DOWNLOAD.' succeeded.
+COMMENT on column cpf_batch_jobs.properties 'PROPERTIES CONTAINS A JSON ENCODED MAP OF ADDITIONAL PROPERTIES ASSOCIATED WITH A BATCH JOB.' succeeded.
+COMMENT on column cpf_batch_jobs.who_created 'THIS IS THE DATABASE OR WEB USER THAT CREATED THE OBJECT.' succeeded.
+COMMENT on column cpf_batch_jobs.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
+COMMENT on column cpf_batch_jobs.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
+COMMENT on column cpf_batch_jobs.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
+Creating Table 'CPF_USER_GROUP_ACCOUNT_XREF'
+
+Error starting at line 343 in command:
+CREATE TABLE CPF_USER_GROUP_ACCOUNT_XREF
+ (USER_GROUP_ID NUMBER(19,0) NOT NULL
+ ,USER_ACCOUNT_ID NUMBER(19,0) NOT NULL
+ )
+ PCTFREE 10
+ TABLESPACE CPF
+Error at Command Line:343 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+COMMENT on table cpf_user_group_account_xref 'USER GROUP ACCOUNT XREF REPRESENTS A RELATIONSHIP BETWEEN A USER GROUP AND THE USER ACCOUNT THAT IS A MEMBER OF THAT GROUP.' succeeded.
+COMMENT on column cpf_user_group_account_xref.user_group_id 'USER GROUP ID IS A UNIQUE SURROGATE IDENTIFIER FOR THE OBJECT USER GROUP.' succeeded.
+COMMENT on column cpf_user_group_account_xref.user_account_id 'USER ACCOUNT ID IS A UNIQUE SURROGATE IDENTIFIER FOR THE OBJECT USER ACCOUNT.' succeeded.
+Creating Table 'CPF_USER_ACCOUNTS'
+
+Error starting at line 361 in command:
+CREATE TABLE CPF_USER_ACCOUNTS
+ (USER_ACCOUNT_ID NUMBER(19,0) NOT NULL
+ ,USER_ACCOUNT_CLASS VARCHAR2(255) NOT NULL
+ ,USER_NAME VARCHAR2(4000) NOT NULL
+ ,CONSUMER_KEY VARCHAR2(36) NOT NULL
+ ,CONSUMER_SECRET VARCHAR2(36) NOT NULL
+ ,ACTIVE_IND NUMBER(1,0) NOT NULL
+ ,WHO_CREATED VARCHAR2(36) NOT NULL
+ ,WHEN_CREATED TIMESTAMP NOT NULL
+ ,WHO_UPDATED VARCHAR2(36) NOT NULL
+ ,WHEN_UPDATED TIMESTAMP NOT NULL
+ )
+ PCTFREE 10
+ TABLESPACE CPF
+Error at Command Line:361 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+COMMENT on table cpf_user_accounts 'THE USER ACCOUNTS REPRESENTS A USER ACCOUNT CREATED FOR AN INTERNAL OR EXTERNAL USER, FOR EXAMPLE A OPENID ACCOUNT, BC GOVERNMENT IDIR ACCOUNT, OR EMAIL ADDRESS.' succeeded.
+COMMENT on column cpf_user_accounts.user_account_id 'THIS IS THE UNIQUE IDENTIFIER FOR THE USER ACCOUNT.' succeeded.
+COMMENT on column cpf_user_accounts.user_account_class 'THIS IS THE CLASSIFICATION FOR THE USER NAME, FOR EXAMPLE HTTP://OPENID.NET/ OR HTTP://IDIR.BCGOV/.' succeeded.
+COMMENT on column cpf_user_accounts.user_name 'THIS IS THE USER NAME, FOR EXAMPLE AN OPENID, IDIR ACCOUNT NAME, OR EMAIL ADDRESS.' succeeded.
+COMMENT on column cpf_user_accounts.consumer_key 'THIS IS THE SYSTEM GENERATED UNIQUE USER IDENTIFIER FOR THE USER ACCOUNT.' succeeded.
+COMMENT on column cpf_user_accounts.consumer_secret 'THIS IS THE SYSTEM GENERATED PASSWORD/ENCRYPTION KEY FOR THE USER ACCOUNT.' succeeded.
+COMMENT on column cpf_user_accounts.active_ind 'THIS IS THE TRUE 1), FALSE 0) INDICATOR IF THE OBJECT IS ACTIVE OR HAS BEEN DELETED.' succeeded.
+COMMENT on column cpf_user_accounts.who_created 'THIS IS THE DATABASE OR WEB USER THAT CREATED THE OBJECT.' succeeded.
+COMMENT on column cpf_user_accounts.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
+COMMENT on column cpf_user_accounts.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
+COMMENT on column cpf_user_accounts.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
+Creating Table 'CPF_CONFIG_PROPERTIES'
+
+Error starting at line 411 in command:
+CREATE TABLE CPF_CONFIG_PROPERTIES
+ (CONFIG_PROPERTY_ID NUMBER(19,0) NOT NULL
+ ,ENVIRONMENT_NAME VARCHAR2(255) NOT NULL
+ ,MODULE_NAME VARCHAR2(255) NOT NULL
+ ,COMPONENT_NAME VARCHAR2(255) NOT NULL
+ ,PROPERTY_NAME VARCHAR2(255) NOT NULL
+ ,PROPERTY_VALUE_TYPE VARCHAR2(255) NOT NULL
+ ,PROPERTY_VALUE VARCHAR2(4000)
+ ,WHO_CREATED VARCHAR2(36) NOT NULL
+ ,WHEN_CREATED TIMESTAMP NOT NULL
+ ,WHO_UPDATED VARCHAR2(36) NOT NULL
+ ,WHEN_UPDATED TIMESTAMP NOT NULL
+ )
+ TABLESPACE CPF
+Error at Command Line:411 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+COMMENT on table cpf_config_properties 'THE CONFIG PROPERTY REPRESENTS A VALUE TO SET FOR A PROPERTY OVERRIDING THE DEFAULT VALUE PROVIDED IN THE APPLICATION CODE.' succeeded.
+COMMENT on column cpf_config_properties.config_property_id 'THIS IS THE UNIQUE KEY FOR THE CONFIG PROPERTY.' succeeded.
+COMMENT on column cpf_config_properties.environment_name 'ENVIRONMENT NAME CONTAINS THE HOST NAME OF WEB SERVER INSTANCE NAME THAT THE CONFIGURATION PROPERTY SHOULD BE APPLIED TO.' succeeded.
+COMMENT on column cpf_config_properties.module_name 'MODULE NAME CONTAINS THE NAME OF THE CPF APPLICATION MODULE THE CONFIGURATION PROPERTY SHOULD BE APPLIED TO.' succeeded.
+COMMENT on column cpf_config_properties.component_name 'COMPONENT NAME CONTAINS THE NAME OF THE COMPONENT WITHIN A CPF APPLICATION MODULE THE CONFIGURATION PROPERTY SHOULD BE APPLIED TO.' succeeded.
+COMMENT on column cpf_config_properties.property_name 'THIS IS THE NAME OF THE CONFIGURATION PROPERTY. IT CAN CONTAIN MULTIPLE PARTS SEPARATED BY A PERIOD TO SET THE VALUE OF A NESTED PROPERTY. FOR EXAMPLE MAPTILEBYLOCATION.MAXIMUMCONCURRENTREQUESTS.' succeeded.
+COMMENT on column cpf_config_properties.property_value_type 'PROPERTY VALUE TYPE CONTAINS THE DATA TYPE NAME USED TO CONVERT THE PROPERTY VALUE TO A JAVA DATA TYPE E.G. STRING, INT, DOUBLE, BOOLEAN, GEOMETRY).' succeeded.
+COMMENT on column cpf_config_properties.property_value 'THIS IS THE VALUE TO SET FOR THE PROPERTY.' succeeded.
+COMMENT on column cpf_config_properties.who_created 'THIS IS THE DATABASE OR WEB USER THAT CREATED THE OBJECT.' succeeded.
+COMMENT on column cpf_config_properties.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
+COMMENT on column cpf_config_properties.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
+COMMENT on column cpf_config_properties.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
+Creating Table 'CPF_USER_GROUPS'
+
+Error starting at line 464 in command:
+CREATE TABLE CPF_USER_GROUPS
+ (USER_GROUP_ID NUMBER(19,0) NOT NULL
+ ,MODULE_NAME VARCHAR2(255) NOT NULL
+ ,USER_GROUP_NAME VARCHAR2(255) NOT NULL
+ ,DESCRIPTION VARCHAR2(4000)
+ ,ACTIVE_IND NUMBER(1,0) NOT NULL
+ ,WHO_CREATED VARCHAR2(36) NOT NULL
+ ,WHEN_CREATED TIMESTAMP NOT NULL
+ ,WHO_UPDATED VARCHAR2(36) NOT NULL
+ ,WHEN_UPDATED TIMESTAMP NOT NULL
+ )
+ PCTFREE 10
+ TABLESPACE CPF
+Error at Command Line:464 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+COMMENT on table cpf_user_groups 'USER GROUP REPRESENTS A NAMED GROUP OF CPF OR EXTERNAL USERS THAT CAN BE GRANTED PERMISSIONS VIA USER GROUP PERMISSION. THE MEMBERS OF THE GROUP ARE DEFINED IN THE USER GROUP ACCOUNT XFREF.' succeeded.
+COMMENT on column cpf_user_groups.user_group_id 'USER GROUP ID IS A UNIQUE SURROGATE IDENTIFIER FOR THE OBJECT USER GROUP.' succeeded.
+COMMENT on column cpf_user_groups.module_name 'MODULE NAME CONTAINS THE NAME OF THE CPF APPLICATION MODULE THE USER GROUP WAS CREATED FOR.' succeeded.
+COMMENT on column cpf_user_groups.user_group_name 'THIS IS THE NAME OF THE SECURITY GROUP.' succeeded.
+COMMENT on column cpf_user_groups.description 'THIS IS A DESCRIPTION OF THE SECURITY GROUP.' succeeded.
+COMMENT on column cpf_user_groups.active_ind 'THIS IS THE TRUE 1), FALSE 0) INDICATOR IF THE OBJECT IS ACTIVE OR HAS BEEN DELETED.' succeeded.
+COMMENT on column cpf_user_groups.who_created 'THIS IS THE DATABASE OR WEB USER THAT CREATED THE OBJECT.' succeeded.
+COMMENT on column cpf_user_groups.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
+COMMENT on column cpf_user_groups.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
+COMMENT on column cpf_user_groups.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
+> @cpf-ddl.ind
+Creating Index 'CPF_UGP_CPF_UG_FK_I'
+
+Error starting at line 7 in command:
+CREATE INDEX CPF_UGP_CPF_UG_FK_I ON CPF_USER_GROUP_PERMISSIONS
+ (USER_GROUP_ID)
+ TABLESPACE CPF_NDX
+Error at Command Line:7 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Index 'CPF_BJRS_CPF_BJ_FK_I'
+index CPF_BJRS_CPF_BJ_FK_I created.
+Creating Index 'CPF_BJRQ_CPF_BJ_FK_I'
+index CPF_BJRQ_CPF_BJ_FK_I created.
+Creating Index 'CPF_BJRQ_BJ_ID_STARTED_I'
+index CPF_BJRQ_BJ_ID_STARTED_I created.
+Creating Index 'CPF_BJ_STATUS_APP_NAME_I'
+index CPF_BJ_STATUS_APP_NAME_I created.
+Creating Index 'CPF_UGAX_CPF_UG_FK_I'
+
+Error starting at line 39 in command:
+CREATE INDEX CPF_UGAX_CPF_UG_FK_I ON CPF_USER_GROUP_ACCOUNT_XREF
+ (USER_GROUP_ID)
+ TABLESPACE CPF_NDX
+Error at Command Line:39 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Index 'CPF_UGAX_CPF_UA_FK_I'
+
+Error starting at line 45 in command:
+CREATE INDEX CPF_UGAX_CPF_UA_FK_I ON CPF_USER_GROUP_ACCOUNT_XREF
+ (USER_ACCOUNT_ID)
+ TABLESPACE CPF_NDX
+Error at Command Line:45 Column:14
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+> @cpf-ddl.con
+Creating Primary Key on 'CPF_USER_GROUP_PERMISSIONS'
+
+Error starting at line 6 in command:
+ALTER TABLE CPF_USER_GROUP_PERMISSIONS
+ ADD (CONSTRAINT CPF_UGP_PK PRIMARY KEY 
+  (USER_GROUP_PERMISSION_ID)
+ USING INDEX 
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02260: table can have only one primary key
+02260. 00000 -  "table can have only one primary key"
+*Cause:    Self-evident.
+*Action:   Remove the extra primary key.
+Creating Primary Key on 'CPF_BATCH_JOB_RESULTS'
+table CPF_BATCH_JOB_RESULTS altered.
+Creating Primary Key on 'CPF_BATCH_JOB_REQUESTS'
+table CPF_BATCH_JOB_REQUESTS altered.
+Creating Primary Key on 'CPF_APPLICATION_STATISTICS'
+
+Error starting at line 30 in command:
+ALTER TABLE CPF_APPLICATION_STATISTICS
+ ADD (CONSTRAINT CPF_AS_PK PRIMARY KEY 
+  (APPLICATION_STATISTIC_ID)
+ USING INDEX 
+ PCTFREE 10
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02260: table can have only one primary key
+02260. 00000 -  "table can have only one primary key"
+*Cause:    Self-evident.
+*Action:   Remove the extra primary key.
+Creating Primary Key on 'CPF_BATCH_JOBS'
+table CPF_BATCH_JOBS altered.
+Creating Primary Key on 'CPF_USER_GROUP_ACCOUNT_XREF'
+
+Error starting at line 47 in command:
+ALTER TABLE CPF_USER_GROUP_ACCOUNT_XREF
+ ADD (CONSTRAINT CPF_UGAX_PK PRIMARY KEY 
+  (USER_GROUP_ID
+  ,USER_ACCOUNT_ID)
+ USING INDEX 
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02260: table can have only one primary key
+02260. 00000 -  "table can have only one primary key"
+*Cause:    Self-evident.
+*Action:   Remove the extra primary key.
+Creating Primary Key on 'CPF_USER_ACCOUNTS'
+
+Error starting at line 56 in command:
+ALTER TABLE CPF_USER_ACCOUNTS
+ ADD (CONSTRAINT CPF_UA_PK PRIMARY KEY 
+  (USER_ACCOUNT_ID)
+ USING INDEX 
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02260: table can have only one primary key
+02260. 00000 -  "table can have only one primary key"
+*Cause:    Self-evident.
+*Action:   Remove the extra primary key.
+Creating Primary Key on 'CPF_CONFIG_PROPERTIES'
+
+Error starting at line 64 in command:
+ALTER TABLE CPF_CONFIG_PROPERTIES
+ ADD (CONSTRAINT CPF_CP_PK PRIMARY KEY 
+  (CONFIG_PROPERTY_ID)
+ USING INDEX 
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02260: table can have only one primary key
+02260. 00000 -  "table can have only one primary key"
+*Cause:    Self-evident.
+*Action:   Remove the extra primary key.
+Creating Primary Key on 'CPF_USER_GROUPS'
+
+Error starting at line 72 in command:
+ALTER TABLE CPF_USER_GROUPS
+ ADD (CONSTRAINT CPF_UG_PK PRIMARY KEY 
+  (USER_GROUP_ID)
+ USING INDEX 
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02260: table can have only one primary key
+02260. 00000 -  "table can have only one primary key"
+*Cause:    Self-evident.
+*Action:   Remove the extra primary key.
+Creating Unique Key on 'CPF_USER_ACCOUNTS'
+
+Error starting at line 81 in command:
+ALTER TABLE CPF_USER_ACCOUNTS
+ ADD (CONSTRAINT CPF_UA_UK2 UNIQUE 
+  (CONSUMER_KEY)
+ USING INDEX 
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02261: such unique or primary key already exists in the table
+02261. 00000 -  "such unique or primary key already exists in the table"
+*Cause:    Self-evident.
+*Action:   Remove the extra key.
+Creating Unique Key on 'CPF_USER_ACCOUNTS'
+
+Error starting at line 89 in command:
+ALTER TABLE CPF_USER_ACCOUNTS
+ ADD (CONSTRAINT CPF_UA_UK1 UNIQUE 
+  (USER_NAME
+  ,USER_ACCOUNT_CLASS)
+ USING INDEX 
+ TABLESPACE CPF_NDX)
+Error report:
+SQL Error: ORA-02261: such unique or primary key already exists in the table
+02261. 00000 -  "such unique or primary key already exists in the table"
+*Cause:    Self-evident.
+*Action:   Remove the extra key.
+Creating Foreign Key on 'CPF_USER_GROUP_PERMISSIONS'
+
+Error starting at line 100 in command:
+ALTER TABLE CPF_USER_GROUP_PERMISSIONS ADD (CONSTRAINT
+ CPF_UGP_CPF_UG_FK FOREIGN KEY 
+  (USER_GROUP_ID) REFERENCES CPF_USER_GROUPS
+  (USER_GROUP_ID))
+Error report:
+SQL Error: ORA-02275: such a referential constraint already exists in the table
+02275. 00000 -  "such a referential constraint already exists in the table"
+*Cause:    Self-evident.
+*Action:   Remove the extra constraint.
+Creating Foreign Key on 'CPF_BATCH_JOB_RESULTS'
+table CPF_BATCH_JOB_RESULTS altered.
+Creating Foreign Key on 'CPF_BATCH_JOB_REQUESTS'
+table CPF_BATCH_JOB_REQUESTS altered.
+Creating Foreign Key on 'CPF_USER_GROUP_ACCOUNT_XREF'
+
+Error starting at line 121 in command:
+ALTER TABLE CPF_USER_GROUP_ACCOUNT_XREF ADD (CONSTRAINT
+ CPF_UGAX_CPF_UG_FK FOREIGN KEY 
+  (USER_GROUP_ID) REFERENCES CPF_USER_GROUPS
+  (USER_GROUP_ID))
+Error report:
+SQL Error: ORA-02275: such a referential constraint already exists in the table
+02275. 00000 -  "such a referential constraint already exists in the table"
+*Cause:    Self-evident.
+*Action:   Remove the extra constraint.
+Creating Foreign Key on 'CPF_USER_GROUP_ACCOUNT_XREF'
+
+Error starting at line 128 in command:
+ALTER TABLE CPF_USER_GROUP_ACCOUNT_XREF ADD (CONSTRAINT
+ CPF_UGAX_CPF_UA_FK FOREIGN KEY 
+  (USER_ACCOUNT_ID) REFERENCES CPF_USER_ACCOUNTS
+  (USER_ACCOUNT_ID))
+Error report:
+SQL Error: ORA-02275: such a referential constraint already exists in the table
+02275. 00000 -  "such a referential constraint already exists in the table"
+*Cause:    Self-evident.
+*Action:   Remove the extra constraint.
+> @cpf-ddl.sqs
+Creating Sequence 'CPF_CP_SEQ'
+
+Error starting at line 6 in command:
+CREATE SEQUENCE CPF_CP_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:6 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Sequence 'CPF_UA_SEQ'
+
+Error starting at line 13 in command:
+CREATE SEQUENCE CPF_UA_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:13 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Sequence 'CPF_AS_SEQ'
+
+Error starting at line 20 in command:
+CREATE SEQUENCE CPF_AS_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:20 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Sequence 'CPF_UG_SEQ'
+
+Error starting at line 27 in command:
+CREATE SEQUENCE CPF_UG_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:27 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Sequence 'CPF_UGP_SEQ'
+
+Error starting at line 34 in command:
+CREATE SEQUENCE CPF_UGP_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:34 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Sequence 'CPF_BJ_SEQ'
+
+Error starting at line 41 in command:
+CREATE SEQUENCE CPF_BJ_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:41 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Sequence 'CPF_BJRQ_SEQ'
+
+Error starting at line 48 in command:
+CREATE SEQUENCE CPF_BJRQ_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:48 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+Creating Sequence 'CPF_BJRS_SEQ'
+
+Error starting at line 55 in command:
+CREATE SEQUENCE CPF_BJRS_SEQ
+ NOMAXVALUE
+ NOMINVALUE
+ NOCYCLE
+Error at Command Line:55 Column:17
+Error report:
+SQL Error: ORA-00955: name is already used by an existing object
+00955. 00000 -  "name is already used by an existing object"
+*Cause:    
+*Action:
+> @cpf-ddl.grt
+Granting Object Privileges
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+GRANT succeeded.
+> @cpf-ddl-data.sql
+old:INSERT INTO cpf.cpf_user_accounts (user_account_id, user_account_class, user_name, consumer_key, consumer_secret, active_ind, who_created, when_created, who_updated, when_updated) VALUES 
+  (cpf.cpf_ua_seq.NEXTVAL, 'CPF', 'cpf_admin', 'cpf_admin', '&CPF_ADMIN_PW', '1', USER, SYSDATE, USER, SYSDATE)
+new:INSERT INTO cpf.cpf_user_accounts (user_account_id, user_account_class, user_name, consumer_key, consumer_secret, active_ind, who_created, when_created, who_updated, when_updated) VALUES 
+  (cpf.cpf_ua_seq.NEXTVAL, 'CPF', 'cpf_admin', 'cpf_admin', 'null', '1', USER, SYSDATE, USER, SYSDATE)
+
+Error starting at line 3 in command:
+INSERT INTO cpf.cpf_user_accounts (user_account_id, user_account_class, user_name, consumer_key, consumer_secret, active_ind, who_created, when_created, who_updated, when_updated) VALUES 
+  (cpf.cpf_ua_seq.NEXTVAL, 'CPF', 'cpf_admin', 'cpf_admin', '&CPF_ADMIN_PW', '1', USER, SYSDATE, USER, SYSDATE)
+Error report:
+SQL Error: ORA-00001: unique constraint (CPF.CPF_UA_UK2) violated
+00001. 00000 -  "unique constraint (%s.%s) violated"
+*Cause:    An UPDATE or INSERT statement attempted to insert a duplicate key.
+           For Trusted Oracle configured in DBMS MAC mode, you may see
+           this message if a duplicate entry exists at a different level.
+*Action:   Either remove the unique restriction or do not insert the key.
+1 rows inserted.
+
+Error starting at line 7 in command:
+INSERT INTO CPF.CPF_USER_GROUP_ACCOUNT_XREF (USER_GROUP_ID, USER_ACCOUNT_ID)
+SELECT USER_GROUP_ID, USER_ACCOUNT_ID
+FROM CPF.CPF_USER_GROUPS G, CPF.CPF_USER_ACCOUNTS A
+WHERE G.USER_GROUP_NAME = 'ADMIN' AND A.USER_ACCOUNT_CLASS = 'CPF' AND A.USER_NAME = 'cpf_admin'
+Error report:
+SQL Error: ORA-00001: unique constraint (CPF.CPF_UGAX_PK) violated
+00001. 00000 -  "unique constraint (%s.%s) violated"
+*Cause:    An UPDATE or INSERT statement attempted to insert a duplicate key.
+           For Trusted Oracle configured in DBMS MAC mode, you may see
+           this message if a duplicate entry exists at a different level.
+*Action:   Either remove the unique restriction or do not insert the key.
+old:INSERT INTO cpf.cpf_user_accounts (user_account_id, user_account_class, user_name, consumer_key, consumer_secret, active_ind, who_created, when_created, who_updated, when_updated) VALUES
+  (cpf.cpf_ua_seq.NEXTVAL, 'CPF', 'cpf_worker', 'cpf_worker', '&CPF_WORKER_PW', '1', USER, SYSDATE, USER, SYSDATE)
+new:INSERT INTO cpf.cpf_user_accounts (user_account_id, user_account_class, user_name, consumer_key, consumer_secret, active_ind, who_created, when_created, who_updated, when_updated) VALUES
+  (cpf.cpf_ua_seq.NEXTVAL, 'CPF', 'cpf_worker', 'cpf_worker', 'null', '1', USER, SYSDATE, USER, SYSDATE)
+
+Error starting at line 13 in command:
+INSERT INTO cpf.cpf_user_accounts (user_account_id, user_account_class, user_name, consumer_key, consumer_secret, active_ind, who_created, when_created, who_updated, when_updated) VALUES
+  (cpf.cpf_ua_seq.NEXTVAL, 'CPF', 'cpf_worker', 'cpf_worker', '&CPF_WORKER_PW', '1', USER, SYSDATE, USER, SYSDATE)
+Error report:
+SQL Error: ORA-00001: unique constraint (CPF.CPF_UA_UK2) violated
+00001. 00000 -  "unique constraint (%s.%s) violated"
+*Cause:    An UPDATE or INSERT statement attempted to insert a duplicate key.
+           For Trusted Oracle configured in DBMS MAC mode, you may see
+           this message if a duplicate entry exists at a different level.
+*Action:   Either remove the unique restriction or do not insert the key.
+1 rows inserted.
+
+Error starting at line 17 in command:
+INSERT INTO cpf.CPF_USER_GROUP_ACCOUNT_XREF (USER_GROUP_ID, USER_ACCOUNT_ID)
+SELECT USER_GROUP_ID, USER_ACCOUNT_ID
+FROM CPF.CPF_USER_GROUPS G, CPF.CPF_USER_ACCOUNTS A
+WHERE G.USER_GROUP_NAME = 'WORKER' AND A.USER_ACCOUNT_CLASS = 'CPF' AND A.USER_NAME = 'cpf_worker'
+Error report:
+SQL Error: ORA-00001: unique constraint (CPF.CPF_UGAX_PK) violated
+00001. 00000 -  "unique constraint (%s.%s) violated"
+*Cause:    An UPDATE or INSERT statement attempted to insert a duplicate key.
+           For Trusted Oracle configured in DBMS MAC mode, you may see
+           this message if a duplicate entry exists at a different level.
+*Action:   Either remove the unique restriction or do not insert the key.
+> GRANT CPF_USER TO PROXY_CPF_WEB 
+GRANT succeeded.
+> exit
+Commit
