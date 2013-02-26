@@ -8,7 +8,7 @@
   <parent>
     <artifactId>cpf-parent</artifactId>
     <groupId>ca.bc.gov.open.cpf</groupId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>cpf-plugins-sample</artifactId>
   <name>CPF Plugins Samples</name>
