@@ -261,7 +261,7 @@ public class BusinessApplicationStatistics {
           if (stopWatch.isRunning()) {
             stopWatch.stop();
           }
-        } catch (IllegalStateException e) {
+        } catch (final IllegalStateException e) {
         }
         final long time = stopWatch.getTotalTimeMillis();
         addStatistic(name, time);

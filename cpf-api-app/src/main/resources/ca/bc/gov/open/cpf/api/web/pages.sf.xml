@@ -32,10 +32,10 @@
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu"
           p:typeName="/CPF/CPF_BATCH_JOBS"
           p:pageName="clientList" />
-        <bean
+<!--       <bean
           class="com.revolsys.ui.model.Menu"
           p:title="API (for developers)"
-          p:uri="/docs/" />
+          p:uri="/docs/" /> -->  
       </list>
     </property>
   </bean>

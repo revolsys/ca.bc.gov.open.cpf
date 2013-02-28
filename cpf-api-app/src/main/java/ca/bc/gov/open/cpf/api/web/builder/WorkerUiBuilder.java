@@ -61,7 +61,7 @@ public class WorkerUiBuilder extends CpfUiBuilder implements
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
   public ElementContainer pageView(@PathVariable final String workerId)
     throws ServletException {
-    BatchJobService batchJobService = getBatchJobService();
+    final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
     if (worker == null) {
       throw new PageNotFoundException("The worker " + workerId
@@ -76,8 +76,7 @@ public class WorkerUiBuilder extends CpfUiBuilder implements
       addTabDataTable(tabs, BatchJobRequestExecutionGroup.class.getName(),
         "workerList", parameters);
 
-      addTabDataTable(tabs, Module.class.getName(),
-        "workerList", parameters);
+      addTabDataTable(tabs, Module.class.getName(), "workerList", parameters);
 
       return tabs;
     }

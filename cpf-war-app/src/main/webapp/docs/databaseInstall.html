@@ -1,0 +1,270 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Installation - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      REL="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../ws/" title="Home">Home</a></li>
+                    <li><a href="client/">Client API</a><ul>
+                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="plugin/">Plug-in API</a><ul>
+                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+                    <li>CPF Database Installation</li>
+                    <!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+
+<h1>Database Installation</h1>
+
+<p>The CPF requires a PostgreSQL or Oracle database to be installed for use by the CPF application.</p>
+
+<p>A local copy of the CPF databases should be deployed at a developer's site. For projects with multiple developers it is recommended to install a local database on each developer's workstation and one on a central integration test server.</p>
+
+<p class="note">NOTE: Installation of database for any business application plug-ins is outside the scope of the CPF.</p>
+
+<h2>Requirements</h2>
+
+<p>The CPF requires a database to store the CPF configuration, Job requests and Job results. The following databases are currently supported.</p>
+
+<ul>
+  <li>PostgreSQL 9.1.x</li>
+  <li>Oracle 10g or 11g</li>
+</ul>
+
+<p>A developer may also require additional databases for use by their plug-in. They must deliver all required SQL scripts and instructions on how to install these databases.</p>
+
+<p class="note">NOTE: For PostgreSQL the server instance can be shared with other applications but it is recommended to have a separate "database" within that instance for CPF. For Oracle there is no such restriction.</p>
+
+<h2>Download SQL Scripts</h2>
+
+<p>The SQL scripts to install the database can be downloaded from the CITZ BC Government subversion repository.</p>
+
+<p>The following scripts will download the Oracle and PostgreSQL scripts. </p>
+
+<p>The following scripts download the SQL into the directory <code>/apps/cpf/sql</code>. This can be changed to any directory as required as the SQL scripts are not location specific.</p>
+
+<figure>
+  <figcaption>UNIX/Mac</figcaption>
+<pre class="prettyprint">mkdir -p /apps/cpf
+cd /apps/cpf
+svn co <a href="http://apps.bcgov/svn/cpf/api-source/trunk/scripts/">http://apps.bcgov/svn/cpf/api-source/trunk/scripts/</a> sql
+cd sql</pre>
+</figure>
+  
+<figure>
+  <figcaption>Windows</figcaption>
+<pre class="prettyprint">md \apps\cpf
+cd \apps\cpf
+svn co <a href="http://apps.bcgov/svn/cpf/api-source/trunk/scripts/">http://apps.bcgov/svn/cpf/api-source/trunk/scripts/</a> sql
+cd sql</pre>
+</figure>
+
+<div class="note">NOTE: If you have previously downloaded the SQL the following command can be used to ensure that you have the latest version.</div>
+
+<figure>
+<pre class="prettyprint">svn up</pre>
+</figure>
+
+<h2>CPF Database Install Configuration</h2>
+
+<p>The database install scripts require a configuration file to avoid manually entering configuration parameters while executing the script.</p>
+
+<figure>
+  <figcaption>Unix/Mac</figcaption>
+<pre class="prettyprint">DB_VENDOR=<b>postgresql</b> or <b>oracle</b>
+cd /apps/cpf/sql/${DB_VENDOR}
+cp sample-db.properties db.properties</pre>
+</figure>
+ 
+<figure>
+  <figcaption>Windows</figcaption>
+<pre class="prettyprint">set DB_VENDOR=<b>postgresql</b> or <b>oracle</b>
+cd \apps\cpf\sql\%DB_VENDOR%
+cp sample-db.properties db.properties</pre>
+</figure>
+
+<div class="note">NOTE: Change permissions on the <code>db.properties</code> so that only you have read/write permissions on the file to keep the passwords secret.</div>
+
+<p>Edit the <code>db.properties</code> file.</p>
+
+<div class="simpleDataTable">
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Example Value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th><code>DB_HOSTNAME</code></td>
+      <td><code>localhost</code></td>
+      <td>The hostname of the PostgreSQL sever. Not used for Oracle.</td>
+    </tr>
+    <tr>
+      <th><code>DB_PORT</code></th>
+      <td><code>5432</code></td>
+      <td>The port of the PostgreSQL sever. Not used for Oracle.</td>
+    </tr>
+    <tr>
+      <th><code>DB_NAME</code></th>
+      <td><code>cpf</code></td>
+      <td>The PostgreSQL database name or Oracle TNSNAME, tnsnames.ora must be configured.</td>
+    </tr>
+    <tr>
+      <th><code>OWNER_PASSWORD</code></th>
+      <td><code>cpf_2009</code></td>
+      <td>The password to create the CPF database account with.</td>
+    </tr>
+    <tr>
+      <th><code>PROXY_WEB_PASSWORD</code></th>
+      <td><code>cpf_2009</code></td>
+      <td>The password to create the PROXY_CPF_WEB database account with.</td>
+    </tr>
+    <tr>
+      <th><code>TABLESPACE_DIR</code></th>
+      <td><code>/data/postgres/cpf
+c:/data/postgres/cpf</code></td>
+      <td>The directory to create the database tablespace in. The directory must exist on the <b>server</b> and the PostgreSQL or Oracle process must have write   permissions on this directory</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>For PostgreSQL, to avoid needing to enter in the passwords for each SQL command create a <code>~/.pgpass</code> on UNIX or <code>%APPDATA%\postgresql\pgpass.conf</code> file on Windows. Set the permissions so that only you can read/write the <code>pgpass.conf</code> file. The file can be deleted after installation if required. The file should look something like this.</p>
+
+<figure><pre class="prettyprint">localhost</b>:<b>5432</b>:*:postgres:******
+<b>localhost</b>:<b>5432</b>:*:cpf:<b>cpf_2009</b></pre></figure>
+  
+<h2>CPF Database and schema install</h2>
+
+<p>The CPF installation process will create the following database objects. If the objects already exist the script will either ignore that step or in the case of CPF tables it will prompt to confirm that the existing tables should be deleted.</p>
+
+<ul>
+  <li>Create a cpf database for PostgreSQL. An existing Oracle database must already exist.</li>
+  <li>Create a <code>CPF tablespace</code> to store the CPF data.</li>
+  <li>Create a <code>CPF_WEB_PROXY</code> database role that will have CRUD permission on the tables.</li>
+  <li>Create a <code>CPF</code> database user account that this the owner of all the CPF tables. <span class="note">NOTE: This account must not be used for any other purpose than managing the table definitions.</span></li>
+  <li>Create a <code>PROXY_CPF_WE</code>B user account that is used by the CPF web application to access the database.</li>
+  <li>Create a <code>CPF</code> schema for all of the CPF tables, sequences and indexes.</li>
+  <li>Create all the CPF tables, sequences and indexes and grant appropriate permissions for these tables.</li>
+</ul>
+
+<div class="note">NOTE: For Oracle you will need to know the password for the SYSTEM database account, you will be prompted to enter this in the script.</div>
+
+<figure>
+  <figcaption>Unix/Mac</figcaption>
+<pre class="prettyprint">DB_VENDOR=<b>postgresql</b> or <b>oracle</b>
+cd /apps/cpf/sql/${DB_VENDOR}
+./install.sh</pre>
+</figure>
+
+<figure>
+  <figcaption>Windows</figcaption>
+<pre class="prettyprint">set DB_VENDOR=<b>postgresql</b> or <b>oracle</b>
+cd \apps\cpf\sql\${DB_VENDOR}
+install.cmd</pre>
+</figure>
+  
+<p>During the installation script you may be prompted for the following information.</p>
+
+<ul>
+  <li>Passwords for the <code>SYSTEM</code> or <code>POSTGRES</code> user accounts.</li>
+  <li><div>If the database already exists the following prompt will be displayed. Entering <code>YES</code> will delete all the existing data and create new tables.</div>
+    <figure><code>WARN: Do you want to drop the existing database including all data (YES/NO)?</code></figure></li>
+</ul>
+
+<div class="note">NOTE: Contact the CPF developer, if there are any errors while running the script that are NOT related to file permissions or unknown user account passwords.</div>
+
+              
+                <!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

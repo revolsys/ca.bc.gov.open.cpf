@@ -6,14 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Maven Settings - CPF</title>
+<title>Maven - CPF</title>
 <!-- InstanceEndEditable -->
 
     <link
-      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
-      rel="stylesheet" type="text/css" />
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+      REL="stylesheet" type="text/css" />
     <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -77,7 +77,7 @@ td > ul {
 <li><a href="../ws/">HOME</a></li>
 <li><a href="../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-<li>Maven Settings</li>
+<li>Maven</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -85,89 +85,36 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
- <h1>Maven Settings</h1>
+<h1>Maven</h1>
 
-  <p>The CPF client Java API is available from the CITZ BC Government Maven repository. We
-    recommend that all Java applications be developed using Maven with is the standard for CITZ
-    applications. Developers are responsible for ensuring they know how to develop Java applications
-    in Maven. See
-    <a href="http://www.sonatype.com/books/mvnref-book/reference/">Maven: The Complete Reference</a>
-    for details on developing with Maven.</p>
-    
-    <p>The following code example shows how to include a dependency to the CPF client API.<p>
-<pre class="prettyprint"><code class="language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;project
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
-&gt;
+<p>The CPF is developed using the Apache Maven build tool. All CPF plug-ins must be developed using Maven as it manages the dependencies between the CPF components and external libraries. Developers must have an understanding of developing applications using Maven.</p>
+
+<p>Maven 3.0.x is required and can be downloaded from the following sites.</p>
+
+<ul>
+  <li><a href="http://maven.apache.org/">Command line tools</a></li>
+  <li><a href="http://eclipse.org/m2e/">Eclipse Maven plug-in</a></li>
+</ul>
+
+<p>See <a href="http://www.sonatype.com/books/mvnref-book/reference/">Maven: The Complete Reference</a> for details on developing with Maven.</p>
+
+<p>The CPF libraries are deployed to the CITZ BC Government Maven repository. Follow instructions Appendex A.1 Maven settings.xml to use this repository to download the CPF libraries.  NOTE: This step must be completed before continuing with these instructions.
+
+ 
+<h2>Maven Settings</h2>
+
+<p>The CPF is available from the CITZ BC Government Maven repository inside the BC Government network/VPN.</p>
+ 
+<p>In addition to the jar files the repository includes the javadoc files for each library. These can be downloaded using your IDE to provide help on the various classes and methods.</p>
+
+<p class="note">NOTE: To use the CITZ BC Government Maven Repository you must either be within the BC Government network or use a BC Government VPN connection.</p>
+
   
-  &lt;dependencies&gt;
-    &lt;dependency&gt;
-    &lt;groupId&gt;ca.bc.gov.open.cpf&lt;/groupId&gt;
-    &lt;artifactId&gt;cpf-api-client&lt;/artifactId&gt;
-    &lt;version&gt;${ca.bc.gov.open.cpf.version}&lt;/version&gt;
-    &lt;/dependency&gt;
-  &lt;/dependencies&gt;
-  
-  &lt;properties&gt;
-    &lt;ca.bc.gov.open.cpf.version&gt;${project.version}&lt;/ca.bc.gov.open.cpf.version&gt;
-  &lt;/properties&gt;
-&lt;/project&gt;</code></pre>
+<p>The following example Maven settings.xml adds a new profile that include references to the CITZ BC Government Maven Repository. Copy the following file to ~/.m2/settings.xml (or merge if the file already exists) to enable Maven to download the libraries from these locations.</p>
 
-  <p>Note that a property is used to define the CPF version. In delivery the -SNAPSHOT suffix
-  might be appended to the version to indicate that the most recent development snapshot is to 
-  be used. This is required if a new feature of the CPF client API is required that has not yet been
-  deployed to production. In test a .RC* suffix might be used for a release candidate.</p>
-
-  <p>Before migration to the production environment the dependency to the CPF client must be
-    updated to use the release version . This must be clearly documented in the
-    application readme file. It is the developer's responsibility to ensure that the -SNAPSHOT or
-    .RC* version is not used in production.</p>
-
-  <p>Include the following in the Perform Release of the README.txt for each version property.
-  Replace the text <b>VERSION</b> with the version without the -SNAPSHOT or .RC* suffix.</p>
-  
-  <pre class="prettyprint">Update property dependencies to latest RC or release version:
-  ca.bc.gov.open.cpf.version: <b>VERSION</b>+</pre>
-
-  <p>Include the following in the pom.xml for each version property. Replace the text<b>VERSION</b>
-  with the version without the -SNAPSHOT or .RC* suffix.</p>
-
-<pre class="prettyprint"><code class="language-xml">  &lt;build&gt;
-    &lt;plugins&gt;
-      &lt;plugin&gt;
-        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
-        &lt;artifactId&gt;versions-maven-plugin&lt;/artifactId&gt;
-        &lt;version&gt;1.3.1&lt;/version&gt;
-        &lt;configuration&gt;
-          &lt;properties&gt;
-            &lt;property&gt;
-              &lt;name&gt;ca.bc.gov.open.cpf.version&lt;/name&gt;
-              &lt;version&gt;[<b>VERSION</b>,),[<b>VERSION</b>.RC,)&lt;/version&gt;
-            &lt;/property&gt;
-          &lt;/properties&gt;
-        &lt;/configuration&gt;
-      &lt;/plugin&gt;
-    &lt;/plugins&gt;
-  &lt;/build&gt;</code></pre>
-
-  <p>The BC Government deploy process uses the
-  <a href="http://mojo.codehaus.org/versions-maven-plugin/update-properties-mojo.html">CodeHaus Versions Maven Plugin</a>
-  to update the -SNAPSHOT dependency to the production version.</p>
-  
-  <pre class="prettyprint">mvn org.codehaus.mojo:versions-maven-plugin:2.0:use-releases -DgenerateBackupPoms=false</pre>
-  
-  <p>As the CPF client is not deployed to the public maven repository your development
-    environment must be configured to use the CITZ BC Government Maven repository. The following
-    example Maven settings.xml adds two new profiles that include references to the CITZ BC
-    Government Maven Repository. Copy the following file to ~/.m2/settings.xml (or merge if the file
-    already exists) to enable Maven to download the libraries from these locations.</p>
-
-  <p class="note">NOTE: To use the CITZ BC Government Maven Repository a VPN connection is
-    required.</p>
-
-  <pre class="prettyprint"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+<figure>
+  <figcaption>~/.m2/maven.settings</figcaption>
+<pre class="prettyprint language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;settings
   xmlns=&quot;http://maven.apache.org/SETTINGS/1.0.0&quot;
   xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
@@ -201,7 +148,75 @@ td > ul {
       &lt;/repositories&gt;
     &lt;/profile&gt;
   &lt;/profiles&gt;
-&lt;/settings&gt;</code></pre>
+&lt;/settings&gt;</pre>
+</figure>
+
+<h2>CPF Client API Dependencies</h2>
+
+<p>The following code example shows how to include a dependency to the CPF client API.<p>
+
+<figure>
+<pre class="prettyprint language-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+&gt;
+  
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+    &lt;groupId&gt;ca.bc.gov.open.cpf&lt;/groupId&gt;
+    &lt;artifactId&gt;cpf-api-client&lt;/artifactId&gt;
+    &lt;version&gt;${ca.bc.gov.open.cpf.version}&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+  
+  &lt;properties&gt;
+    &lt;ca.bc.gov.open.cpf.version&gt;${project.version}&lt;/ca.bc.gov.open.cpf.version&gt;
+  &lt;/properties&gt;
+&lt;/project&gt;</pre>
+</figure>
+
+<p class="note">NOTE: A property is used to define the CPF version. In delivery the -SNAPSHOT suffix might be appended to the version to indicate that the most recent development snapshot is to be used. This is required if a new feature of the CPF client API is required that has not yet been deployed to production. In test a .RC* suffix might be used for a release candidate.</p>
+
+<p>Before migration to the production environment the dependency to the CPF client must be updated to use the release version . This must be clearly documented in the application readme file. It is the developer's responsibility to ensure that the -SNAPSHOT or .RC* version is not used in production.</p>
+
+<p>Include the following in the Perform Release of the README.txt for each version property. Replace the text <b>VERSION</b> with the version without the -SNAPSHOT or .RC* suffix.</p>
+  
+<p>Update property dependencies to latest RC or release version:</p>
+
+<figure>
+  <pre class="prettyprint">ca.bc.gov.open.cpf.version: <b>VERSION</b>+</pre>
+</figure>
+
+<p>Include the following in the pom.xml for each version property. Replace the text<b>VERSION</b> with the version without the -SNAPSHOT or .RC* suffix.</p>
+
+<figure>
+<pre class="prettyprint language-xml">  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+        &lt;artifactId&gt;versions-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;1.3.1&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;properties&gt;
+            &lt;property&gt;
+              &lt;name&gt;ca.bc.gov.open.cpf.version&lt;/name&gt;
+              &lt;version&gt;[<b>VERSION</b>,),[<b>VERSION</b>.RC,)&lt;/version&gt;
+            &lt;/property&gt;
+          &lt;/properties&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;</pre>
+</figure>
+
+<p>The BC Government deploy process uses the <a href="http://mojo.codehaus.org/versions-maven-plugin/update-properties-mojo.html">CodeHaus Versions Maven Plugin</a> to update the -SNAPSHOT dependency to the production version.</p>
+  
+<figure>
+  <pre class="prettyprint">mvn org.codehaus.mojo:versions-maven-plugin:2.0:use-releases -DgenerateBackupPoms=false</pre>
+</figure>
+
 <!-- InstanceEndEditable -->
                 </div>
               </div>

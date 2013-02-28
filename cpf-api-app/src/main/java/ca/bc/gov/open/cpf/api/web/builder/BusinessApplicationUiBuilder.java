@@ -65,6 +65,76 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     setIdPropertyName("name");
   }
 
+  @RequestMapping("/ws/sample/input")
+  @ResponseBody
+  public DataObjectReader getSampleInputData() {
+    final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
+      "/Buffer");
+    final GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
+      1000);
+    metaData.setGeometryFactory(factory);
+    metaData.addAttribute("title", DataTypes.STRING);
+    metaData.addAttribute("buffer", DataTypes.DOUBLE);
+    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
+
+    final List<DataObject> objects = new ArrayList<DataObject>();
+
+    final DataObject object1 = new ArrayDataObject(metaData);
+    object1.setValue("title", "Buffered centroid of BC");
+    object1.setValue("buffer", 10000);
+    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357));
+    objects.add(object1);
+
+    final DataObject object2 = new ArrayDataObject(metaData);
+    object2.setValue("title", "Stanley Park");
+    object2.setValue("buffer", 1000);
+    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637));
+    objects.add(object2);
+
+    final ListDataObjectReader reader = new ListDataObjectReader(metaData,
+      objects);
+    return reader;
+  }
+
+  @RequestMapping("/ws/sample/result")
+  @ResponseBody
+  public DataObjectReader getSampleResultData() {
+    final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
+      "/Buffer");
+    final GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
+      1000);
+    metaData.setGeometryFactory(factory);
+    metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
+    metaData.addAttribute("resultNumber", DataTypes.INTEGER);
+    metaData.addAttribute("title", DataTypes.STRING);
+    metaData.addAttribute("buffer", DataTypes.DOUBLE);
+    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
+
+    final List<DataObject> objects = new ArrayList<DataObject>();
+
+    final DataObject object1 = new ArrayDataObject(metaData);
+    object1.setValue("sequenceNumber", 1);
+    object1.setValue("resultNumber", 1);
+    object1.setValue("title", "Buffered centroid of BC");
+    object1.setValue("buffer", 10000);
+    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357)
+      .buffer(10000));
+    objects.add(object1);
+
+    final DataObject object2 = new ArrayDataObject(metaData);
+    object2.setValue("sequenceNumber", 2);
+    object2.setValue("resultNumber", 1);
+    object2.setValue("title", "Stanley Park");
+    object2.setValue("buffer", 1000);
+    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637)
+      .buffer(1000));
+    objects.add(object2);
+
+    final ListDataObjectReader reader = new ListDataObjectReader(metaData,
+      objects);
+    return reader;
+  }
+
   @RequestMapping(value = {
     "/admin/apps"
   }, method = RequestMethod.GET)
@@ -75,10 +145,10 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response) throws IOException {
     final List<BusinessApplication> businessApplications = getBusinessApplications();
     final Map<String, Object> parameters = Collections.emptyMap();
-    ElementContainer table = createDataTable(request, "list", parameters,
+    final ElementContainer table = createDataTable(request, "list", parameters,
       businessApplications);
 
-    TabElementContainer tabs = new TabElementContainer();
+    final TabElementContainer tabs = new TabElementContainer();
     tabs.add("Business Applications", table);
     return tabs;
   }
@@ -234,67 +304,5 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       return tabs;
     }
     throw new NoSuchRequestHandlingMethodException(request);
-  }
-
-  @RequestMapping("/ws/sample/input")
-  @ResponseBody
-  public DataObjectReader getSampleInputData() {
-    DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl("/Buffer");
-    GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000, 1000);
-    metaData.setGeometryFactory(factory);
-    metaData.addAttribute("title", DataTypes.STRING);
-    metaData.addAttribute("buffer", DataTypes.DOUBLE);
-    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
- 
-    List<DataObject> objects = new ArrayList<DataObject>();
-
-    DataObject object1 = new ArrayDataObject(metaData);
-    object1.setValue("title", "Buffered centroid of BC");
-    object1.setValue("buffer", 10000);
-    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357));
-    objects.add(object1);
-
-    DataObject object2 = new ArrayDataObject(metaData);
-    object2.setValue("title", "Stanley Park");
-    object2.setValue("buffer", 1000);
-    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637));
-    objects.add(object2);
-
-    ListDataObjectReader reader = new ListDataObjectReader(metaData, objects);
-    return reader;
-  }
-
-  @RequestMapping("/ws/sample/result")
-  @ResponseBody
-  public DataObjectReader getSampleResultData() {
-    DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl("/Buffer");
-    GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000, 1000);
-    metaData.setGeometryFactory(factory);
-    metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
-    metaData.addAttribute("resultNumber", DataTypes.INTEGER);
-    metaData.addAttribute("title", DataTypes.STRING);
-    metaData.addAttribute("buffer", DataTypes.DOUBLE);
-    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
-
-    List<DataObject> objects = new ArrayList<DataObject>();
-
-    DataObject object1 = new ArrayDataObject(metaData);
-    object1.setValue("sequenceNumber", 1);
-    object1.setValue("resultNumber", 1);
-    object1.setValue("title", "Buffered centroid of BC");
-    object1.setValue("buffer", 10000);
-    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357).buffer(10000));
-    objects.add(object1);
-
-    DataObject object2 = new ArrayDataObject(metaData);
-    object2.setValue("sequenceNumber", 2);
-    object2.setValue("resultNumber", 1);
-    object2.setValue("title", "Stanley Park");
-    object2.setValue("buffer", 1000);
-    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637).buffer(1000));
-    objects.add(object2);
-
-    ListDataObjectReader reader = new ListDataObjectReader(metaData, objects);
-    return reader;
   }
 }

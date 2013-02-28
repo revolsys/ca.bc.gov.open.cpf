@@ -38,7 +38,7 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
   }
 
   public List<BatchJobRequestExecutionGroup> getWorkerExecutionGroups() {
-    String workerId = HttpServletUtils.getPathVariable("workerId");
+    final String workerId = HttpServletUtils.getPathVariable("workerId");
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
     if (worker == null) {
@@ -46,7 +46,7 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
         + " could not be found. It may no longer be connected.");
     } else {
 
-      List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
+      final List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
       return executingGroups;
     }
   }
@@ -58,13 +58,14 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
   @PreAuthorize(ADMIN)
   public Object pageWorkerList(@PathVariable final String workerId)
     throws IOException, NoSuchRequestHandlingMethodException {
-    BatchJobService batchJobService = getBatchJobService();
+    final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
     if (worker == null) {
       throw new PageNotFoundException("The worker " + workerId
         + " could not be found. It may no longer be connected.");
     } else {
-      return createDataTableHandler(getRequest(), "workerList", workerGroupsCallable);
+      return createDataTableHandler(getRequest(), "workerList",
+        workerGroupsCallable);
     }
   }
 
@@ -75,13 +76,13 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
   public ElementContainer pageWorkerView(@PathVariable final String workerId,
     @PathVariable final String executionGroupId) throws ServletException {
-    BatchJobService batchJobService = getBatchJobService();
+    final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
     if (worker == null) {
       throw new PageNotFoundException("The worker " + workerId
         + " could not be found. It may no longer be connected.");
     } else {
-      BatchJobRequestExecutionGroup group = worker.getExecutingGroup(executionGroupId);
+      final BatchJobRequestExecutionGroup group = worker.getExecutingGroup(executionGroupId);
       if (group == null) {
         throw new PageNotFoundException("The group " + workerId
           + " could not be found. It may no longer be executing.");

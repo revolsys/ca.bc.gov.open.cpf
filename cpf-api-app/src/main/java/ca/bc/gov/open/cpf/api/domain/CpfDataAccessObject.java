@@ -708,7 +708,7 @@ public class CpfDataAccessObject {
       final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS - NUM_EXECUTING_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
       try {
         return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
-      } catch (IllegalArgumentException e) {
+      } catch (final IllegalArgumentException e) {
         return false;
       }
     }
@@ -745,7 +745,7 @@ public class CpfDataAccessObject {
       final String sql = "SELECT NUM_SUBMITTED_REQUESTS - NUM_COMPLETED_REQUESTS - NUM_FAILED_REQUESTS FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
       try {
         return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
-      } catch (IllegalArgumentException e) {
+      } catch (final IllegalArgumentException e) {
         return false;
       }
     }

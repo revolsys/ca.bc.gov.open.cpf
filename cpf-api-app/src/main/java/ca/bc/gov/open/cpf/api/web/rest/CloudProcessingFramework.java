@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -217,6 +218,33 @@ public class CloudProcessingFramework {
   public CloudProcessingFramework() {
   }
 
+  public void addAppVersionPage(final PageInfo page,
+    final BusinessApplication businessApplication,
+    final String businessApplicationVersion) {
+    final String title = businessApplication.getTitle();
+    final PageInfo childPage = addPage(page, businessApplicationVersion, title
+      + " v" + businessApplicationVersion);
+    setBusinessApplicationDescription(childPage, businessApplication,
+      businessApplicationVersion);
+  }
+
+  private void addBatchJobStatusLink(final PageInfo page,
+    final String consumerKey, final DataObject job) {
+    final Number batchJobId = job.getIdValue();
+    final String batchJobUrl = HttpServletUtils.getFullUrl("/ws/users/"
+      + consumerKey + "/jobs/" + batchJobId + "/");
+    final Timestamp timestamp = job.getValue(BatchJob.WHEN_CREATED);
+    final PageInfo childPage = addPage(page, batchJobUrl, "Batch Job "
+      + batchJobId + " Status");
+
+    childPage.setAttribute("consumerKey", consumerKey);
+    childPage.setAttribute("batchJobId", batchJobId);
+    childPage.setAttribute("batchJobUrl", batchJobUrl);
+    childPage.setAttribute("jobStatus", job.getValue(BatchJob.JOB_STATUS));
+    childPage.setAttribute("creationTimestamp",
+      DATETIME_FORMAT.format(timestamp));
+  }
+
   private void addFieldRow(final ElementContainer fields,
     final Attribute attribute) {
     final Field field = getField(attribute);
@@ -330,14 +358,16 @@ public class CloudProcessingFramework {
     final String description = attribute.getDescription();
     final boolean jobParameter = attribute.getProperty(BusinessApplication.JOB_PARAMETER) == Boolean.TRUE;
     final boolean requestParameter = attribute.getProperty(BusinessApplication.REQUEST_PARAMETER) == Boolean.TRUE;
+    final Collection<Object> allowedValues = attribute.getAllowedValues()
+      .keySet();
     addParameter(parameters, name, typeDescription, description, jobParameter,
-      requestParameter, perRequestInputData);
+      requestParameter, perRequestInputData, allowedValues);
   }
 
   private void addParameter(final List<Map<String, Object>> parameters,
     final String name, final String typeDescription, final String description,
     final boolean jobParameter, final boolean requestParameter,
-    final boolean perRequestInputData) {
+    final boolean perRequestInputData, final Collection<Object> allowedValues) {
     final Map<String, Object> parameter = new LinkedHashMap<String, Object>();
     parameter.put("name", name);
     parameter.put("type", typeDescription);
@@ -345,6 +375,9 @@ public class CloudProcessingFramework {
     parameter.put("jobParameter", jobParameter);
     if (!perRequestInputData) {
       parameter.put("requestParameter", requestParameter);
+    }
+    if (allowedValues != null && !allowedValues.isEmpty()) {
+      parameter.put("allowedValues", allowedValues);
     }
     parameters.add(parameter);
   }
@@ -1072,7 +1105,7 @@ public class CloudProcessingFramework {
     HttpServletUtils.setAttribute("title", "Business Applications");
     if (HtmlUiBuilder.isDataTableCallback()) {
       return businessAppBuilder.createDataTableMap(applications, "clientList");
-    } else if (isHtmlPage()) {
+    } else if (MediaTypeUtil.isHtmlPage()) {
       final String url = HttpServletUtils.getFullUrl("/ws/#businessApplication_clientList");
       final HttpServletResponse response = HttpServletUtils.getResponse();
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
@@ -1115,8 +1148,9 @@ public class CloudProcessingFramework {
       checkPermission(businessApplication.getInstantModeExpression(),
         "No instant mode permission for " + businessApplication.getName());
       final String format = HttpServletUtils.getParameter("format");
-      if (format == null || "true".equals(HttpServletUtils.getParameter( "specification"))) {
-        if (isHtmlPage()) {
+      if (format == null
+        || "true".equals(HttpServletUtils.getParameter("specification"))) {
+        if (MediaTypeUtil.isHtmlPage()) {
           final Map<String, Object> titleParameters = new HashMap<String, Object>();
           final String title = businessApplication.getTitle();
           titleParameters.put("businessApplicationTitle", title);
@@ -1215,7 +1249,7 @@ public class CloudProcessingFramework {
         "No batch mode permission for " + businessApplication.getName());
       final Map<String, Object> titleParameters = new HashMap<String, Object>();
 
-      if (isHtmlPage()) {
+      if (MediaTypeUtil.isHtmlPage()) {
         final String title = businessApplication.getTitle();
         titleParameters.put("businessApplicationTitle", title);
         titleParameters.put("businessApplicationVersion",
@@ -1251,7 +1285,7 @@ public class CloudProcessingFramework {
       checkPermission(businessApplication);
       final List<String> compatibleVersions = businessApplication.getCompatibleVersions();
       final String version = businessApplication.getVersion();
-      if (isHtmlPage()) {
+      if (MediaTypeUtil.isHtmlPage()) {
         HttpServletUtils.setPathVariable("businessApplicationVersion", version);
         return businessAppBuilder.redirectPage("clientView");
       } else {
@@ -1267,16 +1301,6 @@ public class CloudProcessingFramework {
         return page;
       }
     }
-  }
-
-  public void addAppVersionPage(final PageInfo page,
-    final BusinessApplication businessApplication,
-    final String businessApplicationVersion) {
-    final String title = businessApplication.getTitle();
-    PageInfo childPage = addPage(page, businessApplicationVersion, title + " v"
-      + businessApplicationVersion);
-    setBusinessApplicationDescription(childPage, businessApplication,
-      businessApplicationVersion);
   }
 
   @RequestMapping(value = {
@@ -1296,7 +1320,7 @@ public class CloudProcessingFramework {
         "No batch mode permission for " + businessApplication.getName());
       final Map<String, Object> titleParameters = new HashMap<String, Object>();
 
-      if (isHtmlPage()) {
+      if (MediaTypeUtil.isHtmlPage()) {
         final String title = businessApplication.getTitle();
         titleParameters.put("businessApplicationTitle", title);
         titleParameters.put("businessApplicationVersion",
@@ -1339,7 +1363,7 @@ public class CloudProcessingFramework {
       if (businessApplication.isVersionSupported(businessApplicationVersion)) {
         HttpServletUtils.setAttribute("title", title);
 
-        if (isHtmlPage()) {
+        if (MediaTypeUtil.isHtmlPage()) {
           HttpServletUtils.setAttribute("pageHeading", title);
           final ElementContainer container = new ElementContainer();
           final String description = businessApplication.getDescription();
@@ -1685,15 +1709,15 @@ public class CloudProcessingFramework {
       "inputDataContentType",
       "string",
       "The MIME type of the input data specified by an inputData or inputDataUrl parameter.",
-      true, false, perRequestInputData);
+      true, false, perRequestInputData, Collections.emptyList());
 
     addParameter(parameters, "inputData", "file",
       "The multi-part file containing the input data.", true, false,
-      perRequestInputData);
+      perRequestInputData, Collections.emptyList());
 
     addParameter(parameters, "inputDataUrl", "string",
       "The http: URL to the file or resource containing input data.", true,
-      false, perRequestInputData);
+      false, perRequestInputData, Collections.emptyList());
 
     final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
     for (final Attribute attribute : requestMetaData.getAttributes()) {
@@ -1702,14 +1726,14 @@ public class CloudProcessingFramework {
 
     addParameter(parameters, "notificationEmail", "string",
       "The email address to send the job status to when the job is completed.",
-      true, false, perRequestInputData);
+      true, false, perRequestInputData, Collections.emptyList());
 
     addParameter(
       parameters,
       "notificationUrl",
       "string",
       "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.",
-      true, false, perRequestInputData);
+      true, false, perRequestInputData, Collections.emptyList());
 
     return parameters;
   }
@@ -1787,7 +1811,7 @@ public class CloudProcessingFramework {
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getRoot() {
-    if (isHtmlPage()) {
+    if (MediaTypeUtil.isHtmlPage()) {
       HttpServletUtils.setAttribute("title", "Cloud Processing Framework");
 
       final TabElementContainer tabs = new TabElementContainer();
@@ -1849,12 +1873,230 @@ public class CloudProcessingFramework {
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void getUsers() {
-    if (isHtmlPage()) {
+    if (MediaTypeUtil.isHtmlPage()) {
       final String url = HttpServletUtils.getFullUrl("/ws/");
       HttpServletUtils.sendRedirect(url);
     } else {
       final String consumerKey = getConsumerKey();
       sendRedirectWithExtension("/" + consumerKey);
+    }
+  }
+
+  /**
+   * <p>
+   * The list of the business applications for a user.
+   * <p>
+   * <h5>Web Browser HTML</h5>
+   * <p>
+   * Redirects to the <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
+   * >root</a> resource displaying the Business Applications tab.
+   * </p>
+   * <h5>REST API</h5>
+   * <p>
+   * A <a href="../resourceDescription.html">Resource Description</a> of this
+   * resource with resource links to the following resources.
+   * </p>
+   * <ul>
+   * <li>Resource link for each <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsResources"
+   * >business application</a></li>
+   * </ul>
+   * 
+   * @return The resource.
+   * @web.response.code 200
+   * <p>
+   * The resource will be returned in the body of the HTTP response in the
+   * requested format.
+   * </p>
+   * @web.response.status 302
+   * <p>
+   * In a web browser redirect to the <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
+   * >root</a> resource business application tab.
+   * </p>
+   */
+  @RequestMapping(value = {
+    "/ws/users/{consumerKey}/apps"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public PageInfo getUsersBusinessApplications(
+    @PathVariable final String consumerKey) {
+    if (MediaTypeUtil.isHtmlPage()) {
+      final String url = HttpServletUtils.getFullUrl("/ws/#businessApplication_clientList");
+      return HttpServletUtils.sendRedirect(url);
+    } else {
+      final PageInfo page = createRootPageInfo("Business Applications");
+      for (final BusinessApplication businessApplication : getAuthorizedBusinessApplications()) {
+        final String name = businessApplication.getName();
+        final String title = businessApplication.getTitle();
+        addPage(page, name, title);
+      }
+      return page;
+    }
+  }
+
+  /**
+   * <p>
+   * The list of the batch jobs for a user.
+   * <p>
+   * <h5>Web Browser HTML</h5>
+   * <p>
+   * Redirects to the <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
+   * >root</a> resource displaying the Batch Jobs tab.
+   * </p>
+   * <h5>REST API</h5>
+   * <p>
+   * A <a href="../resourceDescription.html">Resource Description</a> of this
+   * resource with resource links to the following resources.
+   * </p>
+   * <ul>
+   * <li>Resource link for each <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBatchJobsInfo"
+   * >batch job</a></li>
+   * </ul>
+   * 
+   * @return The resource.
+   * @web.response.code 200
+   * <p>
+   * The resource will be returned in the body of the HTTP response in the
+   * requested format.
+   * </p>
+   * @web.response.status 302
+   * <p>
+   * In a web browser redirect to the <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
+   * >root</a> resource Batch Jobs tab.
+   * </p>
+   */
+  @RequestMapping(value = {
+    "/ws/users/{consumerKey}/apps/{businessApplicationName}/jobs"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public Object getUsersBusinessApplicationsJobs(
+    @PathVariable final String businessApplicationName,
+    @PathVariable final String consumerKey) {
+    final BusinessApplication businessApplication = batchJobUiBuilder.getBusinessApplication(businessApplicationName);
+    if (businessApplication == null || !businessApplication.isEnabled()) {
+      throw new PageNotFoundException("Business application "
+        + businessApplicationName + " does not exist.");
+    } else {
+      CloudProcessingFramework.checkPermission(businessApplication);
+      if (HtmlUiBuilder.isDataTableCallback()) {
+        final Map<String, Object> parameters = new HashMap<String, Object>();
+
+        final Map<String, Object> filter = new HashMap<String, Object>();
+        filter.put(BatchJob.USER_ID, consumerKey);
+        filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+        parameters.put("filter", filter);
+
+        return batchJobUiBuilder.createDataTableMap("clientAppList", parameters);
+      } else if (MediaTypeUtil.isHtmlPage()) {
+        HttpServletUtils.setPathVariable("businessApplicationVersion",
+          businessApplication.getVersion());
+        batchJobUiBuilder.redirectToTab(BusinessApplication.class,
+          "clientView", "clientAppList");
+        return null;
+      } else {
+        final String title = businessApplication.getTitle();
+        final PageInfo page = createRootPageInfo(title + " Batch Jobs for "
+          + consumerKey);
+        final List<DataObject> batchJobs = dataAccessObject.getBatchJobsForUserAndApplication(
+          consumerKey, businessApplicationName);
+        for (final DataObject job : batchJobs) {
+          addBatchJobStatusLink(page, consumerKey, job);
+        }
+        final Object table = batchJobUiBuilder.createDataTableHandler(
+          "clientList", batchJobs);
+        if (table instanceof Element) {
+          final Element element = (Element)table;
+          page.setPagesElement(element);
+        } else {
+          return table;
+        }
+        return page;
+      }
+    }
+  }
+
+  /**
+   * <p>
+   * The resources available to a user for a business application.
+   * <p>
+   * <h5>Web Browser HTML</h5>
+   * <p>
+   * Redirects to the <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources"
+   * >business application</a> resource.
+   * </p>
+   * <h5>REST API</h5>
+   * <p>
+   * A <a href="../resourceDescription.html">Resource Description</a> of this
+   * resource with resource links to the following resources.
+   * </p>
+   * <ul>
+   * <li><a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant"
+   * >instant</a></li>
+   * <li><a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle"
+   * >create single request job</a></li>
+   * <li><a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple"
+   * >create multi request jobs</a></li>
+   * <li><a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsJobs"
+   * >batch jobs</a></li>
+   * </ul>
+   * 
+   * @return The resource.
+   * @web.response.code 200
+   * <p>
+   * The resource will be returned in the body of the HTTP response in the
+   * requested format.
+   * </p>
+   * @web.response.status 302
+   * <p>
+   * In a web browser redirect to the <a href=
+   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources"
+   * >business application</a> resource overview tab.
+   * </p>
+   */
+  @RequestMapping(value = {
+    "/ws/users/{consumerKey}/apps/{businessApplicationName}"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public PageInfo getUsersBusinessApplicationsResources(
+    @PathVariable final String businessApplicationName,
+    @PathVariable final String consumerKey) {
+    final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
+    if (businessApplication == null || !businessApplication.isEnabled()) {
+      throw new PageNotFoundException("Business application "
+        + businessApplicationName + " does not exist.");
+    } else if (MediaTypeUtil.isHtmlPage()) {
+      HttpServletUtils.setPathVariable("businessApplicationVersion",
+        businessApplication.getVersion());
+      businessAppBuilder.redirectPage("clientView");
+      return null;
+    } else {
+      checkPermission(businessApplication);
+      final String title = businessApplication.getTitle();
+      final PageInfo page = createRootPageInfo(title);
+      if (hasPermission(businessApplication.getInstantModeExpression())) {
+        addPage(page, "../../../../instant", "Instant");
+      }
+      if (hasPermission(businessApplication.getBatchModeExpression())) {
+
+        addPage(page, "../../../../single", "Create Single Request Job", "post");
+        addPage(page, "../../../../multiple", "Create Multi-Request Job",
+          "post");
+      }
+      addPage(page, "jobs", "Batch Jobs");
+      return page;
     }
   }
 
@@ -1872,7 +2114,7 @@ public class CloudProcessingFramework {
       parameters.put("filter", filter);
 
       return batchJobUiBuilder.createDataTableMap("clientList", parameters);
-    } else if (isHtmlPage()) {
+    } else if (MediaTypeUtil.isHtmlPage()) {
       final String url = HttpServletUtils.getFullUrl("/ws/#batchJob_clientList");
       final HttpServletResponse response = HttpServletUtils.getResponse();
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
@@ -1890,23 +2132,6 @@ public class CloudProcessingFramework {
     }
   }
 
-  private void addBatchJobStatusLink(final PageInfo page,
-    final String consumerKey, final DataObject job) {
-    final Number batchJobId = job.getIdValue();
-    String batchJobUrl = HttpServletUtils.getFullUrl("/ws/users/" + consumerKey
-      + "/jobs/" + batchJobId + "/");
-    final Timestamp timestamp = job.getValue(BatchJob.WHEN_CREATED);
-    PageInfo childPage = addPage(page, batchJobUrl, "Batch Job " + batchJobId
-      + " Status");
-
-    childPage.setAttribute("consumerKey", consumerKey);
-    childPage.setAttribute("batchJobId", batchJobId);
-    childPage.setAttribute("batchJobUrl", batchJobUrl);
-    childPage.setAttribute("jobStatus", job.getValue(BatchJob.JOB_STATUS));
-    childPage.setAttribute("creationTimestamp",
-      DATETIME_FORMAT.format(timestamp));
-  }
-
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/jobs/{batchJobId}"
   }, method = RequestMethod.GET)
@@ -1920,7 +2145,7 @@ public class CloudProcessingFramework {
       throw new PageNotFoundException("Batch Job " + batchJobId
         + " does not exist.");
     } else {
-      if (isHtmlPage()) {
+      if (MediaTypeUtil.isHtmlPage()) {
         final TabElementContainer tabs = new TabElementContainer();
         batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
         if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null) {
@@ -2025,8 +2250,8 @@ public class CloudProcessingFramework {
   }, method = RequestMethod.GET)
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public Object getUsersJobsResults(
-    @PathVariable final String consumerKey, @PathVariable final long batchJobId) {
+  public Object getUsersJobsResults(@PathVariable final String consumerKey,
+    @PathVariable final long batchJobId) {
     final DataObject batchJob = dataAccessObject.getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
@@ -2043,7 +2268,7 @@ public class CloudProcessingFramework {
 
         return batchJobResultUiBuilder.createDataTableMap("clientList",
           parameters);
-      } else if (isHtmlPage()) {
+      } else if (MediaTypeUtil.isHtmlPage()) {
         HttpServletUtils.setAttribute("title", title);
         final Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("serverSide", false);
@@ -2076,224 +2301,6 @@ public class CloudProcessingFramework {
         }
         return page;
       }
-    }
-  }
-
-  /**
-   * <p>
-   * The list of the business applications for a user.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource displaying the Business Applications tab.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li>Resource link for each <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsResources"
-   * >business application</a></li>
-   * </ul>
-   * 
-   * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource business application tab.
-   * </p>
-   */
-  @RequestMapping(value = {
-    "/ws/users/{consumerKey}/apps"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public PageInfo getUsersBusinessApplications(
-    @PathVariable final String consumerKey) {
-    if (isHtmlPage()) {
-      final String url = HttpServletUtils.getFullUrl("/ws/#businessApplication_clientList");
-      return HttpServletUtils.sendRedirect(url);
-    } else {
-      final PageInfo page = createRootPageInfo("Business Applications");
-      for (final BusinessApplication businessApplication : getAuthorizedBusinessApplications()) {
-        final String name = businessApplication.getName();
-        final String title = businessApplication.getTitle();
-        addPage(page, name, title);
-      }
-      return page;
-    }
-  }
-
-  /**
-   * <p>
-   * The list of the batch jobs for a user.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource displaying the Batch Jobs tab.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li>Resource link for each <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBatchJobsInfo"
-   * >batch job</a></li>
-   * </ul>
-   * 
-   * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource Batch Jobs tab.
-   * </p>
-   */
-  @RequestMapping(value = {
-    "/ws/users/{consumerKey}/apps/{businessApplicationName}/jobs"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public Object getUsersBusinessApplicationsJobs(
-    @PathVariable final String businessApplicationName,
-    @PathVariable final String consumerKey) {
-    final BusinessApplication businessApplication = batchJobUiBuilder.getBusinessApplication(businessApplicationName);
-    if (businessApplication == null || !businessApplication.isEnabled()) {
-      throw new PageNotFoundException("Business application "
-        + businessApplicationName + " does not exist.");
-    } else {
-      CloudProcessingFramework.checkPermission(businessApplication);
-      if (HtmlUiBuilder.isDataTableCallback()) {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
-
-        final Map<String, Object> filter = new HashMap<String, Object>();
-        filter.put(BatchJob.USER_ID, consumerKey);
-        filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-        parameters.put("filter", filter);
-
-        return batchJobUiBuilder.createDataTableMap("clientAppList", parameters);
-      } else if (isHtmlPage()) {
-        HttpServletUtils.setPathVariable("businessApplicationVersion",
-          businessApplication.getVersion());
-        batchJobUiBuilder.redirectToTab(BusinessApplication.class,
-          "clientView", "clientAppList");
-        return null;
-      } else {
-        final String title = businessApplication.getTitle();
-        final PageInfo page = createRootPageInfo(title + " Batch Jobs for "
-          + consumerKey);
-        final List<DataObject> batchJobs = dataAccessObject.getBatchJobsForUserAndApplication(
-          consumerKey, businessApplicationName);
-        for (final DataObject job : batchJobs) {
-          addBatchJobStatusLink(page, consumerKey, job);
-        }
-        final Object table = batchJobUiBuilder.createDataTableHandler(
-          "clientList", batchJobs);
-        if (table instanceof Element) {
-          final Element element = (Element)table;
-          page.setPagesElement(element);
-        } else {
-          return table;
-        }
-        return page;
-      }
-    }
-  }
-
-  /**
-   * <p>
-   * The resources available to a user for a business application.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources"
-   * >business application</a> resource.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant"
-   * >instant</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle"
-   * >create single request job</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple"
-   * >create multi request jobs</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsJobs"
-   * >batch jobs</a></li>
-   * </ul>
-   * 
-   * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources"
-   * >business application</a> resource overview tab.
-   * </p>
-   */
-  @RequestMapping(value = {
-    "/ws/users/{consumerKey}/apps/{businessApplicationName}"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public PageInfo getUsersBusinessApplicationsResources(
-    @PathVariable final String businessApplicationName,
-    @PathVariable final String consumerKey) {
-    final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
-    if (businessApplication == null || !businessApplication.isEnabled()) {
-      throw new PageNotFoundException("Business application "
-        + businessApplicationName + " does not exist.");
-    } else if (isHtmlPage()) {
-      HttpServletUtils.setPathVariable("businessApplicationVersion",
-        businessApplication.getVersion());
-      businessAppBuilder.redirectPage("clientView");
-      return null;
-    } else {
-      checkPermission(businessApplication);
-      final String title = businessApplication.getTitle();
-      final PageInfo page = createRootPageInfo(title);
-      if (hasPermission(businessApplication.getInstantModeExpression())) {
-        addPage(page, "../../../../instant", "Instant");
-      }
-      if (hasPermission(businessApplication.getBatchModeExpression())) {
-
-        addPage(page, "../../../../single", "Create Single Request Job", "post");
-        addPage(page, "../../../../multiple", "Create Multi-Request Job",
-          "post");
-      }
-      addPage(page, "jobs", "Batch Jobs");
-      return page;
     }
   }
 
@@ -2340,7 +2347,7 @@ public class CloudProcessingFramework {
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getUsersResources(@PathVariable final String consumerKey) {
-    if (isHtmlPage()) {
+    if (MediaTypeUtil.isHtmlPage()) {
       final String url = HttpServletUtils.getFullUrl("/ws/");
       return HttpServletUtils.sendRedirect(url);
     } else {
@@ -2353,14 +2360,10 @@ public class CloudProcessingFramework {
     }
   }
 
-  private boolean isHtmlPage() {
-    return MediaTypeUtil.isPreferedMediaType(HttpServletUtils.getRequest(),
-      MediaType.TEXT_HTML);
-  }
 
   public Void sendRedirectWithExtension(final String path) {
-     String url = MediaTypeUtil.getUrlWithExtension(path);
-    String callback = HttpServletUtils.getParameter("callback");
+    String url = MediaTypeUtil.getUrlWithExtension(path);
+    final String callback = HttpServletUtils.getParameter("callback");
     if (StringUtils.hasText(callback)) {
       url = UrlUtil.getUrl(url, Collections.singletonMap("callback", callback));
     }
@@ -2369,7 +2372,7 @@ public class CloudProcessingFramework {
   }
 
   private void setBusinessApplicationDescription(final PageInfo page,
-    final BusinessApplication businessApplication, String version) {
+    final BusinessApplication businessApplication, final String version) {
     String description = businessApplication.getDescription();
     String descriptionUrl = businessApplication.getDescriptionUrl();
     if (StringUtils.hasText(descriptionUrl)) {

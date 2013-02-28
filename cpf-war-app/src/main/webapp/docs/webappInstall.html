@@ -1,0 +1,361 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>Installation - CPF</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      REL="stylesheet" type="text/css" />
+    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../js/prettify.js"></script>
+    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../ws/" title="Home">Home</a></li>
+                    <li><a href="client/">Client API</a><ul>
+                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="plugin/">Plug-in API</a><ul>
+                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../ws/">HOME</a></li>
+<li><a href="../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+                    <li>CPF Web Application Installation</li>
+                    <!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+<p>A local copy of the CPF web applications and databases should be deployed at the developer's site. For projects with multiple developers it is recommended to install a local database and J2EE servlet container on each developer's workstation and one on a central integration test server.</p>
+
+<h2><a name="_Toc211664495">CPF Web Application Deployment</a></h2>
+<p>The CPF applications are deployed to a J2EE application server or servlet container. To deploy to a J2EE Servlet container the individual wars are deployed to the J2EE Servlet container.</p>
+<p>Deployment is currently supported to the following server.</p>
+<ul>
+  <li>Tomcat 7.x</li>
+</ul>
+<p>&nbsp;</p>
+<h3><a name="_Toc211664496">Create CPF directories</a></h3>
+<p>The CPF requires directories to be created on the server. The following directories must be created.</p>
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><p><b>Directory</th>
+    <td><p><b>User    Perms</th>
+    <td><p><b>J2EE    Server Perms</th>
+    <td><p><b>Description</th>
+  </tr>
+  <tr>
+    <td><p>/apps/cpf/config</td>
+    <td><p>rw</td>
+    <td><p>r</td>
+    <td><p>The   directory containing the CPF configuration file for the database URL,   username and password.</td>
+  </tr>
+  <tr>
+    <td><p>/apps/cpf/log</td>
+    <td><p>r</td>
+    <td><p>rw</td>
+    <td><p>The directory to store the CPF   logs.</td>
+  </tr>
+  <tr>
+    <td><p>/apps/cpf/repository<br>
+      or<br>
+      /home/&lt;username&gt;/.m2/repository</td>
+    <td><p>rw</td>
+    <td><p>rw</td>
+    <td><p>The local Maven repository cache.   If the J2EE server is on the developers workstation use the user's local   maven repository cache </td>
+  </tr>
+</table>
+<p>Create the directories using the following commands. Make sure the directory permissions are set as shown in the table above.</p>
+<p><b>UNIX/Mac</b><br>
+  mkdir -p /apps/cpf<br>
+  mkdir -p /apps/cpf/config<br>
+  mkdir -p /apps/cpf/log<br>
+  mkdir -p /apps/cpf/repository</p>
+<p><b>Windows</b><br>
+  These commands must be run on the same directory that the J2EE server is deployed to.</p>
+<p>cd C:<br>
+  md \apps\cpf<br>
+  md \apps\cpf\config<br>
+  md \apps\cpf\log<br>
+  md \apps\cpf\repository</p>
+<h3><a name="_Toc211664497">Create a CPF web application project</a></h3>
+<p>The CPF application can be configured to connect to different types of database and be configured or extended in other ways. Therefore instead of delivering a pre-packaged war file a maven project is created for each installation that contains the configuration for that environment.</p>
+<p>Create the maven project using the following maven archetype command.</p>
+<div>
+  <p>cd /projects<a href="#_ftn1" name="_ftnref1" title=""> </a><br>
+    mvn \<br>
+      archetype:generate \<br>
+      -DinteractiveMode=false \<br>
+      -DarchetypeGroupId=ca.bc.gov.open.cpf \<br>
+      -DarchetypeArtifactId=cpf-archetype-web \<br>
+      -DarchetypeVersion=<b>4.0.0-SNAPSHOT</b> \<br>
+      -DgroupId=<b>com.mycompany</b> \<br>
+      -DartifactId=<b>cpf</b> \<br>
+      -Dversion=<b>1.0.0-SNAPSHOT \</b><br>
+      -DmodulePrefix=<b>cpf</b> \<br>
+      -DdatabaseVendor=<b>postgresql \</b><br>
+      -DcpfDirectory=<b>/apps/cpf \</b><br>
+      -DmavenCacheDirectory=/<b>home/$USER/.m2/repository</b></p>
+</div>
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><p><b>Parameter</th>
+    <td><p><b>Description</th>
+  </tr>
+  <tr>
+    <td><p>archetypeVersion</td>
+    <td><p>The most   recent version of the CPF framework.</td>
+  </tr>
+  <tr>
+    <td><p>groupId</td>
+    <td><p>The maven group identifier. This   should be your company name if deploying within your development environment</td>
+  </tr>
+  <tr>
+    <td><p>artifactId</td>
+    <td><p>The base maven artifact   identifier used for the maven modules created in the project.</td>
+  </tr>
+  <tr>
+    <td><p>verstion</td>
+    <td><p>The version identifier you’d   like to give to your plug-in.</td>
+  </tr>
+  <tr>
+    <td><p>modulePrefix</td>
+    <td><p>The prefix to use on the web   applications.</td>
+  </tr>
+  <tr>
+    <td><p>databaseVendor</td>
+    <td><p>The database type that the CPF   uses for its data. Supported values include postgresql and oracle.</td>
+  </tr>
+  <tr>
+    <td><p>cpfDirectory</td>
+    <td><p>The root directory the CPF   configuration file and log files will be stored in.</td>
+  </tr>
+  <tr>
+    <td><p>mavenCacheDirectory</td>
+    <td><p>The local Maven repository cache.   If the J2EE server is on the developers workstation use the user's local   maven repository cache. Otherwise use /apps/cpf/repository.</td>
+  </tr>
+</table>
+<p>The following directory structure would be created if the command were run using the parameters above.</p>
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><p><b>File/Directory</th>
+    <td><p><b>Description</th>
+  </tr>
+  <tr>
+    <td><p>cpf</td>
+    <td><p>The root   directory of the web project.</td>
+  </tr>
+  <tr>
+    <td><p>  cpf.app</td>
+    <td><p>The maven   module for the web application containing the web services and scheduler.</td>
+  </tr>
+  <tr>
+    <td><p>    pom.xml</td>
+    <td><p>The maven build file for the web   services and scheduler.</td>
+  </tr>
+  <tr>
+    <td><p>    src/main/resources</td>
+    <td><p>The resources to be included in   the web application jar file.</td>
+  </tr>
+  <tr>
+    <td><p>      cpf-api-properties.sf.xml</td>
+    <td><p>The configuration file for the   CPF API components.</td>
+  </tr>
+  <tr>
+    <td><p>      cpf-web-properties.sf.xml</td>
+    <td><p>The configuration file for the CPF   web components.</td>
+  </tr>
+  <tr>
+    <td><p>      log4j.xml</td>
+    <td><p>The log4j configuration.</td>
+  </tr>
+  <tr>
+    <td><p>    src/main/webapp/META-INF/context.xml</td>
+    <td><p>Tomcat context configuration</td>
+  </tr>
+  <tr>
+    <td><p>  cpf.worker</td>
+    <td><p>The maven   module for the web application containing the worker.</td>
+  </tr>
+  <tr>
+    <td><p>    pom.xml</td>
+    <td><p>The maven   build file for the worker.</td>
+  </tr>
+  <tr>
+    <td><p>    src/main/resources</td>
+    <td><p>The   resources to be included in the web applications jar file.</td>
+  </tr>
+  <tr>
+    <td><p>      cpf-worker-properties.sf.xml</td>
+    <td><p>The   configuration file for the worker.</td>
+  </tr>
+  <tr>
+    <td><p>      log4j.xml</td>
+    <td><p>The log4j   configuration.</td>
+  </tr>
+  <tr>
+    <td><p>    src/main/webapp/META-INF/context.xml</td>
+    <td><p>Tomcat context configuration</td>
+  </tr>
+  <tr>
+    <td><p>  pom.xml</td>
+    <td><p>The parent maven build file that   builds all modules</td>
+  </tr>
+  <tr>
+    <td><p>  sample-config/cpf.properties</td>
+    <td><p>A sample config file to copy to   /apss/cpf/conf/</td>
+  </tr>
+</table>
+<p><b>NOTE:</b> Developers shouldn't need to edit any of these configuration files. They are populated using the parameters specified in the maven archetype. If you need to change the cpf directory location or the database vendor it's probably easier to delete the project and create a new project using the maven archetype. All database configurations are done using runtime configuration files and plug-in configuration is stored in the database.</p>
+<h3><a name="_Toc211664498"></a><a name="_Ref201895067">Maven Settings Configuration</a></h3>
+<p>A profile must be created in the ~/.m2/settings.xml for each server environment that the CPF components are deployed to. The following example shows a full settings file with a single profile for the localhost server.</p>
+<p>If you want to deploy the application to multiple servers you can create a profile for each server in your ~/.m2/settings.xml. The profile id should be the name of the server to deploy to. For example the following shows a profile for the localhost.</p>
+<div>
+  <p>&lt;settings&gt;<br>
+      &lt;profile&gt;<br>
+        &lt;id&gt;<b>localhost</b>&lt;/id&gt;<br>
+        &lt;properties&gt;<br>
+          &lt;!-- Include the following for Tomcat 7 deployment --&gt;<br>
+          &lt;tomcat7ManagerUrl&gt;<b>http://localhost:8080/manager/text</b>&lt;/tomcat7ManagerUrl&gt;<br>
+          &lt;tomcat7ManagerUsername&gt;<b>admin</b>&lt;/tomcat7ManagerUsername&gt;<br>
+          &lt;tomcat7ManagerPassword&gt;<b>********</b>&lt;/tomcat7ManagerPassword&gt;<br>
+        &lt;/properties&gt;<br>
+      &lt;/profile&gt;<br>
+    &lt;/settings&gt;</p>
+</div>
+<h3><a name="_Toc211664499">CPF Runtime Configuration</a></h3>
+<p>Any configuration that changes from one server to another is included in a runtime configuration file in the /apps/cpf/config directory on the server. No environment specific configuration is included in the compiled WAR files, i.e. the same war could be deployed to delivery, test and production environments.</p>
+<p>Copy the sample-config/cpf.properties file to the /apps/cpf/config/cpf.properties directory on the server.</p>
+<table border="1" cellspacing="0" cellpadding="0">
+  <tr>
+    <th>Property</th>
+    <td><p><b>Description</th>
+  </tr>
+  <tr>
+    <td>cpfApplicationBaseUrl</td>
+    <td><p>The base URL to the CPF apps web   application (e.g. http://localhost:8080/cpf).</td>
+  </tr>
+  <tr>
+    <td>cpfDataSource.url</td>
+    <td><p>The full JDBC URL to the CPF   database server (e.g. jdbc:postgresql:cpf.).</td>
+  </tr>
+  <tr>
+    <td>cpfDataSource.username</td>
+    <td><p>The user name to login to the CPF   database (e.g. proxy_cpf_web).</td>
+  </tr>
+  <tr>
+    <td>cpfDataSource.password</td>
+    <td><p>The password for the CPF   database (e.g. cpf_2009).</td>
+  </tr>
+  <tr>
+    <td>cpfInternalConsumerKey</td>
+    <td><p>The user id used in the internal   web services (e.g. cpf). Must be an http://open.gov.bc.ca/cpf/SystemUser user   in the cpf.cpf_user_accounts table.</td>
+  </tr>
+  <tr>
+    <td>cpfInternalConsumerSecret</td>
+    <td><p>The password used in the   internal web services (e.g. cpf_2009). Must be an http://open.gov.bc.ca/cpf/SystemUser   user in the cpf.cpf_user_accounts table.</td>
+  </tr>
+</table>
+<h3><a name="_Toc211664500">External Maven Repository Configuration</a></h3>
+<p>If the CPF is not deployed on a </p>
+<p>Edit the following configuration file. You will need to re-build and deploy if this file is modified.</p>
+<p>/projects/cpf/cpf.app/src/main/resources/cpf-web-properties.sf.xml</p>
+<p>The first item in bold needs to be modified to the value used for the mavenCacheDirectory specified above.</p>
+<p>Add the second bold section to the configuration. The value must be the local file URL or remote http URL to a shared maven repository that you will deploy the plug-ins to. See http://maven.apache.org/plug-ins/maven-deploy-plug-in/ for deploying to a maven repository.</p>
+<div>
+  <p>    &lt;entry<br>
+          key="mavenRepository.root"<br>
+          value="<b>file:///apps/cpf/repository/</b>" /&gt;</p>
+  <p><b>    &lt;entry key="mavenRepository.repositoryLocations"&gt;</b><br>
+    <b>      &lt;list&gt;</b><br>
+    <b>        &lt;value&gt;http://mycompany.com/maven/repository/&lt;/value&gt;</b><br>
+    <b>      &lt;/list&gt;</b><br>
+    <b>    &lt;/entry&gt;</b></p>
+</div>
+<h3><a name="_Toc211664501">Deploy to Tomcat 7</a></h3>
+<p>The plug-in project web services &amp; scheduler war and worker war files can be deployed to a Tomcat 7 server.</p>
+<p>Use the following command to compile and deploy to Tomcat.</p>
+<p>mvn -P tomcat7Deploy,<b>localhost </b>clean install</p>
+<p>If you created multiple profiles in step 2.2.3, use the profile name of the server you wish to deploy to.</p>
+<div>
+  <div id="ftn1"><br>
+    <a href="#_ftnref1" name="_ftn1" title=""> </a> Change /projects to the directory you use for development </div>
+</div>
+              
+                <!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

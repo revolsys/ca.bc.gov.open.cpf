@@ -60,6 +60,9 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   private final Callable<Collection<? extends Object>> modulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
     this, "getModules");
 
+  private final Callable<Collection<? extends Object>> workerModulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
+    this, "getWorkerModules");
+
   public ModuleUiBuilder() {
     super("module", "Business Application Module",
       "Business Application Modules");
@@ -287,6 +290,37 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     return getBusinessApplicationRegistry().getModules();
   }
 
+  public List<Module> getWorkerModules() {
+    final String workerId = HttpServletUtils.getPathVariable("workerId");
+    final BatchJobService batchJobService = getBatchJobService();
+    final Worker worker = batchJobService.getWorker(workerId);
+    if (worker == null) {
+      throw new PageNotFoundException("The worker " + workerId
+        + " could not be found. It may no longer be connected.");
+    } else {
+      return worker.getLoadedModules();
+    }
+  }
+
+  @RequestMapping(value = {
+    "/admin/workers/{workerId}/modules"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @PreAuthorize(ADMIN)
+  public Object pageWorkerList(@PathVariable final String workerId)
+    throws IOException, NoSuchRequestHandlingMethodException {
+    final BatchJobService batchJobService = getBatchJobService();
+    final Worker worker = batchJobService.getWorker(workerId);
+    if (worker == null) {
+      throw new PageNotFoundException("The worker " + workerId
+        + " could not be found. It may no longer be connected.");
+    } else {
+      return createDataTableHandlerOrRedirect(getRequest(),
+        HttpServletUtils.getResponse(), "workerList", workerModulesCallable,
+        Worker.class, "view");
+    }
+  }
+
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/delete"
   }, method = RequestMethod.POST)
@@ -345,38 +379,5 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
   public void setModuleLoader(final ConfigPropertyModuleLoader moduleLoader) {
     this.moduleLoader = moduleLoader;
-  }
-
-  public List<Module> getWorkerModules() {
-    String workerId = HttpServletUtils.getPathVariable("workerId");
-    final BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
-    if (worker == null) {
-      throw new PageNotFoundException("The worker " + workerId
-        + " could not be found. It may no longer be connected.");
-    } else {
-      return worker.getLoadedModules();
-    }
-  }
-
-  private final Callable<Collection<? extends Object>> workerModulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
-    this, "getWorkerModules");
-
-  @RequestMapping(value = {
-    "/admin/workers/{workerId}/modules"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @PreAuthorize(ADMIN)
-  public Object pageWorkerList(@PathVariable final String workerId)
-    throws IOException, NoSuchRequestHandlingMethodException {
-    BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
-    if (worker == null) {
-      throw new PageNotFoundException("The worker " + workerId
-        + " could not be found. It may no longer be connected.");
-    } else {
-      return createDataTableHandlerOrRedirect(getRequest(), HttpServletUtils.getResponse(), "workerList",
-        workerModulesCallable, Worker.class, "view");
-    }
   }
 }

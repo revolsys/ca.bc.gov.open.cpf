@@ -82,6 +82,10 @@ public class BatchJobRequestExecutionGroup {
     return businessApplicationParameterMap;
   }
 
+  public String getconsumerKey() {
+    return consumerKey;
+  }
+
   public long getExecutionStartTime() {
     return executionStartTime;
   }
@@ -120,10 +124,6 @@ public class BatchJobRequestExecutionGroup {
 
   public Timestamp getStartedTimestamp() {
     return scheduleTimestamp;
-  }
-
-  public String getconsumerKey() {
-    return consumerKey;
   }
 
   @Override

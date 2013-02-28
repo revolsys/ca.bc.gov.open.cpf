@@ -308,6 +308,10 @@ public class BatchJobService implements ModuleEventListener {
       statistics.getParentId(), statistics.toMap());
   }
 
+  public void cancelBatchJob(final long batchJobId) {
+    // TODO remove from scheduler
+  }
+
   public void cancelGroup(final Worker worker, final String groupId) {
     if (groupId != null) {
       final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
@@ -911,10 +915,11 @@ public class BatchJobService implements ModuleEventListener {
     synchronized (module) {
       if (action.equals(ModuleEvent.STOP)) {
         groupsToSchedule.remove(moduleName);
-        for (Worker worker : getWorkers()) {
-          String moduleNameAndTime = moduleName + ":" + module.getStartedTime();
-          List<BatchJobRequestExecutionGroup> cancelledGroups = worker.cancelExecutingGroups(moduleNameAndTime);
-          for (BatchJobRequestExecutionGroup cancelledGroup : cancelledGroups) {
+        for (final Worker worker : getWorkers()) {
+          final String moduleNameAndTime = moduleName + ":"
+            + module.getStartedTime();
+          final List<BatchJobRequestExecutionGroup> cancelledGroups = worker.cancelExecutingGroups(moduleNameAndTime);
+          for (final BatchJobRequestExecutionGroup cancelledGroup : cancelledGroups) {
             cancelledGroup.resetId();
             schedule(cancelledGroup);
           }
@@ -1801,19 +1806,15 @@ public class BatchJobService implements ModuleEventListener {
                   final Long requestId = ((Number)requestResult.get("requestId")).longValue();
                   if (batchJobRequestIds.contains(requestId)) {
 
-                    final int requestStatus = updateBatchJobRequestFromResponse(
+                    final Map<String, Integer> counts = updateBatchJobRequestFromResponse(
                       requestId, requestResult);
-                    Number requestExecutionTime = (Number)requestResult.get("requestExecutionTime");
-                    if (requestStatus == 0) {
+                    if (!counts.isEmpty()) {
+                      final Number requestExecutionTime = (Number)requestResult.get("requestExecutionTime");
                       if (requestExecutionTime != null) {
                         totalApplicationExecutionTime += requestExecutionTime.longValue();
                       }
-                      numCompletedRequests++;
-                    } else if (requestStatus == 1) {
-                      if (requestExecutionTime != null) {
-                        totalApplicationExecutionTime += requestExecutionTime.longValue();
-                      }
-                      numFailedRequests++;
+                      numCompletedRequests += counts.get("success");
+                      numFailedRequests += counts.get("error");
                     }
                     final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)requestResult.get("logRecords");
                     if (logRecords != null && !logRecords.isEmpty()) {
@@ -2068,21 +2069,31 @@ public class BatchJobService implements ModuleEventListener {
    * @return True if the request was successful, false if it has errors.
    */
   @Transactional(propagation = Propagation.REQUIRED)
-  public int updateBatchJobRequestFromResponse(final Long requestId,
-    final Map<String, Object> result) {
+  public Map<String, Integer> updateBatchJobRequestFromResponse(
+    final Long requestId, final Map<String, Object> result) {
     final DataObject batchJobRequest = dataAccessObject.getBatchJobRequestLocked(requestId);
-    if (DataObjectUtil.getBoolean(batchJobRequest,
-      BatchJobRequest.COMPLETED_IND)) {
+
+    int errorCount = 0;
+    int successCount = 0;
+
+    boolean completed = DataObjectUtil.getBoolean(batchJobRequest,
+      BatchJobRequest.COMPLETED_IND);
+    if (completed) {
       LOG.error("*** PROCESSING ERROR *** request " + requestId
         + " is being reprocessed");
+      if (StringUtils.hasText(batchJobRequest.getString(BatchJobRequest.ERROR_CODE))) {
+        successCount--;
+      } else {
+        errorCount--;
+      }
     }
+
     String errorMessage = (String)result.get("errorMessage");
     ErrorCode errorCode = null;
     final String errorCodeString = (String)result.get("errorCode");
     if (errorCodeString != null) {
       errorCode = ErrorCode.valueOf(errorCodeString);
     }
-    int status = 0;
     if (errorCode == null) {
       if (Boolean.TRUE == result.get("perRequestResultData")) {
         final String resultDataUrl = batchJobRequest.getValue(BatchJobRequest.RESULT_DATA_URL);
@@ -2101,16 +2112,17 @@ public class BatchJobService implements ModuleEventListener {
           errorCode = ErrorCode.BAD_RESPONSE_DATA;
         }
       }
-      status = 0;
+      successCount++;
+      ;
     } else {
-      status = 1;
+      errorCount++;
     }
     if (errorCode != null && errorMessage == null) {
       errorMessage = errorCode.getDescription();
     }
     if (errorCode == ErrorCode.RECOVERABLE_EXCEPTION) {
       batchJobRequest.setValue(BatchJobRequest.STARTED_IND, 0);
-      status = 2;
+      return Collections.emptyMap();
     } else {
       batchJobRequest.setValue(BatchJobRequest.ERROR_CODE, errorCode);
       String errorTrace = (String)result.get("errorTrace");
@@ -2129,10 +2141,9 @@ public class BatchJobService implements ModuleEventListener {
       batchJobRequest.setValue(BatchJobRequest.COMPLETED_IND, 1);
     }
     dataAccessObject.write(batchJobRequest);
-    return status;
-  }
-
-  public void cancelBatchJob(long batchJobId) {
-    // TODO remove from scheduler
+    Map<String, Integer> counts = new HashMap<String, Integer>();
+    counts.put("error", errorCount);
+    counts.put("success", successCount);
+    return counts;
   }
 }

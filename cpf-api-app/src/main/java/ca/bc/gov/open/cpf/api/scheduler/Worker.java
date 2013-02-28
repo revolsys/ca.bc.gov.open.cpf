@@ -24,6 +24,7 @@ public class Worker {
   private Timestamp lastConnectTime;
 
   private final Map<String, BatchJobRequestExecutionGroup> executingGroupsById = new TreeMap<String, BatchJobRequestExecutionGroup>();
+
   private final Map<String, List<BatchJobRequestExecutionGroup>> executingGroupsIdByModule = new TreeMap<String, List<BatchJobRequestExecutionGroup>>();
 
   private final BusinessApplicationRegistry businessApplicationRegistry;
@@ -40,37 +41,39 @@ public class Worker {
     }
   }
 
-  public void addExecutingGroup(String moduleNameAndTime, final BatchJobRequestExecutionGroup group) {
+  public void addExecutingGroup(final String moduleNameAndTime,
+    final BatchJobRequestExecutionGroup group) {
     synchronized (executingGroupsById) {
       final String groupId = group.getId();
       executingGroupsById.put(groupId, group);
       List<BatchJobRequestExecutionGroup> groups = executingGroupsIdByModule.get(moduleNameAndTime);
-      if(groups == null) {
-        groups= new ArrayList<BatchJobRequestExecutionGroup>();
+      if (groups == null) {
+        groups = new ArrayList<BatchJobRequestExecutionGroup>();
         executingGroupsIdByModule.put(moduleNameAndTime, groups);
       }
       groups.add(group);
     }
   }
 
-  public List<BatchJobRequestExecutionGroup> cancelExecutingGroups(String moduleNameAndTime) {
+  public void addLoadedModule(final String moduleNameTime) {
+    synchronized (loadedModuleNameTimes) {
+      loadedModuleNameTimes.add(moduleNameTime);
+    }
+  }
+
+  public List<BatchJobRequestExecutionGroup> cancelExecutingGroups(
+    final String moduleNameAndTime) {
     synchronized (executingGroupsById) {
-      List<BatchJobRequestExecutionGroup> groups = executingGroupsIdByModule.remove(moduleNameAndTime);
-      if(groups == null) {
+      final List<BatchJobRequestExecutionGroup> groups = executingGroupsIdByModule.remove(moduleNameAndTime);
+      if (groups == null) {
         return Collections.emptyList();
       } else {
-        for (BatchJobRequestExecutionGroup group : groups) {
-          String groupId = group.getId();
+        for (final BatchJobRequestExecutionGroup group : groups) {
+          final String groupId = group.getId();
           executingGroupsById.remove(groupId);
         }
         return groups;
       }
-    }
-  }
-
-  public void addLoadedModule(final String moduleNameTime) {
-    synchronized (loadedModuleNameTimes) {
-      loadedModuleNameTimes.add(moduleNameTime);
     }
   }
 

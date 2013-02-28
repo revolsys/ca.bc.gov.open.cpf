@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>CPF Plug-in Security</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      rel="stylesheet" type="text/css" />
+    <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../../js/prettify.js"></script>
+    <script type="text/javascript" src="../../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+    <style type="text/css">
+td > ul {
+  margin: 0px;
+}
+    </style>
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../../ws/" title="Home">Home</a></li>
+                    <li><a href="../client/">Client API</a><ul>
+                      <li><a href="../client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="../client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="../client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="../plugin/">Plug-in API</a><ul>
+                      <li><a href="java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../../ws/">HOME</a></li>
+<li><a href="../../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+<li><a href="../../docs/plugin">Plug-in API</a></li>
+<li>Security</li>
+<!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+<h1>CPF Plug-in Security</h1>
+
+<p>The CPF provides a Security service that allows a plug-in to query information about the user, check group memberships and check permission to access resources.</p>
+
+<h2>Security Groups</h2>
+
+<p>The CPF uses groups of users to manage the security policies for plug-ins. All policies are associated with security groups as opposed to individual users.</p>
+
+<p>See the CPF Admin Guide for more detail on managing groups using the CPF admin application.</p>
+
+<p>There are three types of user group.</p>
+
+<h3>User type</h3>
+
+<p>The <code>USER_TYPE</code> user groups are virtual groups that indicate the type of user. In the BC Government infrastructure the following <code>USER_TYPE</code> groups are supported.</p>
+
+<div class="simpleDataTable">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>BCGOV_ALL</th>
+        <td>BC Government All Users</td>
+      </tr>
+      <tr>
+        <th>BCGOV_BUSINESS</th>
+        <td>BC Government External Business Users</td>
+      </tr>
+      <tr>
+        <th>BCGOV_EXTERNAL</th>
+        <td>BC Government External Users</td>
+      </tr>
+      <tr>
+        <th>BCGOV_INDIVIDUAL</th>
+        <td>BC Government External Individual Users</td>
+      </tr>
+      <tr>
+        <th>BCGOV_INTERNAL</th>
+        <td>BC Government Internal Users</td>
+      </tr>
+      <tr>
+        <th>BCGOV_VERIFIED_INDIVIDUAL</th>
+        <td>BC Government External Verified Individual</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Global</h3>
+
+<p>The <code>GLOBAL</code> user groups are created and managed by the CPF security administrator using the <a href="../../admin/userGroups/">CPF user secured</a> or <a href="../../secure/admin/userGroups/">SiteMinder secured</a> CPF user groups admin page. These are shared across all the plug-ins in the system. There are no <code>GLOBAL</code> groups installed by default.</p>
+
+<h3>Plug-in Groups</h3>
+
+<p>Each plug-in can also have their own user groups that are specific to that plug-in and not shared between plug-ins. Module specific groups must have the &lt;Module Name&gt;_ prefix (e.g. the partner group for the DEMO module would be DEMO_PARTNER). </p>
+
+<ol>
+  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</
+  <li>Click on the name of the module in the table, this will open the module view page.</li>
+  <li>Click the User Groups tab to view the groups available for the module, it will include USER_TYPE, GLOBAL and module specific groups.</li>
+  <li>Click the name of a group to view it and then click Edit to change the group name or description. Editing is only possible for module specific groups.</li>
+  <li>Or click Add to add a new module user group.</li>
+  <li>On the View user group page click the User Accounts for Group tab to add or remove users from the group. Adding or removing users to a group is only possible for module specific groups.</li>
+</ol>
+
+<h2>Security Permissions</h2>
+
+<p>The CPF allows security permissions to be granted to groups of users. Security permissions grant members of a group permission to perform a specified action on a resource. Negative permissions that deny access to a resource are not supported.</p>
+
+<div class="simpleDataTable">
+  <table>
+    <thead>
+      <tr>
+        <th>Attribute</th>
+        <th>Example</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>resourceClass</td>
+        <td>reportName</td>
+        <td>The resourceClass is used to categorize the type of resource that the policy applies to. This could be the same name as the plug-in parameter that contains the resource identifier to   check.</td>
+      </tr>
+      <tr>
+        <td>resourceId</td>
+        <td>Demo Report</td>
+        <td>The resourceId is the identifier of the resource the </td>
+      </tr>
+      <tr>
+        <td>action</td>
+        <td>View</td>
+        <td>The name of the action that can be performed on the resource. Use common names such as View, Edit for the action name.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The special value 'All' can be used as a wildcard for the resourceClass, resourceId or action. When enforcing permissions the 'All' value will match any requested value for that attribute when the plug-in uses the security service to check if a user can access a resource.</p>
+
+<p>Security permissions can be granted</p>
+
+<ol>
+  <li>Open <a href="http://localhost/cpf/admin/">http://localhost/cpf/admin/</a> using a web browser. Use the username CPF_ADMIN and password cpf_2009.</li>
+  <li>On the menu of the left select Modules.</li>
+  <li>Click on the name of the module in the table, this will open the module view page.</li>
+  <li>Click the [+] next to User Groups to view the groups available for the module, it will include USER_TYPE, GLOBAL and module specific groups.</li>
+  <li>Click the name of a group to view it.</li>
+  <li>On the View user group page click the [+] next to User Group Permissions to add, view and edit permissions.</li>
+</ol>
+<p>&nbsp;</p>
+<h3><a name="_Toc211664521">Security Configuration File</a></h3>
+<p>In addition to manually defining security groups and permissions using the CPF Admin Application a plug-in can include a configuration file in the plug-in jar. The following must be created as a JSON document.</p>
+<p>src/main/resources/META-INF/ca.bc.gov.open.cpf.plugin.UserGroups.json</p>
+<p>The User Groups config file is a JSON list of JSON objects. Each object represents a user group to be created or to create permissions for. Only groups starting with the &lt;Module Name&gt;_ prefix will be created. The USER_TYPE or GLOBAL groups must already exist for permissions to be added to them.</p>
+<table>
+  <tr>
+    <th>Attribute</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>The name of the group to create   or grant permissions to (e.g. DEMO_PARTNER).</td>
+  </tr>
+  <tr>
+    <td>permissions</td>
+    <td>A JSON list of JSON objects containing   the permissions to grant. See table below for list of permission attributes. </td>
+  </tr>
+</table>
+<p>The following table shows the JSON attributes for a permission object.</p>
+<table>
+  <tr>
+    <th>Attribute</th>
+    <th>Example</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>resourceClass</td>
+    <td>reportName</td>
+    <td>The resourceClass is used to   categorize the type of resource that the policy applies to. This could be the   same name as the plug-in parameter that contains the resource identifier to   check.</td>
+  </tr>
+  <tr>
+    <td>resourceId</td>
+    <td>Demo Report</td>
+    <td>The resourceId is the identifier   of the resource the </td>
+  </tr>
+  <tr>
+    <td>action</td>
+    <td>View</td>
+    <td>The name of the action that can   be performed on the resource. Use common names such as View, Edit for the   action name.</td>
+  </tr>
+</table>
+<p>The following example shows a group called DEMO_PARTNER that will be created if it does not exist. The members of that group will be granted the permission to View the Demo Report. Members of the BCGOV_INTERNAL group will be granted permission to View All reports.</p>
+<div>
+  <p>[<br>
+      {<br>
+         &quot;name&quot;: &quot;<strong>DEMO_PARTNER</strong>&quot;,<br>
+         &quot;permissions&quot;: [<br>
+           {<br>
+             &quot;resourceClass&quot;  : &quot;<strong>reportName</strong>&quot;,<br>
+             &quot;resourceId&quot;          : &quot;<strong>Demo Report</strong>&quot;,<br>
+             &quot;action&quot;         : &quot;<strong>View</strong>&quot;<br>
+           }<br>
+         ]<br>
+      },<br>
+      {<br>
+         &quot;name&quot;: &quot;<strong>BCGOV_INTERNAL</strong>&quot;,<br>
+         &quot;permissions&quot;: [<br>
+           {<br>
+             &quot;resourceClass&quot;  : &quot;<strong>reportName</strong>&quot;,<br>
+             &quot;resourceId&quot;          : &quot;<strong>All</strong>&quot;,<br>
+             &quot;action&quot;         : &quot;<strong>View</strong>&quot;<br>
+           }<br>
+         ]<br>
+      }<br>
+    ]</p>
+</div>
+<!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

@@ -11,13 +11,13 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 public abstract class AbstractSecurityServiceFactory implements
   SecurityServiceFactory {
 
-  private final Map<Module, Map<String, SecurityService>> securityServicesByModuleAndUser = new WeakHashMap<Module, Map<String, SecurityService>>();
+  private final Map<Module, Map<String, AbstractCachingSecurityService>> securityServicesByModuleAndUser = new WeakHashMap<Module, Map<String, AbstractCachingSecurityService>>();
 
   private final Map<String, Long> securityServiceAges = new HashMap<String, Long>();
 
   private final int maxAge = 15 * 60 * 1000;
 
-  protected abstract SecurityService createSecurityService(
+  protected abstract AbstractCachingSecurityService createSecurityService(
     Module module,
     String consumerKey);
 
@@ -27,12 +27,12 @@ public abstract class AbstractSecurityServiceFactory implements
     final String consumerKey) {
     final String key = module.getName() + ":" + consumerKey;
     synchronized (securityServicesByModuleAndUser) {
-      Map<String, SecurityService> securityServicesByUser = securityServicesByModuleAndUser.get(module);
+      Map<String, AbstractCachingSecurityService> securityServicesByUser = securityServicesByModuleAndUser.get(module);
       if (securityServicesByUser == null) {
-        securityServicesByUser = new HashMap<String, SecurityService>();
+        securityServicesByUser = new HashMap<String, AbstractCachingSecurityService>();
         securityServicesByModuleAndUser.put(module, securityServicesByUser);
       }
-      SecurityService securityService = securityServicesByUser.get(consumerKey);
+      AbstractCachingSecurityService securityService = securityServicesByUser.get(consumerKey);
       if (securityService != null) {
         final Long age = securityServiceAges.get(key);
         if (age + maxAge < System.currentTimeMillis()) {
@@ -56,9 +56,9 @@ public abstract class AbstractSecurityServiceFactory implements
       || action.equals(ModuleEvent.SECURITY_CHANGED)) {
       synchronized (securityServicesByModuleAndUser) {
         final Module module = event.getModule();
-        final Map<String, SecurityService> securityServicesByUser = securityServicesByModuleAndUser.remove(module);
+        final Map<String, AbstractCachingSecurityService> securityServicesByUser = securityServicesByModuleAndUser.remove(module);
         if (securityServicesByUser != null) {
-          for (final SecurityService securityService : securityServicesByUser.values()) {
+          for (final AbstractCachingSecurityService securityService : securityServicesByUser.values()) {
             securityService.close();
           }
         }
