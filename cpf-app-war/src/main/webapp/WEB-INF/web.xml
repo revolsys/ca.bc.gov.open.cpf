@@ -102,7 +102,7 @@
 
   <servlet-mapping>
     <servlet-name>cpf</servlet-name>
-    <url-pattern>/openid/*</url-pattern>
+    <url-pattern>/admin/*</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -112,17 +112,7 @@
 
   <servlet-mapping>
     <servlet-name>cpf</servlet-name>
-    <url-pattern>/admin/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>cpf</servlet-name>
     <url-pattern>/j_spring_openid_security_check/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>cpf</servlet-name>
-    <url-pattern>*.page</url-pattern>
   </servlet-mapping>
 
   <welcome-file-list>
