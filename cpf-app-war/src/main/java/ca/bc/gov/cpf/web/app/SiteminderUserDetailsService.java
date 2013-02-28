@@ -85,11 +85,6 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     return userAccountSecurityService;
   }
 
-  /**
-   * Get the class to use to check that the user is valid.
-   * 
-   * @return The class to use to check that the user is valid.
-   */
   public UserDetailsChecker getUserDetailsChecker() {
     return userDetailsChecker;
   }
@@ -112,14 +107,6 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     userAccountSecurityService.addGrantedAuthorityService(this);
   }
 
-  /**
-   * Load the external user which has the {@link #userAccountClass} and external
-   * user name. If the user does not exist in the database create a new external
-   * user record with a generated consumer key and consumer secret.
-   * 
-   * @param guid The external user name to login as.
-   * @return The UserDetals object for the user.
-   */
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public UserDetails loadUserByUsername(final String userGuid) {
@@ -164,7 +151,7 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
     final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
     for (final String groupName : groupNames) {
-      authorities.add(new GrantedAuthorityImpl( groupName));
+      authorities.add(new GrantedAuthorityImpl(groupName));
       authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
     }
 
@@ -185,11 +172,6 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     dataAccessObject = userAccountSecurityService.getDataAccessObject();
   }
 
-  /**
-   * Set the class to use to check that the user is valid.
-   * 
-   * @param userDetailsChecker The class to use to check that the user is valid.
-   */
   public void setUserDetailsChecker(final UserDetailsChecker userDetailsChecker) {
     this.userDetailsChecker = userDetailsChecker;
   }
