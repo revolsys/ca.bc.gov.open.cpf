@@ -19,12 +19,16 @@
           class="com.revolsys.ui.web.config.Page"
           p:name="list"
           p:title="Workers"
-          p:path="/admin/workers/" />
+          p:path="/admin/workers/"
+          p:permission="hasRole('ROLE_ADMIN')"
+        />
         <bean
           class="com.revolsys.ui.web.config.Page"
           p:name="view"
           p:title="Worker {workerId}"
-          p:path="/admin/workers/{workerId}/" />
+          p:path="/admin/workers/{workerId}/"
+          p:permission="hasRole('ROLE_ADMIN')"
+        />
       </list>
     </property>
     <property name="serializers">

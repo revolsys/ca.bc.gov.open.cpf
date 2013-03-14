@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
@@ -6,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Plug-in Developer Guide - CPF</title>
+<title>CPF Plug-in Security</title>
 <!-- InstanceEndEditable -->
 
     <link
@@ -32,11 +33,6 @@ $(document).ready(function() {
 	</script>
 
 <!-- InstanceBeginEditable name="head" -->
-    <style type="text/css">
-td > ul {
-  margin: 0px;
-}
-    </style>
 <!-- InstanceEndEditable -->
   </head>
   <body>
@@ -77,7 +73,8 @@ td > ul {
 <li><a href="../../ws/">HOME</a></li>
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-<li>Plug-in API</li>
+<li><a href="../../docs/plugin">Plug-in API</a></li>
+<li>Security</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -85,50 +82,68 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<h1>Plug-in Developer Guide</h1>
-        
-<p>The Cloud Processing Framework (CPF) Plug-in Developers Guide provides instructions for developers to be able to develop and test CPF business application plug-ins in their environment and to deliver them to the ministry.</p>
+<h1>Testing a Plug-in</h1>
 
-<ul>
-  <li><a href="overview.html">Plug-in Overview</a></li>
-  <li>CPF Installation<ul>
-    <li><a href="../databaseInstall.html">Database Installation</a></li>
-    <li><a href="../webappInstall.html">Web Application Installation</a></li>
-  </ul></li>
-  <li>Plug-in Development<ul>
-    <li>Create a <a href="mavenProject.html">Maven Project</a></li>
-    <li>Override <a href="customization.html">Customization Properties</a></li>
-    <li>Define <a href="config.html">Configuration Properties</a></li>
-    <li>Implement <a href="security.html">Security</a></li>
-  </ul></li>
-</ul>
+<p>The business application plug-in can be tested by creating a test harness, using the CPF web site or using a CPF client to connect to the CPF web services.</p>
 
-<h2>API Documentation and Download</h2>
+<h3>CPF Web Site</a></h3>
+<p>If the CPF is deployed to /cpf on localhost the list of business applications can be found using the following page.</p>
 
-<p>The most recent version of the CPF is ${project.version}. For development purposes the most recent snapshot version of the CPF libraries and the trunk sub-tree in the subversion repository should be used. The snapshot and the trunk are only updated under controlled circumstances  when new functionality or bug fixes are to be delivered to the plug-in developers. When delivering a final version of the application to the Ministry the plug-in must use the same version as is deployed to the Ministry's server.</p>
+<p><a href="http://localhost/cpf/ws/apps/">http://localhost/cpf/ws/apps/</a></p>
 
-<p>The CPF and plug-ins depend heavily on the <a href="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/">spring framework</a> and the XML configuration mechanism. Developers should have a least a basic understanding of defining spring beans and dependency injection.</p>
-
-<p>Use the links in the following table to view the Plig-in API documentation or download the API libraries.</p>
+<p>Click on the link for a business application to get the list of resources for that application. Depending on the plug-in the following resources maybe available.</p>
 
 <div class="simpleDataTable">
-  <table style="width: auto; margin-left:0px">
+  <table>
     <thead>
-      <tr>
-        <th>API</th>
-        <th>Documentation</th>
-        <th>Download</th>
-      </tr>
+    <tr>
+      <th>Resource</th>
+      <th>Description</th>
+    </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>Plug-in Java (6+)</td>
-        <td><a href="java-api">API Docs</a></td>
-        <td><a href="../../lib/cpf-api-plugin-${project.version}.jar">Download</a></td>
-      </tr>
-    </tbody>
-  </table>
+    <tr>
+      <td>specification</td>
+      <td>The HTML page describing the   parameters and result attributes of the business application. NOTE page is   not yet finished.</td>
+    </tr>
+    <tr>
+      <td>instant</td>
+      <td>If the plug-in allows instant   mode there will be a form that allows a user to submit a single request and   get the results back immediately.</td>
+    </tr>
+    <tr>
+      <td>single</td>
+      <td>The single request form allows   the parameters for a single request to be entered using form fields instead   of requiring a file of structured input data. Unlike the instant mode the   request is processed via a cloud job.</td>
+    </tr>
+    <tr>
+      <td>multiple</td>
+      <td>The multiple request form   contains fields for the job parameters and accepts a file upload or a URL for   the request data fields. </td>
+    </tr>
+  </tbody>
+</table>
 </div>
+
+<p>Use one of the above forms to create a new job and then download the results to confirm that the plug-in works as expected.</p>
+
+<h3>Test Harness</a></h3>
+<p>The BusinessApplicationPluginExecutor class allows developers to execute a single request against their plug-in without deploying it to the CPF infrastructure. The executor converts the input parameters to a JSON object and back again to simulate what happens in the internal CPF processing.</p>
+
+<p>To create a test harness construct an instance of ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPluginExecutor and then use one of the following methods to invoke the plug-in.</p>
+
+
+
+<a href="http://maven.apache.org/guides/introduction/introduction-to-optional-and-excludes-dependencies.html#Dependency_Exclusions">Dependency Exclusions</a>
+
+<a href="http://en.wikipedia.org/wiki/Java_annotation">Java annotation</a>
+
+<a href="http://tsusiatsoftware.net/jts/main.html">Java Topology Suite</a>
+
+
+<p>The Well-Known text WKT encoding is described at <a href="http://en.wikipedia.org/wiki/Well-known_text">Well-known_text</a>. The SRID can also be specified using the PostGIS EWKT SIRD=&lt;srid&gt;; prefix, see <a href="http://postgis.org/documentation/manual-1.5/ch04.html#EWKB_EWKT">Extended EKT</a>.</p>
+
+<p>Plug-ins can use the Geometry and GeometryCollection classes as a return type. However some file formats (ESRI Shapefile) can only support a single specific type of geometry (e.g. Point, LineString, Polygon). Therefore if the plug-in is only going to return a Point geometry, use the Point class as the return type.</p>
+
+
+
 <!-- InstanceEndEditable -->
                 </div>
               </div>

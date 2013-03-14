@@ -1,0 +1,286 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
+    
+    <!-- InstanceBeginEditable name="doctitle" -->
+<title>CPF Plug-in Maven Project</title>
+<!-- InstanceEndEditable -->
+
+    <link
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
+      REL="stylesheet" type="text/css" />
+    <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/cpf.css" rel="stylesheet" type="text/css" />
+  
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../../js/prettify.js"></script>
+    <script type="text/javascript" src="../../js/rs.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+});
+	</script>
+
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+  </head>
+  <body>
+    <div class="body">
+      <div class="header">
+        <div class="headerContent">
+          <div class="title">
+            Cloud Processing Framework - Developer Guide
+           </div>
+        </div>
+      </div>
+      <div class="columns_2_2">
+        <div class="columns_2_1">
+          <div>
+            <div class="column_2_1">
+              <div class="sideNav">
+                <div class="sideMenu">
+                  <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
+                  <ul>
+                    <li><a href="../../ws/" title="Home">Home</a></li>
+                    <li><a href="../client/">Client API</a><ul>
+                      <li><a href="../client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="../client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="../client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    </ul></li>
+                    <li><a href="../plugin/">Plug-in API</a><ul>
+                      <li><a href="java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    </ul></li>
+                  </ul>
+                  </div>
+              </div>
+            </div>
+            <div class="column_2_2">
+              <div class="bodyContainer">
+                <div class="breadcrumbs">
+                    <div class="breadcrumb">
+<ul>
+<li><a href="../../ws/">HOME</a></li>
+<li><a href="../../docs/">Developer Guide</a></li>
+<!-- InstanceBeginEditable name="crumbs" -->
+<li><a href="../../docs/plugin">Plug-in API</a></li>
+<li>Maven Project</li>
+<!-- InstanceEndEditable -->
+</ul>
+</div>
+                  
+                </div>
+                <div class="bodyContent">
+<!-- InstanceBeginEditable name="body" -->
+<h1>CPF Plug-in Maven Project</h1>
+
+<h2>Create a plug-in project</h2>
+
+<p>The first step is to create a plug-in project. Plug-ins must be developed using Apache Maven 3.0.x.</p>
+
+<p>A new plug-in project can be created using the Maven archetype mechanism. The archetype defines a template project that can be created by passing in parameters to the following command.</p>
+
+<figure>
+<pre class="prettyprint">cd ~/projects
+mvn \
+  archetype:generate \
+  -DinteractiveMode=false \
+  -DarchetypeGroupId=ca.bc.gov.open.cpf \
+  -DarchetypeArtifactId=cpf-archetype-plug-in \
+  -DarchetypeVersion=<b>${project.version}</b> \
+  -DgroupId=<b>ca.bc.gov</b> \
+  -DartifactId=<b>demo</b> \
+  -Dversion=<b>1.0.0-SNAPSHOT</b> \
+  -Dpackage=<b>ca.bc.gov.demo</b> \
+  -Dplug-inName=<b>Demo</b> \
+  -Dplug-inAcronym=<b>demo</b></pre>
+</figure>
+
+<div class="simpleDataTable">
+  <table>
+    <thead>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>archetypeVersion</code></td>
+        <td>The most recent version of the CPF framework.</td>
+      </tr>
+      <tr>
+        <td><code>groupId</code></td>
+        <td>The maven group identifier also used as the java package name for the plug-in class. For BC Government plug-ins this should be ca.bc.gov.</td>
+      </tr>
+      <tr>
+        <td><code>artifactId</code></td>
+        <td>The base maven artifact identifier used for the maven modules created in the project. This should be the project acronym for BC Government projects.</td>
+      </tr>
+      <tr>
+        <td><code>version</code></td>
+        <td>The version identifier you’d like to give to your plug-in. Must include -SNAPSHOT the -SNAPSHOT is removed on migration to test and production.</td>
+      </tr>
+      <tr>
+        <td><code>package</code></td>
+        <td>The Java package name for the generated code. Must be <code>ca.bc.gov.&lt;acronym&gt;</code> for BC Government projects.</td>
+      </tr>
+      <tr>
+        <td><code>pluginName</code></td>
+        <td>The name of the plug-in. This will be used to generate the plug-in class name and for descriptions in the   Maven build files.</td>
+      </tr>
+      <tr>
+        <td><code>pluginAcronym</code></td>
+        <td>The acronym of the plug-in. This will be used to generate the plug-in jar name.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The following directory structure would be created if the command were run using the parameters above.</p>
+
+<div class="simpleDataTable">
+  <table>
+    <thead>
+      <tr>
+        <th>File/Directory</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>demo/</code></td>
+        <td>The root directory of the plug-in project.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;scripts/</code></td>
+        <td>Any SQL scripts required to create the database or data required by the plug-in. Samples are included.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;README.txt</code></td>
+        <td>A sample readme file for deployment to the Ministry. Edit for your application.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;pom.xml</code></td>
+        <td>The maven build file for the plug-in.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;src/</code></td>
+        <td>The root folder containing the source code and resources.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;&nbsp;&nbsp;main/java/ca.bc.gov/demo/</code></td>
+        <td>The java package for the plug-in, add any support classes in here.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DemoPlug-in.java</code></td>
+        <td>The java class for the plug-in.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;&nbsp;&nbsp;main/resources/</code></td>
+        <td>The non-java resource files to include in the plug-in jar.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;META-INF/</code></td>
+        <td>The META-INF directory for the plug-in jar.</td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ca.bc.gov.open.cpf.plugin.sf.xml</code></td>
+        <td>The main CPF spring configuration file for the plug-ins in this module. </td>
+      </tr>
+      <tr>
+        <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ca/bc/gov/demo/Demo.sf.xml</code></td>
+        <td>The spring configuration file containing any beans used by the plug-ins.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Add Dependencies</h2>
+
+<p>A plug-in can include dependencies to additional libraries that are not deployed as part of the core CPF application. These must be approved prior to delivering to the Ministry.</p>
+
+<p>All plug-ins must either be available in the Maven <a href="http://search.maven.org/">central repository</a> or in the <a href="http://apps.bcgov/artifactory/repo/">CITZ BC Government Maven Repository</a>. Contact your BA to get any non-standard libraries added to the CITZ Maven repository.</p>
+
+<p>If any of the dependencies include dependencies to logging frameworks such as LOG4J, SLF4J and especially commons-logging these must be <a href="http://maven.apache.org/guides/introduction/introduction-to-optional-and-excludes-dependencies.html#Dependency_Exclusions">excluded from those dependencies</a>. This ensures that carefully controlled versions of these files are used. The CPF internally uses SLF4J as the logging API with a LOG4J binding to perform the actual logging and a bridge so that commons logging is logged via SLF4J. It is recommended for plug-ins to use SLF4J for logging in their module. Plug-ins must not include a <code>log4j.xml</code> file in their Jar file. A <code>log4j.xml</code> file can however be included in <code>src/test/resources</code> for testing the plug-in.</p>
+
+<p>Any dependencies that are included in the CPF application itself must be marked with a scope of <code>provided</code>. If they are dependencies of other modules then they should be excluded from that dependency. CPF ignores any dependencies to the CPF libraries or the libraries it uses. This ensures that the correct versions of these libraries are used at runtime.</p>
+
+<p>Any dependencies to test frameworks such as junit must be included using the <code>test</code> scope so that they are not included in the jar. Also any test code must be included below <code>src/test</code> as opposed to <code>src/main</code>.</p>
+
+<h2>Build the plug-in</h2>
+
+<p>The plug-in is built using maven. Use the following command to create a clean build that is deployed to your local maven repository.</p>
+
+<figure>
+<pre class="prettyprint">mvn clean install</pre>
+</figure>
+
+<p>The plug-in must be deployed to a maven repository so that the CPF can download the plug-in. If on a developers workstation a local maven cache can be used instead of this step.</p>
+
+<figure>
+<pre class="prettyprint">mvn deploy</pre>
+</figure>
+
+<p>For BC Government projects the plug-in is built and deployed to the Maven repository using the <a href="http://delivery.apps.bcgov/cis/">CITZ Continuous Integratiion System</a> which uses <a href="http://jenkins-ci.org">Jenkins</a>. See the example README.txt for more details.</p>
+
+<h2>Deploy a Plug-in</h2>
+
+<p>Plug-ins are deployed dynamically using the CPF admin application. Follow this procedure to deploy a new module.</p>
+
+<ol>
+  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</li>
+  <li>Click the Add button on the Modules page.</li>
+  <li>Enter the project acronym as the module name (e.g. DEMO), it will be converted to upper case.</li>
+  <li>Enter in the maven module Id for your plug-in in the format &lt;groupId&gt;:&lt;artifactId&gt;:&lt;version&gt;. For example <b>com.myapplication</b>:<b>demo</b>:<b>1.0.0-SNAPSHOT</b>.</li>
+  <li>Click the Save button</li>
+  <li>The module view page will be displayed.</li>
+</ol>
+
+<p>If the version number of a module changes, follow this procedure to update the version for an existing module.</p>
+
+<ol>
+  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</li>
+  <li>Click on the name of the module in the table, this will open the module view page.</li>
+  <li>Click on the name of the module in the table, this will open the module view page.</li>
+  <li>Click Edit button to edit the module.</li>
+  <li>Enter in the maven module Id for your plug-in in the format &lt;groupId&gt;:&lt;artifactId&gt;:&lt;version&gt;. For example <b>com.myapplication</b>:<b>demo</b>:<b>1.0.0-SNAPSHOT</b>.</li>
+  <li>Click the Save button</li>
+  <li>The module view page will be displayed.</li>
+  <li>Click the restart button to load the new version of the module.</li>
+</ol>
+
+<p class="note">NOTE: You cannot change the name of the module. Delete the existing module and create a new one.</p>
+
+<!-- InstanceEndEditable -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer">
+        <div class="title">Cloud Processing Framework (v ${project.version})</div>
+        <div class="footerMenu">
+          <ul>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/copyright.page" title="COPYRIGHT">COPYRIGHT</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/disclaimer.page" title="DISCLAIMER">DISCLAIMER</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/privacy.page" title="PRIVACY">PRIVACY</a></li>
+            <li><a href="http://www2.gov.bc.ca/gov/admin/accessibility.page" title="ACCESSIBILITY">ACCESSIBILITY</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+<!-- InstanceEnd --></html>

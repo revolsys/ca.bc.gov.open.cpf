@@ -16,32 +16,65 @@
     <property name="pages">
       <list>
         <bean
-          class="com.revolsys.ui.web.config.Page"
           p:name="workerList"
-          p:title="Executing Groups"
-          p:path="/admin/workers/{workerId}/executingGroups/" />
-        <bean
           class="com.revolsys.ui.web.config.Page"
+          p:title="Executing Groups"
+          p:path="/admin/workers/{workerId}/executingGroups/"
+          p:permission="hasRole('ROLE_ADMIN')"
+         />
+        <bean
           p:name="workerView"
+          class="com.revolsys.ui.web.config.Page"
           p:title="Executing Group {executionGroupId}"
-          p:path="/admin/workers/{workerId}/executingGroups/{executionGroupId}/" />
+          p:path="/admin/workers/{workerId}/executingGroups/{executionGroupId}/"
+          p:permission="hasRole('ROLE_ADMIN')"
+         />
+
+        <bean
+          p:name="workerRestart"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Restart Group"
+          p:path="/admin/workers/{workerId}/executingGroups/{executionGroupId}/restart"
+          p:permission="hasRole('ROLE_ADMIN')" />
       </list>
     </property>
     <property name="serializers">
       <list>
         <bean
-          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:name="module.name"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:label="Module"
           p:pageName="view" />
         <bean
-          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:name="businessApplication.name"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:label="BusinessApplication"
           p:pageName="moduleView" />
         <bean
           p:name="scheduleTimestamp"
           class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
+        <bean
+          p:name="actions"
+          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+        >
+          <property name="serializers">
+            <list>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="workerRestart"
+                p:label="Restart"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="executionGroupId"
+                      value="id" />
+                  </map>
+                </property>
+              </bean>
+            </list>
+          </property>
+        </bean>
       </list>
     </property>
     <property name="views">
@@ -56,6 +89,7 @@
             <value>module.name</value>
             <value>businessApplication.name</value>
             <value>scheduleTimestamp</value>
+            <value>actions</value>
           </list>
         </entry>
         <entry key="workerView">
@@ -64,6 +98,7 @@
             <value>module.name</value>
             <value>businessApplication.name</value>
             <value>scheduleTimestamp</value>
+            <value>actions</value>
           </list>
         </entry>
       </map>

@@ -129,6 +129,8 @@
     p:configPropertyLoader-ref="configPropertyLoader"
     p:batchJobService-ref="batchJobService" />
 
+  <bean class="ca.bc.gov.open.cpf.api.web.controller.DocumentationController" />
+
   <bean
     name="/view/breadcrumb"
     class="com.revolsys.ui.web.controller.BreadcrumbController"

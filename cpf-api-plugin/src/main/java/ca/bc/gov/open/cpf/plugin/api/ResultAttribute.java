@@ -6,40 +6,30 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>The ResultAttribute annotation indicates that a getXXX method is a structured
- * result attribute on a {@link BusinessApplicationPlugin} or {@link ResultList}
- * class. After execution of the plug-in the result attribute methods will be
- * invoked to get the Plug-ins that do not accept per request result data
- * perRequestResultData=false can return structured result attributes. Result
- * attributes are implemented as Java bean properties on the class. The plug-in
- * will implement a get or is property method for each result attribute. The
- * result attribute name is the name of the Java bean property. Parameters can
- * only use the following data types byte, short, int, long, float, double,
- * boolean, String, URL, JTS Point, LineString, Polygon, MultiPoint,
- * MultiLineString and MultiPolygon.. The result attributes will be converted by
+ * <p>The ResultAttribute annotation indicates that a getXXX method is a <a href="../../structuredData.html">structured
+ * result data</a> attribute on a {@link BusinessApplicationPlugin} or {@link ResultList}
+ * class.</p>
+ * 
+ * <p>Result attributes are implemented as Java bean properties on the plug-in or {@link ResultList} object.
+ * The plug-in must implement a get or is property method for each result attribute. The
+ * result attribute name is the name of the Java bean property. The return type can
+ * only use the supported <a href="../../dataTypes.html">data types</a>. The result attributes will be converted by
  * the CPF to the correct representation in the output format or a string
- * representation of the value before being returned to the user. The
- * ca.bc.gov.open.cpf.plugin.api.ResultAttribute annotation marks a get or is
- * property method as being a result attribute. Result attribute annotations
- * also support the description, index, length and scale attributes. The
- * description is used as Input help text on the business application
- * description page. If the description is omitted and there was a job or
- * request parameter of the same name then the description will be taken from
- * the parameter. The index defines the order of the attributes in the result
- * file. The length is the size of the field (number of characters or digits).
- * The scale is the number of decimal places.</p>
+ * representation of the value before being returned to the user.</p>
  * 
- * <pre class="prettyprint"><code class="language-java">
- * &#064;BusinessApplicationPlugin
- * public class Square {
- *   private int square;
+ * <p>After execution of the plug-in the result attribute methods will be invoked to get the result attribute values.</p>
  * 
- *   &#064;ResultAttribute(index = 2, description = &quot;The square of a value&quot;)
- *   public int getSquare() {
- *     return square;
- *   }
- * }
- * </code></pre>
+ * <p>The following example shows the use of the annotation on a {@link BusinessApplicationPlugin} class.</p>
+ * 
+ * <figure><pre class="prettyprint language-java">&#064;BusinessApplicationPlugin
+public class Square {
+  private int square;
+
+  &#064;ResultAttribute(index = 2, description = "The square of a value")
+  public int getSquare() {
+    return square;
+  }
+}</pre></figure>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.METHOD)

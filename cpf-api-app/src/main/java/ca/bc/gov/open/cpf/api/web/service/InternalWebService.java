@@ -57,7 +57,6 @@ import com.revolsys.util.UrlUtil;
 
 @Controller
 public class InternalWebService {
-
   private static final Logger LOG = LoggerFactory.getLogger(InternalWebService.class);
 
   private BatchJobService batchJobService;
@@ -428,6 +427,10 @@ public class InternalWebService {
             } else if ("failedGroupId".equals(action)) {
               final String groupId = (String)message.get("groupId");
               batchJobService.cancelGroup(worker, groupId);
+            } else if ("executingGroupIds".equals(action)) {
+              @SuppressWarnings("unchecked")
+              final List<String> executingGroupIds = (List<String>)message.get("executingGroupIds");
+              batchJobService.updateWorkerExecutingGroups(worker, executingGroupIds);
             } else if ("moduleExcluded".equals(action)) {
               setModuleExcluded(worker, message);
             } else if ("moduleLoaded".equals(action)) {

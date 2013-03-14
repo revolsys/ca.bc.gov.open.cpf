@@ -38,9 +38,7 @@ import com.revolsys.gis.data.model.DataObject;
  * The LoadUserByConsumerKeyInterceptor intercepts HTTP requests and adds the
  * userAccount attribute containing an {@link UserAccount} object for the
  * external user name identified in the HTTP request Principal within the
- * specified {@link #userAccountClass}.
- * 
- * @author Paul Austin paul.austin@revolsys.com
+ * specified userAccountClass.
  */
 public class LoadUserByConsumerKeyInterceptor extends HandlerInterceptorAdapter {
 

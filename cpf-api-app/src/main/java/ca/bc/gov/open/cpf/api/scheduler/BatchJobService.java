@@ -1035,7 +1035,6 @@ public class BatchJobService implements ModuleEventListener {
    * 
    * @param lastChangedTime
    * @param time
-   * @return
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void preProcessBatchJob(final Long batchJobId, final long time,
@@ -1338,8 +1337,8 @@ public class BatchJobService implements ModuleEventListener {
    * applications which are currently in the processing state so that they can
    * be rescheduled.
    * 
-   * @param moduleName
-   * @param businessApplicationNames The names of the business applications to
+   * @param moduleName The name of the module.
+   * @param businessApplicationName The name of the business applications to
    *          reset the jobs for.
    */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -2145,5 +2144,16 @@ public class BatchJobService implements ModuleEventListener {
     counts.put("error", errorCount);
     counts.put("success", successCount);
     return counts;
+  }
+
+  public void updateWorkerExecutingGroups(Worker worker,
+    List<String> executingGroupIds) {
+    List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
+    for (BatchJobRequestExecutionGroup executionGroup : executingGroups) {
+      String groupId = executionGroup.getId();
+      if (!executingGroups.contains(groupId)) {
+        cancelGroup(worker, groupId);
+      }
+    }
   }
 }

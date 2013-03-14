@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,6 +56,22 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
   }
 
   @RequestMapping(value = {
+    "/admin/workers/{workerId}/executingGroups/{executionGroupId}/restart"
+  }, method = RequestMethod.POST)
+  @PreAuthorize(ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void postWorkerRestart(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String workerId,
+    @PathVariable final String executionGroupId) {
+    final BatchJobService batchJobService = getBatchJobService();
+    final Worker worker = batchJobService.getWorker(workerId);
+    if (worker != null) {
+      batchJobService.cancelGroup(worker, executionGroupId);
+    }
+    referrerRedirect(request);
+  }
+
+  @RequestMapping(value = {
     "/admin/workers/{workerId}/executingGroups"
   }, method = RequestMethod.GET)
   @ResponseBody
@@ -73,7 +93,7 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
     "/admin/workers/{workerId}/executingGroups/{executionGroupId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @PreAuthorize(ADMIN)
   public ElementContainer pageWorkerView(@PathVariable final String workerId,
     @PathVariable final String executionGroupId) throws ServletException {
     final BatchJobService batchJobService = getBatchJobService();

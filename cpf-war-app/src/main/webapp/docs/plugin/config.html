@@ -6,14 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Plug-in Developer Guide - CPF</title>
+<title>Plug-in Configuration - CPF</title>
 <!-- InstanceEndEditable -->
 
     <link
-      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
-      REL="stylesheet" type="text/css" />
+      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      rel="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
-      REL="stylesheet" type="text/css" />
+      rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -77,7 +77,8 @@ td > ul {
 <li><a href="../../ws/">HOME</a></li>
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-<li>Plug-in API</li>
+<li><a href="../plugin/">Plug-in API</a></li>
+<li>Configuration</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -85,50 +86,112 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<h1>Plug-in Developer Guide</h1>
-        
-<p>The Cloud Processing Framework (CPF) Plug-in Developers Guide provides instructions for developers to be able to develop and test CPF business application plug-ins in their environment and to deliver them to the ministry.</p>
+<h1>Plug-in Configuration</h1>
+<p>Plug-ins can include a default configuration file that contains any configuration that will change from environment to environment. Such as database connection URLs and passwords. The configuration file provided in the application is a template that is used to populate the CPF configuration database with initial values for the administrator to edit with the values for that environment.</p>
 
-<ul>
-  <li><a href="overview.html">Plug-in Overview</a></li>
-  <li>CPF Installation<ul>
-    <li><a href="../databaseInstall.html">Database Installation</a></li>
-    <li><a href="../webappInstall.html">Web Application Installation</a></li>
-  </ul></li>
-  <li>Plug-in Development<ul>
-    <li>Create a <a href="mavenProject.html">Maven Project</a></li>
-    <li>Override <a href="customization.html">Customization Properties</a></li>
-    <li>Define <a href="config.html">Configuration Properties</a></li>
-    <li>Implement <a href="security.html">Security</a></li>
-  </ul></li>
-</ul>
+<p class="note">NOTE: Plug-ins must fully document all supported configuration properties in their readme file and other documentation where appropriate.</p>
 
-<h2>API Documentation and Download</h2>
+<p class="note">NOTE: Plug-ins must not require a configuration file to be created on the file system and they must not require manual editing of source code for specific environments. The same code must be compiled only once for use in all environments.</p>
 
-<p>The most recent version of the CPF is ${project.version}. For development purposes the most recent snapshot version of the CPF libraries and the trunk sub-tree in the subversion repository should be used. The snapshot and the trunk are only updated under controlled circumstances  when new functionality or bug fixes are to be delivered to the plug-in developers. When delivering a final version of the application to the Ministry the plug-in must use the same version as is deployed to the Ministry's server.</p>
+<p>If a plug-in requires configuration properties the following JSON file must be created in the maven module for the project.</p>
 
-<p>The CPF and plug-ins depend heavily on the <a href="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/">spring framework</a> and the XML configuration mechanism. Developers should have a least a basic understanding of defining spring beans and dependency injection.</p>
+<pre>src/main/resources/META-INF/ca.bc.gov.open.cpf.plugin.ConfigProperties.json</pre>
 
-<p>Use the links in the following table to view the Plig-in API documentation or download the API libraries.</p>
+<figure>
+<pre class="prettyprint language-js">[
+  {
+    "name": "name1",
+    "type": "string",
+    "value": "value1"
+  },
+  {
+    "name": "name2",
+    "type": "int",
+    "value": "value2"
+  },
+]</pre>
+</figure>
+
+<p>The configuration file is a JSON list containing JSON objects for each property. Each configuration JSON object represents one configuration property and must include the following attributes.</p>
 
 <div class="simpleDataTable">
-  <table style="width: auto; margin-left:0px">
+  <table>
     <thead>
       <tr>
-        <th>API</th>
-        <th>Documentation</th>
-        <th>Download</th>
+        <th>Attribute</th>
+        <th>Description</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Plug-in Java (6+)</td>
-        <td><a href="java-api">API Docs</a></td>
-        <td><a href="../../lib/cpf-api-plugin-${project.version}.jar">Download</a></td>
+        <td><code>name</code></td>
+        <td>The name of the property (or sub property). The name can either be placeholders  in the spring configuration file or can override  bean properties from the spring configuration file. The recommendation is to reduce the number of placeholders and use overrides instead. Include default values in the spring bean files.</td>
+      </tr>
+      <tr>
+        <td><code>type</code></td>
+        <td>The Java <a href="../dataTypes.html">data type</a> of the value. Must be the same type as the Java set property method.</td>
+      </tr>
+      <tr>
+        <td><code>value</code></td>
+        <td>The string value of the property, it must be possible to convert this value to the Java data type specified in the type attribute.</td>
       </tr>
     </tbody>
   </table>
 </div>
+
+<p>Consider the example of a data source defined with the following bean definition.</p>
+
+<figure>
+<pre class="prettyprint language-xml">&lt;bean
+  id="demoDataSource"
+  class=" com.revolsys.jdbc.io.JdbcDataSourceFactoryBean"
+  p:url="jdbc:postgresql://localhost:5432/postgres"
+  p:username="demo"
+  p:password="********"
+  lazy-init="true"
+&gt;
+  &lt;property
+    name="config"
+  &gt;
+    &lt;map&gt;
+      &lt;entry
+        key="initialConnections"
+        value="0" /&gt;
+      &lt;entry
+        key="maxConnections"
+        value="10" /&gt;
+    &lt;/map&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+</figure>
+
+<p>To override the URL and the password the following properties would be created.</p>
+
+<figure>
+<pre class="prettyprint language-js">[
+  {
+    "name": "demoDataSource.url",
+    "type": "string",
+    "value": " jdbc:postgresql://localhost:5432/demo"
+  },
+  {
+    "name": "demo.timeout",
+    "type": "int",
+    "value": "10"
+  },
+]</pre>
+</figure>
+
+<p>Once a module has been deployed the configuration properties can be modified using the CPF admin application.</p>
+
+<ol>
+  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</li>
+  <li>Click on the name of the module in the table, this will open the module view page.</li>
+  <li>Click the Module Config Properties tab to view the current properties.</li>
+  <li>Click the id of a property to view it and then click Edit to change the value.</li>
+  <li>Or click Add to add a new property.</li>
+</ol>
+
 <!-- InstanceEndEditable -->
                 </div>
               </div>

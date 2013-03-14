@@ -58,7 +58,7 @@ public class WorkerUiBuilder extends CpfUiBuilder implements
     "/admin/workers/{workerId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
+  @PreAuthorize(ADMIN)
   public ElementContainer pageView(@PathVariable final String workerId)
     throws ServletException {
     final BatchJobService batchJobService = getBatchJobService();

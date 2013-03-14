@@ -30,46 +30,12 @@ import java.util.TreeSet;
 
 import net.oauth.signature.OAuthSignatureMethod;
 
-//TODO: move this class into oauth-provider
-/**
- * A simple OAuthValidator, which checks the version, whether the timestamp is
- * close to now, the nonce hasn't been used before and the signature is valid.
- * Each check may be overridden.
- * <p>
- * This implementation is less than industrial strength:
- * <ul>
- * <li>Duplicate nonces won't be reliably detected by a service provider running
- * in multiple processes, since the used nonces are stored in memory.</li>
- * <li>The collection of used nonces is a synchronized choke point</li>
- * <li>The used nonces may occupy lots of memory, although you can minimize this
- * by calling releaseGarbage periodically.</li>
- * <li>The range of acceptable timestamps can't be changed, and there's no
- * system for increasing the range smoothly.</li>
- * <li>Correcting the clock backward may allow duplicate nonces.</li>
- * </ul>
- * For a big service provider, it might be better to store used nonces in a
- * database.
- * 
- * @author Dirk Balfanz
- * @author John Kristian
- */
 @SuppressWarnings("javadoc")
 public class SimpleOAuthValidator implements OAuthValidator {
 
-  /**
-   * Selected parameters from an OAuth request, in a form suitable for detecting
-   * duplicate requests. The implementation is optimized for the comparison
-   * operations (compareTo, equals and hashCode).
-   * 
-   * @author John Kristian
-   */
   private static class UsedNonce implements Comparable<UsedNonce> {
     private final String sortKey;
 
-    /**
-     * Construct an object containing the given timestamp, nonce and other
-     * parameters. The order of parameters is significant.
-     */
     UsedNonce(final long timestamp, final String... nonceEtc) {
       final StringBuilder key = new StringBuilder(String.format("%20d",
         Long.valueOf(timestamp)));
@@ -81,23 +47,11 @@ public class SimpleOAuthValidator implements OAuthValidator {
       sortKey = key.toString();
     }
 
-    /**
-     * Determine the relative order of <code>this</code> and <code>that</code>,
-     * as specified by Comparable. The timestamp is most significant; that is,
-     * if the timestamps are different, return 1 or -1. If <code>this</code>
-     * contains only a timestamp (with no nonce etc.), return -1 or 0. The
-     * treatment of the nonce etc. is murky, although 0 is returned only if
-     * they're all equal.
-     */
     @Override
     public int compareTo(final UsedNonce that) {
       return (that == null) ? 1 : sortKey.compareTo(that.sortKey);
     }
 
-    /**
-     * Return true iff <code>this</code> and <code>that</code> contain equal
-     * timestamps, nonce etc., in the same order.
-     */
     @Override
     public boolean equals(final Object that) {
       if (that == null) {
@@ -131,16 +85,10 @@ public class SimpleOAuthValidator implements OAuthValidator {
     }
   }
 
-  /** The default maximum age of timestamps is 5 minutes. */
   public static final long DEFAULT_MAX_TIMESTAMP_AGE = 5 * 60 * 1000L;
 
   public static final long DEFAULT_TIMESTAMP_WINDOW = DEFAULT_MAX_TIMESTAMP_AGE;
 
-  /**
-   * Names of parameters that may not appear twice in a valid message. This
-   * limitation is specified by OAuth Core <a
-   * href="http://oauth.net/core/1.0#anchor7">section 5</a>.
-   */
   public static final Set<String> SINGLE_PARAMETERS = constructSingleParameters();
 
   private static Set<String> constructSingleParameters() {
@@ -164,29 +112,16 @@ public class SimpleOAuthValidator implements OAuthValidator {
 
   private final Set<UsedNonce> usedNonces = new TreeSet<UsedNonce>();
 
-  /**
-   * Construct a validator that rejects messages more than five minutes old or
-   * with a OAuth version other than 1.0.
-   */
   public SimpleOAuthValidator() {
     this(DEFAULT_TIMESTAMP_WINDOW, Double.parseDouble(OAuth.VERSION_1_0));
   }
 
-  /**
-   * Public constructor.
-   * 
-   * @param maxTimestampAgeMsec the range of valid timestamps, in milliseconds
-   *          into the past or future. So the total range of valid timestamps is
-   *          twice this value, rounded to the nearest second.
-   * @param maxVersion the maximum valid oauth_version
-   */
   public SimpleOAuthValidator(final long maxTimestampAgeMsec,
     final double maxVersion) {
     this.maxTimestampAgeMsec = maxTimestampAgeMsec;
     this.maxVersion = maxVersion;
   }
 
-  /** Throw an exception if any SINGLE_PARAMETERS occur repeatedly. */
   protected void checkSingleParameters(final OAuthMessage message)
     throws IOException, OAuthException {
     // Check for repeated oauth_ parameters:
@@ -224,26 +159,14 @@ public class SimpleOAuthValidator implements OAuthValidator {
     }
   }
 
-  /** Get the number of milliseconds since midnight, January 1, 1970 UTC. */
   protected long currentTimeMsec() {
     return System.currentTimeMillis();
   }
 
-  /**
-   * Allow objects that are no longer useful to become garbage.
-   * 
-   * @return the earliest point in time at which another call will release some
-   *         garbage, or null to indicate there's nothing currently stored that
-   *         will become garbage in future. This value may change, each time
-   *         releaseGarbage or validateNonce is called.
-   */
   public Date releaseGarbage() {
     return removeOldNonces(currentTimeMsec());
   }
 
-  /**
-   * Remove usedNonces with timestamps that are too old to be valid.
-   */
   private Date removeOldNonces(final long currentTimeMsec) {
     UsedNonce next = null;
     final UsedNonce min = new UsedNonce(
@@ -266,14 +189,8 @@ public class SimpleOAuthValidator implements OAuthValidator {
     return new Date((next.getTimestamp() * 1000L) + maxTimestampAgeMsec + 500);
   }
 
-  /**
-   * {@inherit}
-   * 
-   * @throws URISyntaxException
-   */
   @Override
-  public void validateMessage(
-    final OAuthMessage message,
+  public void validateMessage(final OAuthMessage message,
     final OAuthAccessor accessor) throws OAuthException, IOException,
     URISyntaxException {
     checkSingleParameters(message);
@@ -282,25 +199,12 @@ public class SimpleOAuthValidator implements OAuthValidator {
     validateSignature(message, accessor);
   }
 
-  /**
-   * Throw an exception if the nonce has been validated previously.
-   * 
-   * @return the earliest point in time at which a call to releaseGarbage will
-   *         actually release some garbage, or null to indicate there's nothing
-   *         currently stored that will become garbage in future.
-   */
-  protected Date validateNonce(
-    final OAuthMessage message,
-    final long timestamp,
-    final long currentTimeMsec) throws IOException, OAuthProblemException {
+  protected Date validateNonce(final OAuthMessage message,
+    final long timestamp, final long currentTimeMsec) throws IOException,
+    OAuthProblemException {
     final UsedNonce nonce = new UsedNonce(timestamp,
       message.getParameter(OAuth.OAUTH_NONCE), message.getConsumerKey(),
       message.getToken());
-    /*
-     * The OAuth standard requires the token to be omitted from the stored
-     * nonce. But I include it, to harmonize with a Consumer that generates
-     * nonces using several independent computers, each with its own token.
-     */
     boolean valid = false;
     synchronized (usedNonces) {
       valid = usedNonces.add(nonce);
@@ -311,8 +215,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
     return removeOldNonces(currentTimeMsec);
   }
 
-  protected void validateSignature(
-    final OAuthMessage message,
+  protected void validateSignature(final OAuthMessage message,
     final OAuthAccessor accessor) throws OAuthException, IOException,
     URISyntaxException {
     message.requireParameters(OAuth.OAUTH_CONSUMER_KEY,
@@ -320,11 +223,9 @@ public class SimpleOAuthValidator implements OAuthValidator {
     OAuthSignatureMethod.newSigner(message, accessor).validate(message);
   }
 
-  /** Throw an exception if the timestamp [sec] is out of range. */
-  protected void validateTimestamp(
-    final OAuthMessage message,
-    final long timestamp,
-    final long currentTimeMsec) throws IOException, OAuthProblemException {
+  protected void validateTimestamp(final OAuthMessage message,
+    final long timestamp, final long currentTimeMsec) throws IOException,
+    OAuthProblemException {
     final long min = (currentTimeMsec - maxTimestampAgeMsec + 500) / 1000L;
     final long max = (currentTimeMsec + maxTimestampAgeMsec + 500) / 1000L;
     if (timestamp < min || max < timestamp) {
@@ -336,10 +237,6 @@ public class SimpleOAuthValidator implements OAuthValidator {
     }
   }
 
-  /**
-   * Throw an exception if the timestamp is out of range or the nonce has been
-   * validated previously.
-   */
   protected void validateTimestampAndNonce(final OAuthMessage message)
     throws IOException, OAuthProblemException {
     message.requireParameters(OAuth.OAUTH_TIMESTAMP, OAuth.OAUTH_NONCE);

@@ -20,18 +20,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
 import org.springframework.core.io.Resource;
 
-/**
- * Utility for HTTP Post messages and their associated response messages.
- */
-
 @SuppressWarnings("javadoc")
 public class HttpMultipartPost {
   private HttpClient httpclient = null;
 
-  /** HTTP Post method */
   private HttpPost httppost = new HttpPost();
 
-  /** HTTP request entity sent with HTTP post message */
   private final MultipartEntity requestEntity = new MultipartEntity() {
     @Override
     public boolean isRepeatable() {
@@ -39,50 +33,30 @@ public class HttpMultipartPost {
     }
   };
 
-  /** HTTP response entity received with HTTP response message */
   private HttpEntity responseEntity = null;
 
-  /** HTTP response object returned from a post request */
   private HttpResponse response = null;
 
-  /** userAgent set in header */
   private final String userAgent = "";
 
   private String url;
 
-  /**
-   * @param httpclient
-   * @param url
-   */
   public HttpMultipartPost(final HttpClient httpclient, final String url) {
     this(new HttpPost(url));
     this.url = url;
     this.httpclient = httpclient;
   }
 
-  /**
-   * @param httpclient
-   * @param url
-   */
   public HttpMultipartPost(final HttpClient httpclient, final URL url) {
     this(url.toString());
   }
 
-  /**
-   * Constructor for a previously instantiated post for which the headers have
-   * been externally set.
-   * 
-   * @param httppost
-   */
   public HttpMultipartPost(final HttpPost httppost) {
     httpclient = new DefaultHttpClient();
     this.httppost = httppost;
 
   }
 
-  /**
-   * @param urlString
-   */
   public HttpMultipartPost(final String urlString) {
     this(new HttpPost(urlString));
     if (!"".equals(userAgent)) {
@@ -94,29 +68,15 @@ public class HttpMultipartPost {
     }
   }
 
-  /**
-   * @param url
-   */
   public HttpMultipartPost(final URL url) {
     this(url.toString());
   }
 
-  /**
-   * Add a file parameter.
-   * 
-   * @param parameterName
-   * @param file
-   */
   public void addParameter(final String parameterName, final File file) {
     requestEntity.addPart(parameterName, new FileBody(file));
   }
 
-  /**
-   * @param parameterName
-   * @param parameterValue
-   */
-  public void addParameter(
-    final String parameterName,
+  public void addParameter(final String parameterName,
     final Object parameterValue) {
     if (parameterValue != null) {
       try {
@@ -128,37 +88,18 @@ public class HttpMultipartPost {
     }
   }
 
-  /**
-   * @param parameterName
-   * @param parameterValue
-   */
-  public void addParameter(
-    final String parameterName,
-    final Resource resource,
+  public void addParameter(final String parameterName, final Resource resource,
     final String cotentType) {
     final ResourceBody body = new ResourceBody(resource, cotentType);
     requestEntity.addPart(parameterName, body);
   }
 
-  /**
-   * @param parameterName Parameter name
-   * @param filename name of file associated with input stream
-   * @param inputStream
-   * @throws IOException
-   */
-  public void addParameter(
-    final String parameterName,
-    final String filename,
+  public void addParameter(final String parameterName, final String filename,
     final InputStream inputStream) throws IOException {
     requestEntity.addPart(parameterName, new InputStreamBody(inputStream,
       filename));
   }
 
-  /**
-   * Flush the response data stream.
-   * 
-   * @throws IOException
-   */
   @SuppressWarnings("deprecation")
   public void close() throws IOException {
     if (responseEntity != null) {
@@ -166,32 +107,14 @@ public class HttpMultipartPost {
     }
   }
 
-  /**
-   * Get the HTTP response message.
-   * 
-   * @return
-   */
   public HttpResponse getResponse() {
     return response;
   }
 
-  /**
-   * Get input stream for response content
-   * 
-   * @throws IOException
-   * @throws IllegalStateException
-   * @throws IOException
-   * @throws IllegalStateException
-   */
   public InputStream getResponseContentStream() throws IOException {
     return responseEntity.getContent();
   }
 
-  /**
-   * Get response entity returned from HTTP response message.
-   * 
-   * @return
-   */
   public HttpEntity getResponseEntity() {
     return responseEntity;
   }
@@ -200,13 +123,6 @@ public class HttpMultipartPost {
     return url;
   }
 
-  /**
-   * Send the HTTP POST message.
-   * 
-   * @param context
-   * @return HTTP status code.
-   * @throws IOException
-   */
   public int postRequest(final HttpContext context) throws IOException {
     response = null;
     int statusCode = HttpStatus.SC_BAD_REQUEST; // 400

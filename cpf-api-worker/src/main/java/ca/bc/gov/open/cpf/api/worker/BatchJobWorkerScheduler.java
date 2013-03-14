@@ -11,13 +11,14 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -54,8 +55,8 @@ import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.UrlUtil;
 
-public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
-  Process, BeanNameAware, ModuleEventListener {
+public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
+  implements Process, BeanNameAware, ModuleEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(BatchJobWorkerScheduler.class);
 
   private String beanName;
@@ -95,8 +96,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   private File tempDir;
 
-  private Thread thread;
-
   private int timeout = 0;
 
   private final int timeoutStep = 10 * 1000;
@@ -109,9 +108,26 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   private boolean abbortedRequest;
 
+  private Set<String> executingGroupIds = new LinkedHashSet<String>();
+
+  /** The frequency in which to send the executing groups to the server. */
+  private long sendExecutingGroupIdsSeconds = 5 * 60;
+
   public BatchJobWorkerScheduler() {
-    super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-      new NamedThreadFactory());
+    super(0, new NamedThreadFactory());
+    setMaximumPoolSize(100);
+    setKeepAliveTime(60, TimeUnit.SECONDS);
+    scheduleWithFixedDelay(new InvokeMethodRunnable(this,
+      "addExecutingGroupsMessage"), sendExecutingGroupIdsSeconds,
+      sendExecutingGroupIdsSeconds, TimeUnit.SECONDS);
+  }
+
+  public void addExecutingGroupsMessage() {
+    Map<String, Object> message = new LinkedHashMap<String, Object>();
+    message.put("action", "executingGroupIds");
+    message.put("workerId", id);
+    message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
+    addMessage(message);
   }
 
   public void abortRequest() {
@@ -137,7 +153,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     }
   }
 
-  @SuppressWarnings("deprecation")
   @PreDestroy
   public void destroy() {
     running = false;
@@ -146,8 +161,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     if (httpClient != null) {
       abortRequest();
       this.httpClient = null;
-    } else if (thread != null) {
-      thread.stop();
     }
     shutdownNow();
     if (httpClientPool != null) {
@@ -468,10 +481,20 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
               if (LOG.isDebugEnabled()) {
                 LOG.debug("Scheduling group " + response);
               }
-              final Runnable runnable = new BatchJobRequestExecutionGroupRunnable(
-                this, businessApplicationRegistry, httpClientPool,
-                securityServiceFactory, id, response);
-              execute(runnable);
+              final String groupId = (String)response.get("groupId");
+              addExecutingGroupId(groupId);
+              try {
+                final Runnable runnable = new BatchJobRequestExecutionGroupRunnable(
+                  this, businessApplicationRegistry, httpClientPool,
+                  securityServiceFactory, id, response);
+                execute(runnable);
+              } catch (Throwable e) {
+                if (running) {
+                  LOG.error("Unable to get execute group " + groupId, e);
+                }
+                removeExecutingGroupId(groupId);
+                addExecutingGroupsMessage();
+              }
             }
           } else {
             if (LOG.isDebugEnabled()) {
@@ -481,6 +504,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
         }
         return true;
       } catch (SocketException e) {
+        addExecutingGroupsMessage();
         if (abbortedRequest) {
           return true;
         } else {
@@ -488,12 +512,25 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           return false;
         }
       } catch (final Throwable t) {
+        addExecutingGroupsMessage();
         if (running) {
           LOG.error("Unable to get group", t);
         }
       }
     }
     return false;
+  }
+
+  protected void removeExecutingGroupId(String groupId) {
+    synchronized (executingGroupIds) {
+      executingGroupIds.remove(groupId);
+    }
+  }
+
+  protected void addExecutingGroupId(final String groupId) {
+    synchronized (executingGroupIds) {
+      executingGroupIds.add(groupId);
+    }
   }
 
   public boolean sendMessage(final Map<String, ? extends Object> message) {
@@ -522,7 +559,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   @Override
   public void run() {
-    thread = Thread.currentThread();
     LOG.info("Started");
     preRun();
     try {
@@ -553,7 +589,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       LOG.error(e.getMessage(), e);
       getProcessNetwork().stop();
     } finally {
-      thread = null;
       postRun();
       LOG.info("Stopped");
     }

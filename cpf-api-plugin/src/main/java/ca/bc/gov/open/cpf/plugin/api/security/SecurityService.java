@@ -29,6 +29,16 @@ public void setSecurityService(SecurityService securityService) {
 public interface SecurityService {
   /**
    * <p>Check to see if the user can access the resource.</p>
+   *
+   * <figure><pre class="prettyprint language-java">public void execute() {
+  String resourceClass = "report";
+  String resourceId = "demo";
+  if (securityService.canAccessResource(resourceClass, resourceId)) {
+    // Perform the request
+  } else {
+    throw new SecurityException("User cannot access the demo report");
+  }
+}</pre></figure>
    * 
    * @param resourceClass The type of resource.
    * @param resourceId The resource identifier.
@@ -38,6 +48,17 @@ public interface SecurityService {
 
   /**
    * <p>Check to see if the user can perform the action on the resource.</p>
+   * 
+   * <figure><pre class="prettyprint language-java">public void execute() {
+  String resourceClass = "report";
+  String resourceId = "demo";
+  String actionName = "view";
+  if (securityService.canAccessResource(resourceClass, resourceId, actionName)) {
+    // Perform the request
+  } else {
+    throw new SecurityException("User cannot perform the view action on the demo report");
+  }
+}</pre></figure>
    * 
    * @param resourceClass The type of resource.
    * @param resourceId The resource identifier.
@@ -53,7 +74,15 @@ public interface SecurityService {
   /**
    * <p>Check to see if the user is can perform the named action.</p>
    * 
-   * @param actionName The action name.
+   * <figure><pre class="prettyprint language-java">public void execute() {
+  if (securityService.canPerformAction("view")) {
+    // Perform the request
+  } else {
+    throw new SecurityException("User cannot perform the view action");
+  }
+}</pre></figure>
+   *
+   *@param actionName The action name.
    * @return True if the user can perform the named action, false otherwise.
    */
   boolean canPerformAction(String actionName);
@@ -89,15 +118,13 @@ public interface SecurityService {
   /**
    * <p>Check to see if the user is a member of the named group.</p>
    * 
- * <figure>
- * <pre class="prettyprint language-java">public void execute() {
+   * <figure><pre class="prettyprint language-java">public void execute() {
   if (securityService.isInGroup("DEMO_PARTNER")) {
     // Perform the request
   } else {
     throw new SecurityException("User is not a member of the DEMO_PARTNER_GROUP");
   }
-}</pre>
- * </figure>
+}</pre></figure>
    * @param groupName The group name.
    * @return True if the user is a member of the group, false otherwise.
    */

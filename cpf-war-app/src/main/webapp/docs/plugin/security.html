@@ -148,7 +148,7 @@ td > ul {
 <p>Each plug-in can also have their own user groups that are specific to that plug-in and not shared between plug-ins. Module specific groups must have the &lt;Module Name&gt;_ prefix (e.g. the partner group for the DEMO module would be DEMO_PARTNER). </p>
 
 <ol>
-  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</
+  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</li>
   <li>Click on the name of the module in the table, this will open the module view page.</li>
   <li>Click the User Groups tab to view the groups available for the module, it will include USER_TYPE, GLOBAL and module specific groups.</li>
   <li>Click the name of a group to view it and then click Edit to change the group name or description. Editing is only possible for module specific groups.</li>
@@ -191,83 +191,103 @@ td > ul {
 
 <p>The special value 'All' can be used as a wildcard for the resourceClass, resourceId or action. When enforcing permissions the 'All' value will match any requested value for that attribute when the plug-in uses the security service to check if a user can access a resource.</p>
 
-<p>Security permissions can be granted</p>
+<p>Security permissions can be granted using the CPF admin application.</p>
 
 <ol>
-  <li>Open <a href="http://localhost/cpf/admin/">http://localhost/cpf/admin/</a> using a web browser. Use the username CPF_ADMIN and password cpf_2009.</li>
-  <li>On the menu of the left select Modules.</li>
+  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</li>
   <li>Click on the name of the module in the table, this will open the module view page.</li>
-  <li>Click the [+] next to User Groups to view the groups available for the module, it will include USER_TYPE, GLOBAL and module specific groups.</li>
-  <li>Click the name of a group to view it.</li>
-  <li>On the View user group page click the [+] next to User Group Permissions to add, view and edit permissions.</li>
+  <li>Click the User Groups tab to view the groups available for the module, it will include USER_TYPE, GLOBAL and module specific groups.</li>
+  <li>Click the name of a group to view it and then click Edit to change the group name or description. Editing is only possible for module specific groups.</li>
+  <li>On the View user group page click the User Group Permissions tab to add, view and edit permissions.</li>
 </ol>
-<p>&nbsp;</p>
-<h3><a name="_Toc211664521">Security Configuration File</a></h3>
+
+<h2>Security Configuration File</h2>
+
 <p>In addition to manually defining security groups and permissions using the CPF Admin Application a plug-in can include a configuration file in the plug-in jar. The following must be created as a JSON document.</p>
-<p>src/main/resources/META-INF/ca.bc.gov.open.cpf.plugin.UserGroups.json</p>
+
+<pre class="prettyprint">src/main/resources/META-INF/ca.bc.gov.open.cpf.plugin.UserGroups.json</pre>
+
 <p>The User Groups config file is a JSON list of JSON objects. Each object represents a user group to be created or to create permissions for. Only groups starting with the &lt;Module Name&gt;_ prefix will be created. The USER_TYPE or GLOBAL groups must already exist for permissions to be added to them.</p>
-<table>
-  <tr>
-    <th>Attribute</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td>name</td>
-    <td>The name of the group to create   or grant permissions to (e.g. DEMO_PARTNER).</td>
-  </tr>
-  <tr>
-    <td>permissions</td>
-    <td>A JSON list of JSON objects containing   the permissions to grant. See table below for list of permission attributes. </td>
-  </tr>
-</table>
-<p>The following table shows the JSON attributes for a permission object.</p>
-<table>
-  <tr>
-    <th>Attribute</th>
-    <th>Example</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td>resourceClass</td>
-    <td>reportName</td>
-    <td>The resourceClass is used to   categorize the type of resource that the policy applies to. This could be the   same name as the plug-in parameter that contains the resource identifier to   check.</td>
-  </tr>
-  <tr>
-    <td>resourceId</td>
-    <td>Demo Report</td>
-    <td>The resourceId is the identifier   of the resource the </td>
-  </tr>
-  <tr>
-    <td>action</td>
-    <td>View</td>
-    <td>The name of the action that can   be performed on the resource. Use common names such as View, Edit for the   action name.</td>
-  </tr>
-</table>
-<p>The following example shows a group called DEMO_PARTNER that will be created if it does not exist. The members of that group will be granted the permission to View the Demo Report. Members of the BCGOV_INTERNAL group will be granted permission to View All reports.</p>
-<div>
-  <p>[<br>
-      {<br>
-         &quot;name&quot;: &quot;<strong>DEMO_PARTNER</strong>&quot;,<br>
-         &quot;permissions&quot;: [<br>
-           {<br>
-             &quot;resourceClass&quot;  : &quot;<strong>reportName</strong>&quot;,<br>
-             &quot;resourceId&quot;          : &quot;<strong>Demo Report</strong>&quot;,<br>
-             &quot;action&quot;         : &quot;<strong>View</strong>&quot;<br>
-           }<br>
-         ]<br>
-      },<br>
-      {<br>
-         &quot;name&quot;: &quot;<strong>BCGOV_INTERNAL</strong>&quot;,<br>
-         &quot;permissions&quot;: [<br>
-           {<br>
-             &quot;resourceClass&quot;  : &quot;<strong>reportName</strong>&quot;,<br>
-             &quot;resourceId&quot;          : &quot;<strong>All</strong>&quot;,<br>
-             &quot;action&quot;         : &quot;<strong>View</strong>&quot;<br>
-           }<br>
-         ]<br>
-      }<br>
-    ]</p>
+
+<div class="simpleDataTable">
+  <table>
+    <thead>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>name</td>
+        <td>The name of the group to create or grant permissions to (e.g. DEMO_PARTNER).</td>
+      </tr>
+      <tr>
+        <td>permissions</td>
+        <td>A JSON list of JSON objects containing the permissions to grant. See table below for list of permission attributes. </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
+    
+<p>The following table shows the JSON attributes for a permission object.</p>
+
+<div class="simpleDataTable">
+	<table>
+    <thead>
+      <tr>
+        <th>Attribute</th>
+        <th>Example</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>resourceClass</td>
+        <td>reportName</td>
+        <td>The resourceClass is used to categorize the type of resource that the policy applies to. This could be the same name as the plug-in parameter that contains the resource identifier to   check.</td>
+      </tr>
+      <tr>
+        <td>resourceId</td>
+        <td>Demo Report</td>
+        <td>The resourceId is the identifier of the resource the </td>
+      </tr>
+      <tr>
+        <td>action</td>
+        <td>View</td>
+        <td>The name of the action that can be performed on the resource. Use common names such as View, Edit for the action name.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The following example shows a group called DEMO_PARTNER that will be created if it does not exist. The members of that group will be granted the permission to View the Demo Report. Members of the BCGOV_INTERNAL group will be granted permission to View All reports.</p>
+
+<figure>
+<pre class="prettyprint language-js">[
+  {
+    "name": "<b>DEMO_PARTNER</b>",
+    "permissions": [
+      {
+        "resourceClass"  : "<b>reportName</b>",
+        "resourceId"     : "<b>Demo Report</b>",
+        "action"         : "<b>View</b>"
+      }
+    ]
+  },
+  {
+    "name": <b>BCGOV_INTERNAL</b>,
+    "permissions": [
+      {
+        "resourceClass  : "<b>reportName</b>",
+        "resourceId     : "<b>All</b>",
+        "action         : "<b>View</b>"
+      }
+    ]
+  }
+]</pre>
+</figure>
+
 <!-- InstanceEndEditable -->
                 </div>
               </div>

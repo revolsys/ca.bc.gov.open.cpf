@@ -536,7 +536,7 @@ public class CpfDataAccessObject {
    * Get all the jobs that are either marked for deletion, or that have had a
    * status change timestamp less than the passed timestamp.
    * 
-   * @param expiryTimeStamp The timestamp of the maximum age of the completed
+   * @param keepUntilTimestamp The timestamp of the maximum age of the completed
    *          jobs to be retained.
    * @return The batch job ids.
    */
@@ -871,7 +871,7 @@ public class CpfDataAccessObject {
    * Update the request execution/failed counts for all the {@link BatchJob}s
    * which are in the processing or requestsCreated status.
    * 
-   * @param businessApplicationNames The business application names to update
+   * @param businessApplicationName The business application names to update
    *          the status for.
    * @return The number of records updated.
    */
@@ -899,7 +899,7 @@ public class CpfDataAccessObject {
    * the processed status and have the request execution/failed counts equal to
    * the number of submitted requests.
    * 
-   * @param businessApplicationNames The business application names to update
+   * @param businessApplicationName The business application names to update
    *          the status for.
    * @return The number of records updated.
    */
@@ -957,7 +957,7 @@ public class CpfDataAccessObject {
    * 
    * @param newStatus The status to change the jobs to.
    * @param oldStatus The status of jobs to update.
-   * @param businessApplicationNames The list of business application names.
+   * @param businessApplicationName The list of business application names.
    * @return The number of BatchJobs updated.
    */
   public int updateBatchJobStatus(final String newStatus,

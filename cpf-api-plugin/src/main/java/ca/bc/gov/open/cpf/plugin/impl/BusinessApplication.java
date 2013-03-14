@@ -36,7 +36,6 @@ import com.vividsolutions.jts.geom.Geometry;
  * 
  * @author paustin
  * @version 1.0
- * @created 10-Feb-2009 4:23:03 PM
  */
 public class BusinessApplication extends AbstractObjectWithProperties implements
   Comparable<BusinessApplication> {
@@ -244,7 +243,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    * case), followed by versions with the lowest version number first.
    * 
    * @param businessApplication
-   * @return
    */
   @Override
   public int compareTo(final BusinessApplication businessApplication) {
