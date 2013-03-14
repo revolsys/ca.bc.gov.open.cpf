@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -55,7 +57,7 @@ import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.UrlUtil;
 
-public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
+public class BatchJobWorkerScheduler extends ThreadPoolExecutor
   implements Process, BeanNameAware, ModuleEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(BatchJobWorkerScheduler.class);
 
@@ -110,14 +112,17 @@ public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
 
   private Set<String> executingGroupIds = new LinkedHashSet<String>();
 
+  private ScheduledThreadPoolExecutor scheduledTasks = new ScheduledThreadPoolExecutor(0, new NamedThreadFactory());
+  
   /** The frequency in which to send the executing groups to the server. */
   private long sendExecutingGroupIdsSeconds = 5 * 60;
 
   public BatchJobWorkerScheduler() {
-    super(0, new NamedThreadFactory());
+    super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+      new NamedThreadFactory());
     setMaximumPoolSize(100);
     setKeepAliveTime(60, TimeUnit.SECONDS);
-    scheduleWithFixedDelay(new InvokeMethodRunnable(this,
+    scheduledTasks.scheduleWithFixedDelay(new InvokeMethodRunnable(this,
       "addExecutingGroupsMessage"), sendExecutingGroupIdsSeconds,
       sendExecutingGroupIdsSeconds, TimeUnit.SECONDS);
   }
@@ -155,6 +160,7 @@ public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
 
   @PreDestroy
   public void destroy() {
+    scheduledTasks.shutdownNow();
     running = false;
     getProcessNetwork().stop();
     OAuthHttpClient httpClient = this.httpClient;
@@ -231,6 +237,8 @@ public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
     if (module != null) {
       final long lastStartedTime = module.getStartedDate().getTime();
       if (lastStartedTime < moduleTime) {
+        LOG.info("Unloading older module version " + moduleName + " "
+            + lastStartedTime);
         log.info("Unloading older module version " + moduleName + " "
           + lastStartedTime);
         unloadModule(module);
@@ -286,8 +294,9 @@ public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
       module.enable();
     } catch (Throwable t) {
       try {
-        log.error("Unable to load module " + moduleName, t);
+        LOG.error("Unable to load module " + moduleName, t);
         LOG.error(log.getLogContent());
+        log.error("Unable to load module " + moduleName, t);
       } finally {
         setModuleExcluded(moduleName, moduleTime, log.getLogRecords());
         if (module != null) {
