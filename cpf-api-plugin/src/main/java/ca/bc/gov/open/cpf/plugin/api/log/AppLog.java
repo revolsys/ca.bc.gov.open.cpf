@@ -44,6 +44,22 @@ public class AppLog {
   /** The local log instance. */
   private static final Logger LOG = LoggerFactory.getLogger(AppLog.class);
 
+  /**
+   * <p>Create a log record.</p>
+  * @param logLevel The logging level (ERROR, INFO, DEBUG).
+   * @param message The message.
+   * @return The log record.
+   */
+  public static Map<String, String> createLogRecord(final String logLevel,
+    final String message) {
+    final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+    final Map<String, String> logRecord = new LinkedHashMap<String, String>();
+    logRecord.put("date", date);
+    logRecord.put("level", logLevel);
+    logRecord.put("message", message);
+    return logRecord;
+  }
+
   /** The logging level (ERROR, INFO, DEBUG). */
   private String logLevel = "ERROR";
 
@@ -76,7 +92,7 @@ public class AppLog {
       log("DEBUG", message);
     }
   }
-  
+
   /**
    * <p>Record the error message in the log.</p>
    * 
@@ -176,11 +192,7 @@ public class AppLog {
    * @param message The message.
    */
   private synchronized void log(final String logLevel, final String message) {
-    final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
-    final Map<String, String> logRecord = new LinkedHashMap<String, String>();
-    logRecord.put("date", date);
-    logRecord.put("level", logLevel);
-    logRecord.put("message", message);
+    final Map<String, String> logRecord = createLogRecord(logLevel, message);
     logRecords.add(logRecord);
   }
 

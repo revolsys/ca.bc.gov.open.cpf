@@ -309,6 +309,7 @@ public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
 
   private void setModuleExcluded(final String moduleName,
     final Long moduleTime, List<Map<String, String>> logRecords) {
+    LOG.info("Excluding module: " + moduleName);
     Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "moduleExcluded");
     message.put("moduleName", moduleName);
@@ -472,9 +473,18 @@ public class BatchJobWorkerScheduler extends ScheduledThreadPoolExecutor
                 Long loadingTime = loadingModules.get(moduleName);
                 if (loadingTime == null || loadingTime < moduleTime) {
                   loadingModules.put(moduleName, moduleTime);
+                  LOG.info("Loading module: " + moduleName);
 
-                  execute(new InvokeMethodRunnable(this, "loadModule",
-                    moduleName, moduleTime));
+                  try {
+                    execute(new InvokeMethodRunnable(this, "loadModule",
+                      moduleName, moduleTime));
+                  } catch (Throwable t) {
+                    LOG.error("Unable to load module " + moduleName, t);
+                    List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
+                    logRecords.add(AppLog.createLogRecord("ERROR",
+                      "Unable to load module " + moduleName));
+                    setModuleExcluded(moduleName, moduleTime, logRecords);
+                  }
                 }
               }
             } else if (response.get("batchJobId") != null) {
