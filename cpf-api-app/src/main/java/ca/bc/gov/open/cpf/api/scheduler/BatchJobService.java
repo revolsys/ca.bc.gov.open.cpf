@@ -316,6 +316,7 @@ public class BatchJobService implements ModuleEventListener {
     if (groupId != null) {
       final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
       if (group != null) {
+        LoggerFactory.getLogger(BatchJobService.class).info("Rescheduling group " + groupId);
         group.resetId();
         schedule(group);
       }

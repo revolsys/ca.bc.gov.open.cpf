@@ -144,7 +144,9 @@ public class Worker {
   }
 
   public BatchJobRequestExecutionGroup removeExecutingGroup(final String groupId) {
-    return executingGroupsById.remove(groupId);
+    synchronized (executingGroupsById) {
+      return executingGroupsById.remove(groupId);
+    }
   }
 
   public boolean removeLoadedModule(final String moduleNameTime) {
