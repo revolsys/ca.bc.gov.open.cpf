@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
@@ -18,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -57,8 +55,8 @@ import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.UrlUtil;
 
-public class BatchJobWorkerScheduler extends ThreadPoolExecutor
-  implements Process, BeanNameAware, ModuleEventListener {
+public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
+  Process, BeanNameAware, ModuleEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(BatchJobWorkerScheduler.class);
 
   private String beanName;
@@ -100,6 +98,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor
 
   private int timeout = 0;
 
+  private long lastPingTime;
+
   private final int timeoutStep = 10 * 1000;
 
   private String webServiceUrl = "http://localhost/cpf";
@@ -112,27 +112,27 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor
 
   private Set<String> executingGroupIds = new LinkedHashSet<String>();
 
-  private ScheduledThreadPoolExecutor scheduledTasks = new ScheduledThreadPoolExecutor(0, new NamedThreadFactory());
-  
-  /** The frequency in which to send the executing groups to the server. */
-  private long sendExecutingGroupIdsSeconds = 5 * 60;
+  private long maxTimeBetweenPings = 5 * 60 * 1000;
 
   public BatchJobWorkerScheduler() {
     super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
       new NamedThreadFactory());
     setMaximumPoolSize(100);
     setKeepAliveTime(60, TimeUnit.SECONDS);
-    scheduledTasks.scheduleWithFixedDelay(new InvokeMethodRunnable(this,
-      "addExecutingGroupsMessage"), sendExecutingGroupIdsSeconds,
-      sendExecutingGroupIdsSeconds, TimeUnit.SECONDS);
   }
 
   public void addExecutingGroupsMessage() {
+    Map<String, Object> message = createExecutingGroupsMessage();
+    addMessage(message);
+  }
+
+  protected Map<String, Object> createExecutingGroupsMessage() {
     Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "executingGroupIds");
     message.put("workerId", id);
     message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
-    addMessage(message);
+    lastPingTime = System.currentTimeMillis();
+    return message;
   }
 
   public void abortRequest() {
@@ -160,7 +160,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor
 
   @PreDestroy
   public void destroy() {
-    scheduledTasks.shutdownNow();
     running = false;
     getProcessNetwork().stop();
     OAuthHttpClient httpClient = this.httpClient;
@@ -238,7 +237,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor
       final long lastStartedTime = module.getStartedDate().getTime();
       if (lastStartedTime < moduleTime) {
         LOG.info("Unloading older module version " + moduleName + " "
-            + lastStartedTime);
+          + lastStartedTime);
         log.info("Unloading older module version " + moduleName + " "
           + lastStartedTime);
         unloadModule(module);
@@ -433,14 +432,20 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor
   }
 
   public boolean processNextTask() {
+    if (System.currentTimeMillis() > lastPingTime + maxTimeBetweenPings) {
+      addExecutingGroupsMessage();
+    }
     while (!messages.isEmpty()) {
       synchronized (messages) {
         Map<String, Object> message = messages.removeFirst();
         while (!sendMessage(message)) {
           if (running) {
             try {
-              messages.wait(10000);
+              messages.wait(timeout);
             } catch (InterruptedException e) {
+            }
+            if (timeout < maxTimeout) {
+              timeout += timeoutStep;
             }
           } else {
             return false;
@@ -451,8 +456,10 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor
     if (!running) {
       return false;
     }
+    long time = System.currentTimeMillis();
     if (getActiveCount() + 1 >= getMaximumPoolSize()) {
-      sendMessage(Collections.singletonMap("action", "ping"));
+      sendMessage(createExecutingGroupsMessage());
+      lastPingTime = time;
       return false;
     } else {
       try {
