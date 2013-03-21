@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
  * <p>To return a list of results the plug-in must implement a get method that returns a {@link List} of a
  * specified value object (e.g. <code>ResultObject</code>). The method must also have the
  * {@link ResultList} annotation. The plug-in class must not have any methods marked with the {@link ResultAttribute} annotation.</p>
+ * 
  * <p>The value object class contains the result attributes to return for each result in the list.
  * Pick an appropriate name for the value object (e.g. Address). The value object class must have
  * one or more get methods with the {@see ResultAttribute} annotation. These

@@ -6,17 +6,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>The plug-in class must be implemented with a package declaration in a separate java
- * file with the public keyword. The final keyword must not be used for plug-in class 
- * definition. The class name should have the Plug-in suffix to indicate that it is a
- * plug-in; this is a recommendation not a requirement.</p>
+ * <p>The <code>BusinessApplicationPlugin</code> annotation marks a Java class as a CPF business
+ * application plug-in. The plug-in class must have the <code>public</code> keyword, be defined in a separate
+ * Java file, must not be in the default package (must have a package declaration) and must not
+ * have the <code>final</code> keyword.<p>
  *
- * <p>The plug-in class must have the {@link BusinessApplicationPlugin} class annotation.</p>
+ * <p>The instance of the plug-in is executed within a single thread so does not need to be
+ * synchronized. Any services that it uses must however be thread safe as they will be used by
+ * multiple instances of the plug-in in different threads.</p>
+ * 
+ * <p class="note">NOTE: An instance of the plug-in class is created for each request processed by the plug-in.
+ * Therefore state will not be maintained between requests it must not include the initialization
+ * of any resources that have significant overhead to create. These should be defined as spring
+ * beans and made available to the plug-in using spring dependency injection.
+ * If there are data structures that vary based
+ * on the parameters to a request then these can be created within the plug-in.</p>
  *
  * <p>The following code fragment shows the implementation of a plug-in class using all of the
  * annotation elements.</p>
  *
- *<pre class="prettyprint language-java">package ca.bc.gov.demo;
+ *<figure><pre class="prettyprint language-java">package ca.bc.gov.demo;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 
@@ -25,7 +34,7 @@ import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
   title                   = "Demonstration Plug-in"
   version                 = "1.1.2",
   compatibleVersions      = { "1.1.0", "1.1.1" },
-  description             = "Demonstrates how to use the CPF plugin API"
+  description             = "Demonstrates how to use the CPF plug-in API"
   descriptionUrl          = "http://demo.gov.bc.ca",
   inputDataContentTypes   = { "image/png", "image/jpeg" },
   resultDataContentTypes  = { "image/png", "image/jpeg" },
@@ -37,9 +46,9 @@ import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
   batchModePermission     = "hasRoleRegex('DEMO_.*')")
   instantModePermission   = "hasRole('DEMO_USER')",
   logLevel                = "INFO")
-public class DemoPlugIn {
+public class Demo {
   :
-}</pre> 
+}</pre></figure>
  *
  */
 @Retention(RetentionPolicy.RUNTIME)

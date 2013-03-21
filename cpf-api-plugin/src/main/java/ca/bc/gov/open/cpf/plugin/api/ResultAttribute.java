@@ -6,12 +6,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>The ResultAttribute annotation indicates that a getXXX method is a <a href="../../structuredData.html">structured
+ * <p>The <code>ResultAttribute</code> method annotation indicates that a <code>getXXX</code> or <code>isXXX</code> method is a <a href="../../structuredData.html">structured
  * result data</a> attribute on a {@link BusinessApplicationPlugin} or {@link ResultList}
- * class.</p>
+ * class that has {@link BusinessApplicationPlugin#perRequestResultData()}=false.</p>
  * 
- * <p>Result attributes are implemented as Java bean properties on the plug-in or {@link ResultList} object.
- * The plug-in must implement a get or is property method for each result attribute. The
+ * <p>Result attributes are implemented as Java bean properties on the plug-in class or {@link ResultList} class.
+ * The plug-in must implement a <code>getXXX</code> or <code>isXXX</code> property method for each result attribute. The
  * result attribute name is the name of the Java bean property. The return type can
  * only use the supported <a href="../../dataTypes.html">data types</a>. The result attributes will be converted by
  * the CPF to the correct representation in the output format or a string
@@ -36,18 +36,18 @@ public class Square {
 public @interface ResultAttribute {
   /**
    * The description of the result attribute to display on the plug-in overview
-   * page and as field instructions on the create job forms. If the description
+   * page and as instructions on the create job forms. If the description
    * is not specified and there is a {@link RequestParameter} with the same name
    * that has a description then that will be used. This simplifies coding as it
    * removes the need to duplicate the description.
    */
   String description() default "";
 
-  /** The index of the attribute in the output file. */
+  /** The index  (position) of the attribute in the output file. */
   int index() default -1;
 
   /**
-   * The maximum length of the field including the scale. This is ignored for
+   * The maximum length of the attribute including the scale. This is ignored for
    * fixed size data types such as boolean, byte, short, int, long, float and
    * double. The value -1 indicates no defined limit to the scale.
    */

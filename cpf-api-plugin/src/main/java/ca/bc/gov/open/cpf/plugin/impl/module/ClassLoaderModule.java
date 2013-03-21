@@ -1070,8 +1070,21 @@ public class ClassLoaderModule implements Module {
     final BusinessApplication businessApplication, final Method method) {
     final String methodName = method.getName();
 
+    String descriptionUrl = null;
     final JobParameter jobParameterMetadata = method.getAnnotation(JobParameter.class);
+    if (jobParameterMetadata != null) {
+      String jobDescriptionUrl = jobParameterMetadata.descriptionUrl();
+      if (StringUtils.hasText(jobDescriptionUrl)) {
+        descriptionUrl = jobDescriptionUrl;
+      }
+    }
     final RequestParameter requestParameterMetadata = method.getAnnotation(RequestParameter.class);
+    if (requestParameterMetadata != null) {
+      String requestDescriptionUrl = requestParameterMetadata.descriptionUrl();
+      if (StringUtils.hasText(requestDescriptionUrl)) {
+        descriptionUrl = requestDescriptionUrl;
+      }
+    }
     final boolean requestParameter = requestParameterMetadata != null;
     final boolean jobParameter = jobParameterMetadata != null;
     if (requestParameter || jobParameter) {
@@ -1171,6 +1184,9 @@ public class ClassLoaderModule implements Module {
                   + "."
                   + method.getName()
                   + " cannot have a geometry configuration as is not a geometry attribute");
+            }
+            if (descriptionUrl != null) {
+              attribute.setProperty("descriptionUrl", descriptionUrl);
             }
             businessApplication.addRequestAttribute(index, attribute);
           }

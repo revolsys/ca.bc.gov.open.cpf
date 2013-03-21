@@ -15,13 +15,11 @@ import java.util.Map;
  * the plug-in class. The CPF will invoke this method before the execute method to pass the
  * security service to the plug-in.</p>
  * 
- * <figure>
- * <pre class="prettyprint language-java">private SecurityService securityService;
+ * <figure><pre class="prettyprint language-java">private SecurityService securityService;
 
 public void setSecurityService(SecurityService securityService) {
   this.securityService = securityService;
-}</pre>
- * </figure>
+}</pre></figure>
  * 
  * <p>See each of the methods below for examples of using the security service. All of the
  * examples assume that the above field and method are defined.</p>

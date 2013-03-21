@@ -129,6 +129,23 @@ import com.revolsys.util.CaseConverter;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
 
+/**
+ * <p>The Cloud Processing Framework REST API allows client applications in Java, JavaScript or other
+ * programming languages to query the available business applications, create cloud jobs and download
+ * the results of cloud jobs on behalf of their users.<p>
+ * 
+ * <p>Most of the resources can return JSON or XML documents by appending the <code>.json</code> or <code>.xml</code>
+ * file format extension to the URI Templates before any query string parameters. JSON is the preferred
+ * format due to it's well defined mpa, list and value structure. Some resources that
+ * always return a specific data type will ignore the file format extension if specified.</p>
+ * 
+ * <p>The CPF REST API can also be accessed directly using a web browser by not specifying a file format extension.
+ * If a file format extension
+ * is not included in the request then the HTML user interface will be displayed instead of the resources
+ * described in this API. The HTML user interface allows full access to the CPF without any programming
+ * experience required. The HTML user interface will be slightly different from the responses 
+ * described in this API.</p>
+ */
 @Controller
 public class CloudProcessingFramework {
 
@@ -196,7 +213,7 @@ public class CloudProcessingFramework {
     return permitted;
   }
 
-  /** The batch job service used to interact with the database. */
+  /** The cloud job service used to interact with the database. */
   @Resource(name = "batchJobService")
   private BatchJobService batchJobService;
 
@@ -215,6 +232,9 @@ public class CloudProcessingFramework {
 
   private final Map<String, RawContent> rawContent = new HashMap<String, RawContent>();
 
+  /**
+   * Construct a new CloudProcessingFramework.
+   */
   public CloudProcessingFramework() {
   }
 
@@ -251,7 +271,8 @@ public class CloudProcessingFramework {
     final String name = attribute.getName();
     final String label = CaseConverter.toCapitalizedWords(name);
     final String instructions = attribute.getDescription();
-    TableHeadingDecorator.addRow(fields, field, label, instructions);
+    final String labelUrl = attribute.getProperty("descriptionUrl");
+    TableHeadingDecorator.addRow(fields, field, labelUrl, label, instructions);
   }
 
   private void addFieldRow(final ElementContainer fields,
@@ -360,18 +381,22 @@ public class CloudProcessingFramework {
     final boolean requestParameter = attribute.getProperty(BusinessApplication.REQUEST_PARAMETER) == Boolean.TRUE;
     final Collection<Object> allowedValues = attribute.getAllowedValues()
       .keySet();
-    addParameter(parameters, name, typeDescription, description, jobParameter,
-      requestParameter, perRequestInputData, allowedValues);
+    final String descriptionUrl = attribute.getProperty("descriptionUrl");
+    addParameter(parameters, name, typeDescription, descriptionUrl,
+      description, jobParameter, requestParameter, perRequestInputData,
+      allowedValues);
   }
 
   private void addParameter(final List<Map<String, Object>> parameters,
-    final String name, final String typeDescription, final String description,
+    final String name, final String typeDescription,
+    final String descriptionUrl, final String description,
     final boolean jobParameter, final boolean requestParameter,
     final boolean perRequestInputData, final Collection<Object> allowedValues) {
     final Map<String, Object> parameter = new LinkedHashMap<String, Object>();
     parameter.put("name", name);
     parameter.put("type", typeDescription);
     parameter.put("description", description);
+    parameter.put("descriptionUrl", descriptionUrl);
     parameter.put("jobParameter", jobParameter);
     if (!perRequestInputData) {
       parameter.put("requestParameter", requestParameter);
@@ -439,42 +464,42 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>
-   * Create a new batch job containing multiple requests to be processed by the
-   * business application.
-   * <p>
-   * In addition to the standard parameters listed in the API each business
-   * application has additional job and request parameters. The <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple"
-   * >Get Business Applications Multiple</a> resource should be consulted to get
-   * the full list of supported parameters.
-   * </p>
-   * <p>
-   * The maximum size including all parameters and protocol overhead of a
-   * multi-part request is 20MB. Therefore inputDataUrl should be used instead
-   * of inputData where possible.
-   * </p>
+   * <p>Create a new cloud job containing multiple requests to be processed by the
+   * business application.</p>
+   * 
+   * <p>The service parameters must be passed
+   *  using the multipart/form-data encoding in the body of a HTTP POST request (e.g. a HTML form).</p>
+   * 
+   * <p>In addition to the standard parameters listed in the API each business
+   * application has additional job and request parameters. The
+   * <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a>
+   * resource should be consulted to get the full list of supported parameters. </p>
+   * 
    * <h5>Structured Input Data</h5>
-   * <p>
-   * For structured input data business applications the requests are specified
+   * 
+   * <p>For structured input data business applications the requests are specified
    * using either a single inputData file or a single inputDataUrl can be
    * specified. The file must be in the <a href="../../fileFormat.html">file
    * format</a> specified by a single inputDataContentType. The contents of the
    * file must contain one record for each request to be processed in the batch
    * job. The fields of each record must contain the request parameters
    * supported by the business application. The names of the parameters are case
-   * sensitive.
-   * </p>
+   * sensitive.</p>
+   * 
    * <h5>Opaque input data</h5>
-   * <p>
-   * For opaque input data (e.g. JPEG image, ESRI Shapefile) the requests can be
+   * 
+   * <p>For opaque input data (e.g. JPEG image, ESRI Shapefile) the requests can be
    * specified as one or more inputData files or one or more inputDataUrl
    * parameters. It is not possible to mix inputData and inputDataUrl parameters
-   * in the same batch job. If all the requests have the same content type a
+   * in the same cloud job. If all the requests have the same content type a
    * single inputDataContentType can be specified. Otherwise an
    * inputDataContentType must be specified for each inputData or inputDataUrl
-   * in the same order.
-   * </p>
+   * in the same order.</p>
+   * 
+   * <p class="note">NOTE: The maximum size including all parameters and protocol overhead of a
+   * multi-part request is 20MB. Therefore inputDataUrl should be used instead
+   * of inputData where possible.</p>
+   * 
    * 
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
@@ -483,6 +508,7 @@ public class CloudProcessingFramework {
    * @param inputDataFiles The multi-part file containing the input data.
    * @param inputDataUrls The http: URL to the file or resource containing input
    * data.
+   * @param srid The coordinate system code of the projection for the input geometry.
    * @param resultDataContentType The MIME type of the result data specified to
    * be returned after running the request.
    * @param resultSrid The coordinate system code of the projection for the
@@ -500,6 +526,8 @@ public class CloudProcessingFramework {
    * this URL.
    * @param notificationEmail The email address to send the job status to when
    * the job is completed.
+   * 
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
    */
   @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}/multiple"
@@ -512,6 +540,7 @@ public class CloudProcessingFramework {
     @RequestParam(value = "inputDataContentType", required = false) final String[] inputDataContentTypes,
     @RequestParam(value = "inputData", required = false) List<MultipartFile> inputDataFiles,
     @RequestParam(value = "inputDataUrl", required = false) List<String> inputDataUrls,
+    @RequestParam(required = false) final String srid,
     @RequestParam(required = false) final String resultDataContentType,
     @RequestParam(required = false, defaultValue = "3005") final int resultSrid,
     @RequestParam(required = false, defaultValue = "2") final int resultNumAxis,
@@ -720,18 +749,61 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>
-   * Create a new Batch Job for the version of the business application
-   * containing a single request.
-   * <p>
-   * <p>
-   * The job and request parameters for the business application must be passed
-   * in using a multipart/mime-data or application/x-www-form-urlencoded
-   * encoding in the body of a HTTP POST request.
-   * </p>
+   * <p>Create a new cloud job containing multiple requests to be processed by the
+   * business application.</p>
+   * 
+   * <p>The job and request parameters for the business application must be passed
+   * using the multipart/form-data encoding in the body of a HTTP POST request (e.g. a HTML form).</p>
+   * 
+   * <p>In addition to the standard parameters listed in the API each business
+   * application has additional job and request parameters. The
+   * <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a>
+   * resource should be consulted to get the full list of supported parameters. </p>
+   * 
+   * <h5>Structured Input Data</h5>
+   * 
+   * <p>For structured input data business applications the request parameters are specified
+   * in the HTTP POST form.</p>
+   * 
+   * <h5>Opaque input data</h5>
+   * 
+   * <p>For opaque input data (e.g. JPEG image, ESRI Shapefile) the requests can be
+   * specified as one inputData files or one inputDataUrl
+   * parameter. It is not possible to mix inputData and inputDataUrl parameters
+   * in the same cloud job.</p>
+   * 
+   * <p class="note">NOTE: The maximum size including all parameters and protocol overhead of a
+   * multi-part request is 20MB. Therefore inputDataUrl should be used instead
+   * of inputData where possible for opaque data.</p>
+   * 
    * 
    * @param businessApplicationName The name of the business application.
    * @param businessApplicationVersion The version of the business application.
+   * @param inputDataContentType The MIME type of the input data specified by
+   * an inputData or inputDataUrl parameter.
+   * @param inputDataFile The multi-part file containing the input data.
+   * @param inputDataUrl The http: URL to the file or resource containing input
+   * data.
+   * @param srid The coordinate system code of the projection for the input geometry.
+   * @param resultDataContentType The MIME type of the result data specified to
+   * be returned after running the request.
+   * @param resultSrid The coordinate system code of the projection for the
+   * result geometry.
+   * @param resultNumAxis The number of coordinate axis in the result geometry
+   * (e.g. 2 for 2D or 3 for 3D).
+   * @param resultScaleFactorXy The scale factor to apply the x, y coordinates.
+   * The scale factor is 1 / minimum unit. For example if the minimum unit was
+   * 1mm (0.001) the scale factor is 1000 (1 / 0.001).
+   * @param resultScaleFactorZ The scale factor to apply the z coordinate. The
+   * scale factor is 1 / minimum unit. For example if the minimum unit was 1mm
+   * (0.001) the scale factor is 1000 (1 / 0.001).
+   * @param notificationUrl The http: URL to be notified when the job is
+   * completed. A copy of the Job status will be posted to process running at
+   * this URL.
+   * @param notificationEmail The email address to send the job status to when
+   * the job is completed.
+   * 
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
    */
   @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}/single"
@@ -740,7 +812,18 @@ public class CloudProcessingFramework {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void createJobWithSingleRequest(
     @PathVariable final String businessApplicationName,
-    @PathVariable final String businessApplicationVersion) throws IOException {
+    @PathVariable final String businessApplicationVersion,
+    @RequestParam(required = false) String inputDataContentType,
+    @RequestParam(value = "inputData", required = false) Object inputDataFile,
+    @RequestParam(required = false) final String inputDataUrl,
+    @RequestParam(required = false) final String srid,
+    @RequestParam(required = false) String resultDataContentType,
+    @RequestParam(required = false, defaultValue = "3005") final int resultSrid,
+    @RequestParam(required = false, defaultValue = "2") final int resultNumAxis,
+    @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorXy,
+    @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorZ,
+    @RequestParam(required = false) String notificationUrl, @RequestParam(
+        required = false) final String notificationEmail) throws IOException {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     final BusinessApplication businessApplication = getBusinessApplication(
@@ -769,13 +852,11 @@ public class CloudProcessingFramework {
 
       final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
 
-      String inputDataContentType = HttpServletUtils.getParameter("inputDataContentType");
       if (!StringUtils.hasText(inputDataContentType)) {
         inputDataContentType = defaultInputDataContentType;
       }
       final boolean perRequestInputData = businessApplication.isPerRequestInputData();
       org.springframework.core.io.Resource inputDataIn = null;
-      String inputDataUrl = null;
       if (perRequestInputData) {
         if (!inputDataContentTypes.containsKey(inputDataContentType)
           && !inputDataContentTypes.containsKey("*/*")) {
@@ -783,7 +864,6 @@ public class CloudProcessingFramework {
             + inputDataContentType + " is not supported.");
         }
         inputDataIn = getResource("inputData");
-        inputDataUrl = HttpServletUtils.getParameter("inputDataUrl");
         final boolean hasInputDataIn = inputDataIn != null;
         final boolean hasInputDataUrl = StringUtils.hasText(inputDataUrl);
         if (hasInputDataIn == hasInputDataUrl) {
@@ -791,7 +871,6 @@ public class CloudProcessingFramework {
             "Either an inputData file or inputDataUrl parameter must be specified, but not both");
         }
       }
-      String resultDataContentType = HttpServletUtils.getParameter("resultDataContentType");
       if (!StringUtils.hasText(resultDataContentType)) {
         resultDataContentType = defaultResultDataContentType;
       }
@@ -799,8 +878,6 @@ public class CloudProcessingFramework {
         throw new HttpMessageNotReadableException("resultDataContentType="
           + resultDataContentType + " is not supported.");
       }
-      String notificationUrl = HttpServletUtils.getParameter("notificationUrl");
-      final String notificationEmail = HttpServletUtils.getParameter("notificationEmail");
       if (StringUtils.hasText(notificationEmail)) {
         if (StringUtils.hasText(notificationUrl)) {
           throw new HttpMessageNotReadableException(
@@ -809,7 +886,6 @@ public class CloudProcessingFramework {
           notificationUrl = "mailto:" + notificationEmail;
         }
       }
-      final String srid = HttpServletUtils.getParameter("srid");
       final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
       final DataObject inputData = new ArrayDataObject(requestMetaData);
       for (final Attribute attribute : requestMetaData.getAttributes()) {
@@ -943,36 +1019,36 @@ public class CloudProcessingFramework {
 
   /**
    * <p>
-   * Delete or cancel a user's batch job.
+   * Delete or cancel a user's cloud job.
    * </p>
    * <p>
-   * This service should be invoked after the results from the batch job are
-   * downloaded. If this method is not called the batch job will automatically
+   * This service should be invoked after the results from the cloud job are
+   * downloaded. If this method is not called the cloud job will automatically
    * be deleted 7 days after the result download was started.
    * </p>
    * <p>
-   * This method can also be used to cancel a batch job before it was finished.
-   * If a batch job was submitted in error or no longer required use this method
-   * to cancel the batch job to help free resources on the system to process
-   * other batch jobs.
+   * This method can also be used to cancel a cloud job before it was finished.
+   * If a cloud job was submitted in error or no longer required use this method
+   * to cancel the cloud job to help free resources on the system to process
+   * other cloud jobs.
    * </p>
    * 
    * @param consumerKey The consumerKey of the user accessing the service. Users
    * can only access their own jobs.
-   * @param batchJobId The batch job identifier.
+   * @param batchJobId The cloud job identifier.
    * @web.response.status 200
    * <p>
    * <b>OK</b>
    * </p>
    * <p>
-   * If the batch job was deleted an empty response will be returned.
+   * If the cloud job was deleted an empty response will be returned.
    * </p>
    * @web.response.status 404
    * <p>
    * <b>Not Found</b>
    * </p>
    * <p>
-   * If the batch job does not exist, has been deleted, or was owned by another
+   * If the cloud job does not exist, has been deleted, or was owned by another
    * user.
    * </p>
    */
@@ -985,11 +1061,11 @@ public class CloudProcessingFramework {
     final DataObject batchJob = dataAccessObject.getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
-      throw new PageNotFoundException("The batch job " + batchJobId
+      throw new PageNotFoundException("The cloud job " + batchJobId
         + " does not exist");
     } else {
       if (dataAccessObject.deleteBatchJob(batchJobId) == 0) {
-        throw new PageNotFoundException("The batch job " + batchJobId
+        throw new PageNotFoundException("The cloud job " + batchJobId
           + " does not exist");
       } else {
         final HttpServletResponse response = HttpServletUtils.getResponse();
@@ -999,6 +1075,16 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Check that a user is authenticated. This can be used by JavaScript applications to force
+   * a login page to be displayed. Returns a map with authenticated=true if the user
+   * is authenticated. Response is undefined if the user is not authenticated as the authentication
+   * mechanism will not allow access to the resource.</p>
+   * 
+   * @return The authenticated message.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   */
   @RequestMapping(value = {
     "/ws/authenticated"
   }, method = RequestMethod.GET)
@@ -1095,6 +1181,38 @@ public class CloudProcessingFramework {
     return page;
   }
 
+  /**
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsVersion">Get Business Applications Version</a>
+   * resource for the latest version of each business application the user is authorized to access.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>businessApplicationName</td>
+   *         <td>The name of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationVersion</td>
+   *         <td>The version of the business application.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   */
   @RequestMapping(value = {
     "/ws/apps"
   }, method = RequestMethod.GET)
@@ -1129,6 +1247,150 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>The instant resource has the two modes described below, the specification mode and the
+   * execute instant request mode. If the <code>format</code> parameter is not included or the
+   * <code>specification</code> parameter equals <code>true</code> then the specification mode
+   * is enabled, otherwise the execute instant request mode is enabled.</p>
+   *  
+   * <h5>Specification</h5>
+   * 
+   * <p>Get the specification of the execute instant request mode of this service.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document with the following additional fields
+   * which are the parameters to the execute instant request mode.</a>.</p>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>description</td>
+   *         <td>The description of services offered by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationName</td>
+   *         <td>The name of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationVersion</td>
+   *         <td>The version of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationTitle</td>
+   *         <td>The display title of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationDescription</td>
+   *         <td>The description of services offered by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationDescriptionUrl</td>
+   *         <td>A link to a web page describing more details about the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>parameters</td>
+   *         <td><p>The array of parameters that can be passed to the service. Each parameter is an object
+   *         containing the following fields.</p>
+   *           <div class="simpleDataTable">
+   *             <table class="data">
+   *               <thead>
+   *                 <tr>
+   *                   <th>Attribute</th>
+   *                   <th>Description</th>
+   *                 </tr>
+   *               </thead>
+   *               <tbody>
+   *                 <tr>
+   *                   <td>name</td>
+   *                   <td>The case sensitive name of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>type</td>
+   *                   <td>The <a href="../../dataTypes.html">data type</a> of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>description</td>
+   *                   <td>The description of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>descriptionUrl</td>
+   *                   <td>The link to a more detailed description of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>jobParameter</td>
+   *                   <td>Boolean flag indicating if the parameter can be specified globally on the job.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>requestParameter</td>
+   *                   <td>Boolean flag indicating if the parameter can be specified on each request in the job.</td>
+   *                 </tr>
+   *               </tbody>
+   *             </table>
+   *           </div>
+   *         </td>
+   *       </tr>
+   *       <tr>
+   *         <td>inputDataContentTypes</td>
+   *         <td>The array of MIME media types of input data accepted by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>perRequestInputData</td>
+   *         <td>Boolean flag indicating that the business application accepts <a href="../../opaqueData.html">opaque data</a> (true) or <a href="../../structuredData.html">structured data</a> (false).</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultDataContentTypes</td>
+   *         <td>The array of MIME media types of result data generated by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>perRequestResultData</td>
+   *         <td>Boolean flag indicating that the business application returns <a href="../../opaqueData.html">opaque data</a> (true) or <a href="../../structuredData.html">structured data</a> (false).</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   *  
+   * <h5>Execute Instant Request</h5>
+   * 
+   * <p>Execute a single instant request using the business application with the results
+   * returned in the request.</p>
+   * 
+   * <p>The job and request parameters for the business application must be passed
+   * using the query string parameters in a HTTP get request or
+   * application/form-url-encoded, multipart/form-data encoding in the body of a HTTP POST request (e.g. a HTML form).</p>
+   * 
+   * <p>In addition to the standard parameters listed in the API each business
+   * application has additional job and request parameters. Invoke the specification mode of this
+   * resource should be consulted to get the full list of supported parameters. </p>
+
+   * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
+   * 
+   * @param businessApplicationName The name of the business application.
+   * @param businessApplicationVersion The version of the business application.
+   * @param srid The coordinate system code of the projection for the input geometry.
+   * @param format The MIME type of the result data specified to
+   * be returned after running the request.
+   * @param resultSrid The coordinate system code of the projection for the
+   * result geometry.
+   * @param resultNumAxis The number of coordinate axis in the result geometry
+   * (e.g. 2 for 2D or 3 for 3D).
+   * @param resultScaleFactorXy The scale factor to apply the x, y coordinates.
+   * The scale factor is 1 / minimum unit. For example if the minimum unit was
+   * 1mm (0.001) the scale factor is 1000 (1 / 0.001).
+   * @param resultScaleFactorZ The scale factor to apply the z coordinate. The
+   * scale factor is 1 / minimum unit. For example if the minimum unit was 1mm
+   * (0.001) the scale factor is 1000 (1 / 0.001).
+   * @return The result.
+   * 
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   * @web.response.status 403 <p>If the user does not have permission for this resource on the business application.</p>
+   * @web.response.status 404 <p>If the business application does not exist, or is not enabled.</p>
+   */
   @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}/instant"
   }, method = {
@@ -1138,7 +1400,14 @@ public class CloudProcessingFramework {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Object getBusinessApplicationsInstant(
     @PathVariable final String businessApplicationName,
-    @PathVariable final String businessApplicationVersion) {
+    @PathVariable final String businessApplicationVersion,
+    @RequestParam(defaultValue = "false") final boolean specification,
+    @RequestParam(required = false) final String srid,
+    @RequestParam final String format,
+    @RequestParam(required = false, defaultValue = "3005") final int resultSrid,
+    @RequestParam(required = false, defaultValue = "2") final int resultNumAxis,
+    @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorXy,
+    @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorZ) {
     final BusinessApplication businessApplication = getBusinessApplication(
       businessApplicationName, businessApplicationVersion, "clientInstant");
     if (businessApplication == null) {
@@ -1147,9 +1416,7 @@ public class CloudProcessingFramework {
       final PluginAdaptor plugin = batchJobService.getBusinessApplicationPlugin(businessApplication);
       checkPermission(businessApplication.getInstantModeExpression(),
         "No instant mode permission for " + businessApplication.getName());
-      final String format = HttpServletUtils.getParameter("format");
-      if (format == null
-        || "true".equals(HttpServletUtils.getParameter("specification"))) {
+      if (format == null || specification) {
         if (MediaTypeUtil.isHtmlPage()) {
           final Map<String, Object> titleParameters = new HashMap<String, Object>();
           final String title = businessApplication.getTitle();
@@ -1192,8 +1459,7 @@ public class CloudProcessingFramework {
                 "Parameter value is not valid " + name + " " + value);
             } else {
               try {
-                final String sridString = HttpServletUtils.getParameter("srid");
-                batchJobService.setStructuredInputDataValue(sridString,
+                batchJobService.setStructuredInputDataValue(srid,
                   parameters, attribute, value);
               } catch (final IllegalArgumentException e) {
                 throw new IllegalArgumentException(
@@ -1232,6 +1498,118 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Get the specification of the 
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> service.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document with the following additional fields
+   * which are the parameters to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a>
+   * service.</a>.</p>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>description</td>
+   *         <td>The description of services offered by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationName</td>
+   *         <td>The name of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationVersion</td>
+   *         <td>The version of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationTitle</td>
+   *         <td>The display title of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationDescription</td>
+   *         <td>The description of services offered by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationDescriptionUrl</td>
+   *         <td>A link to a web page describing more details about the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>parameters</td>
+   *         <td><p>The array of parameters that can be passed to the service. Each parameter is an object
+   *         containing the following fields.</p>
+   *           <div class="simpleDataTable">
+   *             <table class="data">
+   *               <thead>
+   *                 <tr>
+   *                   <th>Attribute</th>
+   *                   <th>Description</th>
+   *                 </tr>
+   *               </thead>
+   *               <tbody>
+   *                 <tr>
+   *                   <td>name</td>
+   *                   <td>The case sensitive name of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>type</td>
+   *                   <td>The <a href="../../dataTypes.html">data type</a> of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>description</td>
+   *                   <td>The description of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>descriptionUrl</td>
+   *                   <td>The link to a more detailed description of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>jobParameter</td>
+   *                   <td>Boolean flag indicating if the parameter can be specified globally on the job.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>requestParameter</td>
+   *                   <td>Boolean flag indicating if the parameter can be specified on each request in the job.</td>
+   *                 </tr>
+   *               </tbody>
+   *             </table>
+   *           </div>
+   *         </td>
+   *       </tr>
+   *       <tr>
+   *         <td>inputDataContentTypes</td>
+   *         <td>The array of MIME media types of input data accepted by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>perRequestInputData</td>
+   *         <td>Boolean flag indicating that the business application accepts <a href="../../opaqueData.html">opaque data</a> (true) or <a href="../../structuredData.html">structured data</a> (false).</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultDataContentTypes</td>
+   *         <td>The array of MIME media types of result data generated by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>perRequestResultData</td>
+   *         <td>Boolean flag indicating that the business application returns <a href="../../opaqueData.html">opaque data</a> (true) or <a href="../../structuredData.html">structured data</a> (false).</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param businessApplicationName The name of the business application.
+   * @param businessApplicationVersion The version of the business application.
+   * @return The resource.
+   * 
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   * @web.response.status 403 <p>If the user does not have permission for this resource on the business application.</p>
+   * @web.response.status 404 <p>If the business application does not exist, or is not enabled.</p>
+   */
   @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}/multiple"
   }, method = RequestMethod.GET)
@@ -1270,6 +1648,40 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsVersion">Get Business Applications Version</a>
+   * resource for the each version of the business application.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>businessApplicationName</td>
+   *         <td>The name of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationVersion</td>
+   *         <td>The version of the business application.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   * @web.response.status 403 <p>If the user does not have permission for this resource on the business application.</p>
+   * @web.response.status 404 <p>If the business application does not exist, or is not enabled.</p>
+   */
   @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}"
   }, method = RequestMethod.GET)
@@ -1303,6 +1715,116 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Get the specification of the 
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document with the following additional fields
+   * which are the parameters to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</a>.</p>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>description</td>
+   *         <td>The description of services offered by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationName</td>
+   *         <td>The name of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationVersion</td>
+   *         <td>The version of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationTitle</td>
+   *         <td>The display title of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationDescription</td>
+   *         <td>The description of services offered by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationDescriptionUrl</td>
+   *         <td>A link to a web page describing more details about the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>parameters</td>
+   *         <td><p>The array of parameters that can be passed to the service. Each parameter is an object
+   *         containing the following fields.</p>
+   *           <div class="simpleDataTable">
+   *             <table class="data">
+   *               <thead>
+   *                 <tr>
+   *                   <th>Attribute</th>
+   *                   <th>Description</th>
+   *                 </tr>
+   *               </thead>
+   *               <tbody>
+   *                 <tr>
+   *                   <td>name</td>
+   *                   <td>The case sensitive name of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>type</td>
+   *                   <td>The <a href="../../dataTypes.html">data type</a> of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>description</td>
+   *                   <td>The description of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>descriptionUrl</td>
+   *                   <td>The link to a more detailed description of the parameter.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>jobParameter</td>
+   *                   <td>Boolean flag indicating if the parameter can be specified globally on the job.</td>
+   *                 </tr>
+   *                 <tr>
+   *                   <td>requestParameter</td>
+   *                   <td>Boolean flag indicating if the parameter can be specified on each request in the job.</td>
+   *                 </tr>
+   *               </tbody>
+   *             </table>
+   *           </div>
+   *         </td>
+   *       </tr>
+   *       <tr>
+   *         <td>inputDataContentTypes</td>
+   *         <td>The array of MIME media types of input data accepted by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>perRequestInputData</td>
+   *         <td>Boolean flag indicating that the business application accepts <a href="../../opaqueData.html">opaque data</a> (true) or <a href="../../structuredData.html">structured data</a> (false).</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultDataContentTypes</td>
+   *         <td>The array of MIME media types of result data generated by the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>perRequestResultData</td>
+   *         <td>Boolean flag indicating that the business application returns <a href="../../opaqueData.html">opaque data</a> (true) or <a href="../../structuredData.html">structured data</a> (false).</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param businessApplicationName The name of the business application.
+   * @param businessApplicationVersion The version of the business application.
+   * @return The resource.
+   * 
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   * @web.response.status 403 <p>If the user does not have permission for this resource on the business application.</p>
+   * @web.response.status 404 <p>If the business application does not exist, or is not enabled.</p>
+   */
   @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}/single",
   }, method = RequestMethod.GET)
@@ -1340,6 +1862,23 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Get the user's resources for a version of a business application. The resource contains links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant">instant</a>,
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">create single request job</a>, and
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">create multi request jobs</a>
+   * resources.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document.</p>
+   * 
+   * @param businessApplicationName The name of the business application.
+   * @param consumerKey The consumer key of the user.
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   * @web.response.status 403 <p>If the user does not have permission for this resource on the business application.</p>
+   * @web.response.status 404 <p>If the business application does not exist, or is not enabled.</p>
+   */
   @RequestMapping(value = {
     "/ws/apps/{businessApplicationName}/{businessApplicationVersion}"
   }, method = RequestMethod.GET)
@@ -1601,7 +2140,7 @@ public class CloudProcessingFramework {
     return field;
   }
 
-  public Element getFormInstant(final BusinessApplication businessApplication) {
+  private Element getFormInstant(final BusinessApplication businessApplication) {
     final ElementContainer container = new ElementContainer();
 
     final String url = businessAppBuilder.getPageUrl("clientInstant");
@@ -1666,7 +2205,7 @@ public class CloudProcessingFramework {
     return container;
   }
 
-  public Element getFormSingle(final BusinessApplication businessApplication) {
+  private Element getFormSingle(final BusinessApplication businessApplication) {
     final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
 
     final ElementContainer container = new ElementContainer();
@@ -1708,14 +2247,15 @@ public class CloudProcessingFramework {
       parameters,
       "inputDataContentType",
       "string",
+      null,
       "The MIME type of the input data specified by an inputData or inputDataUrl parameter.",
       true, false, perRequestInputData, Collections.emptyList());
 
-    addParameter(parameters, "inputData", "file",
+    addParameter(parameters, "inputData", "file", null,
       "The multi-part file containing the input data.", true, false,
       perRequestInputData, Collections.emptyList());
 
-    addParameter(parameters, "inputDataUrl", "string",
+    addParameter(parameters, "inputDataUrl", "string", null,
       "The http: URL to the file or resource containing input data.", true,
       false, perRequestInputData, Collections.emptyList());
 
@@ -1724,7 +2264,7 @@ public class CloudProcessingFramework {
       addParameter(parameters, attribute, perRequestInputData);
     }
 
-    addParameter(parameters, "notificationEmail", "string",
+    addParameter(parameters, "notificationEmail", "string", null,
       "The email address to send the job status to when the job is completed.",
       true, false, perRequestInputData, Collections.emptyList());
 
@@ -1732,6 +2272,7 @@ public class CloudProcessingFramework {
       parameters,
       "notificationUrl",
       "string",
+      null,
       "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.",
       true, false, perRequestInputData, Collections.emptyList());
 
@@ -1770,40 +2311,23 @@ public class CloudProcessingFramework {
       resultAttribute.put("name", name);
       resultAttribute.put("type", typeDescription);
       resultAttribute.put("description", description);
+      resultAttribute.put("descriptionUrl",
+        attribute.getProperty("descriptionUrl"));
       resultAttributes.add(resultAttribute);
     }
     return resultAttributes;
   }
 
   /**
-   * <p>
-   * This resource is the root of the CPF web service resources.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * A HTML page containing two tabs; he user's batch jobs and authorized
-   * business applications.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications"
-   * >business applications</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersResources"
-   * >user</a></li>
-   * </ul>
+   * <p>Get the root resource of the CPF web services. The resource contains links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications">Get Business Applications</a>
+   * and <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsers">Get Users</a> resources.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document.</a>
    * 
    * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
    */
   @RequestMapping(value = {
     "/ws"
@@ -1836,36 +2360,11 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>
-   * The users is a containing resource for the CPF users. This resource does
-   * not display a list of the users as a user can only access their own
-   * resources.
-   * </p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersResources"
-   * >user</a> resource.
-   * </p>
+   * <p> The users resource is a containing resource for the CPF users. Accessing the resource redirects
+   * to the <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersResources"
+   * >Get Users Resources</a> resource. </p>
    * 
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * Using the REST API redirect to the <a
-   * href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUser"
-   * >user</a> resource.
-   * </p>
+   * @web.response.status 302 <p>Redirect to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersResources">Get Users Resources</a> resource.</p>
    */
   @RequestMapping(value = {
     "/ws/users"
@@ -1883,38 +2382,37 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>
-   * The list of the business applications for a user.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource displaying the Business Applications tab.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li>Resource link for each <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsResources"
-   * >business application</a></li>
-   * </ul>
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUserBusinessApplicationsResources">Get Business Applications Resources</a>
+   * resource for the each business application the user is authorized to access.</p>
    * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>businessApplicationName</td>
+   *         <td>The name of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationVersion</td>
+   *         <td>The version of the business application.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param consumerKey The consumer key of the user.
    * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource business application tab.
-   * </p>
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
    */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/apps"
@@ -1931,45 +2429,60 @@ public class CloudProcessingFramework {
       for (final BusinessApplication businessApplication : getAuthorizedBusinessApplications()) {
         final String name = businessApplication.getName();
         final String title = businessApplication.getTitle();
-        addPage(page, name, title);
+        final String version = businessApplication.getVersion();
+        final PageInfo appPage = addPage(page, name, title);
+        appPage.setAttribute("businessApplicationName", name);
+        appPage.setAttribute("businessApplicationVersion", version);
       }
       return page;
     }
   }
 
   /**
-   * <p>
-   * The list of the batch jobs for a user.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource displaying the Batch Jobs tab.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li>Resource link for each <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBatchJobsInfo"
-   * >batch job</a></li>
-   * </ul>
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a>
+   * resource for each of the user's jobs for the business application.</p>
    * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>consumerKey</td>
+   *         <td>The consumer key of the user.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>batchJobId</td>
+   *         <td>The unique identifier of the cloud job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>batchJobUrl</td>
+   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> resource without the file format extension.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>jobStatus</td>
+   *         <td>The current status of the job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>creationTimestamp</td>
+   *         <td>The time when the job was created.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param businessApplicationName The name of the business application.
+   * @param consumerKey The consumer key of the user.
    * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource Batch Jobs tab.
-   * </p>
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
    */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/apps/{businessApplicationName}/jobs"
@@ -2023,47 +2536,20 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>
-   * The resources available to a user for a business application.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources"
-   * >business application</a> resource.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant"
-   * >instant</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle"
-   * >create single request job</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple"
-   * >create multi request jobs</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsJobs"
-   * >batch jobs</a></li>
-   * </ul>
+   * <p>Get the user's resources for a business application. The resource contains links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant">instant</a>,
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">create single request job</a>,
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">create multi request jobs</a>, and
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsJobs">cloud jobs</a>
+   * resources.</p>
    * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document.</p>
+   * 
+   * @param businessApplicationName The name of the business application.
+   * @param consumerKey The consumer key of the user.
    * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources"
-   * >business application</a> resource overview tab.
-   * </p>
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
    */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/apps/{businessApplicationName}"
@@ -2100,6 +2586,51 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a>
+   * resource for each of the user's jobs.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>consumerKey</td>
+   *         <td>The consumer key of the user.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>batchJobId</td>
+   *         <td>The unique identifier of the cloud job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>batchJobUrl</td>
+   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> resource without the file format extension.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>jobStatus</td>
+   *         <td>The current status of the job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>creationTimestamp</td>
+   *         <td>The time when the job was created.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param consumerKey The consumer key of the user.
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/jobs"
   }, method = RequestMethod.GET)
@@ -2132,6 +2663,95 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Get the details of a cloud job.</p>
+   * 
+  * 
+   * <p>The method returns a BatchJob object with the following attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>id</td>
+   *         <td>The unique identifier of the cloud job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>consumerKey</td>
+   *         <td>The consumer key of the user.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationName</td>
+   *         <td>The name of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>businessApplicationVersion</td>
+   *         <td>The version of the business application.</td>
+   *       </tr>
+   *       <tr>
+   *         <td><b>&lt;parameter&gt;</b></td>
+   *         <td>The the job parameters.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultSrid</td>
+   *         <td>The coordinate system code of the projection for the result geometry.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultNumAxis</td>
+   *         <td>The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultScaleFactorXy</td>
+   *         <td>The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultScaleFactorZ</td>
+   *         <td>The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultDataContentType</td>
+   *         <td>The MIME type of the result data specified to be returned after running the request.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>jobStatus</td>
+   *         <td>The current status of the job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>secondsToWaitForStatusCheck</td>
+   *         <td>The number of seconds to wait before checking the status again</td>
+   *       </tr>
+   *       <tr>
+   *         <td>numSubmittedRequests</td>
+   *         <td>The number of requests submitted.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>numCompletedRequests</td>
+   *         <td>The number of requests that completed execution successfully.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>numFailedRequests</td>
+   *         <td>The number of requests that failed to execute.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>resultsUrl</td>
+   *         <td></td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param consumerKey The consumer key of the user.
+   * @param batchJobId The unique identifier of the cloud job. 
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/jobs/{batchJobId}"
   }, method = RequestMethod.GET)
@@ -2164,6 +2784,17 @@ public class CloudProcessingFramework {
     }
   }
 
+  /**
+   * <p>Get the contents of a user's job result file. The content type will be the content type
+   * requested in the cloud job.</p>
+   * 
+   * @param consumerKey The consumer key of the user.
+   * @param batchJobId The unique identifier of the cloud job. 
+   * @param resultId The unique identifier of the result file. 
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response.</p>
+   */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/jobs/{batchJobId}/results/{resultId}"
   }, method = {
@@ -2245,6 +2876,40 @@ public class CloudProcessingFramework {
       + " does not exist.");
   }
 
+  /**
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Jobs Result</a>
+   * resource for each of the results for a user's job.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>batchJobResultType</td>
+   *         <td>The type of result file structuredResultData, opaqueResultData, errorResultData.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>batchJobResultContentType</td>
+   *         <td>The MIME type of the result file.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param consumerKey The consumer key of the user.
+   * @param batchJobId The unique identifier of the cloud job. 
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/jobs/{batchJobId}/results"
   }, method = RequestMethod.GET)
@@ -2305,41 +2970,17 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>
-   * The list of the top-level resources for a user.
-   * <p>
-   * <h5>Web Browser HTML</h5>
-   * <p>
-   * Redirects to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource.
-   * </p>
-   * <h5>REST API</h5>
-   * <p>
-   * A <a href="../resourceDescription.html">Resource Description</a> of this
-   * resource with resource links to the following resources.
-   * </p>
-   * <ul>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobs"
-   * >batch jobs</a></li>
-   * <li><a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplications"
-   * >business applications</a></li>
-   * </ul>
+   * <p>Get the user's root resource of the CPF web services. The resource contains links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobs">Get Users Jobs</a> and
+   * <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplications">Get Users Business Applications</a>
+   * resources.</p>
    * 
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document.</p>
+   * 
+   * @param consumerKey The consumer key of the user.
    * @return The resource.
-   * @web.response.code 200
-   * <p>
-   * The resource will be returned in the body of the HTTP response in the
-   * requested format.
-   * </p>
-   * @web.response.status 302
-   * <p>
-   * In a web browser redirect to the <a href=
-   * "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getRoot"
-   * >root</a> resource.
-   * </p>
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
    */
   @RequestMapping(value = {
     "/ws/users/{consumerKey}"
@@ -2360,8 +3001,7 @@ public class CloudProcessingFramework {
     }
   }
 
-
-  public Void sendRedirectWithExtension(final String path) {
+  private Void sendRedirectWithExtension(final String path) {
     String url = MediaTypeUtil.getUrlWithExtension(path);
     final String callback = HttpServletUtils.getParameter("callback");
     if (StringUtils.hasText(callback)) {

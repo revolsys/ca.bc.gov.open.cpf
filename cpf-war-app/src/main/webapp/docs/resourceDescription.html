@@ -6,14 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Structured Data - CPF</title>
+<title>Resource List - CPF</title>
 <!-- InstanceEndEditable -->
 
     <link
-      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
-      rel="stylesheet" type="text/css" />
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+      REL="stylesheet" type="text/css" />
     <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -82,7 +82,7 @@ $(document).ready(function() {
 <li><a href="../ws/">HOME</a></li>
 <li><a href="../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-                    <li>Structured Data</li>
+                    <li>File Formats</li>
                     <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -90,8 +90,48 @@ $(document).ready(function() {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<h1>Notification Callback</h1>
-                  
+
+<h1>Resource List</h1>
+<p>The resource list file format is used to describe a resource and any child resources that are children of the resource.</p>
+
+<p>The document contains a single <code>resource</code> object with the following fields.</p>
+
+<div class="simpleDataTable">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>resourceUri</td>
+        <th>The URI to the resource.</td>
+      </tr>
+      <tr>
+        <td>title</td>
+        <th>The title of the resource.</td>
+      </tr>
+      <tr>
+        <td>resources</td>
+        <th>An array of <code>resource</code> objects that can be accessed from this resource.</td>
+      </tr>
+      <tr>
+        <td><b>&lt;customAttribute&gt;</b></td>
+        <th>A custom attribute specific to that resource.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>See the links below for example resource list documents.</p>
+
+<ul>
+  <li><a href="../ws/apps.json">JSON</a></li>
+  <li><a href="../ws/apps.xml">XML</a></li>
+</ul>
+
                 <!-- InstanceEndEditable -->
                 </div>
               </div>

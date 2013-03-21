@@ -1,6 +1,5 @@
 package ca.bc.gov.open.cpf.plugin.impl.security;
 
-import java.io.Closeable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

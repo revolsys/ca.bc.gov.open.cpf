@@ -1,5 +1,6 @@
 package ca.bc.gov.open.cpf.plugin.api;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -261,7 +262,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @return The created multi-linestring.
    */
   @Override
-  public MultiLineString createMultiLineString(final List<?> lines) {
+  public MultiLineString createMultiLineString(final Collection<?> lines) {
     return super.createMultiLineString(lines);
   }
 
@@ -304,7 +305,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @return The created multi-polygon.
    */
   @Override
-  public MultiPolygon createMultiPolygon(final List<?> polygons) {
+  public MultiPolygon createMultiPolygon(final Collection <?> polygons) {
     return super.createMultiPolygon(polygons);
   }
 

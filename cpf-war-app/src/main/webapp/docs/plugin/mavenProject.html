@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
@@ -7,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>CPF Plug-in Maven Project</title>
+<title>Plug-in Maven Project - CPF</title>
 <!-- InstanceEndEditable -->
 
     <link
@@ -53,12 +52,22 @@ $(document).ready(function() {
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
                     <li><a href="../../ws/" title="Home">Home</a></li>
-                    <li><a href="../client/">Client API</a><ul>
+                    <li><a href="../client/">Client Development</a><ul>
                       <li><a href="../client/rest-api/" title="Client REST API">Client REST API</a></li>
                       <li><a href="../client/java-api/" title="Client Java API">Client Java API</a></li>
                       <li><a href="../client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
                     </ul></li>
-                    <li><a href="../plugin/">Plug-in API</a><ul>
+                    <li><a href="../install/">CPF Installation</a><ul>
+                      <li><a href="../install/database.html">CPF Database Installation</a></li>
+                      <li><a href="../install/webapp.html">CPF Web Application Installation</a></li>
+                    </ul></li>
+                    <li><a href="../plugin/">Plug-in Development</a><ul>
+                      <li><a href="overview.html">Plug-in Overview</a></li>
+                      <li><a href="mavenProject.html">Plug-in Maven Project</a></li>
+                      <li><a href="businessApplication.html">Plug-in Business Application Class</a></li>
+                      <li><a href="customization.html">Plug-in Customization Properties</a></li>
+                      <li><a href="config.html">Plug-in Configuration Properties</a></li>
+                      <li><a href="security.html">Plug-in Security</a></li>
                       <li><a href="java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
                     </ul></li>
                   </ul>
@@ -83,6 +92,8 @@ $(document).ready(function() {
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
 <h1>CPF Plug-in Maven Project</h1>
+
+<p>The CPF uses maven modules for the deployment of plug-in modules to the CPF web services. Each CPF plug-in module is a maven project that contains all the code and dependencies of the plug-in. Within the CPF plug-in module one or more <a href="businessApplication.html">Business Applicatio Classes are defined.</a>
 
 <h2>Create a plug-in project</h2>
 
@@ -218,6 +229,13 @@ mvn \
 
 <p>Any dependencies to test frameworks such as junit must be included using the <code>test</code> scope so that they are not included in the jar. Also any test code must be included below <code>src/test</code> as opposed to <code>src/main</code>.</p>
 
+<h3><a name="jdbcDependencies">JDBC Dependencies</a></h3>
+
+<p>The CPF supports the Oracle and PostgreSQL with PostGIS extensions JDBC drivers. The dependencies to these drivers are included through the <code>cpf-api-plugin</code> dependency.<p>
+
+<p class="note">NOTE: At this time no other versions of these JDBC drivers or 3rd party JDBC drivers are supported. Any dependencies to those drivers
+must be excluded from the plug-in's dependencies. Other JDBC drivers may interfer with the running of the CPF application.</p>
+
 <h2>Build the plug-in</h2>
 
 <p>The plug-in is built using maven. Use the following command to create a clean build that is deployed to your local maven repository.</p>
@@ -261,6 +279,16 @@ mvn \
 </ol>
 
 <p class="note">NOTE: You cannot change the name of the module. Delete the existing module and create a new one.</p>
+
+<div class="pageNavigation">
+  <table>
+    <tr>
+      <td class="previous"><a href="overview.html">&lt; Previous - Overview</a></td>
+      <td class="home"><a href="./">Home</a></td>
+      <td class="next"><a href="businessApplication.html">Business Application Class - Next &gt;</a></td>
+    </tr>
+  </table>
+</div>
 
 <!-- InstanceEndEditable -->
                 </div>

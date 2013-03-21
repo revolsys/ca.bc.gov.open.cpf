@@ -98,6 +98,16 @@
       <version>${com.revolsys.open.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.revolsys.open</groupId>
+      <artifactId>com.revolsys.open.gis.oracle</artifactId>
+      <version>${com.revolsys.open.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.revolsys.open</groupId>
+      <artifactId>com.revolsys.open.gis.postgresql</artifactId>
+      <version>${com.revolsys.open.version}</version>
+    </dependency>
+    <dependency>
       <groupId>xalan</groupId>
       <artifactId>xalan</artifactId>
       <version>2.7.1</version>

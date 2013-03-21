@@ -28,12 +28,11 @@ import com.revolsys.util.ExceptionUtil;
  * <p>The plug-in must implement the following method on the {@link BusinessApplicationPlugin} class
  * to obtain a AppLog instance for this request.</p>
  * 
- * <pre class="prettyprint language-java">private AppLog appLog;
+ * <figure><pre class="prettyprint language-java">private AppLog appLog;
 
 public void setAppLog(final AppLog appLog) {
   this.appLog = appLog;
-}
-</pre> 
+}</pre></figure>
  *
  */
 public class AppLog {
@@ -46,7 +45,8 @@ public class AppLog {
 
   /**
    * <p>Create a log record.</p>
-  * @param logLevel The logging level (ERROR, INFO, DEBUG).
+   * 
+   * @param logLevel The logging level (ERROR, INFO, DEBUG).
    * @param message The message.
    * @return The log record.
    */

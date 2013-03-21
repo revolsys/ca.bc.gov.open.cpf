@@ -55,6 +55,19 @@
         <phoneNumber>+1 (250) 387-3995</phoneNumber>
       </properties>
     </contributor>
+    <contributor>
+      <name>Brian Kelsey</name>
+      <email>Brian.Kelsey@gov.bc.ca</email>
+      <organization>The Province of British Columbia</organization>
+      <organizationUrl>http://www.gov.bc.ca</organizationUrl>
+      <roles>
+        <role>businessTester</role>
+      </roles>
+      <timezone>PST</timezone>
+      <properties>
+        <phoneNumber>+1 (250) 387-9712</phoneNumber>
+      </properties>
+    </contributor>
   </contributors>
 
   <scm>
@@ -179,7 +192,7 @@
     <module>cpf-war-worker</module>
     <module>cpf-archetype-plugin</module>
     <module>cpf-archetype-web</module>
-    <module>cpf-plugins-samples</module>
+
   </modules>
 
   <profiles>
@@ -245,9 +258,9 @@
   </distributionManagement>
 
   <properties>
-   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-     <com.revolsys.open.version>2013.03.14.RELEASE</com.revolsys.open.version>
-    <!--   <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version> -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- <com.revolsys.open.version>2013.03.14.RELEASE</com.revolsys.open.version>-->
+    <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
     <org.springframework.version>3.0.7.RELEASE</org.springframework.version>
     <org.springframework.security.version>3.0.7.RELEASE</org.springframework.security.version>
     <org.slf4j.version>1.6.4</org.slf4j.version>

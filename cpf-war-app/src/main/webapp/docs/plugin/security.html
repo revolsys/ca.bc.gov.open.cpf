@@ -6,14 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>CPF Plug-in Security</title>
+<title>Plug-in Security - CPF</title>
 <!-- InstanceEndEditable -->
 
     <link
-      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
-      rel="stylesheet" type="text/css" />
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+      REL="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -57,12 +57,22 @@ td > ul {
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
                     <li><a href="../../ws/" title="Home">Home</a></li>
-                    <li><a href="../client/">Client API</a><ul>
+                    <li><a href="../client/">Client Development</a><ul>
                       <li><a href="../client/rest-api/" title="Client REST API">Client REST API</a></li>
                       <li><a href="../client/java-api/" title="Client Java API">Client Java API</a></li>
                       <li><a href="../client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
                     </ul></li>
-                    <li><a href="../plugin/">Plug-in API</a><ul>
+                    <li><a href="../install/">CPF Installation</a><ul>
+                      <li><a href="../install/database.html">CPF Database Installation</a></li>
+                      <li><a href="../install/webapp.html">CPF Web Application Installation</a></li>
+                    </ul></li>
+                    <li><a href="../plugin/">Plug-in Development</a><ul>
+                      <li><a href="overview.html">Plug-in Overview</a></li>
+                      <li><a href="mavenProject.html">Plug-in Maven Project</a></li>
+                      <li><a href="businessApplication.html">Plug-in Business Application Class</a></li>
+                      <li><a href="customization.html">Plug-in Customization Properties</a></li>
+                      <li><a href="config.html">Plug-in Configuration Properties</a></li>
+                      <li><a href="security.html">Plug-in Security</a></li>
                       <li><a href="java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
                     </ul></li>
                   </ul>
@@ -287,6 +297,35 @@ td > ul {
   }
 ]</pre>
 </figure>
+
+<h2>Business Application Permissions</h2>
+
+<p>Plug-ins can control the the users that can use a business application on the <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin"><code>BusinessApplicationPlugin</code></a> class. See the <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin.batchModePermission"><code>batchModePermission</code></a> or <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin.instantModePermission"><code>instantModePermission</code></a> annotation elements for more details.</p>
+
+<p>The permissions can be overridden on the Business Application Edit page in the CPF admin web application.</p>
+
+<ol>
+  <li>Open the <a href="../../admin/modules/">CPF user secured</a> or <a href="../../secure/admin/modules/">SiteMinder secured</a> CPF modules admin page.</li>
+  <li>Click on the name of the module in the table, this will open the module view page.</li>
+  <li>Click the Business Applications tab.</li>
+  <li>Click the name of a business application to view it and then click Edit.</li>
+  <li>Edit the Batch Mode Permission or Instant Mode Permission with a valid <a href="http://static.springsource.org/spring-security/site/docs/3.0.x/reference/el-access.html">Spring security expression</a>.</li>
+</ol>
+
+<h2>Request Level Security</h2>
+
+<p>Plugi-ins can control access to individual requests in the <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin"><code>BusinessApplicationPlugin</code></a> class. See the <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.security.SecurityService"><code>SecurityService</code> for more details.</a> 
+
+
+<div class="pageNavigation">
+  <table>
+    <tr>
+      <td class="previous"><a href="config.html">&lt; Previous - Configuration Properties</a></td>
+      <td class="home"><a href="./">Home</a></td>
+      <td class="next"><a href="java-api/">Java API - Next &gt;</a></td>
+    </tr>
+  </table>
+</div>
 
 <!-- InstanceEndEditable -->
                 </div>

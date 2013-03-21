@@ -7,26 +7,30 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- * The GeometryConfiguration annotation can be used on a {@link BusinessApplicationPlugin} class,
- * a {@link RequestParameter} set method, or a {@link ResultAttribute} get method
+ * The <code>GeometryConfiguration</code> annotation can be used on a {@link BusinessApplicationPlugin} class,
+ * a {@link RequestParameter} <code>setXXX</code> method with a {@link Geometry} subclass parameter,
+ * or a {@link ResultAttribute} <code>getXXX</code> method with a {@link Geometry} subclass parameter
  * to indicate the configuration of the required coordinate system,
  * precision model, number of coordinate axis and if the geometry should be
  * validated.</p>
  * 
- * <p>The CPF uses this information to convert the input and result geometries to
- * the correct coordinate system or precision model.</p>
+ * <p>If the input or result geometry is different from the <code>GeometryConfiguration</code>, then
+ * the CPF will convert the geometry to a new geometry using the <code>GeometryConfiguration</code>.</p>
  * 
- * <pre class="prettyprint language-java">&#064;ResultAttribute
+ * <p>The following example shows a geometry result attribute in BC Albers (3005), with x,y,z (3D) coordinates
+ * 1mm x,y precision model, 1m z precision model. The geometry will also be validated and the is the primary geometry.</p>
+ * 
+ * <figure><pre class="prettyprint language-java">&#064;ResultAttribute
 &#064;GeometryConfiguration(
   srid = 3005,
-  numAxis = 2,
+  numAxis = 3,
   scaleFactorXy = 1000,
   scaleFactorZ = 1,
   validate = true,
   primaryGeometry = true)
 public Geometry getGeometry() {
   return geometry;
-}</pre>
+}</pre></figure>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {

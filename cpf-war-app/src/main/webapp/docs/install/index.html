@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Structured Data - CPF</title>
+<title>Installation - CPF</title>
 <!-- InstanceEndEditable -->
 
     <link
@@ -14,17 +14,17 @@
       rel="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
       rel="stylesheet" type="text/css" />
-    <link href="../css/prettify.css" rel="stylesheet" type="text/css" />
-    <link href="../css/rs.css" rel="stylesheet" type="text/css" />
-    <link href="../css/bcgov.css" rel="stylesheet" type="text/css" />
-    <link href="../css/cpf.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
+    <link href="../../css/cpf.css" rel="stylesheet" type="text/css" />
   
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
-    <script type="text/javascript" src="../js/prettify.js"></script>
-    <script type="text/javascript" src="../js/rs.js"></script>
+    <script type="text/javascript" src="../../js/prettify.js"></script>
+    <script type="text/javascript" src="../../js/rs.js"></script>
     <script type="text/javascript">
 $(document).ready(function() {
   prettyPrint();
@@ -32,6 +32,11 @@ $(document).ready(function() {
 	</script>
 
 <!-- InstanceBeginEditable name="head" -->
+    <style type="text/css">
+td > ul {
+  margin: 0px;
+}
+    </style>
 <!-- InstanceEndEditable -->
   </head>
   <body>
@@ -51,24 +56,24 @@ $(document).ready(function() {
                 <div class="sideMenu">
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
-                    <li><a href="../ws/" title="Home">Home</a></li>
-                    <li><a href="client/">Client Development</a><ul>
-                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
-                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
-                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    <li><a href="../../ws/" title="Home">Home</a></li>
+                    <li><a href="../client/">Client Development</a><ul>
+                      <li><a href="../client/rest-api/" title="Client REST API">Client REST API</a></li>
+                      <li><a href="../client/java-api/" title="Client Java API">Client Java API</a></li>
+                      <li><a href="../client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
                     </ul></li>
-                    <li><a href="install/">CPF Installation</a><ul>
-                      <li><a href="install/database.html">CPF Database Installation</a></li>
-                      <li><a href="install/webapp.html">CPF Web Application Installation</a></li>
+                    <li><a href="../install/">CPF Installation</a><ul>
+                      <li><a href="../install/database.html">CPF Database Installation</a></li>
+                      <li><a href="../install/webapp.html">CPF Web Application Installation</a></li>
                     </ul></li>
-                    <li><a href="plugin/">Plug-in Development</a><ul>
-                      <li><a href="plugin/overview.html">Plug-in Overview</a></li>
-                      <li><a href="plugin/mavenProject.html">Plug-in Maven Project</a></li>
-                      <li><a href="plugin/businessApplication.html">Plug-in Business Application Class</a></li>
-                      <li><a href="plugin/customization.html">Plug-in Customization Properties</a></li>
-                      <li><a href="plugin/config.html">Plug-in Configuration Properties</a></li>
-                      <li><a href="plugin/security.html">Plug-in Security</a></li>
-                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    <li><a href="../plugin/">Plug-in Development</a><ul>
+                      <li><a href="overview.html">Plug-in Overview</a></li>
+                      <li><a href="mavenProject.html">Plug-in Maven Project</a></li>
+                      <li><a href="businessApplication.html">Plug-in Business Application Class</a></li>
+                      <li><a href="customization.html">Plug-in Customization Properties</a></li>
+                      <li><a href="config.html">Plug-in Configuration Properties</a></li>
+                      <li><a href="security.html">Plug-in Security</a></li>
+                      <li><a href="java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
                     </ul></li>
                   </ul>
                   </div>
@@ -79,20 +84,26 @@ $(document).ready(function() {
                 <div class="breadcrumbs">
                     <div class="breadcrumb">
 <ul>
-<li><a href="../ws/">HOME</a></li>
-<li><a href="../docs/">Developer Guide</a></li>
+<li><a href="../../ws/">HOME</a></li>
+<li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-                    <li>Structured Data</li>
-                    <!-- InstanceEndEditable -->
+<li>Installation</li>
+<!-- InstanceEndEditable -->
 </ul>
 </div>
                   
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<h1>Notification Callback</h1>
-                  
-                <!-- InstanceEndEditable -->
+<h1>CPF Installation</h1>
+
+<p>Plug-in developers will want to install a copy of CPF on their local environment to develop and test their CPF plug-ins. See the following pages for detailed steps on installing the CPF database and web application.</p>
+
+<ul>
+  <li><a href="database.html">CPF Database Installation</a></li>
+  <li><a href="webapp.html">CPF Web Application Installation</a></li>
+</ul>
+										<!-- InstanceEndEditable -->
                 </div>
               </div>
             </div>

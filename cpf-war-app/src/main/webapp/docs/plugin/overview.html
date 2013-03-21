@@ -10,10 +10,10 @@
 <!-- InstanceEndEditable -->
 
     <link
-      href="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
-      rel="stylesheet" type="text/css" />
+      HREF="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.1/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
     <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+      REL="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -57,12 +57,22 @@ td > ul {
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
                     <li><a href="../../ws/" title="Home">Home</a></li>
-                    <li><a href="../client/">Client API</a><ul>
+                    <li><a href="../client/">Client Development</a><ul>
                       <li><a href="../client/rest-api/" title="Client REST API">Client REST API</a></li>
                       <li><a href="../client/java-api/" title="Client Java API">Client Java API</a></li>
                       <li><a href="../client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
                     </ul></li>
-                    <li><a href="../plugin/">Plug-in API</a><ul>
+                    <li><a href="../install/">CPF Installation</a><ul>
+                      <li><a href="../install/database.html">CPF Database Installation</a></li>
+                      <li><a href="../install/webapp.html">CPF Web Application Installation</a></li>
+                    </ul></li>
+                    <li><a href="../plugin/">Plug-in Development</a><ul>
+                      <li><a href="overview.html">Plug-in Overview</a></li>
+                      <li><a href="mavenProject.html">Plug-in Maven Project</a></li>
+                      <li><a href="businessApplication.html">Plug-in Business Application Class</a></li>
+                      <li><a href="customization.html">Plug-in Customization Properties</a></li>
+                      <li><a href="config.html">Plug-in Configuration Properties</a></li>
+                      <li><a href="security.html">Plug-in Security</a></li>
                       <li><a href="java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
                     </ul></li>
                   </ul>
@@ -88,7 +98,7 @@ td > ul {
 <!-- InstanceBeginEditable name="body" -->
 <h1>Plug-in Overview</h1>
 
-<p>A CPF Business Application plug-in is a service that takes one or more request parameters, performs an action using the request parameters and generates one or more result attributes. The CPF allows a user to create a job that contains one or more requests to be executed against a single business application. For example a job may contain 1 million addresses to geocode. </p>
+<p>A CPF Plug-in module is a Maven project that contains one or more business application plug-ins. A business application plug-in is a service that takes one or more request parameters, performs an action using the request parameters and generates one or more result attributes. The CPF allows a user to create a job that contains one or more requests to be executed against a single business application. For example a job may contain 1 million addresses to geocode. </p>
 
 <p>For an example a power service would have the request parameters <code>base</code> and <code>exponent</code> and the result attribute <code>result</code>, which is the calculation of base to the power of exponent.</p>
 
@@ -107,14 +117,12 @@ td > ul {
   <li>Like per request input data, per request result data returns one binary blob of data for each request. There will be one file for the user to download for each request. For example a WMS service would return a JPEG, or PNG for each map to render.</li>
 </ul>
 
-<p>More detail on implementing these request parameters and result data attributes are described in the remainder of this section.</p>
-
 <div class="pageNavigation">
   <table>
     <tr>
       <td class="previous"><!--<a href="">&lt; Previous</a>-->&nbsp;</td>
       <td class="home"><a href="./">Home</a></td>
-      <td class="next"><a href="databaseInstall.html">Next &gt;</a></td>
+      <td class="next"><a href="mavenProject.html">Create Maven Project - Next &gt;</a></td>
     </tr>
   </table>
 </div>
