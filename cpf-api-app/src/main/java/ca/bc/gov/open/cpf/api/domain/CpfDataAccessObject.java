@@ -852,9 +852,9 @@ public class CpfDataAccessObject {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "NUM_EXECUTING_REQUESTS = NUM_EXECUTING_REQUESTS + ?, "
-        + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
-        + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
+        + "NUM_EXECUTING_REQUESTS = MAX(0, MIN(NUM_EXECUTING_REQUESTS + ?, NUM_SUBMITTED_REQUESTS)), "
+        + "NUM_COMPLETED_REQUESTS = MIN(NUM_COMPLETED_REQUESTS + ?, NUM_SUBMITTED_REQUESTS), "
+        + "NUM_FAILED_REQUESTS = MIN(NUM_FAILED_REQUESTS + ?, NUM_SUBMITTED_REQUESTS) "
         + "WHERE BATCH_JOB_ID = ?";
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, numExecutingRequests,
@@ -937,7 +937,7 @@ public class CpfDataAccessObject {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "NUM_EXECUTING_REQUESTS = NUM_EXECUTING_REQUESTS + ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
+        + "NUM_EXECUTING_REQUESTS = MAX(0,MIN(NUM_EXECUTING_REQUESTS + ?, NUM_SUBMITTED_REQUESTS)), WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
         + "WHERE BATCH_JOB_ID = ?";
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
