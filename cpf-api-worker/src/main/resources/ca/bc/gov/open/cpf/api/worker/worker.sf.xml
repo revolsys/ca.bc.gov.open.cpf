@@ -18,8 +18,8 @@
     class="ca.bc.gov.open.cpf.api.worker.BatchJobWorkerScheduler"
     p:businessApplicationRegistry-ref="businessApplicationRegistry"
     p:webServiceUrl="${cpfInternalWebServiceUrl}"
-    p:consumerKey="${cpfInternalConsumerKey}"
-    p:consumerSecret="${cpfInternalConsumerSecret}"
+    p:username="${cpfInternalWebServiceUsername}"
+    p:password="${cpfInternalWebServicePassword}"
     p:maximumPoolSize="100" />
 
   <bean

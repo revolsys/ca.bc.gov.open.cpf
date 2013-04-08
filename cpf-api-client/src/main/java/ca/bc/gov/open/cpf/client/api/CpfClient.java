@@ -79,7 +79,7 @@ public class CpfClient {
   /** OAuth consumer key */
   private String consumerKey = "";
 
-  /** HttpClient using OAuth credentials */
+  /** DigestHttpClient using OAuth credentials */
   private OAuthHttpClientPool httpClientPool;
 
   /**

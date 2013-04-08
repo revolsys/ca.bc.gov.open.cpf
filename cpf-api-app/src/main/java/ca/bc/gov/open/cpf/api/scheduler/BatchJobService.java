@@ -196,9 +196,7 @@ public class BatchJobService implements ModuleEventListener {
   /** The class used to send email. */
   private JavaMailSender mailSender;
 
-  private final long maxWorkerPingTime = 60 * 1000;
-
-  private final long maxWorkerWaitTime = maxWorkerPingTime;
+  private long maxWorkerWaitTime = 60 * 1000;
 
   private Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
 
@@ -316,7 +314,8 @@ public class BatchJobService implements ModuleEventListener {
     if (groupId != null) {
       final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
       if (group != null) {
-        LoggerFactory.getLogger(BatchJobService.class).info("Rescheduling group " + groupId);
+        LoggerFactory.getLogger(BatchJobService.class).info(
+          "Rescheduling group " + groupId);
         group.resetId();
         schedule(group);
       }
@@ -1301,7 +1300,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void resetHungWorkers() {
     final Timestamp lastIdleTime = new Timestamp(System.currentTimeMillis()
-      - maxWorkerPingTime);
+      - (maxWorkerWaitTime * 2));
     ArrayList<String> workerIds;
     synchronized (workersById) {
       workerIds = new ArrayList<String>(workersById.keySet());
@@ -1943,6 +1942,10 @@ public class BatchJobService implements ModuleEventListener {
     this.mailSender = mailSender;
   }
 
+  public void setMaxWorkerWaitTime(final long maxWorkerWaitTime) {
+    this.maxWorkerWaitTime = maxWorkerWaitTime * 1000;
+  }
+
   public void setPostProcess(final BatchJobPostProcess postProcess) {
     this.postProcess = postProcess;
     postProcess.getIn().writeConnect();
@@ -2076,15 +2079,13 @@ public class BatchJobService implements ModuleEventListener {
     int errorCount = 0;
     int successCount = 0;
 
-    boolean completed = DataObjectUtil.getBoolean(batchJobRequest,
+    final boolean completed = DataObjectUtil.getBoolean(batchJobRequest,
       BatchJobRequest.COMPLETED_IND);
     if (completed) {
-      LOG.error("*** PROCESSING ERROR *** request " + requestId
-        + " is being reprocessed");
       if (StringUtils.hasText(batchJobRequest.getString(BatchJobRequest.ERROR_CODE))) {
-        successCount--;
-      } else {
         errorCount--;
+      } else {
+        successCount--;
       }
     }
 
@@ -2141,17 +2142,17 @@ public class BatchJobService implements ModuleEventListener {
       batchJobRequest.setValue(BatchJobRequest.COMPLETED_IND, 1);
     }
     dataAccessObject.write(batchJobRequest);
-    Map<String, Integer> counts = new HashMap<String, Integer>();
+    final Map<String, Integer> counts = new HashMap<String, Integer>();
     counts.put("error", errorCount);
     counts.put("success", successCount);
     return counts;
   }
 
-  public void updateWorkerExecutingGroups(Worker worker,
-    List<String> executingGroupIds) {
-    List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
-    for (BatchJobRequestExecutionGroup executionGroup : executingGroups) {
-      String groupId = executionGroup.getId();
+  public void updateWorkerExecutingGroups(final Worker worker,
+    final List<String> executingGroupIds) {
+    final List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
+    for (final BatchJobRequestExecutionGroup executionGroup : executingGroups) {
+      final String groupId = executionGroup.getId();
       if (!executingGroups.contains(groupId)) {
         cancelGroup(worker, groupId);
       }

@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf-api
 Title:             Cloud Processing Framework Open API
-Version:           4.0.1
+Version:           4.0.3
 
 Software/Hardware Requirements
 ------------------------------
@@ -84,8 +84,8 @@ Perform a maven release using the following settings.
 
  * Test Migration
 
-Test Version:             4.0.2.RC[1..9] Increment for each migration to test
+Test Version:             4.0.2.RC
 
  * Production Migration
-Release Version:          4.0.1
-Next Development Version: 4.0.2-SNAPSHOT
+Release Version:          4.0.2
+Next Development Version: 4.0.3-SNAPSHOT

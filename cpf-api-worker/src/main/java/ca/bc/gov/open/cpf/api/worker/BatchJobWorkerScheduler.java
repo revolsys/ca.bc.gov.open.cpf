@@ -1,8 +1,6 @@
 package ca.bc.gov.open.cpf.api.worker;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.SocketException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,19 +22,14 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.worker.security.WebSecurityServiceFactory;
-import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
-import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
+import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
+import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -59,34 +52,42 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   Process, BeanNameAware, ModuleEventListener {
   private static final Logger LOG = LoggerFactory.getLogger(BatchJobWorkerScheduler.class);
 
+  private boolean abbortedRequest;
+
   private String beanName;
 
   private BusinessApplicationRegistry businessApplicationRegistry;
 
   private ConfigPropertyLoader configPropertyLoader;
 
-  private String consumerKey = "cpf";
-
-  private String consumerSecret = "cpf2009";
-
   private String environmentName = "default";
 
-  private OAuthHttpClient httpClient;
+  private final Set<String> executingGroupIds = new LinkedHashSet<String>();
 
-  private OAuthHttpClientPool httpClientPool;
+  private DigestHttpClient httpClient;
 
   private final String id = UUID.randomUUID().toString();
 
+  private long lastPingTime;
+
   /** The list of modules currently being loaded. */
-  private Map<String, Long> loadingModules = new HashMap<String, Long>();
+  private final Map<String, Long> loadingModules = new HashMap<String, Long>();
 
-  private final int maxTimeout = 60 * 1000;
+  private final long maxTimeBetweenPings = 5 * 60;
 
-  private final int minTimeout = 0;
+  private final int maxTimeout = 60;
+
+  private final Deque<Map<String, Object>> messages = new LinkedList<Map<String, Object>>();
+
+  private String messageUrl;
 
   private List<String> moduleNames;
 
   private final Object monitor = new Object();
+
+  private String nextIdUrl;
+
+  private String password = "cpf2009";
 
   private ProcessNetwork processNetwork;
 
@@ -98,21 +99,11 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   private int timeout = 0;
 
-  private long lastPingTime;
+  private final int timeoutStep = 10;
 
-  private final int timeoutStep = 10 * 1000;
+  private String username = "cpf";
 
   private String webServiceUrl = "http://localhost/cpf";
-
-  private String messageUrl;
-
-  private String nextIdUrl;
-
-  private boolean abbortedRequest;
-
-  private Set<String> executingGroupIds = new LinkedHashSet<String>();
-
-  private long maxTimeBetweenPings = 5 * 60 * 1000;
 
   public BatchJobWorkerScheduler() {
     super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
@@ -121,34 +112,28 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     setKeepAliveTime(60, TimeUnit.SECONDS);
   }
 
-  public void addExecutingGroupsMessage() {
-    Map<String, Object> message = createExecutingGroupsMessage();
-    addMessage(message);
-  }
-
-  protected Map<String, Object> createExecutingGroupsMessage() {
-    Map<String, Object> message = new LinkedHashMap<String, Object>();
-    message.put("action", "executingGroupIds");
-    message.put("workerId", id);
-    message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
-    lastPingTime = System.currentTimeMillis();
-    return message;
-  }
-
-  public void abortRequest() {
-    OAuthHttpClient httpClient = this.httpClient;
-    if (httpClient != null) {
-      httpClientPool.releaseClient(httpClient);
-      this.httpClient = null;
-      abbortedRequest = true;
+  protected void addExecutingGroupId(final String groupId) {
+    synchronized (executingGroupIds) {
+      executingGroupIds.add(groupId);
     }
   }
 
+  public void addExecutingGroupsMessage() {
+    final Map<String, Object> message = createExecutingGroupsMessage();
+    addMessage(message);
+  }
+
   public void addFailedGroup(final String groupId) {
-    Map<String, Object> message = new LinkedHashMap<String, Object>();
+    final Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "failedGroupId");
     message.put("batchJobGroupId", groupId);
     addMessage(message);
+  }
+
+  private void addMessage(final Map<String, Object> message) {
+    synchronized (messages) {
+      messages.add(message);
+    }
   }
 
   @Override
@@ -158,20 +143,21 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     }
   }
 
+  protected Map<String, Object> createExecutingGroupsMessage() {
+    final Map<String, Object> message = new LinkedHashMap<String, Object>();
+    message.put("action", "executingGroupIds");
+    message.put("workerId", id);
+    message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
+    lastPingTime = System.currentTimeMillis();
+    return message;
+  }
+
   @PreDestroy
   public void destroy() {
     running = false;
     getProcessNetwork().stop();
-    OAuthHttpClient httpClient = this.httpClient;
-    if (httpClient != null) {
-      abortRequest();
-      this.httpClient = null;
-    }
+    this.httpClient = null;
     shutdownNow();
-    if (httpClientPool != null) {
-      httpClientPool.close();
-      httpClientPool = null;
-    }
     if (securityServiceFactory != null) {
       securityServiceFactory.close();
       securityServiceFactory = null;
@@ -194,7 +180,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     final String businessApplicationName) {
     final BusinessApplication businessApplication;
     if (StringUtils.hasText(moduleName)) {
-      ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
+      final ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
       if (module == null) {
         return null;
       } else if (module.isStarted()) {
@@ -216,21 +202,54 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     return configPropertyLoader;
   }
 
-  public String getConsumerKey() {
-    return consumerKey;
-  }
-
-  public String getConsumerSecret() {
-    return consumerSecret;
-  }
-
   public String getEnvironmentName() {
     return environmentName;
   }
 
+  public List<String> getModuleNames() {
+    return moduleNames;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public int getPriority() {
+    return ((NamedThreadFactory)getThreadFactory()).getPriority();
+  }
+
+  /**
+   * @return the processNetwork
+   */
+  @Override
+  public ProcessNetwork getProcessNetwork() {
+    return processNetwork;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public String getWebServiceUrl() {
+    return webServiceUrl;
+  }
+
+  @PostConstruct
+  public void init() {
+    httpClient = new DigestHttpClient(webServiceUrl, username, password);
+
+    securityServiceFactory = new WebSecurityServiceFactory(httpClient);
+    businessApplicationRegistry.addModuleEventListener(securityServiceFactory);
+    tempDir = FileUtil.createTempDirectory("cpf", "jars");
+    configPropertyLoader = new InternalWebServiceConfigPropertyLoader(
+      httpClient, environmentName);
+
+    messageUrl = webServiceUrl + "/worker/workers/" + id + "/message";
+    nextIdUrl = webServiceUrl + "/worker/workers/" + id + "/jobs/groups/nextId";
+  }
+
   public void loadModule(final String moduleName, final Long moduleTime) {
-    AppLog log = new AppLog();
-    final OAuthHttpClient httpClient = httpClientPool.getClient();
+    final AppLog log = new AppLog();
 
     ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
     if (module != null) {
@@ -261,20 +280,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
         try {
           final File jarFile = new File(moduleDir, i + ".jar");
           jarFile.deleteOnExit();
-          final HttpResponse jarResponse = httpClient.getResource(jarUrl);
-          final StatusLine statusLine = jarResponse.getStatusLine();
-          final int httpStatusCode = statusLine.getStatusCode();
-          final HttpEntity entity = jarResponse.getEntity();
-          final InputStream in = entity.getContent();
-          try {
-            if (httpStatusCode == HttpStatus.SC_OK) {
-              FileUtil.copy(in, jarFile);
-            } else {
-              log.error("Unable to download jar file " + jarUrl);
-            }
-          } finally {
-            FileUtil.closeSilent(in);
-          }
+          httpClient.getResource(jarUrl, jarFile);
 
           urls.add(FileUtil.toUrl(jarFile));
         } catch (final Throwable e) {
@@ -291,7 +297,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       businessApplicationRegistry.addModule(module);
       module.setStartedDate(new Date(moduleTime));
       module.enable();
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       try {
         LOG.error("Unable to load module " + moduleName, t);
         LOG.error(log.getLogContent());
@@ -302,125 +308,26 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           businessApplicationRegistry.unloadModule(module);
         }
       }
-    } finally {
-      httpClientPool.releaseClient(httpClient);
     }
   }
 
-  private void setModuleLoaded(final String moduleName, final Long moduleTime) {
-    Map<String, Object> message = new LinkedHashMap<String, Object>();
-    message.put("action", "moduleLoaded");
-    message.put("moduleName", moduleName);
-    message.put("moduleTime", moduleTime);
-    addMessage(message);
-  }
-
-  private void setModuleExcluded(final String moduleName,
-    final Long moduleTime, List<Map<String, String>> logRecords) {
-    LOG.info("Excluding module: " + moduleName);
-    Map<String, Object> message = new LinkedHashMap<String, Object>();
-    message.put("action", "moduleExcluded");
-    message.put("moduleName", moduleName);
-    message.put("moduleTime", moduleTime);
-    message.put("logRecords", logRecords);
-    addMessage(message);
-  }
-
-  public void unloadModule(ClassLoaderModule module) {
-    long time = module.getStartedDate().getTime();
-    businessApplicationRegistry.unloadModule(module);
-    final File lastModuleDir = new File(tempDir, module.getName() + "-" + time);
-    FileUtil.deleteDirectory(lastModuleDir, true);
-  }
-
-  public List<String> getModuleNames() {
-    return moduleNames;
-  }
-
-  public int getPriority() {
-    return ((NamedThreadFactory)getThreadFactory()).getPriority();
-  }
-
-  /**
-   * @return the processNetwork
-   */
   @Override
-  public ProcessNetwork getProcessNetwork() {
-    return processNetwork;
-  }
-
-  public String getWebServiceUrl() {
-    return webServiceUrl;
-  }
-
-  @PostConstruct
-  public void init() {
-    httpClientPool = new OAuthHttpClientPool(webServiceUrl, consumerKey,
-      consumerSecret, getMaximumPoolSize() + 1);
-    securityServiceFactory = new WebSecurityServiceFactory(httpClientPool);
-    businessApplicationRegistry.addModuleEventListener(securityServiceFactory);
-    tempDir = FileUtil.createTempDirectory("cpf", "jars");
-    configPropertyLoader = new InternalWebServiceConfigPropertyLoader(
-      httpClientPool, environmentName);
-
-    messageUrl = webServiceUrl + "/worker/workers/" + id + "/message";
-    nextIdUrl = webServiceUrl + "/worker/workers/" + id + "/jobs/groups/nextId";
-  }
-
-  @Override
-  public void moduleChanged(ModuleEvent event) {
-    String action = event.getAction();
-    Module module = event.getModule();
-    String moduleName = module.getName();
+  public void moduleChanged(final ModuleEvent event) {
+    final String action = event.getAction();
+    final Module module = event.getModule();
+    final String moduleName = module.getName();
     if (action.equals(ModuleEvent.START)) {
-      long moduleTime = module.getStartedDate().getTime();
+      final long moduleTime = module.getStartedDate().getTime();
       setModuleLoaded(moduleName, moduleTime);
     } else if (action.equals(ModuleEvent.START_FAILED)) {
       businessApplicationRegistry.unloadModule(module);
 
-      String moduleError = module.getModuleError();
-      AppLog log = new AppLog();
+      final String moduleError = module.getModuleError();
+      final AppLog log = new AppLog();
       LOG.error(moduleError);
       log.error(moduleError);
-      long moduleTime = module.getStartedDate().getTime();
+      final long moduleTime = module.getStartedDate().getTime();
       setModuleExcluded(moduleName, moduleTime, log.getLogRecords());
-    }
-  }
-
-  private void addMessage(Map<String, Object> message) {
-    synchronized (messages) {
-      messages.add(message);
-    }
-  }
-
-  public Map<String, Object> postRequest(String url)
-    throws ClientProtocolException, IOException {
-    try {
-      abbortedRequest = false;
-      httpClient = httpClientPool.getClient();
-      return httpClient.postJsonResource(url);
-    } finally {
-      try {
-        httpClientPool.releaseClient(httpClient);
-      } finally {
-        httpClient = null;
-      }
-    }
-  }
-
-  public Map<String, Object> postRequest(String url,
-    Map<String, ? extends Object> message) throws ClientProtocolException,
-    IOException {
-    try {
-      abbortedRequest = false;
-      httpClient = httpClientPool.getClient();
-      return httpClient.postJsonResource(url, message);
-    } finally {
-      try {
-        httpClientPool.releaseClient(httpClient);
-      } finally {
-        httpClient = null;
-      }
     }
   }
 
@@ -432,17 +339,19 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   }
 
   public boolean processNextTask() {
-    if (System.currentTimeMillis() > lastPingTime + maxTimeBetweenPings) {
+    if (System.currentTimeMillis() > lastPingTime + maxTimeBetweenPings * 1000) {
       addExecutingGroupsMessage();
     }
     while (!messages.isEmpty()) {
       synchronized (messages) {
-        Map<String, Object> message = messages.removeFirst();
+        final Map<String, Object> message = messages.removeFirst();
         while (!sendMessage(message)) {
+          long timeout = timeoutStep;
           if (running) {
             try {
-              messages.wait(timeout);
-            } catch (InterruptedException e) {
+              LOG.info("Waiting " + timeout + " seconds before sending message");
+              messages.wait(timeout * 1000);
+            } catch (final InterruptedException e) {
             }
             if (timeout < maxTimeout) {
               timeout += timeoutStep;
@@ -456,7 +365,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     if (!running) {
       return false;
     }
-    long time = System.currentTimeMillis();
+    final long time = System.currentTimeMillis();
     if (getActiveCount() + 1 >= getMaximumPoolSize()) {
       sendMessage(createExecutingGroupsMessage());
       lastPingTime = time;
@@ -470,12 +379,12 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           parameters.put("moduleName", moduleNames);
         }
 
-        String url = UrlUtil.getUrl(nextIdUrl, parameters);
+        final String url = UrlUtil.getUrl(nextIdUrl, parameters);
         if (running) {
           if (LOG.isDebugEnabled()) {
             LOG.debug(url);
           }
-          response = postRequest(url);
+          response = httpClient.postJsonResource(url);
         }
         if (!running) {
           return false;
@@ -483,10 +392,10 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
           if (response != null && !response.isEmpty()) {
             if ("loadModule".equals(response.get("action"))) {
-              String moduleName = (String)response.get("moduleName");
+              final String moduleName = (String)response.get("moduleName");
               final Long moduleTime = ((Number)response.get("moduleTime")).longValue();
               synchronized (loadingModules) {
-                Long loadingTime = loadingModules.get(moduleName);
+                final Long loadingTime = loadingModules.get(moduleName);
                 if (loadingTime == null || loadingTime < moduleTime) {
                   loadingModules.put(moduleName, moduleTime);
                   LOG.info("Loading module: " + moduleName);
@@ -494,9 +403,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
                   try {
                     execute(new InvokeMethodRunnable(this, "loadModule",
                       moduleName, moduleTime));
-                  } catch (Throwable t) {
+                  } catch (final Throwable t) {
                     LOG.error("Unable to load module " + moduleName, t);
-                    List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
+                    final List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
                     logRecords.add(AppLog.createLogRecord("ERROR",
                       "Unable to load module " + moduleName));
                     setModuleExcluded(moduleName, moduleTime, logRecords);
@@ -511,10 +420,10 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
               addExecutingGroupId(groupId);
               try {
                 final Runnable runnable = new BatchJobRequestExecutionGroupRunnable(
-                  this, businessApplicationRegistry, httpClientPool,
+                  this, businessApplicationRegistry, httpClient,
                   securityServiceFactory, id, response);
                 execute(runnable);
-              } catch (Throwable e) {
+              } catch (final Throwable e) {
                 if (running) {
                   LOG.error("Unable to get execute group " + groupId, e);
                 }
@@ -529,59 +438,40 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           }
         }
         return true;
-      } catch (SocketException e) {
+      } catch (final HttpStatusCodeException t) {
         addExecutingGroupsMessage();
-        if (abbortedRequest) {
-          return true;
+        if (t.getStatusCode() == 404) {
+
         } else {
-          LOG.error("Unable to get group", e);
-          return false;
+          if (running) {
+            LOG.error("Unable to get group", t);
+          }
         }
       } catch (final Throwable t) {
-        addExecutingGroupsMessage();
-        if (running) {
-          LOG.error("Unable to get group", t);
+        if (t.getCause() instanceof SocketException) {
+          addExecutingGroupsMessage();
+          if (abbortedRequest) {
+            return true;
+          } else {
+            LOG.error("Unable to get group", t.getCause());
+            return false;
+          }
+        } else {
+          addExecutingGroupsMessage();
+          if (running) {
+            LOG.error("Unable to get group", t);
+          }
         }
       }
     }
     return false;
   }
 
-  protected void removeExecutingGroupId(String groupId) {
+  protected void removeExecutingGroupId(final String groupId) {
     synchronized (executingGroupIds) {
       executingGroupIds.remove(groupId);
     }
   }
-
-  protected void addExecutingGroupId(final String groupId) {
-    synchronized (executingGroupIds) {
-      executingGroupIds.add(groupId);
-    }
-  }
-
-  public boolean sendMessage(final Map<String, ? extends Object> message) {
-    try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(messageUrl + "\n" + message);
-      }
-      final Map<String, Object> response = postRequest(messageUrl, message);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Message processed\n" + response);
-      }
-      if (running) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (final Throwable t) {
-      if (running) {
-        LOG.error("Unable to process message\n" + message, t);
-      }
-      return false;
-    }
-  }
-
-  private Deque<Map<String, Object>> messages = new LinkedList<Map<String, Object>>();
 
   @Override
   public void run() {
@@ -592,7 +482,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       while (running) {
         try {
           if (processNextTask()) {
-            timeout = minTimeout;
+            timeout = 0;
           } else {
             if (timeout < maxTimeout) {
               timeout += timeoutStep;
@@ -600,8 +490,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           }
           if (running && timeout != 0) {
             synchronized (monitor) {
-              LOG.info("Waiting " + timeout);
-              monitor.wait(timeout);
+              LOG.info("Waiting " + timeout
+                + " seconds before getting next task");
+              monitor.wait(timeout * 1000);
             }
           }
         } catch (final InterruptedException e) {
@@ -617,6 +508,29 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     } finally {
       postRun();
       LOG.info("Stopped");
+    }
+  }
+
+  public boolean sendMessage(final Map<String, ? extends Object> message) {
+    try {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(messageUrl + "\n" + message);
+      }
+      final Map<String, Object> response = httpClient.postJsonResource(
+        messageUrl, message);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Message processed\n" + response);
+      }
+      if (running) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (final Throwable t) {
+      if (running) {
+        LOG.error("Unable to process message\n" + message, t);
+      }
+      return false;
     }
   }
 
@@ -636,14 +550,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     businessApplicationRegistry.addModuleEventListener(this);
   }
 
-  public void setConsumerKey(final String consumerKey) {
-    this.consumerKey = consumerKey;
-  }
-
-  public void setConsumerSecret(final String consumerSecret) {
-    this.consumerSecret = consumerSecret;
-  }
-
   public void setEnvironmentName(final String environmentName) {
     this.environmentName = environmentName;
   }
@@ -651,13 +557,33 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   @Override
   public void setMaximumPoolSize(final int maximumPoolSize) {
     super.setMaximumPoolSize(maximumPoolSize);
-    if (httpClientPool != null) {
-      httpClientPool.setMaxConnections(maximumPoolSize + 1);
-    }
+  }
+
+  private void setModuleExcluded(final String moduleName,
+    final Long moduleTime, final List<Map<String, String>> logRecords) {
+    LOG.info("Excluding module: " + moduleName);
+    final Map<String, Object> message = new LinkedHashMap<String, Object>();
+    message.put("action", "moduleExcluded");
+    message.put("moduleName", moduleName);
+    message.put("moduleTime", moduleTime);
+    message.put("logRecords", logRecords);
+    addMessage(message);
+  }
+
+  private void setModuleLoaded(final String moduleName, final Long moduleTime) {
+    final Map<String, Object> message = new LinkedHashMap<String, Object>();
+    message.put("action", "moduleLoaded");
+    message.put("moduleName", moduleName);
+    message.put("moduleTime", moduleTime);
+    addMessage(message);
   }
 
   public void setModuleNames(final List<String> moduleNames) {
     this.moduleNames = moduleNames;
+  }
+
+  public void setPassword(final String password) {
+    this.password = password;
   }
 
   public void setPriority(final int priority) {
@@ -680,6 +606,10 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     }
   }
 
+  public void setUsername(final String username) {
+    this.username = username;
+  }
+
   public void setWebServiceUrl(final String webServiceUrl) {
     this.webServiceUrl = webServiceUrl;
   }
@@ -687,5 +617,12 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   @Override
   public String toString() {
     return beanName;
+  }
+
+  public void unloadModule(final ClassLoaderModule module) {
+    final long time = module.getStartedDate().getTime();
+    businessApplicationRegistry.unloadModule(module);
+    final File lastModuleDir = new File(tempDir, module.getName() + "-" + time);
+    FileUtil.deleteDirectory(lastModuleDir, true);
   }
 }

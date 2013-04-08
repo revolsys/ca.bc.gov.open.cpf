@@ -86,7 +86,7 @@
   <bean
     id="processingFilterEntryPoint"
     class="ca.bc.gov.open.cpf.api.security.oauth.OAuthOrDigestProcessingFilterEntryPoint"
-    p:realmName="CPF Web Services"
+    p:realmName="CPF"
     p:key="211944fd-bcdc-4774-a5a8-7c904331f6d4"
     p:nonceValiditySeconds="600" />
   <bean

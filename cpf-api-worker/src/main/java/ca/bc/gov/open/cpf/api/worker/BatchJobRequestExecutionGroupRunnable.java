@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 
+import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
@@ -45,7 +46,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private final Map<String, Object> groupIdMap;
 
-  private final OAuthHttpClientPool httpClientPool;
+  private final DigestHttpClient httpClient;
 
   private final SecurityServiceFactory securityServiceFactory;
 
@@ -56,11 +57,11 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   public BatchJobRequestExecutionGroupRunnable(
     final BatchJobWorkerScheduler executor,
     final BusinessApplicationRegistry businessApplicationRegistry,
-    final OAuthHttpClientPool httpClientPool,
+    final DigestHttpClient httpClient,
     final SecurityServiceFactory securityServiceFactory, final String workerId,
     final Map<String, Object> groupIdMap) {
     this.executor = executor;
-    this.httpClientPool = httpClientPool;
+    this.httpClient = httpClient;
     this.securityServiceFactory = securityServiceFactory;
     this.workerId = workerId;
     this.groupIdMap = groupIdMap;
@@ -87,7 +88,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
       final String businessApplicationName = (String)groupIdMap.get("businessApplicationName");
       final Number batchJobId = (Number)groupIdMap.get("batchJobId");
       final AppLog log = new AppLog(logLevel);
-      log.info("Group Execution Start " + groupId);
+      log.info("Group Execution Start " + batchJobId + "\t" + groupId);
       try {
         final StopWatch groupStopWatch = new StopWatch("Group");
         groupStopWatch.start();
@@ -104,15 +105,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           executor.addFailedGroup(groupId);
         } else {
           final String userId = (String)groupIdMap.get("userId");
-          final Map<String, Object> group;
-          OAuthHttpClient httpClient = httpClientPool.getClient();
-          try {
-            final String groupUrl = httpClient.getUrl("/worker/workers/"
-              + workerId + "/jobs/" + batchJobId + "/groups/" + groupId);
-            group = httpClient.getJsonResource(groupUrl);
-          } finally {
-            httpClientPool.releaseClient(httpClient);
-          }
+          final String groupUrl = httpClient.getUrl("/worker/workers/"
+            + workerId + "/jobs/" + batchJobId + "/groups/" + groupId);
+          final Map<String, Object> group = httpClient.getJsonResource(groupUrl);
           final Module module = businessApplication.getModule();
 
           final Map<String, Object> globalErrors = new LinkedHashMap<String, Object>();
@@ -179,11 +174,11 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
               File resultFile = null;
               OutputStream resultData = null;
               if (businessApplication.isPerRequestInputData()) {
-                final String inputDataUrl = httpClient.getOAuthUrl("GET",
-                  "/worker/workers/" + workerId + "/jobs/" + batchJobId
-                    + "/groups/" + groupId + "/requests/" + requestId
-                    + "/inputData");
-                parameters.put("inputDataUrl", inputDataUrl);
+                // final String inputDataUrl = httpClient.getOAuthUrl("GET",
+                // "/worker/workers/" + workerId + "/jobs/" + batchJobId
+                // + "/groups/" + groupId + "/requests/" + requestId
+                // + "/inputData");
+                // parameters.put("inputDataUrl", inputDataUrl);
               }
               if (businessApplication.isPerRequestResultData()) {
                 resultFile = FileUtil.createTempFile(businessApplicationName,
@@ -268,22 +263,25 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         }
         groupResponse.put("groupExecutionTime",
           groupStopWatch.getTotalTimeMillis());
-        log.info("Group execution end " + groupId);
+        log.info("Group execution end " + batchJobId + "\t" + groupId);
         groupResponse.put("logRecords", log.getLogRecords());
         final String path = "/worker/workers/" + workerId + "/jobs/"
           + batchJobId + "/groups/" + groupId + "/results";
         for (int i = 0; i < 2; i++) {
-          OAuthHttpClient httpClient = httpClientPool.getClient();
-
           try {
             @SuppressWarnings("unused")
             final Map<String, Object> submitResponse = httpClient.postJsonResource(
               httpClient.getUrl(path), groupResponse);
 
             return;
-          } catch (final NoHttpResponseException e) {
-          } finally {
-            httpClientPool.releaseClient(httpClient);
+          } catch (final RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof NoHttpResponseException) {
+            } else {
+              throw e;
+            }
+          } catch (final Error e) {
+            throw e;
           }
         }
         LOG.error("No response submitting group  results " + groupId);
@@ -302,7 +300,6 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     final Map<String, Object> parameters, final File resultFile,
     final OutputStream resultData) {
     if (resultData != null) {
-      OAuthHttpClient httpClient = httpClientPool.getClient();
 
       try {
         resultData.flush();
@@ -328,8 +325,6 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         }
       } catch (final Throwable e) {
         addError(groupResult, "RECOVERABLE_EXCEPTION", e);
-      } finally {
-        httpClientPool.releaseClient(httpClient);
       }
     }
   }

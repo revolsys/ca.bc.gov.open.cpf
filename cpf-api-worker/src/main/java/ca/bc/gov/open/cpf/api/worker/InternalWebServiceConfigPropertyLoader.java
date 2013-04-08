@@ -11,8 +11,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.util.StringUtils;
 
-import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
-import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
+import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.converter.string.StringConverter;
@@ -26,18 +25,17 @@ public class InternalWebServiceConfigPropertyLoader extends BeanConfigurrer
 
   private String environmentName = "default";
 
-  private OAuthHttpClientPool httpClientPool;
+  private DigestHttpClient httpClient;
 
-  public InternalWebServiceConfigPropertyLoader(
-    OAuthHttpClientPool httpClientPool, String environmentName) {
-    this.httpClientPool = httpClientPool;
+  public InternalWebServiceConfigPropertyLoader(DigestHttpClient httpClient,
+    String environmentName) {
+    this.httpClient = httpClient;
     this.environmentName = environmentName;
   }
 
   @Override
   public synchronized Map<String, Object> getConfigProperties(
-    final String moduleName,
-    final String componentName) {
+    final String moduleName, final String componentName) {
     return getConfigProperties(environmentName, moduleName, componentName);
   }
 
@@ -60,11 +58,9 @@ public class InternalWebServiceConfigPropertyLoader extends BeanConfigurrer
     "rawtypes", "unchecked"
   })
   public synchronized Map<String, Object> getConfigProperties(
-    final String environmentName,
-    final String moduleName,
+    final String environmentName, final String moduleName,
     final String componentName) {
     Map<String, Object> configProperties = new HashMap<String, Object>();
-    OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/worker/modules/" + moduleName
         + "/config/" + environmentName + "/" + componentName);
@@ -80,7 +76,8 @@ public class InternalWebServiceConfigPropertyLoader extends BeanConfigurrer
             Object value = stringValue;
             if (dataType != null) {
               final Class<?> dataTypeClass = (Class<?>)dataType.getJavaClass();
-              final StringConverter<?> converter = StringConverterRegistry.getInstance().getConverter(dataTypeClass);
+              final StringConverter<?> converter = StringConverterRegistry.getInstance()
+                .getConverter(dataTypeClass);
               if (converter != null) {
                 value = converter.toObject(stringValue);
               }
@@ -95,8 +92,6 @@ public class InternalWebServiceConfigPropertyLoader extends BeanConfigurrer
     } catch (final Throwable e) {
       LoggerFactory.getLogger(getClass()).error(
         "Unable to get config properties for " + moduleName, e);
-    } finally {
-      httpClientPool.releaseClient(httpClient);
     }
     return configProperties;
   }

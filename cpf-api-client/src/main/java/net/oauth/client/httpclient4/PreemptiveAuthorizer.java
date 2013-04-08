@@ -42,13 +42,13 @@ import org.apache.http.protocol.HttpContext;
  * <ul>
  * <li>In your HttpContext attributes, set a list of preferred auth scheme
  * names.
- * <li>In your HttpClient auth schemes, register an AuthSchemeFactory for at
+ * <li>In your DigestHttpClient auth schemes, register an AuthSchemeFactory for at
  * least one of those schemes.
- * <li>In your HttpClient credentials provider, set Credentials for an AuthScope
+ * <li>In your DigestHttpClient credentials provider, set Credentials for an AuthScope
  * that will match your request.
- * <li>In your HttpClient params, register any parameters the AuthSchemeFactory
+ * <li>In your DigestHttpClient params, register any parameters the AuthSchemeFactory
  * requires.
- * <li>In your HttpClient, add an instance of this interceptor.
+ * <li>In your DigestHttpClient, add an instance of this interceptor.
  * </ul>
  * Here's an example using OAuth:
  * 

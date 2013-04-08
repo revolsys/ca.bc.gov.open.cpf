@@ -37,7 +37,7 @@ public class OAuthSchemeFactory implements AuthSchemeFactory {
   public static final String SCHEME_NAME = "OAuth";
 
   /**
-   * The name of an HttpClient param whose value is the realm to send in
+   * The name of an DigestHttpClient param whose value is the realm to send in
    * Authorization headers, if no realm was previously received in a
    * WWW-Authenticate challenge. This is useful for preemptive authorization;
    * that is sending an Authorization header without any need for a challenge.
