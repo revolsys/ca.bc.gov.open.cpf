@@ -180,6 +180,8 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  private Map<String, Map<Long, Long>> moduleJobExecutingCounts = new HashMap<String, Map<Long, Long>>();
+
   private StatisticsProcess statisticsProcess;
 
   private AuthorizationService authorizationService;
@@ -918,26 +920,27 @@ public class BatchJobService implements ModuleEventListener {
         for (final Worker worker : getWorkers()) {
           final String moduleNameAndTime = moduleName + ":"
             + module.getStartedTime();
-          final List<BatchJobRequestExecutionGroup> cancelledGroups = worker.cancelExecutingGroups(moduleNameAndTime);
-          for (final BatchJobRequestExecutionGroup cancelledGroup : cancelledGroups) {
-            cancelledGroup.resetId();
-            schedule(cancelledGroup);
-          }
+          worker.cancelExecutingGroups(moduleNameAndTime);
         }
       }
       final List<String> businessApplicationNames = module.getBusinessApplicationNames();
       for (final String businessApplicationName : businessApplicationNames) {
-        if (action.equals(ModuleEvent.START)) {
-          resetProcessingBatchJobs(moduleName, businessApplicationName);
-          resetCreatingRequestsBatchJobs(moduleName, businessApplicationName);
-          resetCreatingResultsBatchJobs(moduleName, businessApplicationName);
-          scheduleFromDatabase(moduleName, businessApplicationName);
-          if (preProcess != null) {
-            preProcess.scheduleFromDatabase(moduleName, businessApplicationName);
-          }
-          if (postProcess != null) {
-            postProcess.scheduleFromDatabase(moduleName,
-              businessApplicationName);
+        synchronized (businessApplicationName.intern()) {
+          if (action.equals(ModuleEvent.STOP)) {
+            groupsToSchedule.remove(businessApplicationName);
+          } else if (action.equals(ModuleEvent.START)) {
+            resetProcessingBatchJobs(moduleName, businessApplicationName);
+            resetCreatingRequestsBatchJobs(moduleName, businessApplicationName);
+            resetCreatingResultsBatchJobs(moduleName, businessApplicationName);
+            scheduleFromDatabase(moduleName, businessApplicationName);
+            if (preProcess != null) {
+              preProcess.scheduleFromDatabase(moduleName,
+                businessApplicationName);
+            }
+            if (postProcess != null) {
+              postProcess.scheduleFromDatabase(moduleName,
+                businessApplicationName);
+            }
           }
         }
       }
@@ -1344,6 +1347,9 @@ public class BatchJobService implements ModuleEventListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void resetProcessingBatchJobs(final String moduleName,
     final String businessApplicationName) {
+
+    groupsToSchedule.remove(businessApplicationName);
+
     final int numCleanedRequests = dataAccessObject.updateResetRequestsForRestart(businessApplicationName);
     if (numCleanedRequests > 0) {
       ModuleLog.info(moduleName, businessApplicationName,
@@ -1552,13 +1558,15 @@ public class BatchJobService implements ModuleEventListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void scheduleFromDatabase(final String moduleName,
     final String businessApplicationName) {
-    final List<Long> batchJobIds = dataAccessObject.getBatchJobIdsToSchedule(businessApplicationName);
-    for (final Long batchJobId : batchJobIds) {
-      final Map<String, Long> parameters = Collections.singletonMap(
-        "batchJobId", batchJobId);
-      ModuleLog.info(moduleName, businessApplicationName,
-        "Schedule from database", parameters);
-      schedule(businessApplicationName, batchJobId);
+    synchronized (businessApplicationName.intern()) {
+      final List<Long> batchJobIds = dataAccessObject.getBatchJobIdsToSchedule(businessApplicationName);
+      for (final Long batchJobId : batchJobIds) {
+        final Map<String, Long> parameters = Collections.singletonMap(
+          "batchJobId", batchJobId);
+        ModuleLog.info(moduleName, businessApplicationName,
+          "Schedule from database", parameters);
+        schedule(businessApplicationName, batchJobId);
+      }
     }
   }
 
@@ -1738,17 +1746,22 @@ public class BatchJobService implements ModuleEventListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void setBatchJobExecutingCounts(final String businessApplicationName,
     final Long batchJobId, final Set<BatchJobRequestExecutionGroup> groups) {
+    synchronized (businessApplicationName.intern()) {
+      int numCompletedRequests = 0;
+      int numFailedRequests = 0;
 
-    for (final BatchJobRequestExecutionGroup group : groups) {
-      final int numExecutingRequests = group.getNumBatchJobRequests();
-      final int numCompletedRequests = group.getNumCompletedRequests();
-      final int numFailedRequests = group.getNumFailedRequests();
+      for (final BatchJobRequestExecutionGroup group : groups) {
+        numCompletedRequests += group.getNumCompletedRequests();
+        numFailedRequests += group.getNumFailedRequests();
+      }
       dataAccessObject.updateBatchJobExecutionCounts(batchJobId,
-        -numExecutingRequests, numCompletedRequests, numFailedRequests);
+        -(numCompletedRequests + numFailedRequests), numCompletedRequests,
+        numFailedRequests);
     }
 
     if (dataAccessObject.isBatchJobCompleted(batchJobId)) {
       final long time = System.currentTimeMillis();
+      dataAccessObject.updateBatchJobExecutionCounts(batchJobId);
       setBatchJobStatus(batchJobId, BatchJob.PROCESSING, BatchJob.PROCESSED,
         time);
       postProcess(batchJobId);
@@ -1916,7 +1929,6 @@ public class BatchJobService implements ModuleEventListener {
   public void setBusinessApplicationRegistry(
     final BusinessApplicationRegistry businessApplicationRegistry) {
     this.businessApplicationRegistry = businessApplicationRegistry;
-    businessApplicationRegistry.addModuleEventListener(this);
   }
 
   @Resource(name = "cpfDataAccessObject")
@@ -2114,7 +2126,6 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
       successCount++;
-      ;
     } else {
       errorCount++;
     }

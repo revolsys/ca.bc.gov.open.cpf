@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
@@ -247,7 +248,6 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         module = new ConfigPropertyModule(this, businessApplicationRegistry,
           moduleName, mavenRepository, mavenModuleId, excludeMavenIds,
           configPropertyLoader);
-        businessApplicationRegistry.addModuleEventListener(batchJobService);
         modulesByName.put(moduleName, module);
       }
       if (newModule) {
@@ -380,7 +380,10 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   @Override
   public void setBusinessApplicationRegistry(
     final BusinessApplicationRegistry businessApplicationRegistry) {
-    this.businessApplicationRegistry = businessApplicationRegistry;
+    if (this.businessApplicationRegistry != businessApplicationRegistry) {
+      businessApplicationRegistry.addModuleEventListener(batchJobService);
+      this.businessApplicationRegistry = businessApplicationRegistry;
+    }
   }
 
   @Resource(name = "cpfDataAccessObject")

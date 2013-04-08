@@ -84,8 +84,7 @@ Perform a maven release using the following settings.
 
  * Test Migration
 
-Test Version:             4.0.2.RC
+Test Version:             4.0.1.RC
 
  * Production Migration
-Release Version:          4.0.2
-Next Development Version: 4.0.3-SNAPSHOT
+Release Version:          4.0.1

@@ -9,7 +9,7 @@
   <artifactId>cpf-parent</artifactId>
   <packaging>pom</packaging>
   <name>Cloud Processing Framework</name>
-  <version>4.0.2-SNAPSHOT</version>
+  <version>4.0.1-SNAPSHOT</version>
 
   <developers>
     <developer>
@@ -62,7 +62,7 @@
       <organizationUrl>http://www.gov.bc.ca</organizationUrl>
       <roles>
         <role>businessTester</role>
-      </roles>
+      </roles> 
       <timezone>PST</timezone>
       <properties>
         <phoneNumber>+1 (250) 387-9712</phoneNumber>
@@ -259,8 +259,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-   <!-- <com.revolsys.open.version>2013.03.21.RELEASE</com.revolsys.open.version>-->
-    <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
+    <com.revolsys.open.version>2013.04.08.RELEASE</com.revolsys.open.version>
+   <!-- <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>-->
     <org.springframework.version>3.0.7.RELEASE</org.springframework.version>
     <org.springframework.security.version>3.0.7.RELEASE</org.springframework.security.version>
     <org.slf4j.version>1.6.4</org.slf4j.version>

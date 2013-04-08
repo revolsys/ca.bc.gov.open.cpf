@@ -168,7 +168,6 @@ public class BatchJobScheduler extends
     final long timeout = this.timeout;
     final LoadJobIdsToScheduleFromDatabase loadJobIds = new LoadJobIdsToScheduleFromDatabase(
       batchJobService);
-    out.write(loadJobIds);
     final MultiInputSelector selector = new MultiInputSelector();
     @SuppressWarnings("unchecked")
     final List<Channel<BatchJobScheduleInfo>> channels = Arrays.asList(

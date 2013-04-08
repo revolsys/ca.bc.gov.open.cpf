@@ -852,9 +852,9 @@ public class CpfDataAccessObject {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "NUM_EXECUTING_REQUESTS = MAX(0, MIN(NUM_EXECUTING_REQUESTS + ?, NUM_SUBMITTED_REQUESTS)), "
-        + "NUM_COMPLETED_REQUESTS = MIN(NUM_COMPLETED_REQUESTS + ?, NUM_SUBMITTED_REQUESTS), "
-        + "NUM_FAILED_REQUESTS = MIN(NUM_FAILED_REQUESTS + ?, NUM_SUBMITTED_REQUESTS) "
+        + "NUM_EXECUTING_REQUESTS = NUM_EXECUTING_REQUESTS + ?, "
+        + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
+        + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
         + "WHERE BATCH_JOB_ID = ?";
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, numExecutingRequests,
@@ -886,6 +886,31 @@ public class CpfDataAccessObject {
         + "WHERE JOB_STATUS IN ('processing', 'requestsCreated') AND BUSINESS_APPLICATION_NAME = ?";
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, businessApplicationName);
+      } catch (final SQLException e) {
+        throw new RuntimeException("Unable to reset started status", e);
+      }
+    }
+
+    return 0;
+  }
+
+  /**
+   * Update the request execution/failed counts for all the batch job.
+   * 
+   * @param batchJobId The batch job id.
+   * @return The number of records updated.
+   */
+  public int updateBatchJobExecutionCounts(final long batchJobId) {
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
+        + "NUM_EXECUTING_REQUESTS = 0, "
+        + "NUM_COMPLETED_REQUESTS = ( SELECT COUNT(*) FROM CPF.CPF_BATCH_JOB_REQUESTS BJRQ WHERE BJRQ.BATCH_JOB_ID = BJ.BATCH_JOB_ID AND COMPLETED_IND = 1 AND ERROR_CODE IS NULL), "
+        + "NUM_FAILED_REQUESTS = ( SELECT COUNT(*) FROM CPF.CPF_BATCH_JOB_REQUESTS BJRQ WHERE BJRQ.BATCH_JOB_ID = BJ.BATCH_JOB_ID AND COMPLETED_IND = 1 AND ERROR_CODE IS NOT NULL) "
+        + "WHERE BATCH_JOB_ID = ?";
+      try {
+        return JdbcUtils.executeUpdate(dataSource, sql, batchJobId);
       } catch (final SQLException e) {
         throw new RuntimeException("Unable to reset started status", e);
       }
@@ -937,7 +962,7 @@ public class CpfDataAccessObject {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "NUM_EXECUTING_REQUESTS = MAX(0,MIN(NUM_EXECUTING_REQUESTS + ?, NUM_SUBMITTED_REQUESTS)), WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
+        + "NUM_EXECUTING_REQUESTS = NUM_EXECUTING_REQUESTS + ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
         + "WHERE BATCH_JOB_ID = ?";
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
