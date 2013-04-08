@@ -27,14 +27,14 @@
   >
     <entry
       key="cpfInternalWebServiceUrl"
-      value="${ca.bc.gov.cpf.app.internalUrl}" />
+      value="${ca.bc.gov.cpf.ws.internal.url}" />
 
     <entry
-      key="cpfInternalConsumerKey"
-      value="${ca.bc.gov.cpf.ws.consumerKey}" />
+      key="cpfInternalWebServiceUsername"
+      value="${ca.bc.gov.cpf.ws.internal.username}" />
 
     <entry
-      key="cpfInternalConsumerSecret"
-      value="${ca.bc.gov.cpf.ws.consumerSecret}" />
+      key="cpfInternalWebServicePassword"
+      value="${ca.bc.gov.cpf.ws.internal.password}" />
   </util:map>
 </beans>

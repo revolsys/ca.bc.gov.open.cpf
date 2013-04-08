@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Cloud Processing Framework Web Application
-Version:           4.0.0
+Version:           4.0.2
 
 Software/Hardware Requirements
 ------------------------------
@@ -16,32 +16,7 @@ App Server Additional Memory: 100MB
 1. Database Installation
 ------------------------
 
-1.1 Download SQL Scripts from Subversion
-
-svn co http://apps.bcgov/svn/cpf/source/trunk/scripts
-cd scripts
-
-1.2 Run the DBA scripts to create the tablespaces and users
-
-sqlplus system@GEODLV @cpf-dba-all.sql
-
-The two user accounts require a new password to be set, you will be prompted
-for these passwords.
-
-CPF_PW              The password for the CPF user account
-PROXY_CPF_WEB_PW    The password for the PROXY_CPF_WEB user account
-
-1.3 Run the scripts to create the CPF roles and database objects
-
-./cpf-ddl.sh GEODLV
-
-The two user accounts require a new password to be set, you will be prompted
-for these passwords.
-
-CPF_ADMIN_PW   The password used for the initial admin user cpf_admin.
-CPF_WORKER_PW  The password used by the cpf_worker account that is used by the
-               worker process. This must be entered in the configuration file in
-               step #2.
+N/A
                
 2. Configuration Files
 ----------------------
@@ -52,18 +27,22 @@ Property                           Description
 -------------------------------    ------------------------------------------
 ca.bc.gov.cpf.app.baseUrl          The HTTP URL to the server cpf is deployed to
 ca.bc.gov.cpf.app.secureBaseUrl    The HTTPS URL to the server cpf is deployed to
-ca.bc.gov.cpf.app.internalUrl      TheHTTP URL to the private Tomcat server (behind the reverse proxy) cpf is deployed to
 ca.bc.gov.cpf.db.url               The JDBC URL to the cpf database
 ca.bc.gov.cpf.db.user              The PROXY_CPF_WEB user account (DON'T CHANGE)
 ca.bc.gov.cpf.db.password          The password for the PROXY_CPF_WEB user account
 ca.bc.gov.cpf.db.maxConnections    The maximum number of database connections
-ca.bc.gov.cpf.ws.consumerKey       The internal web service user (DON'T CHANGE)    
-ca.bc.gov.cpf.ws.consumerSecret    The password for the internal web service user
+batchJobService.maxWorkerWaitTime  The maximum time the worker will wait in a HTTP
+                                   request for group to process before trying a new
+                                   HTTP request. This limits the number of polling
+                                   requests to the server.
+ca.bc.gov.cpf.ws.internal.url      The HTTP URL to the private Tomcat server
+                                   (behind the reverse proxy) cpf is deployed to
+ca.bc.gov.cpf.ws.internal.username The internal web service user (DON'T CHANGE)    
+ca.bc.gov.cpf.ws.internal.password The password for the internal web service user
 batchJobService.fromEmail          The email address any emails will be sent from
-ca.bc.gov.cpf.mailServer           The mail server to send emails via
+mailSender.host                    The mail server to send emails via
 ca.bc.gov.cpf.repositoryServer     The maven repository to download plugins from
 ca.bc.gov.cpf.repositoryDirectory  The cache directory to store maven artifacts
-
 
 Create the directory and configuration file.
 
@@ -84,16 +63,21 @@ It contains the following values for the delivery environment.
 
 ca.bc.gov.cpf.app.baseUrl=http\://delivery.apps.gov.bc.ca/pub/cpf
 ca.bc.gov.cpf.app.secureBaseUrl=https\://delivery.apps.gov.bc.ca/pub/cpf/secure
-ca.bc.gov.cpf.app.internalUrl=http\://delivery.apps.gov.bc.ca/pub/cpf
-ca.bc.gov.cpf.db.url=jdbc\:oracle\:thin\:@fry.geobc.gov.bc.ca\:1521\:GEODLV
+
+ca.bc.gov.cpf.db.url=jdbc\:oracle\:thin\:@dbcdlv.bcgov\:1521\:DBCDLV
 ca.bc.gov.cpf.db.user=proxy_cpf_web
-ca.bc.gov.cpf.db.password=cpf_2009
+ca.bc.gov.cpf.db.password=cpf_p_2012
 ca.bc.gov.cpf.db.maxConnections=50
-ca.bc.gov.cpf.ws.consumerKey=cpf_worker
-ca.bc.gov.cpf.ws.consumerSecret=cpf_2009
+
+batchJobService.maxWorkerWaitTime=120
+ca.bc.gov.cpf.ws.internal.url=http\://delivery.apps.gov.bc.ca/pub/cpf
+ca.bc.gov.cpf.ws.internal.username=cpf_worker
+ca.bc.gov.cpf.ws.internal.password=cpf_2009
+
 batchJobService.fromEmail=noreply@gov.bc.ca
 mailSender.host=apps.smtp.gov.bc.ca
-ca.bc.gov.cpf.repositoryServer=http://apps.bcgov/artifactory/repo/
+
+ca.bc.gov.cpf.repositoryServer=http://delivery.apps.bcgov/artifactory/repo/
 ca.bc.gov.cpf.repositoryDirectory=/tmp/cpf/repository/
 
 3. Ministry Continuous Integration System
@@ -187,14 +171,14 @@ area has tested the application in the test environment.
 Perform a Maven release using the following settings.
 
 Update property dependencies to latest RC or release version:
-  ca.bc.gov.open.cpf.version: 4.0.0+
+  ca.bc.gov.open.cpf.version: 4.0.2+
 
 Test Migration
 **************
 
-Test Version:                 4.0.0.RC# Increment for each migration to test
+Test Version:                 4.0.2.RC
 
 Production Migration
 ********************
-Release Version:              4.0.0
-Next Development Version:     4.0.1-SNAPSHOT
+Release Version:              4.0.2
+Next Development Version:     4.0.3-SNAPSHOT
