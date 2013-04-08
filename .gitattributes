@@ -1,0 +1,15 @@
+*.java text=lf
+*.con text=lf
+*.grt text=lf
+*.ind text=lf
+*.rle text=lf
+*.sqs text=lf
+*.sql text=lf
+*.tbs text=lf
+*.txt text=lf
+*.usr text=lf
+*.properties text=lf
+
+*.bat text=crlf
+*.cmd text=crlf
+*.vbs text=crlf
