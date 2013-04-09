@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
-import org.springframework.web.util.UrlPathHelper;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobRequest;
@@ -62,8 +61,6 @@ public class InternalWebService {
   private BatchJobService batchJobService;
 
   private ConfigPropertyLoader configPropertyLoader;
-
-  private final UrlPathHelper urlPathHelper = new UrlPathHelper();
 
   private CpfDataAccessObject dataAccessObject;
 
@@ -297,9 +294,8 @@ public class InternalWebService {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
       final List<URL> jarUrls = module.getJarUrls();
-      final String url = HttpServletUtils.getServerUrl()
-        + urlPathHelper.getOriginatingContextPath(request) + "/worker/modules/"
-        + moduleName + "/" + moduleTime + "/urls/";
+      final String url = webServiceUrl + "/worker/modules/" + moduleName + "/"
+        + moduleTime + "/urls/";
       final List<String> webServiceJarUrls = new ArrayList<String>();
       for (int i = 0; i < jarUrls.size(); i++) {
         webServiceJarUrls.add(url + i);
@@ -309,6 +305,16 @@ public class InternalWebService {
       result.put("jarUrls", webServiceJarUrls);
       return result;
     }
+  }
+
+  private String webServiceUrl = "http://localhost/cpf";
+
+  public void setWebServiceUrl(String webServiceUrl) {
+    this.webServiceUrl = webServiceUrl;
+  }
+
+  public String getWebServiceUrl() {
+    return webServiceUrl;
   }
 
   @RequestMapping(
