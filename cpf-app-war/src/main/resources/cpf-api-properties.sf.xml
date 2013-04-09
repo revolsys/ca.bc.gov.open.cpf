@@ -30,11 +30,6 @@
       key="cpfDataSource.url"
       value="${ca.bc.gov.cpf.db.url}" />
 
-    <!-- The user to the cpf database. -->
-    <entry
-      key="cpfDataSource.username"
-      value="${ca.bc.gov.cpf.db.user}" />
-
     <!-- The password for the cpf database. -->
     <entry
       key="cpfDataSource.password"
