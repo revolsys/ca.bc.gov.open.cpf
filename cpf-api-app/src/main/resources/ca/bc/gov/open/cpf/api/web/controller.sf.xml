@@ -127,7 +127,8 @@
     id="cpfInternal"
     class="ca.bc.gov.open.cpf.api.web.service.InternalWebService"
     p:configPropertyLoader-ref="configPropertyLoader"
-    p:batchJobService-ref="batchJobService" />
+    p:batchJobService-ref="batchJobService"
+    p:webServiceUrl="http://localhost/cpf" />
 
   <bean class="ca.bc.gov.open.cpf.api.web.controller.DocumentationController" />
 
