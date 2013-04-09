@@ -180,8 +180,6 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  private Map<String, Map<Long, Long>> moduleJobExecutingCounts = new HashMap<String, Map<Long, Long>>();
-
   private StatisticsProcess statisticsProcess;
 
   private AuthorizationService authorizationService;
