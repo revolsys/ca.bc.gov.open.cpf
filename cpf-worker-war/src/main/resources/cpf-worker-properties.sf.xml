@@ -15,7 +15,7 @@
     id="bcgovGlobalProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="file:///apps/config/global.properties" />
-    
+
   <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
@@ -26,15 +26,7 @@
     map-class="com.revolsys.collection.AttributeMap"
   >
     <entry
-      key="cpfInternalWebServiceUrl"
-      value="${ca.bc.gov.cpf.ws.internal.url}" />
-
-    <entry
-      key="cpfInternalWebServiceUsername"
-      value="${ca.bc.gov.cpf.ws.internal.username}" />
-
-    <entry
-      key="cpfInternalWebServicePassword"
-      value="${ca.bc.gov.cpf.ws.internal.password}" />
+      key="cpfWorker.webServiceUrl"
+      value="http://localhost/pub/cpf" />
   </util:map>
 </beans>
