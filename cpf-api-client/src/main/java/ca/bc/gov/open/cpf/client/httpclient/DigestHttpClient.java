@@ -22,7 +22,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.utils.URIUtils;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -53,10 +52,6 @@ public class DigestHttpClient {
     return target;
   }
 
-  private final String username;
-
-  private final String password;
-
   private final String webServiceUrl;
 
   private final InvokeMethodResponseHandler<Map<String, Object>> jsonResponseHandler = new InvokeMethodResponseHandler<Map<String, Object>>(
@@ -65,12 +60,12 @@ public class DigestHttpClient {
   private final DefaultHttpClient httpClient;
 
   public DigestHttpClient(final String webServiceUrl, final String username,
-    final String password) {
+    final String password, int poolSize) {
     this.webServiceUrl = webServiceUrl;
-    this.username = username;
-    this.password = password;
 
-    final ClientConnectionManager connectionManager = new ThreadSafeClientConnManager();
+    final ThreadSafeClientConnManager connectionManager = new ThreadSafeClientConnManager();
+    connectionManager.setDefaultMaxPerRoute(poolSize);
+    connectionManager.setMaxTotal(poolSize);
     httpClient = new DefaultHttpClient(connectionManager);
     final HttpParams params = httpClient.getParams();
 
