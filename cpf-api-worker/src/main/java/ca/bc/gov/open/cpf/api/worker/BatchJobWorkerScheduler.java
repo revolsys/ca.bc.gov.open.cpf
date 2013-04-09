@@ -106,9 +106,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   private String webServiceUrl = "http://localhost/cpf";
 
   public BatchJobWorkerScheduler() {
-    super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
+    super(5, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
       new NamedThreadFactory());
-    setMaximumPoolSize(100);
     setKeepAliveTime(60, TimeUnit.SECONDS);
   }
 
@@ -236,7 +235,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   @PostConstruct
   public void init() {
-    httpClient = new DigestHttpClient(webServiceUrl, username, password);
+    httpClient = new DigestHttpClient(webServiceUrl, username, password,
+      getMaximumPoolSize() + 1);
 
     securityServiceFactory = new WebSecurityServiceFactory(httpClient);
     businessApplicationRegistry.addModuleEventListener(securityServiceFactory);

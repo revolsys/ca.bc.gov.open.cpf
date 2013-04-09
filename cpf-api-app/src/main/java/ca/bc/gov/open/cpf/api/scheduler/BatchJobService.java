@@ -315,7 +315,7 @@ public class BatchJobService implements ModuleEventListener {
       final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
       if (group != null) {
         LoggerFactory.getLogger(BatchJobService.class).info(
-          "Rescheduling group " + groupId);
+          "Rescheduling group " + group.getBatchJobId() + " " + groupId);
         group.resetId();
         schedule(group);
       }
@@ -2159,11 +2159,14 @@ public class BatchJobService implements ModuleEventListener {
 
   public void updateWorkerExecutingGroups(final Worker worker,
     final List<String> executingGroupIds) {
+    long minStartTime = System.currentTimeMillis() - 60 * 1000;
     final List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
     for (final BatchJobRequestExecutionGroup executionGroup : executingGroups) {
-      final String groupId = executionGroup.getId();
-      if (!executingGroups.contains(groupId)) {
-        cancelGroup(worker, groupId);
+      if (executionGroup.getExecutionStartTime() < minStartTime) {
+        final String groupId = executionGroup.getId();
+        if (!executingGroups.contains(groupId)) {
+          cancelGroup(worker, groupId);
+        }
       }
     }
   }
