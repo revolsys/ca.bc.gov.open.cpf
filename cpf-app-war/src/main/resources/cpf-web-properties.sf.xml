@@ -26,6 +26,10 @@
     map-class="com.revolsys.collection.AttributeMap"
   >
     <entry
+      key="cpfInternal.webServiceUrl"
+      value="http://localhost/pub/cpf" />
+
+    <entry
       key="businessApplicationRegistry.logDirectory"
       value="/apps/logs/cpf/" />
     
