@@ -528,7 +528,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       }
     } catch (final Throwable t) {
       if (running) {
-        LOG.error("Unable to process message\n" + message, t);
+        LOG.error(
+          "Unable to process message to " + messageUrl + "\n" + message, t);
       }
       return false;
     }
