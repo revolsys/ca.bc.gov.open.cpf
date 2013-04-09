@@ -28,17 +28,15 @@ Property                           Description
 ca.bc.gov.cpf.app.baseUrl          The HTTP URL to the server cpf is deployed to
 ca.bc.gov.cpf.app.secureBaseUrl    The HTTPS URL to the server cpf is deployed to
 ca.bc.gov.cpf.db.url               The JDBC URL to the cpf database
-ca.bc.gov.cpf.db.user              The PROXY_CPF_WEB user account (DON'T CHANGE)
 ca.bc.gov.cpf.db.password          The password for the PROXY_CPF_WEB user account
 ca.bc.gov.cpf.db.maxConnections    The maximum number of database connections
 batchJobService.maxWorkerWaitTime  The maximum time the worker will wait in a HTTP
                                    request for group to process before trying a new
                                    HTTP request. This limits the number of polling
                                    requests to the server.
-ca.bc.gov.cpf.ws.internal.url      The HTTP URL to the private Tomcat server
-                                   (behind the reverse proxy) cpf is deployed to
-ca.bc.gov.cpf.ws.internal.username The internal web service user (DON'T CHANGE)    
-ca.bc.gov.cpf.ws.internal.password The password for the internal web service user
+cpfWorker.password                 The password for the internal web service user
+cpfWorker.maximumPoolSize          The maximum number of threads on the worker to
+                                   execute requests.
 batchJobService.fromEmail          The email address any emails will be sent from
 mailSender.host                    The mail server to send emails via
 ca.bc.gov.cpf.repositoryServer     The maven repository to download plugins from
@@ -59,26 +57,8 @@ The latest sample config file can be obtained from:
 
 https://apps.bcgov/svn/cpf/config/delivery/trunk/cpf.properties
 
-It contains the following values for the delivery environment.
-
-ca.bc.gov.cpf.app.baseUrl=http\://delivery.apps.gov.bc.ca/pub/cpf
-ca.bc.gov.cpf.app.secureBaseUrl=https\://delivery.apps.gov.bc.ca/pub/cpf/secure
-
-ca.bc.gov.cpf.db.url=jdbc\:oracle\:thin\:@dbcdlv.bcgov\:1521\:DBCDLV
-ca.bc.gov.cpf.db.user=proxy_cpf_web
-ca.bc.gov.cpf.db.password=cpf_p_2012
-ca.bc.gov.cpf.db.maxConnections=50
-
-batchJobService.maxWorkerWaitTime=120
-ca.bc.gov.cpf.ws.internal.url=http\://delivery.apps.gov.bc.ca/pub/cpf
-ca.bc.gov.cpf.ws.internal.username=cpf_worker
-ca.bc.gov.cpf.ws.internal.password=cpf_2009
-
-batchJobService.fromEmail=noreply@gov.bc.ca
-mailSender.host=apps.smtp.gov.bc.ca
-
-ca.bc.gov.cpf.repositoryServer=http://delivery.apps.bcgov/artifactory/repo/
-ca.bc.gov.cpf.repositoryDirectory=/tmp/cpf/repository/
+It contains the values for the delivery environment. Verify that the test and production versions
+are similar.
 
 3. Ministry Continuous Integration System
 -----------------------------------------
