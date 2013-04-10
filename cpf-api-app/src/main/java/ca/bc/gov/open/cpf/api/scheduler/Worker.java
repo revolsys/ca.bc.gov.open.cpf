@@ -19,6 +19,8 @@ public class Worker {
 
   private final Set<String> loadedModuleNameTimes = new TreeSet<String>();
 
+  private final Set<String> loadingModuleNameTimes = new TreeSet<String>();
+
   private final Set<String> excludedModules = new TreeSet<String>();
 
   private Timestamp lastConnectTime;
@@ -36,6 +38,9 @@ public class Worker {
   }
 
   public void addExcludedModule(final String moduleNameTime) {
+    synchronized (loadingModuleNameTimes) {
+      loadingModuleNameTimes.remove(moduleNameTime);
+    }
     synchronized (excludedModules) {
       excludedModules.add(moduleNameTime);
     }
@@ -55,7 +60,19 @@ public class Worker {
     }
   }
 
+  public void addLoadingModule(final Map<String, Object> message) {
+    final String moduleName = (String)message.get("moduleName");
+    final Number moduleTime = (Number)message.get("moduleTime");
+    final String moduleNameTime = moduleName + ":" + moduleTime;
+    synchronized (loadingModuleNameTimes) {
+      loadingModuleNameTimes.add(moduleNameTime);
+    }
+  }
+
   public void addLoadedModule(final String moduleNameTime) {
+    synchronized (loadingModuleNameTimes) {
+      loadingModuleNameTimes.remove(moduleNameTime);
+    }
     synchronized (loadedModuleNameTimes) {
       loadedModuleNameTimes.add(moduleNameTime);
     }
@@ -77,11 +94,20 @@ public class Worker {
     }
   }
 
-  public Set<String> getExcludedModules() {
+  public Set<String> getExcludedOrLoadingModules() {
+    Set<String> modules = new LinkedHashSet<String>();
     synchronized (excludedModules) {
-      return new LinkedHashSet<String>(excludedModules);
-
+      modules.addAll(excludedModules);
     }
+    synchronized (loadingModuleNameTimes) {
+      modules.addAll(loadingModuleNameTimes);
+    }
+    return modules;
+  }
+
+  @Override
+  public String toString() {
+    return getId();
   }
 
   public BatchJobRequestExecutionGroup getExecutingGroup(final String groupId) {

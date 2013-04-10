@@ -440,6 +440,8 @@ public class InternalWebService {
               setModuleExcluded(worker, message);
             } else if ("moduleLoaded".equals(action)) {
               setModuleLoaded(worker, message);
+            }  else if ("moduleLoading".equals(action)) {
+              worker.addLoadingModule(message);
             }
           }
           response.put("errorMessage", "Unknown message");
@@ -597,11 +599,12 @@ public class InternalWebService {
     }
   }
 
-  public void setModuleLoaded(final Worker worker,
+  private void setModuleLoaded(final Worker worker,
     final Map<String, Object> message) {
     final String moduleName = (String)message.get("moduleName");
     final Number moduleTime = (Number)message.get("moduleTime");
     final String moduleNameTime = moduleName + ":" + moduleTime;
     worker.addLoadedModule(moduleNameTime);
   }
+ 
 }

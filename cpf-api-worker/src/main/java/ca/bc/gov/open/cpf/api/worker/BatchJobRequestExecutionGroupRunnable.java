@@ -14,15 +14,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.StatusLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
-import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
-import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -263,32 +260,18 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         }
         groupResponse.put("groupExecutionTime",
           groupStopWatch.getTotalTimeMillis());
-        log.info("Group execution end " + batchJobId + "\t" + groupId);
         groupResponse.put("logRecords", log.getLogRecords());
         final String path = "/worker/workers/" + workerId + "/jobs/"
           + batchJobId + "/groups/" + groupId + "/results";
-        for (int i = 0; i < 2; i++) {
-          try {
-            @SuppressWarnings("unused")
-            final Map<String, Object> submitResponse = httpClient.postJsonResource(
-              httpClient.getUrl(path), groupResponse);
+        @SuppressWarnings("unused")
+        final Map<String, Object> submitResponse = httpClient.postJsonResource(
+          httpClient.getUrl(path), groupResponse);
 
-            return;
-          } catch (final RuntimeException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof NoHttpResponseException) {
-            } else {
-              throw e;
-            }
-          } catch (final Error e) {
-            throw e;
-          }
-        }
-        LOG.error("No response submitting group  results " + groupId);
-        executor.addFailedGroup(groupId);
       } catch (final Throwable e) {
         LOG.error("Unable to process group " + groupId, e);
         executor.addFailedGroup(groupId);
+      } finally {
+        log.info("Group execution end " + batchJobId + "\t" + groupId);
       }
     } finally {
       executor.removeExecutingGroupId(groupId);
