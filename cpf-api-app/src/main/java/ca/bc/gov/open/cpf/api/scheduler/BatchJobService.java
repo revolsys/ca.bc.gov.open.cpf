@@ -744,14 +744,22 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public Map<String, Object> getNextBatchJobRequestExecutionGroup(
-    final String workerId, List<String> moduleNames) {
+    final String workerId, final List<String> moduleNames) {
+    long startTime = System.currentTimeMillis();
+    long endTime = startTime + maxWorkerWaitTime;
     final Map<String, Object> response = new HashMap<String, Object>();
     if (running) {
-      moduleNames = getWorkerModuleNames(workerId, moduleNames);
 
       BatchJobRequestExecutionGroup group = null;
       try {
-        group = groupsToSchedule.read(maxWorkerWaitTime, moduleNames);
+        do {
+          List<String> workerModuleNames = getWorkerModuleNames(workerId,
+            moduleNames);
+          long waitTime = Math.min(10000, endTime - startTime);
+          if (waitTime > 0) {
+            group = groupsToSchedule.read(waitTime, workerModuleNames);
+          }
+        } while (group == null && System.currentTimeMillis() < endTime);
       } catch (final ClosedException e) {
       }
 
@@ -865,7 +873,7 @@ public class BatchJobService implements ModuleEventListener {
     }
     final Worker worker = getWorker(workerId);
     if (worker != null) {
-      final Set<String> excludedModules = worker.getExcludedModules();
+      final Set<String> excludedModules = worker.getExcludedOrLoadingModules();
       if (excludedModules != null) {
         for (final String moduleNameTime : new ArrayList<String>(
           excludedModules)) {
