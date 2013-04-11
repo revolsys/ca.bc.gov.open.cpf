@@ -50,6 +50,7 @@ public class CpfDataAccessObject {
     return dataStore.create(typeName);
   }
 
+  @Transactional(propagation=Propagation.REQUIRES_NEW)
   public DataObject createBatchJobRequest(final long batchJobId,
     final int requestSequenceNumber, final String structuredInputData) {
     final DataObject batchJobRequest = create(BatchJobRequest.BATCH_JOB_REQUEST);
