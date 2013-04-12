@@ -814,7 +814,7 @@ public class CloudProcessingFramework {
     @PathVariable final String businessApplicationName,
     @PathVariable final String businessApplicationVersion,
     @RequestParam(required = false) String inputDataContentType,
-    @RequestParam(value = "inputData", required = false) Object inputDataFile,
+    @RequestParam(value = "inputData", required = false) final Object inputDataFile,
     @RequestParam(required = false) final String inputDataUrl,
     @RequestParam(required = false) final String srid,
     @RequestParam(required = false) String resultDataContentType,
@@ -1019,7 +1019,8 @@ public class CloudProcessingFramework {
 
   /**
    * <p>
-   * Delete or cancel a user's cloud job.
+   * Cancel the user's cloud job. This will mark the job as cancelled and remove all requests
+   * and results from the job. The job will be removed after a few days.
    * </p>
    * <p>
    * This service should be invoked after the results from the cloud job are
@@ -1064,14 +1065,13 @@ public class CloudProcessingFramework {
       throw new PageNotFoundException("The cloud job " + batchJobId
         + " does not exist");
     } else {
-      if (dataAccessObject.deleteBatchJob(batchJobId) == 0) {
+      if (batchJobService.cancelBatchJob(batchJobId)) {
         throw new PageNotFoundException("The cloud job " + batchJobId
           + " does not exist");
       } else {
         final HttpServletResponse response = HttpServletUtils.getResponse();
         response.setStatus(HttpServletResponse.SC_OK);
       }
-      batchJobService.cancelBatchJob(batchJobId);
     }
   }
 
@@ -1459,8 +1459,8 @@ public class CloudProcessingFramework {
                 "Parameter value is not valid " + name + " " + value);
             } else {
               try {
-                batchJobService.setStructuredInputDataValue(srid,
-                  parameters, attribute, value);
+                batchJobService.setStructuredInputDataValue(srid, parameters,
+                  attribute, value);
               } catch (final IllegalArgumentException e) {
                 throw new IllegalArgumentException(
                   "Parameter value is not valid " + name + " " + value, e);
@@ -2768,7 +2768,9 @@ public class CloudProcessingFramework {
       if (MediaTypeUtil.isHtmlPage()) {
         final TabElementContainer tabs = new TabElementContainer();
         batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
-        if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null) {
+        String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
+        if (BatchJob.RESULTS_CREATED.equals(jobStatus)
+          || BatchJob.DOWNLOAD_INITIATED.equals(jobStatus)) {
           final Map<String, Object> parameters = Collections.emptyMap();
           batchJobUiBuilder.addTabDataTable(tabs,
             BatchJobResult.BATCH_JOB_RESULT, "clientList", parameters);
@@ -2812,62 +2814,53 @@ public class CloudProcessingFramework {
         final DataObject batchJobResult = dataAccessObject.getBatchJobResult(resultId);
         if (EqualsRegistry.INSTANCE.equals(batchJobId,
           batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
-          if (!BatchJob.MARKED_FOR_DELETION.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-            dataAccessObject.setBatchJobStatus(batchJob,
-              BatchJob.DOWNLOAD_INITIATED);
-            if (batchJobResult.getValue(BatchJobResult.DOWNLOAD_TIMESTAMP) == null) {
-              final Timestamp timestamp = new Timestamp(
-                System.currentTimeMillis());
-              batchJobResult.setValue(BatchJobResult.DOWNLOAD_TIMESTAMP,
-                timestamp);
-            }
-          }
-        }
-        final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
-        final HttpServletResponse response = HttpServletUtils.getResponse();
-        if (resultDataUrl != null) {
-          response.setStatus(HttpServletResponse.SC_SEE_OTHER);
-          response.setHeader("Location", resultDataUrl);
-        } else {
-          try {
-            final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
-            final InputStream in = resultData.getBinaryStream();
-            final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
-            response.setContentType(resultDataContentType);
+          dataAccessObject.setBatchJobDownloaded(batchJobId);
+          final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
+          final HttpServletResponse response = HttpServletUtils.getResponse();
+          if (resultDataUrl != null) {
+            response.setStatus(HttpServletResponse.SC_SEE_OTHER);
+            response.setHeader("Location", resultDataUrl);
+          } else {
+            try {
+              final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
+              final InputStream in = resultData.getBinaryStream();
+              final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+              response.setContentType(resultDataContentType);
 
-            long size = resultData.length();
-            String jsonCallback = null;
-            if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
-              jsonCallback = HttpServletUtils.getParameter("callback");
-              if (StringUtils.hasText(jsonCallback)) {
-                size += 3 + jsonCallback.length();
+              long size = resultData.length();
+              String jsonCallback = null;
+              if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
+                jsonCallback = HttpServletUtils.getParameter("callback");
+                if (StringUtils.hasText(jsonCallback)) {
+                  size += 3 + jsonCallback.length();
+                }
               }
+              final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+                .getFactoryByMediaType(DataObjectWriterFactory.class,
+                  resultDataContentType);
+              if (writerFactory != null) {
+                final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
+                final String fileName = "job-" + batchJobId + "-result-"
+                  + resultId + "." + fileExtension;
+                response.setHeader("Content-Disposition",
+                  "attachment; filename=" + fileName + ";size=" + size);
+              }
+              final ServletOutputStream out = response.getOutputStream();
+              if (StringUtils.hasText(jsonCallback)) {
+                out.write(jsonCallback.getBytes());
+                out.write("(".getBytes());
+              }
+              FileUtil.copy(in, out);
+              if (StringUtils.hasText(jsonCallback)) {
+                out.write(");".getBytes());
+              }
+              return;
+            } catch (final SQLException e) {
+              LoggerFactory.getLogger(getClass()).error(
+                "Unable to get result data", e);
+              throw new HttpMessageNotWritableException(
+                "Unable to get result data", e);
             }
-            final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-              .getFactoryByMediaType(DataObjectWriterFactory.class,
-                resultDataContentType);
-            if (writerFactory != null) {
-              final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
-              final String fileName = "job-" + batchJobId + "-result-"
-                + resultId + "." + fileExtension;
-              response.setHeader("Content-Disposition", "attachment; filename="
-                + fileName + ";size=" + size);
-            }
-            final ServletOutputStream out = response.getOutputStream();
-            if (StringUtils.hasText(jsonCallback)) {
-              out.write(jsonCallback.getBytes());
-              out.write("(".getBytes());
-            }
-            FileUtil.copy(in, out);
-            if (StringUtils.hasText(jsonCallback)) {
-              out.write(");".getBytes());
-            }
-            return;
-          } catch (final SQLException e) {
-            LoggerFactory.getLogger(getClass()).error(
-              "Unable to get result data", e);
-            throw new HttpMessageNotWritableException(
-              "Unable to get result data", e);
           }
         }
       }

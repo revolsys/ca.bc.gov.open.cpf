@@ -29,9 +29,9 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
+import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.io.xml.XmlWriter;
-import com.revolsys.parallel.process.InvokeMethodCallable;
 import com.revolsys.ui.html.view.TabElementContainer;
 
 @Controller

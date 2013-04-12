@@ -23,7 +23,7 @@ import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.parallel.process.InvokeMethodCallable;
+import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;

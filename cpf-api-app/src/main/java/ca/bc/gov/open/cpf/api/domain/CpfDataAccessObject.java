@@ -50,7 +50,14 @@ public class CpfDataAccessObject {
     return dataStore.create(typeName);
   }
 
-  @Transactional(propagation=Propagation.REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public DataObject createBatchJobRequestInNewTransaction(
+    final long batchJobId, final int requestSequenceNumber,
+    final String structuredInputData) {
+    return createBatchJobRequest(batchJobId, requestSequenceNumber,
+      structuredInputData);
+  }
+
   public DataObject createBatchJobRequest(final long batchJobId,
     final int requestSequenceNumber, final String structuredInputData) {
     final DataObject batchJobRequest = create(BatchJobRequest.BATCH_JOB_REQUEST);
@@ -219,6 +226,30 @@ public class CpfDataAccessObject {
   public int deleteBatchJob(final Long batchJobId) {
     deleteBatchJobResults(batchJobId);
     deleteBatchJobRequests(batchJobId);
+
+    final Query query = new Query(BatchJob.BATCH_JOB);
+    query.addFilter(BatchJob.BATCH_JOB_ID, batchJobId);
+    return dataStore.delete(query);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public int cancelBatchJob(final Long batchJobId) {
+    String username = getUsername();
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET NUM_EXECUTING_REQUESTS = 0, "
+        + "NUM_COMPLETED_REQUESTS = 0, NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS,"
+        + "STRUCTURED_INPUT_DATA = NULL, WHEN_STATUS_CHANGED = ?, JOB_STATUS = 'Cancelled',"
+        + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
+      try {
+        final Timestamp now = new Timestamp(System.currentTimeMillis());
+        return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
+          batchJobId);
+      } catch (final SQLException e) {
+        throw new RuntimeException("Unable to reset started status", e);
+      }
+    }
 
     final Query query = new Query(BatchJob.BATCH_JOB);
     query.addFilter(BatchJob.BATCH_JOB_ID, batchJobId);
@@ -544,7 +575,7 @@ public class CpfDataAccessObject {
   public List<Long> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
     final Query query = new Query(BatchJob.BATCH_JOB);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
-    query.setWhereClause("JOB_STATUS  = 'markedForDeletion' OR (JOB_STATUS IN ('resultsCreated', 'downloadInitiated') AND WHEN_STATUS_CHANGED < ?)");
+    query.setWhereClause("JOB_STATUS  = 'markedForDeletion' OR (JOB_STATUS IN ('resultsCreated', 'downloadInitiated', 'cancelled') AND WHEN_STATUS_CHANGED < ?)");
     query.addParameter(keepUntilTimestamp);
     final Reader<DataObject> batchJobs = dataStore.query(query);
     try {
@@ -803,13 +834,72 @@ public class CpfDataAccessObject {
     }
   }
 
-  public void setBatchJobStatus(final DataObject batchJob,
-    final String jobStatus) {
-    if (!jobStatus.equals(BatchJob.JOB_STATUS)) {
-      batchJob.setValue(BatchJob.JOB_STATUS, jobStatus);
-      final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-      batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, timestamp);
-      write(batchJob);
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public boolean setBatchJobStatus(final long batchJobId,
+    final String oldJobStatus, final String newJobStatus) {
+    final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+    final DataSource dataSource = jdbcDataStore.getDataSource();
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ?, JOB_STATUS = ? WHERE JOB_STATUS = ? AND BATCH_JOB_ID = ?";
+    try {
+      Timestamp now = new Timestamp(System.currentTimeMillis());
+      String username = getUsername();
+      return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
+        newJobStatus, oldJobStatus, batchJobId) == 1;
+    } catch (final SQLException e) {
+      throw new RuntimeException("Unable to set started status", e);
+    }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public boolean setBatchJobDownloaded(final long batchJobId) {
+    final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+    final DataSource dataSource = jdbcDataStore.getDataSource();
+
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
+      + "JOB_STATUS = 'downloadInitiated', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "WHERE JOB_STATUS = 'resultsCreated' AND BATCH_JOB_ID = ?";
+    try {
+      Timestamp now = new Timestamp(System.currentTimeMillis());
+      String username = getUsername();
+      return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
+        batchJobId) == 1;
+    } catch (final SQLException e) {
+      throw new RuntimeException("Unable to set started status", e);
+    }
+  }
+  
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public boolean setBatchJobFailed(final long batchJobId) {
+    final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+    final DataSource dataSource = jdbcDataStore.getDataSource();
+
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
+      + "NUM_COMPLETED_REQUESTS = 0, NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS, JOB_STATUS = 'resultsCreated', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "WHERE JOB_STATUS = 'creatingRequests' AND BATCH_JOB_ID = ?";
+    try {
+      Timestamp now = new Timestamp(System.currentTimeMillis());
+      String username = getUsername();
+      return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
+        batchJobId) == 1;
+    } catch (final SQLException e) {
+      throw new RuntimeException("Unable to set started status", e);
+    }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public boolean setBatchJobCompleted(final long batchJobId) {
+    final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+    final DataSource dataSource = jdbcDataStore.getDataSource();
+
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
+      + "STRUCTURED_INPUT_DATA = NULL, = 'resultsCreated', COMPLETED_TIMESTAMP = ?, LAST_SCHEDULED_TIMESTAMP = NULL, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "WHERE JOB_STATUS IN ('creatingRequests','creatingResults') AND BATCH_JOB_ID = ?";
+    try {
+      Timestamp now = new Timestamp(System.currentTimeMillis());
+      return JdbcUtils.executeUpdate(dataSource, sql, now, now, now,
+        getUsername(), batchJobId) == 1;
+    } catch (final SQLException e) {
+      throw new RuntimeException("Unable to set started status", e);
     }
   }
 
@@ -846,6 +936,33 @@ public class CpfDataAccessObject {
 
   }
 
+  /**
+   * Update the request execution/failed counts for all the batch job.
+   * 
+   * @param batchJobId The batch job id.
+   * @return The number of records updated.
+   */
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public int updateBatchJobExecutionCounts(final long batchJobId) {
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
+        + "NUM_EXECUTING_REQUESTS = 0, "
+        + "NUM_COMPLETED_REQUESTS = ( SELECT COUNT(*) FROM CPF.CPF_BATCH_JOB_REQUESTS BJRQ WHERE BJRQ.BATCH_JOB_ID = BJ.BATCH_JOB_ID AND COMPLETED_IND = 1 AND ERROR_CODE IS NULL), "
+        + "NUM_FAILED_REQUESTS = ( SELECT COUNT(*) FROM CPF.CPF_BATCH_JOB_REQUESTS BJRQ WHERE BJRQ.BATCH_JOB_ID = BJ.BATCH_JOB_ID AND COMPLETED_IND = 1 AND ERROR_CODE IS NOT NULL) "
+        + "WHERE BATCH_JOB_ID = ?";
+      try {
+        return JdbcUtils.executeUpdate(dataSource, sql, batchJobId);
+      } catch (final SQLException e) {
+        throw new RuntimeException("Unable to reset started status", e);
+      }
+    }
+
+    return 0;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public int updateBatchJobExecutionCounts(final Long batchJobId,
     final int numExecutingRequests, final int numCompletedRequests,
     final int numFailedRequests) {
@@ -887,31 +1004,6 @@ public class CpfDataAccessObject {
         + "WHERE JOB_STATUS IN ('processing', 'requestsCreated') AND BUSINESS_APPLICATION_NAME = ?";
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, businessApplicationName);
-      } catch (final SQLException e) {
-        throw new RuntimeException("Unable to reset started status", e);
-      }
-    }
-
-    return 0;
-  }
-
-  /**
-   * Update the request execution/failed counts for all the batch job.
-   * 
-   * @param batchJobId The batch job id.
-   * @return The number of records updated.
-   */
-  public int updateBatchJobExecutionCounts(final long batchJobId) {
-    if (dataStore instanceof JdbcDataObjectStore) {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "NUM_EXECUTING_REQUESTS = 0, "
-        + "NUM_COMPLETED_REQUESTS = ( SELECT COUNT(*) FROM CPF.CPF_BATCH_JOB_REQUESTS BJRQ WHERE BJRQ.BATCH_JOB_ID = BJ.BATCH_JOB_ID AND COMPLETED_IND = 1 AND ERROR_CODE IS NULL), "
-        + "NUM_FAILED_REQUESTS = ( SELECT COUNT(*) FROM CPF.CPF_BATCH_JOB_REQUESTS BJRQ WHERE BJRQ.BATCH_JOB_ID = BJ.BATCH_JOB_ID AND COMPLETED_IND = 1 AND ERROR_CODE IS NOT NULL) "
-        + "WHERE BATCH_JOB_ID = ?";
-      try {
-        return JdbcUtils.executeUpdate(dataSource, sql, batchJobId);
       } catch (final SQLException e) {
         throw new RuntimeException("Unable to reset started status", e);
       }
@@ -1024,15 +1116,7 @@ public class CpfDataAccessObject {
   public void write(final DataObject object) {
     final Writer<DataObject> writer = dataStore.getWriter();
     try {
-      final SecurityContext securityContext = SecurityContextHolder.getContext();
-      final Authentication authentication = securityContext.getAuthentication();
-      String consumerKey;
-      if (authentication == null) {
-        consumerKey = "SYSTEM";
-        SecurityContextHolder.clearContext();
-      } else {
-        consumerKey = authentication.getName();
-      }
+      String username = getUsername();
       final Timestamp time = new Timestamp(System.currentTimeMillis());
       switch (object.getState()) {
         case New:
@@ -1043,13 +1127,13 @@ public class CpfDataAccessObject {
             final Object id = dataStore.createPrimaryIdValue(metaData.getPath());
             object.setIdValue(id);
           }
-          object.setValue("WHO_CREATED", consumerKey);
+          object.setValue("WHO_CREATED", username);
           object.setValue("WHEN_CREATED", time);
-          object.setValue("WHO_UPDATED", consumerKey);
+          object.setValue("WHO_UPDATED", username);
           object.setValue("WHEN_UPDATED", time);
         break;
         case Persisted:
-          object.setValue("WHO_UPDATED", consumerKey);
+          object.setValue("WHO_UPDATED", username);
           object.setValue("WHEN_UPDATED", time);
         break;
         default:
@@ -1059,5 +1143,18 @@ public class CpfDataAccessObject {
     } finally {
       writer.close();
     }
+  }
+
+  public String getUsername() {
+    final SecurityContext securityContext = SecurityContextHolder.getContext();
+    final Authentication authentication = securityContext.getAuthentication();
+    String username;
+    if (authentication == null) {
+      username = "SYSTEM";
+      SecurityContextHolder.clearContext();
+    } else {
+      username = authentication.getName();
+    }
+    return username;
   }
 }

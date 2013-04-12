@@ -34,6 +34,8 @@ public class BatchJobRequestExecutionGroup {
 
   private int numFailedRequests;
 
+  private boolean cancelled = false;
+
   public BatchJobRequestExecutionGroup(final String consumerKey,
     final long batchJobId, final BusinessApplication businessApplication,
     final Map<String, String> businessApplicationParameterMap,
@@ -50,6 +52,10 @@ public class BatchJobRequestExecutionGroup {
 
   public void addBatchJobRequestId(final long batchJobRequestId) {
     batchJobRequestIds.add(batchJobRequestId);
+  }
+
+  public void cancel() {
+    cancelled = true;
   }
 
   @Override
@@ -129,6 +135,10 @@ public class BatchJobRequestExecutionGroup {
   @Override
   public int hashCode() {
     return id.hashCode();
+  }
+
+  public boolean isCancelled() {
+    return cancelled;
   }
 
   public void resetId() {

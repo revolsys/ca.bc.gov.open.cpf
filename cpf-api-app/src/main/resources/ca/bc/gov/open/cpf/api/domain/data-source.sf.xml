@@ -115,6 +115,6 @@
   <bean
     id="ca.bc.gov.open.cpf.api.transactionManager"
     name="transactionManager"
-    class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+    class="com.revolsys.transaction.DataSourceTransactionManagerFactory"
     p:dataSource-ref="cpfDataSource" />
 </beans>

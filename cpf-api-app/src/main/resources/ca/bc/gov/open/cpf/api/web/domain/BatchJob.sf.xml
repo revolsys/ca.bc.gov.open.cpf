@@ -34,6 +34,12 @@
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/" />
 
         <bean
+          p:name="moduleAppCancel"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Cancel Batch Job {batchJobId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel/" />
+
+        <bean
           p:name="clientList"
           class="com.revolsys.ui.web.config.Page"
           p:title="Jobs"
@@ -43,6 +49,11 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="Job"
           p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/" />
+        <bean
+          p:name="clientCancel"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Job"
+          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/cancel/" />
         <bean
           p:name="clientAppList"
           class="com.revolsys.ui.web.config.Page"
@@ -186,6 +197,60 @@
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Failed Requests" />
 
+        <bean
+          p:name="adminActions"
+          p:label="Actions"
+          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+        >
+          <property name="serializers">
+            <list>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="moduleAppCancel"
+                p:label="Cancel"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="moduleName"
+                      value="BUSINESS_APPLICATION_NAME.module.name" />
+                    <entry
+                      key="businessApplicationName"
+                      value="BUSINESS_APPLICATION_NAME" />
+                    <entry
+                      key="batchJobId"
+                      value="BATCH_JOB_ID" />
+                  </map>
+                </property>
+              </bean>
+            </list>
+          </property>
+        </bean>
+
+        <bean
+          p:name="clientActions"
+          p:label="Actions"
+          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+        >
+          <property name="serializers">
+            <list>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="clientCancel"
+                p:label="Cancel"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="batchJobId"
+                      value="batchJobId" />
+                  </map>
+                </property>
+              </bean>
+            </list>
+          </property>
+        </bean>
+
       </list>
     </property>
 
@@ -221,6 +286,7 @@
             <value>NUM_FAILED_REQUESTS</value>
             <value>USER_ID</value>
             <value>MODULE_NAME_LINK</value>
+            <value>adminActions</value>
           </list>
         </entry>
 
@@ -233,6 +299,7 @@
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
+            <value>clientActions</value>
           </list>
         </entry>
         <entry key="clientAppList">
@@ -242,6 +309,7 @@
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
+            <value>clientActions</value>
           </list>
         </entry>
         <entry key="clientView">
@@ -258,6 +326,7 @@
             <value>NUM_EXECUTING_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
+            <value>clientActions</value>
           </list>
         </entry>
 
@@ -291,6 +360,7 @@
             <value>NUM_FAILED_REQUESTS</value>
             <value>USER_ID</value>
             <value>MODULE_NAME_LINK</value>
+            <value>adminActions</value>
           </list>
         </entry>
         <entry key="moduleAppView">
@@ -315,6 +385,7 @@
             <value>WHO_CREATED</value>
             <value>WHO_UPDATED</value>
             <value>WHEN_UPDATED</value>
+            <value>adminActions</value>
           </list>
         </entry>
       </map>

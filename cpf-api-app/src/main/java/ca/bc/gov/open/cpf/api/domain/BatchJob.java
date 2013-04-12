@@ -39,12 +39,6 @@ public interface BatchJob {
 
   String LAST_SCHEDULED_TIMESTAMP = "LAST_SCHEDULED_TIMESTAMP";
 
-  /**
-   * the markedForDeletion BatchJobStatus indicates to house keeping that this
-   * job has been closed by the user, and can be now deleted.
-   */
-  String MARKED_FOR_DELETION = "markedForDeletion";
-
   String NOTIFICATION_URL = "NOTIFICATION_URL";
 
   String NUM_COMPLETED_REQUESTS = "NUM_COMPLETED_REQUESTS";
@@ -62,6 +56,12 @@ public interface BatchJob {
    * BatchJobResults to be created.
    */
   String PROCESSED = "processed";
+
+  /**
+   * The cancelled BatchJobStatus indicates that request was cancelled and all requests and
+   * results have been removed.
+   */
+  String CANCELLED = "cancelled";
 
   /**
    * The processing BatchJobStatus indicates that the BatchJob has been

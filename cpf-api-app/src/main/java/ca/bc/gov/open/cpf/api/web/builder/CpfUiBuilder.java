@@ -169,7 +169,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
           BatchJob.NUM_SUBMITTED_REQUESTS);
         if (jobStatus.equals(BatchJob.DOWNLOAD_INITIATED)
           || jobStatus.equals(BatchJob.RESULTS_CREATED)
-          || jobStatus.equals(BatchJob.MARKED_FOR_DELETION)) {
+          || jobStatus.equals(BatchJob.CANCELLED)) {
           return 0;
         } else if (jobStatus.equals(BatchJob.CREATING_RESULTS)) {
           return numRequests * stats.getPostProcessedRequestsAverageTime();

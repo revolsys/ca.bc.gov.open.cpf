@@ -64,6 +64,8 @@ public class InternalWebService {
 
   private CpfDataAccessObject dataAccessObject;
 
+  private String webServiceUrl = "http://localhost/cpf";
+
   private void addConfigProperties(
     final Map<String, Map<String, Object>> configProperties,
     final String environmentName, final String moduleName,
@@ -94,7 +96,7 @@ public class InternalWebService {
     checkRunning();
     final BatchJobRequestExecutionGroup group = batchJobService.getBatchJobRequestExecutionGroup(
       workerId, groupId);
-    if (group == null) {
+    if (group == null || group.isCancelled()) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
       final Long batchJobId = group.getBatchJobId();
@@ -307,12 +309,6 @@ public class InternalWebService {
     }
   }
 
-  private String webServiceUrl = "http://localhost/cpf";
-
-  public void setWebServiceUrl(String webServiceUrl) {
-    this.webServiceUrl = webServiceUrl;
-  }
-
   public String getWebServiceUrl() {
     return webServiceUrl;
   }
@@ -350,42 +346,42 @@ public class InternalWebService {
     final BatchJobRequestExecutionGroup group = batchJobService.getBatchJobRequestExecutionGroup(
       workerId, groupId);
 
-    final DataObject batchJobRequest = dataAccessObject.getBatchJobRequestLocked(requestId);
-    if (batchJobRequest == null || group == null) {
-      throw new NoSuchRequestHandlingMethodException(
-        HttpServletUtils.getRequest());
-    } else {
+    if (group != null) {
       synchronized (group) {
-        final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
-        final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-        final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
-        if (businessApplication == null
-          || !businessApplication.isPerRequestResultData()) {
-          throw new NoSuchRequestHandlingMethodException(
-            HttpServletUtils.getRequest());
-        } else {
-          final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+        if (!group.isCancelled()) {
+          final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+          final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+          final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
+          if (businessApplication != null
+            && businessApplication.isPerRequestResultData()) {
+            synchronized (group) {
+              final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+              final File file = FileUtil.createTempFile("result", ".bin");
 
-          final File file = FileUtil.createTempFile("result", ".bin");
-
-          try {
-            FileUtil.copy(in, file);
-            batchJobService.createBatchJobResultOpaque(batchJobId, requestId,
-              resultDataContentType, file);
-          } finally {
-            FileUtil.closeSilent(in);
-            file.delete();
+              try {
+                FileUtil.copy(in, file);
+                final DataObject batchJobRequest = dataAccessObject.getBatchJobRequestLocked(requestId);
+                if (batchJobRequest != null) {
+                  batchJobService.createBatchJobResultOpaque(batchJobId,
+                    requestId, resultDataContentType, file);
+                }
+              } finally {
+                FileUtil.closeSilent(in);
+                file.delete();
+              }
+            }
           }
-          final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-            "OpaqueOutputDataResults");
-          map.put("workerId", workerId);
-          map.put("batchJobId", batchJobId);
-          map.put("groupId", groupId);
-          map.put("requestId", requestId);
-          return map;
         }
       }
     }
+    final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
+      "OpaqueOutputDataResults");
+    map.put("workerId", workerId);
+    map.put("batchJobId", batchJobId);
+    map.put("groupId", groupId);
+    map.put("requestId", requestId);
+    return map;
+
   }
 
   @RequestMapping(value = "/worker/workers/{workerId}/jobs/groups/nextId",
@@ -440,7 +436,7 @@ public class InternalWebService {
               setModuleExcluded(worker, message);
             } else if ("moduleLoaded".equals(action)) {
               setModuleLoaded(worker, message);
-            }  else if ("moduleLoading".equals(action)) {
+            } else if ("moduleLoading".equals(action)) {
               worker.addLoadingModule(message);
             }
           }
@@ -606,5 +602,9 @@ public class InternalWebService {
     final String moduleNameTime = moduleName + ":" + moduleTime;
     worker.addLoadedModule(moduleNameTime);
   }
- 
+
+  public void setWebServiceUrl(final String webServiceUrl) {
+    this.webServiceUrl = webServiceUrl;
+  }
+
 }

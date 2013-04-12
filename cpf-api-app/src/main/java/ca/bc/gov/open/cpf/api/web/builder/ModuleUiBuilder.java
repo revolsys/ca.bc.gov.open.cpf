@@ -32,8 +32,8 @@ import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.maven.MavenRepository;
-import com.revolsys.parallel.process.InvokeMethodCallable;
 import com.revolsys.ui.html.decorator.CollapsibleBox;
 import com.revolsys.ui.html.decorator.TableBody;
 import com.revolsys.ui.html.decorator.TableHeadingDecorator;
@@ -331,7 +331,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     throws IOException, ServletException {
     final Module module = getModule(request, moduleName);
     moduleLoader.deleteModule(module);
-    referrerRedirect(request);
+    redirectPage("list");
   }
 
   @RequestMapping(value = {
