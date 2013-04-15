@@ -843,8 +843,9 @@ public class CpfDataAccessObject {
     try {
       Timestamp now = new Timestamp(System.currentTimeMillis());
       String username = getUsername();
-      return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
-        newJobStatus, oldJobStatus, batchJobId) == 1;
+      int count = JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
+        newJobStatus, oldJobStatus, batchJobId);
+      return count == 1;
     } catch (final SQLException e) {
       throw new RuntimeException("Unable to set started status", e);
     }
@@ -867,7 +868,7 @@ public class CpfDataAccessObject {
       throw new RuntimeException("Unable to set started status", e);
     }
   }
-  
+
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public boolean setBatchJobFailed(final long batchJobId) {
     final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
@@ -886,18 +887,35 @@ public class CpfDataAccessObject {
     }
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRED)
   public boolean setBatchJobCompleted(final long batchJobId) {
     final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
     final DataSource dataSource = jdbcDataStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "STRUCTURED_INPUT_DATA = NULL, = 'resultsCreated', COMPLETED_TIMESTAMP = ?, LAST_SCHEDULED_TIMESTAMP = NULL, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, LAST_SCHEDULED_TIMESTAMP = NULL, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
       + "WHERE JOB_STATUS IN ('creatingRequests','creatingResults') AND BATCH_JOB_ID = ?";
     try {
       Timestamp now = new Timestamp(System.currentTimeMillis());
       return JdbcUtils.executeUpdate(dataSource, sql, now, now, now,
         getUsername(), batchJobId) == 1;
+    } catch (final SQLException e) {
+      throw new RuntimeException("Unable to set started status", e);
+    }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public boolean setBatchJobResultsCreated(final long batchJobId,
+    int numSubmittedRequests) {
+    final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+    final DataSource dataSource = jdbcDataStore.getDataSource();
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
+      + "NUM_SUBMITTED_REQUESTS = ?, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'requestsCreated', LAST_SCHEDULED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
+    try {
+      Timestamp now = new Timestamp(System.currentTimeMillis());
+      return JdbcUtils.executeUpdate(dataSource, sql, numSubmittedRequests,
+        now, now, now, getUsername(), batchJobId) == 1;
     } catch (final SQLException e) {
       throw new RuntimeException("Unable to set started status", e);
     }

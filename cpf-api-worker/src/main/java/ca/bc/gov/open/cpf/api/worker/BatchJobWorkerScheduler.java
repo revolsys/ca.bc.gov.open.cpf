@@ -110,7 +110,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   private String webServiceUrl = "http://localhost/cpf";
 
   public BatchJobWorkerScheduler() {
-    super(1, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
+    super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
       new NamedThreadFactory());
     setKeepAliveTime(60, TimeUnit.SECONDS);
   }

@@ -228,7 +228,7 @@ public class BatchJobService implements ModuleEventListener {
    * 
    * @param validationErrorCode The failure error code.
    */
-  private void addJobValidationError(final long batchJobId,
+  private boolean addJobValidationError(final long batchJobId,
     final ErrorCode validationErrorCode,
     final String validationErrorDebugMessage,
     final String validationErrorMessage) {
@@ -256,6 +256,7 @@ public class BatchJobService implements ModuleEventListener {
 
     dataAccessObject.setBatchJobFailed(batchJobId);
     LOG.debug(validationErrorDebugMessage);
+    return false;
   }
 
   protected void addStatisticRollUp(
@@ -1070,6 +1071,7 @@ public class BatchJobService implements ModuleEventListener {
       preprocesedJobIds.add(batchJobId);
     }
     try {
+      int numSubmittedRequests = 0;
       final StopWatch stopWatch = new StopWatch();
       stopWatch.start();
       final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
@@ -1088,6 +1090,7 @@ public class BatchJobService implements ModuleEventListener {
         ModuleLog.info(moduleName, "Job pre-process", "Start", logData);
       }
       try {
+        boolean valid = true;
         final Map<String, Object> preProcessScheduledStatistics = new HashMap<String, Object>();
         preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
         preProcessScheduledStatistics.put("preProcessScheduledJobsTime", time
@@ -1099,7 +1102,7 @@ public class BatchJobService implements ModuleEventListener {
         addStatistics(businessApplication, preProcessScheduledStatistics);
 
         final InputStream inputDataStream = getJobInputDataStream(batchJob);
-        final long numFailedRequests = batchJob.getLong(BatchJob.NUM_FAILED_REQUESTS);
+         long numFailedRequests = batchJob.getLong(BatchJob.NUM_FAILED_REQUESTS);
         try {
           final String appParams = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
           final Map<String, String> jobParameters = JsonMapIoFactory.toMap(appParams);
@@ -1108,23 +1111,22 @@ public class BatchJobService implements ModuleEventListener {
           final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
           if (!businessApplication.getInputDataContentTypes().containsKey(
             inputContentType)) {
-            addJobValidationError(batchJobId, ErrorCode.BAD_INPUT_DATA_TYPE,
-              "", "");
+            valid = addJobValidationError(batchJobId,
+              ErrorCode.BAD_INPUT_DATA_TYPE, "", "");
           } else if (!businessApplication.getResultDataContentTypes()
             .containsKey(resultContentType)) {
-            addJobValidationError(batchJobId, ErrorCode.BAD_RESULT_DATA_TYPE,
-              "", "");
+            valid = addJobValidationError(batchJobId,
+              ErrorCode.BAD_RESULT_DATA_TYPE, "", "");
           } else if (inputDataStream == null) {
-            addJobValidationError(batchJobId, ErrorCode.INPUT_DATA_UNREADABLE,
-              "", "");
+            valid = addJobValidationError(batchJobId,
+              ErrorCode.INPUT_DATA_UNREADABLE, "", "");
           } else {
             final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
             try {
-              int requestSequenceNumber = 0;
               final MapReaderFactory factory = IoFactoryRegistry.getInstance()
                 .getFactoryByMediaType(MapReaderFactory.class, inputContentType);
               if (factory == null) {
-                addJobValidationError(batchJobId,
+                valid = addJobValidationError(batchJobId,
                   ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
                   "Media type not supported");
               } else {
@@ -1132,7 +1134,7 @@ public class BatchJobService implements ModuleEventListener {
                   "in", inputDataStream);
                 final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource);
                 if (mapReader == null) {
-                  addJobValidationError(batchJobId,
+                  valid = addJobValidationError(batchJobId,
                     ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
                     "Media type not supported");
                 } else {
@@ -1140,19 +1142,18 @@ public class BatchJobService implements ModuleEventListener {
                     requestMetaData, mapReader);
 
                   for (final Map<String, Object> inputDataRecord : inputDataReader) {
-                    requestSequenceNumber++;
+                    numSubmittedRequests++;
                     final DataObject requestParemeters = processParameters(
-                      batchJob, businessApplication, requestSequenceNumber,
+                      batchJob, businessApplication, numSubmittedRequests,
                       jobParameters, inputDataRecord);
                     if (requestParemeters == null) {
-                      batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS,
-                        numFailedRequests + 1);
+                      numFailedRequests++;
                     } else {
                       final String structuredInputDataString = JsonDataObjectIoFactory.toString(requestParemeters);
                       synchronized (preprocesedJobIds) {
                         if (preprocesedJobIds.contains(batchJobId)) {
                           dataAccessObject.createBatchJobRequestInNewTransaction(
-                            batchJobId, requestSequenceNumber,
+                            batchJobId, numSubmittedRequests,
                             structuredInputDataString);
                         } else {
                           return;
@@ -1164,23 +1165,21 @@ public class BatchJobService implements ModuleEventListener {
 
                 FileUtil.closeSilent(inputDataStream);
 
-                batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
-                  requestSequenceNumber);
                 final int maxRequests = businessApplication.getMaxRequestsPerJob();
-                if (requestSequenceNumber == 0) {
-                  addJobValidationError(batchJobId,
+                if (numSubmittedRequests == 0) {
+                  valid = addJobValidationError(batchJobId,
                     ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
-                    String.valueOf(requestSequenceNumber));
-                } else if (requestSequenceNumber > maxRequests) {
-                  addJobValidationError(batchJobId,
+                    String.valueOf(numSubmittedRequests));
+                } else if (numSubmittedRequests > maxRequests) {
+                  valid = addJobValidationError(batchJobId,
                     ErrorCode.TOO_MANY_REQUESTS, null,
-                    String.valueOf(requestSequenceNumber));
+                    String.valueOf(numSubmittedRequests));
                 }
               }
             } catch (final Throwable e) {
               final StringWriter errorDebugMessage = new StringWriter();
               e.printStackTrace(new PrintWriter(errorDebugMessage));
-              addJobValidationError(batchJobId,
+              valid = addJobValidationError(batchJobId,
                 ErrorCode.ERROR_PROCESSING_REQUEST,
                 errorDebugMessage.toString(), e.getMessage());
             }
@@ -1188,33 +1187,18 @@ public class BatchJobService implements ModuleEventListener {
         } finally {
           FileUtil.closeSilent(inputDataStream);
         }
-        final long numSubmittedRequests = batchJob.getLong(BatchJob.NUM_SUBMITTED_REQUESTS);
         logData.put("numSubmittedRequests", numSubmittedRequests);
         logData.put("numFailedRequests", numFailedRequests);
 
-        final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-
-        if (numSubmittedRequests == numFailedRequests) {
+        if (!valid || numSubmittedRequests == numFailedRequests) {
+          valid = false;
           createErrorResults(batchJobId);
           dataAccessObject.setBatchJobCompleted(batchJobId);
 
-        }
-        // TODO set requests created using SQL
-        // Clear the input data as it is no longer required
-        batchJob.setValue(BatchJob.STRUCTURED_INPUT_DATA, null);
-        if (!BatchJob.RESULTS_CREATED.equals(jobStatus)
-          && numSubmittedRequests > 0) {
-          if (BatchJob.CREATING_REQUESTS.equals(jobStatus)) {
-            final Timestamp now = new Timestamp(time);
-            batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
-            if (!BatchJob.CANCELLED.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-              batchJob.setValue(BatchJob.JOB_STATUS, BatchJob.REQUESTS_CREATED);
-            }
-            batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
-          }
+        } else if (dataAccessObject.setBatchJobResultsCreated(batchJobId,
+          numSubmittedRequests)) {
           schedule(businessApplicationName, batchJobId);
         }
-
         final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
         preProcessStatistics.put("preProcessedTime", stopWatch);
         preProcessStatistics.put("preProcessedJobsCount", 1);
@@ -1223,16 +1207,14 @@ public class BatchJobService implements ModuleEventListener {
         InvokeMethodAfterCommit.invoke(this, "addStatistics",
           businessApplication, preProcessStatistics);
 
-        if (BatchJob.RESULTS_CREATED.equals(jobStatus)
-          || numSubmittedRequests == 0) {
+        if (!valid) {
           final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
-          final long numCompletedRequests = batchJob.getLong(BatchJob.NUM_COMPLETED_REQUESTS);
 
           final Map<String, Object> jobCompletedStatistics = new HashMap<String, Object>();
 
           jobCompletedStatistics.put("completedJobsCount", 1);
           jobCompletedStatistics.put("completedRequestsCount",
-            numCompletedRequests + numFailedRequests);
+            numFailedRequests);
           jobCompletedStatistics.put("completedFailedRequestsCount",
             numFailedRequests);
           jobCompletedStatistics.put("completedTime",
@@ -1241,7 +1223,8 @@ public class BatchJobService implements ModuleEventListener {
           InvokeMethodAfterCommit.invoke(this, "addStatistics",
             businessApplication, jobCompletedStatistics);
 
-          logData.put("numCompletedRequests", numCompletedRequests);
+          // numCompletedRequests is 0 + numFailedFailed
+          logData.put("numCompletedRequests", numFailedRequests);
           logData.put("numFailedRequests", numFailedRequests);
           if (businessApplication.isInfoLogEnabled()) {
             ModuleLog.infoAfterCommit(moduleName, "Job completed", "End",
