@@ -151,7 +151,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     final Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "executingGroupIds");
     message.put("workerId", id);
-    message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
+    synchronized (executingGroupIds) {
+      message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
+    }
     lastPingTime = System.currentTimeMillis();
     return message;
   }

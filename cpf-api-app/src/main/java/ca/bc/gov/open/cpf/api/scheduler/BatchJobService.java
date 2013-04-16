@@ -49,8 +49,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
@@ -1090,6 +1094,7 @@ public class BatchJobService implements ModuleEventListener {
         ModuleLog.info(moduleName, "Job pre-process", "Start", logData);
       }
       try {
+        int maxGroupSize = businessApplication.getNumRequestsPerWorker();
         boolean valid = true;
         final Map<String, Object> preProcessScheduledStatistics = new HashMap<String, Object>();
         preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
@@ -1102,7 +1107,7 @@ public class BatchJobService implements ModuleEventListener {
         addStatistics(businessApplication, preProcessScheduledStatistics);
 
         final InputStream inputDataStream = getJobInputDataStream(batchJob);
-         long numFailedRequests = batchJob.getLong(BatchJob.NUM_FAILED_REQUESTS);
+        long numFailedRequests = batchJob.getLong(BatchJob.NUM_FAILED_REQUESTS);
         try {
           final String appParams = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
           final Map<String, String> jobParameters = JsonMapIoFactory.toMap(appParams);
@@ -1141,26 +1146,52 @@ public class BatchJobService implements ModuleEventListener {
                   final Reader<DataObject> inputDataReader = new MapReaderDataObjectReader(
                     requestMetaData, mapReader);
 
-                  for (final Map<String, Object> inputDataRecord : inputDataReader) {
-                    numSubmittedRequests++;
-                    final DataObject requestParemeters = processParameters(
-                      batchJob, businessApplication, numSubmittedRequests,
-                      jobParameters, inputDataRecord);
-                    if (requestParemeters == null) {
-                      numFailedRequests++;
-                    } else {
-                      final String structuredInputDataString = JsonDataObjectIoFactory.toString(requestParemeters);
-                      synchronized (preprocesedJobIds) {
-                        if (preprocesedJobIds.contains(batchJobId)) {
-                          dataAccessObject.createBatchJobRequestInNewTransaction(
-                            batchJobId, numSubmittedRequests,
-                            structuredInputDataString);
+                  int commitInterval = 100;
+                  int numGroups = 0;
+                  PlatformTransactionManager transactionManager = dataStore.getTransactionManager();
+                  TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
+                    TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                  TransactionStatus status = transactionManager.getTransaction(transactionDefinition);
+                  try {
+                    List<Map<String, Object>> group = new ArrayList<Map<String, Object>>();
+                    for (final Map<String, Object> inputDataRecord : inputDataReader) {
+                      numSubmittedRequests++;
+                      final DataObject requestParemeters = processParameters(
+                        batchJob, businessApplication, numSubmittedRequests,
+                        jobParameters, inputDataRecord);
+                      if (requestParemeters == null) {
+                        numFailedRequests++;
+                      } else {
+                        group.add(requestParemeters);
+                      }
+                      if (group.size() == maxGroupSize) {
+                        numGroups++;
+                        if (createBatchJobRequest(batchJobId, numGroups,
+                          requestMetaData, group)) {
+                          group = new ArrayList<Map<String, Object>>();
+                          if (numGroups % commitInterval == 0) {
+                            transactionManager.commit(status);
+                            status = transactionManager.getTransaction(transactionDefinition);
+                          }
                         } else {
+                          transactionManager.rollback(status);
                           return;
                         }
                       }
+
                     }
+                    numGroups++;
+                    if (createBatchJobRequest(batchJobId, numGroups,
+                      requestMetaData, group)) {
+                    } else {
+                      transactionManager.rollback(status);
+                      return;
+                    }
+                  } catch (Throwable e) {
+                    transactionManager.rollback(status);
+                    ExceptionUtil.throwUncheckedException(e);
                   }
+                  transactionManager.commit(status);
                 }
 
                 FileUtil.closeSilent(inputDataStream);
@@ -1177,6 +1208,8 @@ public class BatchJobService implements ModuleEventListener {
                 }
               }
             } catch (final Throwable e) {
+              LoggerFactory.getLogger(getClass()).error(
+                "Error pre-processing job " + batchJobId, e);
               final StringWriter errorDebugMessage = new StringWriter();
               e.printStackTrace(new PrintWriter(errorDebugMessage));
               valid = addJobValidationError(batchJobId,
@@ -1240,6 +1273,22 @@ public class BatchJobService implements ModuleEventListener {
     } finally {
       synchronized (preprocesedJobIds) {
         preprocesedJobIds.remove(batchJobId);
+      }
+    }
+  }
+
+  protected boolean createBatchJobRequest(final Long batchJobId,
+    int sequenceNumber, final DataObjectMetaData requestMetaData,
+    List<Map<String, Object>> group) {
+    final String structuredInputDataString = JsonDataObjectIoFactory.toString(
+      requestMetaData, group);
+    synchronized (preprocesedJobIds) {
+      if (preprocesedJobIds.contains(batchJobId)) {
+        dataAccessObject.createBatchJobRequest(batchJobId, sequenceNumber,
+          structuredInputDataString);
+        return true;
+      } else {
+        return false;
       }
     }
   }
