@@ -25,22 +25,23 @@ CPF requires a configuration file on each server.
 
 Property                           Description
 -------------------------------    ------------------------------------------
-ca.bc.gov.cpf.app.baseUrl          The HTTP URL to the server cpf is deployed to
-ca.bc.gov.cpf.app.secureBaseUrl    The HTTPS URL to the server cpf is deployed to
-ca.bc.gov.cpf.db.url               The JDBC URL to the cpf database
-ca.bc.gov.cpf.db.password          The password for the PROXY_CPF_WEB user account
-ca.bc.gov.cpf.db.maxConnections    The maximum number of database connections
-batchJobService.maxWorkerWaitTime  The maximum time the worker will wait in a HTTP
-                                   request for group to process before trying a new
-                                   HTTP request. This limits the number of polling
-                                   requests to the server.
-cpfWorker.password                 The password for the internal web service user
-cpfWorker.maximumPoolSize          The maximum number of threads on the worker to
-                                   execute requests.
-batchJobService.fromEmail          The email address any emails will be sent from
-mailSender.host                    The mail server to send emails via
-ca.bc.gov.cpf.repositoryServer     The maven repository to download plugins from
-ca.bc.gov.cpf.repositoryDirectory  The cache directory to store maven artifacts
+ca.bc.gov.cpf.app.baseUrl            The HTTP URL to the server cpf is deployed to
+ca.bc.gov.cpf.app.secureBaseUrl      The HTTPS URL to the server cpf is deployed to
+ca.bc.gov.cpf.internal.webServiceUrl The HTTP URL to the internal web service for cpf
+ca.bc.gov.cpf.db.url                 The JDBC URL to the cpf database
+ca.bc.gov.cpf.db.password            The password for the PROXY_CPF_WEB user account
+ca.bc.gov.cpf.db.maxConnections      The maximum number of database connections
+batchJobService.maxWorkerWaitTime    The maximum time the worker will wait in a HTTP
+                                     request for group to process before trying a new
+                                     HTTP request. This limits the number of polling
+                                     requests to the server.
+cpfWorker.password                   The password for the internal web service user
+cpfWorker.maximumPoolSize            The maximum number of threads on the worker to
+                                     execute requests.
+batchJobService.fromEmail            The email address any emails will be sent from
+mailSender.host                      The mail server to send emails via
+ca.bc.gov.cpf.repositoryServer       The maven repository to download plugins from
+ca.bc.gov.cpf.repositoryDirectory    The cache directory to store maven artifacts
 
 Create the directory and configuration file.
 
