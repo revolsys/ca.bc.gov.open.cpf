@@ -379,12 +379,14 @@ public class CloudProcessingFramework {
     final String description = attribute.getDescription();
     final boolean jobParameter = attribute.getProperty(BusinessApplication.JOB_PARAMETER) == Boolean.TRUE;
     final boolean requestParameter = attribute.getProperty(BusinessApplication.REQUEST_PARAMETER) == Boolean.TRUE;
-    final Collection<Object> allowedValues = attribute.getAllowedValues()
-      .keySet();
-    final String descriptionUrl = attribute.getProperty("descriptionUrl");
-    addParameter(parameters, name, typeDescription, descriptionUrl,
-      description, jobParameter, requestParameter, perRequestInputData,
-      allowedValues);
+    if (jobParameter || requestParameter) {
+      final Collection<Object> allowedValues = attribute.getAllowedValues()
+        .keySet();
+      final String descriptionUrl = attribute.getProperty("descriptionUrl");
+      addParameter(parameters, name, typeDescription, descriptionUrl,
+        description, jobParameter, requestParameter, perRequestInputData,
+        allowedValues);
+    }
   }
 
   private void addParameter(final List<Map<String, Object>> parameters,
@@ -456,7 +458,10 @@ public class CloudProcessingFramework {
     batchJob.setValue(BatchJob.JOB_STATUS, BatchJob.SUBMITTED);
     batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED,
       new Timestamp(System.currentTimeMillis()));
-    batchJob.setValue(BatchJob.NUM_EXECUTING_REQUESTS, 0);
+    batchJob.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 0);
+    batchJob.setValue(BatchJob.NUM_COMPLETED_GROUPS, 0);
+    batchJob.setValue(BatchJob.GROUP_SIZE, 1);
+    batchJob.setValue(BatchJob.NUM_SCHEDULED_GROUPS, 0);
     batchJob.setValue(BatchJob.NUM_COMPLETED_REQUESTS, 0);
     batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS, 0);
 
@@ -907,7 +912,7 @@ public class CloudProcessingFramework {
           } else {
             try {
               batchJobService.setStructuredInputDataValue(srid, inputData,
-                attribute, value);
+                attribute, value, true);
             } catch (final IllegalArgumentException e) {
               throw new HttpMessageNotReadableException("Parameter "
                 + parameterName + " cannot be set");
@@ -924,7 +929,7 @@ public class CloudProcessingFramework {
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_VERSION,
         businessApplicationVersion);
       batchJob.setValue(BatchJob.USER_ID, consumerKey);
-      batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 0);
+      batchJob.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 1);
 
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
         JsonMapIoFactory.toString(businessApplicationParameters));
@@ -935,7 +940,7 @@ public class CloudProcessingFramework {
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE,
         resultDataContentType);
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
-      batchJob.setValue(BatchJob.NUM_EXECUTING_REQUESTS, 0);
+      batchJob.setValue(BatchJob.NUM_SCHEDULED_GROUPS, 0);
       batchJob.setValue(BatchJob.NUM_COMPLETED_REQUESTS, 0);
       batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS, 0);
       final Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -952,8 +957,10 @@ public class CloudProcessingFramework {
             inputDataContentType, inputDataUrl);
         }
       } else {
-        final String inputDataString = JsonDataObjectIoFactory.toString(inputData);
-        dataAccessObject.createBatchJobRequest(batchJobId, 1, inputDataString);
+        inputData.put("requestSequenceNumber", 1);
+        final String inputDataString = JsonDataObjectIoFactory.toString(
+          requestMetaData, Collections.singletonList(inputData));
+        dataAccessObject.createBatchJobRequest(batchJobId, 1, inputDataString, 1);
       }
 
       batchJobService.schedule(businessApplicationName, batchJobId);
@@ -1460,7 +1467,7 @@ public class CloudProcessingFramework {
             } else {
               try {
                 batchJobService.setStructuredInputDataValue(srid, parameters,
-                  attribute, value);
+                  attribute, value, true);
               } catch (final IllegalArgumentException e) {
                 throw new IllegalArgumentException(
                   "Parameter value is not valid " + name + " " + value, e);

@@ -1,8 +1,6 @@
 package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,7 +10,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 public class BatchJobRequestExecutionGroup {
   private final long batchJobId;
 
-  private final List<Long> batchJobRequestIds = new ArrayList<Long>();
+  private Long batchJobRequestId;
 
   private final BusinessApplication businessApplication;
 
@@ -39,7 +37,8 @@ public class BatchJobRequestExecutionGroup {
   public BatchJobRequestExecutionGroup(final String consumerKey,
     final long batchJobId, final BusinessApplication businessApplication,
     final Map<String, String> businessApplicationParameterMap,
-    final String resultDataContentType, final Timestamp scheduleTimestamp) {
+    final String resultDataContentType, final Timestamp scheduleTimestamp,
+    Long batchJobRequestId) {
     this.consumerKey = consumerKey;
     this.batchJobId = batchJobId;
     this.businessApplication = businessApplication;
@@ -47,11 +46,8 @@ public class BatchJobRequestExecutionGroup {
     this.businessApplicationParameterMap = businessApplicationParameterMap;
     this.resultDataContentType = resultDataContentType;
     this.scheduleTimestamp = scheduleTimestamp;
+    this.batchJobRequestId = batchJobRequestId;
     resetId();
-  }
-
-  public void addBatchJobRequestId(final long batchJobRequestId) {
-    batchJobRequestIds.add(batchJobRequestId);
   }
 
   public void cancel() {
@@ -72,8 +68,8 @@ public class BatchJobRequestExecutionGroup {
     return batchJobId;
   }
 
-  public List<Long> getBatchJobRequestIds() {
-    return batchJobRequestIds;
+  public Long getBatchJobRequestId() {
+    return batchJobRequestId;
   }
 
   public BusinessApplication getBusinessApplication() {
@@ -108,10 +104,6 @@ public class BatchJobRequestExecutionGroup {
     return moduleName;
   }
 
-  public int getNumBatchJobRequests() {
-    return batchJobRequestIds.size();
-  }
-
   public int getNumCompletedRequests() {
     return numCompletedRequests;
   }
@@ -142,7 +134,7 @@ public class BatchJobRequestExecutionGroup {
   }
 
   public void resetId() {
-    id = UUID.randomUUID().toString();
+    id = batchJobId + "-" + UUID.randomUUID().toString();
   }
 
   public void setExecutionStartTime(final long executionStartTime) {

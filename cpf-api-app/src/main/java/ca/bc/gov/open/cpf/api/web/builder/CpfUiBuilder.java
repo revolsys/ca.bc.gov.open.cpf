@@ -185,7 +185,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
             final long executedRequestsAverageTime = stats.getApplicationExecutedRequestsAverageTime();
             timeRemaining += numRequestsRemaining * executedRequestsAverageTime;
             if (!jobStatus.equals(BatchJob.PROCESSING)) {
-              timeRemaining += stats.getExecuteScheduledRequestsAverageTime();
+              timeRemaining += stats.getExecuteScheduledGroupsAverageTime();
               if (!jobStatus.equals(BatchJob.REQUESTS_CREATED)) {
                 timeRemaining += numRequests
                   * stats.getPreProcessedRequestsAverageTime();

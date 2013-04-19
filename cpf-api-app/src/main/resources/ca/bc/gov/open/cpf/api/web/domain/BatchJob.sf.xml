@@ -178,14 +178,29 @@
           p:valueLabel="Value" />
 
         <bean
+          p:name="GROUP_SIZE"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Group Size" />
+
+        <bean
+          p:name="NUM_SUBMITTED_GROUPS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Submitted Groups" />
+
+        <bean
+          p:name="NUM_SCHEDULED_GROUPS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Scheduled Groups" />
+
+        <bean
+          p:name="NUM_COMPLETED_GROUPS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Completed Groups" />
+
+        <bean
           p:name="NUM_SUBMITTED_REQUESTS"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Submitted Requests" />
-
-        <bean
-          p:name="NUM_EXECUTING_REQUESTS"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Executing Requests" />
 
         <bean
           p:name="NUM_COMPLETED_REQUESTS"
@@ -281,10 +296,12 @@
             <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
             <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_GROUPS</value>
+            <value>NUM_COMPLETED_GROUPS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
-            <value>USER_ID</value>
+           <value>USER_ID</value>
             <value>MODULE_NAME_LINK</value>
             <value>adminActions</value>
           </list>
@@ -309,6 +326,7 @@
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
             <value>clientActions</value>
           </list>
         </entry>
@@ -323,7 +341,6 @@
             <value>WHEN_CREATED</value>
             <value>COMPLETED_TIMESTAMP</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_EXECUTING_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
             <value>clientActions</value>
@@ -355,6 +372,8 @@
             <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
             <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_GROUPS</value>
+            <value>NUM_COMPLETED_GROUPS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
@@ -377,9 +396,12 @@
             <value>COMPLETED_TIMESTAMP</value>
             <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_EXECUTING_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
+            <value>GROUP_SIZE</value>
+            <value>NUM_SUBMITTED_GROUPS</value>
+            <value>NUM_COMPLETED_GROUPS</value>
+            <value>NUM_SCHEDULED_GROUPS</value>
             <value>LAST_SCHEDULED_TIMESTAMP</value>
             <value>propertyMap</value>
             <value>WHO_CREATED</value>

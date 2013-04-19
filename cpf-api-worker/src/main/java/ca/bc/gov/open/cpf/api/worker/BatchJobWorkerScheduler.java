@@ -515,7 +515,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           }
           if (running && timeout != 0) {
             synchronized (monitor) {
-              LOG.info("Waiting " + timeout
+              LOG.debug("Waiting " + timeout
                 + " seconds before getting next task");
               monitor.wait(timeout * 1000);
             }
@@ -575,7 +575,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       long timeout = timeoutStep;
       if (running) {
         try {
-          LOG.info("Waiting " + timeout + " seconds before sending message");
+          LOG.debug("Waiting " + timeout + " seconds before sending message");
           messages.wait(timeout * 1000);
         } catch (final InterruptedException e) {
         }

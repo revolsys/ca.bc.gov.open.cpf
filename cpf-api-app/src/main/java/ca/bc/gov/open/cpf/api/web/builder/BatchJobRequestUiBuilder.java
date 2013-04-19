@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -20,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -34,12 +31,9 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.model.data.equals.EqualsRegistry;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.io.Writer;
-import com.revolsys.io.json.JsonDataObjectIoFactory;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 
@@ -83,7 +77,7 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
     throws NoSuchRequestHandlingMethodException, IOException {
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
-    final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
+    getBatchJob(businessApplicationName, batchJobId);
     final DataObject batchJobRequest = getBatchJobRequest(batchJobId,
       batchJobRequestId);
     final String baseName = "job-" + batchJobId + "-request-"
@@ -105,13 +99,20 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
         }
       }
     } else {
-      final String contentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
-      final DataObjectMetaData metaData = businessApplication.getRequestMetaData();
-      final String dataString = batchJobRequest.getString(BatchJobRequest.STRUCTURED_INPUT_DATA);
-      final DataObject dataObject = JsonDataObjectIoFactory.toDataObject(
-        metaData, dataString);
-      final List<DataObject> data = Collections.singletonList(dataObject);
-      writeStructuredData(response, contentType, baseName, metaData, data);
+      writeJson(response, batchJobRequest,
+        BatchJobRequest.STRUCTURED_INPUT_DATA);
+    }
+  }
+
+  protected void writeJson(final HttpServletResponse response,
+    final DataObject batchJobRequest, String field) throws IOException {
+    final String dataString = batchJobRequest.getString(field);
+    response.setContentType("application/json");
+    final java.io.Writer out = response.getWriter();
+    try {
+      out.write(dataString);
+    } finally {
+      FileUtil.closeSilent(out);
     }
   }
 
@@ -155,11 +156,8 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
         }
       }
     } else {
-      final DataObjectMetaData metaData = businessApplication.getResultMetaData();
-      final String dataString = batchJobRequest.getString(BatchJobRequest.STRUCTURED_RESULT_DATA);
-      final List<DataObject> data = JsonDataObjectIoFactory.toDataObjectList(
-        metaData, dataString);
-      writeStructuredData(response, contentType, baseName, metaData, data);
+      writeJson(response, batchJobRequest,
+        BatchJobRequest.STRUCTURED_RESULT_DATA);
     }
   }
 
@@ -239,44 +237,6 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
       } finally {
         FileUtil.closeSilent(in);
       }
-    }
-  }
-
-  private void writeStructuredData(final HttpServletResponse response,
-    String contentType, final String baseName,
-    final DataObjectMetaData metaData, final List<DataObject> data)
-    throws IOException {
-    if (!StringUtils.hasText(contentType)) {
-      contentType = "application/json";
-    }
-    DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-      .getFactoryByMediaType(DataObjectWriterFactory.class, contentType);
-    String fileExtension;
-    if (writerFactory == null) {
-      fileExtension = "json";
-      writerFactory = new JsonDataObjectIoFactory();
-    } else {
-      fileExtension = writerFactory.getFileExtension(contentType);
-
-    }
-    final String fileName = baseName + "." + fileExtension;
-    response.setHeader("Content-Disposition", "attachment; filename="
-      + fileName);
-
-    final ServletOutputStream out = response.getOutputStream();
-    try {
-      final Writer<DataObject> writer = writerFactory.createDataObjectWriter(
-        baseName, metaData, out);
-      try {
-        for (final DataObject object : data) {
-          writer.write(object);
-        }
-      } finally {
-        writer.close();
-        writer.close();
-      }
-    } finally {
-      out.close();
     }
   }
 }

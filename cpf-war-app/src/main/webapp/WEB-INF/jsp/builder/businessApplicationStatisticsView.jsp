@@ -168,15 +168,6 @@
                       <td style="text-align: right"><c:out
                           value="${statisitcs.executeScheduledGroupsCount}" /></td>
                     </tr>
-                    <tr>
-                      <th>Requests</th>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.executeScheduledRequestsAverageTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.executeScheduledTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.executeScheduledRequestsCount}" /></td>
-                    </tr>
                   </tbody>
                 </table></td>
           </tr>

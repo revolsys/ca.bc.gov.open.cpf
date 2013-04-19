@@ -11,6 +11,12 @@ public interface BatchJob {
 
   String BUSINESS_APPLICATION_VERSION = "BUSINESS_APPLICATION_VERSION";
 
+  /**
+   * The cancelled BatchJobStatus indicates that request was cancelled and all requests and
+   * results have been removed.
+   */
+  String CANCELLED = "cancelled";
+
   String COMPLETED_TIMESTAMP = "COMPLETED_TIMESTAMP";
 
   /**
@@ -33,6 +39,8 @@ public interface BatchJob {
    */
   String DOWNLOAD_INITIATED = "downloadInitiated";
 
+  String GROUP_SIZE = "GROUP_SIZE";
+
   String INPUT_DATA_CONTENT_TYPE = "INPUT_DATA_CONTENT_TYPE";
 
   String JOB_STATUS = "JOB_STATUS";
@@ -43,9 +51,13 @@ public interface BatchJob {
 
   String NUM_COMPLETED_REQUESTS = "NUM_COMPLETED_REQUESTS";
 
-  String NUM_EXECUTING_REQUESTS = "NUM_EXECUTING_REQUESTS";
-
   String NUM_FAILED_REQUESTS = "NUM_FAILED_REQUESTS";
+
+  String NUM_SCHEDULED_GROUPS = "NUM_SCHEDULED_GROUPS";
+
+  String NUM_SUBMITTED_GROUPS = "NUM_SUBMITTED_GROUPS";
+
+  String NUM_COMPLETED_GROUPS = "NUM_COMPLETED_GROUPS";
 
   String NUM_SUBMITTED_REQUESTS = "NUM_SUBMITTED_REQUESTS";
 
@@ -56,12 +68,6 @@ public interface BatchJob {
    * BatchJobResults to be created.
    */
   String PROCESSED = "processed";
-
-  /**
-   * The cancelled BatchJobStatus indicates that request was cancelled and all requests and
-   * results have been removed.
-   */
-  String CANCELLED = "cancelled";
 
   /**
    * The processing BatchJobStatus indicates that the BatchJob has been

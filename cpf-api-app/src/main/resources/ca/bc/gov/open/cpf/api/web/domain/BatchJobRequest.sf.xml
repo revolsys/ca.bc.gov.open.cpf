@@ -57,7 +57,7 @@
           p:label="Result Data Download"
           p:cssClass="ui-auto-button-disk"
           p:target="_top"
-          p:enabledExpression="#COMPLETED_IND == 1 and #ERROR_CODE == null and (#RESULT_DATA != null or #RESULT_DATA_URL != null)" />
+          p:enabledExpression="#COMPLETED_IND == 1 and (#RESULT_DATA != null or #RESULT_DATA_URL != null)" />
         <bean
           p:name="STARTED_IND"
           class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer"
@@ -66,6 +66,22 @@
           p:name="COMPLETED_IND"
           class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer"
           p:label="Completed" />
+
+        <bean
+          p:name="NUM_SUBMITTED_REQUESTS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Submitted Requests" />
+
+        <bean
+          p:name="NUM_COMPLETED_REQUESTS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Completed Requests" />
+
+        <bean
+          p:name="NUM_FAILED_REQUESTS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Failed Requests" />
+
         <bean
           p:name="WHO_CREATED"
           p:label="Created By"
@@ -97,8 +113,9 @@
             <value>REQUEST_SEQUENCE_NUMBER</value>
             <value>STARTED_IND</value>
             <value>COMPLETED_IND</value>
-            <value>ERROR_CODE</value>
-            <value>ERROR_MESSAGE</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
             <value>WHEN_CREATED</value>
           </list>
         </entry>
@@ -114,9 +131,9 @@
             <value>REQUEST_SEQUENCE_NUMBER</value>
             <value>STARTED_IND</value>
             <value>COMPLETED_IND</value>
-            <value>ERROR_CODE</value>
-            <value>ERROR_MESSAGE</value>
-            <value>ERROR_DEBUG_MESSAGE</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
+            <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
             <value>inputData</value>
             <value>INPUT_DATA_CONTENT_TYPE</value>
             <value>INPUT_DATA_URL</value>

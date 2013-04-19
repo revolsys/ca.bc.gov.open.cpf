@@ -358,6 +358,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public synchronized DataObjectMetaDataImpl getRequestMetaData() {
     if (requestMetaData.getAttributeCount() == 0) {
       if (requestAttributeMap.size() > 0) {
+        requestMetaData.addAttribute("requestSequenceNumber", DataTypes.INT);
 
         if (hasGeometryRequestAttribute) {
           final Attribute requestSrid = new Attribute(

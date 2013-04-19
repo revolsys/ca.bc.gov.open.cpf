@@ -48,9 +48,9 @@ import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
+import com.revolsys.io.StringPrinter;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.UrlUtil;
 
@@ -120,28 +120,25 @@ public class InternalWebService {
           businessApplication.getName());
         groupSpecification.put("applicationParameters",
           group.getBusinessApplicationParameterMap());
+        if (businessApplication.isPerRequestResultData()) {
+          groupSpecification.put("resultDataContentType",
+            group.getResultDataContentType());
+        }
 
-        final List<Long> requestIds = group.getBatchJobRequestIds();
-        final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
-        groupSpecification.put("requests", requestParameterList);
-        for (final DataObject jobRequest : dataAccessObject.getBatchJobRequests(requestIds)) {
-          final long requestId = DataObjectUtil.getLong(jobRequest,
-            BatchJobRequest.BATCH_JOB_REQUEST_ID);
+        final Long requestId = group.getBatchJobRequestId();
+        DataObject jobRequest = dataAccessObject.getBatchJobRequest(requestId);
+        if (businessApplication.isPerRequestInputData()) {
+          final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
+          groupSpecification.put("requests", requestParameterList);
           final Map<String, Object> requestParameters = new HashMap<String, Object>();
           requestParameters.put("requestId", requestId);
-          if (businessApplication.isPerRequestInputData()) {
-            requestParameters.put("inputDataContentType",
-              jobRequest.getValue(BatchJobRequest.INPUT_DATA_CONTENT_TYPE));
-          } else {
-            final String structuredInputData = jobRequest.getString(BatchJobRequest.STRUCTURED_INPUT_DATA);
-            requestParameters.put("structuredInputData", structuredInputData);
-          }
-          if (businessApplication.isPerRequestResultData()) {
-            requestParameters.put("resultDataContentType",
-              group.getResultDataContentType());
-
-          }
+          requestParameters.put("inputDataContentType",
+            jobRequest.getValue(BatchJobRequest.INPUT_DATA_CONTENT_TYPE));
           requestParameterList.add(requestParameters);
+        } else {
+          final String structuredInputData = jobRequest.getString(BatchJobRequest.STRUCTURED_INPUT_DATA);
+          groupSpecification.put("requests", new StringPrinter(
+            structuredInputData));
         }
       }
       return groupSpecification;
@@ -317,7 +314,6 @@ public class InternalWebService {
       value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/results",
       method = RequestMethod.POST)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, ? extends Object> postBatchJobRequestExecutionGroupResults(
     @PathVariable("workerId") final String workerId,
     @PathVariable("batchJobId") final String batchJobId,
@@ -325,22 +321,23 @@ public class InternalWebService {
     @RequestBody final Map<String, Object> results)
     throws NoSuchRequestHandlingMethodException {
     checkRunning();
+    batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
+    
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
       "ExecutionGroupResultsConfirmation");
     map.put("workerId", workerId);
     map.put("batchJobId", batchJobId);
     map.put("groupId", groupId);
-    batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
     return map;
   }
 
-  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestId}/resultData")
+  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestSequenceNumber}/resultData")
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, ? extends Object> postBatchJobRequestOpaqueOutputData(
     @PathVariable("workerId") final String workerId,
     @PathVariable final Long batchJobId, @PathVariable final String groupId,
-    @PathVariable final long requestId, final InputStream in)
+    @PathVariable final long requestSequenceNumber, final InputStream in)
     throws NoSuchRequestHandlingMethodException {
     checkRunning();
     final BatchJobRequestExecutionGroup group = batchJobService.getBatchJobRequestExecutionGroup(
@@ -360,10 +357,9 @@ public class InternalWebService {
 
               try {
                 FileUtil.copy(in, file);
-                final DataObject batchJobRequest = dataAccessObject.getBatchJobRequestLocked(requestId);
-                if (batchJobRequest != null) {
+                if (!group.isCancelled()) {
                   batchJobService.createBatchJobResultOpaque(batchJobId,
-                    requestId, resultDataContentType, file);
+                    requestSequenceNumber, resultDataContentType, file);
                 }
               } finally {
                 FileUtil.closeSilent(in);
@@ -379,7 +375,7 @@ public class InternalWebService {
     map.put("workerId", workerId);
     map.put("batchJobId", batchJobId);
     map.put("groupId", groupId);
-    map.put("requestId", requestId);
+    map.put("requestSequenceNumber", requestSequenceNumber);
     return map;
 
   }
