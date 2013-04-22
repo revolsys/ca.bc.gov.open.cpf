@@ -72,8 +72,8 @@ COMMENT on column cpf_batch_job_results.who_created 'THIS IS THE DATABASE OR WEB
 COMMENT on column cpf_batch_job_results.when_created 'THIS IS THE DATE THAT THE OBJECT WAS CREATED.' succeeded.
 COMMENT on column cpf_batch_job_results.who_updated 'THIS IS THE DATABASE OR WEB USER THAT LAST UPDATED THE OBJECT.' succeeded.
 COMMENT on column cpf_batch_job_results.when_updated 'THIS IS THE DATE THAT THE OBJECT WAS LAST UPDATED.' succeeded.
-Creating Table 'CPF_BATCH_JOB_REQUESTS'
-table CPF_BATCH_JOB_REQUESTS created.
+Creating Table 'CPF_BATCH_JOB_EXECUTION_GROUPS'
+table CPF_BATCH_JOB_EXECUTION_GROUPS created.
 COMMENT on table cpf_batch_job_requests 'THE BATCH JOB REQUEST REPRESENTS A SINGLE REQUEST TO EXECUTE A BUSINESSAPPLICATION WITHIN A BATCH JOB. IT CONTAINS THE INPUT DATA, RESULT DATA AND ANY PERMANENT ERRORS.' succeeded.
 COMMENT on column cpf_batch_job_requests.batch_job_request_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB REQUEST.' succeeded.
 COMMENT on column cpf_batch_job_requests.batch_job_id 'THIS IS THE UNIQUE KEY FOR THE BATCH JOB.' succeeded.
@@ -279,10 +279,10 @@ SQL Error: ORA-00955: name is already used by an existing object
 *Action:
 Creating Index 'CPF_BJRS_CPF_BJ_FK_I'
 index CPF_BJRS_CPF_BJ_FK_I created.
-Creating Index 'CPF_BJRQ_CPF_BJ_FK_I'
-index CPF_BJRQ_CPF_BJ_FK_I created.
-Creating Index 'CPF_BJRQ_BJ_ID_STARTED_I'
-index CPF_BJRQ_BJ_ID_STARTED_I created.
+Creating Index 'CPF_BJEG_CPF_BJ_FK_I'
+index CPF_BJEG_CPF_BJ_FK_I created.
+Creating Index 'CPF_BJEG_BJ_ID_STARTED_I'
+index CPF_BJEG_BJ_ID_STARTED_I created.
 Creating Index 'CPF_BJ_STATUS_APP_NAME_I'
 index CPF_BJ_STATUS_APP_NAME_I created.
 Creating Index 'CPF_UGAX_CPF_UG_FK_I'
@@ -325,8 +325,8 @@ SQL Error: ORA-02260: table can have only one primary key
 *Action:   Remove the extra primary key.
 Creating Primary Key on 'CPF_BATCH_JOB_RESULTS'
 table CPF_BATCH_JOB_RESULTS altered.
-Creating Primary Key on 'CPF_BATCH_JOB_REQUESTS'
-table CPF_BATCH_JOB_REQUESTS altered.
+Creating Primary Key on 'CPF_BATCH_JOB_EXECUTION_GROUPS'
+table CPF_BATCH_JOB_EXECUTION_GROUPS altered.
 Creating Primary Key on 'CPF_APPLICATION_STATISTICS'
 
 Error starting at line 30 in command:
@@ -437,8 +437,8 @@ SQL Error: ORA-02275: such a referential constraint already exists in the table
 *Action:   Remove the extra constraint.
 Creating Foreign Key on 'CPF_BATCH_JOB_RESULTS'
 table CPF_BATCH_JOB_RESULTS altered.
-Creating Foreign Key on 'CPF_BATCH_JOB_REQUESTS'
-table CPF_BATCH_JOB_REQUESTS altered.
+Creating Foreign Key on 'CPF_BATCH_JOB_EXECUTION_GROUPS'
+table CPF_BATCH_JOB_EXECUTION_GROUPS altered.
 Creating Foreign Key on 'CPF_USER_GROUP_ACCOUNT_XREF'
 
 Error starting at line 121 in command:
@@ -542,10 +542,10 @@ SQL Error: ORA-00955: name is already used by an existing object
 00955. 00000 -  "name is already used by an existing object"
 *Cause:    
 *Action:
-Creating Sequence 'CPF_BJRQ_SEQ'
+Creating Sequence 'CPF_BJEG_SEQ'
 
 Error starting at line 48 in command:
-CREATE SEQUENCE CPF_BJRQ_SEQ
+CREATE SEQUENCE CPF_BJEG_SEQ
  NOMAXVALUE
  NOMINVALUE
  NOCYCLE
