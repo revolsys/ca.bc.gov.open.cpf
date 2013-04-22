@@ -1,19 +1,16 @@
 package ca.bc.gov.open.cpf.api.domain;
 
 /**
- * The BatchJobRequest represents a single request to execute a
- * BusinessApplication within a BatchJob. It contains the input data, result
- * data and any permanent errors.
- * 
- * @author Paul Austin
+ * The BatchJobExecutionGroup represents a group of request to execute a
+ * BusinessApplication within a BatchJob. It contains the input and result data.
  */
-public interface BatchJobRequest {
+public interface BatchJobExecutionGroup {
 
   String BATCH_JOB_ID = "BATCH_JOB_ID";
 
-  String BATCH_JOB_REQUEST = "/CPF/CPF_BATCH_JOB_REQUESTS";
+  String BATCH_JOB_EXECUTION_GROUP = "/CPF/CPF_BATCH_JOB_EXECUTION_GROUPS";
 
-  String BATCH_JOB_REQUEST_ID = "BATCH_JOB_REQUEST_ID";
+  String BATCH_JOB_EXECUTION_GROUP_ID = "BATCH_JOB_EXECUTION_GROUP_ID";
 
   String BATCH_JOB_RESULT_ID = "BATCH_JOB_RESULT_ID";
 
@@ -31,7 +28,7 @@ public interface BatchJobRequest {
 
   String INPUT_DATA_URL = "INPUT_DATA_URL";
 
-  String REQUEST_SEQUENCE_NUMBER = "REQUEST_SEQUENCE_NUMBER";
+  String SEQUENCE_NUMBER = "SEQUENCE_NUMBER";
 
   String RESULT_DATA = "RESULT_DATA";
 

@@ -7,7 +7,7 @@ import java.util.List;
  * The BatchJobResult is a result file generated after the execution of a
  * BatchJob. For structured output data one file will be generated containing
  * all the results. For opaque output data one file will be created for each
- * BatchJobRequest. A BatchJob may also have one file containing any errors
+ * BatchJobExecutionGroup. A BatchJob may also have one file containing any errors
  * generated.
  */
 public class BatchJobResult {
@@ -26,14 +26,14 @@ public class BatchJobResult {
 
   /**
    * The structuredResultData BatchJobResultType represents a file which
-   * contains the structured result data from all BusinessApplicationRequests
+   * contains the structured result data from all requests
    * for a BatchJob is a single file.
    */
   public static final String STRUCTURED_RESULT_DATA = "structuredResultData";
 
   /**
    * The opaqueResultData BatchJobResultType represents files containing opaque
-   * result data for a single BatchJobRequest.
+   * result data for a single BatchJobExecutionGroup.
    */
   public static final String OPAQUE_RESULT_DATA = "opaqueResultData";
 
@@ -49,7 +49,7 @@ public class BatchJobResult {
 
   public static final String DOWNLOAD_TIMESTAMP = "DOWNLOAD_TIMESTAMP";
 
-  public static final String REQUEST_SEQUENCE_NUMBER = "REQUEST_SEQUENCE_NUMBER";
+  public static final String SEQUENCE_NUMBER = "SEQUENCE_NUMBER";
 
   public static final String WHO_CREATED = "WHO_CREATED";
 
@@ -59,12 +59,12 @@ public class BatchJobResult {
 
   public static final String WHEN_UPDATED = "WHEN_UPDATED";
 
-  public static final String BATCH_JOB_REQUEST_ID = "BATCH_JOB_REQUEST_ID";
+  public static final String BATCH_JOB_EXECUTION_GROUP_ID = "BATCH_JOB_EXECUTION_GROUP_ID";
 
   public static final List<String> ALL_EXCEPT_BLOB = Arrays.asList(
     BATCH_JOB_RESULT_ID, BATCH_JOB_RESULT_TYPE, DOWNLOAD_TIMESTAMP,
-    REQUEST_SEQUENCE_NUMBER, RESULT_DATA_CONTENT_TYPE, RESULT_DATA_URL,
+    SEQUENCE_NUMBER, RESULT_DATA_CONTENT_TYPE, RESULT_DATA_URL,
     WHO_CREATED, WHEN_CREATED, WHO_UPDATED, WHEN_UPDATED, BATCH_JOB_ID,
-    BATCH_JOB_REQUEST_ID);
+    BATCH_JOB_EXECUTION_GROUP_ID);
 
 }

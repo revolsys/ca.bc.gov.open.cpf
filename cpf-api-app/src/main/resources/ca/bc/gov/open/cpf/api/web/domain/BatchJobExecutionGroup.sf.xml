@@ -10,30 +10,30 @@
 >
 
   <bean
-    name="/CPF/CPF_BATCH_JOB_REQUESTS-htmlbuilder"
-    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobRequestUiBuilder"
+    name="/CPF/CPF_BATCH_JOB_EXECUTION_GROUPS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobExecutionGroupUiBuilder"
     p:dataStore-ref="cpfDataStore"
   >
     <property name="pages">
       <list>
         <bean
+           p:name="moduleAppJobList"
           class="com.revolsys.ui.web.config.Page"
-          p:name="moduleAppJobList"
-          p:title="Batch Job {batchJobId} Requests"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/" />
+         p:title="Execution Groups"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/" />
         <bean
-          class="com.revolsys.ui.web.config.Page"
           p:name="moduleAppJobView"
-          p:title="Batch Job {batchJobId} Request {batchJobRequestId}"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}/" />
-        <bean
           class="com.revolsys.ui.web.config.Page"
-          p:name="inputData"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}/inputData" />
+          p:title="Batch Job {batchJobId} Execution Group {batchJobExecutionGroupId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}/" />
         <bean
-          class="com.revolsys.ui.web.config.Page"
+         p:name="inputData"
+           class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}/inputData" />
+        <bean
           p:name="resultData"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}/resultData" />
+          class="com.revolsys.ui.web.config.Page"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}/resultData" />
       </list>
     </property>
 
@@ -57,7 +57,7 @@
           p:label="Result Data Download"
           p:cssClass="ui-auto-button-disk"
           p:target="_top"
-          p:enabledExpression="#COMPLETED_IND == 1 and (#RESULT_DATA != null or #RESULT_DATA_URL != null)" />
+          p:enabledExpression="#COMPLETED_IND == 1" />
         <bean
           p:name="STARTED_IND"
           class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer"
@@ -106,11 +106,11 @@
         <entry key="moduleAppJobList">
           <list>
             <bean
-              p:name="BATCH_JOB_REQUEST_ID"
+              p:name="BATCH_JOB_EXECUTION_GROUP_ID"
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:label="ID"
               p:pageName="moduleAppJobView" />
-            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <value>SEQUENCE_NUMBER</value>
             <value>STARTED_IND</value>
             <value>COMPLETED_IND</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
@@ -121,14 +121,14 @@
         </entry>
         <entry key="moduleAppJobView">
           <list>
-            <value>BATCH_JOB_REQUEST_ID</value>
+            <value>BATCH_JOB_EXECUTION_GROUP_ID</value>
             <bean
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="BATCH_JOB_ID"
               p:label="Batch Job"
               p:pageName="moduleAppView"
               p:uiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder" />
-            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <value>SEQUENCE_NUMBER</value>
             <value>STARTED_IND</value>
             <value>COMPLETED_IND</value>
             <value>NUM_SUBMITTED_REQUESTS</value>

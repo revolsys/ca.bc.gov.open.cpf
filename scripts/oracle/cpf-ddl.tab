@@ -64,9 +64,9 @@ CREATE TABLE CPF_BATCH_JOB_RESULTS
  ,BATCH_JOB_ID NUMBER(19,0) NOT NULL
  ,BATCH_JOB_RESULT_TYPE VARCHAR2(50) NOT NULL
  ,RESULT_DATA_CONTENT_TYPE VARCHAR2(255) NOT NULL
- ,BATCH_JOB_REQUEST_ID NUMBER(19,0)
+ ,BATCH_JOB_EXECUTION_GROUP_ID NUMBER(19,0)
  ,DOWNLOAD_TIMESTAMP TIMESTAMP
- ,REQUEST_SEQUENCE_NUMBER NUMBER(19,0)
+ ,SEQUENCE_NUMBER NUMBER(19,0)
  ,RESULT_DATA BLOB
  ,RESULT_DATA_URL VARCHAR2(2000)
  ,WHO_CREATED VARCHAR2(36) NOT NULL
@@ -92,13 +92,13 @@ COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.BATCH_JOB_RESULT_TYPE IS 'This is the pu
 COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.RESULT_DATA_CONTENT_TYPE IS 'This is the MIME content type of the RESULT DATA or RESULT DATA URL for the BATCH JOB RESULT. For example text/csv or application/json.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.BATCH_JOB_REQUEST_ID IS 'This is the unique key for the BATCH JOB REQUEST.'
+COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.BATCH_JOB_EXECUTION_GROUP_ID IS 'This is the unique key for the BATCH JOB REQUEST.'
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.DOWNLOAD_TIMESTAMP IS 'This is the timestamp when the last byte was sent to the client for RESULT DATA or when the user was redirected to RESULT DATA URL.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.REQUEST_SEQUENCE_NUMBER IS 'This is the REQUEST SEQUENCE NUMBER of the BATCH JOB REQUEST if the BATCH JOB RESULT is of type opaqueResultData.'
+COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.SEQUENCE_NUMBER IS 'This is the REQUEST SEQUENCE NUMBER of the BATCH JOB REQUEST if the BATCH JOB RESULT is of type opaqueResultData.'
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.RESULT_DATA IS 'This is the byte content of the result file for the BATCH JOB RESULT. Either this or the RESULT DATA URL must be specfied.'
@@ -119,12 +119,12 @@ COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.WHO_UPDATED IS 'This is the database or 
 COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
 /
 
-PROMPT Creating Table 'CPF_BATCH_JOB_REQUESTS'
-CREATE TABLE CPF_BATCH_JOB_REQUESTS
- (BATCH_JOB_REQUEST_ID NUMBER(19,0) NOT NULL
+PROMPT Creating Table 'CPF_BATCH_JOB_EXECUTION_GROUPS'
+CREATE TABLE CPF_BATCH_JOB_EXECUTION_GROUPS
+ (BATCH_JOB_EXECUTION_GROUP_ID NUMBER(19,0) NOT NULL
  ,BATCH_JOB_ID NUMBER(19,0) NOT NULL
  ,BATCH_JOB_RESULT_ID NUMBER(19,0)
- ,REQUEST_SEQUENCE_NUMBER NUMBER(19,0) NOT NULL
+ ,SEQUENCE_NUMBER NUMBER(19,0) NOT NULL
  ,COMPLETED_IND NUMBER(1,0) NOT NULL
  ,STARTED_IND NUMBER(1,0) NOT NULL
  ,NUM_SUBMITTED_REQUESTS NUMBER(19,0) NOT NULL
@@ -145,67 +145,67 @@ CREATE TABLE CPF_BATCH_JOB_REQUESTS
  TABLESPACE CPF
 /
 
-COMMENT ON TABLE CPF_BATCH_JOB_REQUESTS IS 'The BATCH JOB REQUEST represents a single request to execute a BusinessApplication within a BATCH JOB. It contains the input data, result data and any permanent errors.'
+COMMENT ON TABLE CPF_BATCH_JOB_EXECUTION_GROUPS IS 'The BATCH JOB REQUEST represents a single request to execute a BusinessApplication within a BATCH JOB. It contains the input data, result data and any permanent errors.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.BATCH_JOB_REQUEST_ID IS 'This is the unique key for the BATCH JOB REQUEST.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.BATCH_JOB_EXECUTION_GROUP_ID IS 'This is the unique key for the BATCH JOB REQUEST.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.BATCH_JOB_ID IS 'This is the unique key for the BATCH JOB.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.BATCH_JOB_ID IS 'This is the unique key for the BATCH JOB.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.BATCH_JOB_RESULT_ID IS 'This is the unique key for the BATCH JOB RESULT.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.BATCH_JOB_RESULT_ID IS 'This is the unique key for the BATCH JOB RESULT.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.REQUEST_SEQUENCE_NUMBER IS 'This is the sequence number of the BATCH JOB REQUEST within a batch job. The sequence numbers start at one for the first input data record and increase by one for each subsequent record.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.SEQUENCE_NUMBER IS 'This is the sequence number of the BATCH JOB REQUEST within a batch job. The sequence numbers start at one for the first input data record and increase by one for each subsequent record.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.COMPLETED_IND IS 'This is the true (1), false (0) indicator that the BATCH JOB REQUEST was completed successfully or failed to complete.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.COMPLETED_IND IS 'This is the true (1), false (0) indicator that the BATCH JOB REQUEST was completed successfully or failed to complete.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.STARTED_IND IS 'This is the true (1), false (0) indicator that the BATCH JOB REQUEST was started to be processed.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.STARTED_IND IS 'This is the true (1), false (0) indicator that the BATCH JOB REQUEST was started to be processed.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.ERROR_CODE IS 'This is an error code describing the reason the BATCH JOB REQUEST failed to be processed. This code is designed to be processed by the client software. For example BAD_RESPONSE_DATA, MISSING_REQUIRED_PARAMETER, INVALID_PARAMETER_VALUE, INPUT_DATA_UNREADABLE, BAD_NUMBER_REQUESTS, TOO_MANY_REQUESTS, BAD_INPUT_DATA_TYPE, BAD_INPUT_DATA_VALUE, BAD_INPUT_DATA_VALUES, BAD_RESULT_DATA_TYPE, or ERROR_PROCESSING_REQUEST.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.ERROR_CODE IS 'This is an error code describing the reason the BATCH JOB REQUEST failed to be processed. This code is designed to be processed by the client software. For example BAD_RESPONSE_DATA, MISSING_REQUIRED_PARAMETER, INVALID_PARAMETER_VALUE, INPUT_DATA_UNREADABLE, BAD_NUMBER_REQUESTS, TOO_MANY_REQUESTS, BAD_INPUT_DATA_TYPE, BAD_INPUT_DATA_VALUE, BAD_INPUT_DATA_VALUES, BAD_RESULT_DATA_TYPE, or ERROR_PROCESSING_REQUEST.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.ERROR_DEBUG_MESSAGE IS 'This is an debug error message describing the reason the BATCH JOB REQUEST failed to be processed. It is designed for the application administrators to debug the cause of an error. It will not be exposed to clients.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.ERROR_DEBUG_MESSAGE IS 'This is an debug error message describing the reason the BATCH JOB REQUEST failed to be processed. It is designed for the application administrators to debug the cause of an error. It will not be exposed to clients.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.ERROR_MESSAGE IS 'This is an error message describing the reason the BATCH JOB REQUEST failed to be processed. It is designed to be read by the client users. The message may include a description of the data which caused the failure.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.ERROR_MESSAGE IS 'This is an error message describing the reason the BATCH JOB REQUEST failed to be processed. It is designed to be read by the client users. The message may include a description of the data which caused the failure.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.INPUT_DATA IS 'This is the binary opaque input data for a business application containing the input data for the BATCH JOB REQUEST. For business applications which accept opaque input data either this or the INPUT DATA URL must be specified.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.INPUT_DATA IS 'This is the binary opaque input data for a business application containing the input data for the BATCH JOB REQUEST. For business applications which accept opaque input data either this or the INPUT DATA URL must be specified.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.INPUT_DATA_URL IS 'This is the client application URL to binary opaque input data for a business application containing the inputdata for the BATCH JOB REQUEST. For business applications which accept opaque input data either this or the INPUT DATA must be specified.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.INPUT_DATA_URL IS 'This is the client application URL to binary opaque input data for a business application containing the inputdata for the BATCH JOB REQUEST. For business applications which accept opaque input data either this or the INPUT DATA must be specified.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.INPUT_DATA_CONTENT_TYPE IS 'This is the MIME content type forthe  INPUT DATA or INPUT DATA URL for a BATCH JOB REQUEST. For business applications accept opaque input data either this must be specified. For example text/csv or application/json.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.INPUT_DATA_CONTENT_TYPE IS 'This is the MIME content type forthe  INPUT DATA or INPUT DATA URL for a BATCH JOB REQUEST. For business applications accept opaque input data either this must be specified. For example text/csv or application/json.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.RESULT_DATA IS 'This is the binary result data returned from a business application containing the result data for the BATCH JOB REQUEST. For business applications which return opaque result data either this or the RESULT DATA URL must be specified for successful BATCH JOB REQUESTS.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.RESULT_DATA IS 'This is the binary result data returned from a business application containing the result data for the BATCH JOB REQUEST. For business applications which return opaque result data either this or the RESULT DATA URL must be specified for successful BATCH JOB REQUESTS.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.RESULT_DATA_URL IS 'This is the URL returned from a business application containing the result data for the BATCH JOB REQUEST. For business applications which return opaque result data either this or the RESULT DATA must be specified for successful BATCH JOB REQUESTS.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.RESULT_DATA_URL IS 'This is the URL returned from a business application containing the result data for the BATCH JOB REQUEST. For business applications which return opaque result data either this or the RESULT DATA must be specified for successful BATCH JOB REQUESTS.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.STRUCTURED_INPUT_DATA IS 'This is the structured input data for the BATCH JOB used to create the BATCH JOB REQUESTS. Either this or the STRUCTURED INPUT DATA URL can be specified for a business application which supports structured input data.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.STRUCTURED_INPUT_DATA IS 'This is the structured input data for the BATCH JOB used to create the BATCH JOB REQUESTS. Either this or the STRUCTURED INPUT DATA URL can be specified for a business application which supports structured input data.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.STRUCTURED_RESULT_DATA IS 'This is the JSON encoded structured result data returned from the business application for the BATCH JOB REQUEST. For business applications which return structuredresult data this must be specified for successful BATCH JOB REQUESTS.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.STRUCTURED_RESULT_DATA IS 'This is the JSON encoded structured result data returned from the business application for the BATCH JOB REQUEST. For business applications which return structuredresult data this must be specified for successful BATCH JOB REQUESTS.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.WHO_CREATED IS 'This is the database or web user that created the object.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.WHO_CREATED IS 'This is the database or web user that created the object.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.WHEN_CREATED IS 'This is the date that the object was created.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.WHEN_CREATED IS 'This is the date that the object was created.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.WHO_UPDATED IS 'This is the database or web user that last updated the object.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_REQUESTS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
+COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.WHEN_UPDATED IS 'This is the date that the object was last updated.'
 /
 
 PROMPT Creating Table 'CPF_APPLICATION_STATISTICS'

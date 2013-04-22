@@ -217,7 +217,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   /**
    * <h2>Fields</h2>
    * 
-   * requestId long
+   * batchJobExecutionGroupId long
    * requestSequenceNumber long
    * perRequestResultData boolean
    * 
@@ -241,12 +241,12 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     final StopWatch requestStopWatch = new StopWatch("Request");
     requestStopWatch.start();
 
-    Number requestId = (Number)requestParameters.remove("requestId");
+    Number batchJobExecutionGroupId = (Number)requestParameters.remove("batchJobExecutionGroupId");
     Number requestSequenceNumber = (Number)requestParameters.remove("requestSequenceNumber");
     final boolean perRequestResultData = businessApplication.isPerRequestResultData();
 
     final Map<String, Object> requestResult = new LinkedHashMap<String, Object>();
-    requestResult.put("requestId", requestId);
+    requestResult.put("batchJobExecutionGroupId", batchJobExecutionGroupId);
     requestResult.put("requestSequenceNumber", requestSequenceNumber);
     requestResult.put("perRequestResultData", perRequestResultData);
 
@@ -267,7 +267,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           // TODO urls for per request input data
           // final String inputDataUrl = httpClient.getOAuthUrl("GET",
           // "/worker/workers/" + workerId + "/jobs/" + batchJobId
-          // + "/groups/" + groupId + "/requests/" + requestId
+          // + "/groups/" + groupId + "/requests/" + batchJobExecutionGroupId
           // + "/inputData");
           // parameters.put("inputDataUrl", inputDataUrl);
         }
@@ -308,7 +308,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           }
           final List<Map<String, Object>> results = plugin.getResults();
           requestResult.put("results", results);
-          sendResultData(requestId, requestResult, parameters, resultFile,
+          sendResultData(batchJobExecutionGroupId, requestResult, parameters, resultFile,
             resultData);
 
         } catch (final IllegalArgumentException e) {
@@ -382,7 +382,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     return parameters;
   }
 
-  public void sendResultData(final Number requestId,
+  public void sendResultData(final Number batchJobExecutionGroupId,
     final Map<String, Object> requestResult,
     final Map<String, Object> parameters, final File resultFile,
     final OutputStream resultData) {
@@ -393,7 +393,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         final String resultDataContentType = (String)parameters.get("resultDataContentType");
         final String resultDataUrl = httpClient.getUrl("/worker/workers/"
           + workerId + "/jobs/" + batchJobId + "/groups/" + groupId
-          + "/requests/" + requestId + "/resultData");
+          + "/requests/" + batchJobExecutionGroupId + "/resultData");
 
         final HttpResponse response = httpClient.postResource(resultDataUrl,
           resultDataContentType, resultFile);

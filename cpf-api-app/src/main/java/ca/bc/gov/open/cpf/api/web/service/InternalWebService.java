@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobRequest;
+import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
@@ -125,18 +125,18 @@ public class InternalWebService {
             group.getResultDataContentType());
         }
 
-        final Long requestId = group.getBatchJobRequestId();
-        DataObject jobRequest = dataAccessObject.getBatchJobRequest(requestId);
+        final Long batchJobExecutionGroupId = group.getBatchJobExecutionGroupId();
+        DataObject jobRequest = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
         if (businessApplication.isPerRequestInputData()) {
           final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
           groupSpecification.put("requests", requestParameterList);
           final Map<String, Object> requestParameters = new HashMap<String, Object>();
-          requestParameters.put("requestId", requestId);
+          requestParameters.put("batchJobExecutionGroupId", batchJobExecutionGroupId);
           requestParameters.put("inputDataContentType",
-            jobRequest.getValue(BatchJobRequest.INPUT_DATA_CONTENT_TYPE));
+            jobRequest.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE));
           requestParameterList.add(requestParameters);
         } else {
-          final String structuredInputData = jobRequest.getString(BatchJobRequest.STRUCTURED_INPUT_DATA);
+          final String structuredInputData = jobRequest.getString(BatchJobExecutionGroup.STRUCTURED_INPUT_DATA);
           groupSpecification.put("requests", new StringPrinter(
             structuredInputData));
         }
@@ -145,16 +145,16 @@ public class InternalWebService {
     }
   }
 
-  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestId}/inputData")
+  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{batchJobExecutionGroupIds}/inputData")
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void getBatchJobRequestOpaqueInputData(
+  public void getBatchJobExecutionGroupOpaqueInputData(
     @PathVariable("workerId") final String workerId,
     final HttpServletResponse response, @PathVariable final long batchJobId,
-    @PathVariable final long requestId)
+    @PathVariable final long batchJobExecutionGroupId)
     throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    final DataObject batchJobRequest = dataAccessObject.getBatchJobRequest(requestId);
-    if (batchJobRequest == null) {
+    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
+    if (batchJobExecutionGroup == null) {
       throw new NoSuchRequestHandlingMethodException(
         HttpServletUtils.getRequest());
     } else {
@@ -166,14 +166,14 @@ public class InternalWebService {
         throw new NoSuchRequestHandlingMethodException(
           HttpServletUtils.getRequest());
       } else {
-        final String inputDataContentType = batchJobRequest.getValue(BatchJobRequest.INPUT_DATA_CONTENT_TYPE);
-        final String inputDataUrl = batchJobRequest.getValue(BatchJobRequest.INPUT_DATA_URL);
+        final String inputDataContentType = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE);
+        final String inputDataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_URL);
         if (inputDataUrl != null) {
           response.setStatus(HttpServletResponse.SC_SEE_OTHER);
           response.setHeader("Location", inputDataUrl);
           return;
         } else {
-          final Blob inputData = batchJobRequest.getValue(BatchJobRequest.INPUT_DATA);
+          final Blob inputData = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA);
           if (inputData == null) {
             throw new NoSuchRequestHandlingMethodException(
               HttpServletUtils.getRequest());
@@ -334,7 +334,7 @@ public class InternalWebService {
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestSequenceNumber}/resultData")
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public Map<String, ? extends Object> postBatchJobRequestOpaqueOutputData(
+  public Map<String, ? extends Object> postBatchJobExecutionGroupOpaqueOutputData(
     @PathVariable("workerId") final String workerId,
     @PathVariable final Long batchJobId, @PathVariable final String groupId,
     @PathVariable final long requestSequenceNumber, final InputStream in)

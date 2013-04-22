@@ -18,12 +18,12 @@
         <bean
           p:name="moduleAppJobList"
           class="com.revolsys.ui.web.config.Page"
-          p:title="Batch Job {batchJobId} Results"
+          p:title="Result Files"
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/" />
         <bean
           p:name="moduleAppJobView"
           class="com.revolsys.ui.web.config.Page"
-          p:title="Batch Job {batchJobId} Result {batchJobResultId}"
+          p:title="Batch Job {batchJobId} Result File {batchJobResultId}"
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}/" />
         <bean
           p:name="download"
@@ -79,7 +79,7 @@
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:pageName="moduleAppJobView"
               p:label="ID" />
-            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <value>SEQUENCE_NUMBER</value>
             <value>BATCH_JOB_RESULT_TYPE</value>
             <value>WHEN_CREATED</value>
             <value>DOWNLOAD_TIMESTAMP</value>
@@ -95,13 +95,13 @@
               p:label="Batch Job"
               p:pageName="moduleAppView"
               p:uiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder" />
-            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <value>SEQUENCE_NUMBER</value>
             <bean
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
-              p:name="BATCH_JOB_REQUEST_ID"
+              p:name="BATCH_JOB_EXECUTION_GROUP_ID"
               p:label="Request"
               p:pageName="moduleAppJobView"
-              p:uiBuilder-ref="/CPF/CPF_BATCH_JOB_REQUESTS-htmlbuilder" />
+              p:uiBuilder-ref="/CPF/CPF_BATCH_JOB_EXECUTION_GROUPS-htmlbuilder" />
             <value>BATCH_JOB_RESULT_TYPE</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
             <value>DOWNLOAD_TIMESTAMP</value>
@@ -115,7 +115,7 @@
         <entry key="clientList">
           <list>
             <value>BATCH_JOB_RESULT_TYPE</value>
-            <value>REQUEST_SEQUENCE_NUMBER</value>
+            <value>SEQUENCE_NUMBER</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
             <bean
               p:name="clientView"

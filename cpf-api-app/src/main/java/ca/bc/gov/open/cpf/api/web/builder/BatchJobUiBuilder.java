@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobRequest;
+import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
@@ -150,7 +150,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
     final Map<String, Object> parameters = new HashMap<String, Object>();
     parameters.put("serverSide", Boolean.TRUE);
 
-    addTabDataTable(tabs, BatchJobRequest.BATCH_JOB_REQUEST,
+    addTabDataTable(tabs, BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
       "moduleAppJobList", parameters);
 
     addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList",

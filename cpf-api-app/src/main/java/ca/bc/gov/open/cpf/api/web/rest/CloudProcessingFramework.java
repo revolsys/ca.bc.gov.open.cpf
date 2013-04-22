@@ -715,7 +715,7 @@ public class CloudProcessingFramework {
               try {
                 final org.springframework.core.io.Resource resource = new InputStreamResource(
                   "in", in, file.getSize());
-                dataAccessObject.createBatchJobRequest(batchJobId,
+                dataAccessObject.createBatchJobExecutionGroup(batchJobId,
                   ++requestSequenceNumber, inputDataContentType, resource);
               } finally {
                 InvokeMethodAfterCommit.invoke(in, "close");
@@ -723,7 +723,7 @@ public class CloudProcessingFramework {
             }
           } else {
             for (final String inputDataUrl : inputDataUrls) {
-              dataAccessObject.createBatchJobRequest(batchJobId,
+              dataAccessObject.createBatchJobExecutionGroup(batchJobId,
                 ++requestSequenceNumber, inputDataContentType,
                 inputDataUrl.trim());
             }
@@ -950,17 +950,17 @@ public class CloudProcessingFramework {
       dataAccessObject.write(batchJob);
       if (perRequestInputData) {
         if (inputDataIn != null) {
-          dataAccessObject.createBatchJobRequest(batchJobId, 1,
+          dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1,
             inputDataContentType, inputDataIn);
         } else {
-          dataAccessObject.createBatchJobRequest(batchJobId, 1,
+          dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1,
             inputDataContentType, inputDataUrl);
         }
       } else {
         inputData.put("requestSequenceNumber", 1);
         final String inputDataString = JsonDataObjectIoFactory.toString(
           requestMetaData, Collections.singletonList(inputData));
-        dataAccessObject.createBatchJobRequest(batchJobId, 1, inputDataString, 1);
+        dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1, inputDataString, 1);
       }
 
       batchJobService.schedule(businessApplicationName, batchJobId);
@@ -2959,8 +2959,8 @@ public class CloudProcessingFramework {
             resultPage.setAttribute("batchJobResultContentType",
               batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
             if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
-              resultPage.setAttribute("batchJobRequestSequenceNumber",
-                batchJobResult.getValue(BatchJobResult.REQUEST_SEQUENCE_NUMBER));
+              resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
+                batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));
             }
           }
         }

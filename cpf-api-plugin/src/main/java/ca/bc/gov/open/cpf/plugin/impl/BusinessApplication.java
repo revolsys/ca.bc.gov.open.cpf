@@ -126,14 +126,14 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   /**
    * The perRequestInputData flag indicates if the input data must be specified
-   * as opaque data for each BatchJobRequest (true) or in one structured data
+   * as opaque data for each BatchJobExecutionGroup (true) or in one structured data
    * file for the whole Batch Job (false).
    */
   private boolean perRequestInputData;
 
   /**
    * The perRequestResultData flag indicates if the result data will be returned
-   * as one opaque data file for each BatchJobRequest (true) or in one
+   * as one opaque data file for each BatchJobExecutionGroup (true) or in one
    * structured data file for the whole Batch Job (false).
    */
   private boolean perRequestResultData;

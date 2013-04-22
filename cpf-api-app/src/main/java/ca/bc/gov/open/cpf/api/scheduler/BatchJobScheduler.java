@@ -64,7 +64,7 @@ public class BatchJobScheduler extends
     final BatchJobScheduleInfo resultJobInfo = new BatchJobScheduleInfo(
       businessApplicationName, batchJobId);
     try {
-      if (batchJobService.scheduleBatchJobRequests(batchJobId)) {
+      if (batchJobService.scheduleBatchJobExecutionGroups(batchJobId)) {
         resultJobInfo.setActions(BatchJobScheduleInfo.SCHEDULE_FINISHED,
           BatchJobScheduleInfo.SCHEDULE);
       } else {

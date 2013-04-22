@@ -83,57 +83,62 @@ public class CpfDataAccessObject {
     return dataStore.create(typeName);
   }
 
-  protected DataObject createBatchJobRequest(final long batchJobId,
+  protected DataObject createBatchJobExecutionGroup(final long batchJobId,
     final int requestSequenceNumber, final int requestCount) {
-    final DataObject batchJobRequest = create(BatchJobRequest.BATCH_JOB_REQUEST);
-    batchJobRequest.setValue(BatchJobRequest.BATCH_JOB_ID, batchJobId);
-    batchJobRequest.setValue(BatchJobRequest.COMPLETED_IND, 0);
-    batchJobRequest.setValue(BatchJobRequest.STARTED_IND, 0);
-    batchJobRequest.setValue(BatchJobRequest.NUM_SUBMITTED_REQUESTS,
-      requestCount);
-    batchJobRequest.setValue(BatchJobRequest.NUM_COMPLETED_REQUESTS, 0);
-    batchJobRequest.setValue(BatchJobRequest.NUM_FAILED_REQUESTS, 0);
-    batchJobRequest.setValue(BatchJobRequest.REQUEST_SEQUENCE_NUMBER,
+    final DataObject batchJobExecutionGroup = create(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.BATCH_JOB_ID,
+      batchJobId);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 0);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.STARTED_IND, 0);
+    batchJobExecutionGroup.setValue(
+      BatchJobExecutionGroup.NUM_SUBMITTED_REQUESTS, requestCount);
+    batchJobExecutionGroup.setValue(
+      BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, 0);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.NUM_FAILED_REQUESTS,
+      0);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.SEQUENCE_NUMBER,
       requestSequenceNumber);
-    return batchJobRequest;
+    return batchJobExecutionGroup;
   }
 
-  public DataObject createBatchJobRequest(final long batchJobId,
+  public DataObject createBatchJobExecutionGroup(final long batchJobId,
     final int requestSequenceNumber, final String structuredInputData,
     final int requestCount) {
-    final DataObject batchJobRequest = createBatchJobRequest(batchJobId,
-      requestSequenceNumber, requestCount);
-    batchJobRequest.setValue(BatchJobRequest.STRUCTURED_INPUT_DATA,
-      structuredInputData);
-    write(batchJobRequest);
-    return batchJobRequest;
+    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+      batchJobId, requestSequenceNumber, requestCount);
+    batchJobExecutionGroup.setValue(
+      BatchJobExecutionGroup.STRUCTURED_INPUT_DATA, structuredInputData);
+    write(batchJobExecutionGroup);
+    return batchJobExecutionGroup;
   }
 
-  public DataObject createBatchJobRequest(final long batchJobId,
+  public DataObject createBatchJobExecutionGroup(final long batchJobId,
     final int requestSequenceNumber, final String inputDataContentType,
     final Resource inputData) {
-    final DataObject batchJobRequest = createBatchJobRequest(batchJobId,
-      requestSequenceNumber, 1);
-    batchJobRequest.setValue(BatchJobRequest.INPUT_DATA_CONTENT_TYPE,
-      inputDataContentType);
-    batchJobRequest.setValue(BatchJobRequest.INPUT_DATA, inputData);
-    write(batchJobRequest);
-    return batchJobRequest;
+    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+      batchJobId, requestSequenceNumber, 1);
+    batchJobExecutionGroup.setValue(
+      BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE, inputDataContentType);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.INPUT_DATA,
+      inputData);
+    write(batchJobExecutionGroup);
+    return batchJobExecutionGroup;
   }
 
-  public DataObject createBatchJobRequest(final long batchJobId,
+  public DataObject createBatchJobExecutionGroup(final long batchJobId,
     final int requestSequenceNumber, final String inputDataContentType,
     final String inputDataUrl) {
-    final DataObject batchJobRequest = createBatchJobRequest(batchJobId,
-      requestSequenceNumber, 1);
-    batchJobRequest.setValue(BatchJobRequest.INPUT_DATA_CONTENT_TYPE,
-      inputDataContentType);
-    batchJobRequest.setValue(BatchJobRequest.INPUT_DATA_URL, inputDataUrl);
-    write(batchJobRequest);
-    return batchJobRequest;
+    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+      batchJobId, requestSequenceNumber, 1);
+    batchJobExecutionGroup.setValue(
+      BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE, inputDataContentType);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.INPUT_DATA_URL,
+      inputDataUrl);
+    write(batchJobExecutionGroup);
+    return batchJobExecutionGroup;
   }
 
-  public DataObject createBatchJobRequest(final long batchJobId,
+  public DataObject createBatchJobExecutionGroup(final long batchJobId,
     final int requestSequenceNumber, final String errorCode,
     final String errorMessage, final String errorDebugMessage) {
     final Map<String, Object> error = new HashMap<String, Object>();
@@ -143,12 +148,14 @@ public class CpfDataAccessObject {
     error.put("errorDebugMessage", errorDebugMessage);
     final List<Map<String, Object>> resultData = Collections.singletonList(error);
 
-    final DataObject batchJobRequest = createBatchJobRequest(batchJobId, 1, 1);
-    batchJobRequest.setValue(BatchJobRequest.STRUCTURED_RESULT_DATA, resultData);
-    batchJobRequest.setValue(BatchJobRequest.STARTED_IND, 1);
-    batchJobRequest.setValue(BatchJobRequest.COMPLETED_IND, 1);
-    write(batchJobRequest);
-    return batchJobRequest;
+    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+      batchJobId, 1, 1);
+    batchJobExecutionGroup.setValue(
+      BatchJobExecutionGroup.STRUCTURED_RESULT_DATA, resultData);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.STARTED_IND, 1);
+    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 1);
+    write(batchJobExecutionGroup);
+    return batchJobExecutionGroup;
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
@@ -251,7 +258,7 @@ public class CpfDataAccessObject {
   @Transactional(propagation = Propagation.REQUIRED)
   public int deleteBatchJob(final Long batchJobId) {
     deleteBatchJobResults(batchJobId);
-    deleteBatchJobRequests(batchJobId);
+    deleteBatchJobExecutionGroups(batchJobId);
 
     final Query query = new Query(BatchJob.BATCH_JOB);
     query.addFilter(BatchJob.BATCH_JOB_ID, batchJobId);
@@ -259,9 +266,10 @@ public class CpfDataAccessObject {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public int deleteBatchJobRequests(final Long batchJobId) {
-    final Query query = new Query(BatchJobRequest.BATCH_JOB_REQUEST);
-    query.addFilter(BatchJobRequest.BATCH_JOB_ID, batchJobId);
+  public int deleteBatchJobExecutionGroups(final Long batchJobId) {
+    final Query query = new Query(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     return dataStore.delete(query);
   }
 
@@ -412,33 +420,40 @@ public class CpfDataAccessObject {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public DataObject getBatchJobRequest(final long batchJobRequestId) {
-    return dataStore.load(BatchJobRequest.BATCH_JOB_REQUEST, batchJobRequestId);
+  public DataObject getBatchJobExecutionGroup(
+    final long batchJobExecutionGroupId) {
+    return dataStore.load(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
+      batchJobExecutionGroupId);
   }
 
-  public Reader<DataObject> getBatchJobRequestIds(final long batchJobId) {
-    final Query query = new Query(BatchJobRequest.BATCH_JOB_REQUEST);
-    query.setAttributeNames(BatchJobRequest.BATCH_JOB_REQUEST_ID);
-    query.addFilter(BatchJobRequest.BATCH_JOB_ID, batchJobId);
-    query.addOrderBy(BatchJobRequest.REQUEST_SEQUENCE_NUMBER, true);
+  public Reader<DataObject> getBatchJobExecutionGroupIds(final long batchJobId) {
+    final Query query = new Query(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    query.setAttributeNames(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
+    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
+    query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
     final Reader<DataObject> reader = dataStore.query(query);
     return reader;
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public DataObject getBatchJobRequestLocked(final long batchJobRequestId) {
-    return dataStore.load(BatchJobRequest.BATCH_JOB_REQUEST, batchJobRequestId);
+  public DataObject getBatchJobExecutionGroupLocked(
+    final long batchJobExecutionGroupId) {
+    return dataStore.load(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
+      batchJobExecutionGroupId);
   }
 
-  public List<DataObject> getBatchJobRequests(final List<Long> requestIds) {
-    final Query query = new Query(BatchJobRequest.BATCH_JOB_REQUEST);
-    query.setWhereClause("BATCH_JOB_REQUEST_ID IN ("
-      + CollectionUtil.toString(requestIds) + ")");
-    final Reader<DataObject> batchJobRequests = dataStore.query(query);
+  public List<DataObject> getBatchJobExecutionGroups(
+    final List<Long> batchJobExecutionGroupIds) {
+    final Query query = new Query(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    query.setWhereClause("BATCH_JOB_EXECUTION_GROUP_ID IN ("
+      + CollectionUtil.toString(batchJobExecutionGroupIds) + ")");
+    final Reader<DataObject> batchJobExecutionGroups = dataStore.query(query);
     try {
-      return batchJobRequests.read();
+      return batchJobExecutionGroups.read();
     } finally {
-      batchJobRequests.close();
+      batchJobExecutionGroups.close();
     }
   }
 
@@ -545,19 +560,20 @@ public class CpfDataAccessObject {
   }
 
   public Long getNonExecutingRequestId(final Long batchJobId) {
-    final Query query = new Query(BatchJobRequest.BATCH_JOB_REQUEST);
-    query.setAttributeNames(BatchJobRequest.BATCH_JOB_REQUEST_ID);
-    query.addFilter(BatchJobRequest.BATCH_JOB_ID, batchJobId);
-    query.addFilter(BatchJobRequest.STARTED_IND, 0);
-    query.addFilter(BatchJobRequest.COMPLETED_IND, 0);
-    query.addOrderBy(BatchJobRequest.REQUEST_SEQUENCE_NUMBER, true);
+    final Query query = new Query(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    query.setAttributeNames(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
+    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
+    query.addFilter(BatchJobExecutionGroup.STARTED_IND, 0);
+    query.addFilter(BatchJobExecutionGroup.COMPLETED_IND, 0);
+    query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
     query.setLimit(1);
-    final DataObject batchJobRequest = dataStore.queryFirst(query);
-    if (batchJobRequest == null) {
+    final DataObject batchJobExecutionGroup = dataStore.queryFirst(query);
+    if (batchJobExecutionGroup == null) {
       return null;
     } else {
-      return DataObjectUtil.getLong(batchJobRequest,
-        BatchJobRequest.BATCH_JOB_REQUEST_ID);
+      return DataObjectUtil.getLong(batchJobExecutionGroup,
+        BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
     }
   }
 
@@ -805,7 +821,7 @@ public class CpfDataAccessObject {
     final Map<String, Object> defaultProperties,
     final Map<String, Object> resultData) {
     final List<Map<String, Object>> results = (List<Map<String, Object>>)resultData.get("results");
-    final Number sequenceNumber = (Number)resultData.get(BatchJobRequest.REQUEST_SEQUENCE_NUMBER);
+    final Number sequenceNumber = (Number)resultData.get(BatchJobExecutionGroup.SEQUENCE_NUMBER);
     int i = 1;
     for (final Map<String, Object> structuredResultMap : results) {
       final DataObject structuredResult = DataObjectUtil.getObject(
@@ -870,14 +886,14 @@ public class CpfDataAccessObject {
     final DataSource dataSource = jdbcDataStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, LAST_SCHEDULED_TIMESTAMP = NULL, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "NUM_COMPLETED_GROUPS = NUM_SUBMITTED_GROUPS, NUM_SCHEDULED_GROUPS = 0, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, LAST_SCHEDULED_TIMESTAMP = NULL, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
       + "WHERE JOB_STATUS IN ('creatingRequests','creatingResults') AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       return JdbcUtils.executeUpdate(dataSource, sql, now, now, now,
         getUsername(), batchJobId) == 1;
     } catch (final SQLException e) {
-      throw new RuntimeException("Unable to set started status", e);
+      throw new RuntimeException("Unable to set job completed " + batchJobId, e);
     }
   }
 
@@ -895,7 +911,8 @@ public class CpfDataAccessObject {
       return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
         batchJobId) == 1;
     } catch (final SQLException e) {
-      throw new RuntimeException("Unable to set started status", e);
+      throw new RuntimeException("Unable to set job downloaded " + batchJobId,
+        e);
     }
   }
 
@@ -917,13 +934,14 @@ public class CpfDataAccessObject {
     }
   }
 
-  public void setBatchJobRequestsStarted(final Long batchJobRequestId) {
+  public void setBatchJobExecutionGroupsStarted(
+    final Long batchJobExecutionGroupId) {
     if (dataStore instanceof JdbcDataObjectStore) {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOB_REQUESTS SET STARTED_IND = 1 WHERE BATCH_JOB_REQUEST_ID = ?";
+      final String sql = "UPDATE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS SET STARTED_IND = 1 WHERE BATCH_JOB_EXECUTION_GROUP_ID = ?";
       try {
-        JdbcUtils.executeUpdate(dataSource, sql, batchJobRequestId);
+        JdbcUtils.executeUpdate(dataSource, sql, batchJobExecutionGroupId);
       } catch (final SQLException e) {
         throw new RuntimeException("Unable to set started status", e);
       }
@@ -1076,33 +1094,34 @@ public class CpfDataAccessObject {
 
   @SuppressWarnings("unchecked")
   @Transactional(propagation = Propagation.REQUIRED)
-  public void updateBatchJobRequestFromResponse(final String workerId,
-    final BatchJobRequestExecutionGroup group, final Long requestId,
+  public void updateBatchJobExecutionGroupFromResponse(final String workerId,
+    final BatchJobRequestExecutionGroup group,
+    final Long batchJobExecutionGroupId,
     final List<Map<String, Object>> results, final int successCount,
     final int errorCount) {
     if (results != null) {
       for (final Map<String, Object> result : results) {
         final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)result.remove("logRecords");
         BatchJobService.logGroup(workerId, group, logRecords,
-          "Request Execution", "Application Log",
-          Collections.singletonMap("requestId", requestId));
+          "Request Execution", "Application Log", Collections.singletonMap(
+            "batchJobExecutionGroupId", batchJobExecutionGroupId));
       }
 
-      final DataObject batchJobRequest = getBatchJobRequestLocked(requestId);
-      if (0 == batchJobRequest.getInteger(BatchJobRequest.COMPLETED_IND)) {
+      final DataObject batchJobExecutionGroup = getBatchJobExecutionGroupLocked(batchJobExecutionGroupId);
+      if (0 == batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.COMPLETED_IND)) {
         final String resultData = JsonMapIoFactory.toString(results);
-        batchJobRequest.setValue(BatchJobRequest.COMPLETED_IND, 1);
-        batchJobRequest.setValue(BatchJobRequest.STRUCTURED_RESULT_DATA,
-          resultData);
-        final int numCompletedRequests = batchJobRequest.getInteger(BatchJobRequest.NUM_COMPLETED_REQUESTS)
+        batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 1);
+        batchJobExecutionGroup.setValue(
+          BatchJobExecutionGroup.STRUCTURED_RESULT_DATA, resultData);
+        final int numCompletedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS)
           + successCount;
-        batchJobRequest.setValue(BatchJobRequest.NUM_COMPLETED_REQUESTS,
-          numCompletedRequests);
-        final int numFailedRequests = batchJobRequest.getInteger(BatchJobRequest.NUM_FAILED_REQUESTS)
+        batchJobExecutionGroup.setValue(
+          BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, numCompletedRequests);
+        final int numFailedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_FAILED_REQUESTS)
           + errorCount;
-        batchJobRequest.setValue(BatchJobRequest.NUM_FAILED_REQUESTS,
-          numFailedRequests);
-        write(batchJobRequest);
+        batchJobExecutionGroup.setValue(
+          BatchJobExecutionGroup.NUM_FAILED_REQUESTS, numFailedRequests);
+        write(batchJobExecutionGroup);
       }
     }
   }
@@ -1139,7 +1158,7 @@ public class CpfDataAccessObject {
     if (dataStore instanceof JdbcDataObjectStore) {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOB_REQUESTS SET STARTED_IND = 0 WHERE STARTED_IND = 1 AND COMPLETED_IND = 0 AND BATCH_JOB_ID IN (SELECT BATCH_JOB_ID FROM CPF.CPF_BATCH_JOBS WHERE BUSINESS_APPLICATION_NAME = ?)";
+      final String sql = "UPDATE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS SET STARTED_IND = 0 WHERE STARTED_IND = 1 AND COMPLETED_IND = 0 AND BATCH_JOB_ID IN (SELECT BATCH_JOB_ID FROM CPF.CPF_BATCH_JOBS WHERE BUSINESS_APPLICATION_NAME = ?)";
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, businessApplicationName);
       } catch (final SQLException e) {
@@ -1184,19 +1203,21 @@ public class CpfDataAccessObject {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public int writeGroupResult(final long batchJobRequestId,
+  public int writeGroupResult(final long batchJobExecutionGroupId,
     final BusinessApplication application,
     final DataObjectMetaData resultMetaData, final MapWriter errorResultWriter,
     final com.revolsys.io.Writer<DataObject> structuredResultWriter,
     final Map<String, Object> defaultProperties) {
 
-    final Query query = new Query(BatchJobRequest.BATCH_JOB_REQUEST);
-    query.setAttributeNames(BatchJobRequest.STRUCTURED_RESULT_DATA);
-    query.addFilter(BatchJobRequest.BATCH_JOB_REQUEST_ID, batchJobRequestId);
+    final Query query = new Query(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    query.setAttributeNames(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
+    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID,
+      batchJobExecutionGroupId);
     final Reader<DataObject> reader = getDataStore().query(query);
     try {
-      for (final DataObject batchJobRequest : reader) {
-        final Object resultDataObject = batchJobRequest.getValue(BatchJobRequest.STRUCTURED_RESULT_DATA);
+      for (final DataObject batchJobExecutionGroup : reader) {
+        final Object resultDataObject = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
 
         if (resultDataObject != null) {
           final Map<String, Object> resultDataMap = JsonParser.read(resultDataObject);

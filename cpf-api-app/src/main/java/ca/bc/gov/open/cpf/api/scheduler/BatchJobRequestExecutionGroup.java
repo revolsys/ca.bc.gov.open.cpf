@@ -10,7 +10,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 public class BatchJobRequestExecutionGroup {
   private final long batchJobId;
 
-  private Long batchJobRequestId;
+  private Long batchJobExecutionGroupId;
 
   private final BusinessApplication businessApplication;
 
@@ -38,7 +38,7 @@ public class BatchJobRequestExecutionGroup {
     final long batchJobId, final BusinessApplication businessApplication,
     final Map<String, String> businessApplicationParameterMap,
     final String resultDataContentType, final Timestamp scheduleTimestamp,
-    Long batchJobRequestId) {
+    Long batchJobExecutionGroupId) {
     this.consumerKey = consumerKey;
     this.batchJobId = batchJobId;
     this.businessApplication = businessApplication;
@@ -46,7 +46,7 @@ public class BatchJobRequestExecutionGroup {
     this.businessApplicationParameterMap = businessApplicationParameterMap;
     this.resultDataContentType = resultDataContentType;
     this.scheduleTimestamp = scheduleTimestamp;
-    this.batchJobRequestId = batchJobRequestId;
+    this.batchJobExecutionGroupId = batchJobExecutionGroupId;
     resetId();
   }
 
@@ -68,8 +68,8 @@ public class BatchJobRequestExecutionGroup {
     return batchJobId;
   }
 
-  public Long getBatchJobRequestId() {
-    return batchJobRequestId;
+  public Long getBatchJobExecutionGroupId() {
+    return batchJobExecutionGroupId;
   }
 
   public BusinessApplication getBusinessApplication() {

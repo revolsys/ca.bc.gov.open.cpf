@@ -44,7 +44,7 @@
   <import resource="domain/Module.sf.xml" />
   <import resource="domain/ModuleLogFile.sf.xml" />
   <import resource="domain/BatchJob.sf.xml" />
-  <import resource="domain/BatchJobRequest.sf.xml" />
+  <import resource="domain/BatchJobExecutionGroup.sf.xml" />
   <import resource="domain/BatchJobResult.sf.xml" />
   <import resource="domain/ConfigProperty.sf.xml" />
   <import resource="domain/Worker.sf.xml" />
