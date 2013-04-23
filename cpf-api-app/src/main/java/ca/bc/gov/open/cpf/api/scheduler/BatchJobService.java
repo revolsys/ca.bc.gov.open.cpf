@@ -555,12 +555,13 @@ public class BatchJobService implements ModuleEventListener {
         try {
           for (final DataObject batchJobExecutionGroup : requests) {
             long batchJobExecutionGroupId = batchJobExecutionGroup.getLong(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
-            int action = dataAccessObject.writeGroupResult(
+            int mask = dataAccessObject.writeGroupResult(
               batchJobExecutionGroupId, application, resultMetaData,
               errorResultWriter, structuredResultWriter, defaultProperties);
-            if (action < 0) {
+            if ((mask & 4) > 0) {
               hasErrors = true;
-            } else if (action > 0) {
+            }
+            if ((mask & 2) > 0) {
               hasResults = true;
             }
           }
@@ -1793,12 +1794,14 @@ public class BatchJobService implements ModuleEventListener {
       int numCompletedRequests = 0;
       int numFailedRequests = 0;
 
+      int numGroups = 0;
       for (final BatchJobRequestExecutionGroup group : groups) {
         numCompletedRequests += group.getNumCompletedRequests();
         numFailedRequests += group.getNumFailedRequests();
+        numGroups++;
       }
       dataAccessObject.updateBatchJobGroupCompleted(batchJobId,
-        numCompletedRequests, numFailedRequests);
+        numCompletedRequests, numFailedRequests, numGroups);
     }
 
     if (dataAccessObject.isBatchJobCompleted(batchJobId)) {
