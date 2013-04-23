@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf-api
 Title:             Cloud Processing Framework Open API
-Version:           4.0.3
+Version:           4.0.1
 
 Software/Hardware Requirements
 ------------------------------
