@@ -40,3 +40,4 @@ public interface BatchJobExecutionGroup {
 
   String STRUCTURED_RESULT_DATA = "STRUCTURED_RESULT_DATA";
 }
+
