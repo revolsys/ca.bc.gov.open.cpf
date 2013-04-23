@@ -11,6 +11,15 @@
     http://www.springframework.org/schema/util/spring-util-3.0.xsd
   "
 >
+  <util:map
+    id="cpfWorkerProperties"
+    map-class="com.revolsys.collection.AttributeMap"
+  >
+    <entry
+      key="cpfWorker.webServiceUrl"
+      value="http://localhost/pub/cpf" />
+  </util:map>
+
   <bean
     id="bcgovGlobalProperties"
     class="com.revolsys.collection.AttributeMap"
@@ -20,13 +29,4 @@
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="file:///apps/config/cpf/cpf.properties" />
-
-  <util:map
-    id="cpfWorkerProperties"
-    map-class="com.revolsys.collection.AttributeMap"
-  >
-    <entry
-      key="cpfWorker.webServiceUrl"
-      value="http://localhost/pub/cpf" />
-  </util:map>
 </beans>

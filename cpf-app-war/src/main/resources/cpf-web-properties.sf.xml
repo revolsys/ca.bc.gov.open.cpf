@@ -27,7 +27,7 @@
   >
     <entry
       key="cpfInternal.webServiceUrl"
-      value="http://localhost/pub/cpf" />
+      value="${ca.bc.gov.cpf.internal.webServiceUrl}" />
 
     <entry
       key="businessApplicationRegistry.logDirectory"
