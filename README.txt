@@ -16,8 +16,33 @@ App Server Additional Memory: 100MB
 1. Database Installation
 ------------------------
 
-N/A
-               
+2.1 Change to the script directory
+
+cd scripts/4.2.1/
+ 
+2.2 Connect to the target database as MTEC
+
+sqlplus mtec/<password>@<instance>
+ 
+2.3 Execute scripts
+
+start main.sql
+ 
+2.4 Check for errors in cpf-4.0.1.lst
+
+If there were errors, abort the migration, rollback changes, and send the cpf-4.0.1.lst to
+paul.austin@revolsys.com.
+
+rollback;
+exit;
+
+2.5 Commit and Exit
+
+If there were no errors commit the changes and exit. Notify APPBOOK@Victoria1.gov.bc.ca and
+paul.austin@revolsys.com that the database changes have been completed.
+
+commit;
+exit;               
 2. Configuration Files
 ----------------------
 
