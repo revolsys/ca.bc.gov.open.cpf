@@ -821,7 +821,7 @@ public class CpfDataAccessObject {
     final Map<String, Object> defaultProperties,
     final Map<String, Object> resultData) {
     final List<Map<String, Object>> results = (List<Map<String, Object>>)resultData.get("results");
-    final Number sequenceNumber = (Number)resultData.get(BatchJobExecutionGroup.SEQUENCE_NUMBER);
+    final Number sequenceNumber = (Number)resultData.get("requestSequenceNumber");
     int i = 1;
     for (final Map<String, Object> structuredResultMap : results) {
       final DataObject structuredResult = DataObjectUtil.getObject(
@@ -916,7 +916,7 @@ public class CpfDataAccessObject {
     }
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional(propagation = Propagation.REQUIRED)
   public boolean setBatchJobFailed(final long batchJobId) {
     final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
     final DataSource dataSource = jdbcDataStore.getDataSource();
@@ -1043,19 +1043,19 @@ public class CpfDataAccessObject {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public int updateBatchJobGroupCompleted(final Long batchJobId,
-    final int numCompletedRequests, final int numFailedRequests) {
+    final int numCompletedRequests, final int numFailedRequests, int numGroups) {
     if (dataStore instanceof JdbcDataObjectStore) {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS - 1,"
-        + "NUM_COMPLETED_GROUPS = NUM_COMPLETED_GROUPS + 1,"
+        + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS - ?,"
+        + "NUM_COMPLETED_GROUPS = NUM_COMPLETED_GROUPS + ?,"
         + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
         + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
         + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
       try {
-        return JdbcUtils.executeUpdate(dataSource, sql, numCompletedRequests,
-          numFailedRequests, batchJobId);
+        return JdbcUtils.executeUpdate(dataSource, sql, numGroups, numGroups,
+          numCompletedRequests, numFailedRequests, batchJobId);
       } catch (final SQLException e) {
         throw new RuntimeException("Unable to reset started status", e);
       }
@@ -1208,7 +1208,7 @@ public class CpfDataAccessObject {
     final DataObjectMetaData resultMetaData, final MapWriter errorResultWriter,
     final com.revolsys.io.Writer<DataObject> structuredResultWriter,
     final Map<String, Object> defaultProperties) {
-
+    int mask = 0;
     final Query query = new Query(
       BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
     query.setAttributeNames(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
@@ -1227,11 +1227,11 @@ public class CpfDataAccessObject {
             final Map<String, Object> resultMap = resultData;
             if (resultMap.containsKey("errorCode")) {
               postProcessWriteError(errorResultWriter, resultMap);
-              return -1;
+              mask |= 4;
             } else if (!application.isPerRequestResultData()) {
               postProcessWriteStructuredResult(structuredResultWriter,
                 resultMetaData, defaultProperties, resultData);
-              return 1;
+              mask |= 2;
             }
           }
         }
@@ -1239,6 +1239,6 @@ public class CpfDataAccessObject {
     } finally {
       reader.close();
     }
-    return 0;
+    return mask;
   }
 }
