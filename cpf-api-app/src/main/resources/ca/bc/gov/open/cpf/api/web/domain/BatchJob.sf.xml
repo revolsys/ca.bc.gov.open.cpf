@@ -34,6 +34,12 @@
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/" />
 
         <bean
+          p:name="moduleAppCancel"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Cancel Batch Job {batchJobId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel/" />
+
+        <bean
           p:name="clientList"
           class="com.revolsys.ui.web.config.Page"
           p:title="Jobs"
@@ -43,6 +49,11 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="Job"
           p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/" />
+        <bean
+          p:name="clientCancel"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Job"
+          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/cancel/" />
         <bean
           p:name="clientAppList"
           class="com.revolsys.ui.web.config.Page"
@@ -167,14 +178,29 @@
           p:valueLabel="Value" />
 
         <bean
+          p:name="GROUP_SIZE"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Group Size" />
+
+        <bean
+          p:name="NUM_SUBMITTED_GROUPS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Submitted Groups" />
+
+        <bean
+          p:name="NUM_SCHEDULED_GROUPS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Scheduled Groups" />
+
+        <bean
+          p:name="NUM_COMPLETED_GROUPS"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="Completed Groups" />
+
+        <bean
           p:name="NUM_SUBMITTED_REQUESTS"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Submitted Requests" />
-
-        <bean
-          p:name="NUM_EXECUTING_REQUESTS"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Executing Requests" />
 
         <bean
           p:name="NUM_COMPLETED_REQUESTS"
@@ -185,6 +211,60 @@
           p:name="NUM_FAILED_REQUESTS"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Failed Requests" />
+
+        <bean
+          p:name="adminActions"
+          p:label="Actions"
+          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+        >
+          <property name="serializers">
+            <list>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="moduleAppCancel"
+                p:label="Cancel"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="moduleName"
+                      value="BUSINESS_APPLICATION_NAME.module.name" />
+                    <entry
+                      key="businessApplicationName"
+                      value="BUSINESS_APPLICATION_NAME" />
+                    <entry
+                      key="batchJobId"
+                      value="BATCH_JOB_ID" />
+                  </map>
+                </property>
+              </bean>
+            </list>
+          </property>
+        </bean>
+
+        <bean
+          p:name="clientActions"
+          p:label="Actions"
+          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+        >
+          <property name="serializers">
+            <list>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="clientCancel"
+                p:label="Cancel"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="batchJobId"
+                      value="batchJobId" />
+                  </map>
+                </property>
+              </bean>
+            </list>
+          </property>
+        </bean>
 
       </list>
     </property>
@@ -216,11 +296,14 @@
             <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
             <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_GROUPS</value>
+            <value>NUM_COMPLETED_GROUPS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
-            <value>USER_ID</value>
+           <value>USER_ID</value>
             <value>MODULE_NAME_LINK</value>
+            <value>adminActions</value>
           </list>
         </entry>
 
@@ -233,6 +316,7 @@
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
+            <value>clientActions</value>
           </list>
         </entry>
         <entry key="clientAppList">
@@ -242,6 +326,8 @@
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
+            <value>NUM_FAILED_REQUESTS</value>
+            <value>clientActions</value>
           </list>
         </entry>
         <entry key="clientView">
@@ -255,9 +341,9 @@
             <value>WHEN_CREATED</value>
             <value>COMPLETED_TIMESTAMP</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_EXECUTING_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
+            <value>clientActions</value>
           </list>
         </entry>
 
@@ -286,11 +372,14 @@
             <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
             <value>JOB_STATUS</value>
+            <value>NUM_SUBMITTED_GROUPS</value>
+            <value>NUM_COMPLETED_GROUPS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
             <value>USER_ID</value>
             <value>MODULE_NAME_LINK</value>
+            <value>adminActions</value>
           </list>
         </entry>
         <entry key="moduleAppView">
@@ -307,14 +396,18 @@
             <value>COMPLETED_TIMESTAMP</value>
             <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_EXECUTING_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
+            <value>GROUP_SIZE</value>
+            <value>NUM_SUBMITTED_GROUPS</value>
+            <value>NUM_COMPLETED_GROUPS</value>
+            <value>NUM_SCHEDULED_GROUPS</value>
             <value>LAST_SCHEDULED_TIMESTAMP</value>
             <value>propertyMap</value>
             <value>WHO_CREATED</value>
             <value>WHO_UPDATED</value>
             <value>WHEN_UPDATED</value>
+            <value>adminActions</value>
           </list>
         </entry>
       </map>

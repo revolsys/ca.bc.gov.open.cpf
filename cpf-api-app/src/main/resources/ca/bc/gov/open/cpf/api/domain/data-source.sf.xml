@@ -50,11 +50,11 @@
                   p:shortName="CPF_BJ" />
               </list>
             </entry>
-            <entry key="/CPF/CPF_BATCH_JOB_REQUESTS">
+            <entry key="/CPF/CPF_BATCH_JOB_EXECUTION_GROUPS">
               <list>
                 <bean
                   class="com.revolsys.gis.data.model.ShortNameProperty"
-                  p:shortName="CPF_BJRQ" />
+                  p:shortName="CPF_BJEG" />
               </list>
             </entry>
             <entry key="/CPF/CPF_BATCH_JOB_RESULTS">
@@ -115,6 +115,6 @@
   <bean
     id="ca.bc.gov.open.cpf.api.transactionManager"
     name="transactionManager"
-    class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+    class="com.revolsys.transaction.DataSourceTransactionManagerFactory"
     p:dataSource-ref="cpfDataSource" />
 </beans>

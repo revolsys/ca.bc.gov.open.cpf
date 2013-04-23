@@ -1,8 +1,6 @@
 package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -12,7 +10,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 public class BatchJobRequestExecutionGroup {
   private final long batchJobId;
 
-  private final List<Long> batchJobRequestIds = new ArrayList<Long>();
+  private Long batchJobExecutionGroupId;
 
   private final BusinessApplication businessApplication;
 
@@ -34,10 +32,13 @@ public class BatchJobRequestExecutionGroup {
 
   private int numFailedRequests;
 
+  private boolean cancelled = false;
+
   public BatchJobRequestExecutionGroup(final String consumerKey,
     final long batchJobId, final BusinessApplication businessApplication,
     final Map<String, String> businessApplicationParameterMap,
-    final String resultDataContentType, final Timestamp scheduleTimestamp) {
+    final String resultDataContentType, final Timestamp scheduleTimestamp,
+    Long batchJobExecutionGroupId) {
     this.consumerKey = consumerKey;
     this.batchJobId = batchJobId;
     this.businessApplication = businessApplication;
@@ -45,11 +46,12 @@ public class BatchJobRequestExecutionGroup {
     this.businessApplicationParameterMap = businessApplicationParameterMap;
     this.resultDataContentType = resultDataContentType;
     this.scheduleTimestamp = scheduleTimestamp;
+    this.batchJobExecutionGroupId = batchJobExecutionGroupId;
     resetId();
   }
 
-  public void addBatchJobRequestId(final long batchJobRequestId) {
-    batchJobRequestIds.add(batchJobRequestId);
+  public void cancel() {
+    cancelled = true;
   }
 
   @Override
@@ -66,8 +68,8 @@ public class BatchJobRequestExecutionGroup {
     return batchJobId;
   }
 
-  public List<Long> getBatchJobRequestIds() {
-    return batchJobRequestIds;
+  public Long getBatchJobExecutionGroupId() {
+    return batchJobExecutionGroupId;
   }
 
   public BusinessApplication getBusinessApplication() {
@@ -102,10 +104,6 @@ public class BatchJobRequestExecutionGroup {
     return moduleName;
   }
 
-  public int getNumBatchJobRequests() {
-    return batchJobRequestIds.size();
-  }
-
   public int getNumCompletedRequests() {
     return numCompletedRequests;
   }
@@ -131,8 +129,12 @@ public class BatchJobRequestExecutionGroup {
     return id.hashCode();
   }
 
+  public boolean isCancelled() {
+    return cancelled;
+  }
+
   public void resetId() {
-    id = UUID.randomUUID().toString();
+    id = batchJobId + "-" + UUID.randomUUID().toString();
   }
 
   public void setExecutionStartTime(final long executionStartTime) {

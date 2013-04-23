@@ -110,7 +110,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   private String webServiceUrl = "http://localhost/cpf";
 
   public BatchJobWorkerScheduler() {
-    super(1, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
+    super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
       new NamedThreadFactory());
     setKeepAliveTime(60, TimeUnit.SECONDS);
   }
@@ -151,7 +151,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     final Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "executingGroupIds");
     message.put("workerId", id);
-    message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
+    synchronized (executingGroupIds) {
+      message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
+    }
     lastPingTime = System.currentTimeMillis();
     return message;
   }
@@ -513,7 +515,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           }
           if (running && timeout != 0) {
             synchronized (monitor) {
-              LOG.info("Waiting " + timeout
+              LOG.debug("Waiting " + timeout
                 + " seconds before getting next task");
               monitor.wait(timeout * 1000);
             }
@@ -573,7 +575,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       long timeout = timeoutStep;
       if (running) {
         try {
-          LOG.info("Waiting " + timeout + " seconds before sending message");
+          LOG.debug("Waiting " + timeout + " seconds before sending message");
           messages.wait(timeout * 1000);
         } catch (final InterruptedException e) {
         }

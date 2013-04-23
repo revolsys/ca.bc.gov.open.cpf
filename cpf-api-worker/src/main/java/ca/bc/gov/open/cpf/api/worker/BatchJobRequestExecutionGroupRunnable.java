@@ -29,14 +29,13 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
+import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
-import com.revolsys.io.json.JsonDataObjectIoFactory;
-import com.revolsys.io.json.JsonMapIoFactory;
 
 public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(BatchJobRequestExecutionGroupRunnable.class);
@@ -51,6 +50,20 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private final BatchJobWorkerScheduler executor;
 
+  private String groupId;
+
+  private String moduleName;
+
+  private String logLevel;
+
+  private String businessApplicationName;
+
+  private Number batchJobId;
+
+  private String userId;
+
+  private AppLog log;
+
   public BatchJobRequestExecutionGroupRunnable(
     final BatchJobWorkerScheduler executor,
     final BusinessApplicationRegistry businessApplicationRegistry,
@@ -62,29 +75,58 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     this.securityServiceFactory = securityServiceFactory;
     this.workerId = workerId;
     this.groupIdMap = groupIdMap;
+    groupId = (String)groupIdMap.get("groupId");
+    moduleName = (String)groupIdMap.get("moduleName");
+    businessApplicationName = (String)groupIdMap.get("businessApplicationName");
+    batchJobId = (Number)groupIdMap.get("batchJobId");
+    userId = (String)groupIdMap.get("userId");
+    logLevel = (String)groupIdMap.get("logLevel");
+    log = new AppLog(logLevel);
   }
 
-  public void addError(final Map<String, Object> groupResult,
+  public void addError(final Map<String, Object> result, String logPrefix,
     final String errorCode, final Throwable e) {
-    if (groupResult.get("errorCode") == null) {
+    log.error(logPrefix + errorCode, e);
+    if (result.get("errorCode") == null) {
       final StringWriter errorOut = new StringWriter();
       e.printStackTrace(new PrintWriter(errorOut));
-      groupResult.put("errorCode", errorCode);
-      groupResult.put("errorMessage", e.getMessage());
-      groupResult.put("errorTrace", errorOut);
+      result.put("errorCode", errorCode);
+      result.put("errorMessage", e.getMessage());
+      result.put("errorTrace", errorOut);
     }
   }
 
+  private int errorCount = 0;
+
+  private int successCount = 0;
+
+  private long applicationExecutionTime = 0;
+
+  private BusinessApplication businessApplication;
+
+  private Module module;
+
+  /**
+   * <h2>Fields</h2>
+   * batchJobId long
+   * groupId long
+
+   * errorCode String
+   * errorMessage String
+   * errorDebugMessage String
+
+   * results List<Map<String,Object>
+   * logRecords List<Map<String,Object>
+   * groupExecutionTime long
+   * applicationExecutionTime long
+   * errorCount long
+   * successCount long
+   */
   @Override
   @SuppressWarnings("unchecked")
   public void run() {
-    final String groupId = (String)groupIdMap.get("groupId");
     try {
-      final String moduleName = (String)groupIdMap.get("moduleName");
-      final String logLevel = (String)groupIdMap.get("logLevel");
-      final String businessApplicationName = (String)groupIdMap.get("businessApplicationName");
-      final Number batchJobId = (Number)groupIdMap.get("batchJobId");
-      final AppLog log = new AppLog(logLevel);
+
       log.info("Group Execution Start " + batchJobId + "\t" + groupId);
       try {
         final StopWatch groupStopWatch = new StopWatch("Group");
@@ -96,18 +138,17 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         groupResponse.put("groupId", groupId);
 
         final Long moduleTime = ((Number)groupIdMap.get("moduleTime")).longValue();
-        final BusinessApplication businessApplication = executor.getBusinessApplication(
-          log, moduleName, moduleTime, businessApplicationName);
+        businessApplication = executor.getBusinessApplication(log, moduleName,
+          moduleTime, businessApplicationName);
         if (businessApplication == null) {
           executor.addFailedGroup(groupId);
         } else {
-          final String userId = (String)groupIdMap.get("userId");
+          module = businessApplication.getModule();
           final String groupUrl = httpClient.getUrl("/worker/workers/"
             + workerId + "/jobs/" + batchJobId + "/groups/" + groupId);
           final Map<String, Object> group = httpClient.getJsonResource(groupUrl);
-          final Module module = businessApplication.getModule();
 
-          final Map<String, Object> globalErrors = new LinkedHashMap<String, Object>();
+          final Map<String, Object> globalError = new LinkedHashMap<String, Object>();
 
           final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
           final Map<String, Object> applicationParameters = new HashMap<String, Object>(
@@ -121,135 +162,26 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
                   dataType, value);
                 applicationParameters.put(name, convertedValue);
               } catch (final Throwable e) {
-                addError(globalErrors, "BAD_INPUT_DATA_VALUE", e);
+                addError(globalError, "Error processing group ",
+                  "BAD_INPUT_DATA_VALUE", e);
               }
             }
           }
-          final List<Map<String, Object>> requests = (List<Map<String, Object>>)group.get("requests");
+          if (globalError.isEmpty()) {
+            final Map<String, Object> requestWrapper = (Map<String, Object>)group.get("requests");
+            final List<Map<String, Object>> requests = (List<Map<String, Object>>)requestWrapper.get("items");
 
-          final List<Map<String, Object>> groupResults = new ArrayList<Map<String, Object>>();
-          groupResponse.put("results", groupResults);
+            final List<Map<String, Object>> groupResults = new ArrayList<Map<String, Object>>();
+            groupResponse.put("results", groupResults);
 
-          for (final Map<String, Object> requestParameters : requests) {
-            final StopWatch requestStopWatch = new StopWatch("Request");
-            requestStopWatch.start();
-            final Map<String, Object> parameters = new LinkedHashMap<String, Object>(
-              applicationParameters);
-            parameters.putAll(requestParameters);
-            final String structuredInputDataString = (String)parameters.remove("structuredInputData");
-            if (structuredInputDataString != null) {
-              final DataObject structuredInputData = JsonDataObjectIoFactory.toDataObject(
-                requestMetaData, structuredInputDataString);
-              for (final Entry<String, Object> entry : structuredInputData.entrySet()) {
-                final String name = entry.getKey();
-                final Object value = entry.getValue();
-                if (value != null) {
-                  parameters.put(name, value);
-                }
-              }
+            for (final Map<String, Object> requestParameters : requests) {
+              Map<String, Object> requestResult = executeRequest(
+                requestMetaData, applicationParameters, requestParameters);
+              groupResults.add(requestResult);
+
             }
-            final Number requestId = (Number)parameters.remove("requestId");
-            final boolean perRequestResultData = businessApplication.isPerRequestResultData();
-
-            final Map<String, Object> requestResult = new LinkedHashMap<String, Object>(
-              globalErrors);
-            requestResult.put("requestId", requestId);
-            requestResult.put("perRequestResultData", perRequestResultData);
-            groupResults.add(requestResult);
-
-            PluginAdaptor plugin = null;
-            try {
-              plugin = module.getBusinessApplicationPlugin(
-                businessApplicationName, logLevel);
-            } catch (final Throwable e) {
-              addError(requestResult, "ERROR_PROCESSING_REQUEST", e);
-              log.error("Unable to create plugin " + businessApplicationName, e);
-            }
-
-            if (plugin != null && globalErrors.isEmpty()) {
-              final AppLog appLog = plugin.getAppLog();
-              File resultFile = null;
-              OutputStream resultData = null;
-              if (businessApplication.isPerRequestInputData()) {
-                // final String inputDataUrl = httpClient.getOAuthUrl("GET",
-                // "/worker/workers/" + workerId + "/jobs/" + batchJobId
-                // + "/groups/" + groupId + "/requests/" + requestId
-                // + "/inputData");
-                // parameters.put("inputDataUrl", inputDataUrl);
-              }
-              if (businessApplication.isPerRequestResultData()) {
-                resultFile = FileUtil.createTempFile(businessApplicationName,
-                  ".bin");
-                resultData = new FileOutputStream(resultFile);
-                parameters.put("resultData", resultData);
-              }
-              try {
-
-                if (businessApplication.isSecurityServiceRequired()) {
-                  final SecurityService securityService = securityServiceFactory.getSecurityService(
-                    module, userId);
-                  plugin.setSecurityService(securityService);
-                }
-                plugin.setParameters(parameters);
-
-                final StopWatch pluginStopWatch = new StopWatch(
-                  "Plugin execute");
-                pluginStopWatch.start();
-                if (appLog.isDebugEnabled()) {
-                  appLog.debug("Request Execution Start " + groupId + " "
-                    + requestId);
-                }
-                try {
-                  plugin.execute();
-                } finally {
-                  try {
-                    if (pluginStopWatch.isRunning()) {
-                      pluginStopWatch.stop();
-                    }
-                  } catch (IllegalStateException e) {
-                  }
-                  final long pluginTime = pluginStopWatch.getTotalTimeMillis();
-                  requestResult.put("pluginExecutionTime", pluginTime);
-                  if (appLog.isDebugEnabled()) {
-                    appLog.debug("Request Execution End " + groupId + " "
-                      + requestId);
-                  }
-                }
-                final List<Map<String, Object>> results = plugin.getResults();
-                final String resultString = JsonMapIoFactory.toString(results);
-                requestResult.put("results", resultString);
-                sendResultData(batchJobId, groupId, requestId, requestResult,
-                  parameters, resultFile, resultData);
-              } catch (final IllegalArgumentException e) {
-                appLog.error("Request Execution Failed BAD_INPUT_DATA_VALUE"
-                  + groupId + " " + requestId, e);
-                addError(requestResult, "BAD_INPUT_DATA_VALUE", e);
-              } catch (final RecoverableException e) {
-                appLog.error("Request Execution Failed RECOVERABLE_EXCEPTION"
-                  + groupId + " " + requestId, e);
-                addError(requestResult, "RECOVERABLE_EXCEPTION", e);
-              } catch (final Throwable e) {
-                appLog.error(
-                  "Request Execution Failed ERROR_PROCESSING_REQUEST" + groupId
-                    + " " + requestId, e);
-                addError(requestResult, "ERROR_PROCESSING_REQUEST", e);
-              } finally {
-                if (resultFile != null) {
-                  FileUtil.closeSilent(resultData);
-                  resultFile.delete();
-                }
-              }
-              try {
-                if (requestStopWatch.isRunning()) {
-                  requestStopWatch.stop();
-                }
-              } catch (IllegalStateException e) {
-              }
-              requestResult.put("requestExecutionTime",
-                requestStopWatch.getTotalTimeMillis());
-              requestResult.put("logRecords", appLog.getLogRecords());
-            }
-
+          } else {
+            groupResponse.putAll(globalError);
           }
         }
         try {
@@ -258,9 +190,13 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           }
         } catch (IllegalStateException e) {
         }
-        groupResponse.put("groupExecutionTime",
-          groupStopWatch.getTotalTimeMillis());
+        long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
+        groupResponse.put("groupExecutedTime", groupExecutionTime);
+        groupResponse.put("applicationExecutedTime", applicationExecutionTime);
         groupResponse.put("logRecords", log.getLogRecords());
+        groupResponse.put("errorCount", errorCount);
+        groupResponse.put("successCount", successCount);
+
         final String path = "/worker/workers/" + workerId + "/jobs/"
           + batchJobId + "/groups/" + groupId + "/results";
         @SuppressWarnings("unused")
@@ -278,19 +214,186 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     }
   }
 
-  public void sendResultData(final Number batchJobId, final String groupId,
-    final Number requestId, final Map<String, Object> groupResult,
+  /**
+   * <h2>Fields</h2>
+   * 
+   * batchJobExecutionGroupId long
+   * requestSequenceNumber long
+   * perRequestResultData boolean
+   * 
+   * errorCode String
+   * errorMessage String
+   * errorDebugMessage String
+   * 
+   * pluginExecutionTime long
+   * results List<Map<String, Object>>
+   * logRecords List<Map<String,Object>>
+   * 
+   * @param requestMetaData
+   * @param applicationParameters
+   * @param requestParameters
+   * @return
+   */
+  protected Map<String, Object> executeRequest(
+    final DataObjectMetaData requestMetaData,
+    final Map<String, Object> applicationParameters,
+    final Map<String, Object> requestParameters) {
+    final StopWatch requestStopWatch = new StopWatch("Request");
+    requestStopWatch.start();
+
+    Number batchJobExecutionGroupId = (Number)requestParameters.remove("batchJobExecutionGroupId");
+    Number requestSequenceNumber = (Number)requestParameters.remove("requestSequenceNumber");
+    final boolean perRequestResultData = businessApplication.isPerRequestResultData();
+
+    final Map<String, Object> requestResult = new LinkedHashMap<String, Object>();
+    requestResult.put("batchJobExecutionGroupId", batchJobExecutionGroupId);
+    requestResult.put("requestSequenceNumber", requestSequenceNumber);
+    requestResult.put("perRequestResultData", perRequestResultData);
+
+    boolean hasError = true;
+    try {
+      final Map<String, Object> parameters = getParameters(businessApplication,
+        requestMetaData, applicationParameters, requestParameters);
+      PluginAdaptor plugin = module.getBusinessApplicationPlugin(
+        businessApplicationName, logLevel);
+      if (plugin == null) {
+        addError(requestResult, "Unable to create plugin "
+          + businessApplicationName + " ", "ERROR_PROCESSING_REQUEST", null);
+      } else {
+        final AppLog appLog = plugin.getAppLog();
+        File resultFile = null;
+        OutputStream resultData = null;
+        if (businessApplication.isPerRequestInputData()) {
+          // TODO urls for per request input data
+          // final String inputDataUrl = httpClient.getOAuthUrl("GET",
+          // "/worker/workers/" + workerId + "/jobs/" + batchJobId
+          // + "/groups/" + groupId + "/requests/" + batchJobExecutionGroupId
+          // + "/inputData");
+          // parameters.put("inputDataUrl", inputDataUrl);
+        }
+        if (businessApplication.isPerRequestResultData()) {
+          resultFile = FileUtil.createTempFile(businessApplicationName, ".bin");
+          resultData = new FileOutputStream(resultFile);
+          parameters.put("resultData", resultData);
+        }
+        try {
+          if (businessApplication.isSecurityServiceRequired()) {
+            final SecurityService securityService = securityServiceFactory.getSecurityService(
+              module, userId);
+            plugin.setSecurityService(securityService);
+          }
+          plugin.setParameters(parameters);
+
+          final StopWatch pluginStopWatch = new StopWatch("Plugin execute");
+          pluginStopWatch.start();
+          if (appLog.isDebugEnabled()) {
+            appLog.debug("Request Execution Start " + groupId + " "
+              + requestSequenceNumber);
+          }
+          try {
+            plugin.execute();
+          } finally {
+            try {
+              if (pluginStopWatch.isRunning()) {
+                pluginStopWatch.stop();
+              }
+            } catch (IllegalStateException e) {
+            }
+            final long pluginTime = pluginStopWatch.getTotalTimeMillis();
+            requestResult.put("pluginExecutionTime", pluginTime);
+            if (appLog.isDebugEnabled()) {
+              appLog.debug("Request Execution End " + groupId + " "
+                + requestSequenceNumber);
+            }
+          }
+          final List<Map<String, Object>> results = plugin.getResults();
+          requestResult.put("results", results);
+          sendResultData(batchJobExecutionGroupId, requestResult, parameters, resultFile,
+            resultData);
+
+        } catch (final IllegalArgumentException e) {
+          addError(requestResult, "Error processing request ",
+            "BAD_INPUT_DATA_VALUE", e);
+        } catch (final RecoverableException e) {
+          addError(requestResult, "Error processing request ",
+            "RECOVERABLE_EXCEPTION", e);
+        } finally {
+          if (resultFile != null) {
+            FileUtil.closeSilent(resultData);
+            resultFile.delete();
+          }
+        }
+        try {
+          if (requestStopWatch.isRunning()) {
+            requestStopWatch.stop();
+          }
+        } catch (IllegalStateException e) {
+        }
+        List<Map<String, String>> logs = appLog.getLogRecords();
+        requestResult.put("logRecords", logs);
+      }
+      hasError = false;
+    } catch (final Throwable e) {
+      addError(requestResult, "Error processing request ",
+        "ERROR_PROCESSING_REQUEST", e);
+    }
+
+    if (hasError) {
+      errorCount++;
+    } else {
+      successCount++;
+    }
+    applicationExecutionTime = requestStopWatch.getTotalTimeMillis();
+    return requestResult;
+  }
+
+  @SuppressWarnings("unchecked")
+  protected Map<String, Object> getParameters(
+    final BusinessApplication businessApplication,
+    final DataObjectMetaData requestMetaData,
+    final Map<String, Object> applicationParameters,
+    final Map<String, Object> requestParameters) {
+    final Map<String, Object> parameters = new LinkedHashMap<String, Object>(
+      applicationParameters);
+    parameters.putAll(requestParameters);
+    if (!businessApplication.isPerRequestInputData()) {
+
+      for (final Entry<String, Object> entry : parameters.entrySet()) {
+        final String name = entry.getKey();
+        final Object value = entry.getValue();
+        if (value != null) {
+          Attribute attribute = requestMetaData.getAttribute(name);
+          if (attribute != null) {
+            final DataType dataType = attribute.getType();
+            final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
+            if (!dataTypeClass.isAssignableFrom(value.getClass())) {
+              entry.setValue(value);
+              final StringConverter<Object> converter = StringConverterRegistry.getInstance()
+                .getConverter(dataTypeClass);
+              if (converter != null) {
+                final Object convertedValue = converter.toObject(value);
+                entry.setValue(convertedValue);
+              }
+            }
+          }
+        }
+      }
+    }
+    return parameters;
+  }
+
+  public void sendResultData(final Number batchJobExecutionGroupId,
+    final Map<String, Object> requestResult,
     final Map<String, Object> parameters, final File resultFile,
     final OutputStream resultData) {
     if (resultData != null) {
-
       try {
         resultData.flush();
         FileUtil.closeSilent(resultData);
         final String resultDataContentType = (String)parameters.get("resultDataContentType");
         final String resultDataUrl = httpClient.getUrl("/worker/workers/"
           + workerId + "/jobs/" + batchJobId + "/groups/" + groupId
-          + "/requests/" + requestId + "/resultData");
+          + "/requests/" + batchJobExecutionGroupId + "/resultData");
 
         final HttpResponse response = httpClient.postResource(resultDataUrl,
           resultDataContentType, resultFile);
@@ -307,7 +410,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           FileUtil.closeSilent(response.getEntity().getContent());
         }
       } catch (final Throwable e) {
-        addError(groupResult, "RECOVERABLE_EXCEPTION", e);
+        addError(requestResult, "Error processing request ",
+          "RECOVERABLE_EXCEPTION", e);
       }
     }
   }

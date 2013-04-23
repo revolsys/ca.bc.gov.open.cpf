@@ -54,11 +54,10 @@ public class BusinessApplicationStatistics {
     "completedFailedRequestsCount", "completedJobsCount",
     "completedRequestsCount", "completedTime", "executedGroupsCount",
     "executedRequestsCount", "executedTime", "executeScheduledGroupsCount",
-    "executeScheduledRequestsCount", "executeScheduledTime",
-    "postProcessedJobsCount", "postProcessedRequestsCount",
-    "postProcessedTime", "postProcessScheduledJobsCount",
-    "postProcessScheduledJobsTime", "preProcessedJobsCount",
-    "preProcessedRequestsCount", "preProcessedTime",
+    "executeScheduledTime", "postProcessedJobsCount",
+    "postProcessedRequestsCount", "postProcessedTime",
+    "postProcessScheduledJobsCount", "postProcessScheduledJobsTime",
+    "preProcessedJobsCount", "preProcessedRequestsCount", "preProcessedTime",
     "preProcessScheduledJobsCount", "preProcessScheduledJobsTime",
     "submittedJobsCount", "submittedJobsTime");
 
@@ -129,8 +128,6 @@ public class BusinessApplicationStatistics {
   private long executedTime;
 
   private long executeScheduledGroupsCount;
-
-  private long executeScheduledRequestsCount;
 
   private long executeScheduledTime;
 
@@ -241,13 +238,17 @@ public class BusinessApplicationStatistics {
   }
 
   public long addStatistic(final String statisticName, final Long value) {
-    Long totalValue = JavaBeanUtil.getProperty(this, statisticName);
-    if (value > 0) {
-      totalValue += value;
-      JavaBeanUtil.setProperty(this, statisticName, totalValue);
-      modified = true;
+    if (STATISTIC_NAMES.contains(statisticName)) {
+      Long totalValue = JavaBeanUtil.getProperty(this, statisticName);
+      if (value > 0) {
+        totalValue += value;
+        JavaBeanUtil.setProperty(this, statisticName, totalValue);
+        modified = true;
+      }
+      return totalValue;
+    } else {
+      return 0;
     }
-    return totalValue;
   }
 
   public void addStatistic(final String name, final Object value) {
@@ -480,22 +481,6 @@ public class BusinessApplicationStatistics {
 
   public long getExecuteScheduledGroupsCount() {
     return executeScheduledGroupsCount;
-  }
-
-  public long getExecuteScheduledRequestsAverageTime() {
-    if (executeScheduledRequestsCount == 0) {
-      return 0;
-    } else {
-      return executeScheduledTime / executeScheduledRequestsCount;
-    }
-  }
-
-  public String getExecuteScheduledRequestsAverageTimeFormatted() {
-    return formatTime(getExecuteScheduledRequestsAverageTime());
-  }
-
-  public long getExecuteScheduledRequestsCount() {
-    return executeScheduledRequestsCount;
   }
 
   public long getExecuteScheduledTime() {
@@ -754,11 +739,6 @@ public class BusinessApplicationStatistics {
   public void setExecuteScheduledGroupsCount(
     final long executeScheduledGroupsCount) {
     this.executeScheduledGroupsCount = executeScheduledGroupsCount;
-  }
-
-  public void setExecuteScheduledRequestsCount(
-    final long executeScheduledRequestsCount) {
-    this.executeScheduledRequestsCount = executeScheduledRequestsCount;
   }
 
   public void setExecuteScheduledTime(final long executeScheduledTime) {

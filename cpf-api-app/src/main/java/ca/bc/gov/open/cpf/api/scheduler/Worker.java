@@ -60,21 +60,21 @@ public class Worker {
     }
   }
 
-  public void addLoadingModule(final Map<String, Object> message) {
-    final String moduleName = (String)message.get("moduleName");
-    final Number moduleTime = (Number)message.get("moduleTime");
-    final String moduleNameTime = moduleName + ":" + moduleTime;
-    synchronized (loadingModuleNameTimes) {
-      loadingModuleNameTimes.add(moduleNameTime);
-    }
-  }
-
   public void addLoadedModule(final String moduleNameTime) {
     synchronized (loadingModuleNameTimes) {
       loadingModuleNameTimes.remove(moduleNameTime);
     }
     synchronized (loadedModuleNameTimes) {
       loadedModuleNameTimes.add(moduleNameTime);
+    }
+  }
+
+  public void addLoadingModule(final Map<String, Object> message) {
+    final String moduleName = (String)message.get("moduleName");
+    final Number moduleTime = (Number)message.get("moduleTime");
+    final String moduleNameTime = moduleName + ":" + moduleTime;
+    synchronized (loadingModuleNameTimes) {
+      loadingModuleNameTimes.add(moduleNameTime);
     }
   }
 
@@ -95,7 +95,7 @@ public class Worker {
   }
 
   public Set<String> getExcludedOrLoadingModules() {
-    Set<String> modules = new LinkedHashSet<String>();
+    final Set<String> modules = new LinkedHashSet<String>();
     synchronized (excludedModules) {
       modules.addAll(excludedModules);
     }
@@ -103,11 +103,6 @@ public class Worker {
       modules.addAll(loadingModuleNameTimes);
     }
     return modules;
-  }
-
-  @Override
-  public String toString() {
-    return getId();
   }
 
   public BatchJobRequestExecutionGroup getExecutingGroup(final String groupId) {
@@ -183,5 +178,10 @@ public class Worker {
 
   public void setLastConnectTime(final Timestamp lastConnectTime) {
     this.lastConnectTime = lastConnectTime;
+  }
+
+  @Override
+  public String toString() {
+    return getId();
   }
 }

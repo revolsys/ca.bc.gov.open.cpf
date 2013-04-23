@@ -24,7 +24,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 
-import com.revolsys.parallel.process.InvokeMethodCallable;
+import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;
@@ -53,22 +53,6 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
       final List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
       return executingGroups;
     }
-  }
-
-  @RequestMapping(value = {
-    "/admin/workers/{workerId}/executingGroups/{executionGroupId}/restart"
-  }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void postWorkerRestart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String workerId,
-    @PathVariable final String executionGroupId) {
-    final BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
-    if (worker != null) {
-      batchJobService.cancelGroup(worker, executionGroupId);
-    }
-    referrerRedirect(request);
   }
 
   @RequestMapping(value = {
@@ -112,5 +96,21 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder
         return tabs;
       }
     }
+  }
+
+  @RequestMapping(value = {
+    "/admin/workers/{workerId}/executingGroups/{executionGroupId}/restart"
+  }, method = RequestMethod.POST)
+  @PreAuthorize(ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void postWorkerRestart(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String workerId,
+    @PathVariable final String executionGroupId) {
+    final BatchJobService batchJobService = getBatchJobService();
+    final Worker worker = batchJobService.getWorker(workerId);
+    if (worker != null) {
+      batchJobService.cancelGroup(worker, executionGroupId);
+    }
+    referrerRedirect(request);
   }
 }

@@ -1,6 +1,7 @@
 package ca.bc.gov.open.cpf.api.scheduler;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
 public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
 
@@ -12,10 +13,11 @@ public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
   public void processJob(final long batchJobId) {
     final BatchJobService batchJobService = getBatchJobService();
     final long time = System.currentTimeMillis();
-    final long lastChangedTime = batchJobService.setBatchJobStatus(batchJobId,
-      BatchJob.SUBMITTED, BatchJob.CREATING_REQUESTS, time);
 
-    if (lastChangedTime != -1) {
+    CpfDataAccessObject dataAccessObject = getDataAccessObject();
+    if (dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.SUBMITTED,
+      BatchJob.CREATING_REQUESTS)) {
+      final long lastChangedTime = System.currentTimeMillis();
       batchJobService.preProcessBatchJob(batchJobId, time, lastChangedTime);
     }
   }

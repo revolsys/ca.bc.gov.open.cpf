@@ -21,11 +21,21 @@ import org.springframework.web.servlet.HandlerMapping;
 @Controller
 public class DocumentationController extends WebApplicationObjectSupport {
 
+  protected MediaType getMediaType(final Resource resource) {
+    final String mimeType = getServletContext().getMimeType(
+      resource.getFilename());
+    if (StringUtils.hasText(mimeType)) {
+      return MediaType.parseMediaType(mimeType);
+    } else {
+      return null;
+    }
+  }
+
   @RequestMapping(value = {
     "/docs/**", "/secure/docs/**"
   })
-  public void handleRequest(HttpServletRequest request,
-    HttpServletResponse response) throws ServletException, IOException {
+  public void handleRequest(final HttpServletRequest request,
+    final HttpServletResponse response) throws ServletException, IOException {
     String path = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
     if (path == null) {
       throw new IllegalStateException("Required request attribute '"
@@ -36,7 +46,7 @@ public class DocumentationController extends WebApplicationObjectSupport {
         path = "index.html";
       }
       if (!isInvalidPath(path)) {
-        ServletContextResource docsResource = new ServletContextResource(
+        final ServletContextResource docsResource = new ServletContextResource(
           getServletContext(), "/docs/");
         Resource resource = docsResource.createRelative(path);
         if (resource.exists() && resource.isReadable()) {
@@ -47,10 +57,10 @@ public class DocumentationController extends WebApplicationObjectSupport {
           }
 
           try {
-            InputStream inputStream = resource.getInputStream();
+            final InputStream inputStream = resource.getInputStream();
             setHeaders(response, resource, mediaType);
             FileCopyUtils.copy(inputStream, response.getOutputStream());
-          } catch (FileNotFoundException e) {
+          } catch (final FileNotFoundException e) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
           }
         } else {
@@ -61,22 +71,13 @@ public class DocumentationController extends WebApplicationObjectSupport {
 
   }
 
-  protected boolean isInvalidPath(String path) {
+  protected boolean isInvalidPath(final String path) {
     return (path.contains("WEB-INF") || path.contains("META-INF") || path.startsWith(".."));
   }
 
-  protected MediaType getMediaType(Resource resource) {
-    String mimeType = getServletContext().getMimeType(resource.getFilename());
-    if (StringUtils.hasText(mimeType)) {
-      return MediaType.parseMediaType(mimeType);
-    } else {
-      return null;
-    }
-  }
-
-  protected void setHeaders(HttpServletResponse response, Resource resource,
-    MediaType mediaType) throws IOException {
-    long length = resource.contentLength();
+  protected void setHeaders(final HttpServletResponse response,
+    final Resource resource, final MediaType mediaType) throws IOException {
+    final long length = resource.contentLength();
     if (length > Integer.MAX_VALUE) {
       throw new IOException(
         "Resource content too long (beyond Integer.MAX_VALUE): " + resource);

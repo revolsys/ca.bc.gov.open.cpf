@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -20,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,38 +25,35 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobRequest;
+import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.model.data.equals.EqualsRegistry;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.io.Writer;
-import com.revolsys.io.json.JsonDataObjectIoFactory;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 
 @Controller
-public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
+public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder implements
   CpfMethodSecurityExpressions {
 
-  public BatchJobRequestUiBuilder() {
-    super("batchJobRequest", BatchJobRequest.BATCH_JOB_REQUEST,
-      BatchJobRequest.BATCH_JOB_REQUEST_ID, "Batch Job Request",
+  public BatchJobExecutionGroupUiBuilder() {
+    super("batchJobExecutionGroup", BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID, "Batch Job Request",
       "Batch Job Requests");
   }
 
-  public DataObject getBatchJobRequest(final Long batchJobId,
-    final Long batchJobRequestId) throws NoSuchRequestHandlingMethodException {
-    final DataObject batchJobRequest = loadObject(batchJobRequestId);
-    if (batchJobRequest != null) {
+  public DataObject getBatchJobExecutionGroup(final Long batchJobId,
+    final Long batchJobExecutionGroupId) throws NoSuchRequestHandlingMethodException {
+    final DataObject batchJobExecutionGroup = loadObject(batchJobExecutionGroupId);
+    if (batchJobExecutionGroup != null) {
       if (EqualsRegistry.INSTANCE.equals(
-        batchJobRequest.getValue(BatchJobRequest.BATCH_JOB_ID), batchJobId)) {
-        return batchJobRequest;
+        batchJobExecutionGroup.getValue(BatchJobExecutionGroup.BATCH_JOB_ID), batchJobId)) {
+        return batchJobExecutionGroup;
       }
     }
     throw new NoSuchRequestHandlingMethodException(getRequest());
@@ -67,7 +61,7 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}/inputData"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}/inputData"
       }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
@@ -79,24 +73,24 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
     @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobRequestId)
+    @PathVariable final Long batchJobExecutionGroupId)
     throws NoSuchRequestHandlingMethodException, IOException {
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
-    final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
-    final DataObject batchJobRequest = getBatchJobRequest(batchJobId,
-      batchJobRequestId);
+    getBatchJob(businessApplicationName, batchJobId);
+    final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(batchJobId,
+      batchJobExecutionGroupId);
     final String baseName = "job-" + batchJobId + "-request-"
-      + batchJobRequestId + "-input";
+      + batchJobExecutionGroupId + "-input";
     if (businessApplication.isPerRequestInputData()) {
-      final String dataUrl = batchJobRequest.getValue(BatchJobRequest.INPUT_DATA_URL);
+      final String dataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_URL);
       if (dataUrl != null) {
         response.setStatus(HttpServletResponse.SC_SEE_OTHER);
         response.setHeader("Location", dataUrl);
       } else {
         try {
-          final String contentType = batchJobRequest.getValue(BatchJobRequest.INPUT_DATA_CONTENT_TYPE);
-          final Blob inputData = batchJobRequest.getValue(BatchJobRequest.INPUT_DATA);
+          final String contentType = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE);
+          final Blob inputData = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA);
           writeOpaqueData(response, contentType, baseName, inputData);
         } catch (final SQLException e) {
           final String message = "Unable to get data for " + baseName;
@@ -105,19 +99,26 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
         }
       }
     } else {
-      final String contentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
-      final DataObjectMetaData metaData = businessApplication.getRequestMetaData();
-      final String dataString = batchJobRequest.getString(BatchJobRequest.STRUCTURED_INPUT_DATA);
-      final DataObject dataObject = JsonDataObjectIoFactory.toDataObject(
-        metaData, dataString);
-      final List<DataObject> data = Collections.singletonList(dataObject);
-      writeStructuredData(response, contentType, baseName, metaData, data);
+      writeJson(response, batchJobExecutionGroup,
+        BatchJobExecutionGroup.STRUCTURED_INPUT_DATA);
+    }
+  }
+
+  protected void writeJson(final HttpServletResponse response,
+    final DataObject batchJobExecutionGroup, String field) throws IOException {
+    final String dataString = batchJobExecutionGroup.getString(field);
+    response.setContentType("application/json");
+    final java.io.Writer out = response.getWriter();
+    try {
+      out.write(dataString);
+    } finally {
+      FileUtil.closeSilent(out);
     }
   }
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}/resultData"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}/resultData"
       }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
@@ -129,24 +130,24 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
     @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobRequestId)
+    @PathVariable final Long batchJobExecutionGroupId)
     throws NoSuchRequestHandlingMethodException, IOException {
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
     final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
-    final DataObject batchJobRequest = getBatchJobRequest(batchJobId,
-      batchJobRequestId);
+    final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(batchJobId,
+      batchJobExecutionGroupId);
     final String contentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
     final String baseName = "job-" + batchJobId + "-request-"
-      + batchJobRequestId + "-result";
+      + batchJobExecutionGroupId + "-result";
     if (businessApplication.isPerRequestResultData()) {
-      final String resultDataUrl = batchJobRequest.getValue(BatchJobRequest.RESULT_DATA_URL);
+      final String resultDataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.RESULT_DATA_URL);
       if (resultDataUrl != null) {
         response.setStatus(HttpServletResponse.SC_SEE_OTHER);
         response.setHeader("Location", resultDataUrl);
       } else {
         try {
-          final Blob data = batchJobRequest.getValue(BatchJobRequest.RESULT_DATA);
+          final Blob data = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.RESULT_DATA);
           writeOpaqueData(response, contentType, baseName, data);
         } catch (final SQLException e) {
           final String message = "Unable to get data for " + baseName;
@@ -155,17 +156,14 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
         }
       }
     } else {
-      final DataObjectMetaData metaData = businessApplication.getResultMetaData();
-      final String dataString = batchJobRequest.getString(BatchJobRequest.STRUCTURED_RESULT_DATA);
-      final List<DataObject> data = JsonDataObjectIoFactory.toDataObjectList(
-        metaData, dataString);
-      writeStructuredData(response, contentType, baseName, metaData, data);
+      writeJson(response, batchJobExecutionGroup,
+        BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
     }
   }
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups"
       }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
@@ -182,7 +180,7 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
     final Map<String, Object> parameters = new HashMap<String, Object>();
 
     final Map<String, Object> filter = new HashMap<String, Object>();
-    filter.put(BatchJobRequest.BATCH_JOB_ID, batchJobId);
+    filter.put(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     parameters.put("filter", filter);
 
     return createDataTableHandlerOrRedirect(request, response,
@@ -191,7 +189,7 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/requests/{batchJobRequestId}"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}"
       }, method = RequestMethod.GET)
   @ResponseBody
   @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
@@ -201,15 +199,15 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
     @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobRequestId) throws IOException,
+    @PathVariable final Long batchJobExecutionGroupId) throws IOException,
     ServletException {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
-    final DataObject batchJobRequest = getBatchJobRequest(batchJobId,
-      batchJobRequestId);
+    final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(batchJobId,
+      batchJobExecutionGroupId);
 
     final TabElementContainer tabs = new TabElementContainer();
-    addObjectViewPage(tabs, batchJobRequest, "moduleAppJob");
+    addObjectViewPage(tabs, batchJobExecutionGroup, "moduleAppJob");
     return tabs;
   }
 
@@ -239,44 +237,6 @@ public class BatchJobRequestUiBuilder extends CpfUiBuilder implements
       } finally {
         FileUtil.closeSilent(in);
       }
-    }
-  }
-
-  private void writeStructuredData(final HttpServletResponse response,
-    String contentType, final String baseName,
-    final DataObjectMetaData metaData, final List<DataObject> data)
-    throws IOException {
-    if (!StringUtils.hasText(contentType)) {
-      contentType = "application/json";
-    }
-    DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-      .getFactoryByMediaType(DataObjectWriterFactory.class, contentType);
-    String fileExtension;
-    if (writerFactory == null) {
-      fileExtension = "json";
-      writerFactory = new JsonDataObjectIoFactory();
-    } else {
-      fileExtension = writerFactory.getFileExtension(contentType);
-
-    }
-    final String fileName = baseName + "." + fileExtension;
-    response.setHeader("Content-Disposition", "attachment; filename="
-      + fileName);
-
-    final ServletOutputStream out = response.getOutputStream();
-    try {
-      final Writer<DataObject> writer = writerFactory.createDataObjectWriter(
-        baseName, metaData, out);
-      try {
-        for (final DataObject object : data) {
-          writer.write(object);
-        }
-      } finally {
-        writer.close();
-        writer.close();
-      }
-    } finally {
-      out.close();
     }
   }
 }

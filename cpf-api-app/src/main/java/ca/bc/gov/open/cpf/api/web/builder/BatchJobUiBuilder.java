@@ -19,8 +19,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobRequest;
+import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -30,6 +31,7 @@ import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.util.JavaBeanUtil;
 
 @Controller
@@ -148,7 +150,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
     final Map<String, Object> parameters = new HashMap<String, Object>();
     parameters.put("serverSide", Boolean.TRUE);
 
-    addTabDataTable(tabs, BatchJobRequest.BATCH_JOB_REQUEST,
+    addTabDataTable(tabs, BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
       "moduleAppJobList", parameters);
 
     addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList",
@@ -157,4 +159,42 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
     return tabs;
   }
 
+  @RequestMapping(value = {
+    "/ws/users/{consumerKey}/jobs/{batchJobId}/cancel"
+  }, method = RequestMethod.POST)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void postClientCancel(@PathVariable final String consumerKey,
+    @PathVariable final long batchJobId) {
+    final DataObject batchJob = getCpfDataAccessObject().getBatchJob(
+      consumerKey, batchJobId);
+    if (batchJob == null) {
+      throw new PageNotFoundException("The cloud job " + batchJobId
+        + " does not exist");
+    } else {
+      BatchJobService batchJobService = getBatchJobService();
+      batchJobService.cancelBatchJob(batchJobId);
+      redirectPage("clientList");
+    }
+  }
+
+  @RequestMapping(
+      value = {
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel"
+      }, method = RequestMethod.POST)
+  @PreAuthorize(ADMIN_OR_MODULE_ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void postModuleAppDelete(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId) throws IOException, ServletException {
+    getModuleBusinessApplication(moduleName, businessApplicationName);
+    BatchJobService batchJobService = getBatchJobService();
+    batchJobService.cancelBatchJob(batchJobId);
+    final String url = request.getHeader("Referer");
+    if (StringUtils.hasText(url) && url.indexOf("/apps") != -1) {
+      redirectPage("moduleAppList");
+    } else {
+      redirectPage("list");
+    }
+  }
 }

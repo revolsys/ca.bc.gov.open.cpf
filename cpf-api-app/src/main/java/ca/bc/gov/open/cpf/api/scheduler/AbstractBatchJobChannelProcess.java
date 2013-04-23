@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.process.AbstractInOutProcess;
 import com.revolsys.parallel.process.InvokeMethodRunnable;
@@ -25,6 +27,9 @@ public abstract class AbstractBatchJobChannelProcess extends
     setOutBufferSize(100);
   }
 
+  protected CpfDataAccessObject getDataAccessObject() {
+    return batchJobService.getDataAccessObject();
+  }
   /**
    * Get the batch job service used to interact with the database.
    * 

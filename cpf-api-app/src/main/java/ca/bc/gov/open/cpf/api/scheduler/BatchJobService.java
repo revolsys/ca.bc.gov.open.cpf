@@ -22,8 +22,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,13 +49,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobRequest;
+import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -102,6 +108,7 @@ import com.revolsys.parallel.channel.NamedChannelBundle;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.transaction.SendToChannelAfterCommit;
+import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
@@ -220,20 +227,22 @@ public class BatchJobService implements ModuleEventListener {
 
   private final Map<String, Worker> workersById = new TreeMap<String, Worker>();
 
+  private final Map<Long, Set<BatchJobRequestExecutionGroup>> groupsByJobId = new HashMap<Long, Set<BatchJobRequestExecutionGroup>>();
+
+  private final Set<Long> preprocesedJobIds = new HashSet<Long>();
+
   /**
    * Generate an error result for the job, update the job counts and status, and
    * back out any add job requests that have already been added.
    * 
    * @param validationErrorCode The failure error code.
    */
-  private void addJobValidationError(final DataObject batchJob,
+  private boolean addJobValidationError(final long batchJobId,
     final ErrorCode validationErrorCode,
     final String validationErrorDebugMessage,
     final String validationErrorMessage) {
-    final long batchJobId = DataObjectUtil.getInteger(batchJob,
-      BatchJob.BATCH_JOB_ID);
 
-    dataAccessObject.deleteBatchJobRequests(batchJobId);
+    dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
 
     final String errorFormat = "text/csv";
     final StringWriter errorWriter = new StringWriter();
@@ -254,14 +263,9 @@ public class BatchJobService implements ModuleEventListener {
     } catch (final UnsupportedEncodingException e) {
     }
 
-    batchJob.setValue(BatchJob.NUM_COMPLETED_REQUESTS, 0);
-    batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS,
-      DataObjectUtil.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS));
-    if (!BatchJob.MARKED_FOR_DELETION.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-      batchJob.setValue(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED);
-    }
-    dataAccessObject.write(batchJob);
+    dataAccessObject.setBatchJobFailed(batchJobId);
     LOG.debug(validationErrorDebugMessage);
+    return false;
   }
 
   protected void addStatisticRollUp(
@@ -306,8 +310,28 @@ public class BatchJobService implements ModuleEventListener {
       statistics.getParentId(), statistics.toMap());
   }
 
-  public void cancelBatchJob(final long batchJobId) {
-    // TODO remove from scheduler
+  public boolean cancelBatchJob(final long batchJobId) {
+    synchronized (preprocesedJobIds) {
+      preprocesedJobIds.remove(batchJobId);
+    }
+    Set<BatchJobRequestExecutionGroup> groups;
+    synchronized (groupsByJobId) {
+      groups = groupsByJobId.remove(batchJobId);
+    }
+    if (groups != null) {
+      for (final BatchJobRequestExecutionGroup group : groups) {
+        group.cancel();
+      }
+    }
+    final boolean cancelled = dataAccessObject.cancelBatchJob(batchJobId) == 0;
+    if (cancelled) {
+      try {
+        dataAccessObject.deleteBatchJobResults(batchJobId);
+      } finally {
+        dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
+      }
+    }
+    return cancelled;
   }
 
   public void cancelGroup(final Worker worker, final String groupId) {
@@ -316,6 +340,7 @@ public class BatchJobService implements ModuleEventListener {
       if (group != null) {
         LoggerFactory.getLogger(BatchJobService.class).info(
           "Rescheduling group " + group.getBatchJobId() + " " + groupId);
+        removeGroup(group);
         group.resetId();
         schedule(group);
       }
@@ -427,36 +452,63 @@ public class BatchJobService implements ModuleEventListener {
     sendStatistics(values);
   }
 
+  protected boolean createBatchJobExecutionGroup(final Long batchJobId,
+    final int sequenceNumber, final DataObjectMetaData requestMetaData,
+    final List<Map<String, Object>> group) {
+    final String structuredInputDataString = JsonDataObjectIoFactory.toString(
+      requestMetaData, group);
+    synchronized (preprocesedJobIds) {
+      if (preprocesedJobIds.contains(batchJobId)) {
+        dataAccessObject.createBatchJobExecutionGroup(batchJobId,
+          sequenceNumber, structuredInputDataString, group.size());
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
   public void createBatchJobResult(final long batchJobId,
     final String resultDataType, final String contentType, final Object data) {
-    try {
-      final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
-      result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
-      result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, resultDataType);
-      result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
-      result.setValue(BatchJobResult.RESULT_DATA, data);
-      dataAccessObject.write(result);
-    } catch (final Throwable e) {
-      throw new RuntimeException("Unable to save result data", e);
+    if (data != null) {
+      if (data instanceof File) {
+        File file = (File)data;
+        if (file.length() == 0) {
+          return;
+        }
+      }
+      try {
+        final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
+        result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
+        result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, resultDataType);
+        result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
+        result.setValue(BatchJobResult.RESULT_DATA, data);
+        dataAccessObject.write(result);
+      } catch (final Throwable e) {
+        throw new RuntimeException("Unable to save result data", e);
+      }
     }
   }
 
   public void createBatchJobResultOpaque(final long batchJobId,
-    final long batchJobRequestId, final String contentType, final Object data) {
-    final DataObject request = dataAccessObject.getBatchJobRequestLocked(batchJobRequestId);
+    final long batchJobExecutionGroupId, final String contentType,
+    final Object data) {
+    final DataObject request = dataAccessObject.getBatchJobExecutionGroupLocked(batchJobExecutionGroupId);
     if (request.getValue(BatchJobResult.BATCH_JOB_RESULT_ID) == null) {
       final Number batchJobResultId = dataAccessObject.createId(BatchJobResult.BATCH_JOB_RESULT);
       final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
       result.setValue(BatchJobResult.BATCH_JOB_RESULT_ID, batchJobResultId);
       result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
-      result.setValue(BatchJobResult.BATCH_JOB_REQUEST_ID, batchJobRequestId);
+      result.setValue(BatchJobResult.BATCH_JOB_EXECUTION_GROUP_ID,
+        batchJobExecutionGroupId);
       result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE,
         BatchJobResult.OPAQUE_RESULT_DATA);
       result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
       result.setValue(BatchJobResult.RESULT_DATA, data);
       dataAccessObject.write(result);
 
-      request.setValue(BatchJobRequest.BATCH_JOB_RESULT_ID, batchJobResultId);
+      request.setValue(BatchJobExecutionGroup.BATCH_JOB_RESULT_ID,
+        batchJobResultId);
       dataAccessObject.write(request);
     }
 
@@ -469,132 +521,104 @@ public class BatchJobService implements ModuleEventListener {
    * @param batchJobId The DataObject identifier.
    */
   @Transactional(propagation = Propagation.REQUIRED)
-  public void createErrorResults(final long batchJobId) {
-    dataAccessObject.getBatchJobLocked(batchJobId);
-    final Reader<DataObject> errorResults = dataAccessObject.getErrorResultDataRequests(batchJobId);
+  public void createResults(final long batchJobId) {
+    final DataObject batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
+    final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+    final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+    final BusinessApplication application = getBusinessApplication(businessApplicationName);
+    final DataObjectMetaData resultMetaData = application.getResultMetaData();
+
+    final String fileExtension = IoFactoryRegistry.getFileExtension(resultFormat);
+    File structuredResultFile = null;
+
+    File errorFile = null;
+    Writer errorWriter = null;
+    MapWriter errorResultWriter = null;
+    com.revolsys.io.Writer<DataObject> structuredResultWriter = null;
     try {
-      final String errorFormat = "text/csv";
-      final File file = FileUtil.createTempFile("result", ".csv");
+      errorFile = FileUtil.createTempFile("errors", ".csv");
+      errorWriter = new FileWriter(errorFile);
+      errorResultWriter = new CsvMapWriter(errorWriter);
+
+      structuredResultFile = FileUtil.createTempFile("result", "."
+        + fileExtension);
+      structuredResultWriter = createStructuredResultWriter(batchJobId,
+        application, structuredResultFile, resultMetaData, resultFormat);
+      final Map<String, Object> defaultProperties = new HashMap<String, Object>(
+        structuredResultWriter.getProperties());
+
+      boolean hasErrors = false;
+      boolean hasResults = false;
       try {
-        boolean written = false;
-        final Writer writer = new FileWriter(file);
+        final Reader<DataObject> requests = dataAccessObject.getBatchJobExecutionGroupIds(batchJobId);
         try {
-          final MapWriter mapWriter = new CsvMapWriter(writer);
-          try {
-            for (final DataObject request : errorResults) {
-              final String errorCode = request.getValue(BatchJobRequest.ERROR_CODE);
-              final Map<String, String> errorMap = new LinkedHashMap<String, String>();
-              errorMap.put("sequenceNumber",
-                request.getValue(BatchJobRequest.REQUEST_SEQUENCE_NUMBER)
-                  .toString());
-              errorMap.put("errorCode", errorCode);
-              final String errorMessage = request.getValue(BatchJobRequest.ERROR_MESSAGE);
-              errorMap.put("errorMessage", errorMessage);
-              mapWriter.write(errorMap);
-              written = true;
+          for (final DataObject batchJobExecutionGroup : requests) {
+            long batchJobExecutionGroupId = batchJobExecutionGroup.getLong(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
+            int action = dataAccessObject.writeGroupResult(
+              batchJobExecutionGroupId, application, resultMetaData,
+              errorResultWriter, structuredResultWriter, defaultProperties);
+            if (action < 0) {
+              hasErrors = true;
+            } else if (action > 0) {
+              hasResults = true;
             }
-          } finally {
-            mapWriter.close();
           }
         } finally {
-          FileUtil.closeSilent(writer);
+          requests.close();
         }
-        if (written) {
-          createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
-            errorFormat, file);
-        }
-      } catch (final Throwable e) {
-        throw new RuntimeException("Unable to save result data", e);
       } finally {
-        file.delete();
+        if (structuredResultWriter != null) {
+          try {
+            structuredResultWriter.close();
+          } catch (final Throwable e) {
+            LOG.error("Unable to close structured result writer", e);
+          }
+        }
+        if (errorResultWriter != null) {
+          try {
+            errorResultWriter.close();
+          } catch (final Throwable e) {
+            LOG.error("Unable to close error result writer", e);
+          }
+        }
+        FileUtil.closeSilent(errorWriter);
       }
+      if (hasResults) {
+        createBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA,
+          resultFormat, structuredResultFile);
+      }
+      if (hasErrors) {
+        createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
+          "text/csv", errorFile);
+      }
+    } catch (final Throwable e) {
+      throw new RuntimeException("Unable to save results", e);
     } finally {
-      errorResults.close();
+      InvokeMethodAfterCommit.invoke(errorFile, "delete");
+      InvokeMethodAfterCommit.invoke(structuredResultFile, "delete");
     }
   }
 
-  /**
-   * Create the structured BatchJobResult for a BatchJob. This will only be
-   * created if there were any structured results.
-   * 
-   * @param batchJobId The DataObject identifier.
-   */
-  @SuppressWarnings("unchecked")
-  @Transactional(propagation = Propagation.REQUIRED)
-  public void createStructuredResults(final long batchJobId) {
-    final DataObject batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
-    final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-    final BusinessApplication application = getBusinessApplication(businessApplicationName);
-    if (!application.isPerRequestResultData()) {
-      final Reader<DataObject> structuredResults = dataAccessObject.getStructuredResultDataRequests(batchJobId);
-      try {
-        final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-
-        final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
-        final DataObjectWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
-          DataObjectWriterFactory.class, resultFormat);
-        final String fileExtension = writerFactory.getFileExtension(resultFormat);
-        final File file = FileUtil.createTempFile("result", "." + fileExtension);
-        try {
-          final FileSystemResource resource = new FileSystemResource(file);
-          final DataObjectMetaData resultMetaData = application.getResultMetaData();
-          final com.revolsys.io.Writer<DataObject> dataObjectWriter = writerFactory.createDataObjectWriter(
-            resultMetaData, resource);
-          dataObjectWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
-            baseUrl + "/kml/defaultStyle.kml#default");
-          dataObjectWriter.setProperty(IoConstants.TITLE_PROPERTY, "Job "
-            + batchJobId + " Result");
-          dataObjectWriter.setProperty("htmlCssStyleUrl", baseUrl
-            + "/css/default.css");
-          dataObjectWriter.setProperties(application.getProperties());
-          boolean written = false;
-          try {
-            final Map<String, Object> defaultProperties = new HashMap<String, Object>(
-              dataObjectWriter.getProperties());
-            for (final DataObject batchJobRequest : structuredResults) {
-              final String structuredResultData = batchJobRequest.getString(BatchJobRequest.STRUCTURED_RESULT_DATA);
-              final List<Map<String, Object>> results = JsonMapIoFactory.toMapList(structuredResultData);
-              final Integer sequenceNumber = DataObjectUtil.getInteger(
-                batchJobRequest, BatchJobRequest.REQUEST_SEQUENCE_NUMBER);
-              int i = 1;
-              for (final Map<String, Object> structuredResultMap : results) {
-                final DataObject structuredResult = DataObjectUtil.getObject(
-                  resultMetaData, structuredResultMap);
-
-                final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
-                if (properties != null && !properties.isEmpty()) {
-                  dataObjectWriter.setProperties(properties);
-                }
-
-                structuredResult.put("sequenceNumber", sequenceNumber);
-                structuredResult.put("resultNumber", i);
-                dataObjectWriter.write(structuredResult);
-                if (properties != null && !properties.isEmpty()) {
-
-                  dataObjectWriter.clearProperties();
-                  dataObjectWriter.setProperties(defaultProperties);
-                }
-                i++;
-              }
-              written = true;
-            }
-          } finally {
-            dataObjectWriter.close();
-          }
-
-          if (written) {
-            createBatchJobResult(batchJobId,
-              BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat, file);
-          }
-        } catch (final Throwable e) {
-          throw new RuntimeException("Unable to save result data", e);
-        } finally {
-          InvokeMethodAfterCommit.invoke(file, "delete");
-        }
-      } finally {
-        structuredResults.close();
-      }
-    }
+  protected com.revolsys.io.Writer<DataObject> createStructuredResultWriter(
+    final long batchJobId, final BusinessApplication application,
+    final File structuredResultFile, final DataObjectMetaData resultMetaData,
+    final String resultFormat) {
+    final FileSystemResource resource = new FileSystemResource(
+      structuredResultFile);
+    final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
+    final DataObjectWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
+      DataObjectWriterFactory.class, resultFormat);
+    final com.revolsys.io.Writer<DataObject> dataObjectWriter = writerFactory.createDataObjectWriter(
+      resultMetaData, resource);
+    dataObjectWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY, baseUrl
+      + "/kml/defaultStyle.kml#default");
+    dataObjectWriter.setProperty(IoConstants.TITLE_PROPERTY, "Job "
+      + batchJobId + " Result");
+    dataObjectWriter.setProperty("htmlCssStyleUrl", baseUrl
+      + "/css/default.css");
+    dataObjectWriter.setProperties(application.getProperties());
+    return dataObjectWriter;
   }
 
   public void deleteLogFiles() {
@@ -688,6 +712,10 @@ public class BatchJobService implements ModuleEventListener {
     return businessApplicationRegistry.getBusinessApplications();
   }
 
+  public CpfDataAccessObject getDataAccessObject() {
+    return dataAccessObject;
+  }
+
   public DataObjectStore getDataStore() {
     return dataStore;
   }
@@ -745,17 +773,17 @@ public class BatchJobService implements ModuleEventListener {
 
   public Map<String, Object> getNextBatchJobRequestExecutionGroup(
     final String workerId, final List<String> moduleNames) {
-    long startTime = System.currentTimeMillis();
-    long endTime = startTime + maxWorkerWaitTime;
+    final long startTime = System.currentTimeMillis();
+    final long endTime = startTime + maxWorkerWaitTime;
     final Map<String, Object> response = new HashMap<String, Object>();
     if (running) {
 
       BatchJobRequestExecutionGroup group = null;
       try {
         do {
-          List<String> workerModuleNames = getWorkerModuleNames(workerId,
+          final List<String> workerModuleNames = getWorkerModuleNames(workerId,
             moduleNames);
-          long waitTime = Math.min(10000, endTime - startTime);
+          final long waitTime = Math.min(10000, endTime - startTime);
           if (waitTime > 0) {
             group = groupsToSchedule.read(waitTime, workerModuleNames);
           }
@@ -763,7 +791,7 @@ public class BatchJobService implements ModuleEventListener {
       } catch (final ClosedException e) {
       }
 
-      if (running && group != null) {
+      if (running && group != null && !group.isCancelled()) {
         final BusinessApplication businessApplication = group.getBusinessApplication();
         final String businessApplicationName = businessApplication.getName();
         final Module module = businessApplication.getModule();
@@ -793,7 +821,6 @@ public class BatchJobService implements ModuleEventListener {
                 new LinkedHashMap<String, Object>(response));
             }
             response.put("consumerKey", group.getconsumerKey());
-            response.put("numRequests", group.getNumBatchJobRequests());
             worker.addExecutingGroup(moduleName + ":" + moduleStartTime, group);
           } else {
             response.put("action", "loadModule");
@@ -992,11 +1019,9 @@ public class BatchJobService implements ModuleEventListener {
       postProcessScheduledStatistics.put("postProcessScheduledJobsCount", 1);
       addStatistics(businessApplication, postProcessScheduledStatistics);
 
-      createErrorResults(batchJobId);
-      createStructuredResults(batchJobId);
+      createResults(batchJobId);
 
-      final long resultsGeneratedTime = setBatchJobCompleted(batchJobId);
-      if (resultsGeneratedTime != -1) {
+      if (dataAccessObject.setBatchJobCompleted(batchJobId)) {
         sendNotification(batchJobId, batchJob);
       }
       final long numCompletedRequests = DataObjectUtil.getInteger(batchJob,
@@ -1048,11 +1073,14 @@ public class BatchJobService implements ModuleEventListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void preProcessBatchJob(final Long batchJobId, final long time,
     final long lastChangedTime) {
-    final com.revolsys.io.Writer<DataObject> writer = dataStore.getWriter();
+    synchronized (preprocesedJobIds) {
+      preprocesedJobIds.add(batchJobId);
+    }
     try {
+      int numSubmittedRequests = 0;
       final StopWatch stopWatch = new StopWatch();
       stopWatch.start();
-      final DataObject batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
+      final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
       if (businessApplication == null) {
@@ -1067,164 +1095,189 @@ public class BatchJobService implements ModuleEventListener {
       if (businessApplication.isInfoLogEnabled()) {
         ModuleLog.info(moduleName, "Job pre-process", "Start", logData);
       }
-      final Map<String, Object> preProcessScheduledStatistics = new HashMap<String, Object>();
-      preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
-      preProcessScheduledStatistics.put("preProcessScheduledJobsTime", time
-        - lastChangedTime);
-
-      InvokeMethodAfterCommit.invoke(this, "addStatistics",
-        businessApplication, preProcessScheduledStatistics);
-
-      addStatistics(businessApplication, preProcessScheduledStatistics);
-
-      final InputStream inputDataStream = getJobInputDataStream(batchJob);
-      final long numFailedRequests = batchJob.getLong(BatchJob.NUM_FAILED_REQUESTS);
       try {
-        final String appParams = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
-        final Map<String, String> jobParameters = JsonMapIoFactory.toMap(appParams);
+        final int maxGroupSize = businessApplication.getNumRequestsPerWorker();
+        int numGroups = 0;
+        boolean valid = true;
+        final Map<String, Object> preProcessScheduledStatistics = new HashMap<String, Object>();
+        preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
+        preProcessScheduledStatistics.put("preProcessScheduledJobsTime", time
+          - lastChangedTime);
 
-        final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
-        final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-        if (!businessApplication.getInputDataContentTypes().containsKey(
-          inputContentType)) {
-          addJobValidationError(batchJob, ErrorCode.BAD_INPUT_DATA_TYPE, "", "");
-        } else if (!businessApplication.getResultDataContentTypes()
-          .containsKey(resultContentType)) {
-          addJobValidationError(batchJob, ErrorCode.BAD_RESULT_DATA_TYPE, "",
-            "");
-        } else if (inputDataStream == null) {
-          addJobValidationError(batchJob, ErrorCode.INPUT_DATA_UNREADABLE, "",
-            "");
-        } else {
-          final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
-          try {
-            int requestSequenceNumber = 0;
-            final MapReaderFactory factory = IoFactoryRegistry.getInstance()
-              .getFactoryByMediaType(MapReaderFactory.class, inputContentType);
-            if (factory == null) {
-              addJobValidationError(batchJob, ErrorCode.INPUT_DATA_UNREADABLE,
-                inputContentType, "Media type not supported");
-            } else {
-              final InputStreamResource resource = new InputStreamResource(
-                "in", inputDataStream);
-              final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource);
-              if (mapReader == null) {
-                addJobValidationError(batchJob,
+        InvokeMethodAfterCommit.invoke(this, "addStatistics",
+          businessApplication, preProcessScheduledStatistics);
+
+        addStatistics(businessApplication, preProcessScheduledStatistics);
+
+        final InputStream inputDataStream = getJobInputDataStream(batchJob);
+        long numFailedRequests = batchJob.getLong(BatchJob.NUM_FAILED_REQUESTS);
+        try {
+          final String appParams = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
+          final Map<String, String> jobParameters = JsonMapIoFactory.toMap(appParams);
+
+          final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
+          final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+          if (!businessApplication.getInputDataContentTypes().containsKey(
+            inputContentType)) {
+            valid = addJobValidationError(batchJobId,
+              ErrorCode.BAD_INPUT_DATA_TYPE, "", "");
+          } else if (!businessApplication.getResultDataContentTypes()
+            .containsKey(resultContentType)) {
+            valid = addJobValidationError(batchJobId,
+              ErrorCode.BAD_RESULT_DATA_TYPE, "", "");
+          } else if (inputDataStream == null) {
+            valid = addJobValidationError(batchJobId,
+              ErrorCode.INPUT_DATA_UNREADABLE, "", "");
+          } else {
+            final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
+            try {
+              final MapReaderFactory factory = IoFactoryRegistry.getInstance()
+                .getFactoryByMediaType(MapReaderFactory.class, inputContentType);
+              if (factory == null) {
+                valid = addJobValidationError(batchJobId,
                   ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
                   "Media type not supported");
               } else {
-                final Reader<DataObject> inputDataReader = new MapReaderDataObjectReader(
-                  requestMetaData, mapReader);
+                final InputStreamResource resource = new InputStreamResource(
+                  "in", inputDataStream);
+                final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource);
+                if (mapReader == null) {
+                  valid = addJobValidationError(batchJobId,
+                    ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
+                    "Media type not supported");
+                } else {
+                  final Reader<DataObject> inputDataReader = new MapReaderDataObjectReader(
+                    requestMetaData, mapReader);
 
-                for (final Map<String, Object> inputDataRecord : inputDataReader) {
-                  requestSequenceNumber++;
-                  final DataObject requestParemeters = processParameters(
-                    batchJob, businessApplication, requestSequenceNumber,
-                    jobParameters, inputDataRecord);
-                  if (requestParemeters == null) {
-                    batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS,
-                      numFailedRequests + 1);
-                  } else {
-                    final String structuredInputDataString = JsonDataObjectIoFactory.toString(requestParemeters);
-                    dataAccessObject.createBatchJobRequest(batchJobId,
-                      requestSequenceNumber, structuredInputDataString);
+                  final int commitInterval = 100;
+                  final PlatformTransactionManager transactionManager = dataStore.getTransactionManager();
+                  final TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
+                    TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                  TransactionStatus status = transactionManager.getTransaction(transactionDefinition);
+                  try {
+                    List<Map<String, Object>> group = new ArrayList<Map<String, Object>>();
+                    for (final Map<String, Object> inputDataRecord : inputDataReader) {
+                      if (group.size() == maxGroupSize) {
+                        numGroups++;
+                        if (createBatchJobExecutionGroup(batchJobId, numGroups,
+                          requestMetaData, group)) {
+                          group = new ArrayList<Map<String, Object>>();
+                          if (numGroups % commitInterval == 0) {
+                            transactionManager.commit(status);
+                            status = transactionManager.getTransaction(transactionDefinition);
+                          }
+                        } else {
+                          transactionManager.rollback(status);
+                          return;
+                        }
+                      }
+                      numSubmittedRequests++;
+                      final DataObject requestParemeters = processParameters(
+                        batchJob, businessApplication, numSubmittedRequests,
+                        jobParameters, inputDataRecord);
+                      if (requestParemeters == null) {
+                        numFailedRequests++;
+                      } else {
+                        requestParemeters.setValue("requestSequenceNumber",
+                          numSubmittedRequests);
+                        group.add(requestParemeters);
+                      }
+
+                    }
+                    numGroups++;
+                    if (createBatchJobExecutionGroup(batchJobId, numGroups,
+                      requestMetaData, group)) {
+                    } else {
+                      transactionManager.rollback(status);
+                      return;
+                    }
+                  } catch (final Throwable e) {
+                    transactionManager.rollback(status);
+                    ExceptionUtil.throwUncheckedException(e);
                   }
+                  transactionManager.commit(status);
+                }
+
+                FileUtil.closeSilent(inputDataStream);
+
+                final int maxRequests = businessApplication.getMaxRequestsPerJob();
+                if (numSubmittedRequests == 0) {
+                  valid = addJobValidationError(batchJobId,
+                    ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
+                    String.valueOf(numSubmittedRequests));
+                } else if (numSubmittedRequests > maxRequests) {
+                  valid = addJobValidationError(batchJobId,
+                    ErrorCode.TOO_MANY_REQUESTS, null,
+                    String.valueOf(numSubmittedRequests));
                 }
               }
-
-              FileUtil.closeSilent(inputDataStream);
-
-              batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
-                requestSequenceNumber);
-              final int maxRequests = businessApplication.getMaxRequestsPerJob();
-              if (requestSequenceNumber == 0) {
-                addJobValidationError(batchJob,
-                  ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
-                  String.valueOf(requestSequenceNumber));
-              } else if (requestSequenceNumber > maxRequests) {
-                addJobValidationError(batchJob, ErrorCode.TOO_MANY_REQUESTS,
-                  null, String.valueOf(requestSequenceNumber));
-              }
+            } catch (final Throwable e) {
+              LoggerFactory.getLogger(getClass()).error(
+                "Error pre-processing job " + batchJobId, e);
+              final StringWriter errorDebugMessage = new StringWriter();
+              e.printStackTrace(new PrintWriter(errorDebugMessage));
+              valid = addJobValidationError(batchJobId,
+                ErrorCode.ERROR_PROCESSING_REQUEST,
+                errorDebugMessage.toString(), e.getMessage());
             }
-          } catch (final Throwable e) {
-            final StringWriter errorDebugMessage = new StringWriter();
-            e.printStackTrace(new PrintWriter(errorDebugMessage));
-            addJobValidationError(batchJob, ErrorCode.ERROR_PROCESSING_REQUEST,
-              errorDebugMessage.toString(), e.getMessage());
+          }
+        } finally {
+          FileUtil.closeSilent(inputDataStream);
+        }
+        logData.put("numSubmittedRequests", numSubmittedRequests);
+        logData.put("numFailedRequests", numFailedRequests);
+
+        if (!valid || numSubmittedRequests == numFailedRequests) {
+          valid = false;
+          createResults(batchJobId);
+          dataAccessObject.setBatchJobCompleted(batchJobId);
+        } else if (dataAccessObject.setBatchJobResultsCreated(batchJobId,
+          numSubmittedRequests, maxGroupSize, numGroups)) {
+          schedule(businessApplicationName, batchJobId);
+        }
+        final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
+        preProcessStatistics.put("preProcessedTime", stopWatch);
+        preProcessStatistics.put("preProcessedJobsCount", 1);
+        preProcessStatistics.put("preProcessedRequestsCount",
+          numSubmittedRequests);
+
+        InvokeMethodAfterCommit.invoke(this, "addStatistics",
+          businessApplication, preProcessStatistics);
+
+        if (!valid) {
+          final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
+
+          final Map<String, Object> jobCompletedStatistics = new HashMap<String, Object>();
+
+          jobCompletedStatistics.put("completedJobsCount", 1);
+          jobCompletedStatistics.put("completedRequestsCount",
+            numFailedRequests);
+          jobCompletedStatistics.put("completedFailedRequestsCount",
+            numFailedRequests);
+          jobCompletedStatistics.put("completedTime",
+            System.currentTimeMillis() - whenCreated.getTime());
+
+          InvokeMethodAfterCommit.invoke(this, "addStatistics",
+            businessApplication, jobCompletedStatistics);
+
+          // numCompletedRequests is 0 + numFailedFailed
+          logData.put("numCompletedRequests", numFailedRequests);
+          logData.put("numFailedRequests", numFailedRequests);
+          if (businessApplication.isInfoLogEnabled()) {
+            ModuleLog.infoAfterCommit(moduleName, "Job completed", "End",
+              logData);
           }
         }
       } finally {
-        FileUtil.closeSilent(inputDataStream);
-      }
-      final long numSubmittedRequests = batchJob.getLong(BatchJob.NUM_SUBMITTED_REQUESTS);
-      if (numSubmittedRequests == numFailedRequests) {
-        createErrorResults(batchJobId);
-        if (!BatchJob.MARKED_FOR_DELETION.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-          batchJob.setValue(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED);
-
-          final long completeTime = System.currentTimeMillis();
-          final Timestamp now = new Timestamp(completeTime);
-          batchJob.setValue(BatchJob.COMPLETED_TIMESTAMP, now);
-          batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
-        }
-      }
-      // Clear the input data as it is no longer required
-      batchJob.setValue(BatchJob.STRUCTURED_INPUT_DATA, null);
-      final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-      if (!BatchJob.RESULTS_CREATED.equals(jobStatus)
-        && numSubmittedRequests > 0) {
-        if (BatchJob.CREATING_REQUESTS.equals(jobStatus)) {
-          final Timestamp now = new Timestamp(time);
-          batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
-          if (!BatchJob.MARKED_FOR_DELETION.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-            batchJob.setValue(BatchJob.JOB_STATUS, BatchJob.REQUESTS_CREATED);
-          }
-          batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
-        }
-        schedule(businessApplicationName, batchJobId);
-      }
-      logData.put("numSubmittedRequests", numSubmittedRequests);
-      logData.put("numFailedRequests", numFailedRequests);
-      if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.infoAfterCommit(moduleName, "Job pre-process", "End",
-          stopWatch, logData);
-      }
-
-      final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
-      preProcessStatistics.put("preProcessedTime", stopWatch);
-      preProcessStatistics.put("preProcessedJobsCount", 1);
-      preProcessStatistics.put("preProcessedRequestsCount", stopWatch);
-
-      InvokeMethodAfterCommit.invoke(this, "addStatistics",
-        businessApplication, preProcessStatistics);
-
-      if (BatchJob.RESULTS_CREATED.equals(jobStatus)
-        || numSubmittedRequests == 0) {
-        final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
-        final long numCompletedRequests = batchJob.getLong(BatchJob.NUM_COMPLETED_REQUESTS);
-
-        final Map<String, Object> jobCompletedStatistics = new HashMap<String, Object>();
-
-        jobCompletedStatistics.put("completedJobsCount", 1);
-        jobCompletedStatistics.put("completedRequestsCount",
-          numCompletedRequests + numFailedRequests);
-        jobCompletedStatistics.put("completedFailedRequestsCount",
-          numFailedRequests);
-        jobCompletedStatistics.put("completedTime", System.currentTimeMillis()
-          - whenCreated.getTime());
-
-        InvokeMethodAfterCommit.invoke(this, "addStatistics",
-          businessApplication, jobCompletedStatistics);
-
-        logData.put("numCompletedRequests", numCompletedRequests);
-        logData.put("numFailedRequests", numFailedRequests);
         if (businessApplication.isInfoLogEnabled()) {
-          ModuleLog.infoAfterCommit(moduleName, "Job completed", "End", logData);
+          ModuleLog.infoAfterCommit(moduleName, "Job pre-process", "End",
+            stopWatch, logData);
         }
       }
-      dataAccessObject.write(batchJob);
     } finally {
-      writer.close();
+      synchronized (preprocesedJobIds) {
+        preprocesedJobIds.remove(batchJobId);
+      }
     }
   }
 
@@ -1237,6 +1290,7 @@ public class BatchJobService implements ModuleEventListener {
     final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
     final DataObject requestParameters = new ArrayDataObject(requestMetaData);
     for (final Attribute attribute : requestMetaData.getAttributes()) {
+      boolean jobParameter = false;
       final String parameterName = attribute.getName();
       Object parameterValue = null;
       if (businessApplication.isRequestParameter(parameterName)) {
@@ -1244,11 +1298,12 @@ public class BatchJobService implements ModuleEventListener {
       }
       if (parameterValue == null
         && businessApplication.isJobParameter(parameterName)) {
+        jobParameter = true;
         parameterValue = getNonEmptyValue(jobParameters, parameterName);
       }
       if (parameterValue == null) {
         if (attribute.isRequired()) {
-          dataAccessObject.createBatchJobRequest(batchJobId,
+          dataAccessObject.createBatchJobExecutionGroup(batchJobId,
             requestSequenceNumber,
             ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
             ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " "
@@ -1257,7 +1312,7 @@ public class BatchJobService implements ModuleEventListener {
         }
       } else if (!businessApplication.isRequestAttributeValid(parameterName,
         parameterValue)) {
-        dataAccessObject.createBatchJobRequest(batchJobId,
+        dataAccessObject.createBatchJobExecutionGroup(batchJobId,
           requestSequenceNumber,
           ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
           ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " "
@@ -1267,11 +1322,11 @@ public class BatchJobService implements ModuleEventListener {
         try {
           final String sridString = jobParameters.get("srid");
           setStructuredInputDataValue(sridString, requestParameters, attribute,
-            parameterValue);
+            parameterValue, !jobParameter);
         } catch (final IllegalArgumentException e) {
           final StringWriter errorOut = new StringWriter();
           e.printStackTrace(new PrintWriter(errorOut));
-          dataAccessObject.createBatchJobRequest(batchJobId,
+          dataAccessObject.createBatchJobExecutionGroup(batchJobId,
             requestSequenceNumber,
             ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
             ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " "
@@ -1281,6 +1336,19 @@ public class BatchJobService implements ModuleEventListener {
       }
     }
     return requestParameters;
+  }
+
+  protected void removeGroup(final BatchJobRequestExecutionGroup group) {
+    final long batchJobId = group.getBatchJobId();
+    synchronized (groupsByJobId) {
+      final Set<BatchJobRequestExecutionGroup> groups = groupsByJobId.get(batchJobId);
+      if (groups != null) {
+        groups.remove(group);
+        if (groups.isEmpty()) {
+          groupsByJobId.remove(batchJobId);
+        }
+      }
+    }
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -1342,7 +1410,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   /**
-   * Reset all BatchJobs and their BatchJobRequests for the specified business
+   * Reset all BatchJobs and their BatchJobExecutionGroups for the specified business
    * applications which are currently in the processing state so that they can
    * be rescheduled.
    * 
@@ -1361,12 +1429,6 @@ public class BatchJobService implements ModuleEventListener {
       ModuleLog.info(moduleName, businessApplicationName,
         "Request cleaned for restart",
         Collections.singletonMap("count", numCleanedRequests));
-    }
-    final int numResetJobCounts = dataAccessObject.updateBatchJobExecutionCounts(businessApplicationName);
-    if (numResetJobCounts > 0) {
-      ModuleLog.info(moduleName, businessApplicationName,
-        "Job execution counts for restart",
-        Collections.singletonMap("count", numResetJobCounts));
     }
     final int numCleanedJobs = dataAccessObject.updateBatchJobProcessedStatus(businessApplicationName);
     if (numCleanedJobs > 0) {
@@ -1441,6 +1503,15 @@ public class BatchJobService implements ModuleEventListener {
 
   public void schedule(final BatchJobRequestExecutionGroup group) {
     if (running) {
+      final long batchJobId = group.getBatchJobId();
+      synchronized (groupsByJobId) {
+        Set<BatchJobRequestExecutionGroup> groups = groupsByJobId.get(batchJobId);
+        if (groups == null) {
+          groups = new LinkedHashSet<BatchJobRequestExecutionGroup>();
+          groupsByJobId.put(batchJobId, groups);
+        }
+        groups.add(group);
+      }
       final BusinessApplication businessApplication = group.getBusinessApplication();
       final Module module = businessApplication.getModule();
       final String name = module.getName();
@@ -1458,13 +1529,15 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
-  public boolean scheduleBatchJobRequests(final Long batchJobId) {
+  public boolean scheduleBatchJobExecutionGroups(final Long batchJobId) {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
 
     final long start = System.currentTimeMillis();
     final Timestamp startTime = new Timestamp(start);
     final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+    dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.REQUESTS_CREATED,
+      BatchJob.PROCESSING);
     if (batchJob == null) {
       return false;
     } else {
@@ -1472,8 +1545,6 @@ public class BatchJobService implements ModuleEventListener {
 
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       final String businessApplicationVersion = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_VERSION);
-      setBatchJobStatus(batchJobId, BatchJob.REQUESTS_CREATED,
-        BatchJob.PROCESSING, start);
 
       final BusinessApplication businessApplication = getBusinessApplication(
         businessApplicationName, businessApplicationVersion);
@@ -1490,36 +1561,27 @@ public class BatchJobService implements ModuleEventListener {
         final Map<String, String> businessApplicationParameterMap = JsonMapIoFactory.toMap(appParams);
         final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
-        final int numRequestsPerWorker = businessApplication.getNumRequestsPerWorker();
+        final Long batchJobExecutionGroupId = dataAccessObject.getNonExecutingRequestId(batchJobId);
 
-        final List<Long> batchJobRequestIds = dataAccessObject.getNonExecutingRequestIds(
-          numRequestsPerWorker, batchJobId);
-
-        if (batchJobRequestIds.isEmpty()) {
+        if (batchJobExecutionGroupId == null) {
           return false;
         } else {
-          dataAccessObject.setBatchJobRequestsStarted(batchJobRequestIds);
+          dataAccessObject.setBatchJobExecutionGroupsStarted(batchJobExecutionGroupId);
 
-          dataAccessObject.updateBatchJobStartRequestExecution(batchJobId,
-            batchJobRequestIds.size(), startTime);
+          dataAccessObject.updateBatchJobAddScheduledGroupCount(batchJobId,
+            startTime);
 
           final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(
             consumerKey, batchJobId, businessApplication,
             businessApplicationParameterMap, resultDataContentType,
-            new Timestamp(System.currentTimeMillis()));
-          for (final Long batchJobRequestId : batchJobRequestIds) {
-            group.addBatchJobRequestId(batchJobRequestId);
-          }
+            new Timestamp(System.currentTimeMillis()), batchJobExecutionGroupId);
 
           InvokeMethodAfterCommit.invoke(this, "schedule", group);
           logData.put("groupId", group.getId());
-          logData.put("numRequests", batchJobRequestIds.size());
-          final long numBatchJobRequests = group.getNumBatchJobRequests();
 
           final Map<String, Object> statistics = new HashMap<String, Object>();
           statistics.put("executeScheduledTime", stopWatch);
           statistics.put("executeScheduledGroupsCount", 1);
-          statistics.put("executeScheduledRequestsCount", numBatchJobRequests);
 
           InvokeMethodAfterCommit.invoke(this, "addStatistics",
             businessApplication, statistics);
@@ -1724,31 +1786,6 @@ public class BatchJobService implements ModuleEventListener {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * Set the status of the DataObject to requestsCreated if the status is
-   * creatingRequests.
-   * 
-   * @param batchJobId The id of the BatchJob.
-   * @return True if the status was set, false otherwise.
-   */
-  @Transactional(propagation = Propagation.REQUIRED)
-  public long setBatchJobCompleted(final Long batchJobId) {
-    final DataObject batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
-    if (BatchJob.CREATING_RESULTS.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-      final long time = System.currentTimeMillis();
-      final Timestamp now = new Timestamp(time);
-      batchJob.setValue(BatchJob.COMPLETED_TIMESTAMP, now);
-      if (!BatchJob.MARKED_FOR_DELETION.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-        batchJob.setValue(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED);
-      }
-      batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
-      dataAccessObject.write(batchJob);
-      return time;
-    } else {
-      return -1;
-    }
-  }
-
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void setBatchJobExecutingCounts(final String businessApplicationName,
     final Long batchJobId, final Set<BatchJobRequestExecutionGroup> groups) {
@@ -1760,16 +1797,13 @@ public class BatchJobService implements ModuleEventListener {
         numCompletedRequests += group.getNumCompletedRequests();
         numFailedRequests += group.getNumFailedRequests();
       }
-      dataAccessObject.updateBatchJobExecutionCounts(batchJobId,
-        -(numCompletedRequests + numFailedRequests), numCompletedRequests,
-        numFailedRequests);
+      dataAccessObject.updateBatchJobGroupCompleted(batchJobId,
+        numCompletedRequests, numFailedRequests);
     }
 
     if (dataAccessObject.isBatchJobCompleted(batchJobId)) {
-      final long time = System.currentTimeMillis();
-      dataAccessObject.updateBatchJobExecutionCounts(batchJobId);
-      setBatchJobStatus(batchJobId, BatchJob.PROCESSING, BatchJob.PROCESSED,
-        time);
+      dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.PROCESSING,
+        BatchJob.PROCESSED);
       postProcess(batchJobId);
     } else if (dataAccessObject.hasBatchJobUnexecutedJobs(batchJobId)) {
       schedule(businessApplicationName, batchJobId);
@@ -1777,6 +1811,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   @SuppressWarnings("unchecked")
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void setBatchJobExecutionGroupResults(final String workerId,
     final String groupId, final Map<String, Object> results) {
     final com.revolsys.io.Writer<DataObject> writer = dataStore.getWriter();
@@ -1784,103 +1819,43 @@ public class BatchJobService implements ModuleEventListener {
       final Worker worker = getWorker(workerId);
       if (worker != null) {
         final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
-        if (group != null) {
+        if (group != null && !group.isCancelled()) {
           synchronized (group) {
+            final long batchJobId = group.getBatchJobId();
             final BusinessApplication businessApplication = group.getBusinessApplication();
             final String businessApplicationName = group.getBusinessApplicationName();
             final String moduleName = group.getModuleName();
-            final Map<String, Object> logData = new LinkedHashMap<String, Object>();
-            final long batchJobId = group.getBatchJobId();
-            logData.put("businessApplicationName", businessApplicationName);
-            logData.put("workerId", workerId);
-            logData.put("batchJobId", batchJobId);
-            logData.put("groupId", groupId);
-            final long numBatchJobRequests = group.getNumBatchJobRequests();
-            logData.put("numRequests", numBatchJobRequests);
-
-            final List<Map<String, Object>> groupLogRecords = (List<Map<String, Object>>)results.get("logRecords");
-            if (groupLogRecords != null && !groupLogRecords.isEmpty()) {
-              final Map<String, Object> appLogData = new LinkedHashMap<String, Object>();
-              appLogData.put("batchJobId", batchJobId);
-              appLogData.put("logRecords", groupLogRecords);
-              if (businessApplication.isInfoLogEnabled()) {
-                ModuleLog.info(moduleName, "Group Execution",
-                  "Application Log", appLogData);
-              }
-            }
 
             final List<Map<String, Object>> groupResults = (List<Map<String, Object>>)results.get("results");
-            if (groupResults != null && !groupResults.isEmpty()) {
-              final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
-              if (batchJob != null) {
-                final List<Long> batchJobRequestIds = group.getBatchJobRequestIds();
-                final long gridEndTime = System.currentTimeMillis();
-                new Timestamp(gridEndTime);
+            final List<Map<String, Object>> groupLogRecords = (List<Map<String, Object>>)results.get("logRecords");
+            final long groupExecutedTime = CollectionUtil.getLong(results,
+              "groupExecutedTime");
+            final long applicationExecutedTime = CollectionUtil.getLong(
+              results, "applicationExecutedTime");
+            final int successCount = CollectionUtil.getInteger(results,
+              "successCount");
+            final int errorCount = CollectionUtil.getInteger(results,
+              "errorCount");
 
-                long totalApplicationExecutionTime = 0;
-                int numCompletedRequests = 0;
-                int numFailedRequests = 0;
-                for (final Map<String, Object> requestResult : groupResults) {
-                  final Long requestId = ((Number)requestResult.get("requestId")).longValue();
-                  if (batchJobRequestIds.contains(requestId)) {
+            // TODO groupError
 
-                    final Map<String, Integer> counts = updateBatchJobRequestFromResponse(
-                      requestId, requestResult);
-                    if (!counts.isEmpty()) {
-                      final Number requestExecutionTime = (Number)requestResult.get("requestExecutionTime");
-                      if (requestExecutionTime != null) {
-                        totalApplicationExecutionTime += requestExecutionTime.longValue();
-                      }
-                      numCompletedRequests += counts.get("success");
-                      numFailedRequests += counts.get("error");
-                    }
-                    final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)requestResult.get("logRecords");
-                    if (logRecords != null && !logRecords.isEmpty()) {
-                      final Map<String, Object> appLogData = new LinkedHashMap<String, Object>();
-                      appLogData.put("batchJobId", batchJobId);
-                      appLogData.put("requestId", requestId);
-                      appLogData.put("logRecords", logRecords);
-                      ModuleLog.info(moduleName, "Request Execution",
-                        "Application Log", appLogData);
-                    }
-                  }
-                }
+            logGroup(workerId, group, groupLogRecords, "Group Execution",
+              "Application Log", Collections.<String, Object> emptyMap());
 
-                final Map<String, Object> appExecutedStatistics = new HashMap<String, Object>();
-                appExecutedStatistics.put("applicationExecutedGroupsCount", 1);
-                appExecutedStatistics.put("applicationExecutedRequestsCount",
-                  numCompletedRequests + numFailedRequests);
-                appExecutedStatistics.put(
-                  "applicationExecutedFailedRequestsCount", numFailedRequests);
-                appExecutedStatistics.put("executedTime",
-                  totalApplicationExecutionTime);
-
-                addStatistics(businessApplication, appExecutedStatistics);
-
-                group.setNumCompletedRequests(numCompletedRequests);
-                group.setNumFailedRequests(numFailedRequests);
+            final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+            if (batchJob != null) {
+              if (groupResults != null && !groupResults.isEmpty()) {
+                final Long batchJobExecutionGroupId = group.getBatchJobExecutionGroupId();
+                dataAccessObject.updateBatchJobExecutionGroupFromResponse(
+                  workerId, group, batchJobExecutionGroupId, groupResults,
+                  successCount, errorCount);
               }
-              final long executionStartTime = group.getExecutionStartTime();
-              if (businessApplication.isInfoLogEnabled()) {
-                ModuleLog.info(moduleName, "Execution", "End",
-                  System.currentTimeMillis() - executionStartTime, logData);
-              }
-              final Map<String, Object> executedStatistics = new HashMap<String, Object>();
-              executedStatistics.put("executedGroupsCount", 1);
-              executedStatistics.put("executedRequestsCount",
-                numBatchJobRequests);
-              executedStatistics.put("executedTime", System.currentTimeMillis()
-                - executionStartTime);
-
-              InvokeMethodAfterCommit.invoke(this, "addStatistics",
-                businessApplication, executedStatistics);
-
-              scheduler.groupFinished(businessApplicationName, batchJobId,
-                group);
-            } else {
-              group.resetId();
-              schedule(group);
             }
+            updateGroupStatistics(group, businessApplication, moduleName,
+              applicationExecutedTime, groupExecutedTime, successCount,
+              errorCount);
+            scheduler.groupFinished(businessApplicationName, batchJobId, group);
+            removeGroup(group);
           }
         }
       }
@@ -1889,47 +1864,67 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  /**
-   * Set the status of a DataObject if it is in the expected status.
-   * 
-   * @param batchJobId The id of the BatchJob.
-   * @param expectedStatus The current expected status.
-   * @param newStatus The new status to set.
-   * @return True if the status was set, false otherwise.
-   */
-  @Transactional(propagation = Propagation.REQUIRED)
-  public boolean setBatchJobStatus(final Long batchJobId,
-    final String expectedStatus, final String newStatus) {
-    final long time = System.currentTimeMillis();
-    return setBatchJobStatus(batchJobId, expectedStatus, newStatus, time) != -1;
+  public static void logGroup(final String workerId,
+    BatchJobRequestExecutionGroup group,
+    final List<Map<String, Object>> groupLogRecords, String category,
+    String message, Map<String, ? extends Object> data) {
+    if (groupLogRecords != null && !groupLogRecords.isEmpty()) {
+      final BusinessApplication businessApplication = group.getBusinessApplication();
+      if (businessApplication.isInfoLogEnabled()) {
+        final String moduleName = group.getModuleName();
+        final Map<String, Object> appLogData = getGroupLogData(group);
+        appLogData.put("workerId", workerId);
+        appLogData.putAll(data);
+        ModuleLog.info(moduleName, category, message, appLogData);
+      }
+    }
   }
 
-  /**
-   * Set the status of a DataObject if it is in the expected status.
-   * 
-   * @param batchJobId The id of the BatchJob.
-   * @param expectedStatus The current expected status.
-   * @param newStatus The new status to set.
-   * @param time The time in milliseconds.
-   * @return True if the status was set, false otherwise.
-   */
-  @Transactional(propagation = Propagation.REQUIRED)
-  public long setBatchJobStatus(final Long batchJobId,
-    final String expectedStatus, final String newStatus, final long time) {
-    final DataObject batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
-    if (batchJob != null
-      && expectedStatus.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-      final Timestamp startTimestamp = batchJob.getValue(BatchJob.WHEN_STATUS_CHANGED);
-      final long startTime = startTimestamp.getTime();
-      if (!BatchJob.MARKED_FOR_DELETION.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-        batchJob.setValue(BatchJob.JOB_STATUS, newStatus);
-      }
-      batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, new Timestamp(time));
-      dataAccessObject.write(batchJob);
-      return startTime;
-    } else {
-      return -1;
+  public static Map<String, Object> getGroupLogData(
+    BatchJobRequestExecutionGroup group) {
+    final String groupId = group.getId();
+    final long batchJobId = group.getBatchJobId();
+    final String businessApplicationName = group.getBusinessApplicationName();
+    final Map<String, Object> appLogData = new LinkedHashMap<String, Object>();
+    appLogData.put("businessApplicationName", businessApplicationName);
+    appLogData.put("batchJobId", batchJobId);
+    appLogData.put("groupId", groupId);
+    return appLogData;
+  }
+
+  protected void updateGroupStatistics(
+    final BatchJobRequestExecutionGroup group,
+    final BusinessApplication businessApplication, final String moduleName,
+    final long applicationExecutedTime, long groupExecutedTime,
+    final int successCount, final int errorCount) {
+    final Map<String, Object> appExecutedStatistics = new HashMap<String, Object>();
+    appExecutedStatistics.put("applicationExecutedGroupsCount", 1);
+    appExecutedStatistics.put("applicationExecutedRequestsCount", successCount
+      + errorCount);
+    appExecutedStatistics.put("applicationExecutedFailedRequestsCount",
+      errorCount);
+    appExecutedStatistics.put("applicationExecutedTime",
+      applicationExecutedTime);
+    appExecutedStatistics.put("executedTime", groupExecutedTime);
+
+    addStatistics(businessApplication, appExecutedStatistics);
+
+    final long executionStartTime = group.getExecutionStartTime();
+    long durationInMillis = System.currentTimeMillis() - executionStartTime;
+    if (businessApplication.isInfoLogEnabled()) {
+      final Map<String, Object> logData = getGroupLogData(group);
+      ModuleLog.info(moduleName, "Execution", "End", durationInMillis, logData);
     }
+    final Map<String, Object> executedStatistics = new HashMap<String, Object>();
+    executedStatistics.put("executedGroupsCount", 1);
+    executedStatistics.put("executedRequestsCount", successCount + errorCount);
+    executedStatistics.put("executedTime", durationInMillis);
+
+    InvokeMethodAfterCommit.invoke(this, "addStatistics", businessApplication,
+      executedStatistics);
+
+    group.setNumCompletedRequests(successCount);
+    group.setNumFailedRequests(errorCount);
   }
 
   public void setBusinessApplicationRegistry(
@@ -1990,7 +1985,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setStructuredInputDataValue(final String sridString,
     final Map<String, Object> requestParemeters, final Attribute attribute,
-    Object parameterValue) {
+    Object parameterValue, boolean setValue) {
     final DataType dataType = attribute.getType();
     final Class<?> dataClass = dataType.getJavaClass();
     if (Geometry.class.isAssignableFrom(dataClass)) {
@@ -2041,7 +2036,9 @@ public class BatchJobService implements ModuleEventListener {
         parameterValue = new BigDecimal(parameterValue.toString().trim());
       }
     }
-    requestParemeters.put(attribute.getName(), parameterValue);
+    if (setValue) {
+      requestParemeters.put(attribute.getName(), parameterValue);
+    }
   }
 
   public void setUserClassBaseUrls(final Map<String, String> userClassBaseUrls) {
@@ -2080,94 +2077,9 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  /**
-   * Update the associated DataObject and BatchJobRequest record with the
-   * response data.
-   * 
-   * @param requestId
-   * @param result An individual Response to a Request sent to a Business
-   *          Application.
-   * @return True if the request was successful, false if it has errors.
-   */
-  @Transactional(propagation = Propagation.REQUIRED)
-  public Map<String, Integer> updateBatchJobRequestFromResponse(
-    final Long requestId, final Map<String, Object> result) {
-    final DataObject batchJobRequest = dataAccessObject.getBatchJobRequestLocked(requestId);
-
-    int errorCount = 0;
-    int successCount = 0;
-
-    final boolean completed = DataObjectUtil.getBoolean(batchJobRequest,
-      BatchJobRequest.COMPLETED_IND);
-    if (completed) {
-      if (StringUtils.hasText(batchJobRequest.getString(BatchJobRequest.ERROR_CODE))) {
-        errorCount--;
-      } else {
-        successCount--;
-      }
-    }
-
-    String errorMessage = (String)result.get("errorMessage");
-    ErrorCode errorCode = null;
-    final String errorCodeString = (String)result.get("errorCode");
-    if (errorCodeString != null) {
-      errorCode = ErrorCode.valueOf(errorCodeString);
-    }
-    if (errorCode == null) {
-      if (Boolean.TRUE == result.get("perRequestResultData")) {
-        final String resultDataUrl = batchJobRequest.getValue(BatchJobRequest.RESULT_DATA_URL);
-        final Number batchJobResultId = batchJobRequest.getValue(BatchJobRequest.BATCH_JOB_RESULT_ID);
-        if (batchJobResultId == null && resultDataUrl == null) {
-          errorCode = ErrorCode.BAD_RESPONSE_DATA;
-          errorMessage = "Missing resultData or resultDataUrl";
-        }
-
-      } else {
-        final String resultData = (String)result.get("results");
-        if (StringUtils.hasText(resultData)) {
-          batchJobRequest.setValue(BatchJobRequest.STRUCTURED_RESULT_DATA,
-            resultData);
-        } else {
-          errorCode = ErrorCode.BAD_RESPONSE_DATA;
-        }
-      }
-      successCount++;
-    } else {
-      errorCount++;
-    }
-    if (errorCode != null && errorMessage == null) {
-      errorMessage = errorCode.getDescription();
-    }
-    if (errorCode == ErrorCode.RECOVERABLE_EXCEPTION) {
-      batchJobRequest.setValue(BatchJobRequest.STARTED_IND, 0);
-      return Collections.emptyMap();
-    } else {
-      batchJobRequest.setValue(BatchJobRequest.ERROR_CODE, errorCode);
-      String errorTrace = (String)result.get("errorTrace");
-      if (StringUtils.hasText(errorTrace)) {
-        if (errorTrace.length() > 4000) {
-          errorTrace = errorTrace.substring(0, 4000);
-        }
-      }
-      batchJobRequest.setValue(BatchJobRequest.ERROR_DEBUG_MESSAGE, errorTrace);
-      if (StringUtils.hasText(errorMessage)) {
-        if (errorMessage.length() > 4000) {
-          errorMessage = errorMessage.substring(0, 4000);
-        }
-      }
-      batchJobRequest.setValue(BatchJobRequest.ERROR_MESSAGE, errorMessage);
-      batchJobRequest.setValue(BatchJobRequest.COMPLETED_IND, 1);
-    }
-    dataAccessObject.write(batchJobRequest);
-    final Map<String, Integer> counts = new HashMap<String, Integer>();
-    counts.put("error", errorCount);
-    counts.put("success", successCount);
-    return counts;
-  }
-
   public void updateWorkerExecutingGroups(final Worker worker,
     final List<String> executingGroupIds) {
-    long minStartTime = System.currentTimeMillis() - 60 * 1000;
+    final long minStartTime = System.currentTimeMillis() - 60 * 1000;
     final List<BatchJobRequestExecutionGroup> executingGroups = worker.getExecutingGroups();
     for (final BatchJobRequestExecutionGroup executionGroup : executingGroups) {
       if (executionGroup.getExecutionStartTime() < minStartTime) {

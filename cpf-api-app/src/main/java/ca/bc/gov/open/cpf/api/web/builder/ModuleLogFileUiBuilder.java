@@ -25,8 +25,8 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.io.FileUtil;
-import com.revolsys.parallel.process.InvokeMethodCallable;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 
 @Controller

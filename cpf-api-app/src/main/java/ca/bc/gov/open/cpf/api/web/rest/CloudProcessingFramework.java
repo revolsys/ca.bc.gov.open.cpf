@@ -379,12 +379,14 @@ public class CloudProcessingFramework {
     final String description = attribute.getDescription();
     final boolean jobParameter = attribute.getProperty(BusinessApplication.JOB_PARAMETER) == Boolean.TRUE;
     final boolean requestParameter = attribute.getProperty(BusinessApplication.REQUEST_PARAMETER) == Boolean.TRUE;
-    final Collection<Object> allowedValues = attribute.getAllowedValues()
-      .keySet();
-    final String descriptionUrl = attribute.getProperty("descriptionUrl");
-    addParameter(parameters, name, typeDescription, descriptionUrl,
-      description, jobParameter, requestParameter, perRequestInputData,
-      allowedValues);
+    if (jobParameter || requestParameter) {
+      final Collection<Object> allowedValues = attribute.getAllowedValues()
+        .keySet();
+      final String descriptionUrl = attribute.getProperty("descriptionUrl");
+      addParameter(parameters, name, typeDescription, descriptionUrl,
+        description, jobParameter, requestParameter, perRequestInputData,
+        allowedValues);
+    }
   }
 
   private void addParameter(final List<Map<String, Object>> parameters,
@@ -456,7 +458,10 @@ public class CloudProcessingFramework {
     batchJob.setValue(BatchJob.JOB_STATUS, BatchJob.SUBMITTED);
     batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED,
       new Timestamp(System.currentTimeMillis()));
-    batchJob.setValue(BatchJob.NUM_EXECUTING_REQUESTS, 0);
+    batchJob.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 0);
+    batchJob.setValue(BatchJob.NUM_COMPLETED_GROUPS, 0);
+    batchJob.setValue(BatchJob.GROUP_SIZE, 1);
+    batchJob.setValue(BatchJob.NUM_SCHEDULED_GROUPS, 0);
     batchJob.setValue(BatchJob.NUM_COMPLETED_REQUESTS, 0);
     batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS, 0);
 
@@ -710,7 +715,7 @@ public class CloudProcessingFramework {
               try {
                 final org.springframework.core.io.Resource resource = new InputStreamResource(
                   "in", in, file.getSize());
-                dataAccessObject.createBatchJobRequest(batchJobId,
+                dataAccessObject.createBatchJobExecutionGroup(batchJobId,
                   ++requestSequenceNumber, inputDataContentType, resource);
               } finally {
                 InvokeMethodAfterCommit.invoke(in, "close");
@@ -718,7 +723,7 @@ public class CloudProcessingFramework {
             }
           } else {
             for (final String inputDataUrl : inputDataUrls) {
-              dataAccessObject.createBatchJobRequest(batchJobId,
+              dataAccessObject.createBatchJobExecutionGroup(batchJobId,
                 ++requestSequenceNumber, inputDataContentType,
                 inputDataUrl.trim());
             }
@@ -814,7 +819,7 @@ public class CloudProcessingFramework {
     @PathVariable final String businessApplicationName,
     @PathVariable final String businessApplicationVersion,
     @RequestParam(required = false) String inputDataContentType,
-    @RequestParam(value = "inputData", required = false) Object inputDataFile,
+    @RequestParam(value = "inputData", required = false) final Object inputDataFile,
     @RequestParam(required = false) final String inputDataUrl,
     @RequestParam(required = false) final String srid,
     @RequestParam(required = false) String resultDataContentType,
@@ -907,7 +912,7 @@ public class CloudProcessingFramework {
           } else {
             try {
               batchJobService.setStructuredInputDataValue(srid, inputData,
-                attribute, value);
+                attribute, value, true);
             } catch (final IllegalArgumentException e) {
               throw new HttpMessageNotReadableException("Parameter "
                 + parameterName + " cannot be set");
@@ -924,7 +929,7 @@ public class CloudProcessingFramework {
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_VERSION,
         businessApplicationVersion);
       batchJob.setValue(BatchJob.USER_ID, consumerKey);
-      batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 0);
+      batchJob.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 1);
 
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
         JsonMapIoFactory.toString(businessApplicationParameters));
@@ -935,7 +940,7 @@ public class CloudProcessingFramework {
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE,
         resultDataContentType);
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
-      batchJob.setValue(BatchJob.NUM_EXECUTING_REQUESTS, 0);
+      batchJob.setValue(BatchJob.NUM_SCHEDULED_GROUPS, 0);
       batchJob.setValue(BatchJob.NUM_COMPLETED_REQUESTS, 0);
       batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS, 0);
       final Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -945,15 +950,17 @@ public class CloudProcessingFramework {
       dataAccessObject.write(batchJob);
       if (perRequestInputData) {
         if (inputDataIn != null) {
-          dataAccessObject.createBatchJobRequest(batchJobId, 1,
+          dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1,
             inputDataContentType, inputDataIn);
         } else {
-          dataAccessObject.createBatchJobRequest(batchJobId, 1,
+          dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1,
             inputDataContentType, inputDataUrl);
         }
       } else {
-        final String inputDataString = JsonDataObjectIoFactory.toString(inputData);
-        dataAccessObject.createBatchJobRequest(batchJobId, 1, inputDataString);
+        inputData.put("requestSequenceNumber", 1);
+        final String inputDataString = JsonDataObjectIoFactory.toString(
+          requestMetaData, Collections.singletonList(inputData));
+        dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1, inputDataString, 1);
       }
 
       batchJobService.schedule(businessApplicationName, batchJobId);
@@ -1019,7 +1026,8 @@ public class CloudProcessingFramework {
 
   /**
    * <p>
-   * Delete or cancel a user's cloud job.
+   * Cancel the user's cloud job. This will mark the job as cancelled and remove all requests
+   * and results from the job. The job will be removed after a few days.
    * </p>
    * <p>
    * This service should be invoked after the results from the cloud job are
@@ -1064,14 +1072,13 @@ public class CloudProcessingFramework {
       throw new PageNotFoundException("The cloud job " + batchJobId
         + " does not exist");
     } else {
-      if (dataAccessObject.deleteBatchJob(batchJobId) == 0) {
+      if (batchJobService.cancelBatchJob(batchJobId)) {
         throw new PageNotFoundException("The cloud job " + batchJobId
           + " does not exist");
       } else {
         final HttpServletResponse response = HttpServletUtils.getResponse();
         response.setStatus(HttpServletResponse.SC_OK);
       }
-      batchJobService.cancelBatchJob(batchJobId);
     }
   }
 
@@ -1459,8 +1466,8 @@ public class CloudProcessingFramework {
                 "Parameter value is not valid " + name + " " + value);
             } else {
               try {
-                batchJobService.setStructuredInputDataValue(srid,
-                  parameters, attribute, value);
+                batchJobService.setStructuredInputDataValue(srid, parameters,
+                  attribute, value, true);
               } catch (final IllegalArgumentException e) {
                 throw new IllegalArgumentException(
                   "Parameter value is not valid " + name + " " + value, e);
@@ -2768,7 +2775,9 @@ public class CloudProcessingFramework {
       if (MediaTypeUtil.isHtmlPage()) {
         final TabElementContainer tabs = new TabElementContainer();
         batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
-        if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null) {
+        String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
+        if (BatchJob.RESULTS_CREATED.equals(jobStatus)
+          || BatchJob.DOWNLOAD_INITIATED.equals(jobStatus)) {
           final Map<String, Object> parameters = Collections.emptyMap();
           batchJobUiBuilder.addTabDataTable(tabs,
             BatchJobResult.BATCH_JOB_RESULT, "clientList", parameters);
@@ -2812,62 +2821,53 @@ public class CloudProcessingFramework {
         final DataObject batchJobResult = dataAccessObject.getBatchJobResult(resultId);
         if (EqualsRegistry.INSTANCE.equals(batchJobId,
           batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
-          if (!BatchJob.MARKED_FOR_DELETION.equals(batchJob.getValue(BatchJob.JOB_STATUS))) {
-            dataAccessObject.setBatchJobStatus(batchJob,
-              BatchJob.DOWNLOAD_INITIATED);
-            if (batchJobResult.getValue(BatchJobResult.DOWNLOAD_TIMESTAMP) == null) {
-              final Timestamp timestamp = new Timestamp(
-                System.currentTimeMillis());
-              batchJobResult.setValue(BatchJobResult.DOWNLOAD_TIMESTAMP,
-                timestamp);
-            }
-          }
-        }
-        final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
-        final HttpServletResponse response = HttpServletUtils.getResponse();
-        if (resultDataUrl != null) {
-          response.setStatus(HttpServletResponse.SC_SEE_OTHER);
-          response.setHeader("Location", resultDataUrl);
-        } else {
-          try {
-            final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
-            final InputStream in = resultData.getBinaryStream();
-            final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
-            response.setContentType(resultDataContentType);
+          dataAccessObject.setBatchJobDownloaded(batchJobId);
+          final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
+          final HttpServletResponse response = HttpServletUtils.getResponse();
+          if (resultDataUrl != null) {
+            response.setStatus(HttpServletResponse.SC_SEE_OTHER);
+            response.setHeader("Location", resultDataUrl);
+          } else {
+            try {
+              final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
+              final InputStream in = resultData.getBinaryStream();
+              final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+              response.setContentType(resultDataContentType);
 
-            long size = resultData.length();
-            String jsonCallback = null;
-            if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
-              jsonCallback = HttpServletUtils.getParameter("callback");
-              if (StringUtils.hasText(jsonCallback)) {
-                size += 3 + jsonCallback.length();
+              long size = resultData.length();
+              String jsonCallback = null;
+              if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
+                jsonCallback = HttpServletUtils.getParameter("callback");
+                if (StringUtils.hasText(jsonCallback)) {
+                  size += 3 + jsonCallback.length();
+                }
               }
+              final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+                .getFactoryByMediaType(DataObjectWriterFactory.class,
+                  resultDataContentType);
+              if (writerFactory != null) {
+                final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
+                final String fileName = "job-" + batchJobId + "-result-"
+                  + resultId + "." + fileExtension;
+                response.setHeader("Content-Disposition",
+                  "attachment; filename=" + fileName + ";size=" + size);
+              }
+              final ServletOutputStream out = response.getOutputStream();
+              if (StringUtils.hasText(jsonCallback)) {
+                out.write(jsonCallback.getBytes());
+                out.write("(".getBytes());
+              }
+              FileUtil.copy(in, out);
+              if (StringUtils.hasText(jsonCallback)) {
+                out.write(");".getBytes());
+              }
+              return;
+            } catch (final SQLException e) {
+              LoggerFactory.getLogger(getClass()).error(
+                "Unable to get result data", e);
+              throw new HttpMessageNotWritableException(
+                "Unable to get result data", e);
             }
-            final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-              .getFactoryByMediaType(DataObjectWriterFactory.class,
-                resultDataContentType);
-            if (writerFactory != null) {
-              final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
-              final String fileName = "job-" + batchJobId + "-result-"
-                + resultId + "." + fileExtension;
-              response.setHeader("Content-Disposition", "attachment; filename="
-                + fileName + ";size=" + size);
-            }
-            final ServletOutputStream out = response.getOutputStream();
-            if (StringUtils.hasText(jsonCallback)) {
-              out.write(jsonCallback.getBytes());
-              out.write("(".getBytes());
-            }
-            FileUtil.copy(in, out);
-            if (StringUtils.hasText(jsonCallback)) {
-              out.write(");".getBytes());
-            }
-            return;
-          } catch (final SQLException e) {
-            LoggerFactory.getLogger(getClass()).error(
-              "Unable to get result data", e);
-            throw new HttpMessageNotWritableException(
-              "Unable to get result data", e);
           }
         }
       }
@@ -2959,8 +2959,8 @@ public class CloudProcessingFramework {
             resultPage.setAttribute("batchJobResultContentType",
               batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
             if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
-              resultPage.setAttribute("batchJobRequestSequenceNumber",
-                batchJobResult.getValue(BatchJobResult.REQUEST_SEQUENCE_NUMBER));
+              resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
+                batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));
             }
           }
         }
