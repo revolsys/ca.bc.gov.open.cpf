@@ -495,7 +495,7 @@ public class ClassLoaderModule implements Module {
       }
 
       Method resultListMethod = null;
-      final Method[] methods = pluginClass.getMethods();
+      final List<Method> methods = JavaBeanUtil.getMethods(pluginClass);
       for (final Method method : methods) {
         processParameter(pluginClass, businessApplication, method);
         processResultAttribute(pluginClass, businessApplication, method);
@@ -1286,7 +1286,7 @@ public class ClassLoaderModule implements Module {
     try {
       final Class<?> resultClass = JavaBeanUtil.getTypeParameterClass(
         resultListMethod, List.class);
-      for (final Method method : resultClass.getMethods()) {
+      for (final Method method : JavaBeanUtil.getMethods(resultClass)) {
         processResultAttribute(resultClass, businessApplication, method);
       }
       resultMetaData = businessApplication.getResultMetaData();

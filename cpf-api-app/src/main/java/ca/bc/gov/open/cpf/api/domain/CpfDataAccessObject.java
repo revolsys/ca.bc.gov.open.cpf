@@ -273,6 +273,7 @@ public class CpfDataAccessObject {
     return dataStore.delete(query);
   }
 
+
   @Transactional(propagation = Propagation.REQUIRED)
   public int deleteBatchJobResults(final Long batchJobId) {
     final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT);
@@ -368,6 +369,44 @@ public class CpfDataAccessObject {
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
+  public DataObject getBatchJobExecutionGroup(
+    final long batchJobExecutionGroupId) {
+    return dataStore.load(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
+      batchJobExecutionGroupId);
+  }
+
+  public Reader<DataObject> getBatchJobExecutionGroupIds(final long batchJobId) {
+    final Query query = new Query(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    query.setAttributeNames(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
+    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
+    query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
+    final Reader<DataObject> reader = dataStore.query(query);
+    return reader;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  public DataObject getBatchJobExecutionGroupLocked(
+    final long batchJobExecutionGroupId) {
+    return dataStore.load(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
+      batchJobExecutionGroupId);
+  }
+
+  public List<DataObject> getBatchJobExecutionGroups(
+    final List<Long> batchJobExecutionGroupIds) {
+    final Query query = new Query(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    query.setWhereClause("BATCH_JOB_EXECUTION_GROUP_ID IN ("
+      + CollectionUtil.toString(batchJobExecutionGroupIds) + ")");
+    final Reader<DataObject> batchJobExecutionGroups = dataStore.query(query);
+    try {
+      return batchJobExecutionGroups.read();
+    } finally {
+      batchJobExecutionGroups.close();
+    }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
   public List<Long> getBatchJobIds(final String businessApplicationName,
     final String jobStatus) {
     final Query query = new Query(BatchJob.BATCH_JOB);
@@ -417,44 +456,6 @@ public class CpfDataAccessObject {
   @Transactional(propagation = Propagation.REQUIRED)
   public DataObject getBatchJobLocked(final long batchJobId) {
     return dataStore.load(BatchJob.BATCH_JOB, batchJobId);
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  public DataObject getBatchJobExecutionGroup(
-    final long batchJobExecutionGroupId) {
-    return dataStore.load(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
-      batchJobExecutionGroupId);
-  }
-
-  public Reader<DataObject> getBatchJobExecutionGroupIds(final long batchJobId) {
-    final Query query = new Query(
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    query.setAttributeNames(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
-    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
-    query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
-    final Reader<DataObject> reader = dataStore.query(query);
-    return reader;
-  }
-
-  @Transactional(propagation = Propagation.REQUIRED)
-  public DataObject getBatchJobExecutionGroupLocked(
-    final long batchJobExecutionGroupId) {
-    return dataStore.load(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
-      batchJobExecutionGroupId);
-  }
-
-  public List<DataObject> getBatchJobExecutionGroups(
-    final List<Long> batchJobExecutionGroupIds) {
-    final Query query = new Query(
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    query.setWhereClause("BATCH_JOB_EXECUTION_GROUP_ID IN ("
-      + CollectionUtil.toString(batchJobExecutionGroupIds) + ")");
-    final Reader<DataObject> batchJobExecutionGroups = dataStore.query(query);
-    try {
-      return batchJobExecutionGroups.read();
-    } finally {
-      batchJobExecutionGroups.close();
-    }
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
@@ -916,6 +917,20 @@ public class CpfDataAccessObject {
     }
   }
 
+  public void setBatchJobExecutionGroupsStarted(
+    final Long batchJobExecutionGroupId) {
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "UPDATE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS SET STARTED_IND = 1 WHERE BATCH_JOB_EXECUTION_GROUP_ID = ?";
+      try {
+        JdbcUtils.executeUpdate(dataSource, sql, batchJobExecutionGroupId);
+      } catch (final SQLException e) {
+        throw new RuntimeException("Unable to set started status", e);
+      }
+    }
+  }
+
   @Transactional(propagation = Propagation.REQUIRED)
   public boolean setBatchJobFailed(final long batchJobId) {
     final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
@@ -931,20 +946,6 @@ public class CpfDataAccessObject {
         batchJobId) == 1;
     } catch (final SQLException e) {
       throw new RuntimeException("Unable to set started status", e);
-    }
-  }
-
-  public void setBatchJobExecutionGroupsStarted(
-    final Long batchJobExecutionGroupId) {
-    if (dataStore instanceof JdbcDataObjectStore) {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS SET STARTED_IND = 1 WHERE BATCH_JOB_EXECUTION_GROUP_ID = ?";
-      try {
-        JdbcUtils.executeUpdate(dataSource, sql, batchJobExecutionGroupId);
-      } catch (final SQLException e) {
-        throw new RuntimeException("Unable to set started status", e);
-      }
     }
   }
 
@@ -1041,9 +1042,44 @@ public class CpfDataAccessObject {
     return 0;
   }
 
+  @SuppressWarnings("unchecked")
+  @Transactional(propagation = Propagation.REQUIRED)
+  public void updateBatchJobExecutionGroupFromResponse(final String workerId,
+    final BatchJobRequestExecutionGroup group,
+    final Long batchJobExecutionGroupId,
+    final List<Map<String, Object>> results, final int successCount,
+    final int errorCount) {
+    if (results != null) {
+      for (final Map<String, Object> result : results) {
+        final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)result.remove("logRecords");
+        BatchJobService.logGroup(workerId, group, logRecords,
+          "Request Execution", "Application Log", Collections.singletonMap(
+            "batchJobExecutionGroupId", batchJobExecutionGroupId));
+      }
+
+      final DataObject batchJobExecutionGroup = getBatchJobExecutionGroupLocked(batchJobExecutionGroupId);
+      if (0 == batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.COMPLETED_IND)) {
+        final String resultData = JsonMapIoFactory.toString(results);
+        batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 1);
+        batchJobExecutionGroup.setValue(
+          BatchJobExecutionGroup.STRUCTURED_RESULT_DATA, resultData);
+        final int numCompletedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS)
+          + successCount;
+        batchJobExecutionGroup.setValue(
+          BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, numCompletedRequests);
+        final int numFailedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_FAILED_REQUESTS)
+          + errorCount;
+        batchJobExecutionGroup.setValue(
+          BatchJobExecutionGroup.NUM_FAILED_REQUESTS, numFailedRequests);
+        write(batchJobExecutionGroup);
+      }
+    }
+  }
+
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public int updateBatchJobGroupCompleted(final Long batchJobId,
-    final int numCompletedRequests, final int numFailedRequests, int numGroups) {
+    final int numCompletedRequests, final int numFailedRequests,
+    final int numGroups) {
     if (dataStore instanceof JdbcDataObjectStore) {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();
@@ -1090,40 +1126,6 @@ public class CpfDataAccessObject {
     }
 
     return 0;
-  }
-
-  @SuppressWarnings("unchecked")
-  @Transactional(propagation = Propagation.REQUIRED)
-  public void updateBatchJobExecutionGroupFromResponse(final String workerId,
-    final BatchJobRequestExecutionGroup group,
-    final Long batchJobExecutionGroupId,
-    final List<Map<String, Object>> results, final int successCount,
-    final int errorCount) {
-    if (results != null) {
-      for (final Map<String, Object> result : results) {
-        final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)result.remove("logRecords");
-        BatchJobService.logGroup(workerId, group, logRecords,
-          "Request Execution", "Application Log", Collections.singletonMap(
-            "batchJobExecutionGroupId", batchJobExecutionGroupId));
-      }
-
-      final DataObject batchJobExecutionGroup = getBatchJobExecutionGroupLocked(batchJobExecutionGroupId);
-      if (0 == batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.COMPLETED_IND)) {
-        final String resultData = JsonMapIoFactory.toString(results);
-        batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 1);
-        batchJobExecutionGroup.setValue(
-          BatchJobExecutionGroup.STRUCTURED_RESULT_DATA, resultData);
-        final int numCompletedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS)
-          + successCount;
-        batchJobExecutionGroup.setValue(
-          BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, numCompletedRequests);
-        final int numFailedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_FAILED_REQUESTS)
-          + errorCount;
-        batchJobExecutionGroup.setValue(
-          BatchJobExecutionGroup.NUM_FAILED_REQUESTS, numFailedRequests);
-        write(batchJobExecutionGroup);
-      }
-    }
   }
 
   /**

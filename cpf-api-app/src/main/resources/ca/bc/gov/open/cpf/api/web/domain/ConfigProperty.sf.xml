@@ -206,15 +206,8 @@
           p:key="CONFIG_PROPERTY_ID"
           p:label="ID"
           p:pageName="moduleView"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="5%" />
-            </map>
-          </property>
-        </bean>
+          p:width="5%"
+        />
 
         <bean
           p:name="CONFIG_PROPERTY_ID_VIEW"
@@ -222,105 +215,50 @@
           p:key="CONFIG_PROPERTY_ID"
           p:label="ID"
           p:pageName="view"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="5%" />
-            </map>
-          </property>
-        </bean>
+          p:width="5%"
+        />
         <bean
           p:name="ENVIRONMENT_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Environment Name"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="10%" />
-            </map>
-          </property>
-        </bean>
+          p:width="10%"
+        />
         <bean
           p:name="MODULE_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Module Name"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="10%" />
-            </map>
-          </property>
-        </bean>
-        <bean
+           p:width="10%"
+        />
+       <bean
           p:name="COMPONENT_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Component Name"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="15%" />
-            </map>
-          </property>
-        </bean>
+          p:width="15%"
+        />
         <bean
           p:name="PROPERTY_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Property Name"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="25%" />
-            </map>
-          </property>
-        </bean>
+           p:width="25%"
+        />
         <bean
           p:name="PROPERTY_VALUE"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Value"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="30%" />
-            </map>
-          </property>
-        </bean>
+          p:width="30%"
+        />
         <bean
           p:name="PROPERTY_VALUE_TYPE"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Value Type"
-        >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="10%" />
-            </map>
-          </property>
-        </bean>
+          p:width="10%"
+        />
         <bean
           p:name="cpfActions"
           class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
           p:label="Actions"
+          p:width="6%"
         >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="6%" />
-            </map>
-          </property>
           <property name="serializers">
             <list>
               <bean
@@ -344,14 +282,8 @@
           p:name="moduleActions"
           class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
           p:label="Actions"
+          p:width="6%"
         >
-          <property name="properties">
-            <map>
-              <entry
-                key="width"
-                value="6%" />
-            </map>
-          </property>
           <property name="serializers">
             <list>
               <bean

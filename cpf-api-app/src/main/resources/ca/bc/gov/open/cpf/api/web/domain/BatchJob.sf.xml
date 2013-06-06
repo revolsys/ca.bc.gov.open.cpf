@@ -85,6 +85,7 @@
           p:key="BUSINESS_APPLICATION_NAME.name"
           p:label="Business Application"
           p:pageName="moduleView"
+
         >
           <property name="parameterKeys">
             <map>
@@ -103,6 +104,7 @@
           p:key="BUSINESS_APPLICATION_NAME.title"
           p:label="Business Application"
           p:pageName="clientView"
+
         >
           <property name="parameterKeys">
             <map>
@@ -121,6 +123,7 @@
           p:key="BUSINESS_APPLICATION_NAME.module.name"
           p:label="Module"
           p:pageName="view"
+
         >
           <property name="parameterKeys">
             <map>
@@ -149,7 +152,7 @@
           p:label="Start Time"
           class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
         <bean
-          p:name="WHO_CREATED"
+          p:name="WHO_UPDATED"
           p:label="Modified By"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
         <bean
@@ -181,6 +184,11 @@
           p:name="GROUP_SIZE"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Group Size" />
+
+        <bean
+          p:name="USER_ID"
+          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
+          p:label="User ID" />
 
         <bean
           p:name="NUM_SUBMITTED_GROUPS"
@@ -216,6 +224,7 @@
           p:name="adminActions"
           p:label="Actions"
           class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+
         >
           <property name="serializers">
             <list>
@@ -296,13 +305,10 @@
             <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
             <value>JOB_STATUS</value>
-            <value>NUM_SUBMITTED_GROUPS</value>
-            <value>NUM_COMPLETED_GROUPS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
-           <value>USER_ID</value>
-            <value>MODULE_NAME_LINK</value>
+            <value>USER_ID</value>
             <value>adminActions</value>
           </list>
         </entry>
@@ -372,13 +378,10 @@
             <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
             <value>JOB_STATUS</value>
-            <value>NUM_SUBMITTED_GROUPS</value>
-            <value>NUM_COMPLETED_GROUPS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
             <value>USER_ID</value>
-            <value>MODULE_NAME_LINK</value>
             <value>adminActions</value>
           </list>
         </entry>

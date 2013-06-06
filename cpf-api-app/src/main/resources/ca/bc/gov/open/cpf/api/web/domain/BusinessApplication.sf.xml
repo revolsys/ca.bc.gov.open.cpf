@@ -233,6 +233,7 @@
               p:name="title"
               p:pageName="clientView"
               p:label="Name"
+              p:width="200px"
             >
               <property name="parameterKeys">
                 <map>
@@ -242,13 +243,6 @@
                   <entry
                     key="businessApplicationVersion"
                     value="version" />
-                </map>
-              </property>
-              <property name="properties">
-                <map>
-                  <entry
-                    key="width"
-                    value="200px" />
                 </map>
               </property>
             </bean>

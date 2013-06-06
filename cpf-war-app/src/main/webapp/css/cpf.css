@@ -10,3 +10,45 @@ td.applicationExecutedRequestsCount,
 td.applicationExecutedFailedRequestsCount {
   text-align: right;
 }
+
+th.BATCH_JOB_ID,
+td.BATCH_JOB_ID {
+  min-width: 60px;
+  max-width: 60px;
+}
+
+th.WHEN_CREATED,
+td.WHEN_CREATED {
+  min-width: 90px;
+  max-width: 90px;
+}
+
+th.BUSINESS_APPLICATION_NAME_LINK,
+td.BUSINESS_APPLICATION_NAME_LINK,
+th.BUSINESS_APPLICATION_NAME_name,
+td.BUSINESS_APPLICATION_NAME_name {
+  min-width: 120px;
+  max-width: 120px;
+}
+
+
+th.JOB_STATUS,
+td.JOB_STATUS {
+  min-width: 120px;
+  max-width: 120px;
+}
+
+
+th.NUM_SUBMITTED_GROUPS,
+td.NUM_SUBMITTED_GROUPS,
+th.NUM_COMPLETED_GROUPS,
+td.NUM_COMPLETED_GROUPS,
+th.NUM_SUBMITTED_REQUESTS,
+td.NUM_SUBMITTED_REQUESTS,
+th.NUM_COMPLETED_REQUESTS,
+td.NUM_COMPLETED_REQUESTS,
+th.NUM_FAILED_REQUESTS,
+td.NUM_FAILED_REQUESTS {
+  max-width: 90px;
+  min-width: 90px;
+}

@@ -1065,12 +1065,6 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  /**
-   * Process a single newly submitted batch job.
-   * 
-   * @param lastChangedTime
-   * @param time
-   */
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void preProcessBatchJob(final Long batchJobId, final long time,
     final long lastChangedTime) {
@@ -1078,6 +1072,7 @@ public class BatchJobService implements ModuleEventListener {
       preprocesedJobIds.add(batchJobId);
     }
     try {
+     dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
       int numSubmittedRequests = 0;
       final StopWatch stopWatch = new StopWatch();
       stopWatch.start();

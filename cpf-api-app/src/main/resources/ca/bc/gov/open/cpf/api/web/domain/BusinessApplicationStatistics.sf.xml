@@ -16,6 +16,7 @@
       p:pageName="moduleAppView"
       p:name="id"
       class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+      p:width="120px"
     >
       <property name="parameterKeys">
         <map>
@@ -28,13 +29,6 @@
           <entry
             key="statisticId"
             value="id" />
-        </map>
-      </property>
-      <property name="properties">
-        <map>
-          <entry
-            key="width"
-            value="120px" />
         </map>
       </property>
     </bean>
@@ -146,15 +140,8 @@
               p:pageName="moduleAppView"
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="id"
-            >
-              <property name="properties">
-                <map>
-                  <entry
-                    key="width"
-                    value="120px" />
-                </map>
-              </property>
-            </bean>
+              p:width="120px"
+            />
             <value>durationType</value>
             <value>submittedJobsCount</value>
             <value>completedJobsCount</value>
