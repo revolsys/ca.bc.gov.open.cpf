@@ -38,6 +38,9 @@ import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
+import com.revolsys.gis.data.query.Condition;
+import com.revolsys.gis.data.query.Conditions;
+import com.revolsys.gis.data.query.Function;
 import com.revolsys.gis.data.query.Query;
 import com.revolsys.io.MapWriter;
 import com.revolsys.io.Reader;
@@ -52,6 +55,27 @@ import com.revolsys.util.CollectionUtil;
 public class CpfDataAccessObject {
 
   private DataObjectStore dataStore;
+
+  private DataObjectMetaData batchJobMetaData;
+
+  private DataObjectMetaData batchJobExecutionGroupMetaData;
+
+  private DataObjectMetaData batchJobResultMetaData;
+
+  private DataObjectMetaData businessApplicationStatisticsMetaData;
+
+  private DataObjectMetaData configPropertyMetaData;
+
+  private DataObjectMetaData userAccountMetaData;
+
+  private DataObjectMetaData userGroupMetaData;
+
+  private DataObjectMetaData userGroupAccountXrefMetaData;
+
+  private DataObjectMetaData userGroupPermissionMetaData;
+
+  public CpfDataAccessObject() {
+  }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public int cancelBatchJob(final Long batchJobId) {
@@ -74,8 +98,8 @@ public class CpfDataAccessObject {
       }
     }
 
-    final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.BATCH_JOB_ID, batchJobId);
+    final Query query = Query.equal(batchJobMetaData, BatchJob.BATCH_JOB_ID,
+      batchJobId);
     return dataStore.delete(query);
   }
 
@@ -218,10 +242,11 @@ public class CpfDataAccessObject {
     final Number userGroupId = userGroup.getIdValue();
     final Number userAccountId = userAccount.getIdValue();
 
-    final Query query = new Query(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
-    query.addFilter(UserGroupAccountXref.USER_GROUP_ID, userGroupId.longValue());
-    query.addFilter(UserGroupAccountXref.USER_ACCOUNT_ID,
-      userAccountId.longValue());
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
+    filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
+
+    final Query query = Query.and(userGroupAccountXrefMetaData, filter);
 
     DataObject userGroupAccountXref = dataStore.queryFirst(query);
     if (userGroupAccountXref == null) {
@@ -260,50 +285,45 @@ public class CpfDataAccessObject {
     deleteBatchJobResults(batchJobId);
     deleteBatchJobExecutionGroups(batchJobId);
 
-    final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.BATCH_JOB_ID, batchJobId);
+    final Query query = Query.equal(batchJobMetaData, BatchJob.BATCH_JOB_ID,
+      batchJobId);
     return dataStore.delete(query);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public int deleteBatchJobExecutionGroups(final Long batchJobId) {
-    final Query query = new Query(
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
+    final Query query = Query.equal(batchJobExecutionGroupMetaData,
+      BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     return dataStore.delete(query);
   }
 
-
   @Transactional(propagation = Propagation.REQUIRED)
   public int deleteBatchJobResults(final Long batchJobId) {
-    final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT);
-    query.addFilter(BatchJobResult.BATCH_JOB_ID, batchJobId);
+    final Query query = Query.equal(batchJobResultMetaData,
+      BatchJobResult.BATCH_JOB_ID, batchJobId);
     return dataStore.delete(query);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public int deleteBusinessApplicationStatistics(
     final Integer businessApplicationStatisticsId) {
-    final Query query = new Query(
-      BusinessApplicationStatistics.APPLICATION_STATISTICS);
-    query.addFilter(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
+    final Query query = Query.equal(businessApplicationStatisticsMetaData,
+      BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
       businessApplicationStatisticsId);
     return dataStore.delete(query);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public int deleteConfigPropertiesForModule(final String moduleName) {
-    final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
-    query.addFilter(ConfigProperty.MODULE_NAME, moduleName);
+    final Query query = Query.equal(configPropertyMetaData,
+      ConfigProperty.MODULE_NAME, moduleName);
     return dataStore.delete(query);
   }
 
   public void deleteUserAccount(final DataObject userAccount) {
     final Number userAccountId = userAccount.getIdValue();
-
-    final Query membersQuery = new Query(
-      UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
-    membersQuery.addFilter(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
+    final Query membersQuery = Query.equal(userGroupAccountXrefMetaData,
+      UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
     dataStore.delete(membersQuery);
 
     delete(userAccount);
@@ -313,14 +333,12 @@ public class CpfDataAccessObject {
   public void deleteUserGroup(final DataObject userGroup) {
     final Number userGroupId = userGroup.getIdValue();
 
-    final Query membersQuery = new Query(
-      UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
-    membersQuery.addFilter(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
+    final Query membersQuery = Query.equal(userGroupAccountXrefMetaData,
+      UserGroupAccountXref.USER_GROUP_ID, userGroupId);
     dataStore.delete(membersQuery);
 
-    final Query permissionsQuery = new Query(
-      UserGroupPermission.USER_GROUP_PERMISSION);
-    permissionsQuery.addFilter(UserGroupPermission.USER_GROUP_ID, userGroupId);
+    final Query permissionsQuery = Query.equal(userGroupPermissionMetaData,
+      UserGroupPermission.USER_GROUP_ID, userGroupId);
     dataStore.delete(permissionsQuery);
 
     delete(userGroup);
@@ -331,17 +349,19 @@ public class CpfDataAccessObject {
     final DataObject userAccount) {
     final Number userGroupId = userGroup.getIdValue();
     final Number userAccountId = userAccount.getIdValue();
-    final Query query = new Query(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
-    query.addFilter(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
-    query.addFilter(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
 
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
+    filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
+
+    final Query query = Query.and(userGroupAccountXrefMetaData, filter);
     return dataStore.delete(query);
   }
 
   @Transactional(propagation = Propagation.REQUIRED)
   public int deleteUserGroupsForModule(final String moduleName) {
-    final Query query = new Query(UserGroup.USER_GROUP);
-    query.addFilter(UserGroup.MODULE_NAME, moduleName);
+    final Query query = Query.equal(userGroupMetaData, UserGroup.MODULE_NAME,
+      moduleName);
     int i = 0;
     final Reader<DataObject> reader = dataStore.query(query);
     try {
@@ -362,9 +382,11 @@ public class CpfDataAccessObject {
 
   @Transactional(propagation = Propagation.REQUIRED)
   public DataObject getBatchJob(final String consumerKey, final long batchJobId) {
-    final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.USER_ID, consumerKey);
-    query.addFilter(BatchJob.BATCH_JOB_ID, batchJobId);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(BatchJob.USER_ID, consumerKey);
+    filter.put(BatchJob.BATCH_JOB_ID, batchJobId);
+
+    final Query query = Query.and(batchJobMetaData, filter);
     return dataStore.queryFirst(query);
   }
 
@@ -376,10 +398,9 @@ public class CpfDataAccessObject {
   }
 
   public Reader<DataObject> getBatchJobExecutionGroupIds(final long batchJobId) {
-    final Query query = new Query(
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    final Query query = Query.equal(batchJobExecutionGroupMetaData,
+      BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     query.setAttributeNames(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
-    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
     final Reader<DataObject> reader = dataStore.query(query);
     return reader;
@@ -394,10 +415,10 @@ public class CpfDataAccessObject {
 
   public List<DataObject> getBatchJobExecutionGroups(
     final List<Long> batchJobExecutionGroupIds) {
-    final Query query = new Query(
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    query.setWhereClause("BATCH_JOB_EXECUTION_GROUP_ID IN ("
-      + CollectionUtil.toString(batchJobExecutionGroupIds) + ")");
+    final Query query = new Query(batchJobExecutionGroupMetaData);
+    query.setWhereCondition(Conditions.in(
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID,
+      batchJobExecutionGroupIds));
     final Reader<DataObject> batchJobExecutionGroups = dataStore.query(query);
     try {
       return batchJobExecutionGroups.read();
@@ -409,10 +430,11 @@ public class CpfDataAccessObject {
   @Transactional(propagation = Propagation.REQUIRED)
   public List<Long> getBatchJobIds(final String businessApplicationName,
     final String jobStatus) {
-    final Query query = new Query(BatchJob.BATCH_JOB);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+    filter.put(BatchJob.JOB_STATUS, jobStatus);
+    final Query query = Query.and(batchJobMetaData, filter);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
-    query.addFilter(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-    query.addFilter(BatchJob.JOB_STATUS, jobStatus);
     final Reader<DataObject> batchJobs = dataStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
@@ -429,13 +451,13 @@ public class CpfDataAccessObject {
 
   public List<Long> getBatchJobIdsToSchedule(
     final String businessApplicationName) {
-    final Query query = new Query(BatchJob.BATCH_JOB);
+    final Query query = Query.equal(batchJobMetaData,
+      BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
-    query.addFilter(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     // TODO move to scheduling groups
-    query.setWhereClause("JOB_STATUS IN ('requestsCreated', 'processing') AND "
+    query.setWhereCondition(Conditions.sql("JOB_STATUS IN ('requestsCreated', 'processing') AND "
       + "NUM_SUBMITTED_GROUPS > 0 AND "
-      + "NUM_SCHEDULED_GROUPS + NUM_COMPLETED_GROUPS < NUM_SUBMITTED_GROUPS ");
+      + "NUM_SCHEDULED_GROUPS + NUM_COMPLETED_GROUPS < NUM_SUBMITTED_GROUPS "));
     query.addOrderBy(BatchJob.NUM_SCHEDULED_GROUPS, true);
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, true);
@@ -464,9 +486,9 @@ public class CpfDataAccessObject {
   }
 
   public List<DataObject> getBatchJobResults(final long batchJobId) {
-    final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT);
+    final Query query = Query.equal(batchJobResultMetaData,
+      BatchJobResult.BATCH_JOB_ID, batchJobId);
     query.setAttributeNames(BatchJobResult.ALL_EXCEPT_BLOB);
-    query.addFilter(BatchJobResult.BATCH_JOB_ID, batchJobId);
     query.addOrderBy(BatchJobResult.BATCH_JOB_RESULT_ID, true);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
@@ -477,8 +499,8 @@ public class CpfDataAccessObject {
   }
 
   public List<DataObject> getBatchJobsForUser(final String consumerKey) {
-    final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.USER_ID, consumerKey);
+    final Query query = Query.equal(batchJobMetaData, BatchJob.USER_ID,
+      consumerKey);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
@@ -490,9 +512,11 @@ public class CpfDataAccessObject {
 
   public List<DataObject> getBatchJobsForUserAndApplication(
     final String consumerKey, final String businessApplicationName) {
-    final Query query = new Query(BatchJob.BATCH_JOB);
-    query.addFilter(BatchJob.USER_ID, consumerKey);
-    query.addFilter(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(BatchJob.USER_ID, consumerKey);
+    filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+    final Query query = Query.and(batchJobMetaData, filter);
+
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
@@ -505,10 +529,12 @@ public class CpfDataAccessObject {
   public List<DataObject> getConfigPropertiesForAllModules(
     final String environmentName, final String componentName,
     final String propertyName) {
-    final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
-    query.addFilter(ConfigProperty.ENVIRONMENT_NAME, environmentName);
-    query.addFilter(ConfigProperty.COMPONENT_NAME, componentName);
-    query.addFilter(ConfigProperty.PROPERTY_NAME, propertyName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
+    filter.put(ConfigProperty.COMPONENT_NAME, componentName);
+    filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
+    final Query query = Query.and(configPropertyMetaData, filter);
+
     final Reader<DataObject> reader = dataStore.query(query);
     try {
       return reader.read();
@@ -519,9 +545,10 @@ public class CpfDataAccessObject {
 
   public List<DataObject> getConfigPropertiesForComponent(
     final String moduleName, final String componentName) {
-    final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
-    query.addFilter(ConfigProperty.MODULE_NAME, moduleName);
-    query.addFilter(ConfigProperty.COMPONENT_NAME, componentName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(ConfigProperty.MODULE_NAME, moduleName);
+    filter.put(ConfigProperty.COMPONENT_NAME, componentName);
+    final Query query = Query.and(configPropertyMetaData, filter);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
       return reader.read();
@@ -533,10 +560,11 @@ public class CpfDataAccessObject {
   public List<DataObject> getConfigPropertiesForModule(
     final String environmentName, final String moduleName,
     final String componentName) {
-    final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
-    query.addFilter(ConfigProperty.ENVIRONMENT_NAME, environmentName);
-    query.addFilter(ConfigProperty.MODULE_NAME, moduleName);
-    query.addFilter(ConfigProperty.COMPONENT_NAME, componentName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
+    filter.put(ConfigProperty.MODULE_NAME, moduleName);
+    filter.put(ConfigProperty.COMPONENT_NAME, componentName);
+    final Query query = Query.and(configPropertyMetaData, filter);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
       return reader.read();
@@ -548,11 +576,12 @@ public class CpfDataAccessObject {
   public DataObject getConfigProperty(final String environmentName,
     final String moduleName, final String componentName,
     final String propertyName) {
-    final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
-    query.addFilter(ConfigProperty.ENVIRONMENT_NAME, environmentName);
-    query.addFilter(ConfigProperty.MODULE_NAME, moduleName);
-    query.addFilter(ConfigProperty.COMPONENT_NAME, componentName);
-    query.addFilter(ConfigProperty.PROPERTY_NAME, propertyName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
+    filter.put(ConfigProperty.MODULE_NAME, moduleName);
+    filter.put(ConfigProperty.COMPONENT_NAME, componentName);
+    filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
+    final Query query = Query.and(configPropertyMetaData, filter);
     return dataStore.queryFirst(query);
   }
 
@@ -561,12 +590,15 @@ public class CpfDataAccessObject {
   }
 
   public Long getNonExecutingRequestId(final Long batchJobId) {
-    final Query query = new Query(
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
+    filter.put(BatchJobExecutionGroup.STARTED_IND, 0);
+    filter.put(BatchJobExecutionGroup.COMPLETED_IND, 0);
+    filter.put(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
+    filter.put(BatchJobExecutionGroup.STARTED_IND, 0);
+    filter.put(BatchJobExecutionGroup.COMPLETED_IND, 0);
+    final Query query = Query.and(batchJobExecutionGroupMetaData, filter);
     query.setAttributeNames(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
-    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
-    query.addFilter(BatchJobExecutionGroup.STARTED_IND, 0);
-    query.addFilter(BatchJobExecutionGroup.COMPLETED_IND, 0);
     query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
     query.setLimit(1);
     final DataObject batchJobExecutionGroup = dataStore.queryFirst(query);
@@ -587,10 +619,11 @@ public class CpfDataAccessObject {
    * @return The batch job ids.
    */
   public List<Long> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
-    final Query query = new Query(BatchJob.BATCH_JOB);
+    final Query query = new Query(batchJobMetaData);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
-    query.setWhereClause("JOB_STATUS IN ('resultsCreated', 'downloadInitiated', 'cancelled') AND WHEN_STATUS_CHANGED < ?");
-    query.addParameter(keepUntilTimestamp);
+    query.setWhereCondition(Conditions.and(Conditions.in(BatchJob.JOB_STATUS,
+      "resultsCreated", "downloadInitiated", "cancelled"), Conditions.lessThan(
+      BatchJob.WHEN_STATUS_CHANGED, keepUntilTimestamp)));
     final Reader<DataObject> batchJobs = dataStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
@@ -612,8 +645,8 @@ public class CpfDataAccessObject {
    * @return The user account if it exists, null otherwise.
    */
   public DataObject getUserAccount(final String consumerKey) {
-    final Query query = new Query(UserAccount.USER_ACCOUNT);
-    query.addFilter(UserAccount.CONSUMER_KEY, consumerKey);
+    final Query query = Query.equal(userAccountMetaData,
+      UserAccount.CONSUMER_KEY, consumerKey);
     return dataStore.queryFirst(query);
   }
 
@@ -625,18 +658,20 @@ public class CpfDataAccessObject {
    * @return The user account if it exists, null otherwise.
    */
   public DataObject getUserAccount(final String userClass, final String userName) {
-    final Query query = new Query(UserAccount.USER_ACCOUNT);
-    query.addFilter(UserAccount.USER_ACCOUNT_CLASS, userClass);
-    query.addFilter(UserAccount.USER_NAME, userName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(UserAccount.USER_ACCOUNT_CLASS, userClass);
+    filter.put(UserAccount.USER_NAME, userName);
+    final Query query = Query.and(userAccountMetaData, filter);
     return dataStore.queryFirst(query);
   }
 
   public ResultPager<DataObject> getUserAccountsForUserGroup(
     final DataObject userGroup) {
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroup.getIdValue());
     final Query query = new Query(UserAccount.USER_ACCOUNT);
     query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
-    query.addFilter(UserGroupAccountXref.USER_GROUP_ID, userGroup.getIdValue());
 
     final ResultPager<DataObject> pager = dataStore.page(query);
     return pager;
@@ -646,9 +681,11 @@ public class CpfDataAccessObject {
     if (StringUtils.hasText(name)) {
       final Query query = new Query(UserAccount.USER_ACCOUNT);
       final String likeName = "%" + name.toUpperCase() + "%";
-      query.setWhereClause("UPPER(CONSUMER_KEY) like ? OR UPPER(USER_NAME) like ?");
-      query.addParameter(likeName);
-      query.addParameter(likeName);
+      final Condition consumerKeyLike = Conditions.like(
+        Function.upper("CONSUMERY_KEY"), likeName);
+      final Condition userNameLike = Conditions.like(
+        Function.upper("USER_NAME"), likeName);
+      query.setWhereCondition(Conditions.or(consumerKeyLike, userNameLike));
       final Reader<DataObject> reader = dataStore.query(query);
       try {
         return CollectionUtil.subList(reader, 20);
@@ -666,37 +703,40 @@ public class CpfDataAccessObject {
   }
 
   public DataObject getUserGroup(final String groupName) {
-    final Query query = new Query(UserGroup.USER_GROUP);
-    query.addFilter(UserGroup.USER_GROUP_NAME, groupName);
+    final Query query = Query.equal(userGroupMetaData,
+      UserGroup.USER_GROUP_NAME, groupName);
     return dataStore.queryFirst(query);
   }
 
   public DataObject getUserGroup(final String moduleName, final String groupName) {
-    final Query query = new Query(UserGroup.USER_GROUP);
-    query.addFilter(UserGroup.MODULE_NAME, moduleName);
-    query.addFilter(UserGroup.USER_GROUP_NAME, groupName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(UserGroup.MODULE_NAME, moduleName);
+    filter.put(UserGroup.USER_GROUP_NAME, groupName);
+    final Query query = Query.and(userGroupMetaData, filter);
     return dataStore.queryFirst(query);
   }
 
   public DataObject getUserGroupPermission(final List<String> userGroupNames,
     final String moduleName, final String resourceClass,
     final String resourceId, final String actionName) {
-    final Query query = new Query(UserGroupPermission.USER_GROUP_PERMISSION);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(UserGroup.USER_GROUP_NAME, userGroupNames);
+    filter.put("T." + UserGroupPermission.MODULE_NAME, moduleName);
+    filter.put(UserGroupPermission.RESOURCE_CLASS, resourceClass);
+    filter.put(UserGroupPermission.RESOURCE_ID, resourceId);
+    filter.put(UserGroupPermission.ACTION_NAME, actionName);
+    final Query query = Query.and(userGroupPermissionMetaData, filter);
     query.setFromClause("CPF.CPF_USER_GROUP_PERMISSIONS T"
       + " JOIN CPF.CPF_USER_GROUPS G ON T.USER_GROUP_ID = G.USER_GROUP_ID");
-    query.addFilter(UserGroup.USER_GROUP_NAME, userGroupNames);
-    query.addFilter("T." + UserGroupPermission.MODULE_NAME, moduleName);
-    query.addFilter(UserGroupPermission.RESOURCE_CLASS, resourceClass);
-    query.addFilter(UserGroupPermission.RESOURCE_ID, resourceId);
-    query.addFilter(UserGroupPermission.ACTION_NAME, actionName);
     return dataStore.queryFirst(query);
   }
 
   public List<DataObject> getUserGroupPermissions(final DataObject userGroup,
     final String moduleName) {
-    final Query query = new Query(UserGroupPermission.USER_GROUP_PERMISSION);
-    query.addFilter(UserGroupPermission.USER_GROUP_ID, userGroup.getIdValue());
-    query.addFilter(UserGroupPermission.MODULE_NAME, moduleName);
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(UserGroupPermission.USER_GROUP_ID, userGroup.getIdValue());
+    filter.put(UserGroupPermission.MODULE_NAME, moduleName);
+    final Query query = Query.and(userGroupPermissionMetaData, filter);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
       return reader.read();
@@ -706,8 +746,8 @@ public class CpfDataAccessObject {
   }
 
   public List<DataObject> getUserGroupsForModule(final String moduleName) {
-    final Query query = new Query(UserGroup.USER_GROUP);
-    query.addFilter(UserGroup.MODULE_NAME, moduleName);
+    final Query query = Query.equal(userGroupMetaData, UserGroup.MODULE_NAME,
+      moduleName);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
       return reader.read();
@@ -721,9 +761,9 @@ public class CpfDataAccessObject {
     final Query query = new Query(UserGroup.USER_GROUP);
     query.setFromClause("CPF.CPF_USER_GROUPS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
-    query.setWhereClause("X.USER_ACCOUNT_ID = ?");
-    query.addParameter(userAccount.getIdValue(), new JdbcLongAttribute("", 0,
-      0, true, null));
+
+    query.setWhereCondition(Conditions.equal(new JdbcLongAttribute(
+      "X.USER_ACCOUNT_ID"), userAccount.getIdValue()));
     final Reader<DataObject> reader = dataStore.query(query);
     try {
       final List<DataObject> groups = reader.read();
@@ -1013,7 +1053,15 @@ public class CpfDataAccessObject {
 
   public void setDataStore(final DataObjectStore dataStore) {
     this.dataStore = dataStore;
-
+    this.batchJobMetaData = dataStore.getMetaData(BatchJob.BATCH_JOB);
+    this.batchJobExecutionGroupMetaData = dataStore.getMetaData(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    this.batchJobResultMetaData = dataStore.getMetaData(BatchJobResult.BATCH_JOB_RESULT);
+    this.businessApplicationStatisticsMetaData = dataStore.getMetaData(BusinessApplicationStatistics.APPLICATION_STATISTICS);
+    this.configPropertyMetaData = dataStore.getMetaData(ConfigProperty.CONFIG_PROPERTY);
+    this.userAccountMetaData = dataStore.getMetaData(UserAccount.USER_ACCOUNT);
+    this.userGroupMetaData = dataStore.getMetaData(UserGroup.USER_GROUP);
+    this.userGroupPermissionMetaData = dataStore.getMetaData(UserGroupPermission.USER_GROUP_PERMISSION);
+    this.userGroupAccountXrefMetaData = dataStore.getMetaData(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
   }
 
   /**
@@ -1211,11 +1259,10 @@ public class CpfDataAccessObject {
     final com.revolsys.io.Writer<DataObject> structuredResultWriter,
     final Map<String, Object> defaultProperties) {
     int mask = 0;
-    final Query query = new Query(
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    query.setAttributeNames(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
-    query.addFilter(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID,
+    final Query query = Query.equal(batchJobExecutionGroupMetaData,
+      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID,
       batchJobExecutionGroupId);
+    query.setAttributeNames(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
     final Reader<DataObject> reader = getDataStore().query(query);
     try {
       for (final DataObject batchJobExecutionGroup : reader) {

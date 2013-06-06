@@ -26,6 +26,7 @@ import com.revolsys.gis.data.model.AttributeProperties;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.io.LazyHttpPostOutputStream;
+import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
 import com.vividsolutions.jts.geom.Geometry;
@@ -138,34 +139,15 @@ public class PluginAdaptor {
             if (geometryFactory == GeometryFactory.getFactory()) {
               geometryFactory = GeometryFactory.getFactory(geometry);
             }
-            int srid = geometryFactory.getSRID();
-            if (parameters.containsKey("resultSrid")) {
-              int resultSrid = ((Number)parameters.get("resultSrid")).intValue();
-              if (resultSrid != 0) {
-                srid = resultSrid;
-              }
-            }
-            int numAxis = geometryFactory.getNumAxis();
-            if (parameters.containsKey("resultNumAxis")) {
-              int resultNumAxis = ((Number)parameters.get("resultNumAxis")).intValue();
-              if (resultNumAxis != 0) {
-                numAxis = resultNumAxis;
-              }
-            }
-            double scaleXY = geometryFactory.getScaleXY();
-            if (parameters.containsKey("resultScaleFactorXy")) {
-              double resultScaleFactorXy = ((Number)parameters.get("resultScaleFactorXy")).doubleValue();
-              if (resultScaleFactorXy != 0) {
-                scaleXY = resultScaleFactorXy;
-              }
-            }
-            double scaleZ = geometryFactory.getScaleZ();
-            if (parameters.containsKey("resultScaleFactorZ")) {
-              double resultScaleFactorZ = ((Number)parameters.get("resultScaleFactorZ")).doubleValue();
-              if (resultScaleFactorZ != 0) {
-                scaleZ = resultScaleFactorZ;
-              }
-            }
+            final int srid = CollectionUtil.getInteger(parameters,
+              "resultSrid", geometryFactory.getSRID());
+            final int numAxis = CollectionUtil.getInteger(parameters,
+              "resultNumAxis", geometryFactory.getNumAxis());
+            final double scaleXY = CollectionUtil.getDouble(parameters,
+              "resultScaleFactorXy", geometryFactory.getScaleXY());
+            final double scaleZ = CollectionUtil.getDouble(parameters,
+              "resultScaleFactorZ", geometryFactory.getScaleZ());
+
             geometryFactory = GeometryFactory.getFactory(srid, numAxis,
               scaleXY, scaleZ);
             geometry = geometryFactory.createGeometry(geometry);
@@ -189,7 +171,7 @@ public class PluginAdaptor {
       }
     }
     if (application.isHasCustomizationProperties()) {
-      Object value = JavaBeanUtil.getValue(resultObject,
+      final Object value = JavaBeanUtil.getValue(resultObject,
         "customizationProperties");
       if (value != null) {
         result.put("customizationProperties", value);

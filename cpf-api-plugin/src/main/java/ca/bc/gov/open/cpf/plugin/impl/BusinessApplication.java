@@ -183,7 +183,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     resultMetaData = new DataObjectMetaDataImpl("/" + name);
   }
 
-  public BusinessApplication(String name) {
+  public BusinessApplication(final String name) {
     this.name = name;
     this.title = name;
   }
@@ -358,7 +358,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public synchronized DataObjectMetaDataImpl getRequestMetaData() {
     if (requestMetaData.getAttributeCount() == 0) {
       if (requestAttributeMap.size() > 0) {
-        requestMetaData.addAttribute("requestSequenceNumber", DataTypes.INT);
+        final Attribute requestSequenceNumber = requestMetaData.addAttribute(
+          "requestSequenceNumber", DataTypes.INT);
+        requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER,
+          true);
 
         if (hasGeometryRequestAttribute) {
           final Attribute requestSrid = new Attribute(

@@ -935,7 +935,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Name</th>
+   *         <th>Field Column</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>
@@ -1052,7 +1052,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Name</th>
+   *         <th>Field Column</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>
@@ -1173,7 +1173,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Name</th>
+   *         <th>Field Column</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>
@@ -1409,7 +1409,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Name</th>
+   *         <th>Field Column</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>
