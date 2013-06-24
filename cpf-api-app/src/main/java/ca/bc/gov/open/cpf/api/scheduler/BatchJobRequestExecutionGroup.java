@@ -2,6 +2,7 @@ package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.sql.Timestamp;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -18,6 +19,8 @@ public class BatchJobRequestExecutionGroup {
   private long executionStartTime;
 
   private String id;
+
+  private final AtomicInteger attempt = new AtomicInteger(0);
 
   private final String resultDataContentType;
 
@@ -133,10 +136,8 @@ public class BatchJobRequestExecutionGroup {
   }
 
   public void resetId() {
-    synchronized (this) {
-      id = batchJobId + "-" + batchJobExecutionGroupId + "-"
-        + System.currentTimeMillis();
-    }
+    id = batchJobId + "-" + batchJobExecutionGroupId + "-"
+      + attempt.incrementAndGet();
   }
 
   public void setExecutionStartTime(final long executionStartTime) {
@@ -153,6 +154,6 @@ public class BatchJobRequestExecutionGroup {
 
   @Override
   public String toString() {
-    return id + "(" + String.valueOf(batchJobId) + ")";
+    return id;
   }
 }
