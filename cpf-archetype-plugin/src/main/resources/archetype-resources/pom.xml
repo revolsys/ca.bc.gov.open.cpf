@@ -167,19 +167,6 @@
     </dependencies>
   </dependencyManagement>
 
-  <distributionManagement>
-    <repository>
-      <id>release</id>
-      <name>http://apps.bcgov-releases</name>
-      <url>http://apps.bcgov/artifactory/libs-release-local</url>
-    </repository>
-    <snapshotRepository>
-      <id>snapshot</id>
-      <name>http://apps.bcgov-snapshots</name>
-      <url>http://apps.bcgov/artifactory/libs-snapshot-local</url>
-    </snapshotRepository>
-  </distributionManagement>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <ca.bc.gov.open.cpf.version>4.0.1-SNAPSHOT</ca.bc.gov.open.cpf.version>
