@@ -244,19 +244,6 @@
     </profile>
   </profiles>
 
-  <distributionManagement>
-    <repository>
-      <id>release</id>
-      <name>http://apps.bcgov-releases</name>
-      <url>http://apps.bcgov/artifactory/libs-release-local</url>
-    </repository>
-    <snapshotRepository>
-      <id>snapshot</id>
-      <name>http://apps.bcgov-snapshots</name>
-      <url>http://apps.bcgov/artifactory/libs-snapshot-local</url>
-    </snapshotRepository>
-  </distributionManagement>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   <com.revolsys.open.version>2013.06.24.RELEASE</com.revolsys.open.version>
