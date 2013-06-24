@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
+import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -50,19 +51,29 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private final BatchJobWorkerScheduler executor;
 
-  private String groupId;
+  private final String groupId;
 
-  private String moduleName;
+  private final String moduleName;
 
-  private String logLevel;
+  private final String logLevel;
 
-  private String businessApplicationName;
+  private final String businessApplicationName;
 
-  private Number batchJobId;
+  private final Number batchJobId;
 
-  private String userId;
+  private final String userId;
 
-  private AppLog log;
+  private final AppLog log;
+
+  private int errorCount = 0;
+
+  private int successCount = 0;
+
+  private long applicationExecutionTime = 0;
+
+  private BusinessApplication businessApplication;
+
+  private Module module;
 
   public BatchJobRequestExecutionGroupRunnable(
     final BatchJobWorkerScheduler executor,
@@ -84,8 +95,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     log = new AppLog(logLevel);
   }
 
-  public void addError(final Map<String, Object> result, String logPrefix,
-    final String errorCode, final Throwable e) {
+  public void addError(final Map<String, Object> result,
+    final String logPrefix, final String errorCode, final Throwable e) {
     log.error(logPrefix + errorCode, e);
     if (result.get("errorCode") == null) {
       final StringWriter errorOut = new StringWriter();
@@ -96,15 +107,173 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     }
   }
 
-  private int errorCount = 0;
+  /**
+   * <h2>Fields</h2>
+   * 
+   * batchJobExecutionGroupId long
+   * requestSequenceNumber long
+   * perRequestResultData boolean
+   * 
+   * errorCode String
+   * errorMessage String
+   * errorDebugMessage String
+   * 
+   * pluginExecutionTime long
+   * results List<Map<String, Object>>
+   * logRecords List<Map<String,Object>>
+   * 
+   * @param requestMetaData
+   * @param applicationParameters
+   * @param requestParameters
+   * @return
+   */
+  protected Map<String, Object> executeRequest(
+    final DataObjectMetaData requestMetaData,
+    final Map<String, Object> applicationParameters,
+    final Map<String, Object> requestParameters) {
+    final StopWatch requestStopWatch = new StopWatch("Request");
+    requestStopWatch.start();
 
-  private int successCount = 0;
+    final Number batchJobExecutionGroupId = (Number)requestParameters.remove("batchJobExecutionGroupId");
+    final Number requestSequenceNumber = (Number)requestParameters.remove("requestSequenceNumber");
+    final boolean perRequestResultData = businessApplication.isPerRequestResultData();
 
-  private long applicationExecutionTime = 0;
+    final Map<String, Object> requestResult = new LinkedHashMap<String, Object>();
+    requestResult.put("batchJobExecutionGroupId", batchJobExecutionGroupId);
+    requestResult.put("requestSequenceNumber", requestSequenceNumber);
+    requestResult.put("perRequestResultData", perRequestResultData);
 
-  private BusinessApplication businessApplication;
+    boolean hasError = true;
+    try {
+      final Map<String, Object> parameters = getParameters(businessApplication,
+        requestMetaData, applicationParameters, requestParameters);
+      final PluginAdaptor plugin = module.getBusinessApplicationPlugin(
+        businessApplicationName, logLevel);
+      if (plugin == null) {
+        addError(requestResult, "Unable to create plugin "
+          + businessApplicationName + " ", "ERROR_PROCESSING_REQUEST", null);
+      } else {
+        final AppLog appLog = plugin.getAppLog();
+        File resultFile = null;
+        OutputStream resultData = null;
+        if (businessApplication.isPerRequestInputData()) {
+          // TODO urls for per request input data
+          // final String inputDataUrl = httpClient.getOAuthUrl("GET",
+          // "/worker/workers/" + workerId + "/jobs/" + batchJobId
+          // + "/groups/" + groupId + "/requests/" + batchJobExecutionGroupId
+          // + "/inputData");
+          // parameters.put("inputDataUrl", inputDataUrl);
+        }
+        if (businessApplication.isPerRequestResultData()) {
+          resultFile = FileUtil.createTempFile(businessApplicationName, ".bin");
+          resultData = new FileOutputStream(resultFile);
+          parameters.put("resultData", resultData);
+        }
+        try {
+          if (businessApplication.isSecurityServiceRequired()) {
+            final SecurityService securityService = securityServiceFactory.getSecurityService(
+              module, userId);
+            plugin.setSecurityService(securityService);
+          }
+          plugin.setParameters(parameters);
 
-  private Module module;
+          final StopWatch pluginStopWatch = new StopWatch("Plugin execute");
+          pluginStopWatch.start();
+          if (appLog.isDebugEnabled()) {
+            appLog.debug("Request Execution Start " + groupId + " "
+              + requestSequenceNumber);
+          }
+          try {
+            plugin.execute();
+          } finally {
+            try {
+              if (pluginStopWatch.isRunning()) {
+                pluginStopWatch.stop();
+              }
+            } catch (final IllegalStateException e) {
+            }
+            final long pluginTime = pluginStopWatch.getTotalTimeMillis();
+            requestResult.put("pluginExecutionTime", pluginTime);
+            if (appLog.isDebugEnabled()) {
+              appLog.debug("Request Execution End " + groupId + " "
+                + requestSequenceNumber);
+            }
+          }
+          final List<Map<String, Object>> results = plugin.getResults();
+          requestResult.put("results", results);
+          sendResultData(batchJobExecutionGroupId, requestResult, parameters,
+            resultFile, resultData);
+
+        } catch (final IllegalArgumentException e) {
+          addError(requestResult, "Error processing request ",
+            "BAD_INPUT_DATA_VALUE", e);
+        } catch (final RecoverableException e) {
+          addError(requestResult, "Error processing request ",
+            "RECOVERABLE_EXCEPTION", e);
+        } finally {
+          if (resultFile != null) {
+            FileUtil.closeSilent(resultData);
+            resultFile.delete();
+          }
+        }
+        try {
+          if (requestStopWatch.isRunning()) {
+            requestStopWatch.stop();
+          }
+        } catch (final IllegalStateException e) {
+        }
+        final List<Map<String, String>> logs = appLog.getLogRecords();
+        requestResult.put("logRecords", logs);
+      }
+      hasError = false;
+    } catch (final Throwable e) {
+      addError(requestResult, "Error processing request ",
+        "ERROR_PROCESSING_REQUEST", e);
+    }
+
+    if (hasError) {
+      errorCount++;
+    } else {
+      successCount++;
+    }
+    applicationExecutionTime = requestStopWatch.getTotalTimeMillis();
+    return requestResult;
+  }
+
+  @SuppressWarnings("unchecked")
+  protected Map<String, Object> getParameters(
+    final BusinessApplication businessApplication,
+    final DataObjectMetaData requestMetaData,
+    final Map<String, Object> applicationParameters,
+    final Map<String, Object> requestParameters) {
+    final Map<String, Object> parameters = new LinkedHashMap<String, Object>(
+      applicationParameters);
+    parameters.putAll(requestParameters);
+    if (!businessApplication.isPerRequestInputData()) {
+
+      for (final Entry<String, Object> entry : parameters.entrySet()) {
+        final String name = entry.getKey();
+        final Object value = entry.getValue();
+        if (value != null) {
+          final Attribute attribute = requestMetaData.getAttribute(name);
+          if (attribute != null) {
+            final DataType dataType = attribute.getType();
+            final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
+            if (!dataTypeClass.isAssignableFrom(value.getClass())) {
+              entry.setValue(value);
+              final StringConverter<Object> converter = StringConverterRegistry.getInstance()
+                .getConverter(dataTypeClass);
+              if (converter != null) {
+                final Object convertedValue = converter.toObject(value);
+                entry.setValue(convertedValue);
+              }
+            }
+          }
+        }
+      }
+    }
+    return parameters;
+  }
 
   /**
    * <h2>Fields</h2>
@@ -175,7 +344,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             groupResponse.put("results", groupResults);
 
             for (final Map<String, Object> requestParameters : requests) {
-              Map<String, Object> requestResult = executeRequest(
+              final Map<String, Object> requestResult = executeRequest(
                 requestMetaData, applicationParameters, requestParameters);
               groupResults.add(requestResult);
 
@@ -188,9 +357,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           if (groupStopWatch.isRunning()) {
             groupStopWatch.stop();
           }
-        } catch (IllegalStateException e) {
+        } catch (final IllegalStateException e) {
         }
-        long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
+        final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
         groupResponse.put("groupExecutedTime", groupExecutionTime);
         groupResponse.put("applicationExecutedTime", applicationExecutionTime);
         groupResponse.put("logRecords", log.getLogRecords());
@@ -203,6 +372,11 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         final Map<String, Object> submitResponse = httpClient.postJsonResource(
           httpClient.getUrl(path), groupResponse);
 
+      } catch (final HttpStatusCodeException e) {
+        if (e.getStatusCode() != 404) {
+          LOG.error("Unable to process group " + groupId, e);
+        }
+        executor.addFailedGroup(groupId);
       } catch (final Throwable e) {
         LOG.error("Unable to process group " + groupId, e);
         executor.addFailedGroup(groupId);
@@ -212,174 +386,6 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     } finally {
       executor.removeExecutingGroupId(groupId);
     }
-  }
-
-  /**
-   * <h2>Fields</h2>
-   * 
-   * batchJobExecutionGroupId long
-   * requestSequenceNumber long
-   * perRequestResultData boolean
-   * 
-   * errorCode String
-   * errorMessage String
-   * errorDebugMessage String
-   * 
-   * pluginExecutionTime long
-   * results List<Map<String, Object>>
-   * logRecords List<Map<String,Object>>
-   * 
-   * @param requestMetaData
-   * @param applicationParameters
-   * @param requestParameters
-   * @return
-   */
-  protected Map<String, Object> executeRequest(
-    final DataObjectMetaData requestMetaData,
-    final Map<String, Object> applicationParameters,
-    final Map<String, Object> requestParameters) {
-    final StopWatch requestStopWatch = new StopWatch("Request");
-    requestStopWatch.start();
-
-    Number batchJobExecutionGroupId = (Number)requestParameters.remove("batchJobExecutionGroupId");
-    Number requestSequenceNumber = (Number)requestParameters.remove("requestSequenceNumber");
-    final boolean perRequestResultData = businessApplication.isPerRequestResultData();
-
-    final Map<String, Object> requestResult = new LinkedHashMap<String, Object>();
-    requestResult.put("batchJobExecutionGroupId", batchJobExecutionGroupId);
-    requestResult.put("requestSequenceNumber", requestSequenceNumber);
-    requestResult.put("perRequestResultData", perRequestResultData);
-
-    boolean hasError = true;
-    try {
-      final Map<String, Object> parameters = getParameters(businessApplication,
-        requestMetaData, applicationParameters, requestParameters);
-      PluginAdaptor plugin = module.getBusinessApplicationPlugin(
-        businessApplicationName, logLevel);
-      if (plugin == null) {
-        addError(requestResult, "Unable to create plugin "
-          + businessApplicationName + " ", "ERROR_PROCESSING_REQUEST", null);
-      } else {
-        final AppLog appLog = plugin.getAppLog();
-        File resultFile = null;
-        OutputStream resultData = null;
-        if (businessApplication.isPerRequestInputData()) {
-          // TODO urls for per request input data
-          // final String inputDataUrl = httpClient.getOAuthUrl("GET",
-          // "/worker/workers/" + workerId + "/jobs/" + batchJobId
-          // + "/groups/" + groupId + "/requests/" + batchJobExecutionGroupId
-          // + "/inputData");
-          // parameters.put("inputDataUrl", inputDataUrl);
-        }
-        if (businessApplication.isPerRequestResultData()) {
-          resultFile = FileUtil.createTempFile(businessApplicationName, ".bin");
-          resultData = new FileOutputStream(resultFile);
-          parameters.put("resultData", resultData);
-        }
-        try {
-          if (businessApplication.isSecurityServiceRequired()) {
-            final SecurityService securityService = securityServiceFactory.getSecurityService(
-              module, userId);
-            plugin.setSecurityService(securityService);
-          }
-          plugin.setParameters(parameters);
-
-          final StopWatch pluginStopWatch = new StopWatch("Plugin execute");
-          pluginStopWatch.start();
-          if (appLog.isDebugEnabled()) {
-            appLog.debug("Request Execution Start " + groupId + " "
-              + requestSequenceNumber);
-          }
-          try {
-            plugin.execute();
-          } finally {
-            try {
-              if (pluginStopWatch.isRunning()) {
-                pluginStopWatch.stop();
-              }
-            } catch (IllegalStateException e) {
-            }
-            final long pluginTime = pluginStopWatch.getTotalTimeMillis();
-            requestResult.put("pluginExecutionTime", pluginTime);
-            if (appLog.isDebugEnabled()) {
-              appLog.debug("Request Execution End " + groupId + " "
-                + requestSequenceNumber);
-            }
-          }
-          final List<Map<String, Object>> results = plugin.getResults();
-          requestResult.put("results", results);
-          sendResultData(batchJobExecutionGroupId, requestResult, parameters, resultFile,
-            resultData);
-
-        } catch (final IllegalArgumentException e) {
-          addError(requestResult, "Error processing request ",
-            "BAD_INPUT_DATA_VALUE", e);
-        } catch (final RecoverableException e) {
-          addError(requestResult, "Error processing request ",
-            "RECOVERABLE_EXCEPTION", e);
-        } finally {
-          if (resultFile != null) {
-            FileUtil.closeSilent(resultData);
-            resultFile.delete();
-          }
-        }
-        try {
-          if (requestStopWatch.isRunning()) {
-            requestStopWatch.stop();
-          }
-        } catch (IllegalStateException e) {
-        }
-        List<Map<String, String>> logs = appLog.getLogRecords();
-        requestResult.put("logRecords", logs);
-      }
-      hasError = false;
-    } catch (final Throwable e) {
-      addError(requestResult, "Error processing request ",
-        "ERROR_PROCESSING_REQUEST", e);
-    }
-
-    if (hasError) {
-      errorCount++;
-    } else {
-      successCount++;
-    }
-    applicationExecutionTime = requestStopWatch.getTotalTimeMillis();
-    return requestResult;
-  }
-
-  @SuppressWarnings("unchecked")
-  protected Map<String, Object> getParameters(
-    final BusinessApplication businessApplication,
-    final DataObjectMetaData requestMetaData,
-    final Map<String, Object> applicationParameters,
-    final Map<String, Object> requestParameters) {
-    final Map<String, Object> parameters = new LinkedHashMap<String, Object>(
-      applicationParameters);
-    parameters.putAll(requestParameters);
-    if (!businessApplication.isPerRequestInputData()) {
-
-      for (final Entry<String, Object> entry : parameters.entrySet()) {
-        final String name = entry.getKey();
-        final Object value = entry.getValue();
-        if (value != null) {
-          Attribute attribute = requestMetaData.getAttribute(name);
-          if (attribute != null) {
-            final DataType dataType = attribute.getType();
-            final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
-            if (!dataTypeClass.isAssignableFrom(value.getClass())) {
-              entry.setValue(value);
-              final StringConverter<Object> converter = StringConverterRegistry.getInstance()
-                .getConverter(dataTypeClass);
-              if (converter != null) {
-                final Object convertedValue = converter.toObject(value);
-                entry.setValue(convertedValue);
-              }
-            }
-          }
-        }
-      }
-    }
-    return parameters;
   }
 
   public void sendResultData(final Number batchJobExecutionGroupId,

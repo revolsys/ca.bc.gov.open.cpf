@@ -2,7 +2,6 @@ package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.sql.Timestamp;
 import java.util.Map;
-import java.util.UUID;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -10,7 +9,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 public class BatchJobRequestExecutionGroup {
   private final long batchJobId;
 
-  private Long batchJobExecutionGroupId;
+  private final Long batchJobExecutionGroupId;
 
   private final BusinessApplication businessApplication;
 
@@ -38,7 +37,7 @@ public class BatchJobRequestExecutionGroup {
     final long batchJobId, final BusinessApplication businessApplication,
     final Map<String, String> businessApplicationParameterMap,
     final String resultDataContentType, final Timestamp scheduleTimestamp,
-    Long batchJobExecutionGroupId) {
+    final Long batchJobExecutionGroupId) {
     this.consumerKey = consumerKey;
     this.batchJobId = batchJobId;
     this.businessApplication = businessApplication;
@@ -64,12 +63,12 @@ public class BatchJobRequestExecutionGroup {
     }
   }
 
-  public long getBatchJobId() {
-    return batchJobId;
-  }
-
   public Long getBatchJobExecutionGroupId() {
     return batchJobExecutionGroupId;
+  }
+
+  public long getBatchJobId() {
+    return batchJobId;
   }
 
   public BusinessApplication getBusinessApplication() {
@@ -134,7 +133,10 @@ public class BatchJobRequestExecutionGroup {
   }
 
   public void resetId() {
-    id = batchJobId + "-" + UUID.randomUUID().toString();
+    synchronized (this) {
+      id = batchJobId + "-" + batchJobExecutionGroupId + "-"
+        + System.currentTimeMillis();
+    }
   }
 
   public void setExecutionStartTime(final long executionStartTime) {

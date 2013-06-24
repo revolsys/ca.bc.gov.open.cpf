@@ -40,7 +40,7 @@ import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.gis.data.query.Condition;
 import com.revolsys.gis.data.query.Conditions;
-import com.revolsys.gis.data.query.Function;
+import com.revolsys.gis.data.query.MultipleCondition;
 import com.revolsys.gis.data.query.Query;
 import com.revolsys.io.MapWriter;
 import com.revolsys.io.Reader;
@@ -667,9 +667,9 @@ public class CpfDataAccessObject {
 
   public ResultPager<DataObject> getUserAccountsForUserGroup(
     final DataObject userGroup) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
-    filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroup.getIdValue());
-    final Query query = new Query(UserAccount.USER_ACCOUNT);
+    final Condition equal = Conditions.equal(
+      UserGroupAccountXref.USER_GROUP_ID, userGroup.getIdValue());
+    final Query query = new Query(UserAccount.USER_ACCOUNT, equal);
     query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
 
@@ -679,13 +679,12 @@ public class CpfDataAccessObject {
 
   public List<DataObject> getUserAccountsLikeName(final String name) {
     if (StringUtils.hasText(name)) {
-      final Query query = new Query(UserAccount.USER_ACCOUNT);
-      final String likeName = "%" + name.toUpperCase() + "%";
-      final Condition consumerKeyLike = Conditions.like(
-        Function.upper("CONSUMERY_KEY"), likeName);
-      final Condition userNameLike = Conditions.like(
-        Function.upper("USER_NAME"), likeName);
-      query.setWhereCondition(Conditions.or(consumerKeyLike, userNameLike));
+      final Condition consumerKeyLike = Conditions.likeUpper(
+        UserAccount.CONSUMER_KEY, name);
+      final Condition userNameLike = Conditions.likeUpper(
+        UserAccount.USER_NAME, name);
+      final MultipleCondition or = Conditions.or(consumerKeyLike, userNameLike);
+      final Query query = new Query(UserAccount.USER_ACCOUNT, or);
       final Reader<DataObject> reader = dataStore.query(query);
       try {
         return CollectionUtil.subList(reader, 20);
