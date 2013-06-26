@@ -159,15 +159,6 @@ public class ClassLoaderModule implements Module {
     this.businessApplicationRegistry = businessApplicationRegistry;
   }
 
-  @Override
-  public long getStartedTime() {
-    if (startedDate == null) {
-      return -1;
-    } else {
-      return startedDate.getTime();
-    }
-  }
-
   public ClassLoaderModule(
     final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName, final ClassLoader classLoader,
@@ -275,12 +266,12 @@ public class ClassLoaderModule implements Module {
     this.initialized = false;
   }
 
-  protected void doRestart() {
+  public void doRestart() {
     stop();
     start();
   }
 
-  protected void doStart() {
+  public void doStart() {
     if (isEnabled() && !isStarted()) {
       final StopWatch stopWatch = new StopWatch();
       stopWatch.start();
@@ -310,7 +301,7 @@ public class ClassLoaderModule implements Module {
     }
   }
 
-  protected void doStop() {
+  public void doStop() {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     ModuleLog.info(name, "Stop", "Begin", null);
@@ -796,6 +787,15 @@ public class ClassLoaderModule implements Module {
     return startedDate;
   }
 
+  @Override
+  public long getStartedTime() {
+    if (startedDate == null) {
+      return -1;
+    } else {
+      return startedDate.getTime();
+    }
+  }
+
   private List<Map<String, Object>> getUserGroupMaps() {
     try {
       final ClassLoader classLoader = getClassLoader();
@@ -1008,20 +1008,22 @@ public class ClassLoaderModule implements Module {
                 final Map<String, Object> properties = propertiesByName.get(businessApplicationName);
                 businessApplication.setProperties(properties);
                 final String componentName = "APP_" + businessApplicationName;
-                ConfigPropertyLoader propertyLoader = getConfigPropertyLoader();
-                String moduleName = getName();
-                final Map<String, Object> configProperties = propertyLoader.getConfigProperties(
-                  moduleName, componentName);
-                if (configProperties != null) {
-                  for (Entry<String, Object> entry : configProperties.entrySet()) {
-                    String propertyName = entry.getKey();
-                    Object propertyValue = entry.getValue();
-                    try {
-                      JavaBeanUtil.setProperty(businessApplication,
-                        propertyName, propertyValue);
-                    } catch (Throwable t) {
-                      LOG.error("Unable to set " + businessApplicationName
-                        + "." + propertyName + "=" + propertyValue);
+                final ConfigPropertyLoader propertyLoader = getConfigPropertyLoader();
+                final String moduleName = getName();
+                if (propertyLoader != null) {
+                  final Map<String, Object> configProperties = propertyLoader.getConfigProperties(
+                    moduleName, componentName);
+                  if (configProperties != null) {
+                    for (final Entry<String, Object> entry : configProperties.entrySet()) {
+                      final String propertyName = entry.getKey();
+                      final Object propertyValue = entry.getValue();
+                      try {
+                        JavaBeanUtil.setProperty(businessApplication,
+                          propertyName, propertyValue);
+                      } catch (final Throwable t) {
+                        LOG.error("Unable to set " + businessApplicationName
+                          + "." + propertyName + "=" + propertyValue);
+                      }
                     }
                   }
                 }
@@ -1073,14 +1075,14 @@ public class ClassLoaderModule implements Module {
     String descriptionUrl = null;
     final JobParameter jobParameterMetadata = method.getAnnotation(JobParameter.class);
     if (jobParameterMetadata != null) {
-      String jobDescriptionUrl = jobParameterMetadata.descriptionUrl();
+      final String jobDescriptionUrl = jobParameterMetadata.descriptionUrl();
       if (StringUtils.hasText(jobDescriptionUrl)) {
         descriptionUrl = jobDescriptionUrl;
       }
     }
     final RequestParameter requestParameterMetadata = method.getAnnotation(RequestParameter.class);
     if (requestParameterMetadata != null) {
-      String requestDescriptionUrl = requestParameterMetadata.descriptionUrl();
+      final String requestDescriptionUrl = requestParameterMetadata.descriptionUrl();
       if (StringUtils.hasText(requestDescriptionUrl)) {
         descriptionUrl = requestDescriptionUrl;
       }

@@ -29,7 +29,7 @@ import com.revolsys.io.json.JsonDataObjectIoFactory;
  * business application without deploying it to the CPF.
  */
 public class BusinessApplicationPluginExecutor {
-  private final BusinessApplicationRegistry businessApplicationRegistry;
+  private BusinessApplicationRegistry businessApplicationRegistry;
 
   private String consumerKey = "cpftest";
 
@@ -40,12 +40,20 @@ public class BusinessApplicationPluginExecutor {
       .getContextClassLoader();
     final ClassLoaderModuleLoader moduleLoader = new ClassLoaderModuleLoader(
       classLoader);
-    businessApplicationRegistry = new BusinessApplicationRegistry(moduleLoader);
+    businessApplicationRegistry = new BusinessApplicationRegistry(false,
+      moduleLoader);
   }
 
   public BusinessApplicationPluginExecutor(
     final BusinessApplicationRegistry businessApplicationRegistry) {
     this.businessApplicationRegistry = businessApplicationRegistry;
+  }
+
+  public void close() {
+    if (businessApplicationRegistry != null) {
+      businessApplicationRegistry.close();
+      businessApplicationRegistry = null;
+    }
   }
 
   /**
@@ -191,7 +199,8 @@ public class BusinessApplicationPluginExecutor {
     plugin.execute();
     final Map<String, Object> response = plugin.getResponseFields();
     final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
-       final Map<String, Object> results = getResultDataObject(resultMetaData,response);
+    final Map<String, Object> results = getResultDataObject(resultMetaData,
+      response);
     ModuleLog.info(moduleName, businessApplicationName, "End Execution",
       stopWatch, null);
     log(plugin);
@@ -341,7 +350,7 @@ public class BusinessApplicationPluginExecutor {
     return JsonDataObjectIoFactory.toDataObject(metaData, jsonString);
   }
 
-  protected DataObject getResultDataObject(DataObjectMetaData metaData,
+  protected DataObject getResultDataObject(final DataObjectMetaData metaData,
     final Map<String, Object> object) {
     final String jsonString = JsonDataObjectIoFactory.toString(metaData, object);
     return JsonDataObjectIoFactory.toDataObject(metaData, jsonString);
@@ -351,7 +360,7 @@ public class BusinessApplicationPluginExecutor {
     "rawtypes", "unchecked"
   })
   protected List<Map<String, Object>> getResultList(
-    final DataObjectMetaData metaData, final List<Map<String,Object>> list) {
+    final DataObjectMetaData metaData, final List<Map<String, Object>> list) {
     if (list.isEmpty()) {
       final List results = list;
       return results;
@@ -372,6 +381,12 @@ public class BusinessApplicationPluginExecutor {
         module, consumerKey);
     }
     return null;
+  }
+
+  public boolean hasResultsList(final String businessApplicationName) {
+    final PluginAdaptor plugin = getPlugin(businessApplicationName);
+    final BusinessApplication businessApplication = plugin.getApplication();
+    return businessApplication.getResultListProperty() != null;
   }
 
   public void log(final PluginAdaptor plugin) {

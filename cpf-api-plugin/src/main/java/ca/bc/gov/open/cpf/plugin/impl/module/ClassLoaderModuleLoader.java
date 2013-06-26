@@ -10,7 +10,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,14 +17,15 @@ import org.slf4j.LoggerFactory;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
+import com.revolsys.io.FileUtil;
+import com.revolsys.io.PathUtil;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 
 public class ClassLoaderModuleLoader implements ModuleLoader {
 
   private static final Logger LOG = LoggerFactory.getLogger(ClassLoaderModuleLoader.class);
 
-  public static List<URL> getConfigUrls(
-    final ClassLoader classLoader,
+  public static List<URL> getConfigUrls(final ClassLoader classLoader,
     final boolean useParentClassloader) {
     final List<URL> configUrls = new ArrayList<URL>();
     try {
@@ -42,10 +42,8 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
     return configUrls;
   }
 
-  public static boolean isDefinedInClassLoader(
-    final ClassLoader classLoader,
-    final boolean useParentClassLoader,
-    final URL resourceUrl) {
+  public static boolean isDefinedInClassLoader(final ClassLoader classLoader,
+    final boolean useParentClassLoader, final URL resourceUrl) {
     if (useParentClassLoader) {
       return true;
     } else if (classLoader instanceof URLClassLoader) {
@@ -91,14 +89,22 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
           useParentClassLoader);
         for (final URL configUrl : configUrls) {
           try {
-            final String moduleName = UUID.randomUUID().toString();
+            String moduleName = configUrl.toString();
+            moduleName = moduleName.replaceAll(
+              "META-INF/ca.bc.gov.open.cpf.plugin.sf.xml", "");
+            moduleName = moduleName.replaceAll("!", "");
+            moduleName = moduleName.replaceAll("/target/classes", "");
+            moduleName = moduleName.replaceAll("/+$", "");
+            moduleName = moduleName.replaceAll(".jar", "");
+            moduleName = FileUtil.getFileNameExtension(PathUtil.getName(moduleName));
+
             final ConfigPropertyLoader configPropertyLoader = businessApplicationRegistry.getConfigPropertyLoader();
             final ClassLoaderModule module = new ClassLoaderModule(
               businessApplicationRegistry, moduleName, classLoader,
               configPropertyLoader, configUrl);
-            module.enable();
             businessApplicationRegistry.addModule(module);
             modulesByName.put(moduleName, module);
+            module.enable();
           } catch (final Throwable e) {
             LOG.error("Unable to register module for " + configUrl, e);
           }

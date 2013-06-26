@@ -31,10 +31,10 @@ public interface Module {
 
   List<String> getBusinessApplicationNames();
 
-  PluginAdaptor getBusinessApplicationPlugin(String businessApplicationName,
+  PluginAdaptor getBusinessApplicationPlugin(BusinessApplication application,
     String logLevel);
 
-  PluginAdaptor getBusinessApplicationPlugin(BusinessApplication application,
+  PluginAdaptor getBusinessApplicationPlugin(String businessApplicationName,
     String logLevel);
 
   List<BusinessApplication> getBusinessApplications();
@@ -57,6 +57,8 @@ public interface Module {
 
   Date getStartedDate();
 
+  long getStartedTime();
+
   boolean hasBusinessApplication(String businessApplicationName);
 
   boolean isApplicationsLoaded();
@@ -76,6 +78,4 @@ public interface Module {
   void start();
 
   void stop();
-
-  long getStartedTime();
 }

@@ -43,7 +43,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  protected void doStart() {
+  public void doStart() {
     if (isEnabled() && !isStarted()) {
       try {
         clearModuleError();
@@ -77,7 +77,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  protected void doStop() {
+  public void doStop() {
     if (isStarted()) {
       final List<String> businessApplicationNames = getBusinessApplicationNames();
       setStartedDate(null);

@@ -23,6 +23,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
 import ca.bc.gov.open.cpf.plugin.impl.log.appender.DailyRollingFileAppender;
 import ca.bc.gov.open.cpf.plugin.impl.log.appender.Slf4jModuleLogAppender;
+import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleControlProcess;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
@@ -57,50 +58,24 @@ public final class BusinessApplicationRegistry implements
 
   private Thread moduleControlThread;
 
-  public Channel<Map<String, Object>> getModuleControlChannel() {
-    return moduleControlChannel;
-  }
+  private boolean useModuleControlThread = true;
 
   public BusinessApplicationRegistry() {
-    moduleControlChannel.writeConnect();
-    ModuleControlProcess moduleControlProcess = new ModuleControlProcess(this,
-      moduleControlChannel);
-    moduleControlThread = new Thread(moduleControlProcess, "ModuleControl");
-    moduleControlThread.setDaemon(true);
-    moduleControlThread.start();
+    this(true);
   }
 
-  @PreDestroy
-  public void destroy() {
-    moduleControlChannel.writeDisconnect();
-    moduleControlChannel = null;
-    moduleControlThread.stop();
-    moduleControlThread = null;
-  }
-
-  public void startModule(String moduleName) {
-    HashMap<String, Object> parameters = new HashMap<String, Object>();
-    parameters.put("moduleName", moduleName);
-    parameters.put("action", "start");
-    moduleControlChannel.write(parameters);
-  }
-
-  public void stopModule(String moduleName) {
-    HashMap<String, Object> parameters = new HashMap<String, Object>();
-    parameters.put("moduleName", moduleName);
-    parameters.put("action", "stop");
-    moduleControlChannel.write(parameters);
-  }
-
-  public void restartModule(String moduleName) {
-    HashMap<String, Object> parameters = new HashMap<String, Object>();
-    parameters.put("moduleName", moduleName);
-    parameters.put("action", "restart");
-    moduleControlChannel.write(parameters);
-  }
-
-  public BusinessApplicationRegistry(final ModuleLoader... moduleLoader) {
-    moduleLoaders.addAll(Arrays.asList(moduleLoader));
+  public BusinessApplicationRegistry(final boolean useModuleControlThread,
+    final ModuleLoader... moduleLoader) {
+    this.useModuleControlThread = useModuleControlThread;
+    if (useModuleControlThread) {
+      moduleControlChannel.writeConnect();
+      final ModuleControlProcess moduleControlProcess = new ModuleControlProcess(
+        this, moduleControlChannel);
+      moduleControlThread = new Thread(moduleControlProcess, "ModuleControl");
+      moduleControlThread.setDaemon(true);
+      moduleControlThread.start();
+    }
+    setModuleLoaders(Arrays.asList(moduleLoader));
     refreshModules();
   }
 
@@ -118,14 +93,36 @@ public final class BusinessApplicationRegistry implements
     }
   }
 
-  public void clearModuleToAppCache() {
-    moduleNamesByBusinessApplicationName = null;
-  }
-
   public void addModuleEventListener(final ModuleEventListener listener) {
     if (listener != null) {
       listeners.add(listener);
     }
+  }
+
+  public void clearModuleToAppCache() {
+    moduleNamesByBusinessApplicationName = null;
+  }
+
+  @PreDestroy
+  public void close() {
+    useModuleControlThread = false;
+    final List<Module> modules = getModules();
+    for (final Module module : modules) {
+      final ClassLoaderModule classModule = (ClassLoaderModule)module;
+      classModule.stop();
+    }
+
+    if (moduleControlChannel != null) {
+      moduleControlChannel.writeDisconnect();
+      moduleControlChannel = null;
+    }
+    if (moduleControlThread != null) {
+      moduleControlThread.stop();
+      moduleControlThread = null;
+    }
+    listeners.clear();
+    moduleLoaders.clear();
+    modulesByName.clear();
   }
 
   public BusinessApplication getBusinessApplication(
@@ -172,6 +169,20 @@ public final class BusinessApplicationRegistry implements
   }
 
   public PluginAdaptor getBusinessApplicationPlugin(
+    final BusinessApplication businessApplication) {
+    if (businessApplication == null) {
+      return null;
+    } else {
+      final Module module = businessApplication.getModule();
+      if (module == null) {
+        return null;
+      } else {
+        return module.getBusinessApplicationPlugin(businessApplication, null);
+      }
+    }
+  }
+
+  public PluginAdaptor getBusinessApplicationPlugin(
     String businessApplicationName) {
     String businessApplicationVersion = "CURRENT";
     final int colonIndex = businessApplicationName.lastIndexOf(':');
@@ -193,20 +204,6 @@ public final class BusinessApplicationRegistry implements
       return null;
     } else {
       return module.getBusinessApplicationPlugin(businessApplicationName, null);
-    }
-  }
-
-  public PluginAdaptor getBusinessApplicationPlugin(
-    final BusinessApplication businessApplication) {
-    if (businessApplication == null) {
-      return null;
-    } else {
-      final Module module = businessApplication.getModule();
-      if (module == null) {
-        return null;
-      } else {
-        return module.getBusinessApplicationPlugin(businessApplication, null);
-      }
     }
   }
 
@@ -323,11 +320,11 @@ public final class BusinessApplicationRegistry implements
   }
 
   public void moduleEvent(final Module module, final String action) {
-    ModuleEvent event = new ModuleEvent(module, action);
+    final ModuleEvent event = new ModuleEvent(module, action);
     for (final ModuleEventListener listener : listeners) {
       try {
         listener.moduleChanged(event);
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         LOG.error("Error invoking listener", t);
       }
     }
@@ -350,6 +347,18 @@ public final class BusinessApplicationRegistry implements
   public void removeModuleEventListener(final ModuleEventListener listener) {
     if (listener != null) {
       listeners.remove(listener);
+    }
+  }
+
+  public void restartModule(final String moduleName) {
+    if (useModuleControlThread) {
+      final HashMap<String, Object> parameters = new HashMap<String, Object>();
+      parameters.put("moduleName", moduleName);
+      parameters.put("action", "restart");
+      moduleControlChannel.write(parameters);
+    } else {
+      final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
+      module.doRestart();
     }
   }
 
@@ -395,7 +404,31 @@ public final class BusinessApplicationRegistry implements
   }
 
   public void setModuleLoaders(final List<ModuleLoader> moduleLoaders) {
-    this.moduleLoaders = moduleLoaders;
+    this.moduleLoaders = new ArrayList<ModuleLoader>(moduleLoaders);
+  }
+
+  public void startModule(final String moduleName) {
+    if (useModuleControlThread) {
+      final HashMap<String, Object> parameters = new HashMap<String, Object>();
+      parameters.put("moduleName", moduleName);
+      parameters.put("action", "start");
+      moduleControlChannel.write(parameters);
+    } else {
+      final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
+      module.doStart();
+    }
+  }
+
+  public void stopModule(final String moduleName) {
+    if (useModuleControlThread) {
+      final HashMap<String, Object> parameters = new HashMap<String, Object>();
+      parameters.put("moduleName", moduleName);
+      parameters.put("action", "stop");
+      moduleControlChannel.write(parameters);
+    } else {
+      final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
+      module.doStop();
+    }
   }
 
   public synchronized void unloadModule(final Module module) {
