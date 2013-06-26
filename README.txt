@@ -48,8 +48,8 @@ exit;
 
 CPF requires a configuration file on each server.
 
-Property                           Description
--------------------------------    ------------------------------------------
+Property                             Description
+-------------------------------      ------------------------------------------
 ca.bc.gov.cpf.app.baseUrl            The HTTP URL to the server cpf is deployed to
 ca.bc.gov.cpf.app.secureBaseUrl      The HTTPS URL to the server cpf is deployed to
 ca.bc.gov.cpf.internal.webServiceUrl The HTTP URL to the internal web service for cpf
