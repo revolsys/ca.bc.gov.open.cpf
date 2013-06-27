@@ -18,11 +18,11 @@ App Server Additional Memory: 100MB
 
 2.1 Change to the script directory
 
-cd scripts/4.2.1/
+cd scripts/4.0.1/
  
-2.2 Connect to the target database as MTEC
+2.2 Connect to the target database as CPF
 
-sqlplus mtec/<password>@<instance>
+sqlplus cpf/<password>@<instance>
  
 2.3 Execute scripts
 
