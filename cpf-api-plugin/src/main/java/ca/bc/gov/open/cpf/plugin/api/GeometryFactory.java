@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.revolsys.gis.model.coordinates.Coordinates;
 import com.revolsys.gis.model.coordinates.list.CoordinatesList;
+import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -225,7 +226,8 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    */
   @Override
   public LinearRing createLinearRing(final double... coordinates) {
-    return super.createLinearRing(coordinates);
+    return super.createLinearRing(new DoubleCoordinatesList(getNumAxis(),
+      coordinates));
   }
 
   /**
@@ -238,7 +240,8 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    */
   @Override
   public LineString createLineString(final double... coordinates) {
-    return super.createLineString(coordinates);
+    return super.createLineString(new DoubleCoordinatesList(getNumAxis(),
+      coordinates));
   }
 
   /**
@@ -305,7 +308,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @return The created multi-polygon.
    */
   @Override
-  public MultiPolygon createMultiPolygon(final Collection <?> polygons) {
+  public MultiPolygon createMultiPolygon(final Collection<?> polygons) {
     return super.createMultiPolygon(polygons);
   }
 

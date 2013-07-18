@@ -357,7 +357,7 @@ public class BatchJobService implements ModuleEventListener {
         group.cancel();
       }
     }
-    final boolean cancelled = dataAccessObject.cancelBatchJob(batchJobId) == 0;
+    final boolean cancelled = dataAccessObject.cancelBatchJob(batchJobId) == 1;
     if (cancelled) {
       try {
         dataAccessObject.deleteBatchJobResults(batchJobId);
@@ -1597,49 +1597,54 @@ public class BatchJobService implements ModuleEventListener {
 
       final BusinessApplication businessApplication = getBusinessApplication(
         businessApplicationName, businessApplicationVersion);
-      final Module module = businessApplication.getModule();
-      final String moduleName = module.getName();
-      final Map<String, Object> logData = new LinkedHashMap<String, Object>();
-      logData.put("businessApplicationName", businessApplicationName);
-      logData.put("batchJobId", batchJobId);
-      if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.info(moduleName, "Job schedule", "Start", logData);
-      }
-      try {
-        final Map<String, String> businessApplicationParameterMap = getBusinessApplicationParameters(batchJob);
-        final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-
-        final Long batchJobExecutionGroupId = dataAccessObject.getNonExecutingRequestId(batchJobId);
-
-        if (batchJobExecutionGroupId == null) {
-          return false;
-        } else {
-          dataAccessObject.setBatchJobExecutionGroupsStarted(batchJobExecutionGroupId);
-
-          dataAccessObject.updateBatchJobAddScheduledGroupCount(batchJobId,
-            startTime);
-
-          final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(
-            consumerKey, batchJobId, businessApplication,
-            businessApplicationParameterMap, resultDataContentType,
-            new Timestamp(System.currentTimeMillis()), batchJobExecutionGroupId);
-
-          InvokeMethodAfterCommit.invoke(this, "schedule", group);
-          logData.put("groupId", group.getId());
-
-          final Map<String, Object> statistics = new HashMap<String, Object>();
-          statistics.put("executeScheduledTime", stopWatch);
-          statistics.put("executeScheduledGroupsCount", 1);
-
-          InvokeMethodAfterCommit.invoke(this, "addStatistics",
-            businessApplication, statistics);
-          return true;
-        }
-      } finally {
+      if (businessApplication == null) {
+        return false;
+      } else {
+        final Module module = businessApplication.getModule();
+        final String moduleName = module.getName();
+        final Map<String, Object> logData = new LinkedHashMap<String, Object>();
+        logData.put("businessApplicationName", businessApplicationName);
+        logData.put("batchJobId", batchJobId);
         if (businessApplication.isInfoLogEnabled()) {
+          ModuleLog.info(moduleName, "Job schedule", "Start", logData);
+        }
+        try {
+          final Map<String, String> businessApplicationParameterMap = getBusinessApplicationParameters(batchJob);
+          final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+          final Long batchJobExecutionGroupId = dataAccessObject.getNonExecutingRequestId(batchJobId);
+
+          if (batchJobExecutionGroupId == null) {
+            return false;
+          } else {
+            dataAccessObject.setBatchJobExecutionGroupsStarted(batchJobExecutionGroupId);
+
+            dataAccessObject.updateBatchJobAddScheduledGroupCount(batchJobId,
+              startTime);
+
+            final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(
+              consumerKey, batchJobId, businessApplication,
+              businessApplicationParameterMap, resultDataContentType,
+              new Timestamp(System.currentTimeMillis()),
+              batchJobExecutionGroupId);
+
+            InvokeMethodAfterCommit.invoke(this, "schedule", group);
+            logData.put("groupId", group.getId());
+
+            final Map<String, Object> statistics = new HashMap<String, Object>();
+            statistics.put("executeScheduledTime", stopWatch);
+            statistics.put("executeScheduledGroupsCount", 1);
+
+            InvokeMethodAfterCommit.invoke(this, "addStatistics",
+              businessApplication, statistics);
+            return true;
+          }
+        } finally {
           if (businessApplication.isInfoLogEnabled()) {
-            ModuleLog.infoAfterCommit(moduleName, "Job schedule", "End",
-              stopWatch, logData);
+            if (businessApplication.isInfoLogEnabled()) {
+              ModuleLog.infoAfterCommit(moduleName, "Job schedule", "End",
+                stopWatch, logData);
+            }
           }
         }
       }
