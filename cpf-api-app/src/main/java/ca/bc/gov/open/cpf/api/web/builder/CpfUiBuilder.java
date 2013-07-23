@@ -73,13 +73,6 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
     return businessApplicationRegistry.getBusinessApplication(businessApplicationName);
   }
 
-  public BusinessApplication getBusinessApplication(
-    final String businessApplicationName,
-    final String businessApplicationVersion) {
-    return businessApplicationRegistry.getBusinessApplication(
-      businessApplicationName, businessApplicationVersion);
-  }
-
   public List<String> getBusinessApplicationNames() {
     final List<String> businessApplicationNames = new ArrayList<String>();
     final List<Module> modules = getModules();

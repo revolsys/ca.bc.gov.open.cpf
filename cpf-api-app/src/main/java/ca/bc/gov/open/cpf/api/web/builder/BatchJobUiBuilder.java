@@ -46,10 +46,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
   public void businessApplication(final XmlWriter out, final Object object) {
     final DataObject batchJob = (DataObject)object;
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-    final String businessApplicationVersion = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_VERSION);
-
-    final BusinessApplication businessApplication = getBusinessApplication(
-      businessApplicationName, businessApplicationVersion);
+    final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
     final BusinessApplicationUiBuilder appBuilder = getBuilder(BusinessApplication.class);
     final Map<String, String> parameterKeys = new HashMap<String, String>();
     parameterKeys.put("moduleName", "moduleName");
@@ -64,9 +61,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
       && object instanceof DataObject) {
       final DataObject batchJob = (DataObject)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      final String businessApplicationVersion = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_VERSION);
       final BusinessApplication businessApplication = getBusinessApplicationRegistry().getBusinessApplication(
-        businessApplicationName, businessApplicationVersion);
+        businessApplicationName);
       if (businessApplication == null) {
         return new BusinessApplication(businessApplicationName);
       } else {
@@ -85,10 +81,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
   public void module(final XmlWriter out, final Object object) {
     final DataObject batchJob = (DataObject)object;
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-    final String businessApplicationVersion = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_VERSION);
 
-    final BusinessApplication businessApplication = getBusinessApplication(
-      businessApplicationName, businessApplicationVersion);
+    final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
     final Module module = businessApplication.getModule();
     final ModuleUiBuilder appBuilder = getBuilder(Module.class);
 
@@ -171,7 +165,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
       throw new PageNotFoundException("The cloud job " + batchJobId
         + " does not exist");
     } else {
-      BatchJobService batchJobService = getBatchJobService();
+      final BatchJobService batchJobService = getBatchJobService();
       batchJobService.cancelBatchJob(batchJobId);
       redirectPage("clientList");
     }
@@ -188,7 +182,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId) throws IOException, ServletException {
     getModuleBusinessApplication(moduleName, businessApplicationName);
-    BatchJobService batchJobService = getBatchJobService();
+    final BatchJobService batchJobService = getBatchJobService();
     batchJobService.cancelBatchJob(batchJobId);
     final String url = request.getHeader("Referer");
     if (StringUtils.hasText(url) && url.indexOf("/apps") != -1) {
