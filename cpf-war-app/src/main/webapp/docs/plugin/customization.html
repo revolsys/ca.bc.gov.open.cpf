@@ -123,7 +123,10 @@ $(document).ready(function() {
 <figure>
 <pre class="prettyprint">public Map&lt;String,Object&gt; getCustomizationProperties {
   Map&lt;String,Object&gt; properties = new HashMap&lt;String,Object&gt;();
-  properties.put(&quot;...&quot;, ...);
+  // properties.put(&quot;&lt;propertyName&gt;&quot;, &lt;propertyValue&gt;);
+  /* For example */
+  String styleId = &quot;&lt;Calculated from some field on object&gt;&quot;;
+  properties.put(&quot;kmlStyleUrl&quot;, "http://gov.bc.ca/kmlStyle.kml#" + styleId);
   return properties;
 }</pre>
 </figure>
