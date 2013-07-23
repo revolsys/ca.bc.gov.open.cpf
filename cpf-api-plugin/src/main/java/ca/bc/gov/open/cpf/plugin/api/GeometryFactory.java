@@ -224,7 +224,6 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param coordinates The coordinates.
    * @return The created linear ring.
    */
-  @Override
   public LinearRing createLinearRing(final double... coordinates) {
     return super.createLinearRing(new DoubleCoordinatesList(getNumAxis(),
       coordinates));
@@ -238,7 +237,6 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param coordinates The coordinates.
    * @return The created linestring.
    */
-  @Override
   public LineString createLineString(final double... coordinates) {
     return super.createLineString(new DoubleCoordinatesList(getNumAxis(),
       coordinates));
