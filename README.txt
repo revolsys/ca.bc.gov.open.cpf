@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Cloud Processing Framework Web Application
-Version:           4.0.1
+Version:           4.0.2
 
 Software/Hardware Requirements
 ------------------------------
@@ -16,33 +16,8 @@ App Server Additional Memory: 100MB
 1. Database Installation
 ------------------------
 
-2.1 Change to the script directory
+N/A
 
-cd scripts/4.0.1/
- 
-2.2 Connect to the target database as CPF
-
-sqlplus cpf/<password>@<instance>
- 
-2.3 Execute scripts
-
-start main.sql
- 
-2.4 Check for errors in cpf-4.0.1.lst
-
-If there were errors, abort the migration, rollback changes, and send the cpf-4.0.1.lst to
-paul.austin@revolsys.com.
-
-rollback;
-exit;
-
-2.5 Commit and Exit
-
-If there were no errors commit the changes and exit. Notify APPBOOK@Victoria1.gov.bc.ca and
-paul.austin@revolsys.com that the database changes have been completed.
-
-commit;
-exit;               
 2. Configuration Files
 ----------------------
 
@@ -128,34 +103,6 @@ System.
 
 5. Post Build Actions
 ---------------------
-
-5.1 CPF Admin Users
--------------------------
-
-a. Open https://delivery.apps.gov.bc.ca/pub/cpf/secure/admin/ and login using
-   your IDIR account. Get each GLOBAL ADMIN user to do this so a proxy user
-   account is created in CPF.
-b. You will get a 403 error which is expected.
-c. Open https://delivery.apps.gov.bc.ca/pub/cpf/admin/
-d. Login using user cpf_admin with the password created in step #1.2
-e. Click the User Groups link on the menu on the left side of the page
-f. Click the ADMIN User Group link in the table on that page
-g. Click the User Accounts for Group section to open it
-h. Search for the user name by typing at least 3 characters in the Username box
-   (e.g. pxau). Select one of the names and click the add button.
-i. Repeat for each GLOBAL ADMIN user.
-k. Open https://delivery.apps.gov.bc.ca/pub/cpf/secure/admin/ and verify you
-   have access to the siteminder enabled version of the site.
-l. Click the User Accounts link on the menu on the left side of the page
-m. Click on the cpf_admin Consumer Key link on the table in that page
-n. Click the edit button
-o. Uncheck the Active checkbox
-p. Click Save. The cpf_admin account is now disabled and admin access requires
-   Siteminder login by one of the admin users via the link in step #a.
-
-5.2 CPF Module Deployment
--------------------------
-
 Follow the README.txt file for each CPF plug-in to be deployed to the CPF.
 
 6. Notification
@@ -177,13 +124,13 @@ area has tested the application in the test environment.
 Perform a Maven release using the following settings.
 
 Update property dependencies to latest RC or release version:
-  ca.bc.gov.open.cpf.version: 4.0.1+
+  ca.bc.gov.open.cpf.version: 4.0.2+
 
 Test Migration
 **************
 
-Test Version:                 4.0.1.RC
+Test Version:                 4.0.2.RC
 
 Production Migration
 ********************
-Release Version:              4.0.1
+Release Version:              4.0.2
