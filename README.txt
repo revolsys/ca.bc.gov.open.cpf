@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Cloud Processing Framework Web Application
-Version:           4.0.2
+Version:           4.0.3
 
 Software/Hardware Requirements
 ------------------------------
@@ -124,13 +124,13 @@ area has tested the application in the test environment.
 Perform a Maven release using the following settings.
 
 Update property dependencies to latest RC or release version:
-  ca.bc.gov.open.cpf.version: 4.0.2+
+  ca.bc.gov.open.cpf.version: 4.0.3+
 
 Test Migration
 **************
 
-Test Version:                 4.0.2.RC
+Test Version:                 4.0.3.RC
 
 Production Migration
 ********************
-Release Version:              4.0.2
+Release Version:              4.0.3
