@@ -525,27 +525,17 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public void createBatchJobResultOpaque(final long batchJobId,
-    final long batchJobExecutionGroupId, final String contentType,
-    final Object data) {
-    final DataObject request = dataAccessObject.getBatchJobExecutionGroupLocked(batchJobExecutionGroupId);
-    if (request.getValue(BatchJobResult.BATCH_JOB_RESULT_ID) == null) {
-      final Number batchJobResultId = dataAccessObject.createId(BatchJobResult.BATCH_JOB_RESULT);
-      final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
-      result.setValue(BatchJobResult.BATCH_JOB_RESULT_ID, batchJobResultId);
-      result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
-      result.setValue(BatchJobResult.BATCH_JOB_EXECUTION_GROUP_ID,
-        batchJobExecutionGroupId);
-      result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE,
-        BatchJobResult.OPAQUE_RESULT_DATA);
-      result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
-      result.setValue(BatchJobResult.RESULT_DATA, data);
-      dataAccessObject.write(result);
-
-      request.setValue(BatchJobExecutionGroup.BATCH_JOB_RESULT_ID,
-        batchJobResultId);
-      dataAccessObject.write(request);
-    }
-
+    final long sequenceNumber, final String contentType, final Object data) {
+    final Number batchJobResultId = dataAccessObject.createId(BatchJobResult.BATCH_JOB_RESULT);
+    final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
+    result.setValue(BatchJobResult.BATCH_JOB_RESULT_ID, batchJobResultId);
+    result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
+    result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
+    result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE,
+      BatchJobResult.OPAQUE_RESULT_DATA);
+    result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
+    result.setValue(BatchJobResult.RESULT_DATA, data);
+    dataAccessObject.write(result);
   }
 
   /**
@@ -773,15 +763,19 @@ public class BatchJobService implements ModuleEventListener {
   public GeometryFactory getGeometryFactory(
     final GeometryFactory geometryFactory,
     final Map<String, ? extends Object> parameters) {
-    final int srid = CollectionUtil.getInteger(parameters, "resultSrid",
-      geometryFactory.getSRID());
-    final int numAxis = CollectionUtil.getInteger(parameters, "resultNumAxis",
-      geometryFactory.getNumAxis());
-    final double scaleXY = CollectionUtil.getDouble(parameters,
-      "resultScaleFactorXy", geometryFactory.getScaleXY());
-    final double scaleZ = CollectionUtil.getDouble(parameters,
-      "resultScaleFactorZ", geometryFactory.getScaleZ());
-    return GeometryFactory.getFactory(srid, numAxis, scaleXY, scaleZ);
+    if (geometryFactory == null) {
+      return null;
+    } else {
+      final int srid = CollectionUtil.getInteger(parameters, "resultSrid",
+        geometryFactory.getSRID());
+      final int numAxis = CollectionUtil.getInteger(parameters,
+        "resultNumAxis", geometryFactory.getNumAxis());
+      final double scaleXY = CollectionUtil.getDouble(parameters,
+        "resultScaleFactorXy", geometryFactory.getScaleXY());
+      final double scaleZ = CollectionUtil.getDouble(parameters,
+        "resultScaleFactorZ", geometryFactory.getScaleZ());
+      return GeometryFactory.getFactory(srid, numAxis, scaleXY, scaleZ);
+    }
   }
 
   /**
