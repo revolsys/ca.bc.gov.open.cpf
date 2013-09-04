@@ -121,7 +121,7 @@ $(document).ready(function() {
 <p>Customization properties can also be specified on a plugin class or on the result object for plugins that return a list of results. This allows the property to be calculated for each result. For example the <code>kmlStyleUrl</code> may vary based on the type of result. The following example show the optional method that must be implemented for plugins that wish to define per result configuration properties.</p>
 
 <figure>
-<pre class="prettyprint">public Map&lt;String,Object&gt; getCustomizationProperties {
+<pre class="prettyprint">public Map&lt;String,Object&gt; getCustomizationProperties() {
   Map&lt;String,Object&gt; properties = new HashMap&lt;String,Object&gt;();
   // properties.put(&quot;&lt;propertyName&gt;&quot;, &lt;propertyValue&gt;);
   /* For example */

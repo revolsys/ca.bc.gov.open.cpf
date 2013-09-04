@@ -61,8 +61,9 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.converter.string.BooleanStringConverter;
+import com.revolsys.gis.cs.GeometryFactory;
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
-import com.revolsys.gis.data.io.ListDataObjectReader;
 import com.revolsys.gis.data.model.ArrayDataObject;
 import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.DataObject;
@@ -74,13 +75,16 @@ import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.gis.data.model.types.SimpleDataType;
 import com.revolsys.gis.model.data.equals.EqualsRegistry;
 import com.revolsys.io.FileUtil;
+import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.NamedLinkedHashMap;
+import com.revolsys.io.Writer;
 import com.revolsys.io.json.JsonDataObjectIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.spring.ByteArrayResource;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
+import com.revolsys.spring.OutputStreamResource;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.HtmlUtil;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
@@ -126,6 +130,7 @@ import com.revolsys.ui.web.rest.interceptor.MediaTypeUtil;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.ui.web.utils.MultipartFileResource;
 import com.revolsys.util.CaseConverter;
+import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -377,8 +382,8 @@ public class CloudProcessingFramework {
     final String name = attribute.getName();
     final String typeDescription = attribute.getTypeDescription();
     final String description = attribute.getDescription();
-    final boolean jobParameter = attribute.getProperty(BusinessApplication.JOB_PARAMETER) == Boolean.TRUE;
-    final boolean requestParameter = attribute.getProperty(BusinessApplication.REQUEST_PARAMETER) == Boolean.TRUE;
+    final boolean jobParameter = BooleanStringConverter.getBoolean(attribute.getProperty(BusinessApplication.JOB_PARAMETER));
+    final boolean requestParameter = BooleanStringConverter.getBoolean(attribute.getProperty(BusinessApplication.REQUEST_PARAMETER));
     if (jobParameter || requestParameter) {
       final Collection<Object> allowedValues = attribute.getAllowedValues()
         .keySet();
@@ -960,7 +965,8 @@ public class CloudProcessingFramework {
         inputData.put("requestSequenceNumber", 1);
         final String inputDataString = JsonDataObjectIoFactory.toString(
           requestMetaData, Collections.singletonList(inputData));
-        dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1, inputDataString, 1);
+        dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1,
+          inputDataString, 1);
       }
 
       batchJobService.schedule(businessApplicationName, batchJobId);
@@ -1481,8 +1487,6 @@ public class CloudProcessingFramework {
         HttpServletUtils.setAttribute("contentDispositionFileName",
           businessApplicationName);
         final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
-        final List<DataObject> results = DataObjectUtil.getObjects(
-          resultMetaData, list);
         for (final Entry<String, Object> entry : businessApplication.getProperties()
           .entrySet()) {
           final String name = entry.getKey();
@@ -1490,16 +1494,47 @@ public class CloudProcessingFramework {
           HttpServletUtils.setAttribute(name, value);
         }
 
-        if (businessApplication.getResultListProperty() == null) {
-          return results.get(0);
-        } else {
-          int i = 1;
-          for (final DataObject result : results) {
-            result.setValue("sequenceNumber", 1);
-            result.setValue("resultNumber", i);
-            i++;
+        try {
+          final HttpServletResponse response = HttpServletUtils.getResponse();
+          response.setContentType(format);
+          final OutputStreamResource resource = new OutputStreamResource(
+            "result", response.getOutputStream());
+          final GeometryFactory geometryFactory = GeometryFactory.getFactory(
+            resultSrid, resultNumAxis, resultScaleFactorXy, resultScaleFactorZ);
+          final Writer<DataObject> writer = batchJobService.createStructuredResultWriter(
+            resource, businessApplication, resultMetaData, format, "Result",
+            geometryFactory);
+          final boolean hasMultipleResults = businessApplication.getResultListProperty() != null;
+          if (!hasMultipleResults) {
+            writer.setProperty(IoConstants.SINGLE_OBJECT_PROPERTY, true);
           }
-          return new ListDataObjectReader(resultMetaData, results);
+          int i = 1;
+          final Map<String, Object> defaultProperties = new HashMap<String, Object>(
+            writer.getProperties());
+
+          for (final Map<String, Object> structuredResultMap : list) {
+            final DataObject structuredResult = DataObjectUtil.getObject(
+              resultMetaData, structuredResultMap);
+
+            @SuppressWarnings("unchecked")
+            final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
+            if (properties != null && !properties.isEmpty()) {
+              writer.setProperties(properties);
+            }
+
+            structuredResult.put("sequenceNumber", 1);
+            structuredResult.put("resultNumber", i);
+            writer.write(structuredResult);
+            if (properties != null && !properties.isEmpty()) {
+              writer.clearProperties();
+              writer.setProperties(defaultProperties);
+            }
+            i++;
+
+          }
+          return null;
+        } catch (final IOException e) {
+          return ExceptionUtil.throwUncheckedException(e);
         }
       }
     }
@@ -2775,7 +2810,7 @@ public class CloudProcessingFramework {
       if (MediaTypeUtil.isHtmlPage()) {
         final TabElementContainer tabs = new TabElementContainer();
         batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
-        String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
+        final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
         if (BatchJob.RESULTS_CREATED.equals(jobStatus)
           || BatchJob.DOWNLOAD_INITIATED.equals(jobStatus)) {
           final Map<String, Object> parameters = Collections.emptyMap();

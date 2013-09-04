@@ -73,6 +73,7 @@ import com.revolsys.spring.config.AttributesBeanConfigurer;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -489,7 +490,7 @@ public class ClassLoaderModule implements Module {
       final List<Method> methods = JavaBeanUtil.getMethods(pluginClass);
       for (final Method method : methods) {
         processParameter(pluginClass, businessApplication, method);
-        processResultAttribute(pluginClass, businessApplication, method);
+        processResultAttribute(pluginClass, businessApplication, method, false);
         if (method.isAnnotationPresent(ResultList.class)) {
           if (resultListMethod == null) {
             resultListMethod = method;
@@ -657,7 +658,7 @@ public class ClassLoaderModule implements Module {
 
       final Map<String, Object> configProperties = getConfigProperties(
         moduleName, "APP_" + businessApplicationName.toUpperCase());
-      JavaBeanUtil.setProperties(businessApplication, configProperties);
+      Property.set(businessApplication, configProperties);
       return businessApplication;
     }
   }
@@ -1205,7 +1206,8 @@ public class ClassLoaderModule implements Module {
   }
 
   private void processResultAttribute(final Class<?> pluginClass,
-    final BusinessApplication businessApplication, final Method method) {
+    final BusinessApplication businessApplication, final Method method,
+    final boolean resultList) {
     final String methodName = method.getName();
 
     final ResultAttribute fieldMetadata = method.getAnnotation(ResultAttribute.class);
@@ -1213,7 +1215,11 @@ public class ClassLoaderModule implements Module {
       if (method.getParameterTypes().length == 0
         && method.getReturnType() == Map.class
         && Modifier.isPublic(method.getModifiers())) {
-        businessApplication.setHasCustomizationProperties(true);
+        if (resultList) {
+          businessApplication.setHasResultListCustomizationProperties(true);
+        } else {
+          businessApplication.setHasCustomizationProperties(true);
+        }
       } else {
         throw new IllegalArgumentException(
           "Method must have signature public Map<String,Object> getCustomizationProperties() not "
@@ -1289,7 +1295,7 @@ public class ClassLoaderModule implements Module {
       final Class<?> resultClass = JavaBeanUtil.getTypeParameterClass(
         resultListMethod, List.class);
       for (final Method method : JavaBeanUtil.getMethods(resultClass)) {
-        processResultAttribute(resultClass, businessApplication, method);
+        processResultAttribute(resultClass, businessApplication, method, true);
       }
       resultMetaData = businessApplication.getResultMetaData();
       if (resultMetaData.getAttributeCount() == 0) {

@@ -17,6 +17,7 @@ import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.GeometryFactory;
 import com.revolsys.gis.data.model.Attribute;
@@ -174,13 +175,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private boolean hasCustomizationProperties;
 
+  private boolean hasResultListCustomizationProperties;
+
   public BusinessApplication(final BusinessApplicationPlugin pluginMetadata,
     final Module module, final String name) {
     this.pluginMetadata = pluginMetadata;
     this.module = module;
     this.name = name;
-    requestMetaData = new DataObjectMetaDataImpl("/" + name);
-    resultMetaData = new DataObjectMetaDataImpl("/" + name);
+    this.requestMetaData = new DataObjectMetaDataImpl("/" + name);
+    this.resultMetaData = new DataObjectMetaDataImpl("/" + name);
   }
 
   public BusinessApplication(final String name) {
@@ -190,8 +193,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public void addInputDataContentType(final String contentType,
     final String description) {
-    inputDataContentTypes.put(contentType, description);
-    inputDataContentTypes = CollectionUtil.sortByValues(inputDataContentTypes);
+    this.inputDataContentTypes.put(contentType, description);
+    this.inputDataContentTypes = CollectionUtil.sortByValues(this.inputDataContentTypes);
   }
 
   public void addRequestAttribute(int index, final Attribute attribute) {
@@ -199,43 +202,43 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
       throw new RuntimeException("Unknwon attribute");
     }
     if (index == -1) {
-      index = 200000 + requestAttributeMap.size();
+      index = 200000 + this.requestAttributeMap.size();
     }
-    if (requestAttributeMap.containsKey(index)) {
+    if (this.requestAttributeMap.containsKey(index)) {
       throw new IllegalArgumentException("Business Application " + getName()
         + " Duplicate index for " + RequestParameter.class + " on "
         + attribute.getName());
     } else {
       if (Geometry.class.isAssignableFrom(attribute.getType().getJavaClass())) {
-        hasGeometryRequestAttribute = true;
+        this.hasGeometryRequestAttribute = true;
       } else {
-        hasNonGeometryRequestAttribute = true;
+        this.hasNonGeometryRequestAttribute = true;
       }
-      requestAttributeMap.put(index, attribute);
+      this.requestAttributeMap.put(index, attribute);
     }
-    requestAttributeByNameMap.put(attribute.getName(), attribute);
+    this.requestAttributeByNameMap.put(attribute.getName(), attribute);
   }
 
   public void addResultAttribute(int index, final Attribute attribute) {
     if (index == -1) {
-      index = 100000 + resultAttributeMap.size();
+      index = 100000 + this.resultAttributeMap.size();
     }
-    if (resultAttributeMap.containsKey(index)) {
+    if (this.resultAttributeMap.containsKey(index)) {
       throw new IllegalArgumentException("Business Application " + getName()
         + " Duplicate index for " + ResultAttribute.class + " on "
         + attribute.getName());
     } else {
       if (Geometry.class.isAssignableFrom(attribute.getType().getJavaClass())) {
-        hasGeometryResultAttribute = true;
+        this.hasGeometryResultAttribute = true;
       }
-      resultAttributeMap.put(index, attribute);
+      this.resultAttributeMap.put(index, attribute);
     }
   }
 
   public void addResultDataContentType(final String contentType,
     final String description) {
-    resultDataContentTypes.put(contentType, description);
-    resultDataContentTypes = CollectionUtil.sortByValues(resultDataContentTypes);
+    this.resultDataContentTypes.put(contentType, description);
+    this.resultDataContentTypes = CollectionUtil.sortByValues(this.resultDataContentTypes);
   }
 
   /**
@@ -280,90 +283,90 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public Expression getBatchModeExpression() {
-    return batchModeExpression;
+    return this.batchModeExpression;
   }
 
   public String getBatchModePermission() {
-    return batchModePermission;
+    return this.batchModePermission;
   }
 
   public List<String> getCompatibleVersions() {
-    return compatibleVersions;
+    return this.compatibleVersions;
   }
 
   public List<CoordinateSystem> getCoordinateSystems() {
-    return coordinateSystems;
+    return this.coordinateSystems;
   }
 
   public String getDescription() {
-    return description;
+    return this.description;
   }
 
   public String getDescriptionUrl() {
-    return descriptionUrl;
+    return this.descriptionUrl;
   }
 
   public GeometryFactory getGeometryFactory() {
-    return geometryFactory;
+    return this.geometryFactory;
   }
 
   public String getId() {
-    return id;
+    return this.id;
   }
 
   public Map<String, String> getInputDataContentTypes() {
-    return inputDataContentTypes;
+    return this.inputDataContentTypes;
   }
 
   public Expression getInstantModeExpression() {
-    return instantModeExpression;
+    return this.instantModeExpression;
   }
 
   public String getInstantModePermission() {
-    return instantModePermission;
+    return this.instantModePermission;
   }
 
   public String getLogLevel() {
-    return logLevel;
+    return this.logLevel;
   }
 
   public int getMaxConcurrentRequests() {
-    return maxConcurrentRequests;
+    return this.maxConcurrentRequests;
   }
 
   public int getMaxRequestsPerJob() {
-    return maxRequestsPerJob;
+    return this.maxRequestsPerJob;
   }
 
   public Module getModule() {
-    return module;
+    return this.module;
   }
 
   public String getModuleName() {
-    return module.getName();
+    return this.module.getName();
   }
 
   public String getName() {
-    return name;
+    return this.name;
   }
 
   public int getNumRequestsPerWorker() {
-    return numRequestsPerWorker;
+    return this.numRequestsPerWorker;
   }
 
   public BusinessApplicationPlugin getPluginMetadata() {
-    return pluginMetadata;
+    return this.pluginMetadata;
   }
 
   public synchronized DataObjectMetaDataImpl getRequestMetaData() {
-    if (requestMetaData.getAttributeCount() == 0) {
-      if (requestAttributeMap.size() > 0) {
-        final Attribute requestSequenceNumber = requestMetaData.addAttribute(
+    if (this.requestMetaData.getAttributeCount() == 0) {
+      if (this.requestAttributeMap.size() > 0) {
+        final Attribute requestSequenceNumber = this.requestMetaData.addAttribute(
           "requestSequenceNumber", DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER,
           true);
 
-        if (hasGeometryRequestAttribute) {
+        if (this.hasGeometryRequestAttribute) {
           final Attribute requestSrid = new Attribute(
             "srid",
             DataTypes.INT,
@@ -372,7 +375,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           requestSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
           requestSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
           Integer defaultSrid = null;
-          for (final CoordinateSystem coordinateSystem : coordinateSystems) {
+          for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
             final int srid = coordinateSystem.getId();
             if (defaultSrid == null || srid == 3005) {
               defaultSrid = 3005;
@@ -381,7 +384,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
             requestSrid.addAllowedValue(srid, name);
           }
           requestSrid.setDefaultValue(defaultSrid);
-          requestMetaData.addAttribute(requestSrid);
+          this.requestMetaData.addAttribute(requestSrid);
 
         }
 
@@ -395,16 +398,16 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
         resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER,
           true);
 
-        requestMetaData.addAttribute(resultDataContentType);
+        this.requestMetaData.addAttribute(resultDataContentType);
 
-        if (hasGeometryResultAttribute) {
+        if (this.hasGeometryResultAttribute) {
           final Attribute resultSrid = new Attribute("resultSrid",
             DataTypes.INT, false,
             "The coordinate system code of the projection for the result geometry.");
           resultSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
           resultSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
           Integer defaultSrid = null;
-          for (final CoordinateSystem coordinateSystem : coordinateSystems) {
+          for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
             final int srid = coordinateSystem.getId();
             if (defaultSrid == null || srid == 3005) {
               defaultSrid = 3005;
@@ -413,7 +416,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
             resultSrid.addAllowedValue(srid, name);
             resultSrid.setDefaultValue(defaultSrid);
           }
-          requestMetaData.addAttribute(resultSrid);
+          this.requestMetaData.addAttribute(resultSrid);
 
           final Attribute resultNumAxis = new Attribute(
             "resultNumAxis",
@@ -425,7 +428,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           resultNumAxis.addAllowedValue(2, "2D");
           resultNumAxis.addAllowedValue(3, "3D");
           resultNumAxis.setDefaultValue(2);
-          requestMetaData.addAttribute(resultNumAxis);
+          this.requestMetaData.addAttribute(resultNumAxis);
 
           final Attribute resultScaleFactorXy = new Attribute(
             "resultScaleFactorXy",
@@ -437,7 +440,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           resultScaleFactorXy.setProperty(BusinessApplication.JOB_PARAMETER,
             true);
           resultScaleFactorXy.setDefaultValue(1000);
-          requestMetaData.addAttribute(resultScaleFactorXy);
+          this.requestMetaData.addAttribute(resultScaleFactorXy);
 
           final Attribute resultScaleFactorZ = new Attribute(
             "resultScaleFactorZ",
@@ -449,115 +452,119 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           resultScaleFactorZ.setDefaultValue(1000);
           resultScaleFactorZ.setProperty(BusinessApplication.JOB_PARAMETER,
             true);
-          requestMetaData.addAttribute(resultScaleFactorZ);
+          this.requestMetaData.addAttribute(resultScaleFactorZ);
 
         }
-        for (final Attribute attribute : requestAttributeMap.values()) {
-          requestMetaData.addAttribute(attribute);
+        for (final Attribute attribute : this.requestAttributeMap.values()) {
+          this.requestMetaData.addAttribute(attribute);
         }
       }
     }
 
-    return requestMetaData;
+    return this.requestMetaData;
   }
 
   public Map<String, String> getResultDataContentTypes() {
-    return resultDataContentTypes;
+    return this.resultDataContentTypes;
   }
 
   public String getResultListProperty() {
-    return resultListProperty;
+    return this.resultListProperty;
   }
 
   public synchronized DataObjectMetaData getResultMetaData() {
-    if (resultMetaData.getAttributeCount() == 0) {
-      if (resultAttributeMap.size() > 0) {
-        resultMetaData.addAttribute(new Attribute("sequenceNumber",
+    if (this.resultMetaData.getAttributeCount() == 0) {
+      if (this.resultAttributeMap.size() > 0) {
+        this.resultMetaData.addAttribute(new Attribute("sequenceNumber",
           DataTypes.INT, true,
           "The index of the request record that this result relates to."));
-        if (resultListProperty != null) {
-          resultMetaData.addAttribute(new Attribute("resultNumber",
+        if (this.resultListProperty != null) {
+          this.resultMetaData.addAttribute(new Attribute("resultNumber",
             DataTypes.INT, true,
             "The index of the result record within the result for a request."));
         }
-        for (final Attribute attribute : resultAttributeMap.values()) {
+        for (final Attribute attribute : this.resultAttributeMap.values()) {
           String description = attribute.getDescription();
           if (!StringUtils.hasText(description)) {
             final String name = attribute.getName();
-            final Attribute requestAttribute = requestAttributeByNameMap.get(name);
+            final Attribute requestAttribute = this.requestAttributeByNameMap.get(name);
             if (requestAttribute != null) {
               description = requestAttribute.getDescription();
               attribute.setDescription(description);
             }
           }
-          resultMetaData.addAttribute(attribute);
+          this.resultMetaData.addAttribute(attribute);
         }
       }
     }
-    return resultMetaData;
+    return this.resultMetaData;
   }
 
   public String getTitle() {
-    if (title == null && name != null) {
-      title = CaseConverter.toCapitalizedWords(name);
+    if (this.title == null && this.name != null) {
+      this.title = CaseConverter.toCapitalizedWords(this.name);
     }
-    return title;
+    return this.title;
   }
 
   public String getVersion() {
-    return version;
+    return this.version;
   }
 
   public boolean isCoreParameter(final String attributeName) {
-    final Attribute attribute = requestMetaData.getAttribute(attributeName);
+    final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
         + attributeName);
     } else {
-      return attribute.getProperty(CORE_PARAMETER) == Boolean.TRUE;
+      return BooleanStringConverter.getBoolean(attribute.getProperty(CORE_PARAMETER));
     }
   }
 
   public boolean isEnabled() {
-    return module.isEnabled();
+    return this.module.isEnabled();
   }
 
   public boolean isHasCustomizationProperties() {
-    return hasCustomizationProperties;
+    return this.hasCustomizationProperties;
   }
 
   public boolean isHasGeometryRequestAttribute() {
-    return hasGeometryRequestAttribute;
+    return this.hasGeometryRequestAttribute;
   }
 
   public boolean isHasGeometryResultAttribute() {
-    return hasGeometryResultAttribute;
+    return this.hasGeometryResultAttribute;
   }
 
   public boolean isHasNonGeometryRequestAttribute() {
-    return hasNonGeometryRequestAttribute;
+    return this.hasNonGeometryRequestAttribute;
+  }
+
+  public boolean isHasResultListCustomizationProperties() {
+    return this.hasResultListCustomizationProperties;
   }
 
   public boolean isInfoLogEnabled() {
-    return logLevel.equals("INFO") || logLevel.equals("DEBUG");
+    return this.logLevel.equals("INFO") || this.logLevel.equals("DEBUG");
   }
 
   public boolean isJobParameter(final String attributeName) {
-    final Attribute attribute = requestMetaData.getAttribute(attributeName);
+    final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
         + attributeName);
     } else {
-      return attribute.getProperty(JOB_PARAMETER) == Boolean.TRUE;
+      return BooleanStringConverter.getBoolean(attribute.getProperty(JOB_PARAMETER));
     }
   }
 
   public boolean isPerRequestInputData() {
-    return perRequestInputData;
+    return this.perRequestInputData;
   }
 
   public boolean isPerRequestResultData() {
-    return perRequestResultData;
+    return this.perRequestResultData;
   }
 
   public boolean isRequestAttributeValid(final String name, final Object value) {
@@ -565,28 +572,28 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isRequestParameter(final String attributeName) {
-    final Attribute attribute = requestMetaData.getAttribute(attributeName);
+    final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
         + attributeName);
     } else {
-      return attribute.getProperty(REQUEST_PARAMETER) == Boolean.TRUE;
+      return BooleanStringConverter.getBoolean(attribute.getProperty(REQUEST_PARAMETER));
     }
   }
 
   public boolean isSecurityServiceRequired() {
-    return securityServiceRequired;
+    return this.securityServiceRequired;
   }
 
   public boolean isValidateGeometry() {
-    return validateGeometry;
+    return this.validateGeometry;
   }
 
   public boolean isVersionSupported(final String businessApplicationVersion) {
-    if (version.equals(businessApplicationVersion)) {
+    if (this.version.equals(businessApplicationVersion)) {
       return true;
     } else {
-      for (final String compatibleVersion : compatibleVersions) {
+      for (final String compatibleVersion : this.compatibleVersions) {
         if (compatibleVersion.equals(businessApplicationVersion)) {
           return true;
         }
@@ -632,6 +639,11 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public void setHasCustomizationProperties(
     final boolean hasCustomizationProperties) {
     this.hasCustomizationProperties = hasCustomizationProperties;
+  }
+
+  public void setHasResultListCustomizationProperties(
+    final boolean hasResultListCustomizationProperties) {
+    this.hasResultListCustomizationProperties = hasResultListCustomizationProperties;
   }
 
   public void setId(final String id) {
@@ -707,7 +719,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   @Override
   public String toString() {
-    return name;
+    return this.name;
   }
 
 }

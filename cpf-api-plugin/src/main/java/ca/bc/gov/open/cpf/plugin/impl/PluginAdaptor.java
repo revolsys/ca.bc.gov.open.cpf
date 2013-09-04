@@ -8,7 +8,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +31,7 @@ import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class PluginAdaptor {
@@ -54,6 +57,8 @@ public class PluginAdaptor {
 
   private final AppLog appLog;
 
+  private Map<String, Object> customizationProperties = Collections.emptyMap();
+
   public PluginAdaptor(final BusinessApplication application,
     final Object plugin, final String logLevel) {
     this.application = application;
@@ -74,6 +79,7 @@ public class PluginAdaptor {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public void execute() {
     try {
       MethodUtils.invokeExactMethod(plugin, "execute", new Object[0]);
@@ -91,16 +97,20 @@ public class PluginAdaptor {
       throw new RuntimeException("Unable to invoke execute on "
         + application.getName(), t);
     }
+    if (application.isHasCustomizationProperties()) {
+      customizationProperties = (Map<String, Object>)Property.get(plugin,
+        "customizationProperties");
+    }
     final String resultListProperty = application.getResultListProperty();
     if (resultListProperty == null) {
-      this.responseFields = getResult(plugin);
+      this.responseFields = getResult(plugin, false);
       results.add(responseFields);
     } else {
       final List<Object> resultObjects = JavaBeanUtil.getProperty(plugin,
         resultListProperty);
       if (resultObjects != null) {
         for (final Object resultObject : resultObjects) {
-          final Map<String, Object> result = getResult(resultObject);
+          final Map<String, Object> result = getResult(resultObject, true);
           results.add(result);
         }
       }
@@ -119,7 +129,8 @@ public class PluginAdaptor {
     return responseFields;
   }
 
-  private Map<String, Object> getResult(final Object resultObject) {
+  private Map<String, Object> getResult(final Object resultObject,
+    final boolean resultList) {
     final DataObjectMetaData resultMetaData = application.getResultMetaData();
     final Map<String, Object> result = new HashMap<String, Object>();
     for (final Attribute attribute : resultMetaData.getAttributes()) {
@@ -170,13 +181,16 @@ public class PluginAdaptor {
 
       }
     }
-    if (application.isHasCustomizationProperties()) {
-      final Object value = JavaBeanUtil.getValue(resultObject,
-        "customizationProperties");
-      if (value != null) {
-        result.put("customizationProperties", value);
+    final Map<String, Object> customizationProperties = new LinkedHashMap<String, Object>(
+      this.customizationProperties);
+    if (resultList && application.isHasResultListCustomizationProperties()) {
+      final Map<String, Object> resultListProperties = Property.get(
+        resultObject, "customizationProperties");
+      if (resultListProperties != null) {
+        customizationProperties.putAll(resultListProperties);
       }
     }
+    result.put("customizationProperties", customizationProperties);
     return result;
   }
 
@@ -188,6 +202,7 @@ public class PluginAdaptor {
     return securityService;
   }
 
+  @SuppressWarnings("resource")
   public void setParameters(final Map<String, ? extends Object> parameters) {
     final DataObjectMetaDataImpl requestMetaData = application.getRequestMetaData();
     for (final Attribute attribute : requestMetaData.getAttributes()) {

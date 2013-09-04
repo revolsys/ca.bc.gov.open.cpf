@@ -630,8 +630,22 @@ public class BatchJobService implements ModuleEventListener {
     final DataObject batchJob, final long batchJobId,
     final BusinessApplication application, final File structuredResultFile,
     final DataObjectMetaData resultMetaData, final String resultFormat) {
+    final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(batchJob);
+    final GeometryFactory geometryFactory = getGeometryFactory(
+      resultMetaData.getGeometryFactory(), businessApplicationParameters);
+    final String title = "Job " + batchJobId + " Result";
+
     final FileSystemResource resource = new FileSystemResource(
       structuredResultFile);
+    return createStructuredResultWriter(resource, application, resultMetaData,
+      resultFormat, title, geometryFactory);
+  }
+
+  public com.revolsys.io.Writer<DataObject> createStructuredResultWriter(
+    final org.springframework.core.io.Resource resource,
+    final BusinessApplication application,
+    final DataObjectMetaData resultMetaData, final String resultFormat,
+    final String title, final GeometryFactory geometryFactory) {
     final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
     final DataObjectWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
       DataObjectWriterFactory.class, resultFormat);
@@ -639,13 +653,9 @@ public class BatchJobService implements ModuleEventListener {
       resultMetaData, resource);
     dataObjectWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY, baseUrl
       + "/kml/defaultStyle.kml#default");
-    dataObjectWriter.setProperty(IoConstants.TITLE_PROPERTY, "Job "
-      + batchJobId + " Result");
+    dataObjectWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
     dataObjectWriter.setProperty("htmlCssStyleUrl", baseUrl
       + "/css/default.css");
-    final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(batchJob);
-    final GeometryFactory geometryFactory = getGeometryFactory(
-      resultMetaData.getGeometryFactory(), businessApplicationParameters);
 
     dataObjectWriter.setProperty(IoConstants.GEOMETRY_FACTORY, geometryFactory);
     dataObjectWriter.setProperties(application.getProperties());

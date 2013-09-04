@@ -1,6 +1,5 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -93,7 +92,7 @@ public class CpfDataAccessObject {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
           batchJobId);
-      } catch (final SQLException e) {
+      } catch (final Throwable e) {
         throw new RuntimeException("Unable to reset started status", e);
       }
     }
@@ -932,7 +931,7 @@ public class CpfDataAccessObject {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       return JdbcUtils.executeUpdate(dataSource, sql, now, now, now,
         getUsername(), batchJobId) == 1;
-    } catch (final SQLException e) {
+    } catch (final Throwable e) {
       throw new RuntimeException("Unable to set job completed " + batchJobId, e);
     }
   }
@@ -950,7 +949,7 @@ public class CpfDataAccessObject {
       final String username = getUsername();
       return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
         batchJobId) == 1;
-    } catch (final SQLException e) {
+    } catch (final Throwable e) {
       throw new RuntimeException("Unable to set job downloaded " + batchJobId,
         e);
     }
@@ -964,7 +963,7 @@ public class CpfDataAccessObject {
       final String sql = "UPDATE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS SET STARTED_IND = 1 WHERE BATCH_JOB_EXECUTION_GROUP_ID = ?";
       try {
         JdbcUtils.executeUpdate(dataSource, sql, batchJobExecutionGroupId);
-      } catch (final SQLException e) {
+      } catch (final Throwable e) {
         throw new RuntimeException("Unable to set started status", e);
       }
     }
@@ -983,7 +982,7 @@ public class CpfDataAccessObject {
       final String username = getUsername();
       return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
         batchJobId) == 1;
-    } catch (final SQLException e) {
+    } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
     }
   }
@@ -1000,7 +999,7 @@ public class CpfDataAccessObject {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       return JdbcUtils.executeUpdate(dataSource, sql, numSubmittedRequests,
         groupSize, numGroups, now, now, now, getUsername(), batchJobId) == 1;
-    } catch (final SQLException e) {
+    } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
     }
   }
@@ -1017,7 +1016,7 @@ public class CpfDataAccessObject {
       final int count = JdbcUtils.executeUpdate(dataSource, sql, now, now,
         username, newJobStatus, oldJobStatus, batchJobId);
       return count == 1;
-    } catch (final SQLException e) {
+    } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
     }
   }
@@ -1081,7 +1080,7 @@ public class CpfDataAccessObject {
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, now, now, batchJobId);
-      } catch (final SQLException e) {
+      } catch (final Throwable e) {
         throw new RuntimeException("Unable update counts: " + sql, e);
       }
     }
@@ -1139,7 +1138,7 @@ public class CpfDataAccessObject {
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, numGroups, numGroups,
           numCompletedRequests, numFailedRequests, batchJobId);
-      } catch (final SQLException e) {
+      } catch (final Throwable e) {
         throw new RuntimeException("Unable to reset started status", e);
       }
     }
@@ -1167,7 +1166,7 @@ public class CpfDataAccessObject {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, now, now,
           businessApplicationName);
-      } catch (final SQLException e) {
+      } catch (final Throwable e) {
         throw new RuntimeException("Unable to update status: " + sql, e);
       }
     }
@@ -1196,7 +1195,7 @@ public class CpfDataAccessObject {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, newStatus, now, now,
           oldStatus, businessApplicationName);
-      } catch (final SQLException e) {
+      } catch (final Throwable e) {
         throw new RuntimeException("Unable to update status: " + sql, e);
       }
     }
@@ -1210,7 +1209,7 @@ public class CpfDataAccessObject {
       final String sql = "UPDATE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS SET STARTED_IND = 0 WHERE STARTED_IND = 1 AND COMPLETED_IND = 0 AND BATCH_JOB_ID IN (SELECT BATCH_JOB_ID FROM CPF.CPF_BATCH_JOBS WHERE BUSINESS_APPLICATION_NAME = ?)";
       try {
         return JdbcUtils.executeUpdate(dataSource, sql, businessApplicationName);
-      } catch (final SQLException e) {
+      } catch (final Throwable e) {
         throw new RuntimeException("Unable to reset started status", e);
       }
     }

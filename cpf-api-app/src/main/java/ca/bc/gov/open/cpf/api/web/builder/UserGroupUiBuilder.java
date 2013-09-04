@@ -28,6 +28,7 @@ import ca.bc.gov.open.cpf.api.domain.UserGroupAccountXref;
 import ca.bc.gov.open.cpf.api.domain.UserGroupPermission;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.io.xml.XmlWriter;
@@ -360,7 +361,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
       final DataObject userAccount = getUserAccount(consumerKey);
       if (userAccount != null) {
-        if (confirm == Boolean.TRUE) {
+        if (BooleanStringConverter.getBoolean(confirm)) {
           final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
           dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
         }

@@ -218,7 +218,9 @@
 
             <value>perRequestResultData</value>
             <value>resultDataContentTypes</value>
+            <value>hasCustomizationProperties</value>
             <value>resultListProperty</value>
+            <value>hasResultListCustomizationProperties</value>
             <value>hasGeometryResultAttribute</value>
 
             <value>maxRequestsPerJob</value>

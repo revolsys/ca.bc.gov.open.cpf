@@ -31,6 +31,7 @@ import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 
 import com.revolsys.collection.ArrayListOfMap;
 import com.revolsys.collection.ResultPager;
+import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.io.IoConstants;
@@ -459,7 +460,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
 
       final DataObject userAccount = getUserAccount(consumerKey);
       if (userAccount != null) {
-        if (confirm == Boolean.TRUE) {
+        if (BooleanStringConverter.getBoolean(confirm)) {
           final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
           dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
         }

@@ -54,6 +54,7 @@ import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
 
 @Controller
 public class BusinessApplicationUiBuilder extends CpfUiBuilder {
@@ -178,8 +179,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       final List<String> propertyNames = getKeyList(pageName);
       for (final String propertyName : propertyNames) {
         if (!configProperties.containsKey(propertyName)) {
-          final Object value = JavaBeanUtil.getValue(businessApplication,
-            propertyName);
+          final Object value = Property.get(businessApplication, propertyName);
           configProperties.put(propertyName, value);
         }
       }
@@ -192,7 +192,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
           final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
           final BusinessApplicationPlugin pluginMetaData = businessApplication.getPluginMetadata();
           for (final String propertyName : propertyNames) {
-            final Object defaultValue = JavaBeanUtil.getValue(pluginMetaData,
+            final Object defaultValue = Property.get(pluginMetaData,
               propertyName);
             final Object newValue = form.getValue(propertyName);
             final boolean equal = EqualsRegistry.INSTANCE.equals(defaultValue,
