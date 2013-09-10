@@ -246,8 +246,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <com.revolsys.open.version>2013.09.04.RELEASE</com.revolsys.open.version>
-      <!--<com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>-->
+    <com.revolsys.open.version>2013.09.10.RELEASE</com.revolsys.open.version>
+    <!--  <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>-->
     <org.springframework.version>3.0.7.RELEASE</org.springframework.version>
     <org.springframework.security.version>3.0.7.RELEASE</org.springframework.security.version>
     <org.slf4j.version>1.6.4</org.slf4j.version>

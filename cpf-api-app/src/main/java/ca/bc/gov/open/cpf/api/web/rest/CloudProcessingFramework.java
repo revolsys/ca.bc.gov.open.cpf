@@ -1532,6 +1532,7 @@ public class CloudProcessingFramework {
             i++;
 
           }
+          writer.close();
           return null;
         } catch (final IOException e) {
           return ExceptionUtil.throwUncheckedException(e);

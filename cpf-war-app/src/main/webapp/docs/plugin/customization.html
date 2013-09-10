@@ -178,6 +178,13 @@ $(document).ready(function() {
         <td><code>String</code></td>
         <td>The text to use as the styleUrl of the KML Placemark created for each result.</td>
       </tr>
+      <tr>
+        <td><code>kmlWriteNulls</code></td>
+        <td><code>boolean</code></td>
+        <td>Flag indicating if attributes will null values are to be included in the KML document.
+        By default attributes with null values are NOT included in the extended data. If true then
+        the attribute will be included as a &;tlvalue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" /&gt; tag.</td>
+       </tr>
     </tbody>
   </table>
 </div>

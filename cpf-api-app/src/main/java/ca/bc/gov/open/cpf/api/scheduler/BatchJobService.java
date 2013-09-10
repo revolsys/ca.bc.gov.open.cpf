@@ -659,6 +659,7 @@ public class BatchJobService implements ModuleEventListener {
 
     dataObjectWriter.setProperty(IoConstants.GEOMETRY_FACTORY, geometryFactory);
     dataObjectWriter.setProperties(application.getProperties());
+    dataObjectWriter.open();
     return dataObjectWriter;
   }
 
