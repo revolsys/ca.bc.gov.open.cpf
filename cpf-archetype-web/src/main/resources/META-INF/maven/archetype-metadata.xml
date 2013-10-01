@@ -11,8 +11,9 @@
   <requiredProperties>
     <requiredProperty key="modulePrefix" />
     <requiredProperty key="databaseVendor" />
-    <requiredProperty key="cpfDirectory" />
-    <requiredProperty key="mavenCacheDirectory" />
+    <requiredProperty key="cpfLogDirectory" />
+    <requiredProperty key="cpfDirectoryUrl" />
+    <requiredProperty key="mavenCacheDirectoryUrl" />
   </requiredProperties>
   <fileSets>
     <fileSet

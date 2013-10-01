@@ -99,11 +99,15 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     final String logPrefix, final String errorCode, final Throwable e) {
     log.error(logPrefix + errorCode, e);
     if (result.get("errorCode") == null) {
-      final StringWriter errorOut = new StringWriter();
-      e.printStackTrace(new PrintWriter(errorOut));
       result.put("errorCode", errorCode);
-      result.put("errorMessage", e.getMessage());
-      result.put("errorTrace", errorOut);
+      if (e == null) {
+        result.put("errorMessage", logPrefix);
+      } else {
+        final StringWriter errorOut = new StringWriter();
+        e.printStackTrace(new PrintWriter(errorOut));
+        result.put("errorMessage", e.getMessage());
+        result.put("errorTrace", errorOut);
+      }
     }
   }
 

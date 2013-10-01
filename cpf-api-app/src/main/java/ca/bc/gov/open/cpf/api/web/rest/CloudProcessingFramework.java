@@ -1497,6 +1497,17 @@ public class CloudProcessingFramework {
         try {
           final HttpServletResponse response = HttpServletUtils.getResponse();
           response.setContentType(format);
+
+          final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+            .getFactoryByMediaType(DataObjectWriterFactory.class, format);
+          if (writerFactory != null) {
+            final String fileExtension = writerFactory.getFileExtension(format);
+            final String fileName = businessApplicationName + "instant."
+              + fileExtension;
+            response.setHeader("Content-Disposition", "attachment; filename="
+              + fileName);
+          }
+
           final OutputStreamResource resource = new OutputStreamResource(
             "result", response.getOutputStream());
           final GeometryFactory geometryFactory = GeometryFactory.getFactory(

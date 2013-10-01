@@ -10,6 +10,14 @@ BEGIN
     RAISE INFO 'Role cpf_user already exists';
   END IF;
   
+  SELECT COUNT(*) INTO C FROM pg_roles WHERE rolname = 'cpf_web_proxy';
+  IF C = 0 THEN
+    EXECUTE 'CREATE ROLE cpf_web_proxy NOLOGIN';
+    RAISE INFO 'Role cpf_web_proxy created';
+  ELSE
+    RAISE INFO 'Role cpf_web_proxy already exists';
+  END IF;
+  
   SELECT COUNT(*) INTO C FROM pg_roles WHERE rolname = 'cpf_viewer';
   IF C = 0 THEN
     EXECUTE 'CREATE ROLE cpf_viewer NOLOGIN';
@@ -20,7 +28,7 @@ BEGIN
   
   SELECT COUNT(*) INTO C FROM pg_roles WHERE rolname = 'cpf';
   IF C = 0 THEN
-    EXECUTE 'CREATE USER cpf PASSWORD ''CPF_PASSWORD'' CREATEDB';
+    EXECUTE 'CREATE USER cpf PASSWORD ''cpf_2009'' CREATEDB';
     RAISE INFO 'User CPF created';
   ELSE
     RAISE INFO 'User CPF already exists';
@@ -28,7 +36,7 @@ BEGIN
   
   SELECT COUNT(*) INTO C FROM pg_roles WHERE rolname = 'proxy_cpf_web';
   IF C = 0 THEN
-    EXECUTE 'CREATE USER proxy_cpf_web PASSWORD ''PROXY_CPF_WEB_PASSWORD'' IN ROLE CPF_WEB_PROXY';
+    EXECUTE 'CREATE USER proxy_cpf_web PASSWORD ''cpf_2009'' IN ROLE CPF_WEB_PROXY';
     RAISE INFO 'User PROXY_CPF_WEB created';
   ELSE
     RAISE INFO 'User PROXY_CPF_WEB already exists';
@@ -36,3 +44,4 @@ BEGIN
 END
 $$;
 GRANT CPF_USER TO PROXY_CPF_WEB;
+GRANT CPF_USER TO cpf_web_proxy;

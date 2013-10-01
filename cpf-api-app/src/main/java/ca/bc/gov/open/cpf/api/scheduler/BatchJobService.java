@@ -1993,6 +1993,9 @@ public class BatchJobService implements ModuleEventListener {
           geometry = (Geometry)parameterValue;
         } else {
           String wkt = parameterValue.toString();
+          if (StringUtils.hasText(wkt)) {
+            wkt = wkt.trim();
+          }
           if (wkt.startsWith("http")) {
             wkt = UrlUtil.getContent(wkt + "/feature.wkt?srid=3005");
             if (!wkt.startsWith("SRID")) {

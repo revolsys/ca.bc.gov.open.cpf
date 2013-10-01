@@ -14,7 +14,7 @@
   <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
-    p:properties="file://${cpfDirectory}/config/cpf.properties" />
+    p:properties="${cpfDirectoryUrl}/config/cpf.properties" />
 
   <util:map
     id="cpfApiProperties"

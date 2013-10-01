@@ -11,7 +11,7 @@
   >
     <param
       name="file"
-      value="${cpfDirectory}/log/cpf-worker.log" />
+      value="${cpfLogDirectory}/cpf-worker.log" />
     <param
       name="append"
       value="false" />

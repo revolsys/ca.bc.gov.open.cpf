@@ -184,7 +184,25 @@ $(document).ready(function() {
         <td>Flag indicating if attributes will null values are to be included in the KML document.
         By default attributes with null values are NOT included in the extended data. If true then
         the attribute will be included as a &;tlvalue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" /&gt; tag.</td>
-       </tr>
+      </tr>
+      <tr>
+        <td><code>kmlLookAtRange</code></td>
+        <td><code>double</code></td>
+        <td>The range to include in the look at element. If omitted then it will be calculated
+        from the geometry. The calculation for points always returns 1000.</td>
+      </tr>
+      <tr>
+        <td><code>kmlLookAtMinRange</code></td>
+        <td><code>double</code></td>
+        <td>The minimum value for the range to include in the look at element. This value is used
+        if the kmlLookAtRange or calculated range is less than this value.</td>
+      </tr>
+      <tr>
+        <td><code>kmlLookAtMaxRange</code></td>
+        <td><code>double</code></td>
+        <td>The maximum value for the range to include in the look at element. This value is used
+        if the kmlLookAtRange or calculated range is greater than this value.</td>
+      </tr>
     </tbody>
   </table>
 </div>

@@ -105,8 +105,8 @@ $(document).ready(function() {
 <p>For Tomcat 7.x you will need to add a user account in the manager-script role to deploy the web applications to the tomcat contained. If a user does not exist edit the <code>tomcat-users.xml</code> file in the tomcat conf directory.</p>
 
 <figure>
-<pre class="prettyprint language-xml">&lt:role rolename="manager-script"/&gt;
-&lt:user username="admin" password="********" roles="manager-script"/&gt;</pre>
+<pre class="prettyprint language-xml">&lt;role rolename="manager-script"/&gt;
+&lt;user username="admin" password="********" roles="manager-script"/&gt;</pre>
 </figure>
 
 <h2>Create CPF directories</h2>
@@ -175,22 +175,52 @@ md \apps\cpf\repository
 <p>Create the maven project using the following maven archetype command.</p>
 
 <figure>
+  <figcaption>Unix</figcaption>
 <pre class="prettyprint">cd ~/projects
 mvn \
   archetype:generate \
   -DinteractiveMode=false \
   -DarchetypeGroupId=ca.bc.gov.open.cpf \
   -DarchetypeArtifactId=cpf-archetype-web \
-  -DarchetypeVersion=<b>4.0.0-SNAPSHOT</b> \
+  -DarchetypeVersion=<b>${project.version}</b> \
   -DgroupId=<b>com.mycompany</b> \
   -DartifactId=<b>cpf</b> \
   -Dversion=<b>1.0.0-SNAPSHOT</b> \
   -DmodulePrefix=<b>cpf</b> \
   -DdatabaseVendor=<b>postgresql</b> \
-  -DcpfDirectory=<b>/apps/cpf</b> \
-  -DmavenCacheDirectory=<b>/home/$USER/.m2/repository</b>
+  -DcpfLogDirectory=<b>/apps/cpf/log</b> \
+  -DcpfDirectoryUrl=<b>file:///apps/cpf</b> \
+  -DmavenCacheDirectoryUrl=<b>file:///home/$USER/.m2/repository</b>
 </pre>
 </figure>
+
+<p class="note">NOTE: UNIX requires commands to be entered on a single line. The \ character is a
+line continuation character that treats multiple lines as a single line. Therefore you can cut and
+paste the above text into a command window.</p>
+
+<figure>
+  <figcaption>Windows</figcaption>
+<pre class="prettyprint">cd %HOME%\projects
+mvn ^
+  archetype:generate ^
+  -DinteractiveMode=false ^
+  -DarchetypeGroupId=ca.bc.gov.open.cpf ^
+  -DarchetypeArtifactId=cpf-archetype-web ^
+  -DarchetypeVersion=<b>${project.version}</b> ^
+  -DgroupId=<b>com.mycompany</b> ^
+  -DartifactId=<b>cpf</b> ^
+  -Dversion=<b>1.0.0-SNAPSHOT</b> ^
+  -DmodulePrefix=<b>cpf</b> ^
+  -DdatabaseVendor=<b>postgresql</b> ^
+  -DcpfLogDirectory=<b>C:/apps/cpf/log</b> ^
+  -DcpfDirectoryUrl=<b>file:///apps/cpf</b> ^
+  -DmavenCacheDirectoryUrl=<b>file:///%HOME:\=/%/.m2/repository</b>
+</pre>
+</figure>
+
+<p class="note">NOTE: Windows requires commands to be entered on a single line. The ^ character is a
+line continuation character that treats multiple lines as a single line. Therefore you can cut and
+paste the above text into a command window.</p>
 
 <div class="simpleDataTable">
   <table>
@@ -227,11 +257,19 @@ mvn \
     </tr>
     <tr>
     <td><code>cpfDirectory</code></td>
-    <td>The root directory the CPF configuration file and log files will be stored in.</td>
+    <td>The root directory the CPF configuration file and log files will be stored in (e.g. <code>/apps/cpf</code> or <code>C:\apps\cpf</code>).</td>
     </tr>
     <tr>
-    <td><code>mavenCacheDirectory</code></td>
-    <td>The local Maven repository cache. If the J2EE server is on the developers workstation use the user's local maven repository cache. Otherwise use /apps/cpf/repository.</td>
+    <td><code>cpfDirectoryUrl</code></td>
+    <td>The root directory the CPF configuration file and log files will be stored in (e.g. <code>/apps/cpf</code> or <code>C:\apps\cpf</code>).</td>
+    </tr>
+    <tr>
+    <td><code>mavenCacheDirectoryURL</code></td>
+    <td>The file URL to local Maven repository cache. <b>NOTE: Must start with file:/// and use web
+    slashes / instead of windows slashes \</b>. If the J2EE server is on the developers workstation
+    use the user's local maven repository cache. Otherwise use the repository directory below the
+    <code>cpfDirectory</code> defined above (e.g. <code>file:///apps/cpf/repository</code> or
+    <code>file:///C:/apps/cpf/repository</code>).</td>
     </tr>
     </tbody>
   </table>
@@ -407,7 +445,7 @@ mvn \
 <p>Use the following command to compile and deploy to Tomcat.</p>
 
 <figure>
-<pre CLASS="prettyprint"mvn -p tomcat7deploy,<b>localhost </b>clean install</pre>
+<pre CLASS="prettyprint">mvn -p tomcat7Deploy,<b>localhost </b>clean install</pre>
 </figure>
 
 <p>If you created multiple profiles use the profile name of the server you wish to deploy to.</p>

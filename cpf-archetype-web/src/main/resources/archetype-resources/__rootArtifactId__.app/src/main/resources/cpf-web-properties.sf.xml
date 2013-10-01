@@ -14,7 +14,7 @@
   <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
-    p:properties="file://${cpfDirectory}/config/cpf.properties" />
+    p:properties="${cpfDirectoryUrl}/config/cpf.properties" />
 
   <util:map
     id="cpfWebProperties"
@@ -22,10 +22,15 @@
   >
     <entry
       key="mavenRepository.root"
-      value="file://${mavenCacheDirectory}/" />
+      value="${mavenCacheDirectoryUrl}/" />
 
     <entry
       key="batchJobService.baseUrl"
       value="${cpfApplicationBaseUrl}" />
+
+    <entry
+      key="cpfInternal.webServiceUrl"
+      value="${cpfInternalWebServiceUrl}" />
+
   </util:map>
 </beans>

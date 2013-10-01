@@ -14,14 +14,11 @@
   <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
-    p:properties="file://${cpfDirectory}/config/cpf.properties" />
+    p:properties="${cpfDirectoryUrl}/config/cpf.properties" />
 
   <util:map
     id="cpfWorkerProperties"
     map-class="com.revolsys.collection.AttributeMap"
   >
-    <entry
-      key="cpfInternalWebServiceUrl"
-      value="${cpfApplicationBaseUrl}" />
   </util:map>
 </beans>
