@@ -32,6 +32,10 @@
     <entry
       key="businessApplicationRegistry.logDirectory"
       value="/apps/logs/cpf/" />
+
+    <entry
+      key="businessApplicationRegistry.appLogDirectory"
+      value="/apps/logs/cpf/" />
     
     <entry
       key="mavenRepository.root"
