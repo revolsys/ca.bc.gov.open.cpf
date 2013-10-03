@@ -1,11 +1,13 @@
 package ca.bc.gov.open.cpf.plugin.impl.module;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,6 +24,11 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.rolling.FixedWindowRollingPolicy;
+import org.apache.log4j.rolling.RollingFileAppender;
+import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -66,6 +73,7 @@ import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.io.AbstractMapReaderFactory;
+import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.MapReaderFactory;
 import com.revolsys.io.Reader;
@@ -248,6 +256,15 @@ public class ClassLoaderModule implements Module {
     moduleError = null;
   }
 
+  private void closeAppLogAppender(final String businessApplicationName) {
+    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(businessApplicationName);
+    synchronized (logger) {
+      logger.setLevel(Level.DEBUG);
+      logger.removeAllAppenders();
+      logger.setAdditivity(true);
+    }
+  }
+
   @Override
   @PreDestroy
   public void destroy() {
@@ -311,6 +328,9 @@ public class ClassLoaderModule implements Module {
     if (applicationContext != null && applicationContext.isActive()) {
       applicationContext.close();
     }
+    for (final String businessApplicationName : businessApplicationNames) {
+      closeAppLogAppender(businessApplicationName);
+    }
     applicationContext = null;
     businessApplicationsByName = Collections.emptyMap();
     businessApplicationsToBeanNames = Collections.emptyMap();
@@ -359,7 +379,8 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public PluginAdaptor getBusinessApplicationPlugin(
-    final BusinessApplication application, String logLevel) {
+    final BusinessApplication application, final String executionId,
+    String logLevel) {
     if (application == null) {
       return null;
     } else {
@@ -377,7 +398,7 @@ public class ClassLoaderModule implements Module {
           final String beanName = businessApplicationsToBeanNames.get(application);
           plugin = applicationContext.getBean(beanName);
           final PluginAdaptor pluginAdaptor = new PluginAdaptor(application,
-            plugin, logLevel);
+            plugin, executionId, logLevel);
           return pluginAdaptor;
         } catch (final Throwable t) {
           throw new IllegalArgumentException("Unable to instantiate plugin "
@@ -389,12 +410,13 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public PluginAdaptor getBusinessApplicationPlugin(
-    final String businessApplicationName, final String logLevel) {
+    final String businessApplicationName, final String executionId,
+    final String logLevel) {
     final BusinessApplication application = getBusinessApplication(businessApplicationName);
     if (application == null) {
       return null;
     } else {
-      return getBusinessApplicationPlugin(application, logLevel);
+      return getBusinessApplicationPlugin(application, executionId, logLevel);
     }
   }
 
@@ -827,6 +849,48 @@ public class ClassLoaderModule implements Module {
     return StringUtils.hasText(moduleError);
   }
 
+  private void initAppLogAppender(final String businessApplicationName,
+    final Date date) {
+    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(businessApplicationName);
+    synchronized (logger) {
+      logger.removeAllAppenders();
+      logger.setLevel(Level.DEBUG);
+      final File logDirectory = businessApplicationRegistry.getAppLogDirectory();
+      if (logDirectory == null
+        || !(logDirectory.exists() || logDirectory.mkdirs())) {
+        logger.setAdditivity(true);
+      } else {
+        logger.setAdditivity(false);
+
+        final File appLogDirectory = new File(logDirectory,
+          businessApplicationName);
+        appLogDirectory.mkdirs();
+
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(
+          "yyyyMMdd-hhmmssS");
+        final String activeFileName = FileUtil.getFile(appLogDirectory,
+          businessApplicationName + "-" + dateFormat.format(date) + ".log")
+          .toString();
+        final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+        rollingPolicy.setActiveFileName(activeFileName);
+        final String fileNamePattern = FileUtil.getFile(appLogDirectory,
+          businessApplicationName + "-" + dateFormat.format(date) + ".%i.log")
+          .toString();
+        rollingPolicy.setFileNamePattern(fileNamePattern);
+
+        final RollingFileAppender appender = new RollingFileAppender();
+        appender.setName(businessApplicationName);
+        appender.setFile(activeFileName);
+        appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+        appender.setRollingPolicy(rollingPolicy);
+        appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(
+          1024 * 1024 * 10));
+        appender.activateOptions();
+        logger.addAppender(appender);
+      }
+    }
+  }
+
   private void initializeGroupPermissions() {
     try {
       final Map<String, Set<ResourcePermission>> permissionsByGroupName = new HashMap<String, Set<ResourcePermission>>();
@@ -966,6 +1030,7 @@ public class ClassLoaderModule implements Module {
 
   @SuppressWarnings("unchecked")
   private void loadBusinessApplications() {
+    final Date date = new Date(System.currentTimeMillis());
     final Set<String> businessApplicationNames = new TreeSet<String>();
     final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<BusinessApplication, String>();
     moduleError = null;
@@ -1002,6 +1067,7 @@ public class ClassLoaderModule implements Module {
                 businessApplicationsByName, name, pluginClassName);
               if (businessApplication != null) {
                 final String businessApplicationName = businessApplication.getName();
+                initAppLogAppender(businessApplicationName, date);
                 businessApplicationNames.add(businessApplicationName);
                 businessApplicationsToBeanNames.put(businessApplication,
                   beanName);
@@ -1056,7 +1122,7 @@ public class ClassLoaderModule implements Module {
       this.businessApplicationNames = new ArrayList<String>(
         businessApplicationNames);
       if (startedDate == null) {
-        startedDate = new Date(System.currentTimeMillis());
+        startedDate = date;
       }
       started = true;
       this.businessApplicationsByName = businessApplicationsByName;

@@ -21,6 +21,14 @@
     map-class="com.revolsys.collection.AttributeMap"
   >
     <entry
+      key="businessApplicationRegistry.logDirectory"
+      value="${cpfLogDirectory}" />
+      
+    <entry
+      key="businessApplicationRegistry.appLogDirectory"
+      value="${cpfLogDirectory}" />
+
+    <entry
       key="mavenRepository.root"
       value="${mavenCacheDirectoryUrl}/" />
 

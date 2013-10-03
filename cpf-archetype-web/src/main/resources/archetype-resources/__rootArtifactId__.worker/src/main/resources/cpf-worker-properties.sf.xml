@@ -20,5 +20,11 @@
     id="cpfWorkerProperties"
     map-class="com.revolsys.collection.AttributeMap"
   >
+    <entry
+      key="businessApplicationRegistry.appLogDirectory"
+      value="${cpfLogDirectory}" />
+    <entry
+      key="cpfWorker.maximumPoolSize"
+      value="100" />
   </util:map>
 </beans>

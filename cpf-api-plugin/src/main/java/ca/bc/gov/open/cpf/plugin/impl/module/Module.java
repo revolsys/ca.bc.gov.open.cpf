@@ -32,10 +32,10 @@ public interface Module {
   List<String> getBusinessApplicationNames();
 
   PluginAdaptor getBusinessApplicationPlugin(BusinessApplication application,
-    String logLevel);
+    String executionId, String logLevel);
 
   PluginAdaptor getBusinessApplicationPlugin(String businessApplicationName,
-    String logLevel);
+    String executionId, String logLevel);
 
   List<BusinessApplication> getBusinessApplications();
 

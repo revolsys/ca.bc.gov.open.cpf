@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
-import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -92,7 +91,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     batchJobId = (Number)groupIdMap.get("batchJobId");
     userId = (String)groupIdMap.get("consumerKey");
     logLevel = (String)groupIdMap.get("logLevel");
-    log = new AppLog(logLevel);
+    log = new AppLog(businessApplicationName, groupId, logLevel);
   }
 
   public void addError(final Map<String, Object> result,
@@ -151,7 +150,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
       final Map<String, Object> parameters = getParameters(businessApplication,
         requestMetaData, applicationParameters, requestParameters);
       final PluginAdaptor plugin = module.getBusinessApplicationPlugin(
-        businessApplicationName, logLevel);
+        businessApplicationName, groupId, logLevel);
       if (plugin == null) {
         addError(requestResult, "Unable to create plugin "
           + businessApplicationName + " ", "ERROR_PROCESSING_REQUEST", null);
@@ -211,8 +210,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           addError(requestResult, "Error processing request ",
             "BAD_INPUT_DATA_VALUE", e);
         } catch (final RecoverableException e) {
+          log.error("Error processing request " + requestSequenceNumber, e);
           addError(requestResult, "Error processing request ",
-            "RECOVERABLE_EXCEPTION", e);
+            "RECOVERABLE_EXCEPTION", null);
         } finally {
           if (resultFile != null) {
             FileUtil.closeSilent(resultData);
@@ -230,8 +230,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
       }
       hasError = false;
     } catch (final Throwable e) {
+      log.error("Error processing request " + requestSequenceNumber, e);
       addError(requestResult, "Error processing request ",
-        "ERROR_PROCESSING_REQUEST", e);
+        "ERROR_PROCESSING_REQUEST", null);
     }
 
     if (hasError) {
@@ -334,8 +335,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
                   dataType, value);
                 applicationParameters.put(name, convertedValue);
               } catch (final Throwable e) {
+                log.error("Error processing group", e);
                 addError(globalError, "Error processing group ",
-                  "BAD_INPUT_DATA_VALUE", e);
+                  "BAD_INPUT_DATA_VALUE", null);
               }
             }
           }
@@ -375,13 +377,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         final Map<String, Object> submitResponse = httpClient.postJsonResource(
           httpClient.getUrl(path), groupResponse);
 
-      } catch (final HttpStatusCodeException e) {
-        if (e.getStatusCode() != 404) {
-          LOG.error("Unable to process group " + groupId, e);
-        }
-        executor.addFailedGroup(groupId);
       } catch (final Throwable e) {
-        LOG.error("Unable to process group " + groupId, e);
+        log.error("Unable to process group " + groupId, e);
         executor.addFailedGroup(groupId);
       } finally {
         log.info("Group execution end " + batchJobId + "\t" + groupId);
@@ -419,8 +416,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           FileUtil.closeSilent(response.getEntity().getContent());
         }
       } catch (final Throwable e) {
-        addError(requestResult, "Error processing request ",
-          "RECOVERABLE_EXCEPTION", e);
+        log.error("Error sending result data", e);
+        addError(requestResult, "Error processing request",
+          "RECOVERABLE_EXCEPTION", null);
       }
     }
   }

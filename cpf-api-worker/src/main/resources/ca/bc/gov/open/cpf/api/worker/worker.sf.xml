@@ -26,6 +26,7 @@
     id="businessApplicationRegistry"
     class="ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry"
     p:configPropertyLoader="#{cpfWorker.configPropertyLoader}"
+    p:appLogDirectory="/apps/logs/cpf"
   >
     <property name="moduleLoaders">
       <set>

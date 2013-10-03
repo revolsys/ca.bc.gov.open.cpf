@@ -49,7 +49,9 @@ public final class BusinessApplicationRegistry implements
 
   private final Set<ModuleEventListener> listeners = new LinkedHashSet<ModuleEventListener>();
 
-  public File logDirectory;
+  private File logDirectory;
+
+  private File appLogDirectory;
 
   private static final Logger LOG = LoggerFactory.getLogger(BusinessApplicationRegistry.class);
 
@@ -125,6 +127,10 @@ public final class BusinessApplicationRegistry implements
     modulesByName.clear();
   }
 
+  public File getAppLogDirectory() {
+    return appLogDirectory;
+  }
+
   public BusinessApplication getBusinessApplication(
     String businessApplicationName) {
     if (businessApplicationName == null) {
@@ -177,7 +183,8 @@ public final class BusinessApplicationRegistry implements
       if (module == null) {
         return null;
       } else {
-        return module.getBusinessApplicationPlugin(businessApplication, null);
+        return module.getBusinessApplicationPlugin(businessApplication, null,
+          null);
       }
     }
   }
@@ -203,7 +210,8 @@ public final class BusinessApplicationRegistry implements
     if (module == null) {
       return null;
     } else {
-      return module.getBusinessApplicationPlugin(businessApplicationName, null);
+      return module.getBusinessApplicationPlugin(businessApplicationName, null,
+        null);
     }
   }
 
@@ -360,6 +368,10 @@ public final class BusinessApplicationRegistry implements
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
       module.doRestart();
     }
+  }
+
+  public void setAppLogDirectory(final File appLogDirectory) {
+    this.appLogDirectory = appLogDirectory;
   }
 
   public void setConfigPropertyLoader(

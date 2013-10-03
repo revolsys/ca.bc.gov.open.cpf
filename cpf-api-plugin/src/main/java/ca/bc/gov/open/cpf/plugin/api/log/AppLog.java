@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 
@@ -40,9 +41,6 @@ public class AppLog {
   private static final DateFormat DATE_FORMAT = new SimpleDateFormat(
     "yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-  /** The local log instance. */
-  private static final Logger LOG = LoggerFactory.getLogger(AppLog.class);
-
   /**
    * <p>Create a log record.</p>
    * 
@@ -66,6 +64,8 @@ public class AppLog {
   /** The log records. */
   private final List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
 
+  private Logger log;
+
   /**
    * <p>Construct a new AppLog with the logLevel ERROR.</p>
    */
@@ -81,6 +81,15 @@ public class AppLog {
     setLogLevel(logLevel);
   }
 
+  public AppLog(final String businessApplicationName, String groupId,
+    final String logLevel) {
+    if (!StringUtils.hasText(groupId)) {
+      groupId = String.valueOf(System.currentTimeMillis());
+    }
+    this.log = LoggerFactory.getLogger(businessApplicationName + "." + groupId);
+    setLogLevel(logLevel);
+  }
+
   /**
    * <p>Record the info message in the log if {@see #isInfoEnabled()} is true.</p>
    * 
@@ -88,7 +97,7 @@ public class AppLog {
    */
   public void debug(final String message) {
     if (isDebugEnabled()) {
-      LOG.debug(message);
+      log.debug(message);
       log("DEBUG", message);
     }
   }
@@ -99,7 +108,7 @@ public class AppLog {
    * @param message The message.
    */
   public void error(final String message) {
-    LOG.error(message);
+    log.error(message);
     log("ERROR", message);
   }
 
@@ -109,7 +118,7 @@ public class AppLog {
    * @param message The message.
    */
   public void error(final String message, final Throwable exception) {
-    LOG.error(message, exception);
+    log.error(message, exception);
     if (exception == null) {
       error(message);
     } else {
@@ -158,7 +167,7 @@ public class AppLog {
    */
   public void info(final String message) {
     if (isInfoEnabled()) {
-      LOG.info(message);
+      log.info(message);
       log("INFO", message);
     }
   }
@@ -192,8 +201,8 @@ public class AppLog {
    * @param message The message.
    */
   private synchronized void log(final String logLevel, final String message) {
-    final Map<String, String> logRecord = createLogRecord(logLevel, message);
-    logRecords.add(logRecord);
+    // final Map<String, String> logRecord = createLogRecord(logLevel, message);
+    // logRecords.add(logRecord);
   }
 
   /**

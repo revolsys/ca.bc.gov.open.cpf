@@ -18,6 +18,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
+import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -60,10 +61,13 @@ public class PluginAdaptor {
   private Map<String, Object> customizationProperties = Collections.emptyMap();
 
   public PluginAdaptor(final BusinessApplication application,
-    final Object plugin, final String logLevel) {
+    final Object plugin, String executionId, final String logLevel) {
     this.application = application;
     this.plugin = plugin;
-    appLog = new AppLog(logLevel);
+    if (!StringUtils.hasText(logLevel)) {
+      executionId = String.valueOf(System.currentTimeMillis());
+    }
+    appLog = new AppLog(application.getName(), executionId, logLevel);
     try {
       final Class<? extends Object> pluginClass = plugin.getClass();
       final Method setAppLogMethod = pluginClass.getMethod("setAppLog",
