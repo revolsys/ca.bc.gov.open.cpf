@@ -1502,7 +1502,7 @@ public class CloudProcessingFramework {
             .getFactoryByMediaType(DataObjectWriterFactory.class, format);
           if (writerFactory != null) {
             final String fileExtension = writerFactory.getFileExtension(format);
-            final String fileName = businessApplicationName + "instant."
+            final String fileName = businessApplicationName + "-instant."
               + fileExtension;
             response.setHeader("Content-Disposition", "attachment; filename="
               + fileName);
