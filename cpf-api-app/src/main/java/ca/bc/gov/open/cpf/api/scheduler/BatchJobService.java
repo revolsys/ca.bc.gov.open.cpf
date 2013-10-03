@@ -2120,7 +2120,7 @@ public class BatchJobService implements ModuleEventListener {
     for (final BatchJobRequestExecutionGroup executionGroup : executingGroups) {
       if (executionGroup.getExecutionStartTime() < minStartTime) {
         final String groupId = executionGroup.getId();
-        if (!executingGroups.contains(groupId)) {
+        if (!executingGroupIds.contains(groupId)) {
           cancelGroup(worker, groupId);
         }
       }
