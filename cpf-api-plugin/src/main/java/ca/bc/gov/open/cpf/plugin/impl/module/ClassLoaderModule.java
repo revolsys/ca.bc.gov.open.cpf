@@ -867,7 +867,7 @@ public class ClassLoaderModule implements Module {
         appLogDirectory.mkdirs();
 
         final SimpleDateFormat dateFormat = new SimpleDateFormat(
-          "yyyyMMdd-hhmmssS");
+          "yyyyMMdd-HHmmssS");
         final String activeFileName = FileUtil.getFile(appLogDirectory,
           businessApplicationName + "-" + dateFormat.format(date) + ".log")
           .toString();
