@@ -1,6 +1,6 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-public interface UserGroupPermission {
+public interface UserGroupPermission extends Common {
   String RESOURCE_CLASS = "RESOURCE_CLASS";
 
   String RESOURCE_ID = "RESOURCE_ID";

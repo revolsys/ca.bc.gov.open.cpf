@@ -1,6 +1,6 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-public interface ConfigProperty {
+public interface ConfigProperty extends Common {
   String COMPONENT_NAME = "COMPONENT_NAME";
 
   String CONFIG_PROPERTY = "/CPF/CPF_CONFIG_PROPERTIES";

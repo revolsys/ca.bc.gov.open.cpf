@@ -124,7 +124,7 @@
           p:label="Creation Time"
           class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
         <bean
-          p:name="WHO_CREATED"
+          p:name="WHO_UPDATED"
           p:label="Modified By"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
         <bean

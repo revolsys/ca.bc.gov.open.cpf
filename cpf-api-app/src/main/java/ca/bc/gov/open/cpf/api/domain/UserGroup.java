@@ -1,6 +1,6 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-public interface UserGroup {
+public interface UserGroup extends Common {
   String USER_GROUP = "/CPF/CPF_USER_GROUPS";
 
   String USER_GROUP_NAME = "USER_GROUP_NAME";

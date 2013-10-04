@@ -1,6 +1,6 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-public interface UserAccount {
+public interface UserAccount extends Common {
   String ACTIVE_IND = "ACTIVE_IND";
 
   String CONSUMER_KEY = "CONSUMER_KEY";

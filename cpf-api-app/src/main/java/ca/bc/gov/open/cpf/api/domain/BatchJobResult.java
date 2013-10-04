@@ -10,7 +10,7 @@ import java.util.List;
  * BatchJobExecutionGroup. A BatchJob may also have one file containing any errors
  * generated.
  */
-public class BatchJobResult {
+public interface BatchJobResult extends Common {
 
   public static final String BATCH_JOB_RESULT = "/CPF/CPF_BATCH_JOB_RESULTS";
 
@@ -51,20 +51,12 @@ public class BatchJobResult {
 
   public static final String SEQUENCE_NUMBER = "SEQUENCE_NUMBER";
 
-  public static final String WHO_CREATED = "WHO_CREATED";
-
-  public static final String WHEN_CREATED = "WHEN_CREATED";
-
-  public static final String WHO_UPDATED = "WHO_UPDATED";
-
-  public static final String WHEN_UPDATED = "WHEN_UPDATED";
-
   public static final String BATCH_JOB_EXECUTION_GROUP_ID = "BATCH_JOB_EXECUTION_GROUP_ID";
 
   public static final List<String> ALL_EXCEPT_BLOB = Arrays.asList(
     BATCH_JOB_RESULT_ID, BATCH_JOB_RESULT_TYPE, DOWNLOAD_TIMESTAMP,
-    SEQUENCE_NUMBER, RESULT_DATA_CONTENT_TYPE, RESULT_DATA_URL,
-    WHO_CREATED, WHEN_CREATED, WHO_UPDATED, WHEN_UPDATED, BATCH_JOB_ID,
+    SEQUENCE_NUMBER, RESULT_DATA_CONTENT_TYPE, RESULT_DATA_URL, WHO_CREATED,
+    WHEN_CREATED, WHO_UPDATED, WHEN_UPDATED, BATCH_JOB_ID,
     BATCH_JOB_EXECUTION_GROUP_ID);
 
 }

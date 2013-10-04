@@ -1,6 +1,6 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-public interface BatchJob {
+public interface BatchJob extends Common {
   String BATCH_JOB = "/CPF/CPF_BATCH_JOBS";
 
   String BATCH_JOB_ID = "BATCH_JOB_ID";
@@ -108,8 +108,6 @@ public interface BatchJob {
   String SUBMITTED = "submitted";
 
   String USER_ID = "USER_ID";
-
-  String WHEN_CREATED = "WHEN_CREATED";
 
   String WHEN_STATUS_CHANGED = "WHEN_STATUS_CHANGED";
 

@@ -4,7 +4,7 @@ package ca.bc.gov.open.cpf.api.domain;
  * The BatchJobExecutionGroup represents a group of request to execute a
  * BusinessApplication within a BatchJob. It contains the input and result data.
  */
-public interface BatchJobExecutionGroup {
+public interface BatchJobExecutionGroup extends Common {
 
   String BATCH_JOB_ID = "BATCH_JOB_ID";
 

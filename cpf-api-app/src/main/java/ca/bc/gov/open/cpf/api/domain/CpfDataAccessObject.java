@@ -1232,14 +1232,15 @@ public class CpfDataAccessObject {
             final Object id = dataStore.createPrimaryIdValue(metaData.getPath());
             object.setIdValue(id);
           }
-          object.setValue("WHO_CREATED", username);
-          object.setValue("WHEN_CREATED", time);
-          object.setValue("WHO_UPDATED", username);
-          object.setValue("WHEN_UPDATED", time);
+          object.setValue(Common.WHO_CREATED, username);
+          object.setValue(Common.WHEN_CREATED, time);
+          object.setValue(Common.WHO_UPDATED, username);
+          object.setValue(Common.WHEN_UPDATED, time);
         break;
         case Persisted:
-          object.setValue("WHO_UPDATED", username);
-          object.setValue("WHEN_UPDATED", time);
+        case Modified:
+          object.setValue(Common.WHO_UPDATED, username);
+          object.setValue(Common.WHEN_UPDATED, time);
         break;
         default:
         break;
