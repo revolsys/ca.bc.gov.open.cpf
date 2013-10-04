@@ -1237,7 +1237,6 @@ public class CpfDataAccessObject {
           object.setValue(Common.WHO_UPDATED, username);
           object.setValue(Common.WHEN_UPDATED, time);
         break;
-        case Persisted:
         case Modified:
           object.setValue(Common.WHO_UPDATED, username);
           object.setValue(Common.WHEN_UPDATED, time);
