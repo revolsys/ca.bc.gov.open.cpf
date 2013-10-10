@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.util.StringUtils;
@@ -52,7 +51,6 @@ import com.revolsys.util.UrlUtil;
 
 public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   Process, BeanNameAware, ModuleEventListener {
-  private static final Logger LOG = LoggerFactory.getLogger(BatchJobWorkerScheduler.class);
 
   private boolean abbortedRequest;
 
@@ -170,10 +168,12 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     }
     if (tempDir != null) {
       if (!FileUtil.deleteDirectory(tempDir)) {
-        LOG.error("Unable to delete jar cache " + tempDir);
+        LoggerFactory.getLogger(getClass()).error(
+          "Unable to delete jar cache " + tempDir);
       }
       tempDir = null;
     }
+
   }
 
   @Override
@@ -184,7 +184,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
         try {
           super.execute(command);
           return;
-        } catch (RejectedExecutionException e) {
+        } catch (final RejectedExecutionException e) {
           taskCount.decrementAndGet();
         } catch (final RuntimeException e) {
           taskCount.decrementAndGet();
@@ -283,7 +283,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       final Long loadingTime = loadingModules.get(moduleName);
       if (loadingTime == null || loadingTime < moduleTime) {
         loadingModules.put(moduleName, moduleTime);
-        LOG.info("Loading module: " + moduleName);
+        LoggerFactory.getLogger(getClass()).info(
+          "Loading module: " + moduleName);
 
         try {
           execute(new InvokeMethodRunnable(this, "loadModule", moduleName,
@@ -294,7 +295,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           message.put("moduleTime", moduleTime);
           addMessage(message);
         } catch (final Throwable t) {
-          LOG.error("Unable to load module " + moduleName, t);
+          LoggerFactory.getLogger(getClass()).error(
+            "Unable to load module " + moduleName, t);
           final List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
           logRecords.add(AppLog.createLogRecord("ERROR",
             "Unable to load module " + moduleName));
@@ -311,8 +313,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     if (module != null) {
       final long lastStartedTime = module.getStartedDate().getTime();
       if (lastStartedTime < moduleTime) {
-        LOG.info("Unloading older module version " + moduleName + " "
-          + lastStartedTime);
+        LoggerFactory.getLogger(getClass()).info(
+          "Unloading older module version " + moduleName + " "
+            + lastStartedTime);
         log.info("Unloading older module version " + moduleName + " "
           + lastStartedTime);
         unloadModule(module);
@@ -355,8 +358,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       module.enable();
     } catch (final Throwable t) {
       try {
-        LOG.error("Unable to load module " + moduleName, t);
-        LOG.error(log.getLogContent());
+        LoggerFactory.getLogger(getClass()).error(
+          "Unable to load module " + moduleName, t);
+        LoggerFactory.getLogger(getClass()).error(log.getLogContent());
         log.error("Unable to load module " + moduleName, t);
       } finally {
         setModuleExcluded(moduleName, moduleTime, log.getLogRecords());
@@ -380,7 +384,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
       final String moduleError = module.getModuleError();
       final AppLog log = new AppLog();
-      LOG.error(moduleError);
+      LoggerFactory.getLogger(getClass()).error(moduleError);
       log.error(moduleError);
       final long moduleTime = module.getStartedDate().getTime();
       setModuleExcluded(moduleName, moduleTime, log.getLogRecords());
@@ -425,8 +429,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
         final String url = UrlUtil.getUrl(nextIdUrl, parameters);
         if (running) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(url);
+          if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
+            LoggerFactory.getLogger(getClass()).debug(url);
           }
           response = httpClient.postJsonResource(url);
         }
@@ -438,8 +442,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
             if ("loadModule".equals(response.get("action"))) {
               loadModule(response);
             } else if (response.get("batchJobId") != null) {
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Scheduling group " + response);
+              if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
+                LoggerFactory.getLogger(getClass()).debug(
+                  "Scheduling group " + response);
               }
               final String groupId = (String)response.get("groupId");
               addExecutingGroupId(groupId);
@@ -450,15 +455,16 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
                 execute(runnable);
               } catch (final Throwable e) {
                 if (running) {
-                  LOG.error("Unable to get execute group " + groupId, e);
+                  LoggerFactory.getLogger(getClass()).error(
+                    "Unable to get execute group " + groupId, e);
                 }
                 removeExecutingGroupId(groupId);
                 addExecutingGroupsMessage();
               }
             }
           } else {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("No group available");
+            if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
+              LoggerFactory.getLogger(getClass()).debug("No group available");
             }
           }
         }
@@ -469,7 +475,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
         } else {
           if (running) {
-            LOG.error("Unable to get group", t);
+            LoggerFactory.getLogger(getClass()).error("Unable to get group", t);
           }
         }
       } catch (final Throwable t) {
@@ -478,13 +484,14 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           if (abbortedRequest) {
             return true;
           } else {
-            LOG.error("Unable to get group", t.getCause());
+            LoggerFactory.getLogger(getClass()).error("Unable to get group",
+              t.getCause());
             return false;
           }
         } else {
           addExecutingGroupsMessage();
           if (running) {
-            LOG.error("Unable to get group", t);
+            LoggerFactory.getLogger(getClass()).error("Unable to get group", t);
           }
         }
       }
@@ -500,7 +507,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   @Override
   public void run() {
-    LOG.info("Started");
+    LoggerFactory.getLogger(getClass()).info("Started");
     preRun();
     try {
       running = true;
@@ -515,8 +522,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
           }
           if (running && timeout != 0) {
             synchronized (monitor) {
-              LOG.debug("Waiting " + timeout
-                + " seconds before getting next task");
+              LoggerFactory.getLogger(getClass()).debug(
+                "Waiting " + timeout + " seconds before getting next task");
               monitor.wait(timeout * 1000);
             }
           }
@@ -528,23 +535,23 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       }
 
     } catch (final Throwable e) {
-      LOG.error(e.getMessage(), e);
+      LoggerFactory.getLogger(getClass()).error(e.getMessage(), e);
       getProcessNetwork().stop();
     } finally {
       postRun();
-      LOG.info("Stopped");
+      LoggerFactory.getLogger(getClass()).info("Stopped");
     }
   }
 
   public boolean sendMessage(final Map<String, ? extends Object> message) {
     try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(messageUrl + "\n" + message);
+      if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
+        LoggerFactory.getLogger(getClass()).debug(messageUrl + "\n" + message);
       }
       final Map<String, Object> response = httpClient.postJsonResource(
         messageUrl, message);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Message sent\n" + response);
+      if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
+        LoggerFactory.getLogger(getClass()).debug("Message sent\n" + response);
       }
       if (running) {
         return true;
@@ -554,17 +561,19 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     } catch (final HttpStatusCodeException t) {
       if (running) {
         if (t.getStatusCode() == 404) {
-          LOG.error("Unable to send message to " + messageUrl
-            + " 404 returned from server");
+          LoggerFactory.getLogger(getClass()).error(
+            "Unable to send message to " + messageUrl
+              + " 404 returned from server");
         } else {
-          LOG.error("Unable to send message to " + messageUrl + "\n" + message,
-            t);
+          LoggerFactory.getLogger(getClass()).error(
+            "Unable to send message to " + messageUrl + "\n" + message, t);
         }
       }
       return false;
     } catch (final Throwable t) {
       if (running) {
-        LOG.error("Unable to send message to " + messageUrl + "\n" + message, t);
+        LoggerFactory.getLogger(getClass()).error(
+          "Unable to send message to " + messageUrl + "\n" + message, t);
       }
       return false;
     }
@@ -575,7 +584,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       long timeout = timeoutStep;
       if (running) {
         try {
-          LOG.debug("Waiting " + timeout + " seconds before sending message");
+          LoggerFactory.getLogger(getClass()).debug(
+            "Waiting " + timeout + " seconds before sending message");
           messages.wait(timeout * 1000);
         } catch (final InterruptedException e) {
         }
@@ -616,7 +626,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   private void setModuleExcluded(final String moduleName,
     final Long moduleTime, final List<Map<String, String>> logRecords) {
-    LOG.info("Excluding module: " + moduleName);
+    LoggerFactory.getLogger(getClass()).info("Excluding module: " + moduleName);
     final Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "moduleExcluded");
     message.put("moduleName", moduleName);

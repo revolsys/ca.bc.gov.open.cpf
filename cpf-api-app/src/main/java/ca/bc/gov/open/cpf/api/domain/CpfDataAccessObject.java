@@ -845,7 +845,8 @@ public class CpfDataAccessObject {
     final Number requestSequenceNumber = (Number)resultMap.get("requestSequenceNumber");
     final String errorMessage = (String)resultMap.get("errorMessage");
     final Map<String, String> errorMap = new LinkedHashMap<String, String>();
-    errorMap.put("sequenceNumber", requestSequenceNumber.toString());
+    errorMap.put("sequenceNumber",
+      StringConverterRegistry.toString(requestSequenceNumber));
     errorMap.put("errorCode", errorCode);
     errorMap.put("errorMessage", errorMessage);
     errorMapWriter.write(errorMap);

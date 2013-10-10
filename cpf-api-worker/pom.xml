@@ -72,6 +72,11 @@
       <artifactId>com.revolsys.open.gis.postgresql</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.revolsys.open</groupId>
+      <artifactId>com.revolsys.open.web</artifactId>
+      <version>${com.revolsys.open.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>javax.annotation</groupId>
