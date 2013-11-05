@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -34,26 +35,33 @@ import com.revolsys.ui.web.utils.HttpServletUtils;
 public class SiteminderUserDetailsService implements UserDetailsService,
   GroupNameService {
 
-  private CpfDataAccessObject dataAccessObject;
-
   private static final String BCGOV_ALL = "BCGOV_ALL";
-
-  private static final String BCGOV_EXTERNAL = "BCGOV_EXTERNAL";
-
-  private static final String BCGOV_INTERNAL = "BCGOV_INTERNAL";
 
   private static final String BCGOV_BUSINESS = "BCGOV_BUSINESS";
 
+  private static final String BCGOV_EXTERNAL = "BCGOV_EXTERNAL";
+
   private static final String BCGOV_INDIVIDUAL = "BCGOV_INDIVIDUAL";
+
+  private static final String BCGOV_INTERNAL = "BCGOV_INTERNAL";
 
   private static final String BCGOV_VERIFIED_INDIVIDUAL = "BCGOV_VERIFIED_INDIVIDUAL";
 
   private static final String USER_ACCOUNT_CLASS = "BCGOV";
 
+  private CpfDataAccessObject dataAccessObject;
+
   private UserAccountSecurityService userAccountSecurityService;
 
   /** The class to use to check that the user is valid. */
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
+
+  @PreDestroy
+  public void close() {
+    userAccountSecurityService = null;
+    userDetailsChecker = null;
+    dataAccessObject = null;
+  }
 
   @Override
   public List<String> getGroupNames(final DataObject userAccount) {
