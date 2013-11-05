@@ -44,7 +44,6 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.gis.data.model.DataObject;
@@ -588,17 +587,7 @@ public class InternalWebService {
     final Number moduleTime = (Number)message.get("moduleTime");
     final String moduleNameTime = moduleName + ":" + moduleTime;
     worker.addExcludedModule(moduleNameTime);
-    @SuppressWarnings("unchecked")
-    final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)message.get("logRecords");
-    if (logRecords != null && !logRecords.isEmpty()) {
-      final Map<String, Object> appLogData = new LinkedHashMap<String, Object>();
-      appLogData.put("moduleName", moduleName);
-      appLogData.put("moduleTime", moduleTime);
-      appLogData.put("workerId", worker);
-      appLogData.put("logRecords", logRecords);
-      ModuleLog.info(moduleName, "Module failed to load ", "Application Log",
-        appLogData);
-    }
+    // TODO save reason for exclusion
   }
 
   private void setModuleLoaded(final Worker worker,

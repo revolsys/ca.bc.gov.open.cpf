@@ -297,10 +297,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
         } catch (final Throwable t) {
           LoggerFactory.getLogger(getClass()).error(
             "Unable to load module " + moduleName, t);
-          final List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
-          logRecords.add(AppLog.createLogRecord("ERROR",
-            "Unable to load module " + moduleName));
-          setModuleExcluded(moduleName, moduleTime, logRecords);
+          setModuleExcluded(moduleName, moduleTime);
         }
       }
     }
@@ -358,12 +355,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       module.enable();
     } catch (final Throwable t) {
       try {
-        LoggerFactory.getLogger(getClass()).error(
-          "Unable to load module " + moduleName, t);
-        LoggerFactory.getLogger(getClass()).error(log.getLogContent());
         log.error("Unable to load module " + moduleName, t);
       } finally {
-        setModuleExcluded(moduleName, moduleTime, log.getLogRecords());
+        setModuleExcluded(moduleName, moduleTime);
         if (module != null) {
           businessApplicationRegistry.unloadModule(module);
         }
@@ -387,7 +381,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       LoggerFactory.getLogger(getClass()).error(moduleError);
       log.error(moduleError);
       final long moduleTime = module.getStartedDate().getTime();
-      setModuleExcluded(moduleName, moduleTime, log.getLogRecords());
+      setModuleExcluded(moduleName, moduleTime);
     }
   }
 
@@ -624,14 +618,12 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     super.setMaximumPoolSize(maximumPoolSize);
   }
 
-  private void setModuleExcluded(final String moduleName,
-    final Long moduleTime, final List<Map<String, String>> logRecords) {
+  private void setModuleExcluded(final String moduleName, final Long moduleTime) {
     LoggerFactory.getLogger(getClass()).info("Excluding module: " + moduleName);
     final Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "moduleExcluded");
     message.put("moduleName", moduleName);
     message.put("moduleTime", moduleTime);
-    message.put("logRecords", logRecords);
     addMessage(message);
   }
 

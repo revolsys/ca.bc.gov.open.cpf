@@ -221,8 +221,6 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           }
         } catch (final IllegalStateException e) {
         }
-        final List<Map<String, String>> logs = appLog.getLogRecords();
-        requestResult.put("logRecords", logs);
       }
       hasError = false;
     } catch (final Throwable e) {
@@ -363,7 +361,6 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
         groupResponse.put("groupExecutedTime", groupExecutionTime);
         groupResponse.put("applicationExecutedTime", applicationExecutionTime);
-        groupResponse.put("logRecords", log.getLogRecords());
         groupResponse.put("errorCount", errorCount);
         groupResponse.put("successCount", successCount);
 

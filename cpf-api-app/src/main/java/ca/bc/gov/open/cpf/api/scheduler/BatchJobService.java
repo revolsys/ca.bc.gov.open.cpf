@@ -16,11 +16,9 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -65,11 +63,12 @@ import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
-import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
@@ -156,22 +155,6 @@ public class BatchJobService implements ModuleEventListener {
       statisticsById.put(statisticsId, statistics);
     }
     return statistics;
-  }
-
-  public static void logGroup(final String workerId,
-    final BatchJobRequestExecutionGroup group,
-    final List<Map<String, Object>> groupLogRecords, final String category,
-    final String message, final Map<String, ? extends Object> data) {
-    if (groupLogRecords != null && !groupLogRecords.isEmpty()) {
-      final BusinessApplication businessApplication = group.getBusinessApplication();
-      if (businessApplication.isInfoLogEnabled()) {
-        final String moduleName = group.getModuleName();
-        final Map<String, Object> appLogData = getGroupLogData(group);
-        appLogData.put("workerId", workerId);
-        appLogData.putAll(data);
-        ModuleLog.info(moduleName, category, message, appLogData);
-      }
-    }
   }
 
   public static Map<String, Object> toMap(final DataObject batchJob,
@@ -662,22 +645,6 @@ public class BatchJobService implements ModuleEventListener {
     return dataObjectWriter;
   }
 
-  public void deleteLogFiles() {
-    final File logDirectory = businessApplicationRegistry.getLogDirectory();
-    final Calendar cal = new GregorianCalendar();
-    cal.set(Calendar.HOUR, 0);
-    cal.set(Calendar.MINUTE, 0);
-    cal.set(Calendar.SECOND, 0);
-    cal.set(Calendar.MILLISECOND, 0);
-    cal.add(Calendar.DAY_OF_MONTH, -7);
-    final Date date = cal.getTime();
-    LoggerFactory.getLogger(BatchJobService.class).info(
-      "Start: Deleting log files < " + date);
-    FileUtil.deleteFilesOlderThan(logDirectory, date);
-    LoggerFactory.getLogger(BatchJobService.class).info(
-      "End: Deleting log files < " + date);
-  }
-
   @PreDestroy
   public void destory() {
     running = false;
@@ -891,8 +858,9 @@ public class BatchJobService implements ModuleEventListener {
             response.put("batchJobId", batchJobId);
             response.put("groupId", groupId);
             if (businessApplication.isInfoLogEnabled()) {
-              ModuleLog.info(moduleName, "Execution", "Start",
-                new LinkedHashMap<String, Object>(response));
+              businessApplication.getLog().info(
+                "Execution Start workerId=" + workerId + ", batchJobId="
+                  + batchJobId + ", groupId=" + groupId);
             }
             response.put("consumerKey", group.getconsumerKey());
             worker.addExecutingGroup(moduleName + ":" + moduleStartTime, group);
@@ -1074,17 +1042,14 @@ public class BatchJobService implements ModuleEventListener {
         BatchJob.NUM_SUBMITTED_REQUESTS);
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-      String moduleName = "Unknown";
-      if (businessApplication != null) {
-        final Module module = businessApplication.getModule();
-        moduleName = module.getName();
-
+      AppLog log;
+      if (businessApplication == null) {
+        log = new AppLog(businessApplicationName);
+      } else {
+        log = businessApplication.getLog();
       }
-      final Map<String, Object> logData = new LinkedHashMap<String, Object>();
-      logData.put("businessApplicationName", businessApplicationName);
-      logData.put("batchJobId", batchJobId);
-      if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.info(moduleName, "Job post-process", "Start", logData);
+      if (log.isInfoEnabled()) {
+        log.info("Job post-process - Start, batchJobId=" + batchJobId);
       }
 
       final Map<String, Object> postProcessScheduledStatistics = new HashMap<String, Object>();
@@ -1102,12 +1067,9 @@ public class BatchJobService implements ModuleEventListener {
         BatchJob.NUM_COMPLETED_REQUESTS);
       final long numFailedRequests = DataObjectUtil.getInteger(batchJob,
         BatchJob.NUM_FAILED_REQUESTS);
-      logData.put("numCompletedRequests", numCompletedRequests);
-      logData.put("numFailedRequests", numFailedRequests);
-      if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.infoAfterCommit(moduleName, "Job post-process", "End",
-          logData);
-        ModuleLog.infoAfterCommit(moduleName, "Job completed", "End", logData);
+      if (log.isInfoEnabled()) {
+        AppLogUtil.infoAfterCommit(log, "Job post-process - End", stopWatch);
+        AppLogUtil.infoAfterCommit(log, "Job completed -End");
       }
       final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
 
@@ -1156,13 +1118,9 @@ public class BatchJobService implements ModuleEventListener {
         throw new IllegalArgumentException("Cannot find business application: "
           + businessApplicationName);
       }
-      final Module module = businessApplication.getModule();
-      final String moduleName = module.getName();
-      final Map<String, Object> logData = new LinkedHashMap<String, Object>();
-      logData.put("businessApplicationName", businessApplicationName);
-      logData.put("batchJobId", batchJobId);
-      if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.info(moduleName, "Job pre-process", "Start", logData);
+      final AppLog log = businessApplication.getLog();
+      if (log.isInfoEnabled()) {
+        log.info("Job pre-process - Start, batchJobId=" + batchJobId);
       }
       try {
         final int maxGroupSize = businessApplication.getNumRequestsPerWorker();
@@ -1292,8 +1250,6 @@ public class BatchJobService implements ModuleEventListener {
         } finally {
           FileUtil.closeSilent(inputDataStream);
         }
-        logData.put("numSubmittedRequests", numSubmittedRequests);
-        logData.put("numFailedRequests", numFailedRequests);
 
         if (!valid || numSubmittedRequests == numFailedRequests) {
           valid = false;
@@ -1329,17 +1285,15 @@ public class BatchJobService implements ModuleEventListener {
             businessApplication, jobCompletedStatistics);
 
           // numCompletedRequests is 0 + numFailedFailed
-          logData.put("numCompletedRequests", numFailedRequests);
-          logData.put("numFailedRequests", numFailedRequests);
-          if (businessApplication.isInfoLogEnabled()) {
-            ModuleLog.infoAfterCommit(moduleName, "Job completed", "End",
-              logData);
+          if (log.isInfoEnabled()) {
+            AppLogUtil.infoAfterCommit(log, "Job completed - End, batchJobId="
+              + batchJobId);
           }
         }
       } finally {
-        if (businessApplication.isInfoLogEnabled()) {
-          ModuleLog.infoAfterCommit(moduleName, "Job pre-process", "End",
-            stopWatch, logData);
+        if (log.isInfoEnabled()) {
+          AppLogUtil.infoAfterCommit(log, "Job pre-process - End, batchJobId="
+            + batchJobId);
         }
       }
     } finally {
@@ -1425,9 +1379,8 @@ public class BatchJobService implements ModuleEventListener {
     final int numCleanedJobs = dataAccessObject.updateBatchJobStatus(
       BatchJob.SUBMITTED, BatchJob.CREATING_REQUESTS, businessApplicationName);
     if (numCleanedJobs > 0) {
-      ModuleLog.info(moduleName, businessApplicationName,
-        "Job status reset to submitted",
-        Collections.singletonMap("count", numCleanedJobs));
+      final AppLog log = new AppLog(businessApplicationName);
+      log.info("Job status reset to submitted=" + numCleanedJobs);
     }
   }
 
@@ -1437,9 +1390,8 @@ public class BatchJobService implements ModuleEventListener {
     final int numCleanedJobs = dataAccessObject.updateBatchJobStatus(
       BatchJob.PROCESSED, BatchJob.CREATING_RESULTS, businessApplicationName);
     if (numCleanedJobs > 0) {
-      ModuleLog.info(moduleName, businessApplicationName,
-        "Job status reset to processed",
-        Collections.singletonMap("count", numCleanedJobs));
+      final AppLog log = new AppLog(businessApplicationName);
+      log.info("Job status reset to processed,count=" + numCleanedJobs);
     }
   }
 
@@ -1494,17 +1446,15 @@ public class BatchJobService implements ModuleEventListener {
 
     groupsToSchedule.remove(businessApplicationName);
 
-    final int numCleanedRequests = dataAccessObject.updateResetRequestsForRestart(businessApplicationName);
+    final AppLog log = new AppLog(businessApplicationName);
+
+    final int numCleanedRequests = dataAccessObject.updateResetGroupsForRestart(businessApplicationName);
     if (numCleanedRequests > 0) {
-      ModuleLog.info(moduleName, businessApplicationName,
-        "Request cleaned for restart",
-        Collections.singletonMap("count", numCleanedRequests));
+      log.info("Groups cleaned for restart, count=" + numCleanedRequests);
     }
     final int numCleanedJobs = dataAccessObject.updateBatchJobProcessedStatus(businessApplicationName);
     if (numCleanedJobs > 0) {
-      ModuleLog.info(moduleName, businessApplicationName,
-        "Job status for restart",
-        Collections.singletonMap("count", numCleanedJobs));
+      log.info("Jobs status for restart, count=" + numCleanedJobs);
     }
   }
 
@@ -1621,13 +1571,9 @@ public class BatchJobService implements ModuleEventListener {
       if (businessApplication == null) {
         return false;
       } else {
-        final Module module = businessApplication.getModule();
-        final String moduleName = module.getName();
-        final Map<String, Object> logData = new LinkedHashMap<String, Object>();
-        logData.put("businessApplicationName", businessApplicationName);
-        logData.put("batchJobId", batchJobId);
-        if (businessApplication.isInfoLogEnabled()) {
-          ModuleLog.info(moduleName, "Job schedule", "Start", logData);
+        final AppLog log = businessApplication.getLog();
+        if (log.isInfoEnabled()) {
+          log.info("Job schedule - Start, batchJobId=" + batchJobId);
         }
         try {
           final Map<String, String> businessApplicationParameterMap = getBusinessApplicationParameters(batchJob);
@@ -1650,7 +1596,6 @@ public class BatchJobService implements ModuleEventListener {
               batchJobExecutionGroupId);
 
             InvokeMethodAfterCommit.invoke(this, "schedule", group);
-            logData.put("groupId", group.getId());
 
             final Map<String, Object> statistics = new HashMap<String, Object>();
             statistics.put("executeScheduledTime", stopWatch);
@@ -1661,11 +1606,9 @@ public class BatchJobService implements ModuleEventListener {
             return true;
           }
         } finally {
-          if (businessApplication.isInfoLogEnabled()) {
-            if (businessApplication.isInfoLogEnabled()) {
-              ModuleLog.infoAfterCommit(moduleName, "Job schedule", "End",
-                stopWatch, logData);
-            }
+          if (log.isInfoEnabled()) {
+            AppLogUtil.infoAfterCommit(log, "Job schedule - End, batchJobId="
+              + batchJobId, stopWatch);
           }
         }
       }
@@ -1703,10 +1646,8 @@ public class BatchJobService implements ModuleEventListener {
     synchronized (businessApplicationName.intern()) {
       final List<Long> batchJobIds = dataAccessObject.getBatchJobIdsToSchedule(businessApplicationName);
       for (final Long batchJobId : batchJobIds) {
-        final Map<String, Long> parameters = Collections.singletonMap(
-          "batchJobId", batchJobId);
-        ModuleLog.info(moduleName, businessApplicationName,
-          "Schedule from database", parameters);
+        new AppLog(businessApplicationName).info("Schedule from database, batchJobId="
+          + batchJobId);
         schedule(businessApplicationName, batchJobId);
       }
     }
@@ -1715,27 +1656,21 @@ public class BatchJobService implements ModuleEventListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void scheduleFromDatabase(final String moduleName,
     final String businessApplicationName, final String jobStatus) {
+    final AppLog log = new AppLog(businessApplicationName);
     try {
       final List<Long> batchJobIds = dataAccessObject.getBatchJobIds(
         businessApplicationName, jobStatus);
       for (final Long batchJobId : batchJobIds) {
         if (jobStatus.equals(BatchJob.SUBMITTED)) {
-          ModuleLog.info(moduleName, businessApplicationName,
-            "Pre-process from database",
-            Collections.singletonMap("batchJobId", batchJobId));
+          log.info("Pre-process from database, batchJobId=" + batchJobId);
           preProcess.schedule(batchJobId);
         } else if (jobStatus.equals(BatchJob.PROCESSED)) {
-          ModuleLog.info(moduleName, businessApplicationName,
-            "Post-process from database",
-            Collections.singletonMap("batchJobId", batchJobId));
+          log.info("Post-process from database, batchJobId=" + batchJobId);
           postProcess.schedule(batchJobId);
         }
       }
     } catch (final Throwable t) {
-      final String trace = ExceptionUtil.toString(t);
-      ModuleLog.error(moduleName, businessApplicationName,
-        "Unable to schedule from database",
-        Collections.singletonMap("exception", trace));
+      log.error("Unable to schedule from database", t);
     }
   }
 
@@ -1905,7 +1840,6 @@ public class BatchJobService implements ModuleEventListener {
             final String moduleName = group.getModuleName();
 
             final List<Map<String, Object>> groupResults = (List<Map<String, Object>>)results.get("results");
-            final List<Map<String, Object>> groupLogRecords = (List<Map<String, Object>>)results.get("logRecords");
             final long groupExecutedTime = CollectionUtil.getLong(results,
               "groupExecutedTime");
             final long applicationExecutedTime = CollectionUtil.getLong(
@@ -1914,11 +1848,6 @@ public class BatchJobService implements ModuleEventListener {
               "successCount");
             final int errorCount = CollectionUtil.getInteger(results,
               "errorCount");
-
-            // TODO groupError
-
-            logGroup(workerId, group, groupLogRecords, "Group Execution",
-              "Application Log", Collections.<String, Object> emptyMap());
 
             final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
             if (batchJob != null) {
@@ -2115,9 +2044,10 @@ public class BatchJobService implements ModuleEventListener {
     final long executionStartTime = group.getExecutionStartTime();
     final long durationInMillis = System.currentTimeMillis()
       - executionStartTime;
-    if (businessApplication.isInfoLogEnabled()) {
-      final Map<String, Object> logData = getGroupLogData(group);
-      ModuleLog.info(moduleName, "Execution", "End", durationInMillis, logData);
+    final AppLog log = businessApplication.getLog();
+    if (log.isInfoEnabled()) {
+      log.info("Group Execution- End, batchJobId=" + group.getBatchJobId()
+        + ", groupId=" + group.getId() + ", time=" + durationInMillis);
     }
     final Map<String, Object> executedStatistics = new HashMap<String, Object>();
     executedStatistics.put("executedGroupsCount", 1);

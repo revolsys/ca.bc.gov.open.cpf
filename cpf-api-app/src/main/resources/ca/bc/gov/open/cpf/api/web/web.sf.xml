@@ -42,7 +42,6 @@
   <import resource="domain/BusinessApplication.sf.xml" />
   <import resource="domain/BusinessApplicationStatistics.sf.xml" />
   <import resource="domain/Module.sf.xml" />
-  <import resource="domain/ModuleLogFile.sf.xml" />
   <import resource="domain/BatchJob.sf.xml" />
   <import resource="domain/BatchJobExecutionGroup.sf.xml" />
   <import resource="domain/BatchJobResult.sf.xml" />

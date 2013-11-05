@@ -50,12 +50,13 @@ import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.Required;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 import ca.bc.gov.open.cpf.plugin.api.ResultList;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
-import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.AttributeMap;
@@ -110,6 +111,8 @@ public class ClassLoaderModule implements Module {
 
   private URL configUrl;
 
+  private final AppLog log;
+
   private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems.getCoordinateSystems(Arrays.asList(
     4326, 4269, 3005, 26907, 26908, 26909, 26910, 26911));
 
@@ -161,16 +164,16 @@ public class ClassLoaderModule implements Module {
   public ClassLoaderModule(
     final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName) {
-    this.name = moduleName;
     this.businessApplicationRegistry = businessApplicationRegistry;
+    this.name = moduleName;
+    this.log = new AppLog(moduleName);
   }
 
   public ClassLoaderModule(
     final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName, final ClassLoader classLoader,
     final ConfigPropertyLoader configPropertyLoader, final URL configUrl) {
-    this.businessApplicationRegistry = businessApplicationRegistry;
-    this.name = moduleName;
+    this(businessApplicationRegistry, moduleName);
     this.classLoader = classLoader;
     this.configPropertyLoader = configPropertyLoader;
     this.configUrl = configUrl;
@@ -178,7 +181,8 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public void addModuleError(final String moduleError) {
-    LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to initialize module: " + this + ": " + moduleError);
+    LoggerFactory.getLogger(ClassLoaderModule.class).error(
+      "Unable to initialize module: " + this + ": " + moduleError);
     if (StringUtils.hasText(this.moduleError)) {
       this.moduleError += '\n' + moduleError;
     } else {
@@ -188,7 +192,8 @@ public class ClassLoaderModule implements Module {
   }
 
   public void addModuleError(final String message, final Throwable e) {
-    LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to initialize module: " + this + ": " + message, e);
+    LoggerFactory.getLogger(ClassLoaderModule.class).error(
+      "Unable to initialize module: " + this + ": " + message, e);
     final String trace = message + '\n' + ExceptionUtil.toString(e);
     if (StringUtils.hasText(this.moduleError)) {
       this.moduleError += '\n' + trace;
@@ -199,7 +204,8 @@ public class ClassLoaderModule implements Module {
   }
 
   public void addModuleError(final Throwable e) {
-    LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to initialize module: " + this, e);
+    LoggerFactory.getLogger(ClassLoaderModule.class).error(
+      "Unable to initialize module: " + this, e);
     final String trace = ExceptionUtil.toString(e);
     if (StringUtils.hasText(this.moduleError)) {
       this.moduleError += '\n' + trace;
@@ -290,15 +296,16 @@ public class ClassLoaderModule implements Module {
     if (isEnabled() && !isStarted()) {
       final StopWatch stopWatch = new StopWatch();
       stopWatch.start();
-      ModuleLog.info(name, "Start", "Begin", null);
+      log.info("Start Module - Begin");
       clearModuleError();
       try {
         initializeGroupPermissions();
         preLoadApplications();
         if (!hasError()) {
           for (final String businessApplicationName : getBusinessApplicationNames()) {
-            LoggerFactory.getLogger(ClassLoaderModule.class).info("Found business application " + businessApplicationName
-              + " from " + configUrl);
+            LoggerFactory.getLogger(ClassLoaderModule.class).info(
+              "Found business application " + businessApplicationName
+                + " from " + configUrl);
           }
           loadBusinessApplications();
           businessApplicationRegistry.clearModuleToAppCache();
@@ -312,14 +319,14 @@ public class ClassLoaderModule implements Module {
       } catch (final Throwable e) {
         addModuleError(e);
       }
-      ModuleLog.info(name, "Start", "End", stopWatch, null);
+      AppLogUtil.info(log, "Start Module - End", stopWatch);
     }
   }
 
   public void doStop() {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
-    ModuleLog.info(name, "Stop", "Begin", null);
+    log.info("Module Stop - Begin");
     started = false;
     applicationsLoaded = false;
     if (applicationContext != null && applicationContext.isActive()) {
@@ -340,7 +347,7 @@ public class ClassLoaderModule implements Module {
     } finally {
       startedDate = null;
     }
-    ModuleLog.info(name, "Stop", "End", stopWatch, null);
+    AppLogUtil.info(log, "Stop Module - End", stopWatch);
   }
 
   @Override
@@ -720,7 +727,8 @@ public class ClassLoaderModule implements Module {
     final GeometryConfiguration geometryConfiguration) {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
-      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " srid must be >= 0");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(
+        message + " srid must be >= 0");
       srid = geometryFactory.getSRID();
     } else if (srid == 0) {
       srid = geometryFactory.getSRID();
@@ -729,24 +737,28 @@ public class ClassLoaderModule implements Module {
     if (numAxis == 0) {
       numAxis = geometryFactory.getNumAxis();
     } else if (numAxis < 2) {
-      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " numAxis must be >= 2");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(
+        message + " numAxis must be >= 2");
       numAxis = 2;
     } else if (numAxis > 3) {
-      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " numAxis must be <= 3");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(
+        message + " numAxis must be <= 3");
       numAxis = 3;
     }
     double scaleXy = geometryConfiguration.scaleFactorXy();
     if (scaleXy == 0) {
       scaleXy = geometryFactory.getScaleXY();
     } else if (scaleXy < 0) {
-      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " scaleXy must be >= 0");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(
+        message + " scaleXy must be >= 0");
       scaleXy = geometryFactory.getScaleXY();
     }
     double scaleZ = geometryConfiguration.scaleFactorZ();
     if (scaleXy == 0) {
       scaleXy = geometryFactory.getScaleZ();
     } else if (scaleZ < 0) {
-      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " scaleZ must be >= 0");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(
+        message + " scaleZ must be >= 0");
       scaleZ = geometryFactory.getScaleZ();
     }
     return GeometryFactory.getFactory(srid, numAxis, scaleXy, scaleZ);
@@ -771,6 +783,10 @@ public class ClassLoaderModule implements Module {
       }
     }
     return Collections.emptyList();
+  }
+
+  public AppLog getLog() {
+    return log;
   }
 
   @Override
@@ -960,7 +976,8 @@ public class ClassLoaderModule implements Module {
   public void loadApplications() {
     if (isStarted() && !isApplicationsLoaded()) {
 
-      LoggerFactory.getLogger(ClassLoaderModule.class).debug("Loading spring config file " + configUrl);
+      LoggerFactory.getLogger(ClassLoaderModule.class).debug(
+        "Loading spring config file " + configUrl);
       try {
         final ClassLoader classLoader = getClassLoader();
         applicationContext = new GenericApplicationContext();
@@ -1009,7 +1026,8 @@ public class ClassLoaderModule implements Module {
     try {
       if (isEnabled()) {
         final ClassLoader classLoader = getClassLoader();
-        LoggerFactory.getLogger(ClassLoaderModule.class).info("Loading plugin " + pluginClassName);
+        LoggerFactory.getLogger(ClassLoaderModule.class).info(
+          "Loading plugin " + pluginClassName);
         final Class<?> pluginClass = Class.forName(pluginClassName.trim(),
           true, classLoader);
         final BusinessApplication businessApplication = getBusinessApplicaton(
@@ -1032,7 +1050,8 @@ public class ClassLoaderModule implements Module {
     final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<BusinessApplication, String>();
     moduleError = null;
     final Map<String, BusinessApplication> businessApplicationsByName = new HashMap<String, BusinessApplication>();
-    LoggerFactory.getLogger(ClassLoaderModule.class).debug("Loading spring config file " + configUrl);
+    LoggerFactory.getLogger(ClassLoaderModule.class).debug(
+      "Loading spring config file " + configUrl);
     final GenericApplicationContext applicationContext = new GenericApplicationContext();
     try {
       final ClassLoader classLoader = getClassLoader();
@@ -1085,8 +1104,9 @@ public class ClassLoaderModule implements Module {
                         JavaBeanUtil.setProperty(businessApplication,
                           propertyName, propertyValue);
                       } catch (final Throwable t) {
-                        LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to set " + businessApplicationName
-                          + "." + propertyName + "=" + propertyValue);
+                        LoggerFactory.getLogger(ClassLoaderModule.class).error(
+                          "Unable to set " + businessApplicationName + "."
+                            + propertyName + "=" + propertyValue);
                       }
                     }
                   }

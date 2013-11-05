@@ -1,21 +1,10 @@
 package ca.bc.gov.open.cpf.plugin.api.log;
 
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-
-import com.revolsys.io.csv.CsvMapWriter;
-import com.revolsys.util.DateUtil;
-import com.revolsys.util.ExceptionUtil;
 
 /**
  * <p>The AppLog class is a logging API for use by a {@link BusinessApplicationPlugin} class.
@@ -36,34 +25,14 @@ public void setAppLog(final AppLog appLog) {
  *
  */
 public class AppLog {
-  /**
-   * <p>Create a log record.</p>
-   * 
-   * @param logLevel The logging level (ERROR, INFO, DEBUG).
-   * @param message The message.
-   * @return The log record.
-   */
-  public static Map<String, String> createLogRecord(final String logLevel,
-    final String message) {
-    final String date = DateUtil.format("yyyy-MM-dd'T'HH:mm:ss.SSS", new Date(
-      System.currentTimeMillis()));
-    final Map<String, String> logRecord = new LinkedHashMap<String, String>();
-    logRecord.put("date", date);
-    logRecord.put("level", logLevel);
-    logRecord.put("message", message);
-    return logRecord;
-  }
 
   /** The logging level (ERROR, INFO, DEBUG). */
   private String logLevel = "ERROR";
 
-  /** The log records. */
-  private final List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
-
   private final Logger log;
 
-  public AppLog(final String moduleName) {
-    this.log = LoggerFactory.getLogger(moduleName);
+  public AppLog(final String name) {
+    this.log = LoggerFactory.getLogger(name);
   }
 
   public AppLog(final String businessApplicationName, String groupId,
@@ -83,7 +52,6 @@ public class AppLog {
   public void debug(final String message) {
     if (isDebugEnabled()) {
       log.debug(message);
-      log("DEBUG", message);
     }
   }
 
@@ -94,7 +62,6 @@ public class AppLog {
    */
   public void error(final String message) {
     log.error(message);
-    log("ERROR", message);
   }
 
   /**
@@ -104,27 +71,6 @@ public class AppLog {
    */
   public void error(final String message, final Throwable exception) {
     log.error(message, exception);
-    if (exception == null) {
-      error(message);
-    } else {
-      log("ERROR", message + "\n" + ExceptionUtil.toString(exception));
-    }
-  }
-
-  /**
-   * <p>Get the log records as a CSV encoded string.</p>
-   * 
-   * @return The log records as a CSV encoded string.
-   */
-  public String getLogContent() {
-    final StringWriter out = new StringWriter();
-    final CsvMapWriter writer = new CsvMapWriter(out);
-    for (final Map<String, String> logRecord : logRecords) {
-      writer.write(logRecord);
-    }
-    writer.close();
-
-    return out.toString();
   }
 
   /**
@@ -137,15 +83,6 @@ public class AppLog {
   }
 
   /**
-   * <p>Get the log records.</p>
-   * 
-   * @return The log records.
-   */
-  public List<Map<String, String>> getLogRecords() {
-    return logRecords;
-  }
-
-  /**
    * <p>Record the info message in the log if {@see #isInfoEnabled()} is true.</p>
    * 
    * @param message The message.
@@ -153,7 +90,6 @@ public class AppLog {
   public void info(final String message) {
     if (isInfoEnabled()) {
       log.info(message);
-      log("INFO", message);
     }
   }
 
@@ -177,17 +113,6 @@ public class AppLog {
    */
   public boolean isInfoEnabled() {
     return logLevel.equals("DEBUG") || logLevel.equals("INFO");
-  }
-
-  /**
-   * <p>Create a log message.</p>
-   * 
-   * @param logLevel The logging level (ERROR, INFO, DEBUG).
-   * @param message The message.
-   */
-  private synchronized void log(final String logLevel, final String message) {
-    // final Map<String, String> logRecord = createLogRecord(logLevel, message);
-    // logRecords.add(logRecord);
   }
 
   /**

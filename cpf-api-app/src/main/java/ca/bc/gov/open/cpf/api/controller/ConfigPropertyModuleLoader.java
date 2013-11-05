@@ -2,7 +2,6 @@ package ca.bc.gov.open.cpf.api.controller;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -25,7 +24,6 @@ import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
@@ -256,7 +254,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       }
     } catch (final Throwable e) {
       if (module == null) {
-        LoggerFactory.getLogger(ConfigPropertyModuleLoader.class).error("Unable to load module " + moduleName, e);
+        LoggerFactory.getLogger(ConfigPropertyModuleLoader.class).error(
+          "Unable to load module " + moduleName, e);
       } else {
         module.addModuleError(e);
       }
@@ -340,9 +339,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
             }
             final DataObject group = dataAccessObject.getUserGroup(groupName);
             if (group == null) {
-              ModuleLog.error(moduleName, "UserGroupPermission",
-                "Group not found " + groupName,
-                Collections.<String, Object> emptyMap());
+              module.getLog().error("Group not found " + groupName);
             } else {
               final Set<ResourcePermission> newPermissions = new HashSet<ResourcePermission>(
                 groupPermissions.getValue());

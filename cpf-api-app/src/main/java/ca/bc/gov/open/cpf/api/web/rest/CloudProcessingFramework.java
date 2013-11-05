@@ -59,10 +59,10 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobResultUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationUiBuilder;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
-import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.gis.cs.GeometryFactory;
@@ -576,8 +576,6 @@ public class CloudProcessingFramework {
     if (businessApplication != null) {
       checkPermission(businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplication.getName());
-      final Module module = businessApplication.getModule();
-      final String moduleName = module.getName();
       final String consumerKey = getConsumerKey();
 
       final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
@@ -590,11 +588,9 @@ public class CloudProcessingFramework {
       final DataObject batchJob = createBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
-      final Map<String, Object> logData = new LinkedHashMap<String, Object>();
-      logData.put("batchJobId", batchJobId);
-      logData.put("businessApplicationName", businessApplicationName);
+      final AppLog log = businessApplication.getLog();
       if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.info(moduleName, "Job submit multiple", "Start", logData);
+        log.info("Job submit multiple - Start, batchJobId=" + batchJobId);
       }
 
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_NAME,
@@ -758,8 +754,8 @@ public class CloudProcessingFramework {
       batchJobUiBuilder.redirectPage("clientView");
 
       if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.info(moduleName, "Job submit multiple", "End multiple",
-          stopWatch, logData);
+        AppLogUtil.info(log, "Job submit multiple - Start, batchJobId="
+          + batchJobId, stopWatch);
       }
       final Map<String, Object> statistics = new HashMap<String, Object>();
       statistics.put("submittedJobsTime", stopWatch);
@@ -852,17 +848,13 @@ public class CloudProcessingFramework {
     if (businessApplication != null) {
       checkPermission(businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplicationName);
-      final Module module = businessApplication.getModule();
-      final String moduleName = module.getName();
 
       final DataObject batchJob = createBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
-      final Map<String, Object> logData = new LinkedHashMap<String, Object>();
-      logData.put("batchJobId", batchJobId);
-      logData.put("businessApplicationName", businessApplicationName);
+      final AppLog log = businessApplication.getLog();
       if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.info(moduleName, "Job submit single", "Start", logData);
+        log.info("Job submit single - Start, batchJobId=" + batchJobId);
       }
       final String consumerKey = getConsumerKey();
 
@@ -985,10 +977,8 @@ public class CloudProcessingFramework {
       HttpServletUtils.setPathVariable("consumerKey", consumerKey);
       HttpServletUtils.setPathVariable("batchJobId", batchJobId);
 
-      logData.put("batchJobId", batchJobId);
       if (businessApplication.isInfoLogEnabled()) {
-        ModuleLog.infoAfterCommit(moduleName, "Job submit single", "End",
-          stopWatch, logData);
+        AppLogUtil.infoAfterCommit(log, "Job submit single - End", stopWatch);
       }
       final Map<String, Object> statistics = new HashMap<String, Object>();
       statistics.put("submittedJobsTime", stopWatch);

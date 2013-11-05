@@ -19,9 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
-import ca.bc.gov.open.cpf.plugin.impl.log.appender.DailyRollingFileAppender;
-import ca.bc.gov.open.cpf.plugin.impl.log.appender.Slf4jModuleLogAppender;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleControlProcess;
@@ -381,41 +378,6 @@ public final class BusinessApplicationRegistry implements
 
   public void setLazyLoad(final boolean lazyLoad) {
     this.lazyLoad = lazyLoad;
-  }
-
-  public void setLogDirectory(final File logDirectory) {
-    if (logDirectory == null) {
-      this.logDirectory = null;
-      ModuleLog.setAppender(new Slf4jModuleLogAppender());
-    } else if (logDirectory.exists()) {
-      if (logDirectory.canRead()) {
-        if (logDirectory.canWrite()) {
-          this.logDirectory = logDirectory;
-          final DailyRollingFileAppender appender = new DailyRollingFileAppender(
-            logDirectory);
-          ModuleLog.setAppender(appender);
-        } else {
-          LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
-            "Unable to write to log directory " + logDirectory);
-          this.logDirectory = null;
-          ModuleLog.setAppender(new Slf4jModuleLogAppender());
-        }
-      } else {
-        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
-          "Unable to read log directory " + logDirectory);
-        this.logDirectory = null;
-        ModuleLog.setAppender(new Slf4jModuleLogAppender());
-      }
-    } else {
-      if (logDirectory.mkdirs()) {
-        this.logDirectory = logDirectory;
-      } else {
-        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
-          "Unable to create log directory " + logDirectory);
-        this.logDirectory = null;
-        ModuleLog.setAppender(new Slf4jModuleLogAppender());
-      }
-    }
   }
 
   public void setModuleLoaders(final List<ModuleLoader> moduleLoaders) {

@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.converter.string.BooleanStringConverter;
@@ -63,6 +64,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return defaultValue;
   }
 
+  private final AppLog log;
+
   private Expression batchModeExpression;
 
   private String batchModePermission;
@@ -105,8 +108,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   private Expression instantModeExpression;
 
   private String instantModePermission;
-
-  private String logLevel = "ERROR";
 
   private int maxConcurrentRequests;
 
@@ -179,6 +180,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public BusinessApplication(final BusinessApplicationPlugin pluginMetadata,
     final Module module, final String name) {
+    this(name);
     this.pluginMetadata = pluginMetadata;
     this.module = module;
     this.name = name;
@@ -189,6 +191,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public BusinessApplication(final String name) {
     this.name = name;
     this.title = name;
+    this.log = new AppLog(name);
   }
 
   public void addInputDataContentType(final String contentType,
@@ -326,8 +329,12 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.instantModePermission;
   }
 
+  public AppLog getLog() {
+    return log;
+  }
+
   public String getLogLevel() {
-    return this.logLevel;
+    return this.log.getLogLevel();
   }
 
   public int getMaxConcurrentRequests() {
@@ -546,7 +553,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isInfoLogEnabled() {
-    return this.logLevel.equals("INFO") || this.logLevel.equals("DEBUG");
+    return this.log.isInfoEnabled();
   }
 
   public boolean isJobParameter(final String attributeName) {
@@ -665,7 +672,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public void setLogLevel(final String logLevel) {
-    this.logLevel = logLevel;
+    this.log.setLogLevel(logLevel);
   }
 
   public void setMaxConcurrentRequests(final int maxConcurrentRequests) {

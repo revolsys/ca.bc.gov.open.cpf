@@ -26,11 +26,6 @@
 
     <task:scheduled
       ref="batchJobService"
-      method="deleteLogFiles"
-      cron="0 0 0 * * *" />
-
-    <task:scheduled
-      ref="batchJobService"
       method="resetHungWorkers"
       cron="0 0/5 * * * *" />
 

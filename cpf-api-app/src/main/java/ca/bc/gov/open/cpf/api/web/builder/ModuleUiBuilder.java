@@ -279,10 +279,6 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
     addTabDataTable(tabs, UserGroup.USER_GROUP, "moduleAdminList", parameters);
 
-    parameters.put("serverSide", Boolean.FALSE);
-    addTabDataTable(tabs, ModuleLogFile.class.getName(), "moduleList",
-      parameters);
-
     return tabs;
   }
 

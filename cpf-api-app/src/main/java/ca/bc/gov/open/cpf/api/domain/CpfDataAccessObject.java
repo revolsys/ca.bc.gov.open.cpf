@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
-import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
@@ -1114,7 +1113,6 @@ public class CpfDataAccessObject {
     return 0;
   }
 
-  @SuppressWarnings("unchecked")
   @Transactional(propagation = Propagation.REQUIRED)
   public void updateBatchJobExecutionGroupFromResponse(final String workerId,
     final BatchJobRequestExecutionGroup group,
@@ -1122,13 +1120,6 @@ public class CpfDataAccessObject {
     final List<Map<String, Object>> results, final int successCount,
     final int errorCount) {
     if (results != null) {
-      for (final Map<String, Object> result : results) {
-        final List<Map<String, Object>> logRecords = (List<Map<String, Object>>)result.remove("logRecords");
-        BatchJobService.logGroup(workerId, group, logRecords,
-          "Request Execution", "Application Log", Collections.singletonMap(
-            "batchJobExecutionGroupId", batchJobExecutionGroupId));
-      }
-
       final DataObject batchJobExecutionGroup = getBatchJobExecutionGroupLocked(batchJobExecutionGroupId);
       if (0 == batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.COMPLETED_IND)) {
         final String resultData = JsonMapIoFactory.toString(results);
@@ -1228,7 +1219,7 @@ public class CpfDataAccessObject {
     return 0;
   }
 
-  public int updateResetRequestsForRestart(final String businessApplicationName) {
+  public int updateResetGroupsForRestart(final String businessApplicationName) {
     if (dataStore instanceof JdbcDataObjectStore) {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
       final DataSource dataSource = jdbcDataStore.getDataSource();

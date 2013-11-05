@@ -6,13 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
-import ca.bc.gov.open.cpf.plugin.impl.log.ModuleLog;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityService;
@@ -72,9 +71,8 @@ public class BusinessApplicationPluginExecutor {
     stopWatch.start();
 
     final BusinessApplication businessApplication = plugin.getApplication();
-    final Module module = businessApplication.getModule();
-    final String moduleName = module.getName();
-    ModuleLog.info(moduleName, businessApplicationName, "Start Execution", null);
+    final AppLog log = businessApplication.getLog();
+    log.info("Start Execution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
@@ -100,9 +98,7 @@ public class BusinessApplicationPluginExecutor {
     final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
     final Map<String, Object> response = plugin.getResponseFields();
     final DataObject result = getResultDataObject(resultMetaData, response);
-    ModuleLog.info(moduleName, businessApplicationName, "End Execution",
-      stopWatch, null);
-    log(plugin);
+    AppLogUtil.info(log, "End Execution", stopWatch);
     return result;
   }
 
@@ -125,9 +121,8 @@ public class BusinessApplicationPluginExecutor {
 
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
-    final Module module = businessApplication.getModule();
-    final String moduleName = module.getName();
-    ModuleLog.info(moduleName, businessApplicationName, "Start Execution", null);
+    final AppLog log = businessApplication.getLog();
+    log.info("Start Execution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
@@ -148,9 +143,7 @@ public class BusinessApplicationPluginExecutor {
       throw new RuntimeException(
         "Business Application does not support response fields");
     }
-    ModuleLog.info(moduleName, businessApplicationName, "End Execution",
-      stopWatch, null);
-    log(plugin);
+    AppLogUtil.info(log, "End Execution", stopWatch);
   }
 
   /**
@@ -170,9 +163,8 @@ public class BusinessApplicationPluginExecutor {
 
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
-    final Module module = businessApplication.getModule();
-    final String moduleName = module.getName();
-    ModuleLog.info(moduleName, businessApplicationName, "Start Execution", null);
+    final AppLog log = businessApplication.getLog();
+    log.info("Start Execution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, jobParameters);
@@ -201,9 +193,7 @@ public class BusinessApplicationPluginExecutor {
     final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
     final Map<String, Object> results = getResultDataObject(resultMetaData,
       response);
-    ModuleLog.info(moduleName, businessApplicationName, "End Execution",
-      stopWatch, null);
-    log(plugin);
+    AppLogUtil.info(log, "End Execution", stopWatch);
     return results;
   }
 
@@ -227,9 +217,8 @@ public class BusinessApplicationPluginExecutor {
 
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
-    final Module module = businessApplication.getModule();
-    final String moduleName = module.getName();
-    ModuleLog.info(moduleName, businessApplicationName, "Start Execution", null);
+    final AppLog log = businessApplication.getLog();
+    log.info("Start Execution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, jobParameters);
@@ -258,9 +247,7 @@ public class BusinessApplicationPluginExecutor {
       throw new RuntimeException(
         "Business Application does not support response fields");
     }
-    ModuleLog.info(moduleName, businessApplicationName, "End Execution",
-      stopWatch, null);
-    log(plugin);
+    AppLogUtil.info(log, "End Execution", stopWatch);
   }
 
   /**
@@ -280,9 +267,8 @@ public class BusinessApplicationPluginExecutor {
 
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
-    final Module module = businessApplication.getModule();
-    final String moduleName = module.getName();
-    ModuleLog.info(moduleName, businessApplicationName, "Start Execution", null);
+    final AppLog log = businessApplication.getLog();
+    log.info("Start Execution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
@@ -308,9 +294,7 @@ public class BusinessApplicationPluginExecutor {
     final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
     final List<Map<String, Object>> resultsList = getResultList(resultMetaData,
       results);
-    ModuleLog.info(moduleName, businessApplicationName, "End Execution",
-      stopWatch, null);
-    log(plugin);
+    AppLogUtil.info(log, "End Execution", stopWatch);
     return resultsList;
   }
 
@@ -387,13 +371,6 @@ public class BusinessApplicationPluginExecutor {
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
     return businessApplication.getResultListProperty() != null;
-  }
-
-  public void log(final PluginAdaptor plugin) {
-    final AppLog appLog = plugin.getAppLog();
-    if (appLog != null) {
-      LoggerFactory.getLogger(getClass()).info(appLog.getLogContent());
-    }
   }
 
   public void setConsumerKey(final String consumerKey) {
