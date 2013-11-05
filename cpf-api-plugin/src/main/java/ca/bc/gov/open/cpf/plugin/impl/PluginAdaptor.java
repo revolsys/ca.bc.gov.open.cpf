@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
+import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.GeometryFactory;
 import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.AttributeProperties;
@@ -264,8 +265,14 @@ public class PluginAdaptor {
   }
 
   public void setPluginProperty(final String parameterName,
-    final Object parameterValue) {
+    Object parameterValue) {
     try {
+      final DataObjectMetaDataImpl requestMetaData = application.getRequestMetaData();
+      final Class<?> attributeClass = requestMetaData.getAttributeClass(parameterName);
+      if (attributeClass != null) {
+        parameterValue = StringConverterRegistry.toObject(attributeClass,
+          parameterValue);
+      }
       BeanUtils.setProperty(this.plugin, parameterName, parameterValue);
       this.parameters.put(parameterName, parameterValue);
     } catch (final Throwable t) {

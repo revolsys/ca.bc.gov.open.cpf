@@ -36,7 +36,6 @@ import net.oauth.OAuthMessage;
 import net.oauth.OAuthServiceProvider;
 import net.oauth.SimpleOAuthValidator;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -53,8 +52,6 @@ import org.springframework.web.filter.GenericFilterBean;
 
 public class OAuthProcessingFilter extends GenericFilterBean implements
   InitializingBean {
-  private static final Logger LOG = LoggerFactory.getLogger(OAuthProcessingFilter.class);
-
   /**
    * Extract the parts of the given request that are relevant to OAuth.
    * Parameters include OAuth Authorization headers and the usual request
@@ -146,7 +143,7 @@ public class OAuthProcessingFilter extends GenericFilterBean implements
     } catch (final Exception e) {
       final AuthenticationException authE = new BadCredentialsException(
         "Signature validation failed", e);
-      LOG.debug("Authentication request for user: " + consumerKey + " failed",
+      LoggerFactory.getLogger(OAuthProcessingFilter.class).debug("Authentication request for user: " + consumerKey + " failed",
         e);
 
       context.setAuthentication(null);

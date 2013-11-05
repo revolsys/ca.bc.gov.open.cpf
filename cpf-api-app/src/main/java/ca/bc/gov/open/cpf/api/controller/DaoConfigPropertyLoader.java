@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
@@ -41,6 +42,11 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
       }
       configProperties.put(propertyName, value);
     }
+  }
+
+  @PreDestroy
+  public void close() {
+    dataAccessObject = null;
   }
 
   @Override

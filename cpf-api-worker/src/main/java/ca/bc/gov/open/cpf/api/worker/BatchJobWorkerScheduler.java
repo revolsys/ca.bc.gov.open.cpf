@@ -307,7 +307,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   }
 
   public void loadModule(final String moduleName, final Long moduleTime) {
-    final AppLog log = new AppLog();
+    final AppLog log = new AppLog(moduleName);
 
     ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
     if (module != null) {
@@ -383,7 +383,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       businessApplicationRegistry.unloadModule(module);
 
       final String moduleError = module.getModuleError();
-      final AppLog log = new AppLog();
+      final AppLog log = new AppLog(moduleName);
       LoggerFactory.getLogger(getClass()).error(moduleError);
       log.error(moduleError);
       final long moduleTime = module.getStartedDate().getTime();

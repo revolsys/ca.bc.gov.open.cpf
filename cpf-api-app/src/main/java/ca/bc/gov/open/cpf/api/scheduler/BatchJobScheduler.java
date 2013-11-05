@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
@@ -28,8 +27,6 @@ import com.revolsys.util.CollectionUtil;
 
 public class BatchJobScheduler extends
   AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
-  private static final Logger LOG = LoggerFactory.getLogger(BatchJobScheduler.class);
-
   /** The batch job service used to interact with the database. */
   private BatchJobService batchJobService;
 
@@ -72,7 +69,7 @@ public class BatchJobScheduler extends
           BatchJobScheduleInfo.SCHEDULE_FINISHED);
       }
     } catch (final Throwable t) {
-      LOG.error(t.getMessage(), t);
+      LoggerFactory.getLogger(BatchJobScheduler.class).error(t.getMessage(), t);
       resultJobInfo.setActions(BatchJobScheduleInfo.NO_GROUP_SCHEDULED,
         BatchJobScheduleInfo.SCHEDULE_FINISHED, BatchJobScheduleInfo.SCHEDULE);
     } finally {
@@ -209,7 +206,7 @@ public class BatchJobScheduler extends
       } catch (final ClosedException e) {
         return;
       } catch (final Throwable t) {
-        LOG.error("Error scheduling jobs", t);
+        LoggerFactory.getLogger(BatchJobScheduler.class).error("Error scheduling jobs", t);
       }
     }
   }

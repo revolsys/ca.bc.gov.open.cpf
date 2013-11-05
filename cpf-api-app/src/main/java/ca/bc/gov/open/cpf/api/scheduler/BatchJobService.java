@@ -44,7 +44,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -115,9 +114,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.operation.valid.IsValidOp;
 
 public class BatchJobService implements ModuleEventListener {
-  /** The logger. */
-  private static final Logger LOG = LoggerFactory.getLogger(BatchJobService.class);
-
   protected static Map<String, String> getBusinessApplicationParameters(
     final DataObject batchJob) {
     final String jobParameters = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
@@ -298,7 +294,8 @@ public class BatchJobService implements ModuleEventListener {
     }
 
     dataAccessObject.setBatchJobFailed(batchJobId);
-    LOG.debug(validationErrorDebugMessage);
+    LoggerFactory.getLogger(BatchJobService.class).debug(
+      validationErrorDebugMessage);
     return false;
   }
 
@@ -598,14 +595,16 @@ public class BatchJobService implements ModuleEventListener {
           try {
             structuredResultWriter.close();
           } catch (final Throwable e) {
-            LOG.error("Unable to close structured result writer", e);
+            LoggerFactory.getLogger(BatchJobService.class).error(
+              "Unable to close structured result writer", e);
           }
         }
         if (errorResultWriter != null) {
           try {
             errorResultWriter.close();
           } catch (final Throwable e) {
-            LOG.error("Unable to close error result writer", e);
+            LoggerFactory.getLogger(BatchJobService.class).error(
+              "Unable to close error result writer", e);
           }
         }
         FileUtil.closeSilent(errorWriter);
@@ -672,35 +671,48 @@ public class BatchJobService implements ModuleEventListener {
     cal.set(Calendar.MILLISECOND, 0);
     cal.add(Calendar.DAY_OF_MONTH, -7);
     final Date date = cal.getTime();
-    LOG.info("Start: Deleting log files < " + date);
+    LoggerFactory.getLogger(BatchJobService.class).info(
+      "Start: Deleting log files < " + date);
     FileUtil.deleteFilesOlderThan(logDirectory, date);
-    LOG.info("End: Deleting log files < " + date);
+    LoggerFactory.getLogger(BatchJobService.class).info(
+      "End: Deleting log files < " + date);
   }
 
   @PreDestroy
   public void destory() {
     running = false;
-    if (preProcess != null) {
-      preProcess.getIn().writeDisconnect();
-      preProcess = null;
+    authorizationService = null;
+    businessApplicationRegistry = null;
+    connectedWorkerCounts.clear();
+    dataAccessObject = null;
+    dataStore = null;
+    groupsByJobId.clear();
+    if (groupsToSchedule != null) {
+      groupsToSchedule.close();
+      groupsToSchedule = null;
     }
+    mailSender = null;
     if (postProcess != null) {
       postProcess.getIn().writeDisconnect();
       postProcess = null;
+    }
+    preprocesedJobIds.clear();
+    if (preProcess != null) {
+      preProcess.getIn().writeDisconnect();
+      preProcess = null;
     }
     if (scheduler != null) {
       scheduler.getIn().writeDisconnect();
       scheduler = null;
     }
-    if (groupsToSchedule != null) {
-      groupsToSchedule.close();
-      groupsToSchedule = null;
-    }
+    securityServiceFactory = null;
+    statisticsByAppAndId.clear();
     if (statisticsProcess != null) {
       statisticsProcess.getIn().writeDisconnect();
       statisticsProcess = null;
     }
-    dataStore = null;
+    userClassBaseUrls.clear();
+    workersById.clear();
   }
 
   public AuthorizationService getAuthorizationService() {
@@ -802,7 +814,8 @@ public class BatchJobService implements ModuleEventListener {
         final URL inputDataUrl = new URL(inputDataUrlString);
         return inputDataUrl.openStream();
       } catch (final IOException e) {
-        LOG.error("Unable to open stream: " + inputDataUrlString, e);
+        LoggerFactory.getLogger(BatchJobService.class).error(
+          "Unable to open stream: " + inputDataUrlString, e);
       }
     } else {
       try {
@@ -811,7 +824,8 @@ public class BatchJobService implements ModuleEventListener {
           return inputData.getBinaryStream();
         }
       } catch (final SQLException e) {
-        LOG.error("Unable to open stream: " + inputDataUrlString, e);
+        LoggerFactory.getLogger(BatchJobService.class).error(
+          "Unable to open stream: " + inputDataUrlString, e);
       }
     }
 
@@ -1165,7 +1179,7 @@ public class BatchJobService implements ModuleEventListener {
         addStatistics(businessApplication, preProcessScheduledStatistics);
 
         final InputStream inputDataStream = getJobInputDataStream(batchJob);
-        long numFailedRequests = batchJob.getLong(BatchJob.NUM_FAILED_REQUESTS);
+        int numFailedRequests = batchJob.getInteger(BatchJob.NUM_FAILED_REQUESTS);
         try {
           final Map<String, String> jobParameters = getBusinessApplicationParameters(batchJob);
 
@@ -1286,7 +1300,7 @@ public class BatchJobService implements ModuleEventListener {
           createResults(batchJobId);
           dataAccessObject.setBatchJobCompleted(batchJobId);
         } else if (dataAccessObject.setBatchJobResultsCreated(batchJobId,
-          numSubmittedRequests, maxGroupSize, numGroups)) {
+          numSubmittedRequests, numFailedRequests, maxGroupSize, numGroups)) {
           schedule(businessApplicationName, batchJobId);
         }
         final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
@@ -1449,9 +1463,11 @@ public class BatchJobService implements ModuleEventListener {
             if (groupsById != null) {
               for (final BatchJobRequestExecutionGroup group : groupsById.values()) {
                 final String groupId = group.getId();
-                if (LOG.isDebugEnabled()) {
-                  LOG.debug("Rescheduling group " + groupId + " from worker "
-                    + workerId);
+                if (LoggerFactory.getLogger(BatchJobService.class)
+                  .isDebugEnabled()) {
+                  LoggerFactory.getLogger(BatchJobService.class).debug(
+                    "Rescheduling group " + groupId + " from worker "
+                      + workerId);
                 }
                 group.resetId();
                 schedule(group);
@@ -1791,8 +1807,9 @@ public class BatchJobService implements ModuleEventListener {
             final MapWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
               MapWriterFactory.class, contentType);
             if (writerFactory == null) {
-              LOG.error("Media type not supported for DataObject #"
-                + batchJobId + " to " + contentType);
+              LoggerFactory.getLogger(BatchJobService.class).error(
+                "Media type not supported for DataObject #" + batchJobId
+                  + " to " + contentType);
             } else {
               final MapWriter writer = writerFactory.getWriter(bodyOut);
               writer.setProperty("title", subject);
@@ -1808,9 +1825,9 @@ public class BatchJobService implements ModuleEventListener {
               try {
                 final StatusLine statusLine = response.getStatusLine();
                 if (statusLine.getStatusCode() >= 400) {
-                  LOG.error("Unable to send notification for DataObject #"
-                    + batchJobId + " to " + notificationUrl + " response="
-                    + statusLine);
+                  LoggerFactory.getLogger(BatchJobService.class).error(
+                    "Unable to send notification for DataObject #" + batchJobId
+                      + " to " + notificationUrl + " response=" + statusLine);
                 }
               } finally {
                 final InputStream content = entity.getContent();
@@ -1820,8 +1837,9 @@ public class BatchJobService implements ModuleEventListener {
           }
         }
       } catch (final Throwable e) {
-        LOG.error("Unable to send notification for DataObject #" + batchJobId
-          + " to " + notificationUrl, e);
+        LoggerFactory.getLogger(BatchJobService.class).error(
+          "Unable to send notification for DataObject #" + batchJobId + " to "
+            + notificationUrl, e);
       }
     }
   }

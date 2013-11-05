@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
@@ -52,7 +53,6 @@ import com.revolsys.jdbc.io.JdbcDataObjectStore;
 import com.revolsys.util.CollectionUtil;
 
 public class CpfDataAccessObject {
-
   private DataObjectStore dataStore;
 
   private DataObjectMetaData batchJobMetaData;
@@ -100,6 +100,20 @@ public class CpfDataAccessObject {
     final Query query = Query.equal(batchJobMetaData, BatchJob.BATCH_JOB_ID,
       batchJobId);
     return dataStore.delete(query);
+  }
+
+  @PreDestroy
+  public void close() {
+    this.dataStore = null;
+    this.batchJobMetaData = null;
+    this.batchJobExecutionGroupMetaData = null;
+    this.batchJobResultMetaData = null;
+    this.businessApplicationStatisticsMetaData = null;
+    this.configPropertyMetaData = null;
+    this.userAccountMetaData = null;
+    this.userGroupMetaData = null;
+    this.userGroupAccountXrefMetaData = null;
+    this.userGroupPermissionMetaData = null;
   }
 
   public DataObject create(final String typeName) {
@@ -990,16 +1004,27 @@ public class CpfDataAccessObject {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public boolean setBatchJobResultsCreated(final long batchJobId,
-    final int numSubmittedRequests, final int groupSize, final int numGroups) {
+    final int numSubmittedRequests, final int numFailedRequests,
+    final int groupSize, final int numGroups) {
     final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
     final DataSource dataSource = jdbcDataStore.getDataSource();
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "NUM_SUBMITTED_REQUESTS = ?, GROUP_SIZE = ?, NUM_SUBMITTED_GROUPS = ?, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'requestsCreated', LAST_SCHEDULED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "NUM_SUBMITTED_REQUESTS = ?, "//
+      + "NUM_FAILED_REQUESTS = ?, "//
+      + "GROUP_SIZE = ?, "//
+      + "NUM_SUBMITTED_GROUPS = ?, "//
+      + "STRUCTURED_INPUT_DATA = NULL, "//
+      + "JOB_STATUS = 'requestsCreated', "//
+      + "LAST_SCHEDULED_TIMESTAMP = ?, "//
+      + "WHEN_STATUS_CHANGED = ?, "//
+      + "WHEN_UPDATED = ?, "//
+      + "WHO_UPDATED = ? "//
       + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       return JdbcUtils.executeUpdate(dataSource, sql, numSubmittedRequests,
-        groupSize, numGroups, now, now, now, getUsername(), batchJobId) == 1;
+        numFailedRequests, groupSize, numGroups, now, now, now, getUsername(),
+        batchJobId) == 1;
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
     }

@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -22,8 +21,6 @@ import com.revolsys.io.PathUtil;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 
 public class ClassLoaderModuleLoader implements ModuleLoader {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ClassLoaderModuleLoader.class);
 
   public static List<URL> getConfigUrls(final ClassLoader classLoader,
     final boolean useParentClassloader) {
@@ -37,7 +34,7 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
         }
       }
     } catch (final IOException e) {
-      LOG.error("Unable to get spring config URLs", e);
+      LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error("Unable to get spring config URLs", e);
     }
     return configUrls;
   }
@@ -106,11 +103,11 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
             modulesByName.put(moduleName, module);
             module.enable();
           } catch (final Throwable e) {
-            LOG.error("Unable to register module for " + configUrl, e);
+            LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error("Unable to register module for " + configUrl, e);
           }
         }
       } catch (final Throwable e) {
-        LOG.error("Unable to register modules", e);
+        LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error("Unable to register modules", e);
       }
     }
   }

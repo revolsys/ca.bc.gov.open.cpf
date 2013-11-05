@@ -15,8 +15,6 @@ import java.util.Map.Entry;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
@@ -38,8 +36,6 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
 
 public class BatchJobRequestExecutionGroupRunnable implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(BatchJobRequestExecutionGroupRunnable.class);
-
   private final Map<String, Object> groupIdMap;
 
   private final DigestHttpClient httpClient;

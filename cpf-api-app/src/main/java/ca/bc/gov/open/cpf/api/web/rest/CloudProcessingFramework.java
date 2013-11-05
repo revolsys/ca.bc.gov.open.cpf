@@ -3,7 +3,9 @@ package ca.bc.gov.open.cpf.api.web.rest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.Blob;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -96,6 +99,8 @@ import com.revolsys.ui.html.fields.BigDecimalField;
 import com.revolsys.ui.html.fields.BigIntegerField;
 import com.revolsys.ui.html.fields.ByteField;
 import com.revolsys.ui.html.fields.CheckBoxField;
+import com.revolsys.ui.html.fields.DateField;
+import com.revolsys.ui.html.fields.DateTimeField;
 import com.revolsys.ui.html.fields.DoubleField;
 import com.revolsys.ui.html.fields.EmailAddressField;
 import com.revolsys.ui.html.fields.Field;
@@ -108,6 +113,7 @@ import com.revolsys.ui.html.fields.ShortField;
 import com.revolsys.ui.html.fields.SubmitField;
 import com.revolsys.ui.html.fields.TextAreaField;
 import com.revolsys.ui.html.fields.TextField;
+import com.revolsys.ui.html.fields.TimestampField;
 import com.revolsys.ui.html.fields.UrlField;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.serializer.KeySerializerTableSerializer;
@@ -130,6 +136,7 @@ import com.revolsys.ui.web.rest.interceptor.MediaTypeUtil;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.ui.web.utils.MultipartFileResource;
 import com.revolsys.util.CaseConverter;
+import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
@@ -153,9 +160,6 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 @Controller
 public class CloudProcessingFramework {
-
-  private static final DateFormat DATETIME_FORMAT = DateFormat.getDateTimeInstance(
-    DateFormat.DEFAULT, DateFormat.SHORT);
 
   private static PageInfo addPage(final PageInfo parent, final Object path,
     final String title) {
@@ -218,24 +222,17 @@ public class CloudProcessingFramework {
     return permitted;
   }
 
-  /** The cloud job service used to interact with the database. */
-  @Resource(name = "batchJobService")
   private BatchJobService batchJobService;
 
-  @Resource(name = "/CPF/CPF_BATCH_JOBS-htmlbuilder")
   private BatchJobUiBuilder batchJobUiBuilder;
 
-  @Resource(name = "/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder")
   private BatchJobResultUiBuilder batchJobResultUiBuilder;
 
-  @Resource(
-      name = "ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder")
   private BusinessApplicationUiBuilder businessAppBuilder;
 
-  @Resource(name = "cpfDataAccessObject")
   private CpfDataAccessObject dataAccessObject;
 
-  private final Map<String, RawContent> rawContent = new HashMap<String, RawContent>();
+  private Map<String, RawContent> rawContent = new HashMap<String, RawContent>();
 
   /**
    * Construct a new CloudProcessingFramework.
@@ -267,7 +264,7 @@ public class CloudProcessingFramework {
     childPage.setAttribute("batchJobUrl", batchJobUrl);
     childPage.setAttribute("jobStatus", job.getValue(BatchJob.JOB_STATUS));
     childPage.setAttribute("creationTimestamp",
-      DATETIME_FORMAT.format(timestamp));
+      DateUtil.format(DateFormat.DEFAULT, DateFormat.SHORT, timestamp));
   }
 
   private void addFieldRow(final ElementContainer fields,
@@ -275,7 +272,10 @@ public class CloudProcessingFramework {
     final Field field = getField(attribute);
     final String name = attribute.getName();
     final String label = CaseConverter.toCapitalizedWords(name);
-    final String instructions = attribute.getDescription();
+    String instructions = attribute.getDescription();
+    if (!StringUtils.hasText(instructions)) {
+      instructions = field.getDefaultInstructions();
+    }
     final String labelUrl = attribute.getProperty("descriptionUrl");
     TableHeadingDecorator.addRow(fields, field, labelUrl, label, instructions);
   }
@@ -447,6 +447,17 @@ public class CloudProcessingFramework {
     if (!permitted) {
       throw new AccessDeniedException(accessDeniedMessage);
     }
+  }
+
+  @PreDestroy
+  public void close() {
+    this.batchJobService = null;
+    this.batchJobUiBuilder = null;
+
+    this.batchJobResultUiBuilder = null;
+    this.businessAppBuilder = null;
+    this.dataAccessObject = null;
+    this.rawContent = null;
   }
 
   private DataObject createBatchJob() {
@@ -2156,7 +2167,7 @@ public class CloudProcessingFramework {
     final Object defaultValue = attribute.getDefaultValue();
     Field field;
     if (allowedValues.isEmpty()) {
-      // TODO all data types
+      final Class<?> typeClass = dataType.getJavaClass();
       if (dataType.equals(DataTypes.BASE64_BINARY)) {
         field = new FileField(name, required);
       } else if (dataType.equals(DataTypes.LONG)) {
@@ -2179,14 +2190,25 @@ public class CloudProcessingFramework {
         field = new BigDecimalField(name, required, defaultValue);
       } else if (dataType.equals(DataTypes.ANY_URI)) {
         field = new UrlField(name, required, defaultValue);
+      } else if (Date.class.isAssignableFrom(typeClass)) {
+        field = new DateField(name, required, defaultValue);
+      } else if (Timestamp.class.isAssignableFrom(typeClass)) {
+        field = new TimestampField(name, required, defaultValue);
+      } else if (java.util.Date.class.isAssignableFrom(typeClass)) {
+        field = new DateTimeField(name, required, defaultValue);
       } else if (Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
-      } else {
+      } else if (URL.class.isAssignableFrom(dataType.getJavaClass())) {
+        field = new UrlField(name, required, defaultValue);
+      } else if (String.class.isAssignableFrom(typeClass)) {
         int length = attribute.getLength();
         if (length == -1) {
           length = 70;
         }
         field = new TextField(name, length, defaultValue, required);
+      } else {
+        throw new IllegalArgumentException("Values with class " + typeClass
+          + " are not supported");
       }
     } else {
       field = new SelectField(name, defaultValue, required, allowedValues);
@@ -3058,6 +3080,29 @@ public class CloudProcessingFramework {
     return null;
   }
 
+  @Resource(name = "/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder")
+  public void setBatchJobResultUiBuilder(
+    final BatchJobResultUiBuilder batchJobResultUiBuilder) {
+    this.batchJobResultUiBuilder = batchJobResultUiBuilder;
+  }
+
+  @Resource(name = "batchJobService")
+  public void setBatchJobService(final BatchJobService batchJobService) {
+    this.batchJobService = batchJobService;
+  }
+
+  @Resource(name = "/CPF/CPF_BATCH_JOBS-htmlbuilder")
+  public void setBatchJobUiBuilder(final BatchJobUiBuilder batchJobUiBuilder) {
+    this.batchJobUiBuilder = batchJobUiBuilder;
+  }
+
+  @Resource(
+      name = "ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder")
+  public void setBusinessAppBuilder(
+    final BusinessApplicationUiBuilder businessAppBuilder) {
+    this.businessAppBuilder = businessAppBuilder;
+  }
+
   private void setBusinessApplicationDescription(final PageInfo page,
     final BusinessApplication businessApplication, final String version) {
     String description = businessApplication.getDescription();
@@ -3077,6 +3122,11 @@ public class CloudProcessingFramework {
     page.setHtmlDescription(description);
     page.setAttribute("businessApplicationName", businessApplication.getName());
     page.setAttribute("businessApplicationVersion", version);
+  }
+
+  @Resource(name = "cpfDataAccessObject")
+  public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
+    this.dataAccessObject = dataAccessObject;
   }
 
 }

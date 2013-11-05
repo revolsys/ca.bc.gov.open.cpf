@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DailyRollingFileAppender extends Slf4jModuleLogAppender {
+  // method is synchronized so shared instance is fine
   private static final DateFormat DATE_FORMAT = new SimpleDateFormat(
     "yyyy-MM-dd");
 
@@ -41,12 +42,8 @@ public class DailyRollingFileAppender extends Slf4jModuleLogAppender {
   }
 
   @Override
-  public synchronized void log(
-    final String level,
-    final String moduleName,
-    final String category,
-    final String message,
-    final long durationInMillis,
+  public synchronized void log(final String level, final String moduleName,
+    final String category, final String message, final long durationInMillis,
     final Map<String, ? extends Object> data) {
     if (directory == null) {
       super.log(level, moduleName, category, message, durationInMillis, data);

@@ -146,6 +146,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response) throws IOException {
     final List<BusinessApplication> businessApplications = getBusinessApplications();
     final Map<String, Object> parameters = Collections.emptyMap();
+
     final ElementContainer table = createDataTable(request, "list", parameters,
       businessApplications);
 

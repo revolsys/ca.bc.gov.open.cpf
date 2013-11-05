@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +16,6 @@ import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
 
 public class UserAccountSecurityService {
-  private static final Logger LOG = LoggerFactory.getLogger(UserAccountSecurityService.class);
-
   private final List<GroupNameService> grantedAuthorityServices = new ArrayList<GroupNameService>();
 
   private CpfDataAccessObject dataAccessObject;
@@ -56,7 +53,7 @@ public class UserAccountSecurityService {
         }
       }
     } catch (final Throwable t) {
-      LOG.error(
+      LoggerFactory.getLogger(UserAccountSecurityService.class).error(
         "Unable to load authorities for user "
           + userAccount.getValue(UserAccount.CONSUMER_KEY), t);
     }

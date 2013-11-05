@@ -18,127 +18,100 @@ public final class ModuleLog {
 
   private static ModuleLogAppender appender;
 
-  public static void debug(
-    final String moduleName,
-    final String category,
-    final String message,
-    final long durationInMillis,
+  public static void close() {
+    if (appender != null) {
+      appender.close();
+      appender = null;
+    }
+  }
+
+  public static void debug(final String moduleName, final String category,
+    final String message, final long durationInMillis,
     final Map<String, ? extends Object> data) {
     final ModuleLogAppender appender = getAppender();
     appender.log(DEBUG, moduleName, category, message, durationInMillis, data);
   }
 
-  public static void debug(
-    final String moduleName,
-    final String category,
-    final String message,
-    final Map<String, ? extends Object> data) {
+  public static void debug(final String moduleName, final String category,
+    final String message, final Map<String, ? extends Object> data) {
     debug(moduleName, category, message, 0, data);
   }
 
-  public static void debug(
-    final String moduleName,
-    final String category,
-    final String message,
-    final StopWatch stopWatch,
+  public static void debug(final String moduleName, final String category,
+    final String message, final StopWatch stopWatch,
     final Map<String, ? extends Object> data) {
     try {
       if (stopWatch.isRunning()) {
         stopWatch.stop();
       }
-    } catch (IllegalStateException e) {
+    } catch (final IllegalStateException e) {
     }
     final long time = stopWatch.getTotalTimeMillis();
     debug(moduleName, category, message, time, data);
   }
 
-  public static void debugAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
-    final long durationInMillis,
+  public static void debugAfterCommit(final String moduleName,
+    final String category, final String message, final long durationInMillis,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "debug", moduleName,
       category, message, durationInMillis, data);
   }
 
-  public static void debugAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
+  public static void debugAfterCommit(final String moduleName,
+    final String category, final String message,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "debug", moduleName,
       category, message, data);
   }
 
-  public static void debugAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
-    final StopWatch stopWatch,
+  public static void debugAfterCommit(final String moduleName,
+    final String category, final String message, final StopWatch stopWatch,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "debug", moduleName,
       category, message, stopWatch, data);
   }
 
-  public static void error(
-    final String moduleName,
-    final String category,
-    final String message,
-    final long durationInMillis,
+  public static void error(final String moduleName, final String category,
+    final String message, final long durationInMillis,
     final Map<String, ? extends Object> data) {
     final ModuleLogAppender appender = getAppender();
     appender.log(ERROR, moduleName, category, message, durationInMillis, data);
   }
 
-  public static void error(
-    final String moduleName,
-    final String category,
-    final String message,
-    final Map<String, ? extends Object> data) {
+  public static void error(final String moduleName, final String category,
+    final String message, final Map<String, ? extends Object> data) {
     error(moduleName, category, message, 0, data);
   }
 
-  public static void error(
-    final String moduleName,
-    final String category,
-    final String message,
-    final StopWatch stopWatch,
+  public static void error(final String moduleName, final String category,
+    final String message, final StopWatch stopWatch,
     final Map<String, ? extends Object> data) {
     try {
       if (stopWatch.isRunning()) {
         stopWatch.stop();
       }
-    } catch (IllegalStateException e) {
+    } catch (final IllegalStateException e) {
     }
     final long time = stopWatch.getTotalTimeMillis();
     error(moduleName, category, message, time, data);
   }
 
-  public static void errorAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
-    final long durationInMillis,
+  public static void errorAfterCommit(final String moduleName,
+    final String category, final String message, final long durationInMillis,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "error", moduleName,
       category, message, durationInMillis, data);
   }
 
-  public static void errorAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
+  public static void errorAfterCommit(final String moduleName,
+    final String category, final String message,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "error", moduleName,
       category, message, data);
   }
 
-  public static void errorAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
-    final StopWatch stopWatch,
+  public static void errorAfterCommit(final String moduleName,
+    final String category, final String message, final StopWatch stopWatch,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "error", moduleName,
       category, message, stopWatch, data);
@@ -151,64 +124,47 @@ public final class ModuleLog {
     return appender;
   }
 
-  public static void info(
-    final String moduleName,
-    final String category,
-    final String message,
-    final long durationInMillis,
+  public static void info(final String moduleName, final String category,
+    final String message, final long durationInMillis,
     final Map<String, ? extends Object> data) {
     final ModuleLogAppender appender = getAppender();
     appender.log(INFO, moduleName, category, message, durationInMillis, data);
   }
 
-  public static void info(
-    final String moduleName,
-    final String category,
-    final String message,
-    final Map<String, ? extends Object> data) {
+  public static void info(final String moduleName, final String category,
+    final String message, final Map<String, ? extends Object> data) {
     info(moduleName, category, message, 0, data);
   }
 
-  public static void info(
-    final String moduleName,
-    final String category,
-    final String message,
-    final StopWatch stopWatch,
+  public static void info(final String moduleName, final String category,
+    final String message, final StopWatch stopWatch,
     final Map<String, ? extends Object> data) {
     try {
       if (stopWatch.isRunning()) {
         stopWatch.stop();
       }
-    } catch (IllegalStateException e) {
+    } catch (final IllegalStateException e) {
     }
     final long time = stopWatch.getTotalTimeMillis();
     info(moduleName, category, message, time, data);
   }
 
-  public static void infoAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
-    final long durationInMillis,
+  public static void infoAfterCommit(final String moduleName,
+    final String category, final String message, final long durationInMillis,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "info", moduleName,
       category, message, durationInMillis, data);
   }
 
-  public static void infoAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
+  public static void infoAfterCommit(final String moduleName,
+    final String category, final String message,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "info", moduleName,
       category, message, data);
   }
 
-  public static void infoAfterCommit(
-    final String moduleName,
-    final String category,
-    final String message,
-    final StopWatch stopWatch,
+  public static void infoAfterCommit(final String moduleName,
+    final String category, final String message, final StopWatch stopWatch,
     final Map<String, ? extends Object> data) {
     InvokeMethodAfterCommit.invoke(ModuleLog.class, "info", moduleName,
       category, message, stopWatch, data);

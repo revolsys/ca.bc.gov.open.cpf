@@ -1,8 +1,5 @@
 package ca.bc.gov.open.cpf.api.scheduler;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -14,6 +11,7 @@ import java.util.TreeMap;
 
 import org.springframework.util.StopWatch;
 
+import com.revolsys.util.DateUtil;
 import com.revolsys.util.JavaBeanUtil;
 
 public class BusinessApplicationStatistics {
@@ -23,27 +21,17 @@ public class BusinessApplicationStatistics {
 
   public static final String DAY = "day";
 
-  private static final DateFormat DAY_FORMAT = new SimpleDateFormat(
-    "yyyy-MM-dd");
-
   public static final String DURATION_TYPE = "DURATION_TYPE";
 
   public static final String HOUR = "hour";
 
-  private static final DateFormat HOUR_FORMAT = new SimpleDateFormat(
-    "yyyy-MM-dd-HH");
-
   public static final String MONTH = "month";
-
-  private static final DateFormat MONTH_FORMAT = new SimpleDateFormat("yyyy-MM");
 
   public static final String START_TIMESTAMP = "START_TIMESTAMP";
 
   public static final String STATISTIC_VALUES = "STATISTIC_VALUES";
 
   public static final String YEAR = "year";
-
-  private static final DateFormat YEAR_FORMAT = new SimpleDateFormat("yyyy");
 
   public static final List<String> DURATION_TYPES = Arrays.asList(HOUR, DAY,
     MONTH, YEAR);
@@ -75,18 +63,18 @@ public class BusinessApplicationStatistics {
   }
 
   public static String getId(final String durationType, final Date date) {
-    DateFormat dateFormat;
+    String pattern;
     if (durationType.equals(HOUR)) {
-      dateFormat = HOUR_FORMAT;
+      pattern = "yyyy-MM-dd-HH";
     } else {
       if (durationType.equals(DAY)) {
-        dateFormat = DAY_FORMAT;
+        pattern = "yyyy-MM-dd";
       } else {
         if (durationType.equals(MONTH)) {
-          dateFormat = MONTH_FORMAT;
+          pattern = "yyyy-MM";
         } else {
           if (durationType.equals(YEAR)) {
-            dateFormat = YEAR_FORMAT;
+            pattern = "yyyy";
           } else {
             throw new IllegalArgumentException("Invalid duration type : "
               + durationType);
@@ -94,7 +82,7 @@ public class BusinessApplicationStatistics {
         }
       }
     }
-    return dateFormat.format(date);
+    return DateUtil.format(pattern, date);
   }
 
   private long applicationExecutedFailedRequestsCount;
@@ -105,7 +93,7 @@ public class BusinessApplicationStatistics {
 
   private long applicationExecutedTime;
 
-  private String businessApplicationName;
+  private final String businessApplicationName;
 
   private Integer databaseId;
 
@@ -159,7 +147,7 @@ public class BusinessApplicationStatistics {
 
   private long submittedJobsTime;
 
-  private String dateString;
+  private final String dateString;
 
   private boolean modified;
 
@@ -167,22 +155,22 @@ public class BusinessApplicationStatistics {
     final String id) {
     String durationType;
     final String dateString = id;
-    DateFormat dateFormat;
+    String pattern;
     final int length = id.length();
     if (length == 13) {
-      dateFormat = HOUR_FORMAT;
+      pattern = "yyyy-MM-dd-HH";
       durationType = HOUR;
     } else {
       if (length == 10) {
-        dateFormat = DAY_FORMAT;
+        pattern = "yyyy-MM-dd";
         durationType = DAY;
       } else {
         if (length == 7) {
-          dateFormat = MONTH_FORMAT;
+          pattern = "yyyy-MM";
           durationType = MONTH;
         } else {
           if (length == 4) {
-            dateFormat = YEAR_FORMAT;
+            pattern = "yyyy";
             durationType = YEAR;
           } else {
             throw new IllegalArgumentException("Invalid ID : " + id);
@@ -190,51 +178,46 @@ public class BusinessApplicationStatistics {
         }
       }
     }
-    try {
-      final Date startTime = dateFormat.parse(dateString);
-      this.businessApplicationName = businessApplicationName;
-      this.durationType = durationType;
-      final Calendar calendar = new GregorianCalendar();
-      calendar.setTime(startTime);
-      calendar.set(Calendar.MINUTE, 0);
-      calendar.set(Calendar.SECOND, 0);
-      calendar.set(Calendar.MILLISECOND, 0);
-      int incrementField;
-      DateFormat dateFormat1;
-      if (durationType.equals(HOUR)) {
-        incrementField = Calendar.HOUR;
-        dateFormat1 = HOUR_FORMAT;
+    final Date startTime = DateUtil.parse(pattern, dateString);
+    this.businessApplicationName = businessApplicationName;
+    this.durationType = durationType;
+    final Calendar calendar = new GregorianCalendar();
+    calendar.setTime(startTime);
+    calendar.set(Calendar.MINUTE, 0);
+    calendar.set(Calendar.SECOND, 0);
+    calendar.set(Calendar.MILLISECOND, 0);
+    int incrementField;
+    if (durationType.equals(HOUR)) {
+      incrementField = Calendar.HOUR;
+      pattern = "yyyy-MM-dd-HH";
+    } else {
+      calendar.set(Calendar.HOUR, 1);
+      if (durationType.equals(DAY)) {
+        incrementField = Calendar.DAY_OF_MONTH;
+        pattern = "yyyy-MM-dd";
       } else {
-        calendar.set(Calendar.HOUR, 1);
-        if (durationType.equals(DAY)) {
-          incrementField = Calendar.DAY_OF_MONTH;
-          dateFormat1 = DAY_FORMAT;
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        if (durationType.equals(MONTH)) {
+          incrementField = Calendar.MONTH;
+          pattern = "yyyy-MM";
         } else {
-          calendar.set(Calendar.DAY_OF_MONTH, 1);
-          if (durationType.equals(MONTH)) {
-            incrementField = Calendar.MONTH;
-            dateFormat1 = MONTH_FORMAT;
+          calendar.set(Calendar.MONTH, 1);
+          if (durationType.equals(YEAR)) {
+            incrementField = Calendar.YEAR;
+            pattern = "yyyy";
           } else {
-            calendar.set(Calendar.MONTH, 1);
-            if (durationType.equals(YEAR)) {
-              incrementField = Calendar.YEAR;
-              dateFormat1 = YEAR_FORMAT;
-            } else {
-              throw new IllegalArgumentException("Invalid duration type : "
-                + durationType);
-            }
+            throw new IllegalArgumentException("Invalid duration type : "
+              + durationType);
           }
         }
       }
-      this.startTime = calendar.getTime();
-      calendar.add(incrementField, 1);
-      this.endTime = calendar.getTime();
-      this.dateString = dateFormat1.format(startTime);
-      this.id = dateString;
-      this.modified = false;
-    } catch (final ParseException e) {
-      throw new IllegalArgumentException("Invalid date: " + dateString, e);
     }
+    this.startTime = calendar.getTime();
+    calendar.add(incrementField, 1);
+    this.endTime = calendar.getTime();
+    this.dateString = DateUtil.format(pattern, startTime);
+    this.id = dateString;
+    this.modified = false;
   }
 
   public long addStatistic(final String statisticName, final Long value) {

@@ -192,7 +192,7 @@
     <module>cpf-war-worker</module>
     <module>cpf-archetype-plugin</module>
     <module>cpf-archetype-web</module>
-
+    <module>cpf-plugin-test</module>
   </modules>
 
   <profiles>

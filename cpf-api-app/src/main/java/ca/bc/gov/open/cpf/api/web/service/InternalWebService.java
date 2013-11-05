@@ -14,12 +14,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
@@ -56,8 +56,6 @@ import com.revolsys.util.UrlUtil;
 
 @Controller
 public class InternalWebService {
-  private static final Logger LOG = LoggerFactory.getLogger(InternalWebService.class);
-
   private BatchJobService batchJobService;
 
   private ConfigPropertyLoader configPropertyLoader;
@@ -81,6 +79,69 @@ public class InternalWebService {
   private void checkRunning() {
     if (!batchJobService.isRunning()) {
       throw new IllegalStateException("Application is not running");
+    }
+  }
+
+  @PreDestroy
+  public void close() {
+    batchJobService = null;
+    configPropertyLoader = null;
+    dataAccessObject = null;
+  }
+
+  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{batchJobExecutionGroupIds}/inputData")
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void getBatchJobExecutionGroupOpaqueInputData(
+    @PathVariable("workerId") final String workerId,
+    final HttpServletResponse response, @PathVariable final long batchJobId,
+    @PathVariable final long batchJobExecutionGroupId)
+    throws NoSuchRequestHandlingMethodException {
+    checkRunning();
+    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
+    if (batchJobExecutionGroup == null) {
+      throw new NoSuchRequestHandlingMethodException(
+        HttpServletUtils.getRequest());
+    } else {
+      final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+      final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+      final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
+      if (businessApplication == null
+        || !businessApplication.isPerRequestInputData()) {
+        throw new NoSuchRequestHandlingMethodException(
+          HttpServletUtils.getRequest());
+      } else {
+        final String inputDataContentType = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE);
+        final String inputDataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_URL);
+        if (inputDataUrl != null) {
+          response.setStatus(HttpServletResponse.SC_SEE_OTHER);
+          response.setHeader("Location", inputDataUrl);
+          return;
+        } else {
+          final Blob inputData = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA);
+          if (inputData == null) {
+            throw new NoSuchRequestHandlingMethodException(
+              HttpServletUtils.getRequest());
+          } else {
+            try {
+              response.setContentType(inputDataContentType);
+              final InputStream in = inputData.getBinaryStream();
+              final OutputStream out = response.getOutputStream();
+              FileUtil.copy(in, out);
+              return;
+            } catch (final SQLException e) {
+              LoggerFactory.getLogger(InternalWebService.class).error(
+                "Unable to load data from database", e);
+              throw new HttpMessageNotWritableException(
+                "Unable to load data from database", e);
+            } catch (final IOException e) {
+              LoggerFactory.getLogger(InternalWebService.class).error(
+                "Unable to write blob to request", e);
+              throw new HttpMessageNotWritableException(
+                "Unable to write blob to request", e);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -126,12 +187,13 @@ public class InternalWebService {
         }
 
         final Long batchJobExecutionGroupId = group.getBatchJobExecutionGroupId();
-        DataObject jobRequest = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
+        final DataObject jobRequest = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
         if (businessApplication.isPerRequestInputData()) {
           final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
           groupSpecification.put("requests", requestParameterList);
           final Map<String, Object> requestParameters = new HashMap<String, Object>();
-          requestParameters.put("batchJobExecutionGroupId", batchJobExecutionGroupId);
+          requestParameters.put("batchJobExecutionGroupId",
+            batchJobExecutionGroupId);
           requestParameters.put("inputDataContentType",
             jobRequest.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE));
           requestParameterList.add(requestParameters);
@@ -142,60 +204,6 @@ public class InternalWebService {
         }
       }
       return groupSpecification;
-    }
-  }
-
-  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{batchJobExecutionGroupIds}/inputData")
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void getBatchJobExecutionGroupOpaqueInputData(
-    @PathVariable("workerId") final String workerId,
-    final HttpServletResponse response, @PathVariable final long batchJobId,
-    @PathVariable final long batchJobExecutionGroupId)
-    throws NoSuchRequestHandlingMethodException {
-    checkRunning();
-    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
-    if (batchJobExecutionGroup == null) {
-      throw new NoSuchRequestHandlingMethodException(
-        HttpServletUtils.getRequest());
-    } else {
-      final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
-      final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
-      if (businessApplication == null
-        || !businessApplication.isPerRequestInputData()) {
-        throw new NoSuchRequestHandlingMethodException(
-          HttpServletUtils.getRequest());
-      } else {
-        final String inputDataContentType = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE);
-        final String inputDataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_URL);
-        if (inputDataUrl != null) {
-          response.setStatus(HttpServletResponse.SC_SEE_OTHER);
-          response.setHeader("Location", inputDataUrl);
-          return;
-        } else {
-          final Blob inputData = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA);
-          if (inputData == null) {
-            throw new NoSuchRequestHandlingMethodException(
-              HttpServletUtils.getRequest());
-          } else {
-            try {
-              response.setContentType(inputDataContentType);
-              final InputStream in = inputData.getBinaryStream();
-              final OutputStream out = response.getOutputStream();
-              FileUtil.copy(in, out);
-              return;
-            } catch (final SQLException e) {
-              LOG.error("Unable to load data from database", e);
-              throw new HttpMessageNotWritableException(
-                "Unable to load data from database", e);
-            } catch (final IOException e) {
-              LOG.error("Unable to write blob to request", e);
-              throw new HttpMessageNotWritableException(
-                "Unable to write blob to request", e);
-            }
-          }
-        }
-      }
     }
   }
 
@@ -310,27 +318,6 @@ public class InternalWebService {
     return webServiceUrl;
   }
 
-  @RequestMapping(
-      value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/results",
-      method = RequestMethod.POST)
-  @ResponseBody
-  public Map<String, ? extends Object> postBatchJobRequestExecutionGroupResults(
-    @PathVariable("workerId") final String workerId,
-    @PathVariable("batchJobId") final String batchJobId,
-    @PathVariable("groupId") final String groupId,
-    @RequestBody final Map<String, Object> results)
-    throws NoSuchRequestHandlingMethodException {
-    checkRunning();
-    batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
-    
-    final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-      "ExecutionGroupResultsConfirmation");
-    map.put("workerId", workerId);
-    map.put("batchJobId", batchJobId);
-    map.put("groupId", groupId);
-    return map;
-  }
-
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestSequenceNumber}/resultData")
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -380,6 +367,27 @@ public class InternalWebService {
 
   }
 
+  @RequestMapping(
+      value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/results",
+      method = RequestMethod.POST)
+  @ResponseBody
+  public Map<String, ? extends Object> postBatchJobRequestExecutionGroupResults(
+    @PathVariable("workerId") final String workerId,
+    @PathVariable("batchJobId") final String batchJobId,
+    @PathVariable("groupId") final String groupId,
+    @RequestBody final Map<String, Object> results)
+    throws NoSuchRequestHandlingMethodException {
+    checkRunning();
+    batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
+
+    final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
+      "ExecutionGroupResultsConfirmation");
+    map.put("workerId", workerId);
+    map.put("batchJobId", batchJobId);
+    map.put("groupId", groupId);
+    return map;
+  }
+
   @RequestMapping(value = "/worker/workers/{workerId}/jobs/groups/nextId",
       method = RequestMethod.POST)
   @ResponseBody
@@ -394,7 +402,8 @@ public class InternalWebService {
         workerId, moduleNames);
       return response;
     } catch (final Throwable e) {
-      LOG.error(e.getMessage(), e);
+      LoggerFactory.getLogger(InternalWebService.class)
+        .error(e.getMessage(), e);
       throw new HttpMessageNotWritableException(
         "Unable to get execution group id", e);
     } finally {
@@ -441,7 +450,8 @@ public class InternalWebService {
         }
         return response;
       } catch (final Throwable e) {
-        LOG.error(e.getMessage(), e);
+        LoggerFactory.getLogger(InternalWebService.class).error(e.getMessage(),
+          e);
         throw new HttpMessageNotWritableException("Unable to process message",
           e);
       }

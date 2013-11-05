@@ -14,7 +14,6 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,8 +44,6 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   private static final String DELETE = "delete";
 
   private static final String ENABLED = "enabled";
-
-  private static final Logger LOG = LoggerFactory.getLogger(ConfigPropertyModuleLoader.class);
 
   private static final String MAVEN_MODULE_ID = "mavenModuleId";
 
@@ -259,7 +256,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       }
     } catch (final Throwable e) {
       if (module == null) {
-        LOG.error("Unable to load module " + moduleName, e);
+        LoggerFactory.getLogger(ConfigPropertyModuleLoader.class).error("Unable to load module " + moduleName, e);
       } else {
         module.addModuleError(e);
       }

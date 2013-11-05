@@ -721,7 +721,7 @@ public class CpfClient {
       httpClientPool.releaseClient(httpClient);
     }
   }
-  
+
   /**
    * <p>Get the specification of the instant execution service for a business application
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant">Get Business Applications Instant</a> REST API.</p>
@@ -935,7 +935,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Column</th>
+   *         <th>Field Name</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>
@@ -1052,7 +1052,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Column</th>
+   *         <th>Field Name</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>
@@ -1173,7 +1173,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Column</th>
+   *         <th>Field Name</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>
@@ -1409,7 +1409,7 @@ public class CpfClient {
    *   <table>
    *     <thead>
    *       <tr>
-   *         <th>Field Column</th>
+   *         <th>Field Name</th>
    *         <th>Description</th>
    *     </thead>
    *     <tbody>

@@ -1,8 +1,6 @@
 package ca.bc.gov.open.cpf.plugin.api.log;
 
 import java.io.StringWriter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -16,6 +14,7 @@ import org.springframework.util.StringUtils;
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 
 import com.revolsys.io.csv.CsvMapWriter;
+import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
 
 /**
@@ -37,10 +36,6 @@ public void setAppLog(final AppLog appLog) {
  *
  */
 public class AppLog {
-  /** The date format for the log records. */
-  private static final DateFormat DATE_FORMAT = new SimpleDateFormat(
-    "yyyy-MM-dd'T'HH:mm:ss.SSS");
-
   /**
    * <p>Create a log record.</p>
    * 
@@ -50,7 +45,8 @@ public class AppLog {
    */
   public static Map<String, String> createLogRecord(final String logLevel,
     final String message) {
-    final String date = DATE_FORMAT.format(new Date(System.currentTimeMillis()));
+    final String date = DateUtil.format("yyyy-MM-dd'T'HH:mm:ss.SSS", new Date(
+      System.currentTimeMillis()));
     final Map<String, String> logRecord = new LinkedHashMap<String, String>();
     logRecord.put("date", date);
     logRecord.put("level", logLevel);
@@ -64,21 +60,10 @@ public class AppLog {
   /** The log records. */
   private final List<Map<String, String>> logRecords = new ArrayList<Map<String, String>>();
 
-  private Logger log;
+  private final Logger log;
 
-  /**
-   * <p>Construct a new AppLog with the logLevel ERROR.</p>
-   */
-  public AppLog() {
-  }
-
-  /**
-   * <p>Construct a new AppLog with the logLevel.</p>
-   * 
-   * @param logLevel The logging level (ERROR, INFO, DEBUG).
-   */
-  public AppLog(final String logLevel) {
-    setLogLevel(logLevel);
+  public AppLog(final String moduleName) {
+    this.log = LoggerFactory.getLogger(moduleName);
   }
 
   public AppLog(final String businessApplicationName, String groupId,

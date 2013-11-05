@@ -15,7 +15,6 @@ import java.util.TreeMap;
 
 import javax.annotation.PreDestroy;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -52,8 +51,6 @@ public final class BusinessApplicationRegistry implements
   private File logDirectory;
 
   private File appLogDirectory;
-
-  private static final Logger LOG = LoggerFactory.getLogger(BusinessApplicationRegistry.class);
 
   private Channel<Map<String, Object>> moduleControlChannel = new Channel<Map<String, Object>>(
     "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
@@ -122,6 +119,8 @@ public final class BusinessApplicationRegistry implements
       moduleControlThread.stop();
       moduleControlThread = null;
     }
+    configPropertyLoader = null;
+
     listeners.clear();
     moduleLoaders.clear();
     modulesByName.clear();
@@ -333,7 +332,8 @@ public final class BusinessApplicationRegistry implements
       try {
         listener.moduleChanged(event);
       } catch (final Throwable t) {
-        LOG.error("Error invoking listener", t);
+        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
+          "Error invoking listener", t);
       }
     }
   }
@@ -395,12 +395,14 @@ public final class BusinessApplicationRegistry implements
             logDirectory);
           ModuleLog.setAppender(appender);
         } else {
-          LOG.error("Unable to write to log directory " + logDirectory);
+          LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
+            "Unable to write to log directory " + logDirectory);
           this.logDirectory = null;
           ModuleLog.setAppender(new Slf4jModuleLogAppender());
         }
       } else {
-        LOG.error("Unable to read log directory " + logDirectory);
+        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
+          "Unable to read log directory " + logDirectory);
         this.logDirectory = null;
         ModuleLog.setAppender(new Slf4jModuleLogAppender());
       }
@@ -408,7 +410,8 @@ public final class BusinessApplicationRegistry implements
       if (logDirectory.mkdirs()) {
         this.logDirectory = logDirectory;
       } else {
-        LOG.error("Unable to create log directory " + logDirectory);
+        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
+          "Unable to create log directory " + logDirectory);
         this.logDirectory = null;
         ModuleLog.setAppender(new Slf4jModuleLogAppender());
       }
@@ -444,7 +447,8 @@ public final class BusinessApplicationRegistry implements
   }
 
   public synchronized void unloadModule(final Module module) {
-    LOG.debug("Unloading module " + module.toString());
+    LoggerFactory.getLogger(BusinessApplicationRegistry.class).debug(
+      "Unloading module " + module.toString());
     clearModuleToAppCache();
     final String moduleName = module.getName();
     if (module == modulesByName.get(moduleName)) {

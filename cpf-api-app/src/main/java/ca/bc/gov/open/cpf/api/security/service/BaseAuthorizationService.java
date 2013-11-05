@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Required;
@@ -55,6 +56,12 @@ public class BaseAuthorizationService implements AuthorizationService {
     final String consumerKey, final String actionName) {
     return canAccessResource(moduleName, consumerKey, ResourcePermission.ALL,
       ResourcePermission.ALL, ResourcePermission.ALL);
+  }
+
+  @PreDestroy
+  public void close() {
+    dataAccessObject = null;
+    userAccountSecurityService = null;
   }
 
   public UserAccountSecurityService getUserAccountSecurityService() {

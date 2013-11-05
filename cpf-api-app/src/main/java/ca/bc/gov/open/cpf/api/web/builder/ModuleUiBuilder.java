@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import javax.annotation.PreDestroy;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -70,6 +71,14 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     setIdPropertyName("name");
   }
 
+  @Override
+  @PreDestroy
+  public void close() {
+    super.close();
+    mavenRepository = null;
+    moduleLoader = null;
+  }
+
   @RequestMapping(value = {
     "/admin/modules/add"
   }, method = {
@@ -87,7 +96,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     final ElementContainer fields = new ElementContainer(new TableBody());
 
     final TextField moduleNameField = new TextField("moduleName", 30, true);
-    TableHeadingDecorator.addRow(fields, moduleNameField, "Module Column", null);
+    TableHeadingDecorator.addRow(fields, moduleNameField, "Module Name", null);
 
     final TextField mavenModuleIdField = new TextField("mavenModuleId", 70,
       true);
@@ -107,10 +116,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
             boolean valid = true;
             for (final Module module : getBusinessApplicationRegistry().getModules()) {
               if (moduleName.equalsIgnoreCase(module.getName())) {
-                moduleNameField.addValidationError("Module Column is already used");
+                moduleNameField.addValidationError("Module Name is already used");
                 valid = false;
               } else if (Module.RESERVED_MODULE_NAMES.contains(moduleName)) {
-                mavenModuleIdField.addValidationError("Module Column is a reserved word");
+                mavenModuleIdField.addValidationError("Module Name is a reserved word");
                 valid = false;
               }
 

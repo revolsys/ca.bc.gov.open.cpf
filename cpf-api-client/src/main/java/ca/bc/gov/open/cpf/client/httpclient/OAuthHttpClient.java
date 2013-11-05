@@ -44,7 +44,6 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.revolsys.io.IoFactoryRegistry;
@@ -58,8 +57,6 @@ import com.revolsys.util.UrlUtil;
 
 @SuppressWarnings("javadoc")
 public class OAuthHttpClient extends DefaultHttpClient {
-  private static final Logger LOG = LoggerFactory.getLogger(OAuthHttpClient.class);
-
   private String webServiceUrl;
 
   private final String consumerKey;
@@ -132,13 +129,13 @@ public class OAuthHttpClient extends DefaultHttpClient {
   protected IOException createException(
     final HttpEntity entity,
     final StatusLine statusLine) {
-    if (LOG.isDebugEnabled()) {
+    if (LoggerFactory.getLogger(OAuthHttpClient.class).isDebugEnabled()) {
       try {
         final String errorBody = EntityUtils.toString(entity);
-        LOG.debug("Unable to get message from server: " + statusLine + "\n"
+        LoggerFactory.getLogger(OAuthHttpClient.class).debug("Unable to get message from server: " + statusLine + "\n"
           + errorBody);
       } catch (final Throwable e) {
-        LOG.error("Unable to get error message server: " + statusLine + "\n");
+        LoggerFactory.getLogger(OAuthHttpClient.class).error("Unable to get error message server: " + statusLine + "\n");
       }
     }
     return new IOException("Unable to get message from server: " + statusLine);

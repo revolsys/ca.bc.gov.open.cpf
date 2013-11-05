@@ -85,7 +85,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
         consumerKeyField, "add", "Add");
       final FieldLabelDecorator usernameLabel = new FieldLabelDecorator(
         "Username");
-      usernameLabel.setInstructions("Search for a user by typing 3 or more consecutive characters from any part of the Consumer Key or User Account Column. The matching users will be displayed in a pop-up list. Select the required user and click the Add button.");
+      usernameLabel.setInstructions("Search for a user by typing 3 or more consecutive characters from any part of the Consumer Key or User Account Name. The matching users will be displayed in a pop-up list. Select the required user and click the Add button.");
       submitField.setDecorator(usernameLabel);
 
       final TableRow row = new TableRow();

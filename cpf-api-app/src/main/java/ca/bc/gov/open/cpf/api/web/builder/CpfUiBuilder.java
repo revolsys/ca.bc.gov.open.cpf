@@ -3,6 +3,7 @@ package ca.bc.gov.open.cpf.api.web.builder;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -49,6 +50,13 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
   public CpfUiBuilder(final String typePath, final String tableName,
     final String idPropertyName, final String title, final String pluralTitle) {
     super(typePath, tableName, idPropertyName, title, pluralTitle);
+  }
+
+  @PreDestroy
+  public void close() {
+    batchJobService = null;
+    businessApplicationRegistry = null;
+    cpfDataAccessObject = null;
   }
 
   public DataObject getBatchJob(final String businessApplicationName,

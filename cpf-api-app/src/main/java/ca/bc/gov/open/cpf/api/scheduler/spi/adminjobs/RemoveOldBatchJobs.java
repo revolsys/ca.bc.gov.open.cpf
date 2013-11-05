@@ -21,7 +21,6 @@
 package ca.bc.gov.open.cpf.api.scheduler.spi.adminjobs;
 
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -29,20 +28,19 @@ import java.util.TimeZone;
 
 import javax.annotation.Resource;
 
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
+import com.revolsys.util.DateUtil;
+
 /**
  * Periodically delete Batch Jobs older than the specified number of days, along
  * with all the Batch Jobs associated request and result data.
  */
 public class RemoveOldBatchJobs {
-
-  private static final Logger LOG = LoggerFactory.getLogger(RemoveOldBatchJobs.class);
 
   private CpfDataAccessObject dataAccessObject;
 
@@ -52,7 +50,6 @@ public class RemoveOldBatchJobs {
   @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
   public void removeOldJobs() {
 
-    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
     final int dayInMilliseconds = 1000 * 60 * 60 * 24;
 
     final Calendar cal = new GregorianCalendar(); // local time
@@ -73,13 +70,13 @@ public class RemoveOldBatchJobs {
         dataAccessObject.deleteBatchJob(batchJobId);
         numberJobsDeleted++;
       } catch (final Throwable t) {
-        LOG.error("Unable to delete Batch Job " + batchJobId, t);
+        LoggerFactory.getLogger(RemoveOldBatchJobs.class).error("Unable to delete Batch Job " + batchJobId, t);
       }
     }
 
     if (numberJobsDeleted > 0) {
-      LOG.info(numberJobsDeleted + " old batch jobs deleted for jobs prior to "
-        + sdf.format(cal.getTime()));
+      LoggerFactory.getLogger(RemoveOldBatchJobs.class).info(numberJobsDeleted + " old batch jobs deleted for jobs prior to "
+        + DateUtil.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
     }
   }
 

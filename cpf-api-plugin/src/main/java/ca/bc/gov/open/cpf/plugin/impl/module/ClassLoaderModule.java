@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +28,6 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.rolling.FixedWindowRollingPolicy;
 import org.apache.log4j.rolling.RollingFileAppender;
 import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
@@ -79,6 +77,7 @@ import com.revolsys.io.MapReaderFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
 import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
@@ -86,8 +85,6 @@ import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class ClassLoaderModule implements Module {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ClassLoaderModule.class);
 
   @SuppressWarnings("unchecked")
   private static final Class<? extends Annotation>[] STANDARD_METHOD_EXCLUDE_ANNOTATIONS = ArrayUtil.create(
@@ -181,7 +178,7 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public void addModuleError(final String moduleError) {
-    LOG.error("Unable to initialize module: " + this + ": " + moduleError);
+    LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to initialize module: " + this + ": " + moduleError);
     if (StringUtils.hasText(this.moduleError)) {
       this.moduleError += '\n' + moduleError;
     } else {
@@ -191,7 +188,7 @@ public class ClassLoaderModule implements Module {
   }
 
   public void addModuleError(final String message, final Throwable e) {
-    LOG.error("Unable to initialize module: " + this + ": " + message, e);
+    LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to initialize module: " + this + ": " + message, e);
     final String trace = message + '\n' + ExceptionUtil.toString(e);
     if (StringUtils.hasText(this.moduleError)) {
       this.moduleError += '\n' + trace;
@@ -202,7 +199,7 @@ public class ClassLoaderModule implements Module {
   }
 
   public void addModuleError(final Throwable e) {
-    LOG.error("Unable to initialize module: " + this, e);
+    LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to initialize module: " + this, e);
     final String trace = ExceptionUtil.toString(e);
     if (StringUtils.hasText(this.moduleError)) {
       this.moduleError += '\n' + trace;
@@ -300,7 +297,7 @@ public class ClassLoaderModule implements Module {
         preLoadApplications();
         if (!hasError()) {
           for (final String businessApplicationName : getBusinessApplicationNames()) {
-            LOG.info("Found business application " + businessApplicationName
+            LoggerFactory.getLogger(ClassLoaderModule.class).info("Found business application " + businessApplicationName
               + " from " + configUrl);
           }
           loadBusinessApplications();
@@ -723,7 +720,7 @@ public class ClassLoaderModule implements Module {
     final GeometryConfiguration geometryConfiguration) {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
-      LOG.warn(message + " srid must be >= 0");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " srid must be >= 0");
       srid = geometryFactory.getSRID();
     } else if (srid == 0) {
       srid = geometryFactory.getSRID();
@@ -732,24 +729,24 @@ public class ClassLoaderModule implements Module {
     if (numAxis == 0) {
       numAxis = geometryFactory.getNumAxis();
     } else if (numAxis < 2) {
-      LOG.warn(message + " numAxis must be >= 2");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " numAxis must be >= 2");
       numAxis = 2;
     } else if (numAxis > 3) {
-      LOG.warn(message + " numAxis must be <= 3");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " numAxis must be <= 3");
       numAxis = 3;
     }
     double scaleXy = geometryConfiguration.scaleFactorXy();
     if (scaleXy == 0) {
       scaleXy = geometryFactory.getScaleXY();
     } else if (scaleXy < 0) {
-      LOG.warn(message + " scaleXy must be >= 0");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " scaleXy must be >= 0");
       scaleXy = geometryFactory.getScaleXY();
     }
     double scaleZ = geometryConfiguration.scaleFactorZ();
     if (scaleXy == 0) {
       scaleXy = geometryFactory.getScaleZ();
     } else if (scaleZ < 0) {
-      LOG.warn(message + " scaleZ must be >= 0");
+      LoggerFactory.getLogger(ClassLoaderModule.class).warn(message + " scaleZ must be >= 0");
       scaleZ = geometryFactory.getScaleZ();
     }
     return GeometryFactory.getFactory(srid, numAxis, scaleXy, scaleZ);
@@ -866,16 +863,16 @@ public class ClassLoaderModule implements Module {
           businessApplicationName);
         appLogDirectory.mkdirs();
 
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(
-          "yyyyMMdd-HHmmssS");
-        final String activeFileName = FileUtil.getFile(appLogDirectory,
-          businessApplicationName + "-" + dateFormat.format(date) + ".log")
-          .toString();
+        final String activeFileName = FileUtil.getFile(
+          appLogDirectory,
+          businessApplicationName + "-"
+            + DateUtil.format("yyyyMMdd-HHmmssS", date) + ".log").toString();
         final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
         rollingPolicy.setActiveFileName(activeFileName);
-        final String fileNamePattern = FileUtil.getFile(appLogDirectory,
-          businessApplicationName + "-" + dateFormat.format(date) + ".%i.log")
-          .toString();
+        final String fileNamePattern = FileUtil.getFile(
+          appLogDirectory,
+          businessApplicationName + "-"
+            + DateUtil.format("yyyyMMdd-HHmmssS", date) + ".%i.log").toString();
         rollingPolicy.setFileNamePattern(fileNamePattern);
 
         final RollingFileAppender appender = new RollingFileAppender();
@@ -963,7 +960,7 @@ public class ClassLoaderModule implements Module {
   public void loadApplications() {
     if (isStarted() && !isApplicationsLoaded()) {
 
-      LOG.debug("Loading spring config file " + configUrl);
+      LoggerFactory.getLogger(ClassLoaderModule.class).debug("Loading spring config file " + configUrl);
       try {
         final ClassLoader classLoader = getClassLoader();
         applicationContext = new GenericApplicationContext();
@@ -1012,7 +1009,7 @@ public class ClassLoaderModule implements Module {
     try {
       if (isEnabled()) {
         final ClassLoader classLoader = getClassLoader();
-        LOG.info("Loading plugin " + pluginClassName);
+        LoggerFactory.getLogger(ClassLoaderModule.class).info("Loading plugin " + pluginClassName);
         final Class<?> pluginClass = Class.forName(pluginClassName.trim(),
           true, classLoader);
         final BusinessApplication businessApplication = getBusinessApplicaton(
@@ -1035,7 +1032,7 @@ public class ClassLoaderModule implements Module {
     final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<BusinessApplication, String>();
     moduleError = null;
     final Map<String, BusinessApplication> businessApplicationsByName = new HashMap<String, BusinessApplication>();
-    LOG.debug("Loading spring config file " + configUrl);
+    LoggerFactory.getLogger(ClassLoaderModule.class).debug("Loading spring config file " + configUrl);
     final GenericApplicationContext applicationContext = new GenericApplicationContext();
     try {
       final ClassLoader classLoader = getClassLoader();
@@ -1088,7 +1085,7 @@ public class ClassLoaderModule implements Module {
                         JavaBeanUtil.setProperty(businessApplication,
                           propertyName, propertyValue);
                       } catch (final Throwable t) {
-                        LOG.error("Unable to set " + businessApplicationName
+                        LoggerFactory.getLogger(ClassLoaderModule.class).error("Unable to set " + businessApplicationName
                           + "." + propertyName + "=" + propertyValue);
                       }
                     }
@@ -1371,7 +1368,7 @@ public class ClassLoaderModule implements Module {
       }
     } catch (final IllegalArgumentException e) {
       throw new IllegalArgumentException("Business Application "
-        + businessApplicationName + " method " + e.getMessage());
+        + businessApplicationName + " method ", e);
     }
   }
 
