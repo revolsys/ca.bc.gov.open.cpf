@@ -14,7 +14,7 @@ td.applicationExecutedFailedRequestsCount {
 th.BATCH_JOB_ID,
 td.BATCH_JOB_ID {
   min-width: 60px;
-  max-width: 60px;
+  max-width: 100px;
 }
 
 th.WHEN_CREATED,
@@ -23,12 +23,33 @@ td.WHEN_CREATED {
   max-width: 90px;
 }
 
+.businessApplication td.name,
+.businessApplication th.name,
+.businessApplication th.name,
+td.module_name,
+th.module_name,
 th.BUSINESS_APPLICATION_NAME_LINK,
 td.BUSINESS_APPLICATION_NAME_LINK,
 th.BUSINESS_APPLICATION_NAME_name,
 td.BUSINESS_APPLICATION_NAME_name {
   min-width: 120px;
   max-width: 120px;
+}
+
+th.BUSINESS_APPLICATION_NAME_title,
+td.BUSINESS_APPLICATION_NAME_title,
+th.CLIENT_BUSINESS_APPLICATION_NAME_LINK,
+td.CLIENT_BUSINESS_APPLICATION_NAME_LINK,
+.businessApplication th.title,
+.businessApplication td.title {
+  min-width: 200px;
+  max-width: 200px;
+}
+
+.businessApplication td.description,
+.businessApplication th.description {
+  min-width: 400px;
+  max-width: 400px;
 }
 
 
@@ -49,6 +70,6 @@ th.NUM_COMPLETED_REQUESTS,
 td.NUM_COMPLETED_REQUESTS,
 th.NUM_FAILED_REQUESTS,
 td.NUM_FAILED_REQUESTS {
-  max-width: 90px;
-  min-width: 90px;
+  min-width: 100px;
+  max-width: 100px;
 }

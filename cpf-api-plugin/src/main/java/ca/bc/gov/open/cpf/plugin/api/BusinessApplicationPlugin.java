@@ -60,16 +60,8 @@ public @interface BusinessApplicationPlugin {
    */
   String batchModePermission() default "permitAll";
 
-  /** <p>The array of any other versions of the plug-in that this version is backwards
-   * compatible with. Version numbers are specified in MAJOR.MINOR.PATCH format (e.g. 3.2.1).</p> */
+  @Deprecated
   String[] compatibleVersions() default {};
-
-  /**
-   * <p>A URL to a web page providing additional documentation for the business
-   * application. This is displayed as a link on the application description
-   * page.</p>
-   */
-  String descriptionUrl() default "";
 
   /**
    * <p>A description of the plug-in that is displayed on the business application
@@ -77,6 +69,13 @@ public @interface BusinessApplicationPlugin {
    * page containing more information.</p>
    */
   String description() default "";
+
+  /**
+   * <p>A URL to a web page providing additional documentation for the business
+   * application. This is displayed as a link on the application description
+   * page.</p>
+   */
+  String descriptionUrl() default "";
 
   /**
    * <p>The array of MIME media types of input data accepted by the plug-in. For
@@ -189,9 +188,6 @@ public @interface BusinessApplicationPlugin {
    */
   String title() default "";
 
-  /** <p>The current version of the specification for the plug-in. The specification version does
-   * not need to increment with each new software release. Version numbers are specified in
-   * MAJOR.MINOR.PATCH format (e.g. 3.2.1).</p>
-   */
+  @Deprecated
   String version() default "";
 }

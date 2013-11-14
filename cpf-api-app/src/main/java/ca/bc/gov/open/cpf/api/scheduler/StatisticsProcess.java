@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.process.BaseInProcess;
@@ -16,6 +17,7 @@ public class StatisticsProcess extends
 
   public static final String SAVE = "SAVE";
 
+  @Resource(name = "batchJobService")
   private BatchJobService batchJobService;
 
   public StatisticsProcess() {
@@ -54,10 +56,5 @@ public class StatisticsProcess extends
         statistics.addStatistics(values);
       }
     }
-  }
-
-  public void setBatchJobService(final BatchJobService batchJobService) {
-    this.batchJobService = batchJobService;
-    batchJobService.setStatisticsProcess(this);
   }
 }

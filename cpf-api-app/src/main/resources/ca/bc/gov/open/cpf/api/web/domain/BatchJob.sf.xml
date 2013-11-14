@@ -43,22 +43,22 @@
           p:name="clientList"
           class="com.revolsys.ui.web.config.Page"
           p:title="Jobs"
-          p:path="/ws/users/{remoteUser}/jobs/" />
+          p:path="/ws/jobs/" />
         <bean
           p:name="clientView"
           class="com.revolsys.ui.web.config.Page"
           p:title="Job"
-          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/" />
+          p:path="/ws/jobs/{batchJobId}/" />
         <bean
           p:name="clientCancel"
           class="com.revolsys.ui.web.config.Page"
           p:title="Job"
-          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/cancel/" />
+          p:path="/ws/jobs/{batchJobId}/cancel/" />
         <bean
           p:name="clientAppList"
           class="com.revolsys.ui.web.config.Page"
           p:title="Jobs"
-          p:path="/ws/users/{remoteUser}/apps/{businessApplicationName}/jobs/" />
+          p:path="/ws/apps/{businessApplicationName}/jobs/" />
       </list>
     </property>
 
@@ -111,9 +111,6 @@
               <entry
                 key="businessApplicationName"
                 value="name" />
-              <entry
-                key="businessApplicationVersion"
-                value="version" />
             </map>
           </property>
         </bean>

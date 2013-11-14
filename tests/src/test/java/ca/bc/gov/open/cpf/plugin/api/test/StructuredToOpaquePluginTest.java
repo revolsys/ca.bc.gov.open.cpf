@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPluginExecutor;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 
 public class StructuredToOpaquePluginTest {
   @Test

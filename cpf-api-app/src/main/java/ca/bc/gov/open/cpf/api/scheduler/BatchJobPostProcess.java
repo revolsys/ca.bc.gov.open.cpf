@@ -1,5 +1,7 @@
 package ca.bc.gov.open.cpf.api.scheduler;
 
+import javax.annotation.Resource;
+
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 
 public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
@@ -20,6 +22,7 @@ public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
   }
 
   @Override
+  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     super.setBatchJobService(batchJobService);
     batchJobService.setPostProcess(this);

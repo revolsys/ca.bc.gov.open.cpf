@@ -61,18 +61,17 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
       && object instanceof DataObject) {
       final DataObject batchJob = (DataObject)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      final BusinessApplication businessApplication = getBusinessApplicationRegistry().getBusinessApplication(
+      BusinessApplication businessApplication = getBusinessApplicationRegistry().getBusinessApplication(
         businessApplicationName);
       if (businessApplication == null) {
-        return new BusinessApplication(businessApplicationName);
-      } else {
+        businessApplication = new BusinessApplication(businessApplicationName);
+      }
+      final String subKey = JavaBeanUtil.getSubName(keyName);
+      if (StringUtils.hasText(subKey)) {
         final HtmlUiBuilder<?> uiBuilder = getBuilder(businessApplication);
-        final String subKey = JavaBeanUtil.getSubName(keyName);
-        if (StringUtils.hasText(subKey)) {
-          return uiBuilder.getProperty(businessApplication, subKey);
-        } else {
-          return businessApplication;
-        }
+        return uiBuilder.getProperty(businessApplication, subKey);
+      } else {
+        return businessApplication;
       }
     }
     return super.getProperty(object, keyName);
@@ -154,11 +153,10 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
   }
 
   @RequestMapping(value = {
-    "/ws/users/{consumerKey}/jobs/{batchJobId}/cancel"
+    "/ws/jobs/{batchJobId}/cancel"
   }, method = RequestMethod.POST)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void postClientCancel(@PathVariable final String consumerKey,
-    @PathVariable final long batchJobId) {
+  public void postClientCancel(@PathVariable final long batchJobId) {
+    final String consumerKey = getConsumerKey();
     final DataObject batchJob = getCpfDataAccessObject().getBatchJob(
       consumerKey, batchJobId);
     if (batchJob == null) {

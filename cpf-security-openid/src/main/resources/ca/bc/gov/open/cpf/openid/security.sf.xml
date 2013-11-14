@@ -121,9 +121,6 @@
     <property name="decisionVoters">
       <list>
         <bean class="org.springframework.security.web.access.expression.WebExpressionVoter" />
-        <bean
-          class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
-          p:prefix="/openid/ws/users/" />
       </list>
     </property>
   </bean>

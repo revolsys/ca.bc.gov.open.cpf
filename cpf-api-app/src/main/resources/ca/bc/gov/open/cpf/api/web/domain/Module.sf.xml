@@ -167,6 +167,7 @@
         <entry key="list">
           <list>
             <value>name_link</value>
+            <value>status</value>
             <value>enabled</value>
             <value>started</value>
             <value>actions</value>
@@ -176,7 +177,8 @@
           <list>
             <value>name</value>
             <value>moduleDescriptor</value>
-            <value>enabled</value>
+           <value>status</value>
+             <value>enabled</value>
             <value>started</value>
             <value>startedDate</value>
             <value>moduleError</value>

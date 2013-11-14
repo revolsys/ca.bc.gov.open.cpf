@@ -33,11 +33,11 @@
           p:name="clientList"
           class="com.revolsys.ui.web.config.Page"
           p:title="Results"
-          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/results/" />
+          p:path="/ws/jobs/{batchJobId}/results/" />
         <bean
           p:name="clientView"
           class="com.revolsys.ui.web.config.Page"
-          p:path="/ws/users/{remoteUser}/jobs/{batchJobId}/results/{batchJobResultId}/" />
+          p:path="/ws/jobs/{batchJobId}/results/{batchJobResultId}/" />
       </list>
     </property>
     <property name="serializers">

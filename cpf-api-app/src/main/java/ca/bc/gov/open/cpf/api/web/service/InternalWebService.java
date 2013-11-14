@@ -9,6 +9,7 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,10 +56,13 @@ import com.revolsys.util.UrlUtil;
 
 @Controller
 public class InternalWebService {
+  @Resource(name = "batchJobService")
   private BatchJobService batchJobService;
 
+  @Resource(name = "configPropertyLoader")
   private ConfigPropertyLoader configPropertyLoader;
 
+  @Resource(name = "cpfDataAccessObject")
   private CpfDataAccessObject dataAccessObject;
 
   private String webServiceUrl = "http://localhost/cpf";
@@ -167,14 +171,13 @@ public class InternalWebService {
       groupSpecification.put("consumerKey", group.getconsumerKey());
       groupSpecification.put("batchJobId", batchJobId);
       final Module module = businessApplication.getModule();
-      if (module == null) {
+      if (module == null || !module.isStarted()) {
         batchJobService.schedule(group);
       } else {
         final String moduleName = module.getName();
         groupSpecification.put("moduleName", moduleName);
         if (module.isRemoteable()) {
-          groupSpecification.put("moduleTime", module.getStartedDate()
-            .getTime());
+          groupSpecification.put("moduleTime", module.getStartedTime());
         }
         groupSpecification.put("businessApplicationName",
           businessApplication.getName());
@@ -206,10 +209,6 @@ public class InternalWebService {
     }
   }
 
-  public BatchJobService getBatchJobService() {
-    return batchJobService;
-  }
-
   public Collection<Map<String, Object>> getConfigProperties(
     final String environmentName, final String moduleName,
     final String componentName) {
@@ -219,10 +218,6 @@ public class InternalWebService {
     addConfigProperties(configProperties, environmentName, moduleName,
       componentName);
     return configProperties.values();
-  }
-
-  public ConfigPropertyLoader getConfigPropertyLoader() {
-    return configPropertyLoader;
   }
 
   @RequestMapping(
@@ -264,7 +259,8 @@ public class InternalWebService {
     throws NoSuchRequestHandlingMethodException, IOException {
     checkRunning();
     final Module module = batchJobService.getModule(moduleName);
-    if (module == null || module.getStartedDate().getTime() != moduleTime) {
+    if (module == null || !module.isStarted()
+      || module.getStartedTime() != moduleTime) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
       final List<URL> jarUrls = module.getJarUrls();
@@ -296,7 +292,8 @@ public class InternalWebService {
     checkRunning();
     final BusinessApplicationRegistry businessApplicationRegistry = batchJobService.getBusinessApplicationRegistry();
     final Module module = businessApplicationRegistry.getModule(moduleName);
-    if (module == null || module.getStartedDate().getTime() != moduleTime) {
+    if (module == null || module.isStarted()
+      || module.getStartedTime() != moduleTime) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
       final List<URL> jarUrls = module.getJarUrls();
@@ -394,20 +391,24 @@ public class InternalWebService {
   public Map<String, Object> postNextBatchJobExecutionGroupId(
     @PathVariable("workerId") final String workerId, @RequestParam(
         value = "moduleName", required = false) final List<String> moduleNames) {
-    checkRunning();
-    try {
-      batchJobService.setWorkerConnected(workerId, true);
-      final Map<String, Object> response = batchJobService.getNextBatchJobRequestExecutionGroup(
-        workerId, moduleNames);
-      return response;
-    } catch (final Throwable e) {
-      LoggerFactory.getLogger(InternalWebService.class)
-        .error(e.getMessage(), e);
-      throw new HttpMessageNotWritableException(
-        "Unable to get execution group id", e);
-    } finally {
-      batchJobService.setWorkerConnected(workerId, false);
+    Map<String, Object> response = Collections.emptyMap();
+    final BatchJobService batchJobService = this.batchJobService;
+    if (batchJobService != null) {
+      checkRunning();
+      try {
+        batchJobService.setWorkerConnected(workerId, true);
+        response = batchJobService.getNextBatchJobRequestExecutionGroup(
+          workerId, moduleNames);
+      } catch (final Throwable e) {
+        LoggerFactory.getLogger(InternalWebService.class).error(e.getMessage(),
+          e);
+        throw new HttpMessageNotWritableException(
+          "Unable to get execution group id", e);
+      } finally {
+        batchJobService.setWorkerConnected(workerId, false);
+      }
     }
+    return response;
   }
 
   @RequestMapping(value = "/worker/workers/{workerId}/message",
@@ -565,20 +566,6 @@ public class InternalWebService {
         "UserAttributes", securityService.getUserAttributes());
       return userAttributes;
     }
-  }
-
-  public void setBatchJobService(final BatchJobService batchJobService) {
-    this.batchJobService = batchJobService;
-  }
-
-  public void setConfigPropertyLoader(
-    final ConfigPropertyLoader configPropertyLoader) {
-    this.configPropertyLoader = configPropertyLoader;
-  }
-
-  @Resource(name = "cpfDataAccessObject")
-  public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
-    this.dataAccessObject = dataAccessObject;
   }
 
   public void setModuleExcluded(final Worker worker,

@@ -10,23 +10,20 @@
 >
   <bean
     id="cpfJobPreProcess"
-    class="ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess"
-    p:batchJobService-ref="batchJobService" />
+    class="ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess" />
 
   <bean
     id="cpfJobScheduler"
-    class="ca.bc.gov.open.cpf.api.scheduler.BatchJobScheduler"
-    p:batchJobService-ref="batchJobService" />
+    class="ca.bc.gov.open.cpf.api.scheduler.BatchJobScheduler" />
+
 
   <bean
     id="cpfJobPostProcess"
-    class="ca.bc.gov.open.cpf.api.scheduler.BatchJobPostProcess"
-    p:batchJobService-ref="batchJobService" />
+    class="ca.bc.gov.open.cpf.api.scheduler.BatchJobPostProcess" />
 
   <bean
     id="cpfStatisticsProcess"
-    class="ca.bc.gov.open.cpf.api.scheduler.StatisticsProcess"
-    p:batchJobService-ref="batchJobService" />
+    class="ca.bc.gov.open.cpf.api.scheduler.StatisticsProcess" />
 
   <bean
     id="cpfAppPool"

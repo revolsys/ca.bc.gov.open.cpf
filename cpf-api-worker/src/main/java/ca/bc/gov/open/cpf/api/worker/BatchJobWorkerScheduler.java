@@ -308,7 +308,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
     ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
     if (module != null) {
-      final long lastStartedTime = module.getStartedDate().getTime();
+      final long lastStartedTime = module.getStartedTime();
       if (lastStartedTime < moduleTime) {
         LoggerFactory.getLogger(getClass()).info(
           "Unloading older module version " + moduleName + " "
@@ -371,7 +371,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     final Module module = event.getModule();
     final String moduleName = module.getName();
     if (action.equals(ModuleEvent.START)) {
-      final long moduleTime = module.getStartedDate().getTime();
+      final long moduleTime = module.getStartedTime();
       setModuleLoaded(moduleName, moduleTime);
     } else if (action.equals(ModuleEvent.START_FAILED)) {
       businessApplicationRegistry.unloadModule(module);
@@ -380,7 +380,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       final AppLog log = new AppLog(moduleName);
       LoggerFactory.getLogger(getClass()).error(moduleError);
       log.error(moduleError);
-      final long moduleTime = module.getStartedDate().getTime();
+      final long moduleTime = module.getStartedTime();
       setModuleExcluded(moduleName, moduleTime);
     }
   }
@@ -677,7 +677,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   }
 
   public void unloadModule(final ClassLoaderModule module) {
-    final long time = module.getStartedDate().getTime();
+    final long time = module.getStartedTime();
     businessApplicationRegistry.unloadModule(module);
     final File lastModuleDir = new File(tempDir, module.getName() + "-" + time);
     FileUtil.deleteDirectory(lastModuleDir, true);

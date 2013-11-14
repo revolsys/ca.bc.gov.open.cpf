@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Resource;
+
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
@@ -166,7 +168,6 @@ public class BatchJobScheduler extends
     final LoadJobIdsToScheduleFromDatabase loadJobIds = new LoadJobIdsToScheduleFromDatabase(
       batchJobService);
     final MultiInputSelector selector = new MultiInputSelector();
-    @SuppressWarnings("unchecked")
     final List<Channel<BatchJobScheduleInfo>> channels = Arrays.asList(
       scheduleFinished, groupFinished, in);
     while (true) {
@@ -206,7 +207,8 @@ public class BatchJobScheduler extends
       } catch (final ClosedException e) {
         return;
       } catch (final Throwable t) {
-        LoggerFactory.getLogger(BatchJobScheduler.class).error("Error scheduling jobs", t);
+        LoggerFactory.getLogger(BatchJobScheduler.class).error(
+          "Error scheduling jobs", t);
       }
     }
   }
@@ -268,6 +270,7 @@ public class BatchJobScheduler extends
    * @param batchJobService The batch job service used to interact with the
    *          database.
    */
+  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
     batchJobService.setScheduler(this);

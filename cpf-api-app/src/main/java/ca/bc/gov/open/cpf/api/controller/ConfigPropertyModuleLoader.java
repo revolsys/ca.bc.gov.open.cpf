@@ -314,7 +314,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       final Map<String, Set<ResourcePermission>> permissionsByGroupName = module.getPermissionsByGroupName();
       final Set<String> groupNamesToDelete = module.getGroupNamesToDelete();
 
-      if (!module.hasError()) {
+      if (!module.isHasError()) {
         final Set<String> existingGroupNames = new HashSet<String>();
         // Exclude or delete user groups that already exist in the database
         for (final DataObject userGroup : dataAccessObject.getUserGroupsForModule(moduleName)) {

@@ -26,7 +26,7 @@ public void setAppLog(final AppLog appLog) {
  */
 public class AppLog {
 
-  /** The logging level (ERROR, INFO, DEBUG). */
+  /** The logging level (ERROR, INFO, WARN, DEBUG). */
   private String logLevel = "ERROR";
 
   private final Logger log;
@@ -122,5 +122,14 @@ public class AppLog {
    */
   public void setLogLevel(final String logLevel) {
     this.logLevel = logLevel;
+  }
+
+  /**
+   * <p>Record the warning message in the log.</p>
+   * 
+   * @param message The warning.
+   */
+  public void warn(final String message) {
+    log.warn(message);
   }
 }

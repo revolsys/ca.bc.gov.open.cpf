@@ -29,6 +29,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import com.revolsys.comparator.IgnoreCaseStringComparator;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
+import com.revolsys.util.ExceptionUtil;
 
 public final class BusinessApplicationRegistry implements
   ApplicationListener<ContextRefreshedEvent> {
@@ -99,28 +100,42 @@ public final class BusinessApplicationRegistry implements
     moduleNamesByBusinessApplicationName = null;
   }
 
+  @SuppressWarnings("deprecation")
   @PreDestroy
-  public void close() {
-    useModuleControlThread = false;
-    final List<Module> modules = getModules();
-    for (final Module module : modules) {
-      final ClassLoaderModule classModule = (ClassLoaderModule)module;
-      classModule.stop();
-    }
+  public void destroy() {
+    try {
+      if (moduleControlChannel != null) {
+        moduleControlChannel.writeDisconnect();
+      }
+      if (moduleControlThread != null) {
+        moduleControlThread.interrupt();
+      }
 
-    if (moduleControlChannel != null) {
-      moduleControlChannel.writeDisconnect();
+      useModuleControlThread = false;
+      final List<Module> modules = getModules();
+      for (final Module module : modules) {
+        try {
+          module.stop();
+        } catch (final Throwable e) {
+          ExceptionUtil.log(getClass(), "Unable to stop " + module.getName(), e);
+        }
+      }
+
+    } finally {
+      if (moduleControlThread != null) {
+        final long maxWait = System.currentTimeMillis() + 5000;
+        while (moduleControlThread.isAlive()
+          && System.currentTimeMillis() < maxWait) {
+          moduleControlThread.stop();
+        }
+      }
+      configPropertyLoader = null;
+      listeners.clear();
       moduleControlChannel = null;
-    }
-    if (moduleControlThread != null) {
-      moduleControlThread.stop();
       moduleControlThread = null;
+      moduleLoaders.clear();
+      modulesByName.clear();
     }
-    configPropertyLoader = null;
-
-    listeners.clear();
-    moduleLoaders.clear();
-    modulesByName.clear();
   }
 
   public File getAppLogDirectory() {
@@ -132,23 +147,24 @@ public final class BusinessApplicationRegistry implements
     if (businessApplicationName == null) {
       return null;
     } else {
-      String businessApplicationVersion = "CURRENT";
       final int colonIndex = businessApplicationName.lastIndexOf(':');
       if (colonIndex != -1) {
         businessApplicationName = businessApplicationName.substring(0,
           colonIndex - 1);
-        businessApplicationVersion = businessApplicationName.substring(colonIndex + 1);
       }
-      return getBusinessApplication(businessApplicationName,
-        businessApplicationVersion);
+      final Module module = getModuleForBusinessApplication(businessApplicationName);
+      if (module == null) {
+        return null;
+      } else {
+        return module.getBusinessApplication(businessApplicationName);
+      }
     }
   }
 
   public BusinessApplication getBusinessApplication(
     final String businessApplicationName,
     final String businessApplicationVersion) {
-    final Module module = getModule(businessApplicationName,
-      businessApplicationVersion);
+    final Module module = getModuleForBusinessApplication(businessApplicationName);
     if (module == null) {
       return null;
     } else {
@@ -201,8 +217,7 @@ public final class BusinessApplicationRegistry implements
   public PluginAdaptor getBusinessApplicationPlugin(
     final String businessApplicationName,
     final String businessApplicationVersion) {
-    final Module module = getModule(businessApplicationName,
-      businessApplicationVersion);
+    final Module module = getModuleForBusinessApplication(businessApplicationName);
     if (module == null) {
       return null;
     } else {
@@ -236,8 +251,17 @@ public final class BusinessApplicationRegistry implements
     return module;
   }
 
-  private synchronized Module getModule(final String businessApplicationName,
-    final String businessApplicationVersion) {
+  public BusinessApplication getModuleBusinessApplication(
+    final String moduleName, final String businessApplicationName) {
+    final Module module = getModule(moduleName);
+    if (module != null) {
+      return module.getBusinessApplication(businessApplicationName);
+    }
+    return null;
+  }
+
+  private synchronized Module getModuleForBusinessApplication(
+    final String businessApplicationName) {
     if (moduleNamesByBusinessApplicationName == null) {
       moduleNamesByBusinessApplicationName = new HashMap<String, String>();
       final Map<BusinessApplication, Module> businessApplicationModuleMap = new TreeMap<BusinessApplication, Module>();
@@ -253,44 +277,15 @@ public final class BusinessApplicationRegistry implements
         final String name = businessApplication.getName();
         final String moduleName = module.getName();
 
-        for (final String version : businessApplication.getCompatibleVersions()) {
-          final String key = name + ":" + version;
-          moduleNamesByBusinessApplicationName.put(key, moduleName);
-        }
-      }
-      for (final Entry<BusinessApplication, Module> entry : businessApplicationModuleMap.entrySet()) {
-        final BusinessApplication businessApplication = entry.getKey();
-        final Module module = entry.getValue();
-        final String name = businessApplication.getName();
-        final String moduleName = module.getName();
-
-        final String version = businessApplication.getVersion();
-        final String key = name + ":" + version;
-        moduleNamesByBusinessApplicationName.put(key, moduleName);
-        moduleNamesByBusinessApplicationName.put(name + ":CURRENT", moduleName);
-
+        moduleNamesByBusinessApplicationName.put(name, moduleName);
       }
     }
-    final String moduleName = moduleNamesByBusinessApplicationName.get(businessApplicationName
-      + ":" + businessApplicationVersion);
+    final String moduleName = moduleNamesByBusinessApplicationName.get(businessApplicationName);
     if (moduleName == null) {
-      if (businessApplicationVersion.equals("CURRENT")) {
-        return null;
-      } else {
-        return null;
-      }
+      return null;
     } else {
       return getModule(moduleName);
     }
-  }
-
-  public BusinessApplication getModuleBusinessApplication(
-    final String moduleName, final String businessApplicationName) {
-    final Module module = getModule(moduleName);
-    if (module != null) {
-      return module.getBusinessApplication(businessApplicationName);
-    }
-    return null;
   }
 
   public List<ModuleLoader> getModuleLoaders() {

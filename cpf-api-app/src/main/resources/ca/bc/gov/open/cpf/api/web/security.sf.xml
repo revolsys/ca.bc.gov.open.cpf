@@ -103,9 +103,6 @@
               class="com.revolsys.spring.security.DefaultWebSecurityExpressionHandler" />
           </property>
         </bean>
-        <bean
-          class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
-          p:prefix="/ws/users/" />
       </list>
     </property>
   </bean>

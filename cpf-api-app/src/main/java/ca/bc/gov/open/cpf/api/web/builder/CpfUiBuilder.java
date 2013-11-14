@@ -7,6 +7,9 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
@@ -103,6 +106,13 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
       businessApplications.addAll(moduleApps);
     }
     return businessApplications;
+  }
+
+  protected String getConsumerKey() {
+    final SecurityContext securityContext = SecurityContextHolder.getContext();
+    final Authentication authentication = securityContext.getAuthentication();
+    final String consumerKey = authentication.getName();
+    return consumerKey;
   }
 
   public CpfDataAccessObject getCpfDataAccessObject() {

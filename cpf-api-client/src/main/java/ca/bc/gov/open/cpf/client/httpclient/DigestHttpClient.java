@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.io.json.JsonParser;
+import com.revolsys.parallel.ThreadInterruptedException;
+import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.util.ExceptionUtil;
 
 public class DigestHttpClient {
@@ -60,7 +62,7 @@ public class DigestHttpClient {
   private final DefaultHttpClient httpClient;
 
   public DigestHttpClient(final String webServiceUrl, final String username,
-    final String password, int poolSize) {
+    final String password, final int poolSize) {
     this.webServiceUrl = webServiceUrl;
 
     final ThreadSafeClientConnManager connectionManager = new ThreadSafeClientConnManager();
@@ -113,7 +115,11 @@ public class DigestHttpClient {
         context);
       return response;
     } catch (final Throwable e) {
-      return ExceptionUtil.throwUncheckedException(e);
+      if (ThreadUtil.isInterrupted()) {
+        throw new ThreadInterruptedException();
+      } else {
+        return ExceptionUtil.throwUncheckedException(e);
+      }
     }
   }
 

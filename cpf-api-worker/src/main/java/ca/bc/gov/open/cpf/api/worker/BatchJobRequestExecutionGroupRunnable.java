@@ -34,6 +34,7 @@ import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
+import com.revolsys.parallel.ThreadUtil;
 
 public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   private final Map<String, Object> groupIdMap;
@@ -343,10 +344,13 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             groupResponse.put("results", groupResults);
 
             for (final Map<String, Object> requestParameters : requests) {
+              if (ThreadUtil.isInterrupted() && !module.isStarted()) {
+                executor.addFailedGroup(groupId);
+                return;
+              }
               final Map<String, Object> requestResult = executeRequest(
                 requestMetaData, applicationParameters, requestParameters);
               groupResults.add(requestResult);
-
             }
           } else {
             groupResponse.putAll(globalError);

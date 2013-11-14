@@ -1,6 +1,5 @@
 package ca.bc.gov.open.cpf.plugin.impl;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.io.AbstractObjectWithProperties;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
-import com.revolsys.util.MathUtil;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
@@ -64,17 +62,11 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return defaultValue;
   }
 
-  private final AppLog log;
+  private AppLog log;
 
   private Expression batchModeExpression;
 
   private String batchModePermission;
-
-  /**
-   * The compatibleVersions defines the versions of the BusinessApplication
-   * which are compatible with the currentVersion.
-   */
-  private List<String> compatibleVersions;
 
   private List<CoordinateSystem> coordinateSystems;
 
@@ -169,21 +161,18 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private boolean validateGeometry;
 
-  /**
-   * The version defines the current version of the BusinessApplication.
-   */
-  private String version;
-
   private boolean hasCustomizationProperties;
 
   private boolean hasResultListCustomizationProperties;
 
   public BusinessApplication(final BusinessApplicationPlugin pluginMetadata,
     final Module module, final String name) {
-    this(name);
+    this.name = name;
+    this.title = name;
     this.pluginMetadata = pluginMetadata;
     this.module = module;
     this.name = name;
+    this.log = new AppLog(module.getName() + "." + name);
     this.requestMetaData = new DataObjectMetaDataImpl("/" + name);
     this.resultMetaData = new DataObjectMetaDataImpl("/" + name);
   }
@@ -191,7 +180,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public BusinessApplication(final String name) {
     this.name = name;
     this.title = name;
-    this.log = new AppLog(name);
   }
 
   public void addInputDataContentType(final String contentType,
@@ -258,26 +246,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
       final int nameCompare = getName().compareToIgnoreCase(
         businessApplication.getName());
       if (nameCompare == 0) {
-        final String version1 = getVersion().replaceAll("TRUNK", "")
-          .replaceAll("-SNAPSHOT", "");
-
-        final String version2 = businessApplication.getVersion();
-        final double[] parts1 = MathUtil.toDoubleArraySplit(version1, "\\.");
-        final double[] parts2 = MathUtil.toDoubleArraySplit(version2, "\\.");
-        for (int i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-          double v1 = 0;
-          if (i < parts1.length) {
-            v1 = parts1[i];
-          }
-          double v2 = 0;
-          if (i < parts2.length) {
-            v2 = parts2[i];
-          }
-          final int partCompare = Double.compare(v1, v2);
-          if (partCompare != 0) {
-            return partCompare;
-          }
-        }
         return getId().compareTo(getId());
       } else {
         return nameCompare;
@@ -291,10 +259,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public String getBatchModePermission() {
     return this.batchModePermission;
-  }
-
-  public List<String> getCompatibleVersions() {
-    return this.compatibleVersions;
   }
 
   public List<CoordinateSystem> getCoordinateSystems() {
@@ -514,10 +478,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.title;
   }
 
-  public String getVersion() {
-    return this.version;
-  }
-
   public boolean isCoreParameter(final String attributeName) {
     final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
     if (attribute == null) {
@@ -596,19 +556,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.validateGeometry;
   }
 
-  public boolean isVersionSupported(final String businessApplicationVersion) {
-    if (this.version.equals(businessApplicationVersion)) {
-      return true;
-    } else {
-      for (final String compatibleVersion : this.compatibleVersions) {
-        if (compatibleVersion.equals(businessApplicationVersion)) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-
   public void setBatchModePermission(final String batchModePermission) {
     if (StringUtils.hasText(batchModePermission)) {
       this.batchModePermission = batchModePermission;
@@ -616,14 +563,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
       this.batchModePermission = "permitAll";
     }
     this.batchModeExpression = new SpelExpressionParser().parseExpression(this.batchModePermission);
-  }
-
-  public void setCompatibleVersions(final List<String> compatibleVersions) {
-    this.compatibleVersions = compatibleVersions;
-  }
-
-  public void setCompatibleVersions(final String... compatibleVersions) {
-    setCompatibleVersions(Arrays.asList(compatibleVersions));
   }
 
   public void setCoordinateSystems(
@@ -718,10 +657,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public void setValidateGeometry(final boolean validateGeometry) {
     this.validateGeometry = validateGeometry;
-  }
-
-  public void setVersion(final String version) {
-    this.version = version;
   }
 
   @Override

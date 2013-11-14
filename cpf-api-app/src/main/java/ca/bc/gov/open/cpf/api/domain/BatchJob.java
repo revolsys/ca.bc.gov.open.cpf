@@ -9,8 +9,6 @@ public interface BatchJob extends Common {
 
   String BUSINESS_APPLICATION_PARAMS = "BUSINESS_APPLICATION_PARAMS";
 
-  String BUSINESS_APPLICATION_VERSION = "BUSINESS_APPLICATION_VERSION";
-
   /**
    * The cancelled BatchJobStatus indicates that request was cancelled and all requests and
    * results have been removed.

@@ -50,22 +50,22 @@
         <bean
           p:name="clientView"
           class="com.revolsys.ui.web.config.Page"
-          p:path="/ws/apps/{businessApplicationName}/{businessApplicationVersion}/" />
+          p:path="/ws/apps/{businessApplicationName}/" />
 
         <bean
           p:name="clientInstant"
           class="com.revolsys.ui.web.config.Page"
-          p:path="/ws/apps/{businessApplicationName}/{businessApplicationVersion}/instant/" />
+          p:path="/ws/apps/{businessApplicationName}/instant/" />
 
         <bean
           p:name="clientSingle"
           class="com.revolsys.ui.web.config.Page"
-          p:path="/ws/apps/{businessApplicationName}/{businessApplicationVersion}/single/" />
+          p:path="/ws/apps/{businessApplicationName}/single/" />
 
         <bean
           p:name="clientMultiple"
           class="com.revolsys.ui.web.config.Page"
-          p:path="/ws/apps/{businessApplicationName}/{businessApplicationVersion}/multiple/" />
+          p:path="/ws/apps/{businessApplicationName}/multiple/" />
       </list>
     </property>
 
@@ -76,6 +76,7 @@
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="name"
           p:pageName="moduleView"
+          p:width="250px"
         >
           <property name="parameterKeys">
             <map>
@@ -93,9 +94,6 @@
           p:name="module.name"
           p:label="Module"
           p:pageName="view" />
-        <bean
-          class="com.revolsys.ui.html.serializer.key.UnorderedListKeySerializer"
-          p:name="compatibleVersions" />
         <bean
           class="com.revolsys.ui.html.serializer.key.MapTableKeySerializer"
           p:name="inputDataContentTypes"
@@ -173,9 +171,9 @@
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="module.name"
               p:label="Module"
-              p:pageName="view" />
+              p:pageName="view"
+              p:width="250px" />
             <value>title</value>
-            <value>version</value>
           </list>
         </entry>
 
@@ -184,14 +182,15 @@
             <bean
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="name"
-              p:pageName="moduleView" />
+              p:pageName="moduleView"
+              p:width="250px" />
             <bean
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="module.name"
               p:label="Module"
-              p:pageName="view" />
+              p:pageName="view"
+              p:width="250px" />
             <value>title</value>
-            <value>version</value>
           </list>
         </entry>
 
@@ -201,8 +200,6 @@
             <value>module.name</value>
             <value>title</value>
             <value>descriptionUrl</value>
-            <value>version</value>
-            <value>compatibleVersions</value>
 
             <value>logLevel</value>
 
@@ -242,13 +239,9 @@
                   <entry
                     key="businessApplicationName"
                     value="name" />
-                  <entry
-                    key="businessApplicationVersion"
-                    value="version" />
                 </map>
               </property>
             </bean>
-            <value>version</value>
             <value>description</value>
           </list>
         </entry>

@@ -50,7 +50,7 @@ public class BusinessApplicationPluginExecutor {
 
   public void close() {
     if (businessApplicationRegistry != null) {
-      businessApplicationRegistry.close();
+      businessApplicationRegistry.destroy();
       businessApplicationRegistry = null;
     }
   }

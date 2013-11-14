@@ -39,6 +39,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
     this.excludeMavenIds = excludeMavenIds;
     setConfigPropertyLoader(configPropertyLoader);
     setRemoteable(true);
+    setEnvironmentName("master");
   }
 
   @Override
@@ -60,13 +61,13 @@ public class ConfigPropertyModule extends ClassLoaderModule {
         } else {
           addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
         }
-        if (!hasError()) {
+        if (!isHasError()) {
           super.doStart();
         }
       } catch (final Throwable e) {
         addModuleError(e);
       }
-      if (hasError()) {
+      if (isHasError()) {
         stop();
       } else {
         final BatchJobService batchJobService = moduleLoader.getBatchJobService();
