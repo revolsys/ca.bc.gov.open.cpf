@@ -242,7 +242,6 @@ PROMPT Creating Table 'CPF_BATCH_JOBS'
 CREATE TABLE CPF_BATCH_JOBS
  (BATCH_JOB_ID NUMBER(19,0) NOT NULL
  ,BUSINESS_APPLICATION_NAME VARCHAR2(255) NOT NULL
- ,BUSINESS_APPLICATION_VERSION VARCHAR2(255) NOT NULL
  ,JOB_STATUS VARCHAR2(50) NOT NULL
  ,NUM_COMPLETED_REQUESTS NUMBER(19,0) NOT NULL
  ,NUM_EXECUTING_REQUESTS NUMBER(19,0) NOT NULL
@@ -274,9 +273,6 @@ COMMENT ON COLUMN CPF_BATCH_JOBS.BATCH_JOB_ID IS 'This is the unique key for the
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOBS.BUSINESS_APPLICATION_NAME IS 'This is the name of the business application to be invoked in this job.'
-/
-
-COMMENT ON COLUMN CPF_BATCH_JOBS.BUSINESS_APPLICATION_VERSION IS 'This is the version of the business application to be invoked in this job.'
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOBS.JOB_STATUS IS 'This is the current status of the job (submitted, requestsCreated, processing, processed, resultGenerated, downloadInitiated, deleteInitiated, deleted).'
