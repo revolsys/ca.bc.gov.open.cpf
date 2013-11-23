@@ -488,7 +488,7 @@ public class CpfClient {
     final MapWriterFactory factory = IoFactoryRegistry.getInstance()
       .getFactoryByMediaType(MapWriterFactory.class, inputDataType);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    final MapWriter mapWriter = factory.getWriter(out);
+    final MapWriter mapWriter = factory.getMapWriter(out);
 
     for (final Map<String, ? extends Object> requestRecord : requests) {
       mapWriter.write(requestRecord);

@@ -1758,7 +1758,7 @@ public class BatchJobService implements ModuleEventListener {
                 "Media type not supported for DataObject #" + batchJobId
                   + " to " + contentType);
             } else {
-              final MapWriter writer = writerFactory.getWriter(bodyOut);
+              final MapWriter writer = writerFactory.getMapWriter(bodyOut);
               writer.setProperty("title", subject);
               writer.write(jobMap);
               writer.close();
