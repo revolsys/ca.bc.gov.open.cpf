@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Cloud Processing Framework Web Application
-Version:           4.0.3
+Version:           4.1.0
 
 Software/Hardware Requirements
 ------------------------------
@@ -21,12 +21,19 @@ N/A
 2. Configuration Files
 ----------------------
 
+NOTE: This release adds the following configuration property
+
+cpfSiteminderLogoutSuccess.logoutUrl
+
 CPF requires a configuration file on each server.
 
 Property                             Description
 -------------------------------      ------------------------------------------
 ca.bc.gov.cpf.app.baseUrl            The HTTP URL to the server cpf is deployed to
 ca.bc.gov.cpf.app.secureBaseUrl      The HTTPS URL to the server cpf is deployed to
+cpfSiteminderLogoutSuccess.logoutUrl The URL to the siteminder logoff page:
+                                     https://logontest.gov.bc.ca/clp-cgi/logoff.cgi
+                                     https://logon.gov.bc.ca/clp-cgi/logoff.cgi
 ca.bc.gov.cpf.internal.webServiceUrl The HTTP URL to the internal web service for cpf
 ca.bc.gov.cpf.db.url                 The JDBC URL to the cpf database
 ca.bc.gov.cpf.db.password            The password for the PROXY_CPF_WEB user account

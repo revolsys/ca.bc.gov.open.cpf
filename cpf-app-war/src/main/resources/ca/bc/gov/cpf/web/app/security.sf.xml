@@ -54,7 +54,8 @@
 
   <bean
     id="cpfSiteminderLogoutSuccess"
-    class="ca.bc.gov.cpf.web.app.SiteminderLogout" />
+    class="ca.bc.gov.cpf.web.app.SiteminderLogout"
+    p:logoutUrl="https://logon.gov.bc.ca/clp-cgi/logoff.cgi" />
 
   <bean
     id="cpfSiteminderSpringSecurityContext"
