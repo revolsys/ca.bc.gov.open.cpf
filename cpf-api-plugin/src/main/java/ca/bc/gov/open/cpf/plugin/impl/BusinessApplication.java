@@ -72,6 +72,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private String description;
 
+  private boolean testModeEnabled = false;
+
   /**
    * The descriptionUrl is a link to a URL which provides more detailed
    * instructions on using the business application.
@@ -85,6 +87,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   private boolean hasGeometryResultAttribute = false;
 
   private boolean hasNonGeometryRequestAttribute;
+
+  private boolean hasTestExecuteMethod = false;
 
   /**
    * The id field is the unique identifier for the BusinessApplication.
@@ -455,15 +459,21 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
             "The index of the result record within the result for a request."));
         }
         for (final Attribute attribute : this.resultAttributeMap.values()) {
-          String description = attribute.getDescription();
-          if (!StringUtils.hasText(description)) {
-            final String name = attribute.getName();
-            final Attribute requestAttribute = this.requestAttributeByNameMap.get(name);
-            if (requestAttribute != null) {
+          final String name = attribute.getName();
+          final Attribute requestAttribute = this.requestAttributeByNameMap.get(name);
+          if (requestAttribute != null) {
+            String description = attribute.getDescription();
+            if (!StringUtils.hasText(description)) {
               description = requestAttribute.getDescription();
               attribute.setDescription(description);
             }
+            Object defaultValue = attribute.getDefaultValue();
+            if (defaultValue == null) {
+              defaultValue = requestAttribute.getDefaultValue();
+              attribute.setDefaultValue(defaultValue);
+            }
           }
+
           this.resultMetaData.addAttribute(attribute);
         }
       }
@@ -512,6 +522,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.hasResultListCustomizationProperties;
   }
 
+  public boolean isHasTestExecuteMethod() {
+    return hasTestExecuteMethod;
+  }
+
   public boolean isInfoLogEnabled() {
     return this.log.isInfoEnabled();
   }
@@ -552,6 +566,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.securityServiceRequired;
   }
 
+  public boolean isTestModeEnabled() {
+    return testModeEnabled;
+  }
+
   public boolean isValidateGeometry() {
     return this.validateGeometry;
   }
@@ -590,6 +608,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public void setHasResultListCustomizationProperties(
     final boolean hasResultListCustomizationProperties) {
     this.hasResultListCustomizationProperties = hasResultListCustomizationProperties;
+  }
+
+  public void setHasTestExecuteMethod(final boolean hasTestExecuteMethod) {
+    this.hasTestExecuteMethod = hasTestExecuteMethod;
   }
 
   public void setId(final String id) {
@@ -649,6 +671,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public void setSecurityServiceRequired(final boolean securityServiceRequired) {
     this.securityServiceRequired = securityServiceRequired;
+  }
+
+  public void setTestModeEnabled(final boolean testModeEnabled) {
+    this.testModeEnabled = testModeEnabled;
   }
 
   public void setTitle(final String title) {

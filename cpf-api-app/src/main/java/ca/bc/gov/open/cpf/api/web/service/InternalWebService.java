@@ -41,6 +41,7 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -292,7 +293,7 @@ public class InternalWebService {
     checkRunning();
     final BusinessApplicationRegistry businessApplicationRegistry = batchJobService.getBusinessApplicationRegistry();
     final Module module = businessApplicationRegistry.getModule(moduleName);
-    if (module == null || module.isStarted()
+    if (module == null || !module.isStarted()
       || module.getStartedTime() != moduleTime) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {

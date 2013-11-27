@@ -295,7 +295,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   public void run() {
     try {
 
-      log.info("Group Execution Start " + batchJobId + "\t" + groupId);
+      log.info("Start\tGroup Execution\tgroupId=" + groupId);
       try {
         final StopWatch groupStopWatch = new StopWatch("Group");
         groupStopWatch.start();
@@ -378,7 +378,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         log.error("Unable to process group " + groupId, e);
         executor.addFailedGroup(groupId);
       } finally {
-        log.info("Group execution end " + batchJobId + "\t" + groupId);
+        log.info("End\tGroup execution\tgroupId=" + groupId);
       }
     } finally {
       executor.removeExecutingGroupId(groupId);

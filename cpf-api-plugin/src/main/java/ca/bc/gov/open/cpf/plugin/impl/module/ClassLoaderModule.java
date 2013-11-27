@@ -291,12 +291,14 @@ public class ClassLoaderModule implements Module {
 
   public void doStart() {
     if (isEnabled()) {
-      if (!isStarted()) {
+      if (isStarted()) {
+        setStatus("Started");
+      } else {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         initAppLogAppender(null);
         setStatus("Starting");
-        log.info("Start Module - Begin");
+        log.info("Start\tModule Start\tmoduleName=" + name);
         clearModuleError();
         try {
           initializeGroupPermissions();
@@ -319,7 +321,7 @@ public class ClassLoaderModule implements Module {
         } catch (final Throwable e) {
           addModuleError(e);
         }
-        AppLogUtil.info(log, "Start Module - End", stopWatch);
+        AppLogUtil.info(log, "End\tModule Start\tmoduleName=" + name, stopWatch);
       }
     } else {
       setStatus("Disabled");
@@ -327,15 +329,15 @@ public class ClassLoaderModule implements Module {
   }
 
   public void doStop() {
+    setStatus("Stopping");
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
-    log.info("Module Stop - Begin");
+    log.info("Start\tModule Stop\tmoduleName=" + name);
     started = false;
     applicationsLoaded = false;
     if (applicationContext != null && applicationContext.isActive()) {
       applicationContext.close();
     }
-    AppLogUtil.info(log, "Stop Module - End", stopWatch);
     final List<String> names = businessApplicationNames;
     applicationContext = null;
     businessApplicationsByName = Collections.emptyMap();
@@ -352,6 +354,8 @@ public class ClassLoaderModule implements Module {
       businessApplicationRegistry.moduleEvent(this, ModuleEvent.STOP);
     } finally {
       startedDate = null;
+      AppLogUtil.info(log, "End\tModule Stop\tmoduleName=" + name, stopWatch);
+      setStatus("Stopped");
     }
   }
 
@@ -512,16 +516,21 @@ public class ClassLoaderModule implements Module {
       Method resultListMethod = null;
       final List<Method> methods = JavaBeanUtil.getMethods(pluginClass);
       for (final Method method : methods) {
-        processParameter(pluginClass, businessApplication, method);
-        processResultAttribute(pluginClass, businessApplication, method, false);
-        if (method.isAnnotationPresent(ResultList.class)) {
-          if (resultListMethod == null) {
-            resultListMethod = method;
-          } else {
-            throw new IllegalArgumentException("Business Application "
-              + businessApplicationName
-              + " may only have one method with the annotation "
-              + ResultList.class);
+        if (method.getName().equals("testExecute")) {
+          processTestExecute(businessApplication, method);
+        } else {
+          processParameter(pluginClass, businessApplication, method);
+          processResultAttribute(pluginClass, businessApplication, method,
+            false);
+          if (method.isAnnotationPresent(ResultList.class)) {
+            if (resultListMethod == null) {
+              resultListMethod = method;
+            } else {
+              throw new IllegalArgumentException("Business Application "
+                + businessApplicationName
+                + " may only have one method with the annotation "
+                + ResultList.class);
+            }
           }
         }
       }
@@ -1032,13 +1041,15 @@ public class ClassLoaderModule implements Module {
     try {
       if (isEnabled()) {
         final ClassLoader classLoader = getClassLoader();
-        log.info("Loading plugin " + pluginClassName);
+        log.info("Start\tLoading plugin\tclass=" + pluginClassName);
         final Class<?> pluginClass = Class.forName(pluginClassName.trim(),
           true, classLoader);
         final BusinessApplication businessApplication = getBusinessApplicaton(
           moduleName, pluginClass);
         final String pluginName = businessApplication.getName();
         businessApplicationsByName.put(pluginName, businessApplication);
+        log.info("End\tLoading plugin\tclass=" + pluginClassName
+          + "\tbusinessApplicationName=" + pluginName);
         return businessApplication;
       }
     } catch (final Throwable e) {
@@ -1392,6 +1403,27 @@ public class ClassLoaderModule implements Module {
     } catch (final IllegalArgumentException e) {
       throw new IllegalArgumentException("Business Application "
         + businessApplicationName + " method ", e);
+    }
+  }
+
+  public void processTestExecute(final BusinessApplication businessApplication,
+    final Method method) {
+    boolean hasError = false;
+    if (method.getReturnType().equals(Void.TYPE)) {
+      if (method.getParameterTypes().length > 0) {
+        hasError = true;
+      } else if (!Modifier.isPublic(method.getModifiers())) {
+        hasError = true;
+      } else {
+        businessApplication.setHasTestExecuteMethod(true);
+      }
+    } else {
+      hasError = true;
+    }
+    if (hasError) {
+      throw new IllegalArgumentException("Business Application "
+        + businessApplication.getName()
+        + " testExecuteMethod must match public void testExecute()");
     }
   }
 

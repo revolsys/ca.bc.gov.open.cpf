@@ -1,5 +1,6 @@
 package ca.bc.gov.open.cpg.test.plugin;
 
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -40,7 +41,7 @@ public class TestAllDataTypes {
 
   private Timestamp timestamp;
 
-  private String url;
+  private URL url;
 
   public void execute() {
   }
@@ -105,8 +106,8 @@ public class TestAllDataTypes {
     return this.timestamp;
   }
 
-  @ResultAttribute(index = 12)
-  public String getUrl() {
+  @ResultAttribute(index = 13)
+  public URL getUrl() {
     return url;
   }
 
@@ -171,7 +172,7 @@ public class TestAllDataTypes {
   }
 
   @RequestParameter(index = 8)
-  @DefaultValue("test")
+  @DefaultValue("test string")
   public void setString(final String string) {
     this.string = string;
   }
@@ -182,9 +183,9 @@ public class TestAllDataTypes {
     this.timestamp = timestamp;
   }
 
-  @RequestParameter(index = 12)
+  @RequestParameter(index = 13)
   @DefaultValue("http://www.google.com/")
-  public void setUrl(final String url) {
+  public void setUrl(final URL url) {
     this.url = url;
   }
 

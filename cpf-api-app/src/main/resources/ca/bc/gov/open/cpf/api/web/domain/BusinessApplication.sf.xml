@@ -104,6 +104,9 @@
           p:name="resultDataContentTypes"
           p:keyLabel="MIME Type"
           p:valueLabel="Description" />
+        <bean
+          p:name="testModeEnabled"
+          class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer" />
       </list>
     </property>
     <property name="fields">
@@ -128,6 +131,11 @@
               </map>
             </property>
           </bean>
+        </entry>
+        <entry key="testModeEnabled">
+          <bean
+            class="com.revolsys.ui.html.fields.CheckBoxField"
+            p:name="testModeEnabled" />
         </entry>
         <entry key="batchModePermission">
           <bean
@@ -202,6 +210,7 @@
             <value>descriptionUrl</value>
 
             <value>logLevel</value>
+            <value>testModeEnabled</value>
 
             <value>batchModePermission</value>
             <value>instantModePermission</value>
@@ -253,6 +262,7 @@
         <entry key="moduleEdit">
           <list>
             <value>logLevel</value>
+            <value>testModeEnabled</value>
 
             <value>batchModePermission</value>
             <value>instantModePermission</value>

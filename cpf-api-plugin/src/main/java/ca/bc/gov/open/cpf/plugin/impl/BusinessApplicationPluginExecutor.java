@@ -34,6 +34,8 @@ public class BusinessApplicationPluginExecutor {
 
   private final SecurityServiceFactory securityServiceFactory = new MockSecurityServiceFactory();
 
+  private Map<String, Object> testParameters = new HashMap<>();
+
   public BusinessApplicationPluginExecutor() {
     final ClassLoader classLoader = Thread.currentThread()
       .getContextClassLoader();
@@ -46,6 +48,10 @@ public class BusinessApplicationPluginExecutor {
   public BusinessApplicationPluginExecutor(
     final BusinessApplicationRegistry businessApplicationRegistry) {
     this.businessApplicationRegistry = businessApplicationRegistry;
+  }
+
+  public void addTestParameter(final String name, final Object value) {
+    testParameters.put(name, value);
   }
 
   public void close() {
@@ -72,7 +78,7 @@ public class BusinessApplicationPluginExecutor {
 
     final BusinessApplication businessApplication = plugin.getApplication();
     final AppLog log = businessApplication.getLog();
-    log.info("Start Execution");
+    log.info("Start\tExecution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
@@ -98,7 +104,7 @@ public class BusinessApplicationPluginExecutor {
     final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
     final Map<String, Object> response = plugin.getResponseFields();
     final DataObject result = getResultDataObject(resultMetaData, response);
-    AppLogUtil.info(log, "End Execution", stopWatch);
+    AppLogUtil.info(log, "End\tExecution", stopWatch);
     return result;
   }
 
@@ -122,7 +128,7 @@ public class BusinessApplicationPluginExecutor {
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
     final AppLog log = businessApplication.getLog();
-    log.info("Start Execution");
+    log.info("Start\tExecution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
@@ -143,7 +149,7 @@ public class BusinessApplicationPluginExecutor {
       throw new RuntimeException(
         "Business Application does not support response fields");
     }
-    AppLogUtil.info(log, "End Execution", stopWatch);
+    AppLogUtil.info(log, "End\tExecution", stopWatch);
   }
 
   /**
@@ -164,7 +170,7 @@ public class BusinessApplicationPluginExecutor {
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
     final AppLog log = businessApplication.getLog();
-    log.info("Start Execution");
+    log.info("Start\tExecution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, jobParameters);
@@ -193,7 +199,7 @@ public class BusinessApplicationPluginExecutor {
     final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
     final Map<String, Object> results = getResultDataObject(resultMetaData,
       response);
-    AppLogUtil.info(log, "End Execution", stopWatch);
+    AppLogUtil.info(log, "End\tExecution", stopWatch);
     return results;
   }
 
@@ -218,7 +224,7 @@ public class BusinessApplicationPluginExecutor {
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
     final AppLog log = businessApplication.getLog();
-    log.info("Start Execution");
+    log.info("Start\tExecution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, jobParameters);
@@ -247,7 +253,7 @@ public class BusinessApplicationPluginExecutor {
       throw new RuntimeException(
         "Business Application does not support response fields");
     }
-    AppLogUtil.info(log, "End Execution", stopWatch);
+    AppLogUtil.info(log, "End\tExecution", stopWatch);
   }
 
   /**
@@ -268,7 +274,7 @@ public class BusinessApplicationPluginExecutor {
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
     final AppLog log = businessApplication.getLog();
-    log.info("Start Execution");
+    log.info("Start\tExecution");
 
     final DataObject requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
@@ -294,7 +300,7 @@ public class BusinessApplicationPluginExecutor {
     final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
     final List<Map<String, Object>> resultsList = getResultList(resultMetaData,
       results);
-    AppLogUtil.info(log, "End Execution", stopWatch);
+    AppLogUtil.info(log, "End\tExecution", stopWatch);
     return resultsList;
   }
 
@@ -320,6 +326,7 @@ public class BusinessApplicationPluginExecutor {
     } else {
       final SecurityService securityService = getSecurityService(businessApplicationName);
       plugin.setSecurityService(securityService);
+      plugin.setTestParameters(testParameters);
       return plugin;
     }
   }
@@ -375,6 +382,21 @@ public class BusinessApplicationPluginExecutor {
 
   public void setConsumerKey(final String consumerKey) {
     this.consumerKey = consumerKey;
+  }
+
+  public void setTestModeEnabled(final String businessApplicationName,
+    final boolean enabled) {
+    if (enabled) {
+      testParameters.put("cpfPluginTest", Boolean.TRUE);
+    }
+    final BusinessApplication application = businessApplicationRegistry.getBusinessApplication(businessApplicationName);
+    if (application != null) {
+      application.setTestModeEnabled(enabled);
+    }
+  }
+
+  public void setTestParameters(final Map<String, Object> testParameters) {
+    this.testParameters = new HashMap<>(testParameters);
   }
 
 }

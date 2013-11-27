@@ -574,9 +574,7 @@ public class CloudProcessingFramework {
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
       final AppLog log = businessApplication.getLog();
-      if (businessApplication.isInfoLogEnabled()) {
-        log.info("Job submit multiple - Start, batchJobId=" + batchJobId);
-      }
+      log.info("Start\tJob submit multiple\tbatchJobId=" + batchJobId);
 
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_NAME,
         businessApplicationName);
@@ -657,10 +655,13 @@ public class CloudProcessingFramework {
           if (jobParameter) {
             businessApplicationParameters.put(parameterName, value);
           } else if (requestParameter) {
-            throw new HttpMessageNotReadableException(
-              "Parameter "
-                + parameterName
-                + " cannot be specified on a job. It can only be specified as a field in the input data.");
+            if (parameter.getType() != DataTypes.BOOLEAN
+              || StringUtils.hasText(HttpServletUtils.getParameter(parameterName))) {
+              throw new HttpMessageNotReadableException(
+                "Parameter "
+                  + parameterName
+                  + " cannot be specified on a job. It can only be specified as a field in the input data.");
+            }
           }
         } else {
           if (jobParameter && !requestParameter && parameter.isRequired()) {
@@ -736,7 +737,7 @@ public class CloudProcessingFramework {
       batchJobUiBuilder.redirectPage("clientView");
 
       if (businessApplication.isInfoLogEnabled()) {
-        AppLogUtil.info(log, "Job submit multiple - Start, batchJobId="
+        AppLogUtil.info(log, "End\tJob submit multiple\tbatchJobId="
           + batchJobId, stopWatch);
       }
       final Map<String, Object> statistics = new HashMap<String, Object>();
@@ -833,9 +834,7 @@ public class CloudProcessingFramework {
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
       final AppLog log = businessApplication.getLog();
-      if (businessApplication.isInfoLogEnabled()) {
-        log.info("Job submit single - Start, batchJobId=" + batchJobId);
-      }
+      log.info("Start\tJob submit single\tbatchJobId=" + batchJobId);
       final String consumerKey = getConsumerKey();
 
       final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
@@ -954,9 +953,8 @@ public class CloudProcessingFramework {
 
       HttpServletUtils.setPathVariable("batchJobId", batchJobId);
 
-      if (businessApplication.isInfoLogEnabled()) {
-        AppLogUtil.infoAfterCommit(log, "Job submit single - End", stopWatch);
-      }
+      AppLogUtil.infoAfterCommit(log, "End\tJob submit single\tbatchJobId="
+        + batchJobId, stopWatch);
       final Map<String, Object> statistics = new HashMap<String, Object>();
       statistics.put("submittedJobsTime", stopWatch);
       statistics.put("submittedJobsCount", 1);
@@ -1498,6 +1496,95 @@ public class CloudProcessingFramework {
         } catch (final IOException e) {
           return ExceptionUtil.throwUncheckedException(e);
         }
+      }
+    }
+  }
+
+  /**
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a>
+   * resource for each of the user's jobs for the business application.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>batchJobId</td>
+   *         <td>The unique identifier of the cloud job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>batchJobUrl</td>
+   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> resource without the file format extension.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>jobStatus</td>
+   *         <td>The current status of the job.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>creationTimestamp</td>
+   *         <td>The time when the job was created.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param businessApplicationName The name of the business application.
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   */
+  @RequestMapping(value = {
+    "/ws/apps/{businessApplicationName}/jobs"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public Object getBusinessApplicationsJobs(
+    @PathVariable final String businessApplicationName) {
+    final BusinessApplication businessApplication = batchJobUiBuilder.getBusinessApplication(businessApplicationName);
+    if (businessApplication == null || !businessApplication.isEnabled()) {
+      throw new PageNotFoundException("Business application "
+        + businessApplicationName + " does not exist.");
+    } else {
+      final String consumerKey = getConsumerKey();
+      CloudProcessingFramework.checkPermission(businessApplication);
+      if (HtmlUiBuilder.isDataTableCallback()) {
+        final Map<String, Object> parameters = new HashMap<String, Object>();
+
+        final Map<String, Object> filter = new HashMap<String, Object>();
+        filter.put(BatchJob.USER_ID, consumerKey);
+        filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+        parameters.put("filter", filter);
+
+        return batchJobUiBuilder.createDataTableMap("clientAppList", parameters);
+      } else if (MediaTypeUtil.isHtmlPage()) {
+        batchJobUiBuilder.redirectToTab(BusinessApplication.class,
+          "clientView", "clientAppList");
+        return null;
+      } else {
+        final String title = businessApplication.getTitle();
+        final PageInfo page = createRootPageInfo(title + " Batch Jobs");
+        final List<DataObject> batchJobs = dataAccessObject.getBatchJobsForUserAndApplication(
+          consumerKey, businessApplicationName);
+        for (final DataObject job : batchJobs) {
+          addBatchJobStatusLink(page, job);
+        }
+        final Object table = batchJobUiBuilder.createDataTableHandler(
+          "clientList", batchJobs);
+        if (table instanceof Element) {
+          final Element element = (Element)table;
+          page.setPagesElement(element);
+        } else {
+          return table;
+        }
+        return page;
       }
     }
   }
@@ -2420,6 +2507,98 @@ public class CloudProcessingFramework {
       + " does not exist.");
   }
 
+  /**
+   * <p>Get the list of links to the
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Jobs Result</a>
+   * resource for each of the results for a user's job.</p>
+   * 
+   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * 
+   * <div class="simpleDataTable">
+   *   <table class="data">
+   *     <thead>
+   *       <tr>
+   *         <th>Attribute</th>
+   *         <th>Description</th>
+   *       </tr>
+   *     </thead>
+   *     <tbody>
+   *       <tr>
+   *         <td>batchJobResultType</td>
+   *         <td>The type of result file structuredResultData, opaqueResultData, errorResultData.</td>
+   *       </tr>
+   *       <tr>
+   *         <td>batchJobResultContentType</td>
+   *         <td>The MIME type of the result file.</td>
+   *       </tr>
+   *     </tbody>
+   *   </table>
+   * </div>
+   * 
+   * @param batchJobId The unique identifier of the cloud job. 
+   * @return The resource.
+   *
+   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
+   */
+  @RequestMapping(value = {
+    "/ws/jobs/{batchJobId}/results"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public Object getJobsResults(@PathVariable final long batchJobId) {
+    final String consumerKey = getConsumerKey();
+
+    final DataObject batchJob = dataAccessObject.getBatchJob(consumerKey,
+      batchJobId);
+    if (batchJob == null) {
+      throw new PageNotFoundException("Batch Job " + batchJobId
+        + " does not exist.");
+    } else {
+      final String title = "Batch Job " + batchJobId + " results";
+      if (HtmlUiBuilder.isDataTableCallback()) {
+        final Map<String, Object> parameters = new HashMap<String, Object>();
+
+        final Map<String, Object> filter = new HashMap<String, Object>();
+        filter.put(BatchJobResult.BATCH_JOB_ID, batchJobId);
+        parameters.put("filter", filter);
+
+        return batchJobResultUiBuilder.createDataTableMap("clientList",
+          parameters);
+      } else if (MediaTypeUtil.isHtmlPage()) {
+        HttpServletUtils.setAttribute("title", title);
+        final Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("serverSide", false);
+        final TabElementContainer tabs = new TabElementContainer();
+        batchJobResultUiBuilder.addTabDataTable(tabs, BatchJob.BATCH_JOB,
+          "clientList", parameters);
+        return tabs;
+      } else {
+        final Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("batchJobId", batchJobId);
+        final PageInfo page = createRootPageInfo(title);
+        final List<DataObject> results = dataAccessObject.getBatchJobResults(batchJobId);
+        if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null
+          && !results.isEmpty()) {
+          for (final DataObject batchJobResult : results) {
+            final Number batchJobResultId = batchJobResult.getIdValue();
+            parameters.put("batchJobResultId", batchJobResultId);
+            final PageInfo resultPage = addPage(page, batchJobResultId,
+              "Batch Job " + batchJobId + " result " + batchJobResultId);
+            final String batchJobResultType = batchJobResult.getValue(BatchJobResult.BATCH_JOB_RESULT_TYPE);
+            resultPage.setAttribute("batchJobResultType", batchJobResultType);
+            resultPage.setAttribute("batchJobResultContentType",
+              batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
+            if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
+              resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
+                batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));
+            }
+          }
+        }
+        return page;
+      }
+    }
+  }
+
   private List<Map<String, Object>> getRequestAttributeList(
     final BusinessApplication businessApplication) {
     final List<Map<String, Object>> parameters = new ArrayList<Map<String, Object>>();
@@ -2537,187 +2716,6 @@ public class CloudProcessingFramework {
       addPage(page, "jobs", "Jobs");
       addPage(page, "apps", "Business Applications");
       return page;
-    }
-  }
-
-  /**
-   * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a>
-   * resource for each of the user's jobs for the business application.</p>
-   * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
-   * 
-   * <div class="simpleDataTable">
-   *   <table class="data">
-   *     <thead>
-   *       <tr>
-   *         <th>Attribute</th>
-   *         <th>Description</th>
-   *       </tr>
-   *     </thead>
-   *     <tbody>
-   *       <tr>
-   *         <td>batchJobId</td>
-   *         <td>The unique identifier of the cloud job.</td>
-   *       </tr>
-   *       <tr>
-   *         <td>batchJobUrl</td>
-   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> resource without the file format extension.</td>
-   *       </tr>
-   *       <tr>
-   *         <td>jobStatus</td>
-   *         <td>The current status of the job.</td>
-   *       </tr>
-   *       <tr>
-   *         <td>creationTimestamp</td>
-   *         <td>The time when the job was created.</td>
-   *       </tr>
-   *     </tbody>
-   *   </table>
-   * </div>
-   * 
-   * @param businessApplicationName The name of the business application.
-   * @return The resource.
-   *
-   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
-   */
-  @RequestMapping(value = {
-    "/ws/apps/{businessApplicationName}/jobs"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public Object getBusinessApplicationsJobs(
-    @PathVariable final String businessApplicationName) {
-    final BusinessApplication businessApplication = batchJobUiBuilder.getBusinessApplication(businessApplicationName);
-    if (businessApplication == null || !businessApplication.isEnabled()) {
-      throw new PageNotFoundException("Business application "
-        + businessApplicationName + " does not exist.");
-    } else {
-      final String consumerKey = getConsumerKey();
-      CloudProcessingFramework.checkPermission(businessApplication);
-      if (HtmlUiBuilder.isDataTableCallback()) {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
-
-        final Map<String, Object> filter = new HashMap<String, Object>();
-        filter.put(BatchJob.USER_ID, consumerKey);
-        filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-        parameters.put("filter", filter);
-
-        return batchJobUiBuilder.createDataTableMap("clientAppList", parameters);
-      } else if (MediaTypeUtil.isHtmlPage()) {
-        batchJobUiBuilder.redirectToTab(BusinessApplication.class,
-          "clientView", "clientAppList");
-        return null;
-      } else {
-        final String title = businessApplication.getTitle();
-        final PageInfo page = createRootPageInfo(title + " Batch Jobs");
-        final List<DataObject> batchJobs = dataAccessObject.getBatchJobsForUserAndApplication(
-          consumerKey, businessApplicationName);
-        for (final DataObject job : batchJobs) {
-          addBatchJobStatusLink(page, job);
-        }
-        final Object table = batchJobUiBuilder.createDataTableHandler(
-          "clientList", batchJobs);
-        if (table instanceof Element) {
-          final Element element = (Element)table;
-          page.setPagesElement(element);
-        } else {
-          return table;
-        }
-        return page;
-      }
-    }
-  }
-
-  /**
-   * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Jobs Result</a>
-   * resource for each of the results for a user's job.</p>
-   * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
-   * 
-   * <div class="simpleDataTable">
-   *   <table class="data">
-   *     <thead>
-   *       <tr>
-   *         <th>Attribute</th>
-   *         <th>Description</th>
-   *       </tr>
-   *     </thead>
-   *     <tbody>
-   *       <tr>
-   *         <td>batchJobResultType</td>
-   *         <td>The type of result file structuredResultData, opaqueResultData, errorResultData.</td>
-   *       </tr>
-   *       <tr>
-   *         <td>batchJobResultContentType</td>
-   *         <td>The MIME type of the result file.</td>
-   *       </tr>
-   *     </tbody>
-   *   </table>
-   * </div>
-   * 
-   * @param batchJobId The unique identifier of the cloud job. 
-   * @return The resource.
-   *
-   * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
-   */
-  @RequestMapping(value = {
-    "/ws/jobs/{batchJobId}/results"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public Object getJobsResults(@PathVariable final long batchJobId) {
-    final String consumerKey = getConsumerKey();
-
-    final DataObject batchJob = dataAccessObject.getBatchJob(consumerKey,
-      batchJobId);
-    if (batchJob == null) {
-      throw new PageNotFoundException("Batch Job " + batchJobId
-        + " does not exist.");
-    } else {
-      final String title = "Batch Job " + batchJobId + " results";
-      if (HtmlUiBuilder.isDataTableCallback()) {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
-
-        final Map<String, Object> filter = new HashMap<String, Object>();
-        filter.put(BatchJobResult.BATCH_JOB_ID, batchJobId);
-        parameters.put("filter", filter);
-
-        return batchJobResultUiBuilder.createDataTableMap("clientList",
-          parameters);
-      } else if (MediaTypeUtil.isHtmlPage()) {
-        HttpServletUtils.setAttribute("title", title);
-        final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("serverSide", false);
-        final TabElementContainer tabs = new TabElementContainer();
-        batchJobResultUiBuilder.addTabDataTable(tabs, BatchJob.BATCH_JOB,
-          "clientList", parameters);
-        return tabs;
-      } else {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("batchJobId", batchJobId);
-        final PageInfo page = createRootPageInfo(title);
-        final List<DataObject> results = dataAccessObject.getBatchJobResults(batchJobId);
-        if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null
-          && !results.isEmpty()) {
-          for (final DataObject batchJobResult : results) {
-            final Number batchJobResultId = batchJobResult.getIdValue();
-            parameters.put("batchJobResultId", batchJobResultId);
-            final PageInfo resultPage = addPage(page, batchJobResultId,
-              "Batch Job " + batchJobId + " result " + batchJobResultId);
-            final String batchJobResultType = batchJobResult.getValue(BatchJobResult.BATCH_JOB_RESULT_TYPE);
-            resultPage.setAttribute("batchJobResultType", batchJobResultType);
-            resultPage.setAttribute("batchJobResultContentType",
-              batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
-            if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
-              resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
-                batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));
-            }
-          }
-        }
-        return page;
-      }
     }
   }
 

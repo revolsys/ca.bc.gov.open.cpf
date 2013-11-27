@@ -10,8 +10,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
@@ -34,7 +36,8 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
         }
       }
     } catch (final IOException e) {
-      LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error("Unable to get spring config URLs", e);
+      LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error(
+        "Unable to get spring config URLs", e);
     }
     return configUrls;
   }
@@ -92,9 +95,19 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
             moduleName = moduleName.replaceAll("!", "");
             moduleName = moduleName.replaceAll("/target/classes", "");
             moduleName = moduleName.replaceAll("/+$", "");
+            moduleName = moduleName.replaceAll(".*/", "");
             moduleName = moduleName.replaceAll(".jar", "");
-            moduleName = FileUtil.getFileNameExtension(PathUtil.getName(moduleName));
-
+            if (moduleName.indexOf('.') == -1) {
+              final int dashIndex = moduleName.lastIndexOf('-');
+              if (dashIndex != -1) {
+                moduleName = moduleName.substring(dashIndex + 1);
+              }
+            } else {
+              moduleName = FileUtil.getFileNameExtension(PathUtil.getName(moduleName));
+            }
+            if (!StringUtils.hasText(moduleName)) {
+              moduleName = UUID.randomUUID().toString();
+            }
             final ConfigPropertyLoader configPropertyLoader = businessApplicationRegistry.getConfigPropertyLoader();
             final ClassLoaderModule module = new ClassLoaderModule(
               businessApplicationRegistry, moduleName, classLoader,
@@ -103,11 +116,13 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
             modulesByName.put(moduleName, module);
             module.enable();
           } catch (final Throwable e) {
-            LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error("Unable to register module for " + configUrl, e);
+            LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error(
+              "Unable to register module for " + configUrl, e);
           }
         }
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error("Unable to register modules", e);
+        LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error(
+          "Unable to register modules", e);
       }
     }
   }

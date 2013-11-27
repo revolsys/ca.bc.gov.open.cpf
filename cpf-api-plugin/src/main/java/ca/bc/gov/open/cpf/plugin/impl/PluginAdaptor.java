@@ -6,13 +6,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.MethodUtils;
@@ -23,18 +27,29 @@ import org.springframework.util.StringUtils;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
+import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.gis.cs.BoundingBox;
 import com.revolsys.gis.cs.GeometryFactory;
 import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.AttributeProperties;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
+import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
+import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.MultiPoint;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 public class PluginAdaptor {
 
@@ -49,6 +64,8 @@ public class PluginAdaptor {
   private Map<String, Object> responseFields;
 
   private SecurityService securityService;
+
+  private Map<String, Object> testParameters = new HashMap<>();
 
   private final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 
@@ -84,10 +101,30 @@ public class PluginAdaptor {
     }
   }
 
+  public void addTestParameter(final String name, final Object value) {
+    testParameters.put(name, value);
+  }
+
   @SuppressWarnings("unchecked")
   public void execute() {
     try {
-      MethodUtils.invokeExactMethod(plugin, "execute", new Object[0]);
+      if (application.isTestModeEnabled()
+        && BooleanStringConverter.isTrue(testParameters.get("cpfPluginTest"))) {
+        if (application.isHasTestExecuteMethod()) {
+          MethodUtils.invokeExactMethod(plugin, "testExecute", new Object[0]);
+        } else {
+          final String resultListProperty = application.getResultListProperty();
+          if (resultListProperty == null) {
+            this.responseFields = getResult(plugin, false, true);
+            results.add(responseFields);
+          } else {
+            System.out.println("Create test data");
+
+          }
+        }
+      } else {
+        MethodUtils.invokeExactMethod(plugin, "execute", new Object[0]);
+      }
     } catch (final InvocationTargetException e) {
       final Throwable cause = e.getCause();
       if (cause instanceof RuntimeException) {
@@ -108,14 +145,15 @@ public class PluginAdaptor {
     }
     final String resultListProperty = application.getResultListProperty();
     if (resultListProperty == null) {
-      this.responseFields = getResult(plugin, false);
+      this.responseFields = getResult(plugin, false, false);
       results.add(responseFields);
     } else {
       final List<Object> resultObjects = JavaBeanUtil.getProperty(plugin,
         resultListProperty);
       if (resultObjects != null) {
         for (final Object resultObject : resultObjects) {
-          final Map<String, Object> result = getResult(resultObject, true);
+          final Map<String, Object> result = getResult(resultObject, true,
+            false);
           results.add(result);
         }
       }
@@ -135,7 +173,7 @@ public class PluginAdaptor {
   }
 
   private Map<String, Object> getResult(final Object resultObject,
-    final boolean resultList) {
+    final boolean resultList, final boolean test) {
     final DataObjectMetaData resultMetaData = application.getResultMetaData();
     final Map<String, Object> result = new HashMap<String, Object>();
     for (final Attribute attribute : resultMetaData.getAttributes()) {
@@ -148,7 +186,59 @@ public class PluginAdaptor {
           throw new IllegalArgumentException("Could not read property "
             + application.getName() + "." + fieldName, t);
         }
-        if (value != null) {
+        if (value == null) {
+          value = attribute.getDefaultValue();
+          if (value == null) {
+            final Class<?> typeClass = attribute.getTypeClass();
+            if (Boolean.class.isAssignableFrom(typeClass)) {
+              value = true;
+            } else if (Number.class.isAssignableFrom(typeClass)) {
+              value = 123;
+            } else if (URL.class.isAssignableFrom(typeClass)) {
+              String urlString = "http://www.test.com/";
+              final int length = attribute.getLength();
+              if (length > 0 && length < 4) {
+                urlString = urlString.substring(0, length);
+              }
+              value = UrlUtil.getUrl(urlString);
+            } else if (String.class.isAssignableFrom(typeClass)) {
+              value = "test";
+              final int length = attribute.getLength();
+              if (length > 0 && length < 4) {
+                value = ((String)value).substring(0, length);
+              }
+            } else if (LineString.class.isAssignableFrom(typeClass)) {
+              value = GeometryFactory.WGS84.createLineString(new DoubleCoordinatesList(
+                2, -125, 53, -125.1, 53));
+            } else if (Polygon.class.isAssignableFrom(typeClass)) {
+              final BoundingBox boundingBox = new BoundingBox(
+                GeometryFactory.WGS84, -125, 53, -125.1, 53);
+              value = boundingBox.toPolygon(10);
+            } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
+              final LineString line = GeometryFactory.WGS84.createLineString(new DoubleCoordinatesList(
+                2, -125, 53, -125.1, 53));
+              value = GeometryFactory.WGS84.createMultiLineString(line);
+            } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
+              final BoundingBox boundingBox = new BoundingBox(
+                GeometryFactory.WGS84, -125, 53, -125.1, 53);
+              final Polygon polygon = boundingBox.toPolygon(10);
+              value = GeometryFactory.WGS84.createMultiPolygon(polygon);
+            } else if (Date.class.isAssignableFrom(typeClass)) {
+              final Timestamp time = new Timestamp(System.currentTimeMillis());
+              value = StringConverterRegistry.toObject(typeClass, time);
+            } else if (GeometryCollection.class.isAssignableFrom(typeClass)
+              || MultiPoint.class.isAssignableFrom(typeClass)) {
+              final Point point = GeometryFactory.WGS84.createPoint(-125, 53);
+              value = GeometryFactory.WGS84.createMultiPoint(point);
+            } else if (Geometry.class.isAssignableFrom(typeClass)
+              || Point.class.isAssignableFrom(typeClass)) {
+              value = GeometryFactory.WGS84.createPoint(-125, 53);
+            } else {
+              value = "Unknown";
+            }
+          }
+          result.put(fieldName, value);
+        } else {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
             GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
@@ -209,6 +299,14 @@ public class PluginAdaptor {
 
   @SuppressWarnings("resource")
   public void setParameters(final Map<String, ? extends Object> parameters) {
+    for (final Entry<String, ? extends Object> entry : parameters.entrySet()) {
+      final String parameterName = entry.getKey();
+      if (parameterName.startsWith("cpf")) {
+        final Object parameterValue = entry.getValue();
+        testParameters.put(parameterName, parameterValue);
+      }
+    }
+
     final DataObjectMetaDataImpl requestMetaData = application.getRequestMetaData();
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       final String parameterName = attribute.getName();
@@ -283,6 +381,10 @@ public class PluginAdaptor {
 
   public void setSecurityService(final SecurityService securityService) {
     this.securityService = securityService;
+  }
+
+  public void setTestParameters(final Map<String, Object> testParameters) {
+    this.testParameters = new HashMap<>(testParameters);
   }
 
   @Override

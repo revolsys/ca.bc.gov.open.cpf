@@ -4,8 +4,9 @@
 <!DOCTYPE html>
 <html xml:lang="en">
 <head>
-<title><c:out value="${title}" /></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10" />
+<title><c:out value="${title}" /></title>
 <c:forEach var="cssUrl" items="${cssUrls}">
   <link href="<c:url value="${cssUrl}" />" rel="stylesheet" type="text/css" />
 </c:forEach>

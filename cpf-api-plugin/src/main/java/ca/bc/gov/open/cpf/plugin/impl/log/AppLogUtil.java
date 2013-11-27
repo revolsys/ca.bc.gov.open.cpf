@@ -17,7 +17,7 @@ public final class AppLogUtil {
       } catch (final IllegalStateException e) {
       }
       final long time = stopWatch.getTotalTimeMillis();
-      log.info(message + ", time=" + time);
+      log.info(message + "\ttime=" + (time / 1000.0));
     }
   }
 

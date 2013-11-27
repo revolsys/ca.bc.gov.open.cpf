@@ -313,8 +313,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
         LoggerFactory.getLogger(getClass()).info(
           "Unloading older module version " + moduleName + " "
             + lastStartedTime);
-        log.info("Unloading older module version " + moduleName + " "
-          + lastStartedTime);
+        log.info("Unloading older module version\tmoduleName=" + moduleName
+          + "\tmoduleTime=" + lastStartedTime);
         unloadModule(module);
         module = null;
       } else if (lastStartedTime == moduleTime) {
