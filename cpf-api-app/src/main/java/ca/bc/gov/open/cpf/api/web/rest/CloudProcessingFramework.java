@@ -443,24 +443,24 @@ public class CloudProcessingFramework {
       TableHeadingDecorator.addRow(fields, cpfPluginTest, "Test Mode",
         "Enable test mode for the request.");
 
-      final IntegerField minTime = new IntegerField("cpfMinExecutionTime",
-        false, 0);
+      final DoubleField minTime = new DoubleField("cpfMinExecutionTime", false,
+        0);
       TableHeadingDecorator.addRow(fields, minTime, "Min Execution Time (s)",
         "The minimum execution time.");
 
-      final IntegerField meanTime = new IntegerField("cpfMeanExecutionTime",
-        false, 5);
+      final DoubleField meanTime = new DoubleField("cpfMeanExecutionTime",
+        false, 0);
       TableHeadingDecorator.addRow(fields, meanTime, "Mean Execution Time (s)",
         "The mean execution time using a gaussian distribution.");
 
-      final IntegerField standardDeviation = new IntegerField(
-        "cpfStandardDeviation", false, 1);
+      final DoubleField standardDeviation = new DoubleField(
+        "cpfStandardDeviation", false, 2);
       TableHeadingDecorator.addRow(fields, standardDeviation,
         "Standard Deviation (s)",
         "The standard deviation for a gaussian distribution.");
 
-      final IntegerField maxTime = new IntegerField("cpfMaxExecutionTime",
-        false, 10);
+      final DoubleField maxTime = new DoubleField("cpfMaxExecutionTime", false,
+        10);
       TableHeadingDecorator.addRow(fields, maxTime, "Max Execution Time (s)",
         "The maximum execution time.");
     }

@@ -117,18 +117,18 @@ public class PluginAdaptor {
     try {
       if (application.isTestModeEnabled()
         && BooleanStringConverter.isTrue(testParameters.get("cpfPluginTest"))) {
-        Integer minTime = CollectionUtil.getInteger(testParameters,
-          "cpfMinExecutionTime", -1);
-        Integer maxTime = CollectionUtil.getInteger(testParameters,
-          "cpfMaxExecutionTime", -1);
-        final Integer meanTime = CollectionUtil.getInteger(testParameters,
-          "cpfMeanExecutionTime", -1);
-        final Integer standardDeviation = CollectionUtil.getInteger(
-          testParameters, "cpfStandardDeviation", -1);
+        double minTime = CollectionUtil.getDouble(testParameters,
+          "cpfMinExecutionTime", -1.0);
+        double maxTime = CollectionUtil.getDouble(testParameters,
+          "cpfMaxExecutionTime", -1.0);
+        final double meanTime = CollectionUtil.getDouble(testParameters,
+          "cpfMeanExecutionTime", -1.0);
+        final double standardDeviation = CollectionUtil.getDouble(
+          testParameters, "cpfStandardDeviation", -1.0);
         double executionTime;
         if (standardDeviation <= 0) {
           if (minTime < 0) {
-            minTime = 0;
+            minTime = 0.0;
           }
           if (maxTime < minTime) {
             maxTime = minTime + 10;

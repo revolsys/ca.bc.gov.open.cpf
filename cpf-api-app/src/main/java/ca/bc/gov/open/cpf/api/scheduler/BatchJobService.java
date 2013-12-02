@@ -1943,6 +1943,7 @@ public class BatchJobService implements ModuleEventListener {
     this.statisticsByAppAndId = statisticsByAppAndId;
   }
 
+  @Resource(name = "cpfStatisticsProcess")
   public void setStatisticsProcess(final StatisticsProcess statisticsProcess) {
     this.statisticsProcess = statisticsProcess;
     statisticsProcess.getIn().writeConnect();
