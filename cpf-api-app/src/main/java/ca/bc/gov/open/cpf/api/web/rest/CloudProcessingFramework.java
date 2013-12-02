@@ -2190,8 +2190,8 @@ public class CloudProcessingFramework {
         }
         field = new TextField(name, length, defaultValue, required);
       } else {
-        throw new IllegalArgumentException("Values with class " + typeClass
-          + " are not supported");
+        throw new IllegalArgumentException("Values with class "
+          + typeClass.getName() + " are not supported");
       }
     } else {
       field = new SelectField(name, defaultValue, required, allowedValues);
