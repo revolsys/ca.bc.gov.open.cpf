@@ -7,6 +7,12 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedC
 
 public class SiteminderAuthenticationFilter extends
   AbstractPreAuthenticatedProcessingFilter {
+  @Override
+  protected Object getPreAuthenticatedCredentials(
+    final HttpServletRequest request) {
+    return "";
+  }
+
   /**
    * Read and returns the header named by {@code principalRequestHeader} from
    * the request.
@@ -15,18 +21,14 @@ public class SiteminderAuthenticationFilter extends
    *           missing and {@code exceptionIfHeaderMissing} is set to
    *           {@code true}.
    */
-  protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-    String principal = request.getHeader("SMGOV_USERGUID");
+  @Override
+  protected Object getPreAuthenticatedPrincipal(final HttpServletRequest request) {
+    final String principal = request.getHeader("SMGOV_USERGUID");
     if (principal == null) {
       throw new PreAuthenticatedCredentialsNotFoundException(
-        " SM_USER header not found in request.");
+        " SMGOV_USERGUID header not found in request.");
     } else {
       return principal;
     }
-  }
-
-  @Override
-  protected Object getPreAuthenticatedCredentials(HttpServletRequest request) {
-    return "";
   }
 }

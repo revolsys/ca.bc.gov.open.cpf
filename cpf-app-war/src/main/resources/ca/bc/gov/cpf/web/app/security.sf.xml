@@ -54,7 +54,8 @@
 
   <bean
     id="cpfSiteminderLogoutSuccess"
-    class="ca.bc.gov.cpf.web.app.SiteminderLogout" />
+    class="ca.bc.gov.cpf.web.app.SiteminderLogout"
+    p:logoutUrl="https://logon.gov.bc.ca/clp-cgi/logoff.cgi" />
 
   <bean
     id="cpfSiteminderSpringSecurityContext"
@@ -104,12 +105,6 @@
               class="com.revolsys.spring.security.DefaultWebSecurityExpressionHandler" />
           </property>
         </bean>
-        <bean
-          class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
-          p:prefix="/ws/users/" />
-        <bean
-          class="ca.bc.gov.open.cpf.api.security.vote.UserNamePrefixVoter"
-          p:prefix="/secure/ws/users/" />
       </list>
     </property>
   </bean>
