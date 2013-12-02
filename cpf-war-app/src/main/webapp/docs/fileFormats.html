@@ -97,7 +97,11 @@ $(document).ready(function() {
                     web service resources, structured input data, and structured result data. Click
                     the 'view' links below to download a sample of the resource in the each file
                     format.</p>
-
+                  
+                  <p class="note">The CPF requires that <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
+                  encoding be used for all text files. This includes the text in a .dbf file for a shpz archive, unless
+                  a .cpf file is provided in the shpz archive.</p>
+                  
                   <div class="objectList">
                     <table class="data">
                       <thead>
@@ -204,6 +208,29 @@ $(document).ready(function() {
                                 HREF="http:/www.opengeospatial.org/">Open Geospatial Consortium,
                                 Inc. (OGC)</a>.
                             </p>
+                            <p>Each feature record will be encoded using a Placemark with the
+                              geomark's attributes as ExtendedData. If there are more than one
+                              record the Placemarks will be wrapped in a Document element, otherwise
+                              the Placemark will be a child of the kml element.</p></td>
+                        </tr>
+                        <tr id="kmz">
+                          <td>kml</td>
+                          <td>application/vnd.google-earth.kmz</td>
+                          <td><img src="../images/cross.png" alt="No" /></td>
+                          <td><img src="../images/cross.png" alt="No" /></td>
+                          <td><img src="../images/tick.png" alt="Yes" /><br /> <a href="../ws/sample/result.kmz" >view</a></td>
+                          <td><p>
+                              <a href="http:/code.google.com/apis/kml/">Keyhole Markup Language
+                                (KML)</a> is used to display geographic data in an Earth browser, such
+                              as <a href="http:/www.google.com/earth/">Google Earth</a>. <a
+                                HREF="http:/www.opengeospatial.org/standards/kml/">KML is an
+                                international standard</a> maintained by the <a
+                                HREF="http:/www.opengeospatial.org/">Open Geospatial Consortium,
+                                Inc. (OGC)</a>.
+                            </p>
+                            
+                            <p>The KMZ is a Zip file with a single kml document. Typically named doc.kml.</p>
+                            
                             <p>Each feature record will be encoded using a Placemark with the
                               geomark's attributes as ExtendedData. If there are more than one
                               record the Placemarks will be wrapped in a Document element, otherwise

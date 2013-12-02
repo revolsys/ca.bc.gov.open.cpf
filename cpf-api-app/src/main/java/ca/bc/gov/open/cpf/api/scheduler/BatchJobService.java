@@ -1156,12 +1156,10 @@ public class BatchJobService implements ModuleEventListener {
 
           final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
           final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-          if (!businessApplication.getInputDataContentTypes().containsKey(
-            inputContentType)) {
+          if (!businessApplication.isInputContentTypeSupported(inputContentType)) {
             valid = addJobValidationError(batchJobId,
               ErrorCode.BAD_INPUT_DATA_TYPE, "", "");
-          } else if (!businessApplication.getResultDataContentTypes()
-            .containsKey(resultContentType)) {
+          } else if (!businessApplication.isResultContentTypeSupported(resultContentType)) {
             valid = addJobValidationError(batchJobId,
               ErrorCode.BAD_RESULT_DATA_TYPE, "", "");
           } else if (inputDataStream == null) {
@@ -1211,13 +1209,13 @@ public class BatchJobService implements ModuleEventListener {
                         }
                       }
                       numSubmittedRequests++;
-                      final DataObject requestParemeters = processParameters(
+                      final Map<String, Object> requestParemeters = processParameters(
                         batchJob, businessApplication, numSubmittedRequests,
                         jobParameters, inputDataRecord);
                       if (requestParemeters == null) {
                         numFailedRequests++;
                       } else {
-                        requestParemeters.setValue("requestSequenceNumber",
+                        requestParemeters.put("requestSequenceNumber",
                           numSubmittedRequests);
                         group.add(requestParemeters);
                       }
@@ -1316,7 +1314,7 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  private DataObject processParameters(final DataObject batchJob,
+  private Map<String, Object> processParameters(final DataObject batchJob,
     final BusinessApplication businessApplication,
     final int requestSequenceNumber, final Map<String, String> jobParameters,
     final Map<String, Object> inputDataRecord) {
@@ -1368,6 +1366,14 @@ public class BatchJobService implements ModuleEventListener {
               + parameterName + " " + e.getMessage(), errorOut.toString());
           return null;
         }
+      }
+    }
+    final Map<String, Object> params = new LinkedHashMap<>(requestParameters);
+    for (final Entry<String, String> entry : jobParameters.entrySet()) {
+      final String name = entry.getKey();
+      if (name.startsWith("cpf")) {
+        final String value = entry.getValue();
+        params.put(name, value);
       }
     }
     return requestParameters;

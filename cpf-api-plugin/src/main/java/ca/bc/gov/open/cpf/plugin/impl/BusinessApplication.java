@@ -1,10 +1,12 @@
 package ca.bc.gov.open.cpf.plugin.impl;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import org.springframework.expression.Expression;
@@ -40,18 +42,31 @@ import com.vividsolutions.jts.geom.Geometry;
 public class BusinessApplication extends AbstractObjectWithProperties implements
   Comparable<BusinessApplication> {
 
-  public static final String JOB_PARAMETER = BusinessApplication.class.getName()
-    + "/JOB_PARAMETER";
-
   public static final String CORE_PARAMETER = BusinessApplication.class.getName()
     + "/CORE_PARAMETER";
+
+  public static final String JOB_PARAMETER = BusinessApplication.class.getName()
+    + "/JOB_PARAMETER";
 
   public static final String REQUEST_PARAMETER = BusinessApplication.class.getName()
     + "/REQUEST_PARAMETER";
 
-  public static String getDefaultMimeType(final Map<String, String> mimeTypeMap) {
+  public static String getDefaultFileExtension(
+    final Map<String, ?> fileExtensionMap) {
+    final Collection<String> fileExtensions = fileExtensionMap.keySet();
+    String defaultValue = "csv";
+    if (!fileExtensions.contains(defaultValue)) {
+      if (fileExtensions.isEmpty()) {
+        defaultValue = "*";
+      } else {
+        defaultValue = CollectionUtil.get(fileExtensions, 0);
+      }
+    }
+    return defaultValue;
+  }
+
+  public static String getDefaultMimeType(final Collection<String> mimeTypes) {
     String defaultValue = "application/json";
-    final Set<String> mimeTypes = mimeTypeMap.keySet();
     if (!mimeTypes.contains(defaultValue)) {
       if (mimeTypes.isEmpty()) {
         defaultValue = "*/*";
@@ -62,8 +77,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return defaultValue;
   }
 
-  private AppLog log;
-
   private Expression batchModeExpression;
 
   private String batchModePermission;
@@ -71,8 +84,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   private List<CoordinateSystem> coordinateSystems;
 
   private String description;
-
-  private boolean testModeEnabled = false;
 
   /**
    * The descriptionUrl is a link to a URL which provides more detailed
@@ -82,11 +93,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private GeometryFactory geometryFactory = GeometryFactory.getFactory();
 
+  private boolean hasCustomizationProperties;
+
   private boolean hasGeometryRequestAttribute = false;
 
   private boolean hasGeometryResultAttribute = false;
 
   private boolean hasNonGeometryRequestAttribute;
+
+  private boolean hasResultListCustomizationProperties;
 
   private boolean hasTestExecuteMethod = false;
 
@@ -99,11 +114,17 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    * The inputDataContentTypes is the list of supported MIME content types the
    * BusinessApplication can accept for input data.
    */
-  private Map<String, String> inputDataContentTypes = new LinkedHashMap<String, String>();
+  private final Set<String> inputDataContentTypes = new TreeSet<>();
+
+  private Map<String, String> inputDataFileExtensions = new LinkedHashMap<String, String>();
+
+  private final Map<String, String> inputFileExtensionToContentType = new LinkedHashMap<String, String>();
 
   private Expression instantModeExpression;
 
   private String instantModePermission;
+
+  private AppLog log;
 
   private int maxConcurrentRequests;
 
@@ -138,9 +159,9 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private BusinessApplicationPlugin pluginMetadata;
 
-  private final Map<Integer, Attribute> requestAttributeMap = new TreeMap<Integer, Attribute>();
-
   private final Map<String, Attribute> requestAttributeByNameMap = new TreeMap<String, Attribute>();
+
+  private final Map<Integer, Attribute> requestAttributeMap = new TreeMap<Integer, Attribute>();
 
   private DataObjectMetaDataImpl requestMetaData;
 
@@ -150,7 +171,11 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    * The resultDataContentTypes is the list of supported MIME content types the
    * BusinessApplication can accept for result data.
    */
-  private Map<String, String> resultDataContentTypes = new LinkedHashMap<String, String>();
+  private final Set<String> resultDataContentTypes = new TreeSet<String>();
+
+  private final Map<String, String> resultDataFileExtensions = new LinkedHashMap<String, String>();
+
+  private final Map<String, String> resultFileExtensionToContentType = new LinkedHashMap<String, String>();
 
   private String resultListProperty;
 
@@ -158,16 +183,14 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private boolean securityServiceRequired;
 
+  private boolean testModeEnabled = false;
+
   /**
    * The name is the name of the BusinessApplication.
    */
   private String title;
 
   private boolean validateGeometry;
-
-  private boolean hasCustomizationProperties;
-
-  private boolean hasResultListCustomizationProperties;
 
   public BusinessApplication(final BusinessApplicationPlugin pluginMetadata,
     final Module module, final String name) {
@@ -187,9 +210,12 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public void addInputDataContentType(final String contentType,
-    final String description) {
-    this.inputDataContentTypes.put(contentType, description);
-    this.inputDataContentTypes = CollectionUtil.sortByValues(this.inputDataContentTypes);
+    final String description, final String fileExtension) {
+    this.inputDataContentTypes.add(contentType);
+
+    this.inputDataFileExtensions.put(fileExtension, description);
+    this.inputDataFileExtensions = CollectionUtil.sortByValues(this.inputDataFileExtensions);
+    this.inputFileExtensionToContentType.put(fileExtension, contentType);
   }
 
   public void addRequestAttribute(int index, final Attribute attribute) {
@@ -231,9 +257,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public void addResultDataContentType(final String contentType,
-    final String description) {
-    this.resultDataContentTypes.put(contentType, description);
-    this.resultDataContentTypes = CollectionUtil.sortByValues(this.resultDataContentTypes);
+    final String fileExtension, final String description) {
+    this.resultDataContentTypes.add(contentType);
+    this.resultDataFileExtensions.put(fileExtension, description);
+    this.resultFileExtensionToContentType.put(fileExtension, contentType);
   }
 
   /**
@@ -269,6 +296,14 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.coordinateSystems;
   }
 
+  public String getDefaultInputDataContentType() {
+    return inputDataContentTypes.iterator().next();
+  }
+
+  public String getDefaultResultDataContentType() {
+    return inputDataContentTypes.iterator().next();
+  }
+
   public String getDescription() {
     return this.description;
   }
@@ -285,8 +320,28 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.id;
   }
 
-  public Map<String, String> getInputDataContentTypes() {
+  public String getInputContentType(final String fileExtension) {
+    if (isInputContentTypeSupported(fileExtension)) {
+      return fileExtension;
+    } else {
+      return inputFileExtensionToContentType.get(fileExtension);
+    }
+  }
+
+  public Set<String> getInputDataContentTypes() {
     return this.inputDataContentTypes;
+  }
+
+  public Map<String, String> getInputDataFileExetensions() {
+    return this.inputDataFileExtensions;
+  }
+
+  public Map<String, String> getInputFileExtensionToContentType() {
+    return inputFileExtensionToContentType;
+  }
+
+  public Map<String, String> getInputFileExtensionToMediaType() {
+    return inputFileExtensionToContentType;
   }
 
   public Expression getInstantModeExpression() {
@@ -439,8 +494,20 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.requestMetaData;
   }
 
-  public Map<String, String> getResultDataContentTypes() {
+  public String getResultContentType(final String fileExtension) {
+    if (isResultContentTypeSupported(fileExtension)) {
+      return fileExtension;
+    } else {
+      return inputFileExtensionToContentType.get(fileExtension);
+    }
+  }
+
+  public Set<String> getResultDataContentTypes() {
     return this.resultDataContentTypes;
+  }
+
+  public Map<String, String> getResultDataFileExtensions() {
+    return resultDataFileExtensions;
   }
 
   public String getResultListProperty() {
@@ -530,6 +597,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.log.isInfoEnabled();
   }
 
+  public boolean isInputContentTypeSupported(final String contentType) {
+    return inputDataContentTypes.contains(contentType);
+  }
+
   public boolean isJobParameter(final String attributeName) {
     final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
     if (attribute == null) {
@@ -560,6 +631,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     } else {
       return BooleanStringConverter.getBoolean(attribute.getProperty(REQUEST_PARAMETER));
     }
+  }
+
+  public boolean isResultContentTypeSupported(final String contentType) {
+    return resultDataContentTypes.contains(contentType);
   }
 
   public boolean isSecurityServiceRequired() {
@@ -618,11 +693,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.id = id;
   }
 
-  public void setInputDataContentTypes(
-    final Map<String, String> inputDataContentTypes) {
-    this.inputDataContentTypes = CollectionUtil.sortByValues(inputDataContentTypes);
-  }
-
   public void setInstantModePermission(final String instantModePermission) {
     if (StringUtils.hasText(instantModePermission)) {
       this.instantModePermission = instantModePermission;
@@ -658,11 +728,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public void setPerRequestResultData(final boolean perRequestResultData) {
     this.perRequestResultData = perRequestResultData;
-  }
-
-  public void setResultDataContentTypes(
-    final Map<String, String> resultDataContentTypes) {
-    this.resultDataContentTypes = CollectionUtil.sortByValues(resultDataContentTypes);
   }
 
   public void setResultListProperty(final String resultListProperty) {

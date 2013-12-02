@@ -37,9 +37,13 @@ import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
+import com.revolsys.gis.data.query.And;
 import com.revolsys.gis.data.query.Condition;
 import com.revolsys.gis.data.query.Conditions;
-import com.revolsys.gis.data.query.MultipleCondition;
+import com.revolsys.gis.data.query.Equal;
+import com.revolsys.gis.data.query.In;
+import com.revolsys.gis.data.query.LessThan;
+import com.revolsys.gis.data.query.Or;
 import com.revolsys.gis.data.query.Query;
 import com.revolsys.io.MapWriter;
 import com.revolsys.io.Reader;
@@ -428,7 +432,7 @@ public class CpfDataAccessObject {
   public List<DataObject> getBatchJobExecutionGroups(
     final List<Long> batchJobExecutionGroupIds) {
     final Query query = new Query(batchJobExecutionGroupMetaData);
-    query.setWhereCondition(Conditions.in(
+    query.setWhereCondition(new In(
       BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID,
       batchJobExecutionGroupIds));
     final Reader<DataObject> batchJobExecutionGroups = dataStore.query(query);
@@ -633,9 +637,12 @@ public class CpfDataAccessObject {
   public List<Long> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
     final Query query = new Query(batchJobMetaData);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
-    query.setWhereCondition(Conditions.and(Conditions.in(BatchJob.JOB_STATUS,
-      "resultsCreated", "downloadInitiated", "cancelled"), Conditions.lessThan(
-      BatchJob.WHEN_STATUS_CHANGED, keepUntilTimestamp)));
+    final Condition[] conditions = {
+      new In(BatchJob.JOB_STATUS, "resultsCreated", "downloadInitiated",
+        "cancelled"),
+      LessThan.lessThan(BatchJob.WHEN_STATUS_CHANGED, keepUntilTimestamp)
+    };
+    query.setWhereCondition(new And(conditions));
     final Reader<DataObject> batchJobs = dataStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
@@ -679,8 +686,8 @@ public class CpfDataAccessObject {
 
   public ResultPager<DataObject> getUserAccountsForUserGroup(
     final DataObject userGroup) {
-    final Condition equal = Conditions.equal(
-      UserGroupAccountXref.USER_GROUP_ID, userGroup.getIdValue());
+    final Condition equal = Equal.equal(UserGroupAccountXref.USER_GROUP_ID,
+      userGroup.getIdValue());
     final Query query = new Query(UserAccount.USER_ACCOUNT, equal);
     query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
@@ -695,7 +702,10 @@ public class CpfDataAccessObject {
         UserAccount.CONSUMER_KEY, name);
       final Condition userNameLike = Conditions.likeUpper(
         UserAccount.USER_NAME, name);
-      final MultipleCondition or = Conditions.or(consumerKeyLike, userNameLike);
+      final Condition[] conditions = {
+        consumerKeyLike, userNameLike
+      };
+      final Or or = new Or(conditions);
       final Query query = new Query(UserAccount.USER_ACCOUNT, or);
       final Reader<DataObject> reader = dataStore.query(query);
       try {
@@ -773,7 +783,7 @@ public class CpfDataAccessObject {
     query.setFromClause("CPF.CPF_USER_GROUPS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
-    query.setWhereCondition(Conditions.equal(new JdbcLongAttribute(
+    query.setWhereCondition(Equal.equal(new JdbcLongAttribute(
       "X.USER_ACCOUNT_ID"), userAccount.getIdValue()));
     final Reader<DataObject> reader = dataStore.query(query);
     try {

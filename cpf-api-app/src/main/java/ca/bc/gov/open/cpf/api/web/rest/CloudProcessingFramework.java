@@ -13,12 +13,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -278,8 +281,7 @@ public class CloudProcessingFramework {
   private void addGeometryFields(final ElementContainer fields,
     final BusinessApplication businessApplication) {
     final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-    final String fieldName = "srid";
-    addFieldRow(fields, requestMetaData, fieldName);
+    addFieldRow(fields, requestMetaData, "srid");
     if (requestMetaData.hasAttribute("resultSrid")) {
       final ElementContainer container = new ElementContainer();
 
@@ -306,10 +308,10 @@ public class CloudProcessingFramework {
 
   private void addInputDataFields(final ElementContainer fields,
     final BusinessApplication businessApplication) {
-    final Map<String, String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
-    final String defaultInputType = BusinessApplication.getDefaultMimeType(inputDataContentTypes);
+    final Map<String, String> inputDataFileExtensions = businessApplication.getInputDataFileExetensions();
+    final String defaultInputType = BusinessApplication.getDefaultFileExtension(inputDataFileExtensions);
     final SelectField inputDataContentType = new SelectField(
-      "inputDataContentType", defaultInputType, true, inputDataContentTypes);
+      "inputDataContentType", defaultInputType, true, inputDataFileExtensions);
 
     TableHeadingDecorator.addRow(
       fields,
@@ -318,18 +320,24 @@ public class CloudProcessingFramework {
       "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
 
     final UrlField inputDataUrl = new UrlField("inputDataUrl", false);
-    TableHeadingDecorator.addRow(fields, inputDataUrl, "Input Data URL",
-      "The http: URL to the file or resource containing input data.");
+    TableHeadingDecorator.addRow(
+      fields,
+      inputDataUrl,
+      "Input Data URL",
+      "The http: URL to the file or resource containing input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
 
     final FileField inputData = new FileField("inputData", false);
-    TableHeadingDecorator.addRow(fields, inputData, "Input Data",
-      "The multi-part file containing the input data.");
+    TableHeadingDecorator.addRow(
+      fields,
+      inputData,
+      "Input Data",
+      "The multi-part file containing the input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
   }
 
   private void addMultiInputDataFields(final ElementContainer fields,
     final BusinessApplication businessApplication) {
-    final Map<String, String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
-    final String defaultInputType = BusinessApplication.getDefaultMimeType(inputDataContentTypes);
+    final Map<String, String> inputDataContentTypes = businessApplication.getInputDataFileExetensions();
+    final String defaultInputType = BusinessApplication.getDefaultFileExtension(inputDataContentTypes);
     final SelectField inputDataContentType = new SelectField(
       "inputDataContentType", defaultInputType, true, inputDataContentTypes);
 
@@ -415,17 +423,64 @@ public class CloudProcessingFramework {
 
   private void addResultDataFields(final ElementContainer container,
     final BusinessApplication businessApplication, final String fieldName) {
-    final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
-    final String defaultValue = BusinessApplication.getDefaultMimeType(resultDataContentTypes);
+    final Map<String, String> resultDataFileExtensions = businessApplication.getResultDataFileExtensions();
+    final String defaultValue = BusinessApplication.getDefaultFileExtension(resultDataFileExtensions);
 
     final SelectField resultDataContentType = new SelectField(fieldName,
-      defaultValue, true, resultDataContentTypes);
+      defaultValue, true, resultDataFileExtensions);
     TableHeadingDecorator.addRow(
       container,
       resultDataContentType,
       "Result Data Content Type",
       "The MIME type of the result data specified to be returned after running the request");
 
+  }
+
+  private void addTestFields(final ElementContainer fields,
+    final BusinessApplication businessApplication) {
+    if (businessApplication.isTestModeEnabled()) {
+      final CheckBoxField cpfPluginTest = new CheckBoxField("cpfPluginTest");
+      TableHeadingDecorator.addRow(fields, cpfPluginTest, "Test Mode",
+        "Enable test mode for the request.");
+
+      final IntegerField minTime = new IntegerField("cpfMinExecutionTime",
+        false, 0);
+      TableHeadingDecorator.addRow(fields, minTime, "Min Execution Time (s)",
+        "The minimum execution time.");
+
+      final IntegerField meanTime = new IntegerField("cpfMeanExecutionTime",
+        false, 5);
+      TableHeadingDecorator.addRow(fields, meanTime, "Mean Execution Time (s)",
+        "The mean execution time using a gaussian distribution.");
+
+      final IntegerField standardDeviation = new IntegerField(
+        "cpfStandardDeviation", false, 1);
+      TableHeadingDecorator.addRow(fields, standardDeviation,
+        "Standard Deviation (s)",
+        "The standard deviation for a gaussian distribution.");
+
+      final IntegerField maxTime = new IntegerField("cpfMaxExecutionTime",
+        false, 10);
+      TableHeadingDecorator.addRow(fields, maxTime, "Max Execution Time (s)",
+        "The maximum execution time.");
+    }
+  }
+
+  @SuppressWarnings({
+    "unchecked", "rawtypes"
+  })
+  public void addTestParameters(final BusinessApplication businessApplication,
+    final Map parameters) {
+    if (businessApplication.isTestModeEnabled()) {
+      final HttpServletRequest request = HttpServletUtils.getRequest();
+      for (final Enumeration<String> parameterNames = request.getParameterNames(); parameterNames.hasMoreElements();) {
+        final String name = parameterNames.nextElement();
+        if (name.startsWith("cpf")) {
+          final Object value = request.getParameter(name);
+          parameters.put(name, value);
+        }
+      }
+    }
   }
 
   private void checkPermission(final Expression expression,
@@ -487,7 +542,7 @@ public class CloudProcessingFramework {
    * 
    * <p>For structured input data business applications the requests are specified
    * using either a single inputData file or a single inputDataUrl can be
-   * specified. The file must be in the <a href="../../fileFormat.html">file
+   * specified. The file must be in the <a href="../../fileFormats.html">file
    * format</a> specified by a single inputDataContentType. The contents of the
    * file must contain one record for each request to be processed in the batch
    * job. The fields of each record must contain the request parameters
@@ -563,12 +618,11 @@ public class CloudProcessingFramework {
         "No batch mode permission for " + businessApplication.getName());
       final String consumerKey = getConsumerKey();
 
-      final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
-      final String defaultResultDataContentType = resultDataContentTypes.get(0);
-      final Map<String, String> suppportedInputDataContentTypes = businessApplication.getInputDataContentTypes();
-      final String defaultInputDataContentType = suppportedInputDataContentTypes.get(0);
+      final String defaultInputDataContentType = businessApplication.getDefaultInputDataContentType();
+      final String defaultResultDataContentType = businessApplication.getDefaultResultDataContentType();
 
       final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
+      addTestParameters(businessApplication, businessApplicationParameters);
 
       final DataObject batchJob = createBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
@@ -584,27 +638,24 @@ public class CloudProcessingFramework {
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE,
         defaultResultDataContentType);
       String inputDataContentType = defaultInputDataContentType;
-
+      final List<String> inputContentTypes = new ArrayList<>();
       if (inputDataContentTypes == null) {
       } else {
-        for (final String inputContentType : inputDataContentTypes) {
-          if (inputContentType != null) {
-            final MediaType mediaType = MediaType.valueOf(inputContentType);
-            boolean found = false;
-            for (final String contentType : suppportedInputDataContentTypes.keySet()) {
-              if (MediaType.valueOf(contentType).includes(mediaType)) {
-                inputDataContentType = inputContentType;
-                found = true;
-              }
-            }
-            if (!found) {
-              throw new HttpMessageNotReadableException("inputDataContentType="
-                + inputDataContentType + " is not supported.");
-            }
+        inputContentTypes.addAll(Arrays.asList(inputDataContentTypes));
+        for (final ListIterator<String> iterator = inputContentTypes.listIterator(); iterator.hasNext();) {
+          final String inputContentType = iterator.next();
+          final String contentType = getInputMediaType(businessApplication,
+            inputContentType);
+          if (contentType == null) {
+            throw new HttpMessageNotReadableException("inputDataContentType="
+              + inputDataContentType + " is not supported.");
+          } else {
+            iterator.set(contentType);
           }
         }
         if (!businessApplication.isPerRequestInputData()) {
-          if (inputDataContentTypes.length == 1) {
+          if (inputContentTypes.size() == 1) {
+            inputDataContentType = inputContentTypes.get(0);
             batchJob.setValue(BatchJob.INPUT_DATA_CONTENT_TYPE,
               inputDataContentType);
           } else {
@@ -615,12 +666,12 @@ public class CloudProcessingFramework {
         }
       }
       if (resultDataContentType != null) {
-        if (resultDataContentTypes.containsKey(resultDataContentType)) {
-          batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE,
-            resultDataContentType);
-        } else {
+        final String resultType = businessApplication.getResultContentType(resultDataContentType);
+        if (resultType == null) {
           throw new HttpMessageNotReadableException("resultDataContentType="
             + resultDataContentType + " is not supported.");
+        } else {
+          batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultType);
         }
       }
 
@@ -837,12 +888,11 @@ public class CloudProcessingFramework {
       log.info("Start\tJob submit single\tbatchJobId=" + batchJobId);
       final String consumerKey = getConsumerKey();
 
-      final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
-      final String defaultResultDataContentType = resultDataContentTypes.get(0);
-      final Map<String, String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
-      final String defaultInputDataContentType = inputDataContentTypes.get(0);
+      final String defaultInputDataContentType = businessApplication.getDefaultInputDataContentType();
+      final String defaultResultDataContentType = businessApplication.getDefaultResultDataContentType();
 
       final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
+      addTestParameters(businessApplication, businessApplicationParameters);
 
       if (!StringUtils.hasText(inputDataContentType)) {
         inputDataContentType = defaultInputDataContentType;
@@ -850,8 +900,8 @@ public class CloudProcessingFramework {
       final boolean perRequestInputData = businessApplication.isPerRequestInputData();
       org.springframework.core.io.Resource inputDataIn = null;
       if (perRequestInputData) {
-        if (!inputDataContentTypes.containsKey(inputDataContentType)
-          && !inputDataContentTypes.containsKey("*/*")) {
+        if (!businessApplication.isInputContentTypeSupported(inputDataContentType)
+          && !businessApplication.isInputContentTypeSupported("*/*")) {
           throw new HttpMessageNotReadableException("inputDataContentType="
             + inputDataContentType + " is not supported.");
         }
@@ -866,9 +916,12 @@ public class CloudProcessingFramework {
       if (!StringUtils.hasText(resultDataContentType)) {
         resultDataContentType = defaultResultDataContentType;
       }
-      if (!resultDataContentTypes.containsKey(resultDataContentType)) {
+      final String resultContentType = businessApplication.getResultContentType(resultDataContentType);
+      if (resultContentType == null) {
         throw new HttpMessageNotReadableException("resultDataContentType="
           + resultDataContentType + " is not supported.");
+      } else {
+        resultDataContentType = resultContentType;
       }
       if (StringUtils.hasText(notificationEmail)) {
         if (StringUtils.hasText(notificationUrl)) {
@@ -942,6 +995,7 @@ public class CloudProcessingFramework {
             inputDataContentType, inputDataUrl);
         }
       } else {
+
         inputData.put("requestSequenceNumber", 1);
         final String inputDataString = JsonDataObjectIoFactory.toString(
           requestMetaData, Collections.singletonList(inputData));
@@ -1134,8 +1188,8 @@ public class CloudProcessingFramework {
       page.setAttribute("businessApplicationDescriptionUrl",
         businessApplication.getDescriptionUrl());
 
-      final Map<String, String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
-      page.setAttribute("inputDataContentTypes", inputDataContentTypes.keySet());
+      final Set<String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
+      page.setAttribute("inputDataContentTypes", inputDataContentTypes);
 
       page.setAttribute("perRequestInputData",
         businessApplication.isPerRequestInputData());
@@ -1143,9 +1197,8 @@ public class CloudProcessingFramework {
       page.setAttribute("parameters",
         getRequestAttributeList(businessApplication));
 
-      final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
-      page.setAttribute("resultDataContentTypes",
-        resultDataContentTypes.keySet());
+      final Set<String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
+      page.setAttribute("resultDataContentTypes", resultDataContentTypes);
       page.setAttribute("perRequestResultData",
         businessApplication.isPerRequestInputData());
 
@@ -1396,7 +1449,8 @@ public class CloudProcessingFramework {
         }
       } else {
         final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-        final DataObject parameters = new ArrayDataObject(requestMetaData);
+        final DataObject requestParameters = new ArrayDataObject(
+          requestMetaData);
         for (final Attribute attribute : requestMetaData.getAttributes()) {
           final String name = attribute.getName();
           String value = HttpServletUtils.getParameter(name);
@@ -1420,8 +1474,8 @@ public class CloudProcessingFramework {
                 "Parameter value is not valid " + name + " " + value);
             } else {
               try {
-                batchJobService.setStructuredInputDataValue(srid, parameters,
-                  attribute, value, true);
+                batchJobService.setStructuredInputDataValue(srid,
+                  requestParameters, attribute, value, true);
               } catch (final IllegalArgumentException e) {
                 throw new IllegalArgumentException(
                   "Parameter value is not valid " + name + " " + value, e);
@@ -1429,6 +1483,9 @@ public class CloudProcessingFramework {
             }
           }
         }
+        final Map<String, Object> parameters = new LinkedHashMap<>(
+          requestParameters);
+        addTestParameters(businessApplication, parameters);
         plugin.setParameters(parameters);
         plugin.execute();
         final List<Map<String, Object>> list = plugin.getResults();
@@ -1992,9 +2049,9 @@ public class CloudProcessingFramework {
 
       addRawContent(container,
         "ca/bc/gov/open/cpf/api/web/service/inputData.html");
-      final Map<String, String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
+      final Set<String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
       container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI,
-        inputDataContentTypes.keySet()));
+        inputDataContentTypes));
 
       if (businessApplication.isPerRequestInputData()) {
         addRawContent(container,
@@ -2058,9 +2115,9 @@ public class CloudProcessingFramework {
 
       addRawContent(container,
         "ca/bc/gov/open/cpf/api/web/service/resultFiles.html");
-      final Map<String, String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
+      final Set<String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
       container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI,
-        resultDataContentTypes.keySet()));
+        resultDataContentTypes));
       if (businessApplication.isPerRequestResultData()) {
         addRawContent(container,
           "ca/bc/gov/open/cpf/api/web/service/opaqueResults.html");
@@ -2164,7 +2221,7 @@ public class CloudProcessingFramework {
     }
     addGeometryFields(fields, businessApplication);
     addResultDataFields(fields, businessApplication, "format");
-
+    addTestFields(fields, businessApplication);
     form.add(fields);
     form.add(new DivElementContainer("actionMenu", new SubmitField(
       "instantForm", "Create Job")));
@@ -2195,9 +2252,11 @@ public class CloudProcessingFramework {
 
     addGeometryFields(fields, businessApplication);
 
-    addFieldRow(fields, requestMetaData, "resultDataContentType");
+    addResultDataFields(fields, businessApplication, "resultDataContentType");
 
     addNotificationFields(fields);
+
+    addTestFields(fields, businessApplication);
 
     form.add(fields);
     form.add(new DivElementContainer("actionMenu", new SubmitField(
@@ -2229,8 +2288,11 @@ public class CloudProcessingFramework {
     if (perRequestInputData) {
       addInputDataFields(fields, businessApplication);
     }
-    addFieldRow(fields, requestMetaData, "resultDataContentType");
+    addResultDataFields(fields, businessApplication, "resultDataContentType");
+
     addNotificationFields(fields);
+
+    addTestFields(fields, businessApplication);
 
     form.add(fields);
     form.add(new DivElementContainer("actionMenu", new SubmitField(
@@ -2238,6 +2300,26 @@ public class CloudProcessingFramework {
 
     container.add(form);
     return container;
+  }
+
+  public String getInputMediaType(final BusinessApplication application,
+    String inputContentType) {
+    if (StringUtils.hasText(inputContentType)) {
+      if (!inputContentType.contains("/")) {
+        inputContentType = application.getInputContentType(inputContentType);
+        if (inputContentType == null) {
+          return null;
+        }
+      }
+      final MediaType mediaType = MediaType.valueOf(inputContentType);
+      final Set<String> inputDataContentTypes = application.getInputDataContentTypes();
+      for (final String contentType : inputDataContentTypes) {
+        if (MediaType.valueOf(contentType).includes(mediaType)) {
+          return contentType;
+        }
+      }
+    }
+    return null;
   }
 
   /**

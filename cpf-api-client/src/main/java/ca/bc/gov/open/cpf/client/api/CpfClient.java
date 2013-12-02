@@ -74,6 +74,9 @@ import com.revolsys.spring.ByteArrayResource;
   } finally {
     client.closeConnection();
   }</pre>
+ * <p class="note">The CPF requires that <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
+ * encoding be used for all text files. This includes the text in a .dbf file for a .shpz archive, unless
+ * a .cpf file is provided in the shpz archive.</p>
  */
 public class CpfClient {
   /** OAuth consumer key */

@@ -37,9 +37,11 @@ import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.revolsys.io.LazyHttpPostOutputStream;
+import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
@@ -107,9 +109,44 @@ public class PluginAdaptor {
 
   @SuppressWarnings("unchecked")
   public void execute() {
+    if (application.isHasCustomizationProperties()) {
+      customizationProperties = (Map<String, Object>)Property.get(plugin,
+        "customizationProperties");
+    }
+
     try {
       if (application.isTestModeEnabled()
         && BooleanStringConverter.isTrue(testParameters.get("cpfPluginTest"))) {
+        Integer minTime = CollectionUtil.getInteger(testParameters,
+          "cpfMinExecutionTime", -1);
+        Integer maxTime = CollectionUtil.getInteger(testParameters,
+          "cpfMaxExecutionTime", -1);
+        final Integer meanTime = CollectionUtil.getInteger(testParameters,
+          "cpfMeanExecutionTime", -1);
+        final Integer standardDeviation = CollectionUtil.getInteger(
+          testParameters, "cpfStandardDeviation", -1);
+        double executionTime;
+        if (standardDeviation <= 0) {
+          if (minTime < 0) {
+            minTime = 0;
+          }
+          if (maxTime < minTime) {
+            maxTime = minTime + 10;
+          }
+          executionTime = MathUtil.randomRange(minTime, maxTime);
+        } else {
+          executionTime = MathUtil.randomGaussian(meanTime, standardDeviation);
+        }
+        if (minTime >= 0 && executionTime < minTime) {
+          executionTime = minTime;
+        }
+        if (maxTime > 0 && maxTime > minTime && executionTime > maxTime) {
+          executionTime = maxTime;
+        }
+        final long milliSeconds = (long)(executionTime * 1000);
+        if (milliSeconds > 0) {
+          ThreadUtil.pause(milliSeconds);
+        }
         if (application.isHasTestExecuteMethod()) {
           MethodUtils.invokeExactMethod(plugin, "testExecute", new Object[0]);
         } else {
@@ -122,6 +159,7 @@ public class PluginAdaptor {
 
           }
         }
+        return;
       } else {
         MethodUtils.invokeExactMethod(plugin, "execute", new Object[0]);
       }
@@ -138,10 +176,6 @@ public class PluginAdaptor {
     } catch (final Throwable t) {
       throw new RuntimeException("Unable to invoke execute on "
         + application.getName(), t);
-    }
-    if (application.isHasCustomizationProperties()) {
-      customizationProperties = (Map<String, Object>)Property.get(plugin,
-        "customizationProperties");
     }
     final String resultListProperty = application.getResultListProperty();
     if (resultListProperty == null) {

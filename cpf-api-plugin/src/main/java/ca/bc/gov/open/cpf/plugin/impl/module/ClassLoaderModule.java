@@ -583,11 +583,12 @@ public class ClassLoaderModule implements Module {
       final String[] inputDataContentTypes = pluginMetadata.inputDataContentTypes();
       if (perRequestInputData) {
         if (inputDataContentTypes.length == 0) {
-          businessApplication.addInputDataContentType("*/*", "Any content type");
+          businessApplication.addInputDataContentType("*/*",
+            "Any content type", "*");
         } else {
           for (final String contentType : inputDataContentTypes) {
             businessApplication.addInputDataContentType(contentType,
-              contentType);
+              contentType, contentType);
           }
         }
       } else {
@@ -597,10 +598,11 @@ public class ClassLoaderModule implements Module {
             if (factory.isSingleFile()) {
               if (factory.isCustomAttributionSupported()) {
                 for (final String contentType : factory.getMediaTypes()) {
+                  final String fileExtension = factory.getFileExtension(contentType);
                   final String typeDescription = factory.getName() + " ("
-                    + contentType + ")";
+                    + fileExtension + ")";
                   businessApplication.addInputDataContentType(contentType,
-                    typeDescription);
+                    typeDescription, fileExtension);
                 }
               }
             }
@@ -611,10 +613,11 @@ public class ClassLoaderModule implements Module {
               MapReaderFactory.class, contentType);
             if (factory.isSingleFile()) {
               if (factory.isCustomAttributionSupported()) {
+                final String fileExtension = factory.getFileExtension(contentType);
                 final String typeDescription = factory.getName() + " ("
-                  + contentType + ")";
+                  + fileExtension + ")";
                 businessApplication.addInputDataContentType(contentType,
-                  typeDescription);
+                  typeDescription, fileExtension);
               }
             }
           }
@@ -624,12 +627,12 @@ public class ClassLoaderModule implements Module {
       final String[] resultDataContentTypes = pluginMetadata.resultDataContentTypes();
       if (perRequestResultData) {
         if (resultDataContentTypes.length == 0) {
-          businessApplication.addResultDataContentType("*/*",
+          businessApplication.addResultDataContentType("*/*", "*",
             "Any content type");
         } else {
           for (final String contentType : resultDataContentTypes) {
             businessApplication.addResultDataContentType(contentType,
-              contentType);
+              contentType, contentType);
           }
         }
       } else {
@@ -641,10 +644,11 @@ public class ClassLoaderModule implements Module {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomAttributionSupported()) {
                   for (final String contentType : factory.getMediaTypes()) {
+                    final String fileNameExtension = factory.getFileExtension(contentType);
                     final String typeDescription = factory.getName() + " ("
-                      + contentType + ")";
+                      + fileNameExtension + ")";
                     businessApplication.addResultDataContentType(contentType,
-                      typeDescription);
+                      fileNameExtension, typeDescription);
                   }
                 }
               }
@@ -657,10 +661,11 @@ public class ClassLoaderModule implements Module {
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomAttributionSupported()) {
+                  final String fileNameExtension = factory.getFileExtension(contentType);
                   final String typeDescription = factory.getName() + " ("
-                    + contentType + ")";
+                    + fileNameExtension + ")";
                   businessApplication.addResultDataContentType(contentType,
-                    typeDescription);
+                    fileNameExtension, typeDescription);
                 }
               }
             }
@@ -670,7 +675,7 @@ public class ClassLoaderModule implements Module {
 
       final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
       final Attribute resultDataContentType = requestMetaData.getAttribute("resultDataContentType");
-      final Map<String, String> resultDataContentTypeMap = businessApplication.getResultDataContentTypes();
+      final Set<String> resultDataContentTypeMap = businessApplication.getResultDataContentTypes();
       resultDataContentType.setAllowedValues(resultDataContentTypeMap);
 
       final String defaultResultDataContentType = BusinessApplication.getDefaultMimeType(resultDataContentTypeMap);

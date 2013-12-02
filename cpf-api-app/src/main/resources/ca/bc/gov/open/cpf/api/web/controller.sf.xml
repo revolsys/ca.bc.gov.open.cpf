@@ -61,7 +61,7 @@
       value="application/gml+xml" />
     <entry
       key="kmz"
-      value="application/vnd.google-earth.kmz+xml" />
+      value="application/vnd.google-earth.kmz" />
     <entry
       key="kml"
       value="application/vnd.google-earth.kml+xml" />
