@@ -15,6 +15,11 @@ public class GeometryResult {
     this.geometry = geometry;
   }
 
+  @ResultAttribute(description = "The area of the geometry")
+  public double getArea() {
+    return geometry.getArea();
+  }
+
   public Map<String, Object> getCustomizationProperties() {
     final Map<String, Object> properties = new HashMap<String, Object>();
     final String styleId = geometry.getGeometryType();
@@ -31,11 +36,6 @@ public class GeometryResult {
   @ResultAttribute(description = "The length of the geometry")
   public double getLength() {
     return geometry.getLength();
-  }
-
-  @ResultAttribute
-  public String getNull() {
-    return null;
   }
 
 }

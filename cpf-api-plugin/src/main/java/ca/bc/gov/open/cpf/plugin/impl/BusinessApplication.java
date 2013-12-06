@@ -589,6 +589,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.hasResultListCustomizationProperties;
   }
 
+  public boolean isHasResultListProperty() {
+    return getResultListProperty() != null;
+  }
+
   public boolean isHasTestExecuteMethod() {
     return hasTestExecuteMethod;
   }

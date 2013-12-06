@@ -3,6 +3,8 @@ package ca.bc.gov.open.cpg.test.plugin;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.DefaultValue;
@@ -51,6 +53,13 @@ public class TestAllDataTypes {
     return this.bool;
   }
 
+  public Map<String, Object> getCustomizationProperties() {
+    final Map<String, Object> properties = new HashMap<String, Object>();
+    final String styleId = geometry.getGeometryType();
+    properties.put("kmlWriteNulls", true);
+    return properties;
+  }
+
   @ResultAttribute(index = 9)
   public java.sql.Date getDate() {
     return this.date;
@@ -94,6 +103,11 @@ public class TestAllDataTypes {
   @ResultAttribute(index = 2)
   public Byte getInt8() {
     return this.int8;
+  }
+
+  @ResultAttribute(index = 14)
+  public String getNull() {
+    return null;
   }
 
   @ResultAttribute(index = 8)

@@ -463,6 +463,14 @@ public class CloudProcessingFramework {
         10);
       TableHeadingDecorator.addRow(fields, maxTime, "Max Execution Time (s)",
         "The maximum execution time.");
+
+      if (businessApplication.isHasResultListProperty()) {
+        final DoubleField meanNumResults = new DoubleField("cpfMeanNumResults",
+          false, 3);
+        TableHeadingDecorator.addRow(fields, meanNumResults,
+          "Mean Num Results",
+          "The mean number of results using a gaussian distribution.");
+      }
     }
   }
 

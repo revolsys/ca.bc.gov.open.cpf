@@ -13,9 +13,10 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-@BusinessApplicationPlugin(numRequestsPerWorker = 100,
+@BusinessApplicationPlugin(
+    numRequestsPerWorker = 100,
     instantModePermission = "permitAll",
-    description = "Accepts a structured input and returns mutliple results.")
+    description = "Converts any multi-part geometries into multiple records each with a single-part geometry. Also returns the length and area of the geometry.")
 public class MultipartToSimpleGeometry {
 
   private Geometry geometry;

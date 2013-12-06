@@ -20,7 +20,6 @@ import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.MethodUtils;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.springframework.util.StringUtils;
 
@@ -109,14 +108,16 @@ public class PluginAdaptor {
 
   @SuppressWarnings("unchecked")
   public void execute() {
+    final String resultListProperty = application.getResultListProperty();
     if (application.isHasCustomizationProperties()) {
       customizationProperties = (Map<String, Object>)Property.get(plugin,
         "customizationProperties");
     }
 
+    final boolean testMode = application.isTestModeEnabled()
+      && BooleanStringConverter.isTrue(testParameters.get("cpfPluginTest"));
     try {
-      if (application.isTestModeEnabled()
-        && BooleanStringConverter.isTrue(testParameters.get("cpfPluginTest"))) {
+      if (testMode) {
         double minTime = CollectionUtil.getDouble(testParameters,
           "cpfMinExecutionTime", -1.0);
         double maxTime = CollectionUtil.getDouble(testParameters,
@@ -149,17 +150,7 @@ public class PluginAdaptor {
         }
         if (application.isHasTestExecuteMethod()) {
           MethodUtils.invokeExactMethod(plugin, "testExecute", new Object[0]);
-        } else {
-          final String resultListProperty = application.getResultListProperty();
-          if (resultListProperty == null) {
-            this.responseFields = getResult(plugin, false, true);
-            results.add(responseFields);
-          } else {
-            System.out.println("Create test data");
-
-          }
         }
-        return;
       } else {
         MethodUtils.invokeExactMethod(plugin, "execute", new Object[0]);
       }
@@ -177,14 +168,24 @@ public class PluginAdaptor {
       throw new RuntimeException("Unable to invoke execute on "
         + application.getName(), t);
     }
-    final String resultListProperty = application.getResultListProperty();
     if (resultListProperty == null) {
-      this.responseFields = getResult(plugin, false, false);
+      this.responseFields = getResult(plugin, false, testMode);
       results.add(responseFields);
     } else {
       final List<Object> resultObjects = JavaBeanUtil.getProperty(plugin,
         resultListProperty);
-      if (resultObjects != null) {
+      if (resultObjects == null || resultObjects.isEmpty()) {
+        if (testMode) {
+          final double meanNumResults = CollectionUtil.getDouble(
+            testParameters, "cpfMeanNumResults", 3.0);
+          final int numResults = (int)Math.round(MathUtil.randomGaussian(
+            meanNumResults, meanNumResults / 5));
+          for (int i = 0; i < numResults; i++) {
+            final Map<String, Object> result = getResult(plugin, true, testMode);
+            results.add(result);
+          }
+        }
+      } else {
         for (final Object resultObject : resultObjects) {
           final Map<String, Object> result = getResult(resultObject, true,
             false);
@@ -213,12 +214,14 @@ public class PluginAdaptor {
     for (final Attribute attribute : resultMetaData.getAttributes()) {
       final String fieldName = attribute.getName();
       if (!INTERNAL_PROPERTY_NAMES.contains(fieldName)) {
-        Object value;
+        Object value = null;
         try {
-          value = PropertyUtils.getSimpleProperty(resultObject, fieldName);
+          value = Property.getSimple(resultObject, fieldName);
         } catch (final Throwable t) {
-          throw new IllegalArgumentException("Could not read property "
-            + application.getName() + "." + fieldName, t);
+          if (!test) {
+            throw new IllegalArgumentException("Could not read property "
+              + application.getName() + "." + fieldName, t);
+          }
         }
         if (value == null) {
           value = attribute.getDefaultValue();
