@@ -39,6 +39,18 @@
       access="denyAll" />
 
     <security:intercept-url
+      pattern="/secure/css"
+      access="acceptAll" />
+
+    <security:intercept-url
+      pattern="/secure/images"
+      access="acceptAll" />
+
+    <security:intercept-url
+      pattern="/secure/js"
+      access="acceptAll" />
+
+    <security:intercept-url
       pattern="/secure/**"
       access="hasRole('ROLE_USER')" />
 

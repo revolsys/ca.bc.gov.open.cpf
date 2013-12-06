@@ -25,8 +25,7 @@ public class SiteminderAuthenticationFilter extends
   protected Object getPreAuthenticatedPrincipal(final HttpServletRequest request) {
     final String principal = request.getHeader("SMGOV_USERGUID");
     if (principal == null) {
-      throw new PreAuthenticatedCredentialsNotFoundException(
-        " SMGOV_USERGUID header not found in request.");
+      return null;
     } else {
       return principal;
     }
