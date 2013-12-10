@@ -31,10 +31,10 @@ Property                             Description
 -------------------------------      ------------------------------------------
 ca.bc.gov.cpf.app.baseUrl            The HTTP URL to the server cpf is deployed to
 ca.bc.gov.cpf.app.secureBaseUrl      The HTTPS URL to the server cpf is deployed to
+ca.bc.gov.cpf.internal.webServiceUrl The HTTP URL to the internal web service for cpf
 cpfSiteminderLogoutSuccess.logoutUrl The URL to the siteminder logoff page:
                                      https://logontest.gov.bc.ca/clp-cgi/logoff.cgi
                                      https://logon.gov.bc.ca/clp-cgi/logoff.cgi
-ca.bc.gov.cpf.internal.webServiceUrl The HTTP URL to the internal web service for cpf
 ca.bc.gov.cpf.db.url                 The JDBC URL to the cpf database
 ca.bc.gov.cpf.db.password            The password for the PROXY_CPF_WEB user account
 ca.bc.gov.cpf.db.maxConnections      The maximum number of database connections
