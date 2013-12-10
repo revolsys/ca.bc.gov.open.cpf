@@ -469,7 +469,7 @@ public class CloudProcessingFramework {
           false, 3);
         TableHeadingDecorator.addRow(fields, meanNumResults,
           "Mean Num Results",
-          "The mean number of results using a gaussian distribution.");
+          "The mean number of results for each request using a gaussian distribution.");
       }
     }
   }

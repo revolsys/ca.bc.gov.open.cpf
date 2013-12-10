@@ -498,7 +498,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     if (isResultContentTypeSupported(fileExtension)) {
       return fileExtension;
     } else {
-      return inputFileExtensionToContentType.get(fileExtension);
+      return resultFileExtensionToContentType.get(fileExtension);
     }
   }
 
