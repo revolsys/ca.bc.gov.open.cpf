@@ -1509,11 +1509,15 @@ public class CloudProcessingFramework {
 
         try {
           final HttpServletResponse response = HttpServletUtils.getResponse();
-          response.setContentType(format);
 
           final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
             .getFactoryByMediaType(DataObjectWriterFactory.class, format);
-          if (writerFactory != null) {
+          if (writerFactory == null) {
+            throw new HttpMessageNotWritableException("Unsupported format "
+              + format);
+          } else {
+            final String contentType = writerFactory.getMediaType(format);
+            response.setContentType(contentType);
             final String fileExtension = writerFactory.getFileExtension(format);
             final String fileName = businessApplicationName + "-instant."
               + fileExtension;

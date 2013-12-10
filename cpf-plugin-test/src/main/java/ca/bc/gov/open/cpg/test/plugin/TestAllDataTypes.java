@@ -55,7 +55,6 @@ public class TestAllDataTypes {
 
   public Map<String, Object> getCustomizationProperties() {
     final Map<String, Object> properties = new HashMap<String, Object>();
-    final String styleId = geometry.getGeometryType();
     properties.put("kmlWriteNulls", true);
     return properties;
   }
