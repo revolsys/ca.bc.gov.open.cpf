@@ -10,11 +10,6 @@
 >
   <import
     resource="classpath*:cpf-worker-properties.sf.xml" />
-
-  <bean
-    name="cpfApi"
-    class="com.revolsys.spring.ModuleImport"
-    p:resource="classpath:ca/bc/gov/open/cpf/api/worker/worker.sf.xml"
-    p:exportAllBeans="true"
-  />
+  <import
+    resource="classpath:ca/bc/gov/open/cpf/api/worker/worker.sf.xml" />
 </beans>

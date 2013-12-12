@@ -39,7 +39,6 @@ public class ConfigPropertyModule extends ClassLoaderModule {
     this.excludeMavenIds = excludeMavenIds;
     setConfigPropertyLoader(configPropertyLoader);
     setRemoteable(true);
-    setEnvironmentName("master");
   }
 
   @Override

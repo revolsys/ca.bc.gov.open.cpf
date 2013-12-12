@@ -1,75 +1,103 @@
-td.NUM_SUBMITTED_REQUESTS,
-td.NUM_COMPLETED_REQUESTS,
-td.NUM_FAILED_REQUESTS,
-td.NUM_EXECUTING_REQUESTS,
-td.submittedJobsCount,
-td.completedJobsCount,
-td.completedRequestsCount,
-td.applicationExecutedGroupsCount,
-td.applicationExecutedRequestsCount,
-td.applicationExecutedFailedRequestsCount {
+div.dataTables_wrapper td.NUM_SUBMITTED_REQUESTS,
+div.dataTables_wrapper td.NUM_COMPLETED_REQUESTS,
+div.dataTables_wrapper td.NUM_FAILED_REQUESTS,
+div.dataTables_wrapper td.NUM_EXECUTING_REQUESTS,
+div.dataTables_wrapper td.submittedJobsCount,
+div.dataTables_wrapper td.completedJobsCount,
+div.dataTables_wrapper td.completedRequestsCount,
+div.dataTables_wrapper td.applicationExecutedGroupsCount,
+div.dataTables_wrapper td.applicationExecutedRequestsCount,
+div.dataTables_wrapper td.applicationExecutedFailedRequestsCount {
   text-align: right;
 }
 
-th.BATCH_JOB_ID,
-td.BATCH_JOB_ID {
+div.dataTables_wrapper th.BATCH_JOB_ID,
+div.dataTables_wrapper td.BATCH_JOB_ID {
   min-width: 60px;
   max-width: 100px;
+  width: 100px;
 }
 
-th.WHEN_CREATED,
-td.WHEN_CREATED {
+div.dataTables_wrapper th.WHEN_CREATED,
+div.dataTables_wrapper td.WHEN_CREATED {
   min-width: 90px;
   max-width: 90px;
+  width: 90px;
 }
 
-.businessApplication td.name,
-.businessApplication th.name,
-.businessApplication th.name,
-td.module_name,
-th.module_name,
-th.BUSINESS_APPLICATION_NAME_LINK,
-td.BUSINESS_APPLICATION_NAME_LINK,
-th.BUSINESS_APPLICATION_NAME_name,
-td.BUSINESS_APPLICATION_NAME_name {
+.businessApplication div.dataTables_wrapper td.name,
+.businessApplication div.dataTables_wrapper th.name,
+.businessApplication div.dataTables_wrapper th.name,
+div.dataTables_wrapper td.module_name,
+div.dataTables_wrapper th.module_name,
+div.dataTables_wrapper td.name,
+div.dataTables_wrapper th.name,
+div.dataTables_wrapper th.BUSINESS_APPLICATION_NAME_LINK,
+div.dataTables_wrapper td.BUSINESS_APPLICATION_NAME_LINK,
+div.dataTables_wrapper th.BUSINESS_APPLICATION_NAME_name,
+div.dataTables_wrapper td.BUSINESS_APPLICATION_NAME_name {
   min-width: 120px;
   max-width: 120px;
+  width: 100px;
 }
 
-th.BUSINESS_APPLICATION_NAME_title,
-td.BUSINESS_APPLICATION_NAME_title,
-th.CLIENT_BUSINESS_APPLICATION_NAME_LINK,
-td.CLIENT_BUSINESS_APPLICATION_NAME_LINK,
-.businessApplication th.title,
-.businessApplication td.title {
+div.dataTables_wrapper th.BUSINESS_APPLICATION_NAME_title,
+div.dataTables_wrapper td.BUSINESS_APPLICATION_NAME_title,
+.userGroup div.dataTables_wrapper th.DESCRIPTION,
+.userGroup div.dataTables_wrapper td.DESCRIPTION,
+div.dataTables_wrapper th.CLIENT_BUSINESS_APPLICATION_NAME_LINK,
+div.dataTables_wrapper td.CLIENT_BUSINESS_APPLICATION_NAME_LINK,
+.businessApplication div.dataTables_wrapper th.title,
+.businessApplication div.dataTables_wrapper td.title {
   min-width: 200px;
   max-width: 200px;
+  width: 200px;
 }
 
-.businessApplication td.description,
-.businessApplication th.description {
+div.dataTables_wrapper td.moduleDescriptor,
+.businessApplication div.dataTables_wrapper td.description,
+.businessApplication div.dataTables_wrapper th.description {
   min-width: 400px;
   max-width: 400px;
+  width: 400px;
 }
 
 
-th.JOB_STATUS,
-td.JOB_STATUS {
-  min-width: 120px;
-  max-width: 120px;
-}
-
-
-th.NUM_SUBMITTED_GROUPS,
-td.NUM_SUBMITTED_GROUPS,
-th.NUM_COMPLETED_GROUPS,
-td.NUM_COMPLETED_GROUPS,
-th.NUM_SUBMITTED_REQUESTS,
-td.NUM_SUBMITTED_REQUESTS,
-th.NUM_COMPLETED_REQUESTS,
-td.NUM_COMPLETED_REQUESTS,
-th.NUM_FAILED_REQUESTS,
-td.NUM_FAILED_REQUESTS {
+div.dataTables_wrapper th.NUM_SUBMITTED_GROUPS,
+div.dataTables_wrapper td.NUM_SUBMITTED_GROUPS,
+div.dataTables_wrapper th.NUM_COMPLETED_GROUPS,
+div.dataTables_wrapper td.NUM_COMPLETED_GROUPS,
+div.dataTables_wrapper th.NUM_SUBMITTED_REQUESTS,
+div.dataTables_wrapper td.NUM_SUBMITTED_REQUESTS,
+div.dataTables_wrapper th.NUM_COMPLETED_REQUESTS,
+div.dataTables_wrapper td.NUM_COMPLETED_REQUESTS,
+div.dataTables_wrapper th.NUM_FAILED_REQUESTS,
+div.dataTables_wrapper td.NUM_FAILED_REQUESTS {
   min-width: 100px;
   max-width: 100px;
 }
+
+div.dataTables_wrapper th.startedDate,
+div.dataTables_wrapper td.startedDate{
+  min-width: 150px;
+  max-width: 150px;
+  width: 150px;
+}
+div.dataTables_wrapper th.JOB_STATUS,
+div.dataTables_wrapper td.JOB_STATUS,
+div.dataTables_wrapper th.status,
+div.dataTables_wrapper td.status {
+  min-width: 110px;
+  max-width: 110px;
+  width: 110px;
+}
+
+div.dataTables_wrapper th.started,
+div.dataTables_wrapper td.started,
+div.dataTables_wrapper th.enabled,
+div.dataTables_wrapper td.enabled {
+  min-width: 80px;
+  max-width: 80px;
+  width: 80px;
+}
+

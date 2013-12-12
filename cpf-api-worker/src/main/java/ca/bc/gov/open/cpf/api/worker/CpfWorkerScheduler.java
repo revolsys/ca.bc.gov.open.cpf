@@ -1,19 +1,24 @@
 package ca.bc.gov.open.cpf.api.worker;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
@@ -23,10 +28,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.Query;
+import javax.servlet.ServletContext;
 
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.WriterAppender;
+import org.apache.log4j.rolling.FixedWindowRollingPolicy;
+import org.apache.log4j.rolling.RollingFileAppender;
+import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.ServletContextAware;
 
 import ca.bc.gov.open.cpf.api.worker.security.WebSecurityServiceFactory;
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
@@ -43,14 +60,43 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
 import com.revolsys.io.FileUtil;
 import com.revolsys.parallel.NamedThreadFactory;
-import com.revolsys.parallel.process.InvokeMethodRunnable;
+import com.revolsys.parallel.channel.Channel;
+import com.revolsys.parallel.channel.store.Buffer;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
+import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 
-public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
-  Process, BeanNameAware, ModuleEventListener {
+public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
+  BeanNameAware, ModuleEventListener, ServletContextAware {
+
+  private static Integer getPortNumber() {
+    try {
+      final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+      for (final String protocol : Arrays.asList("HTTP/1.1", "AJP/1.3")) {
+
+        final Set<ObjectName> objs = mbs.queryNames(new ObjectName(
+          "*:type=Connector,*"), Query.match(Query.attr("protocol"),
+          Query.value(protocol)));
+        int protocolPort = Integer.MAX_VALUE;
+        for (final ObjectName obj : objs) {
+          final int port = Integer.parseInt(obj.getKeyProperty("port"));
+          if (port < protocolPort) {
+            protocolPort = port;
+          }
+        }
+        if (protocolPort < Integer.MAX_VALUE) {
+          return protocolPort;
+        }
+      }
+
+    } catch (final Throwable e) {
+      e.printStackTrace();
+    }
+    return 80;
+  }
 
   private boolean abbortedRequest;
 
@@ -66,12 +112,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   private DigestHttpClient httpClient;
 
-  private final String id = UUID.randomUUID().toString();
+  private String id;
 
   private long lastPingTime;
-
-  /** The list of modules currently being loaded. */
-  private final Map<String, Long> loadingModules = new HashMap<String, Long>();
 
   private final long maxTimeBetweenPings = 5 * 60;
 
@@ -79,9 +122,16 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   private final Deque<Map<String, Object>> messages = new LinkedList<Map<String, Object>>();
 
+  private int maxInMessageId = 0;
+
+  private final Channel<Map<String, Object>> inMessageChannel = new Channel<>(
+    new Buffer<Map<String, Object>>(1000));
+
   private String messageUrl;
 
-  private List<String> moduleNames;
+  private final List<String> includedModuleNames = new ArrayList<>();
+
+  private final List<String> excludedModuleNames = new ArrayList<>();
 
   private final Object monitor = new Object();
 
@@ -107,10 +157,23 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   private String webServiceUrl = "http://localhost/cpf";
 
-  public BatchJobWorkerScheduler() {
+  private final Set<String> loadedModuleNames = new HashSet<>();
+
+  private final long startTime = System.currentTimeMillis();
+
+  public CpfWorkerScheduler() {
     super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
       new NamedThreadFactory());
     setKeepAliveTime(60, TimeUnit.SECONDS);
+    String hostName;
+    try {
+      hostName = InetAddress.getLocalHost().getCanonicalHostName();
+    } catch (final UnknownHostException e) {
+      hostName = "localhost";
+    }
+
+    id = environmentName + ":" + hostName + ":" + getPortNumber();
+
   }
 
   protected void addExecutingGroupId(final String groupId) {
@@ -156,6 +219,22 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     return message;
   }
 
+  protected Map<String, Object> createModuleMessage(final Module module,
+    final String action) {
+    final String moduleName = module.getName();
+    final long moduleTime = module.getStartedTime();
+    return createModuleMessage(moduleName, moduleTime, action);
+  }
+
+  protected Map<String, Object> createModuleMessage(final String moduleName,
+    final long moduleTime, final String action) {
+    final Map<String, Object> message = new LinkedHashMap<String, Object>();
+    message.put("action", action);
+    message.put("moduleName", moduleName);
+    message.put("moduleTime", moduleTime);
+    return message;
+  }
+
   @PreDestroy
   public void destroy() {
     running = false;
@@ -173,7 +252,7 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       }
       tempDir = null;
     }
-
+    inMessageChannel.readDisconnect();
   }
 
   @Override
@@ -233,8 +312,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     return environmentName;
   }
 
-  public List<String> getModuleNames() {
-    return moduleNames;
+  public Channel<Map<String, Object>> getInMessageChannel() {
+    return inMessageChannel;
   }
 
   public String getPassword() {
@@ -263,6 +342,8 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
 
   @PostConstruct
   public void init() {
+    initLogging();
+
     httpClient = new DigestHttpClient(webServiceUrl, username, password,
       getMaximumPoolSize() + 1);
 
@@ -272,97 +353,41 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     configPropertyLoader = new InternalWebServiceConfigPropertyLoader(
       httpClient, environmentName);
 
-    messageUrl = webServiceUrl + "/worker/workers/" + id + "/message";
-    nextIdUrl = webServiceUrl + "/worker/workers/" + id + "/jobs/groups/nextId";
+    messageUrl = webServiceUrl + "/worker/workers/" + id
+      + "/message?workerStartTime=" + startTime;
+    nextIdUrl = webServiceUrl + "/worker/workers/" + id
+      + "/jobs/groups/nextId?workerStartTime=" + startTime;
+    inMessageChannel.readConnect();
   }
 
-  protected void loadModule(final Map<String, Object> action) {
-    final String moduleName = (String)action.get("moduleName");
-    final Long moduleTime = ((Number)action.get("moduleTime")).longValue();
-    synchronized (loadingModules) {
-      final Long loadingTime = loadingModules.get(moduleName);
-      if (loadingTime == null || loadingTime < moduleTime) {
-        loadingModules.put(moduleName, moduleTime);
-        LoggerFactory.getLogger(getClass()).info(
-          "Loading module: " + moduleName);
+  protected void initLogging() {
+    final Logger logger = Logger.getRootLogger();
+    logger.removeAllAppenders();
+    WriterAppender appender;
+    final File rootDirectory = businessApplicationRegistry.getAppLogDirectory();
+    if (rootDirectory == null
+      || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
+      new ConsoleAppender().activateOptions();
+      appender = new ConsoleAppender();
+    } else {
+      final String baseFileName = rootDirectory + "/" + "worker_"
+        + id.replaceAll(":", "_");
+      final String activeFileName = baseFileName + ".log";
+      final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+      rollingPolicy.setActiveFileName(activeFileName);
+      final String fileNamePattern = baseFileName + ".%i.log";
+      rollingPolicy.setFileNamePattern(fileNamePattern);
 
-        try {
-          execute(new InvokeMethodRunnable(this, "loadModule", moduleName,
-            moduleTime));
-          final Map<String, Object> message = new LinkedHashMap<String, Object>();
-          message.put("action", "moduleLoading");
-          message.put("moduleName", moduleName);
-          message.put("moduleTime", moduleTime);
-          addMessage(message);
-        } catch (final Throwable t) {
-          LoggerFactory.getLogger(getClass()).error(
-            "Unable to load module " + moduleName, t);
-          setModuleExcluded(moduleName, moduleTime);
-        }
-      }
+      final RollingFileAppender rollingAppender = new RollingFileAppender();
+      rollingAppender.setFile(activeFileName);
+      rollingAppender.setRollingPolicy(rollingPolicy);
+      rollingAppender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(
+        1024 * 1024 * 10));
+      appender = rollingAppender;
     }
-  }
-
-  public void loadModule(final String moduleName, final Long moduleTime) {
-    final AppLog log = new AppLog(moduleName);
-
-    ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
-    if (module != null) {
-      final long lastStartedTime = module.getStartedTime();
-      if (lastStartedTime < moduleTime) {
-        LoggerFactory.getLogger(getClass()).info(
-          "Unloading older module version " + moduleName + " "
-            + lastStartedTime);
-        log.info("Unloading older module version\tmoduleName=" + moduleName
-          + "\tmoduleTime=" + lastStartedTime);
-        unloadModule(module);
-        module = null;
-      } else if (lastStartedTime == moduleTime) {
-        return;
-      }
-    }
-    try {
-      final String modulesUrl = httpClient.getUrl("/worker/modules/"
-        + moduleName + "/" + moduleTime + "/urls.json");
-      final Map<String, Object> response = httpClient.getJsonResource(modulesUrl);
-      final File moduleDir = new File(tempDir, moduleName + "-" + moduleTime);
-      moduleDir.mkdir();
-      moduleDir.deleteOnExit();
-      final List<URL> urls = new ArrayList<URL>();
-      @SuppressWarnings("unchecked")
-      final List<String> jarUrls = (List<String>)response.get("jarUrls");
-      for (int i = 0; i < jarUrls.size(); i++) {
-        final String jarUrl = jarUrls.get(i);
-        try {
-          final File jarFile = new File(moduleDir, i + ".jar");
-          jarFile.deleteOnExit();
-          httpClient.getResource(jarUrl, jarFile);
-
-          urls.add(FileUtil.toUrl(jarFile));
-        } catch (final Throwable e) {
-          log.error("Unable to download jar file " + jarUrl, e);
-        }
-      }
-      final ClassLoader parentClassLoader = getClass().getClassLoader();
-      final ClassLoader classLoader = ClassLoaderFactoryBean.createClassLoader(
-        parentClassLoader, urls);
-      final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
-        classLoader, false);
-      module = new ClassLoaderModule(businessApplicationRegistry, moduleName,
-        classLoader, configPropertyLoader, configUrls.get(0));
-      businessApplicationRegistry.addModule(module);
-      module.setStartedDate(new Date(moduleTime));
-      module.enable();
-    } catch (final Throwable t) {
-      try {
-        log.error("Unable to load module " + moduleName, t);
-      } finally {
-        setModuleExcluded(moduleName, moduleTime);
-        if (module != null) {
-          businessApplicationRegistry.unloadModule(module);
-        }
-      }
-    }
+    appender.activateOptions();
+    appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+    logger.addAppender(appender);
   }
 
   @Override
@@ -370,28 +395,26 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     final String action = event.getAction();
     final Module module = event.getModule();
     final String moduleName = module.getName();
+    Map<String, Object> message = null;
     if (action.equals(ModuleEvent.START)) {
-      final long moduleTime = module.getStartedTime();
-      setModuleLoaded(moduleName, moduleTime);
+      message = createModuleMessage(module, "moduleStarted");
+      loadedModuleNames.add(moduleName);
     } else if (action.equals(ModuleEvent.START_FAILED)) {
       businessApplicationRegistry.unloadModule(module);
 
       final String moduleError = module.getModuleError();
-      final AppLog log = new AppLog(moduleName);
-      LoggerFactory.getLogger(getClass()).error(moduleError);
-      log.error(moduleError);
-      final long moduleTime = module.getStartedTime();
-      setModuleExcluded(moduleName, moduleTime);
+      message = createModuleMessage(module, "moduleExcluded");
+      message.put("moduleError", moduleError);
+    } else if (action.equals(ModuleEvent.STOP)) {
+      message = createModuleMessage(module, "moduleStopped");
+      loadedModuleNames.add(moduleName);
+    }
+    if (message != null) {
+      sendMessageWithRetry(message);
     }
   }
 
-  public void postRun() {
-  }
-
-  protected void preRun() {
-
-  }
-
+  @SuppressWarnings("unchecked")
   public boolean processNextTask() {
     if (System.currentTimeMillis() > lastPingTime + maxTimeBetweenPings * 1000) {
       addExecutingGroupsMessage();
@@ -415,11 +438,9 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     } else {
       try {
         final Map<String, Object> parameters = new HashMap<String, Object>();
-
+        parameters.put("maxMessageId", maxInMessageId);
         Map<String, Object> response = null;
-        if (moduleNames != null && !moduleNames.isEmpty()) {
-          parameters.put("moduleName", moduleNames);
-        }
+        parameters.put("moduleName", loadedModuleNames);
 
         final String url = UrlUtil.getUrl(nextIdUrl, parameters);
         if (running) {
@@ -433,9 +454,18 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
         } else {
 
           if (response != null && !response.isEmpty()) {
-            if ("loadModule".equals(response.get("action"))) {
-              loadModule(response);
-            } else if (response.get("batchJobId") != null) {
+            final Map<String, Map<String, Object>> messages = (Map<String, Map<String, Object>>)response.get("messages");
+            if (messages != null) {
+              for (final Entry<String, Map<String, Object>> entry : messages.entrySet()) {
+                final int messageId = Integer.parseInt(entry.getKey());
+                final Map<String, Object> message = entry.getValue();
+                if (messageId > maxInMessageId) {
+                  inMessageChannel.write(message);
+                  maxInMessageId = messageId;
+                }
+              }
+            }
+            if (response.get("batchJobId") != null) {
               if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
                 LoggerFactory.getLogger(getClass()).debug(
                   "Scheduling group " + response);
@@ -502,7 +532,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
   @Override
   public void run() {
     LoggerFactory.getLogger(getClass()).info("Started");
-    preRun();
     try {
       running = true;
       while (running) {
@@ -532,7 +561,6 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
       LoggerFactory.getLogger(getClass()).error(e.getMessage(), e);
       getProcessNetwork().stop();
     } finally {
-      postRun();
       LoggerFactory.getLogger(getClass()).info("Stopped");
     }
   }
@@ -618,25 +646,18 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     super.setMaximumPoolSize(maximumPoolSize);
   }
 
-  private void setModuleExcluded(final String moduleName, final Long moduleTime) {
-    LoggerFactory.getLogger(getClass()).info("Excluding module: " + moduleName);
-    final Map<String, Object> message = new LinkedHashMap<String, Object>();
-    message.put("action", "moduleExcluded");
-    message.put("moduleName", moduleName);
-    message.put("moduleTime", moduleTime);
-    addMessage(message);
-  }
-
-  private void setModuleLoaded(final String moduleName, final Long moduleTime) {
-    final Map<String, Object> message = new LinkedHashMap<String, Object>();
-    message.put("action", "moduleLoaded");
-    message.put("moduleName", moduleName);
-    message.put("moduleTime", moduleTime);
-    sendMessageWithRetry(message);
-  }
-
   public void setModuleNames(final List<String> moduleNames) {
-    this.moduleNames = moduleNames;
+    this.includedModuleNames.clear();
+    this.excludedModuleNames.clear();
+    if (moduleNames != null) {
+      for (final String moduleName : moduleNames) {
+        if (moduleName.startsWith("-")) {
+          excludedModuleNames.add(moduleName.substring(1));
+        } else {
+          includedModuleNames.add(moduleName);
+        }
+      }
+    }
   }
 
   public void setPassword(final String password) {
@@ -663,12 +684,104 @@ public class BatchJobWorkerScheduler extends ThreadPoolExecutor implements
     }
   }
 
+  @Override
+  public void setServletContext(final ServletContext servletContext) {
+    id += ":"
+      + servletContext.getContextPath()
+        .replaceFirst("^/", "")
+        .replaceAll("/", "-");
+    businessApplicationRegistry.setEnvironmentId("worker_"
+      + id.replaceAll(":", "_"));
+  }
+
   public void setUsername(final String username) {
     this.username = username;
   }
 
   public void setWebServiceUrl(final String webServiceUrl) {
     this.webServiceUrl = webServiceUrl;
+  }
+
+  protected void startModule(final Map<String, Object> action) {
+    final String moduleName = (String)action.get("moduleName");
+    final Long moduleTime = CollectionUtil.getLong(action, "moduleTime");
+    if ((this.includedModuleNames.isEmpty() || this.includedModuleNames.contains(moduleName))
+      && !excludedModuleNames.contains(moduleName)) {
+      final AppLog log = new AppLog(moduleName);
+
+      ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
+      if (module != null) {
+        final long lastStartedTime = module.getStartedTime();
+        if (lastStartedTime < moduleTime) {
+          log.info("Unloading older module version\tmoduleName=" + moduleName
+            + "\tmoduleTime=" + lastStartedTime);
+          unloadModule(module);
+          module = null;
+        } else if (lastStartedTime == moduleTime) {
+          return;
+        }
+      }
+      try {
+        final String modulesUrl = httpClient.getUrl("/worker/modules/"
+          + moduleName + "/" + moduleTime + "/urls.json");
+        final Map<String, Object> response = httpClient.getJsonResource(modulesUrl);
+        final File moduleDir = new File(tempDir, moduleName + "-" + moduleTime);
+        moduleDir.mkdir();
+        moduleDir.deleteOnExit();
+        final List<URL> urls = new ArrayList<URL>();
+        @SuppressWarnings("unchecked")
+        final List<String> jarUrls = (List<String>)response.get("jarUrls");
+        for (int i = 0; i < jarUrls.size(); i++) {
+          final String jarUrl = jarUrls.get(i);
+          try {
+            final File jarFile = new File(moduleDir, i + ".jar");
+            jarFile.deleteOnExit();
+            httpClient.getResource(jarUrl, jarFile);
+
+            urls.add(FileUtil.toUrl(jarFile));
+          } catch (final Throwable e) {
+            throw new RuntimeException("Unable to download jar file " + jarUrl,
+              e);
+          }
+        }
+        final ClassLoader parentClassLoader = getClass().getClassLoader();
+        final ClassLoader classLoader = ClassLoaderFactoryBean.createClassLoader(
+          parentClassLoader, urls);
+        final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
+          classLoader, false);
+        module = new ClassLoaderModule(businessApplicationRegistry, moduleName,
+          classLoader, configPropertyLoader, configUrls.get(0));
+        businessApplicationRegistry.addModule(module);
+        module.setStartedDate(new Date(moduleTime));
+        module.enable();
+      } catch (final Throwable e) {
+        try {
+          log.error("Unable to load module " + moduleName, e);
+        } finally {
+          final Map<String, Object> message = new LinkedHashMap<String, Object>();
+          message.put("action", "moduleStartFailed");
+          message.put("moduleName", moduleName);
+          message.put("moduleTime", moduleTime);
+          message.put("moduleError", ExceptionUtil.toString(e));
+          addMessage(message);
+          if (module != null) {
+            businessApplicationRegistry.unloadModule(module);
+          }
+        }
+      }
+    } else {
+      final Map<String, Object> message = createModuleMessage(moduleName,
+        moduleTime, "moduleDisabled");
+      addMessage(message);
+    }
+  }
+
+  protected void stopModule(final Map<String, Object> action) {
+    final String moduleName = (String)action.get("moduleName");
+    final ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
+    if (module != null) {
+      unloadModule(module);
+    }
   }
 
   @Override

@@ -89,6 +89,11 @@ public class DeprecatedController {
     return appBuilder.redirectPage("clientView");
   }
 
+  @RequestMapping(value = "/ws/users/{consumerKey}/jobs/{jobId}")
+  public Object getUsersJob() {
+    return jobBuilder.redirectPage("clientView");
+  }
+
   @RequestMapping(value = "/ws/users/{consumerKey}/jobs")
   public Object getUsersJobs() {
     return jobBuilder.redirectPage("clientList");

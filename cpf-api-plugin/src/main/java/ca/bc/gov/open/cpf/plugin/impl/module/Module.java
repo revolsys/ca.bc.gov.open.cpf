@@ -45,6 +45,8 @@ public interface Module {
 
   List<URL> getJarUrls();
 
+  long getLastStartTime();
+
   String getModuleDescriptor();
 
   String getModuleError();

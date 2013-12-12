@@ -45,7 +45,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private final String workerId;
 
-  private final BatchJobWorkerScheduler executor;
+  private final CpfWorkerScheduler executor;
 
   private final String groupId;
 
@@ -72,7 +72,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   private Module module;
 
   public BatchJobRequestExecutionGroupRunnable(
-    final BatchJobWorkerScheduler executor,
+    final CpfWorkerScheduler executor,
     final BusinessApplicationRegistry businessApplicationRegistry,
     final DigestHttpClient httpClient,
     final SecurityServiceFactory securityServiceFactory, final String workerId,

@@ -57,8 +57,14 @@ public final class BusinessApplicationRegistry implements
 
   private boolean useModuleControlThread = true;
 
+  private String environmentId = "master";
+
   public BusinessApplicationRegistry() {
     this(true);
+  }
+
+  public BusinessApplicationRegistry(final boolean useModuleControlThread) {
+    this(useModuleControlThread, new ModuleLoader[0]);
   }
 
   public BusinessApplicationRegistry(final boolean useModuleControlThread,
@@ -242,6 +248,10 @@ public final class BusinessApplicationRegistry implements
     return configPropertyLoader;
   }
 
+  public String getEnvironmentId() {
+    return environmentId;
+  }
+
   public File getLogDirectory() {
     return logDirectory;
   }
@@ -371,6 +381,10 @@ public final class BusinessApplicationRegistry implements
     this.configPropertyLoader = configPropertyLoader;
   }
 
+  public void setEnvironmentId(final String environmentId) {
+    this.environmentId = environmentId;
+  }
+
   public void setLazyLoad(final boolean lazyLoad) {
     this.lazyLoad = lazyLoad;
   }
@@ -387,7 +401,9 @@ public final class BusinessApplicationRegistry implements
       moduleControlChannel.write(parameters);
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
-      module.doStart();
+      if (module != null) {
+        module.doStart();
+      }
     }
   }
 
@@ -399,7 +415,9 @@ public final class BusinessApplicationRegistry implements
       moduleControlChannel.write(parameters);
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
-      module.doStop();
+      if (module != null) {
+        module.doStop();
+      }
     }
   }
 

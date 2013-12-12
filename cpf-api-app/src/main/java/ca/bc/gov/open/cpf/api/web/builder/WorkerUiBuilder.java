@@ -20,8 +20,8 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
+import ca.bc.gov.open.cpf.api.scheduler.WorkerModuleState;
 import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -76,7 +76,8 @@ public class WorkerUiBuilder extends CpfUiBuilder implements
       addTabDataTable(tabs, BatchJobRequestExecutionGroup.class.getName(),
         "workerList", parameters);
 
-      addTabDataTable(tabs, Module.class.getName(), "workerList", parameters);
+      addTabDataTable(tabs, WorkerModuleState.class.getName(), "workerList",
+        parameters);
 
       return tabs;
     }

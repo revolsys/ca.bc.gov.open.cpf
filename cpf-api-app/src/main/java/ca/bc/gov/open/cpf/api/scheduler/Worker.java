@@ -2,26 +2,18 @@ package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import org.springframework.util.StringUtils;
 
 public class Worker {
   private final String id;
-
-  private final Set<String> loadedModuleNameTimes = new TreeSet<String>();
-
-  private final Set<String> loadingModuleNameTimes = new TreeSet<String>();
-
-  private final Set<String> excludedModules = new TreeSet<String>();
 
   private Timestamp lastConnectTime;
 
@@ -29,21 +21,17 @@ public class Worker {
 
   private final Map<String, List<BatchJobRequestExecutionGroup>> executingGroupsIdByModule = new TreeMap<String, List<BatchJobRequestExecutionGroup>>();
 
-  private final BusinessApplicationRegistry businessApplicationRegistry;
+  private int maxMessageId = 1;
 
-  public Worker(final BusinessApplicationRegistry businessApplicationRegistry,
-    final String id) {
-    this.businessApplicationRegistry = businessApplicationRegistry;
+  private final Map<Integer, Map<String, Object>> messages = new TreeMap<Integer, Map<String, Object>>();
+
+  private final Map<String, WorkerModuleState> moduleStates = new TreeMap<String, WorkerModuleState>();
+
+  private final long startTime;
+
+  public Worker(final String id, final long startTime) {
     this.id = id;
-  }
-
-  public void addExcludedModule(final String moduleNameTime) {
-    synchronized (loadingModuleNameTimes) {
-      loadingModuleNameTimes.remove(moduleNameTime);
-    }
-    synchronized (excludedModules) {
-      excludedModules.add(moduleNameTime);
-    }
+    this.startTime = startTime;
   }
 
   public void addExecutingGroup(final String moduleNameAndTime,
@@ -60,21 +48,10 @@ public class Worker {
     }
   }
 
-  public void addLoadedModule(final String moduleNameTime) {
-    synchronized (loadingModuleNameTimes) {
-      loadingModuleNameTimes.remove(moduleNameTime);
-    }
-    synchronized (loadedModuleNameTimes) {
-      loadedModuleNameTimes.add(moduleNameTime);
-    }
-  }
-
-  public void addLoadingModule(final Map<String, Object> message) {
-    final String moduleName = (String)message.get("moduleName");
-    final Number moduleTime = (Number)message.get("moduleTime");
-    final String moduleNameTime = moduleName + ":" + moduleTime;
-    synchronized (loadingModuleNameTimes) {
-      loadingModuleNameTimes.add(moduleNameTime);
+  public void addMessage(final Map<String, Object> message) {
+    synchronized (messages) {
+      final int messageId = maxMessageId++;
+      messages.put(messageId, message);
     }
   }
 
@@ -92,17 +69,6 @@ public class Worker {
         return groups;
       }
     }
-  }
-
-  public Set<String> getExcludedOrLoadingModules() {
-    final Set<String> modules = new LinkedHashSet<String>();
-    synchronized (excludedModules) {
-      modules.addAll(excludedModules);
-    }
-    synchronized (loadingModuleNameTimes) {
-      modules.addAll(loadingModuleNameTimes);
-    }
-    return modules;
   }
 
   public BatchJobRequestExecutionGroup getExecutingGroup(final String groupId) {
@@ -128,51 +94,50 @@ public class Worker {
     return lastConnectTime;
   }
 
-  public Set<String> getLoadedModuleNameTimes() {
-    synchronized (loadedModuleNameTimes) {
-      return new LinkedHashSet<String>(loadedModuleNameTimes);
-    }
-  }
-
-  public List<Module> getLoadedModules() {
-    final List<Module> modules = new ArrayList<Module>();
-    final Collection<String> loadedModuleNames = getLoadedModuleNameTimes();
-    for (final String moduleNameTime : loadedModuleNames) {
-      final int index = moduleNameTime.lastIndexOf(':');
-      final String moduleName = moduleNameTime.substring(0, index);
-      final long moduleTime = Long.valueOf(moduleNameTime.substring(index + 1));
-      final Module module = businessApplicationRegistry.getModule(moduleName);
-      if (module != null) {
-        if (moduleTime == module.getStartedTime()) {
-          modules.add(module);
+  public Map<String, Map<String, Object>> getMessages(final int maxMessageId) {
+    synchronized (this.messages) {
+      final Map<String, Map<String, Object>> messages = new LinkedHashMap<>();
+      for (final Iterator<Entry<Integer, Map<String, Object>>> iterator = this.messages.entrySet()
+        .iterator(); iterator.hasNext();) {
+        final Entry<Integer, Map<String, Object>> entry = iterator.next();
+        final Integer messageId = entry.getKey();
+        if (messageId <= maxMessageId) {
+          iterator.remove();
+        } else {
+          final Map<String, Object> message = entry.getValue();
+          messages.put(String.valueOf(messageId), message);
         }
       }
-    }
-    return modules;
-  }
-
-  public boolean isModuleLoaded(final String moduleName,
-    final long moduleStartTime) {
-    synchronized (loadedModuleNameTimes) {
-      return loadedModuleNameTimes.contains(moduleName + ":" + moduleStartTime);
+      return messages;
     }
   }
 
-  public boolean removeExcludedModule(final String moduleNameTime) {
-    synchronized (excludedModules) {
-      return excludedModules.remove(moduleNameTime);
+  public List<WorkerModuleState> getModules() {
+    return new ArrayList<>(moduleStates.values());
+  }
+
+  protected WorkerModuleState getModuleState(final String moduleName) {
+    if (StringUtils.hasText(moduleName)) {
+      synchronized (moduleStates) {
+        WorkerModuleState moduleState = moduleStates.get(moduleName);
+        if (moduleState == null) {
+          moduleState = new WorkerModuleState(moduleName);
+          moduleStates.put(moduleName, moduleState);
+        }
+        return moduleState;
+      }
+    } else {
+      return null;
     }
+  }
+
+  public long getStartTime() {
+    return startTime;
   }
 
   public BatchJobRequestExecutionGroup removeExecutingGroup(final String groupId) {
     synchronized (executingGroupsById) {
       return executingGroupsById.remove(groupId);
-    }
-  }
-
-  public boolean removeLoadedModule(final String moduleNameTime) {
-    synchronized (loadedModuleNameTimes) {
-      return loadedModuleNameTimes.remove(moduleNameTime);
     }
   }
 

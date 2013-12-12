@@ -40,7 +40,6 @@ import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
-import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -389,23 +388,25 @@ public class InternalWebService {
   @ResponseBody
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, Object> postNextBatchJobExecutionGroupId(
-    @PathVariable("workerId") final String workerId, @RequestParam(
-        value = "moduleName", required = false) final List<String> moduleNames) {
+    @PathVariable("workerId") final String workerId,
+    @RequestParam final long workerStartTime,
+    @RequestParam(value = "moduleName", required = false) final List<String> moduleNames,
+    @RequestParam(value = "maxMessageId", required = false, defaultValue = "0") final int maxMessageId) {
     Map<String, Object> response = Collections.emptyMap();
     final BatchJobService batchJobService = this.batchJobService;
     if (batchJobService != null) {
       checkRunning();
       try {
-        batchJobService.setWorkerConnected(workerId, true);
+        batchJobService.setWorkerConnected(workerId, workerStartTime, true);
         response = batchJobService.getNextBatchJobRequestExecutionGroup(
-          workerId, moduleNames);
+          workerId, maxMessageId, moduleNames);
       } catch (final Throwable e) {
         LoggerFactory.getLogger(InternalWebService.class).error(e.getMessage(),
           e);
         throw new HttpMessageNotWritableException(
           "Unable to get execution group id", e);
       } finally {
-        batchJobService.setWorkerConnected(workerId, false);
+        batchJobService.setWorkerConnected(workerId, workerStartTime, false);
       }
     }
     return response;
@@ -417,46 +418,16 @@ public class InternalWebService {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, Object> postWorkerMessage(
     @PathVariable("workerId") final String workerId,
+    @RequestParam final long workerStartTime,
     @RequestBody final Map<String, Object> message) {
     checkRunning();
     try {
-      batchJobService.setWorkerConnected(workerId, true);
-      try {
-        final Map<String, Object> response = new NamedLinkedHashMap<String, Object>(
-          "MessageResponse");
-        response.put("workerId", "workerId");
-        final Worker worker = batchJobService.getWorker(workerId);
-        if (worker != null) {
-          final String action = (String)message.get("action");
-          if (action != null) {
-            if ("executingGroupIds".equals(action)) {
-              @SuppressWarnings("unchecked")
-              final List<String> executingGroupIds = (List<String>)message.get("executingGroupIds");
-              batchJobService.updateWorkerExecutingGroups(worker,
-                executingGroupIds);
-            } else if ("failedGroupId".equals(action)) {
-              final String groupId = (String)message.get("groupId");
-              batchJobService.cancelGroup(worker, groupId);
-            } else if ("moduleExcluded".equals(action)) {
-              setModuleExcluded(worker, message);
-            } else if ("moduleLoaded".equals(action)) {
-              setModuleLoaded(worker, message);
-            } else if ("moduleLoading".equals(action)) {
-              worker.addLoadingModule(message);
-            }
-          }
-          response.put("errorMessage", "Unknown message");
-          response.put("message", message);
-        }
-        return response;
-      } catch (final Throwable e) {
-        LoggerFactory.getLogger(InternalWebService.class).error(e.getMessage(),
-          e);
-        throw new HttpMessageNotWritableException("Unable to process message",
-          e);
-      }
-    } finally {
-      batchJobService.setWorkerConnected(workerId, false);
+      return batchJobService.processWorkerMessage(workerId, workerStartTime,
+        message);
+    } catch (final Throwable e) {
+      LoggerFactory.getLogger(InternalWebService.class)
+        .error(e.getMessage(), e);
+      throw new HttpMessageNotWritableException("Unable to process message", e);
     }
   }
 
@@ -566,23 +537,6 @@ public class InternalWebService {
         "UserAttributes", securityService.getUserAttributes());
       return userAttributes;
     }
-  }
-
-  public void setModuleExcluded(final Worker worker,
-    final Map<String, Object> message) {
-    final String moduleName = (String)message.get("moduleName");
-    final Number moduleTime = (Number)message.get("moduleTime");
-    final String moduleNameTime = moduleName + ":" + moduleTime;
-    worker.addExcludedModule(moduleNameTime);
-    // TODO save reason for exclusion
-  }
-
-  private void setModuleLoaded(final Worker worker,
-    final Map<String, Object> message) {
-    final String moduleName = (String)message.get("moduleName");
-    final Number moduleTime = (Number)message.get("moduleTime");
-    final String moduleNameTime = moduleName + ":" + moduleTime;
-    worker.addLoadedModule(moduleNameTime);
   }
 
   public void setWebServiceUrl(final String webServiceUrl) {

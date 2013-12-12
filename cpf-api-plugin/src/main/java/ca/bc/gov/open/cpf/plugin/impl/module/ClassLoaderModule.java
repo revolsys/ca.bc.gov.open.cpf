@@ -109,6 +109,8 @@ public class ClassLoaderModule implements Module {
 
   private URL configUrl;
 
+  private long lastStartTime;
+
   private final AppLog log;
 
   private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems.getCoordinateSystems(Arrays.asList(
@@ -161,7 +163,7 @@ public class ClassLoaderModule implements Module {
 
   private String status;
 
-  private String environmentName = "worker";
+  private final String environmentId;
 
   public ClassLoaderModule(
     final BusinessApplicationRegistry businessApplicationRegistry,
@@ -170,6 +172,7 @@ public class ClassLoaderModule implements Module {
     this.name = moduleName;
     this.log = new AppLog(moduleName);
     this.log.setLogLevel("INFO");
+    environmentId = businessApplicationRegistry.getEnvironmentId();
   }
 
   public ClassLoaderModule(
@@ -267,7 +270,7 @@ public class ClassLoaderModule implements Module {
   @Override
   @PreDestroy
   public void destroy() {
-    stop();
+    doStop();
     classLoader = null;
     businessApplicationRegistry = null;
   }
@@ -346,15 +349,16 @@ public class ClassLoaderModule implements Module {
     permissionsByGroupName = null;
     groupNamesToDelete = null;
     businessApplicationRegistry.clearModuleToAppCache();
-    closeAppLogAppender(name);
     for (final String businessApplicationName : names) {
       closeAppLogAppender(name + "." + businessApplicationName);
     }
     try {
       businessApplicationRegistry.moduleEvent(this, ModuleEvent.STOP);
     } finally {
+      lastStartTime = getStartedTime();
       startedDate = null;
       AppLogUtil.info(log, "End\tModule Stop\tmoduleName=" + name, stopWatch);
+      closeAppLogAppender(name);
       setStatus("Stopped");
     }
   }
@@ -725,10 +729,6 @@ public class ClassLoaderModule implements Module {
     return configUrl;
   }
 
-  public String getEnvironmentName() {
-    return environmentName;
-  }
-
   /**
    * Get the geometry factory instance for the specified geometry configuration.
    * 
@@ -794,6 +794,11 @@ public class ClassLoaderModule implements Module {
       }
     }
     return Collections.emptyList();
+  }
+
+  @Override
+  public long getLastStartTime() {
+    return lastStartTime;
   }
 
   public AppLog getLog() {
@@ -880,9 +885,9 @@ public class ClassLoaderModule implements Module {
     final boolean isApp = StringUtils.hasText(businessApplicationName);
     if (isApp) {
       logName += "." + businessApplicationName;
-      fileName = name + "-" + businessApplicationName + "-" + environmentName;
+      fileName = name + "_" + businessApplicationName + "_" + environmentId;
     } else {
-      fileName = name + "-" + environmentName;
+      fileName = name + "_" + environmentId;
     }
     final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
     synchronized (logger) {
@@ -1466,10 +1471,6 @@ public class ClassLoaderModule implements Module {
 
   protected void setConfigUrl(final URL configUrl) {
     this.configUrl = configUrl;
-  }
-
-  public void setEnvironmentName(final String environmentName) {
-    this.environmentName = environmentName;
   }
 
   protected void setRemoteable(final boolean remoteable) {

@@ -322,6 +322,15 @@ public class BatchJobService implements ModuleEventListener {
       statistics.getParentId(), statistics.toMap());
   }
 
+  public void addWorkerMessage(final Map<String, Object> message) {
+    synchronized (workersById) {
+      for (final Worker worker : workersById.values()) {
+        worker.addMessage(message);
+      }
+      groupsToSchedule.notifyReaders();
+    }
+  }
+
   public boolean cancelBatchJob(final long batchJobId) {
     synchronized (preprocesedJobIds) {
       preprocesedJobIds.remove(batchJobId);
@@ -820,7 +829,8 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public Map<String, Object> getNextBatchJobRequestExecutionGroup(
-    final String workerId, final List<String> moduleNames) {
+    final String workerId, final int maxMessageId,
+    final List<String> moduleNames) {
     final long startTime = System.currentTimeMillis();
     final long endTime = startTime + maxWorkerWaitTime;
     final Map<String, Object> response = new HashMap<String, Object>();
@@ -828,14 +838,10 @@ public class BatchJobService implements ModuleEventListener {
       // TODO add info level logging that the group was scheduled
       BatchJobRequestExecutionGroup group = null;
       try {
-        do {
-          final List<String> workerModuleNames = getWorkerModuleNames(workerId,
-            moduleNames);
-          final long waitTime = Math.min(10000, endTime - startTime);
-          if (waitTime > 0) {
-            group = groupsToSchedule.read(waitTime, workerModuleNames);
-          }
-        } while (group == null && System.currentTimeMillis() < endTime);
+        final long waitTime = Math.min(10000, endTime - startTime);
+        if (waitTime > 0) {
+          group = groupsToSchedule.read(waitTime, moduleNames);
+        }
       } catch (final ClosedException e) {
       }
 
@@ -861,28 +867,31 @@ public class BatchJobService implements ModuleEventListener {
               response.put("businessApplicationName", businessApplicationName);
               response.put("logLevel", businessApplication.getLogLevel());
 
-              if (worker.isModuleLoaded(moduleName, moduleStartTime)) {
-                group.setExecutionStartTime(System.currentTimeMillis());
-                final String groupId = group.getId();
-                final Long batchJobId = group.getBatchJobId();
+              group.setExecutionStartTime(System.currentTimeMillis());
+              final String groupId = group.getId();
+              final Long batchJobId = group.getBatchJobId();
 
-                response.put("batchJobId", batchJobId);
-                response.put("groupId", groupId);
-                final AppLog log = businessApplication.getLog();
-                log.info("Start\tGroup execution\tgroupId=" + groupId
-                  + "\tworkerId=" + workerId);
-                response.put("consumerKey", group.getconsumerKey());
-                worker.addExecutingGroup(moduleName + ":" + moduleStartTime,
-                  group);
-              } else {
-                response.put("action", "loadModule");
-                schedule(group);
-              }
+              response.put("batchJobId", batchJobId);
+              response.put("groupId", groupId);
+              final AppLog log = businessApplication.getLog();
+              log.info("Start\tGroup execution\tgroupId=" + groupId
+                + "\tworkerId=" + workerId);
+              response.put("consumerKey", group.getconsumerKey());
+              worker.addExecutingGroup(moduleName + ":" + moduleStartTime,
+                group);
             }
           }
         }
       }
     }
+    final Worker worker = getWorker(workerId);
+    if (worker != null) {
+      final Map<String, Map<String, Object>> messages = worker.getMessages(maxMessageId);
+      if (!messages.isEmpty()) {
+        response.put("messages", messages);
+      }
+    }
+
     return response;
   }
 
@@ -947,37 +956,6 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public List<String> getWorkerModuleNames(final String workerId,
-    List<String> moduleNames) {
-    if (moduleNames == null || moduleNames.isEmpty()) {
-      moduleNames = businessApplicationRegistry.getModuleNames();
-    }
-    final Worker worker = getWorker(workerId);
-    if (worker != null) {
-      final Set<String> excludedModules = worker.getExcludedOrLoadingModules();
-      if (excludedModules != null) {
-        for (final String moduleNameTime : new ArrayList<String>(
-          excludedModules)) {
-          final int index = moduleNameTime.lastIndexOf(':');
-          final String moduleName = moduleNameTime.substring(0, index);
-          final long moduleTime = Long.valueOf(moduleNameTime.substring(index + 1));
-
-          final Module module = businessApplicationRegistry.getModule(moduleName);
-          if (module == null) {
-            worker.removeExcludedModule(moduleNameTime);
-          } else {
-            if (module.getStartedTime() > moduleTime) {
-              worker.removeExcludedModule(moduleNameTime);
-            } else {
-              moduleNames.remove(moduleName);
-            }
-          }
-        }
-      }
-    }
-    return moduleNames;
-  }
-
   public List<Worker> getWorkers() {
     return new ArrayList<Worker>(workersById.values());
   }
@@ -1003,12 +981,24 @@ public class BatchJobService implements ModuleEventListener {
     final String moduleName = module.getName();
     synchronized (module) {
       if (action.equals(ModuleEvent.STOP)) {
+        final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
+        message.put("action", "moduleStop");
+        message.put("moduleName", module.getName());
+        message.put("moduleTime", module.getLastStartTime());
+        addWorkerMessage(message);
+
         groupsToSchedule.remove(moduleName);
         for (final Worker worker : getWorkers()) {
           final String moduleNameAndTime = moduleName + ":"
             + module.getStartedTime();
           worker.cancelExecutingGroups(moduleNameAndTime);
         }
+      } else if (action.equals(ModuleEvent.START)) {
+        final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
+        message.put("action", "moduleStart");
+        message.put("moduleName", module.getName());
+        message.put("moduleTime", module.getStartedTime());
+        addWorkerMessage(message);
       }
       final List<String> businessApplicationNames = module.getBusinessApplicationNames();
       for (final String businessApplicationName : businessApplicationNames) {
@@ -1379,6 +1369,55 @@ public class BatchJobService implements ModuleEventListener {
     return requestParameters;
   }
 
+  public Map<String, Object> processWorkerMessage(final String workerId,
+    final long workerStartTime, final Map<String, Object> message) {
+    try {
+      setWorkerConnected(workerId, workerStartTime, true);
+      final Map<String, Object> response = new NamedLinkedHashMap<String, Object>(
+        "MessageResponse");
+      response.put("workerId", "workerId");
+      final Worker worker = getWorker(workerId);
+      if (worker != null) {
+        final String action = (String)message.get("action");
+        if (action != null) {
+          final String moduleName = (String)message.get("moduleName");
+          final WorkerModuleState moduleState = worker.getModuleState(moduleName);
+          if ("executingGroupIds".equals(action)) {
+            @SuppressWarnings("unchecked")
+            final List<String> executingGroupIds = (List<String>)message.get("executingGroupIds");
+            updateWorkerExecutingGroups(worker, executingGroupIds);
+          } else if ("failedGroupId".equals(action)) {
+            final String groupId = (String)message.get("groupId");
+            cancelGroup(worker, groupId);
+          } else if ("moduleStarted".equals(action)) {
+
+            moduleState.setEnabled(true);
+            moduleState.setStatus("Started");
+            final long moduleTime = CollectionUtil.getLong(message,
+              "moduleTime");
+            moduleState.setStartedTime(moduleTime);
+          } else if ("moduleStartFailed".equals(action)) {
+            moduleState.setEnabled(false);
+            moduleState.setStatus("Start Failed");
+            final String moduleError = (String)message.get("moduleError");
+            moduleState.setModuleError(moduleError);
+          } else if ("moduleStopped".equals(action)) {
+            moduleState.setEnabled(false);
+            moduleState.setStatus("Stopped");
+          } else if ("moduleDisabled".equals(action)) {
+            moduleState.setEnabled(false);
+            moduleState.setStatus("Disabled");
+          }
+        }
+        response.put("errorMessage", "Unknown message");
+        response.put("message", message);
+      }
+      return response;
+    } finally {
+      setWorkerConnected(workerId, workerStartTime, false);
+    }
+  }
+
   protected void removeGroup(final BatchJobRequestExecutionGroup group) {
     final long batchJobId = group.getBatchJobId();
     synchronized (groupsByJobId) {
@@ -1463,7 +1502,7 @@ public class BatchJobService implements ModuleEventListener {
   public void resetProcessingBatchJobs(final String moduleName,
     final String businessApplicationName) {
 
-    groupsToSchedule.remove(businessApplicationName);
+    groupsToSchedule.remove(moduleName);
 
     final AppLog log = getAppLog(businessApplicationName);
 
@@ -1553,8 +1592,8 @@ public class BatchJobService implements ModuleEventListener {
       }
       final BusinessApplication businessApplication = group.getBusinessApplication();
       final Module module = businessApplication.getModule();
-      final String name = module.getName();
-      groupsToSchedule.write(name, group);
+      final String moduleName = module.getName();
+      groupsToSchedule.write(moduleName, group);
     }
   }
 
@@ -1724,8 +1763,7 @@ public class BatchJobService implements ModuleEventListener {
             batchJobUrl += webServicePrefix;
           }
         }
-        batchJobUrl += "/ws/users/" + batchJob.getValue(BatchJob.USER_ID)
-          + "/jobs/" + batchJobId;
+        batchJobUrl += "/ws/jobs/" + batchJobId;
         final Map<String, Object> jobMap = toMap(batchJob, batchJobUrl, 0);
         final String subject = "CPF Job " + batchJobId + " status";
 
@@ -2014,7 +2052,8 @@ public class BatchJobService implements ModuleEventListener {
     this.userClassBaseUrls = userClassBaseUrls;
   }
 
-  public void setWorkerConnected(final String workerId, final boolean connected) {
+  public void setWorkerConnected(final String workerId,
+    final long workerStartTime, final boolean connected) {
     synchronized (connectedWorkerCounts) {
       Integer count = connectedWorkerCounts.get(workerId);
       if (count == null) {
@@ -2033,10 +2072,19 @@ public class BatchJobService implements ModuleEventListener {
 
       synchronized (workersById) {
         Worker worker = workersById.get(workerId);
-        if (worker == null) {
-          worker = new Worker(businessApplicationRegistry, workerId);
+        if (worker == null || worker.getStartTime() != workerStartTime) {
+          worker = new Worker(workerId, workerStartTime);
           if (connected) {
             workersById.put(workerId, worker);
+            for (final Module module : businessApplicationRegistry.getModules()) {
+              if (module.isStarted()) {
+                final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
+                message.put("action", "moduleStart");
+                message.put("moduleName", module.getName());
+                message.put("moduleTime", module.getStartedTime());
+                worker.addMessage(message);
+              }
+            }
           }
         }
         final long time = System.currentTimeMillis();

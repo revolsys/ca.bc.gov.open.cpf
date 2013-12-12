@@ -15,12 +15,17 @@
 
   <bean
     id="cpfWorker"
-    class="ca.bc.gov.open.cpf.api.worker.BatchJobWorkerScheduler"
+    class="ca.bc.gov.open.cpf.api.worker.CpfWorkerScheduler"
     p:businessApplicationRegistry-ref="businessApplicationRegistry"
     p:webServiceUrl="http://localhost/cpf"
     p:username="cpf_worker"
     p:password="cpf_2009"
     p:maximumPoolSize="100" />
+
+
+  <bean
+    id="cpfWorkerMessageProcess"
+    class="ca.bc.gov.open.cpf.api.worker.CpfWorkerMessageProcess" />
 
   <bean
     id="businessApplicationRegistry"
@@ -28,6 +33,9 @@
     p:configPropertyLoader="#{cpfWorker.configPropertyLoader}"
     p:appLogDirectory="/apps/logs/cpf"
   >
+    <constructor-arg
+      type="boolean"
+      value="false" />
     <property name="moduleLoaders">
       <set>
       </set>

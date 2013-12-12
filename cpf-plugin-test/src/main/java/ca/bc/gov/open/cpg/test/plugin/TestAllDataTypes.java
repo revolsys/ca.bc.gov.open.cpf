@@ -79,7 +79,7 @@ public class TestAllDataTypes {
     return this.float64;
   }
 
-  @ResultAttribute(index = 12)
+  @ResultAttribute(index = 14)
   public Geometry getGeometry() {
     return geometry;
   }
@@ -104,7 +104,7 @@ public class TestAllDataTypes {
     return this.int8;
   }
 
-  @ResultAttribute(index = 14)
+  @ResultAttribute(index = 13)
   public String getNull() {
     return null;
   }
@@ -119,7 +119,7 @@ public class TestAllDataTypes {
     return this.timestamp;
   }
 
-  @ResultAttribute(index = 13)
+  @ResultAttribute(index = 12)
   public URL getUrl() {
     return url;
   }
@@ -154,7 +154,7 @@ public class TestAllDataTypes {
     this.float64 = float64;
   }
 
-  @RequestParameter(index = 12)
+  @RequestParameter(index = 14)
   @DefaultValue("SRID=4326;POINT(-126 52)")
   public void setGeometry(final Geometry geometry) {
     this.geometry = geometry;
@@ -196,7 +196,7 @@ public class TestAllDataTypes {
     this.timestamp = timestamp;
   }
 
-  @RequestParameter(index = 13)
+  @RequestParameter(index = 12)
   @DefaultValue("http://www.google.com/")
   public void setUrl(final URL url) {
     this.url = url;

@@ -28,8 +28,6 @@ import ca.bc.gov.open.cpf.api.controller.ConfigPropertyModule;
 import ca.bc.gov.open.cpf.api.controller.ConfigPropertyModuleLoader;
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
-import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
-import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
@@ -46,7 +44,6 @@ import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
-import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
@@ -60,9 +57,6 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
   private final Callable<Collection<? extends Object>> modulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
     this, "getModules");
-
-  private final Callable<Collection<? extends Object>> workerModulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
-    this, "getWorkerModules");
 
   public ModuleUiBuilder() {
     super("module", "Business Application Module",
@@ -293,37 +287,6 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @PostFilter(FILTER_ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
   public List<Module> getPermittedModules() {
     return getBusinessApplicationRegistry().getModules();
-  }
-
-  public List<Module> getWorkerModules() {
-    final String workerId = HttpServletUtils.getPathVariable("workerId");
-    final BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
-    if (worker == null) {
-      throw new PageNotFoundException("The worker " + workerId
-        + " could not be found. It may no longer be connected.");
-    } else {
-      return worker.getLoadedModules();
-    }
-  }
-
-  @RequestMapping(value = {
-    "/admin/workers/{workerId}/modules"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  @PreAuthorize(ADMIN)
-  public Object pageWorkerList(@PathVariable final String workerId)
-    throws IOException, NoSuchRequestHandlingMethodException {
-    final BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
-    if (worker == null) {
-      throw new PageNotFoundException("The worker " + workerId
-        + " could not be found. It may no longer be connected.");
-    } else {
-      return createDataTableHandlerOrRedirect(getRequest(),
-        HttpServletUtils.getResponse(), "workerList", workerModulesCallable,
-        Worker.class, "view");
-    }
   }
 
   @RequestMapping(value = {
