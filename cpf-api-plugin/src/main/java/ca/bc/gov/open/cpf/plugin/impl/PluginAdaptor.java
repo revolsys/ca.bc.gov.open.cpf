@@ -109,10 +109,6 @@ public class PluginAdaptor {
   @SuppressWarnings("unchecked")
   public void execute() {
     final String resultListProperty = application.getResultListProperty();
-    if (application.isHasCustomizationProperties()) {
-      customizationProperties = (Map<String, Object>)Property.get(plugin,
-        "customizationProperties");
-    }
 
     final boolean testMode = application.isTestModeEnabled()
       && BooleanStringConverter.isTrue(testParameters.get("cpfPluginTest"));
@@ -167,6 +163,14 @@ public class PluginAdaptor {
     } catch (final Throwable t) {
       throw new RuntimeException("Unable to invoke execute on "
         + application.getName(), t);
+    }
+    if (application.isHasCustomizationProperties()) {
+      try {
+        customizationProperties = (Map<String, Object>)Property.get(plugin,
+          "customizationProperties");
+      } catch (final Throwable e) {
+        appLog.error("Unable to get customization properties", e);
+      }
     }
     if (resultListProperty == null) {
       this.responseFields = getResult(plugin, false, testMode);
