@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
@@ -36,7 +38,6 @@ import javax.servlet.ServletContext;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.apache.log4j.WriterAppender;
 import org.apache.log4j.rolling.FixedWindowRollingPolicy;
 import org.apache.log4j.rolling.RollingFileAppender;
 import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
@@ -62,6 +63,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
+import com.revolsys.parallel.process.InvokeMethodRunnable;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
@@ -161,6 +163,10 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   private final long startTime = System.currentTimeMillis();
 
+  private final Map<String, Future<?>> futureTaskByGroupId = new HashMap<>();
+
+  private final Map<Future<?>, String> groupIdByFutureTask = new HashMap<>();
+
   public CpfWorkerScheduler() {
     super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
       new NamedThreadFactory());
@@ -201,10 +207,24 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   }
 
   @Override
-  protected void afterExecute(final Runnable r, final Throwable t) {
+  protected void afterExecute(final Runnable runnable, final Throwable e) {
+    if (runnable instanceof FutureTask) {
+      final FutureTask futureTask = (FutureTask)runnable;
+      final String groupId = groupIdByFutureTask.remove(futureTask);
+      futureTaskByGroupId.remove(groupId);
+    }
     taskCount.decrementAndGet();
     synchronized (monitor) {
       monitor.notifyAll();
+    }
+  }
+
+  public void cancelGroup(final Map<String, Object> message) {
+    final String groupId = (String)message.get("groupId");
+    removeExecutingGroupId(groupId);
+    final Future<?> future = futureTaskByGroupId.get(groupId);
+    if (future != null) {
+      future.cancel(true);
     }
   }
 
@@ -363,12 +383,14 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   protected void initLogging() {
     final Logger logger = Logger.getRootLogger();
     logger.removeAllAppenders();
-    WriterAppender appender;
     final File rootDirectory = businessApplicationRegistry.getAppLogDirectory();
     if (rootDirectory == null
       || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
       new ConsoleAppender().activateOptions();
-      appender = new ConsoleAppender();
+      final ConsoleAppender appender = new ConsoleAppender();
+      appender.activateOptions();
+      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+      logger.addAppender(appender);
     } else {
       final String baseFileName = rootDirectory + "/" + "worker_"
         + id.replaceAll(":", "_");
@@ -378,16 +400,17 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
       final String fileNamePattern = baseFileName + ".%i.log";
       rollingPolicy.setFileNamePattern(fileNamePattern);
 
-      final RollingFileAppender rollingAppender = new RollingFileAppender();
-      rollingAppender.setFile(activeFileName);
-      rollingAppender.setRollingPolicy(rollingPolicy);
-      rollingAppender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(
+      final RollingFileAppender appender = new RollingFileAppender();
+
+      appender.setFile(activeFileName);
+      appender.setRollingPolicy(rollingPolicy);
+      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(
         1024 * 1024 * 10));
-      appender = rollingAppender;
+      appender.activateOptions();
+      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+      appender.rollover();
+      logger.addAppender(appender);
     }
-    appender.activateOptions();
-    appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-    logger.addAppender(appender);
   }
 
   @Override
@@ -397,8 +420,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     final String moduleName = module.getName();
     Map<String, Object> message = null;
     if (action.equals(ModuleEvent.START)) {
-      message = createModuleMessage(module, "moduleStarted");
-      loadedModuleNames.add(moduleName);
+
     } else if (action.equals(ModuleEvent.START_FAILED)) {
       businessApplicationRegistry.unloadModule(module);
 
@@ -476,7 +498,9 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
                 final Runnable runnable = new BatchJobRequestExecutionGroupRunnable(
                   this, businessApplicationRegistry, httpClient,
                   securityServiceFactory, id, response);
-                execute(runnable);
+                final Future<?> future = submit(runnable);
+                futureTaskByGroupId.put(groupId, future);
+                groupIdByFutureTask.put(future, groupId);
               } catch (final Throwable e) {
                 if (running) {
                   LoggerFactory.getLogger(getClass()).error(
@@ -702,6 +726,25 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     this.webServiceUrl = webServiceUrl;
   }
 
+  public void startApplications(final Module module) {
+    final String moduleName = module.getName();
+    Map<String, Object> message;
+    try {
+      module.loadApplications();
+      loadedModuleNames.add(moduleName);
+      message = createModuleMessage(module, "moduleStarted");
+    } catch (final Throwable e) {
+      final AppLog log = new AppLog(moduleName);
+      log.error("Unable to load module " + moduleName, e);
+      message = createModuleMessage(module, "moduleStartFailed");
+      message.put("moduleError", ExceptionUtil.toString(e));
+      businessApplicationRegistry.unloadModule(module);
+    }
+    if (message != null) {
+      sendMessageWithRetry(message);
+    }
+  }
+
   protected void startModule(final Map<String, Object> action) {
     final String moduleName = (String)action.get("moduleName");
     final Long moduleTime = CollectionUtil.getLong(action, "moduleTime");
@@ -754,19 +797,17 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
         businessApplicationRegistry.addModule(module);
         module.setStartedDate(new Date(moduleTime));
         module.enable();
+        execute(new InvokeMethodRunnable(this, "startApplications", module));
       } catch (final Throwable e) {
-        try {
-          log.error("Unable to load module " + moduleName, e);
-        } finally {
-          final Map<String, Object> message = new LinkedHashMap<String, Object>();
-          message.put("action", "moduleStartFailed");
-          message.put("moduleName", moduleName);
-          message.put("moduleTime", moduleTime);
-          message.put("moduleError", ExceptionUtil.toString(e));
-          addMessage(message);
-          if (module != null) {
-            businessApplicationRegistry.unloadModule(module);
-          }
+        log.error("Unable to load module " + moduleName, e);
+        final Map<String, Object> message = new LinkedHashMap<String, Object>();
+        message.put("action", "moduleStartFailed");
+        message.put("moduleName", moduleName);
+        message.put("moduleTime", moduleTime);
+        message.put("moduleError", ExceptionUtil.toString(e));
+        addMessage(message);
+        if (module != null) {
+          businessApplicationRegistry.unloadModule(module);
         }
       }
     } else {

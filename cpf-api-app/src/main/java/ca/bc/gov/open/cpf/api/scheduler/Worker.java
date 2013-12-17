@@ -55,6 +55,27 @@ public class Worker {
     }
   }
 
+  public boolean cancelBatchJob(final long batchJobId) {
+    synchronized (executingGroupsById) {
+      boolean found = false;
+      for (final Iterator<Entry<String, BatchJobRequestExecutionGroup>> iterator = executingGroupsById.entrySet()
+        .iterator(); iterator.hasNext();) {
+        final Entry<String, BatchJobRequestExecutionGroup> entry = iterator.next();
+        final String groupId = entry.getKey();
+        final BatchJobRequestExecutionGroup group = entry.getValue();
+        if (group.getBatchJobId() == batchJobId) {
+          found = true;
+          final Map<String, Object> message = new LinkedHashMap<>();
+          message.put("action", "cancelGroup");
+          message.put("batchJobId", batchJobId);
+          message.put("groupId", groupId);
+          addMessage(message);
+        }
+      }
+      return found;
+    }
+  }
+
   public List<BatchJobRequestExecutionGroup> cancelExecutingGroups(
     final String moduleNameAndTime) {
     synchronized (executingGroupsById) {

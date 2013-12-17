@@ -640,7 +640,9 @@ public class CpfDataAccessObject {
     final Condition[] conditions = {
       new In(BatchJob.JOB_STATUS, "resultsCreated", "downloadInitiated",
         "cancelled"),
-      LessThan.lessThan(BatchJob.WHEN_STATUS_CHANGED, keepUntilTimestamp)
+      LessThan.lessThan(
+        batchJobMetaData.getAttribute(BatchJob.WHEN_STATUS_CHANGED),
+        keepUntilTimestamp)
     };
     query.setWhereCondition(new And(conditions));
     final Reader<DataObject> batchJobs = dataStore.query(query);
@@ -1202,14 +1204,14 @@ public class CpfDataAccessObject {
   }
 
   /**
-   * Set the status to the newStatus for all BatchJob objects for the list of
-   * businessApplicationNames which have the oldStatus.
-   * 
-   * @param newStatus The status to change the jobs to.
-   * @param oldStatus The status of jobs to update.
-   * @param businessApplicationName The list of business application names.
-   * @return The number of BatchJobs updated.
-   */
+  * Set the status to the newStatus for all BatchJob objects for the list of
+  * businessApplicationNames which have the oldStatus.
+  * 
+  * @param newStatus The status to change the jobs to.
+  * @param oldStatus The status of jobs to update.
+  * @param businessApplicationName The list of business application names.
+  * @return The number of BatchJobs updated.
+  */
   public int updateBatchJobStatus(final String newStatus,
     final String oldStatus, final String businessApplicationName) {
     if (dataStore instanceof JdbcDataObjectStore) {
@@ -1226,6 +1228,31 @@ public class CpfDataAccessObject {
         throw new RuntimeException("Unable to update status: " + sql, e);
       }
     }
+    return 0;
+  }
+
+  public int updateResetBatchJobExecutingGroups(
+    final String businessApplicationName) {
+    if (dataStore instanceof JdbcDataObjectStore) {
+      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+      final DataSource dataSource = jdbcDataStore.getDataSource();
+      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
+        + "NUM_SCHEDULED_GROUPS = 0,"
+        + " NUM_COMPLETED_REQUESTS = COALESCE((SELECT SUM(NUM_COMPLETED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " NUM_FAILED_REQUESTS = COALESCE((SELECT SUM(NUM_FAILED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " NUM_COMPLETED_GROUPS = COALESCE((SELECT COUNT(BATCH_JOB_EXECUTION_GROUP_ID) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
+        + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ?";
+      try {
+        final Timestamp now = new Timestamp(System.currentTimeMillis());
+        return JdbcUtils.executeUpdate(dataSource, sql, now, now,
+          businessApplicationName);
+      } catch (final Throwable e) {
+        throw new RuntimeException(
+          "Unable to update batch job executing groups count: " + sql, e);
+      }
+    }
+
     return 0;
   }
 

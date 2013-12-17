@@ -40,8 +40,6 @@ public final class BusinessApplicationRegistry implements
 
   private List<ModuleLoader> moduleLoaders = new ArrayList<ModuleLoader>();
 
-  private boolean lazyLoad = false;
-
   private ConfigPropertyLoader configPropertyLoader;
 
   private final Set<ModuleEventListener> listeners = new LinkedHashSet<ModuleEventListener>();
@@ -324,10 +322,6 @@ public final class BusinessApplicationRegistry implements
     return getModule(moduleName) != null;
   }
 
-  public boolean isLazyLoad() {
-    return lazyLoad;
-  }
-
   public void moduleEvent(final Module module, final String action) {
     final ModuleEvent event = new ModuleEvent(module, action);
     for (final ModuleEventListener listener : listeners) {
@@ -342,9 +336,7 @@ public final class BusinessApplicationRegistry implements
 
   @Override
   public void onApplicationEvent(final ContextRefreshedEvent event) {
-    if (!lazyLoad) {
-      refreshModules();
-    }
+    refreshModules();
   }
 
   public void refreshModules() {
@@ -383,10 +375,6 @@ public final class BusinessApplicationRegistry implements
 
   public void setEnvironmentId(final String environmentId) {
     this.environmentId = environmentId;
-  }
-
-  public void setLazyLoad(final boolean lazyLoad) {
-    this.lazyLoad = lazyLoad;
   }
 
   public void setModuleLoaders(final List<ModuleLoader> moduleLoaders) {

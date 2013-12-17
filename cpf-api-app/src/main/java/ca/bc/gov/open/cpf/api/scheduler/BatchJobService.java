@@ -352,6 +352,12 @@ public class BatchJobService implements ModuleEventListener {
         dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
       }
     }
+    synchronized (workersById) {
+      for (final Worker worker : workersById.values()) {
+        worker.cancelBatchJob(batchJobId);
+      }
+      groupsToSchedule.notifyReaders();
+    }
     return cancelled;
   }
 
@@ -637,19 +643,30 @@ public class BatchJobService implements ModuleEventListener {
     final String title, final GeometryFactory geometryFactory) {
     final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
     final DataObjectWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
-      DataObjectWriterFactory.class, resultFormat);
-    final com.revolsys.io.Writer<DataObject> dataObjectWriter = writerFactory.createDataObjectWriter(
-      resultMetaData, resource);
-    dataObjectWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY, baseUrl
-      + "/kml/defaultStyle.kml#default");
-    dataObjectWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
-    dataObjectWriter.setProperty("htmlCssStyleUrl", baseUrl
-      + "/css/default.css");
+      DataObjectWriterFactory.class, resultFormat.trim());
+    if (writerFactory == null) {
+      throw new IllegalArgumentException("Unsupported result content type: "
+        + resultFormat);
+    } else {
+      final com.revolsys.io.Writer<DataObject> dataObjectWriter = writerFactory.createDataObjectWriter(
+        resultMetaData, resource);
+      dataObjectWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY, baseUrl
+        + "/kml/defaultStyle.kml#default");
+      dataObjectWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
+      dataObjectWriter.setProperty("htmlCssStyleUrl", baseUrl
+        + "/css/default.css");
 
-    dataObjectWriter.setProperty(IoConstants.GEOMETRY_FACTORY, geometryFactory);
-    dataObjectWriter.setProperties(application.getProperties());
-    dataObjectWriter.open();
-    return dataObjectWriter;
+      dataObjectWriter.setProperty(IoConstants.GEOMETRY_FACTORY,
+        geometryFactory);
+      dataObjectWriter.setProperties(application.getProperties());
+      dataObjectWriter.open();
+      return dataObjectWriter;
+    }
+  }
+
+  public void deleteBatchJob(final long batchJobId) {
+    cancelBatchJob(batchJobId);
+    dataAccessObject.deleteBatchJob(batchJobId);
   }
 
   @PreDestroy
@@ -1434,22 +1451,30 @@ public class BatchJobService implements ModuleEventListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void resetCreatingRequestsBatchJobs(final String moduleName,
     final String businessApplicationName) {
-    final int numCleanedJobs = dataAccessObject.updateBatchJobStatus(
-      BatchJob.SUBMITTED, BatchJob.CREATING_REQUESTS, businessApplicationName);
-    if (numCleanedJobs > 0) {
-      final AppLog log = getAppLog(businessApplicationName);
-      log.info("Job status reset to submitted\tcount=" + numCleanedJobs);
+    final AppLog log = getAppLog(businessApplicationName);
+    try {
+      final int numCleanedJobs = dataAccessObject.updateBatchJobStatus(
+        BatchJob.SUBMITTED, BatchJob.CREATING_REQUESTS, businessApplicationName);
+      if (numCleanedJobs > 0) {
+        log.info("Job status reset to submitted\tcount=" + numCleanedJobs);
+      }
+    } catch (final Throwable e) {
+      log.error("Unable to reset job status to submitted", e);
     }
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void resetCreatingResultsBatchJobs(final String moduleName,
     final String businessApplicationName) {
-    final int numCleanedJobs = dataAccessObject.updateBatchJobStatus(
-      BatchJob.PROCESSED, BatchJob.CREATING_RESULTS, businessApplicationName);
-    if (numCleanedJobs > 0) {
-      final AppLog log = getAppLog(businessApplicationName);
-      log.info("Job status reset to processed\tcount=" + numCleanedJobs);
+    final AppLog log = getAppLog(businessApplicationName);
+    try {
+      final int numCleanedJobs = dataAccessObject.updateBatchJobStatus(
+        BatchJob.PROCESSED, BatchJob.CREATING_RESULTS, businessApplicationName);
+      if (numCleanedJobs > 0) {
+        log.info("Job status reset to processed\tcount=" + numCleanedJobs);
+      }
+    } catch (final Throwable e) {
+      log.error("Unable to reset job status to processed", e);
     }
   }
 
@@ -1501,18 +1526,23 @@ public class BatchJobService implements ModuleEventListener {
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void resetProcessingBatchJobs(final String moduleName,
     final String businessApplicationName) {
-
-    groupsToSchedule.remove(moduleName);
-
     final AppLog log = getAppLog(businessApplicationName);
-
-    final int numCleanedRequests = dataAccessObject.updateResetGroupsForRestart(businessApplicationName);
-    if (numCleanedRequests > 0) {
-      log.info("Groups cleaned for restart\tcount=" + numCleanedRequests);
-    }
-    final int numCleanedJobs = dataAccessObject.updateBatchJobProcessedStatus(businessApplicationName);
-    if (numCleanedJobs > 0) {
-      log.info("Jobs status for restart\tcount=" + numCleanedJobs);
+    try {
+      groupsToSchedule.remove(moduleName);
+      final int numCleanedRequests = dataAccessObject.updateResetGroupsForRestart(businessApplicationName);
+      if (numCleanedRequests > 0) {
+        log.info("Groups cleaned for restart\tcount=" + numCleanedRequests);
+      }
+      final int numCleanedJobs = dataAccessObject.updateResetBatchJobExecutingGroups(businessApplicationName);
+      if (numCleanedJobs > 0) {
+        log.info("Batch Jobs cleaned for restart\tcount=" + numCleanedJobs);
+      }
+      final int numCleanedStatus = dataAccessObject.updateBatchJobProcessedStatus(businessApplicationName);
+      if (numCleanedStatus > 0) {
+        log.info("Jobs status for restart\tcount=" + numCleanedStatus);
+      }
+    } catch (final Throwable e) {
+      log.error("Unable to reset jobs and groups for restart", e);
     }
   }
 

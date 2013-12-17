@@ -169,9 +169,47 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
     }
   }
 
+  @RequestMapping(value = {
+    "/ws/jobs/{batchJobId}/delete"
+  }, method = RequestMethod.POST)
+  public void postClientDelete(@PathVariable final long batchJobId) {
+    final String consumerKey = getConsumerKey();
+    final DataObject batchJob = getCpfDataAccessObject().getBatchJob(
+      consumerKey, batchJobId);
+    if (batchJob == null) {
+      throw new PageNotFoundException("The cloud job " + batchJobId
+        + " does not exist");
+    } else {
+      final BatchJobService batchJobService = getBatchJobService();
+      batchJobService.deleteBatchJob(batchJobId);
+      redirectPage("clientList");
+    }
+  }
+
   @RequestMapping(
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel"
+      }, method = RequestMethod.POST)
+  @PreAuthorize(ADMIN_OR_MODULE_ADMIN)
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void postModuleAppCancel(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Long batchJobId) throws IOException, ServletException {
+    getModuleBusinessApplication(moduleName, businessApplicationName);
+    final BatchJobService batchJobService = getBatchJobService();
+    batchJobService.cancelBatchJob(batchJobId);
+    final String url = request.getHeader("Referer");
+    if (StringUtils.hasText(url) && url.indexOf("/apps") != -1) {
+      redirectPage("moduleAppList");
+    } else {
+      redirectPage("list");
+    }
+  }
+
+  @RequestMapping(
+      value = {
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/delete"
       }, method = RequestMethod.POST)
   @PreAuthorize(ADMIN_OR_MODULE_ADMIN)
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -181,7 +219,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
     @PathVariable final Long batchJobId) throws IOException, ServletException {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
-    batchJobService.cancelBatchJob(batchJobId);
+    batchJobService.deleteBatchJob(batchJobId);
     final String url = request.getHeader("Referer");
     if (StringUtils.hasText(url) && url.indexOf("/apps") != -1) {
       redirectPage("moduleAppList");

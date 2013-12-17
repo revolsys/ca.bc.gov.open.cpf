@@ -40,6 +40,12 @@
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel/" />
 
         <bean
+          p:name="moduleAppDelete"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Cancel Batch Job {batchJobId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/delete/" />
+
+        <bean
           p:name="clientList"
           class="com.revolsys.ui.web.config.Page"
           p:title="Jobs"
@@ -54,6 +60,11 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="Job"
           p:path="/ws/jobs/{batchJobId}/cancel/" />
+        <bean
+          p:name="clientDelete"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Job"
+          p:path="/ws/jobs/{batchJobId}/delete/" />
         <bean
           p:name="clientAppList"
           class="com.revolsys.ui.web.config.Page"
@@ -229,6 +240,27 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="moduleAppCancel"
                 p:label="Cancel"
+                p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="moduleName"
+                      value="BUSINESS_APPLICATION_NAME.module.name" />
+                    <entry
+                      key="businessApplicationName"
+                      value="BUSINESS_APPLICATION_NAME" />
+                    <entry
+                      key="batchJobId"
+                      value="BATCH_JOB_ID" />
+                  </map>
+                </property>
+              </bean>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="moduleAppDelete"
+                p:label="Delete"
+                p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled'"
               >
                 <property name="parameterNameMap">
                   <map>
@@ -259,6 +291,21 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="clientCancel"
                 p:label="Cancel"
+                p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="batchJobId"
+                      value="batchJobId" />
+                  </map>
+                </property>
+              </bean>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="clientDelete"
+                p:label="Delete"
+                p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled'"
               >
                 <property name="parameterNameMap">
                   <map>

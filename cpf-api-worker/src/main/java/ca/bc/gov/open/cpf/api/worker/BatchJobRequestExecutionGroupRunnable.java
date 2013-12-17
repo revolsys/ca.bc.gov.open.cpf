@@ -239,6 +239,10 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     return requestResult;
   }
 
+  public String getGroupId() {
+    return groupId;
+  }
+
   @SuppressWarnings("unchecked")
   protected Map<String, Object> getParameters(
     final BusinessApplication businessApplication,
@@ -310,6 +314,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           moduleTime, businessApplicationName);
         if (businessApplication == null) {
           executor.addFailedGroup(groupId);
+          return;
         } else {
           module = businessApplication.getModule();
           final String groupUrl = httpClient.getUrl("/worker/workers/"
@@ -344,7 +349,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             groupResponse.put("results", groupResults);
 
             for (final Map<String, Object> requestParameters : requests) {
-              if (ThreadUtil.isInterrupted() && !module.isStarted()) {
+              if (ThreadUtil.isInterrupted() || !module.isStarted()) {
                 executor.addFailedGroup(groupId);
                 return;
               }
@@ -355,6 +360,10 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           } else {
             groupResponse.putAll(globalError);
           }
+        }
+        if (ThreadUtil.isInterrupted() || !module.isStarted()) {
+          executor.addFailedGroup(groupId);
+          return;
         }
         try {
           if (groupStopWatch.isRunning()) {

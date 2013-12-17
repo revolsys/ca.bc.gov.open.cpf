@@ -25,6 +25,8 @@ public class CpfWorkerMessageProcess extends BaseInProcess<Map<String, Object>> 
       scheduler.startModule(message);
     } else if ("moduleStop".equals(action)) {
       scheduler.stopModule(message);
+    } else if ("cancelGroup".equals(action)) {
+      scheduler.cancelGroup(message);
     }
   }
 }

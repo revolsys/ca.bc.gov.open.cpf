@@ -921,6 +921,7 @@ public class ClassLoaderModule implements Module {
         appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(
           1024 * 1024 * 10));
         appender.activateOptions();
+        appender.rollover();
         logger.addAppender(appender);
       }
     }

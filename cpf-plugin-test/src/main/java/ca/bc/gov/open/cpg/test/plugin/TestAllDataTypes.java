@@ -104,7 +104,7 @@ public class TestAllDataTypes {
     return this.int8;
   }
 
-  @ResultAttribute(index = 13)
+  @ResultAttribute(index = 13, description = "Test the ability to return null.")
   public String getNull() {
     return null;
   }
@@ -124,79 +124,97 @@ public class TestAllDataTypes {
     return url;
   }
 
-  @RequestParameter(index = 1)
+  @RequestParameter(index = 1,
+      description = "A Java boolean (false/true) value.")
   @DefaultValue("true")
   public void setBool(final Boolean bool) {
     this.bool = bool;
   }
 
-  @RequestParameter(index = 9)
+  @RequestParameter(index = 9,
+      description = "A java.sql.Date in the format yyyy-MM-dd.")
   @DefaultValue("2000-01-23")
   public void setDate(final java.sql.Date date) {
     this.date = date;
   }
 
-  @RequestParameter(index = 10)
+  @RequestParameter(index = 10,
+      description = "A java.util.Date in the format yyyy-MM-dd HH:mm:ss.SSS.")
   @DefaultValue("2000-01-23 01:23:45.123")
   public void setDateTime(final Date dateTime) {
     this.dateTime = dateTime;
   }
 
-  @RequestParameter(index = 6)
+  @RequestParameter(index = 6,
+      description = "A Java float, 32-bit IEEE 754 floating point number.")
   @DefaultValue("1234.567")
   public void setFloat32(final Float float32) {
     this.float32 = float32;
   }
 
-  @RequestParameter(index = 7)
+  @RequestParameter(index = 7,
+      description = "A Java double, 64-bit IEEE 754 floating point number.")
   @DefaultValue("7654.321")
   public void setFloat64(final Double float64) {
     this.float64 = float64;
   }
 
-  @RequestParameter(index = 14)
+  @RequestParameter(
+      index = 14,
+      description = "A geometry. For spatial formats the geometry is encoded according to that format. For text formats a Extended Well-Known-Text geometry can be used.")
   @DefaultValue("SRID=4326;POINT(-126 52)")
   public void setGeometry(final Geometry geometry) {
     this.geometry = geometry;
   }
 
-  @RequestParameter(index = 3)
+  @RequestParameter(
+      index = 3,
+      description = "A Java short, 16-bit signed two's complement integer (-32,768 >=< 32,767).")
   @DefaultValue("32767")
   public void setInt16(final Short int16) {
     this.int16 = int16;
   }
 
-  @RequestParameter(index = 4)
+  @RequestParameter(
+      index = 4,
+      description = "A Java int, 32-bit signed two's complement integer (-2^31 >=< -2^31 - 1).")
   @DefaultValue("2147483647")
   public void setInt32(final Integer int32) {
     this.int32 = int32;
   }
 
-  @RequestParameter(index = 5)
+  @RequestParameter(
+      index = 5,
+      description = "A Java long, 64-bit signed two's complement integer (-2^63 >=< -2^63 - 1).")
   @DefaultValue("9223372036854775807")
   public void setInt64(final Long int64) {
     this.int64 = int64;
   }
 
-  @RequestParameter(index = 2)
+  @RequestParameter(
+      index = 2,
+      description = "A Java byte, 8-bit signed two's complement integer (-128 >=< 127).")
   @DefaultValue("127")
   public void setInt8(final Byte int8) {
     this.int8 = int8;
   }
 
-  @RequestParameter(index = 8)
+  @RequestParameter(index = 8,
+      description = "A java.util.String, sequence of UTF-8 characters.")
   @DefaultValue("test string")
   public void setString(final String string) {
     this.string = string;
   }
 
-  @RequestParameter(index = 11)
+  @RequestParameter(
+      index = 11,
+      description = "A java.sql.Timestamp in the format yyyy-MM-dd HH:mm:ss.SSSSSSSSS.")
   @DefaultValue("2000-01-23 01:23:45.123456789")
   public void setTimestamp(final Timestamp timestamp) {
     this.timestamp = timestamp;
   }
 
-  @RequestParameter(index = 12)
+  @RequestParameter(index = 12, description = "A java.net.URL.")
   @DefaultValue("http://www.google.com/")
   public void setUrl(final URL url) {
     this.url = url;
