@@ -2027,7 +2027,13 @@ public class BatchJobService implements ModuleEventListener {
         final GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
         Geometry geometry;
         if (parameterValue instanceof Geometry) {
+
           geometry = (Geometry)parameterValue;
+          if (geometry.getSRID() == 0 && StringUtils.hasText(sridString)) {
+            final int srid = Integer.parseInt(sridString);
+            final GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
+            geometry = sourceGeometryFactory.createGeometry(geometry);
+          }
         } else {
           String wkt = parameterValue.toString();
           if (StringUtils.hasText(wkt)) {

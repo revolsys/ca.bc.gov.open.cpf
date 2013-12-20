@@ -700,9 +700,9 @@ public class CpfDataAccessObject {
 
   public List<DataObject> getUserAccountsLikeName(final String name) {
     if (StringUtils.hasText(name)) {
-      final Condition consumerKeyLike = Conditions.likeUpper(
+      final Condition consumerKeyLike = Conditions.iLike(
         UserAccount.CONSUMER_KEY, name);
-      final Condition userNameLike = Conditions.likeUpper(
+      final Condition userNameLike = Conditions.iLike(
         UserAccount.USER_NAME, name);
       final Condition[] conditions = {
         consumerKeyLike, userNameLike
