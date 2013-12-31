@@ -11,13 +11,16 @@ public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
   }
 
   @Override
-  public void processJob(final long batchJobId) {
+  public boolean processJob(final long batchJobId) {
     final BatchJobService batchJobService = getBatchJobService();
     final long time = System.currentTimeMillis();
     if (getDataAccessObject().setBatchJobStatus(batchJobId, BatchJob.PROCESSED,
       BatchJob.CREATING_RESULTS)) {
       final long lastChangedTime = System.currentTimeMillis();
-      batchJobService.postProcessBatchJob(batchJobId, time, lastChangedTime);
+      return batchJobService.postProcessBatchJob(batchJobId, time,
+        lastChangedTime);
+    } else {
+      return true;
     }
   }
 

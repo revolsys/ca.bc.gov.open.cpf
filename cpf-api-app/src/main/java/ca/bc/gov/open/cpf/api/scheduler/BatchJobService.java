@@ -51,6 +51,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
@@ -100,6 +101,7 @@ import com.revolsys.io.html.XhtmlMapWriter;
 import com.revolsys.io.json.JsonDataObjectIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.io.kml.Kml22Constants;
+import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.NamedChannelBundle;
@@ -107,12 +109,15 @@ import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.operation.valid.IsValidOp;
 
 public class BatchJobService implements ModuleEventListener {
+  private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
   protected static Map<String, String> getBusinessApplicationParameters(
     final DataObject batchJob) {
     final String jobParameters = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
@@ -171,6 +176,23 @@ public class BatchJobService implements ModuleEventListener {
         jobMap.put(param.getKey(), param.getValue());
       }
       jobMap.put("jobStatus", batchJob.getValue(BatchJob.JOB_STATUS));
+      jobMap.put("jobStatusDate", DateUtil.format(DATE_TIME_FORMAT));
+      jobMap.put(
+        "startTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          (Date)batchJob.getValue(BatchJob.WHEN_CREATED)));
+      jobMap.put(
+        "modificationTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          (Date)batchJob.getValue(BatchJob.WHEN_UPDATED)));
+      jobMap.put(
+        "lastScheduledTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          (Date)batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP)));
+      jobMap.put(
+        "completionTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          (Date)batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP)));
 
       jobMap.put("secondsToWaitForStatusCheck", timeUntilNextCheck);
 
@@ -241,6 +263,10 @@ public class BatchJobService implements ModuleEventListener {
   private final Map<Long, Set<BatchJobRequestExecutionGroup>> groupsByJobId = new HashMap<Long, Set<BatchJobRequestExecutionGroup>>();
 
   private final Set<Long> preprocesedJobIds = new HashSet<Long>();
+
+  private long tablespaceErrorTime;
+
+  private long timeoutForTablespaceErrors = 5 * 60 * 1000;
 
   /**
    * Generate an error result for the job, update the job counts and status, and
@@ -962,6 +988,10 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public long getTimeoutForTablespaceErrors() {
+    return timeoutForTablespaceErrors;
+  }
+
   public Map<String, String> getUserClassBaseUrls() {
     return userClassBaseUrls;
   }
@@ -984,6 +1014,15 @@ public class BatchJobService implements ModuleEventListener {
       authorizationService);
     businessApplicationRegistry.addModuleEventListener(securityServiceFactory);
     dataStore = dataAccessObject.getDataStore();
+  }
+
+  public boolean isHasTablespaceError() {
+    if (System.currentTimeMillis() < tablespaceErrorTime
+      + timeoutForTablespaceErrors) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public boolean isRunning() {
@@ -1049,7 +1088,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void postProcessBatchJob(final long batchJobId, final long time,
+  public boolean postProcessBatchJob(final long batchJobId, final long time,
     final long lastChangedTime) {
     final com.revolsys.io.Writer<DataObject> writer = dataStore.getWriter();
     try {
@@ -1109,9 +1148,24 @@ public class BatchJobService implements ModuleEventListener {
 
       InvokeMethodAfterCommit.invoke(this, "addStatistics",
         businessApplication, postProcessStatistics);
+    } catch (final Throwable e) {
+      if (dataAccessObject.isTablespaceException(e)) {
+        LoggerFactory.getLogger(getClass()).error(
+          "Tablespace error pre-processing job " + batchJobId, e);
+        setHasTablespaceError();
+        return false;
+      } else {
+        LoggerFactory.getLogger(getClass()).error(
+          "Error post-processing job " + batchJobId, e);
+        final StringWriter errorDebugMessage = new StringWriter();
+        e.printStackTrace(new PrintWriter(errorDebugMessage));
+        addJobValidationError(batchJobId, ErrorCode.ERROR_PROCESSING_REQUEST,
+          errorDebugMessage.toString(), e.getMessage());
+      }
     } finally {
       writer.close();
     }
+    return true;
   }
 
   public void preProcess(final long batchJobId) {
@@ -1121,7 +1175,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void preProcessBatchJob(final Long batchJobId, final long time,
+  public boolean preProcessBatchJob(final Long batchJobId, final long time,
     final long lastChangedTime) {
     synchronized (preprocesedJobIds) {
       preprocesedJobIds.add(batchJobId);
@@ -1212,7 +1266,7 @@ public class BatchJobService implements ModuleEventListener {
                           }
                         } else {
                           transactionManager.rollback(status);
-                          return;
+                          return true;
                         }
                       }
                       numSubmittedRequests++;
@@ -1233,7 +1287,7 @@ public class BatchJobService implements ModuleEventListener {
                       requestMetaData, group)) {
                     } else {
                       transactionManager.rollback(status);
-                      return;
+                      return true;
                     }
                   } catch (final Throwable e) {
                     transactionManager.rollback(status);
@@ -1256,13 +1310,20 @@ public class BatchJobService implements ModuleEventListener {
                 }
               }
             } catch (final Throwable e) {
-              LoggerFactory.getLogger(getClass()).error(
-                "Error pre-processing job " + batchJobId, e);
-              final StringWriter errorDebugMessage = new StringWriter();
-              e.printStackTrace(new PrintWriter(errorDebugMessage));
-              valid = addJobValidationError(batchJobId,
-                ErrorCode.ERROR_PROCESSING_REQUEST,
-                errorDebugMessage.toString(), e.getMessage());
+              if (dataAccessObject.isTablespaceException(e)) {
+                LoggerFactory.getLogger(getClass()).error(
+                  "Tablespace error pre-processing job " + batchJobId, e);
+                setHasTablespaceError();
+                return false;
+              } else {
+                LoggerFactory.getLogger(getClass()).error(
+                  "Error pre-processing job " + batchJobId, e);
+                final StringWriter errorDebugMessage = new StringWriter();
+                e.printStackTrace(new PrintWriter(errorDebugMessage));
+                valid = addJobValidationError(batchJobId,
+                  ErrorCode.ERROR_PROCESSING_REQUEST,
+                  errorDebugMessage.toString(), e.getMessage());
+              }
             }
           }
         } finally {
@@ -1319,6 +1380,7 @@ public class BatchJobService implements ModuleEventListener {
         preprocesedJobIds.remove(batchJobId);
       }
     }
+    return true;
   }
 
   private Map<String, Object> processParameters(final DataObject batchJob,
@@ -1918,40 +1980,55 @@ public class BatchJobService implements ModuleEventListener {
       if (worker != null) {
         final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
         if (group != null && !group.isCancelled()) {
-          synchronized (group) {
-            final long batchJobId = group.getBatchJobId();
-            final BusinessApplication businessApplication = group.getBusinessApplication();
-            final String businessApplicationName = group.getBusinessApplicationName();
-            final String moduleName = group.getModuleName();
+          try {
+            synchronized (group) {
+              final long batchJobId = group.getBatchJobId();
+              final BusinessApplication businessApplication = group.getBusinessApplication();
+              final String businessApplicationName = group.getBusinessApplicationName();
+              final String moduleName = group.getModuleName();
 
-            final List<Map<String, Object>> groupResults = (List<Map<String, Object>>)results.get("results");
-            final long groupExecutedTime = CollectionUtil.getLong(results,
-              "groupExecutedTime");
-            final long applicationExecutedTime = CollectionUtil.getLong(
-              results, "applicationExecutedTime");
-            final int successCount = CollectionUtil.getInteger(results,
-              "successCount");
-            final int errorCount = CollectionUtil.getInteger(results,
-              "errorCount");
+              final List<Map<String, Object>> groupResults = (List<Map<String, Object>>)results.get("results");
+              final long groupExecutedTime = CollectionUtil.getLong(results,
+                "groupExecutedTime");
+              final long applicationExecutedTime = CollectionUtil.getLong(
+                results, "applicationExecutedTime");
+              final int successCount = CollectionUtil.getInteger(results,
+                "successCount");
+              final int errorCount = CollectionUtil.getInteger(results,
+                "errorCount");
 
-            final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
-            if (batchJob != null) {
-              if (groupResults != null && !groupResults.isEmpty()) {
-                final Long batchJobExecutionGroupId = group.getBatchJobExecutionGroupId();
-                dataAccessObject.updateBatchJobExecutionGroupFromResponse(
-                  workerId, group, batchJobExecutionGroupId, groupResults,
-                  successCount, errorCount);
+              final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+              if (batchJob != null) {
+                if (groupResults != null && !groupResults.isEmpty()) {
+                  final Long batchJobExecutionGroupId = group.getBatchJobExecutionGroupId();
+                  dataAccessObject.updateBatchJobExecutionGroupFromResponse(
+                    workerId, group, batchJobExecutionGroupId, groupResults,
+                    successCount, errorCount);
+                }
               }
+              final long executionTime = updateGroupStatistics(group,
+                businessApplication, moduleName, applicationExecutedTime,
+                groupExecutedTime, successCount, errorCount);
+              scheduler.groupFinished(businessApplicationName, batchJobId,
+                group);
+              removeGroup(group);
+              final AppLog appLog = businessApplication.getLog();
+              AppLogUtil.infoAfterCommit(appLog,
+                "End\tGroup execution\tgroupId=" + groupId + "\tworkerId="
+                  + workerId + "\ttime=" + (executionTime / 1000.0));
             }
-            final long executionTime = updateGroupStatistics(group,
-              businessApplication, moduleName, applicationExecutedTime,
-              groupExecutedTime, successCount, errorCount);
-            scheduler.groupFinished(businessApplicationName, batchJobId, group);
-            removeGroup(group);
-            final AppLog appLog = businessApplication.getLog();
-            AppLogUtil.infoAfterCommit(appLog, "End\tGroup execution\tgroupId="
-              + groupId + "\tworkerId=" + workerId + "\ttime="
-              + (executionTime / 1000.0));
+          } catch (final Throwable e) {
+            if (dataAccessObject.isTablespaceException(e)) {
+              LoggerFactory.getLogger(getClass()).error(
+                "Tablespace error saving group results: " + groupId);
+              setHasTablespaceError();
+            } else {
+              LoggerFactory.getLogger(getClass()).error(
+                "Error saving group results: " + groupId, e);
+            }
+            TransactionAspectSupport.currentTransactionStatus()
+              .setRollbackOnly();
+            cancelGroup(worker, groupId);
           }
         }
       }
@@ -1977,6 +2054,10 @@ public class BatchJobService implements ModuleEventListener {
    */
   public void setFromEmail(final String fromEmail) {
     this.fromEmail = fromEmail;
+  }
+
+  private void setHasTablespaceError() {
+    tablespaceErrorTime = System.currentTimeMillis();
   }
 
   /**
@@ -2084,6 +2165,11 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public void setTimeoutForTablespaceErrors(
+    final long timeoutForTablespaceErrors) {
+    this.timeoutForTablespaceErrors = timeoutForTablespaceErrors * 60 * 1000;
+  }
+
   public void setUserClassBaseUrls(final Map<String, String> userClassBaseUrls) {
     this.userClassBaseUrls = userClassBaseUrls;
   }
@@ -2174,6 +2260,17 @@ public class BatchJobService implements ModuleEventListener {
           cancelGroup(worker, groupId);
         }
       }
+    }
+  }
+
+  public void waitIfTablespaceError(final Class<?> logClass) {
+    final long currentTime = System.currentTimeMillis();
+    final long waitTime = (tablespaceErrorTime + timeoutForTablespaceErrors)
+      - currentTime;
+    if (waitTime > 0) {
+      LoggerFactory.getLogger(logClass).error(
+        "Waiting " + waitTime / 1000 + " seconds for tablespace error");
+      ThreadUtil.pause(waitTime);
     }
   }
 }

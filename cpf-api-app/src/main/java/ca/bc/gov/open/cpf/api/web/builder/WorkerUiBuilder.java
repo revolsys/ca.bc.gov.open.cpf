@@ -27,6 +27,7 @@ import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;
+import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
 public class WorkerUiBuilder extends CpfUiBuilder implements
@@ -51,6 +52,7 @@ public class WorkerUiBuilder extends CpfUiBuilder implements
   @PreAuthorize(ADMIN)
   public Object pageList() throws IOException,
     NoSuchRequestHandlingMethodException {
+    HttpServletUtils.setAttribute("title", "Workers");
     return createDataTableHandler(getRequest(), "list", workersCallable);
   }
 

@@ -1,5 +1,7 @@
 package ca.bc.gov.open.cpf.api.domain;
 
+import java.sql.BatchUpdateException;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -702,8 +704,8 @@ public class CpfDataAccessObject {
     if (StringUtils.hasText(name)) {
       final Condition consumerKeyLike = Conditions.iLike(
         UserAccount.CONSUMER_KEY, name);
-      final Condition userNameLike = Conditions.iLike(
-        UserAccount.USER_NAME, name);
+      final Condition userNameLike = Conditions.iLike(UserAccount.USER_NAME,
+        name);
       final Condition[] conditions = {
         consumerKeyLike, userNameLike
       };
@@ -863,6 +865,33 @@ public class CpfDataAccessObject {
     return false;
   }
 
+  public boolean isTablespaceException(final Throwable e) {
+    if (e instanceof BatchUpdateException) {
+      final BatchUpdateException batchException = (BatchUpdateException)e;
+      for (SQLException sqlException = batchException.getNextException(); sqlException != null; sqlException = batchException.getNextException()) {
+        if (isTablespaceException(sqlException)) {
+          return true;
+        }
+      }
+    } else if (e instanceof SQLException) {
+      final SQLException sqlException = (SQLException)e;
+      final int errorCode = sqlException.getErrorCode();
+      if (errorCode == 1653) {
+        return true;
+      } else if (errorCode == 1688) {
+        return true;
+      } else if (errorCode == 1691) {
+        return true;
+      }
+    } else {
+      final Throwable cause = e.getCause();
+      if (cause != null) {
+        return isTablespaceException(cause);
+      }
+    }
+    return false;
+  }
+
   protected boolean postProcessWriteError(final MapWriter errorMapWriter,
     final Map<String, Object> resultMap) {
     boolean written;
@@ -951,7 +980,7 @@ public class CpfDataAccessObject {
     final DataSource dataSource = jdbcDataStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "NUM_COMPLETED_GROUPS = NUM_SUBMITTED_GROUPS, NUM_SCHEDULED_GROUPS = 0, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, LAST_SCHEDULED_TIMESTAMP = NULL, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "NUM_COMPLETED_GROUPS = NUM_SUBMITTED_GROUPS, NUM_SCHEDULED_GROUPS = 0, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
       + "WHERE JOB_STATUS IN ('creatingRequests','creatingResults') AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());

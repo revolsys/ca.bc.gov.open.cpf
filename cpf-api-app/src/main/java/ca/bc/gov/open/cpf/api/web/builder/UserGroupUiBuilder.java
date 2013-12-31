@@ -343,6 +343,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageUserGroupList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
+    HttpServletUtils.setAttribute("title", "User Groups");
     return createDataTableHandler(request, "groupList");
   }
 

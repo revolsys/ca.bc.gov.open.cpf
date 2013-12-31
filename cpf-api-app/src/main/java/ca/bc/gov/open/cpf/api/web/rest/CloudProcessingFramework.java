@@ -2390,6 +2390,7 @@ public class CloudProcessingFramework {
 
       return batchJobUiBuilder.createDataTableMap("clientList", parameters);
     } else if (MediaTypeUtil.isHtmlPage()) {
+      HttpServletUtils.setAttribute("title", "Batch Jobs");
       final String url = HttpServletUtils.getFullUrl("/ws/#batchJob_clientList");
       final HttpServletResponse response = HttpServletUtils.getResponse();
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
@@ -2499,6 +2500,7 @@ public class CloudProcessingFramework {
         + " does not exist.");
     } else {
       if (MediaTypeUtil.isHtmlPage()) {
+        HttpServletUtils.setAttribute("title", "Batch Job " + batchJobId);
         final TabElementContainer tabs = new TabElementContainer();
         batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);

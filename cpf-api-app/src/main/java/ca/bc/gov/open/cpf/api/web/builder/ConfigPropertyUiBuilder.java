@@ -31,6 +31,7 @@ import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
 public class ConfigPropertyUiBuilder extends CpfUiBuilder {
@@ -109,6 +110,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageCpfList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
+    HttpServletUtils.setAttribute("title", "Config Properties");
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
 
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();

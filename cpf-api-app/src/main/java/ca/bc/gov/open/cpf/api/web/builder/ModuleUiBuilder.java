@@ -238,6 +238,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object createModulePageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
+    HttpServletUtils.setAttribute("title", "Modules");
     return createDataTableHandler(request, "list", modulesCallable);
   }
 

@@ -7,7 +7,4 @@ SPOOL cpf-ddl.log
 @cpf-ddl.grt
 @cpf-ddl-data.sql
 
-GRANT CPF_USER TO PROXY_CPF_WEB 
-/
-
 exit

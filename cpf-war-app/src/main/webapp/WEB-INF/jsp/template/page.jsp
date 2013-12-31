@@ -1,6 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" session="false"%><%@
   taglib
-  uri="http://java.sun.com/jsp/jstl/core" prefix="c"%><?xml version="1.0" encoding="UTF-8"?>
+  uri="http://java.sun.com/jsp/jstl/core" prefix="c"%><%@
+  taglib
+  uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%><?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xml:lang="en">
 <head>
@@ -73,6 +75,8 @@
             (v
             <c:out value="${applicationVersion}" />
             )
+            <c:set var="now" value="<%=new java.util.Date()%>" />
+            [<fmt:formatDate value="${now}" pattern="yyyy-MM-dd HH:mm:ss" />]
           </div>
           <c:import url="/view/menu/footerMenu" charEncoding="UTF-8" />
         </div>

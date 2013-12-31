@@ -142,15 +142,6 @@ Comment created.
 
 Comment created.
 
-
-Comment created.
-
-
-Comment created.
-
-
-Comment created.
-
 Creating Table 'CPF_APPLICATION_STATISTICS'
 
 Table created.
@@ -176,12 +167,6 @@ Comment created.
 Creating Table 'CPF_BATCH_JOBS'
 
 Table created.
-
-
-Comment created.
-
-
-Comment created.
 
 
 Comment created.
@@ -381,10 +366,6 @@ Creating Index 'CPF_BJRS_CPF_BJ_FK_I'
 
 Index created.
 
-Creating Index 'CPF_BJRS_CPF_BJEG_FK_I'
-
-Index created.
-
 Creating Index 'CPF_BJEG_CPF_BJ_FK_I'
 
 Index created.
@@ -457,14 +438,6 @@ Creating Foreign Key on 'CPF_BATCH_JOB_RESULTS'
 
 Table altered.
 
-Creating Foreign Key on 'CPF_BATCH_JOB_RESULTS'
-
-Table altered.
-
-Creating Foreign Key on 'CPF_BATCH_JOB_EXECUTION_GROUPS'
-
-Table altered.
-
 Creating Foreign Key on 'CPF_BATCH_JOB_EXECUTION_GROUPS'
 
 Table altered.
@@ -489,11 +462,11 @@ Creating Sequence 'CPF_AS_SEQ'
 
 Sequence created.
 
-Creating Sequence 'CPF_UGP_SEQ'
+Creating Sequence 'CPF_UG_SEQ'
 
 Sequence created.
 
-Creating Sequence 'CPF_UG_SEQ'
+Creating Sequence 'CPF_UGP_SEQ'
 
 Sequence created.
 
@@ -596,7 +569,4 @@ Grant succeeded.
 
 
 1 row created.
-
-
-Grant succeeded.
 

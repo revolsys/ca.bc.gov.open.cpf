@@ -27,9 +27,6 @@ public abstract class AbstractBatchJobChannelProcess extends
     setOutBufferSize(100);
   }
 
-  protected CpfDataAccessObject getDataAccessObject() {
-    return batchJobService.getDataAccessObject();
-  }
   /**
    * Get the batch job service used to interact with the database.
    * 
@@ -39,19 +36,27 @@ public abstract class AbstractBatchJobChannelProcess extends
     return batchJobService;
   }
 
+  protected CpfDataAccessObject getDataAccessObject() {
+    return batchJobService.getDataAccessObject();
+  }
+
   protected void postRun(final Channel<Long> in, final Channel<Runnable> out) {
   }
 
   protected void preRun(final Channel<Long> in, final Channel<Runnable> out) {
   }
 
-  public abstract void processJob(final long batchJobId);
+  public abstract boolean processJob(final long batchJobId);
 
   public void processJobWrapper(final long batchJobId) {
     try {
-      processJob(batchJobId);
+      if (processJob(batchJobId)) {
+        scheduledIds.remove(batchJobId);
+      } else {
+        schedule(batchJobId);
+      }
     } finally {
-      scheduledIds.remove(batchJobId);
+      schedule(batchJobId);
     }
   }
 
@@ -61,6 +66,7 @@ public abstract class AbstractBatchJobChannelProcess extends
     try {
       batchJobService.scheduleFromDatabase(jobStatusToProcess);
       while (true) {
+        batchJobService.waitIfTablespaceError(getClass());
         final Long batchJobId = in.read(timeout);
         if (batchJobId == null) {
           if (scheduledIds.isEmpty()) {

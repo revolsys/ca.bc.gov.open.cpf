@@ -1206,14 +1206,17 @@ public class ClassLoaderModule implements Module {
           String description;
           int length;
           int scale;
+          String units;
           if (requestParameter) {
             description = requestParameterMetadata.description();
             length = requestParameterMetadata.length();
             scale = requestParameterMetadata.scale();
+            units = requestParameterMetadata.units();
           } else {
             description = jobParameterMetadata.description();
             length = jobParameterMetadata.length();
             scale = jobParameterMetadata.scale();
+            units = jobParameterMetadata.units();
           }
           final String parameterName = methodName.substring(3, 4).toLowerCase()
             + methodName.substring(4);
@@ -1258,6 +1261,7 @@ public class ClassLoaderModule implements Module {
             final Attribute attribute = new Attribute(parameterName, dataType,
               length, scale, required, description);
             attribute.setAllowedValues(Arrays.asList(allowedValues));
+            attribute.setProperty("units", units);
 
             final DefaultValue defaultValueMetadata = method.getAnnotation(DefaultValue.class);
             if (defaultValueMetadata != null) {

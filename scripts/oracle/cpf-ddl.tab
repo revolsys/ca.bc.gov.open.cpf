@@ -166,15 +166,6 @@ COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.COMPLETED_IND IS 'This is the t
 COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.STARTED_IND IS 'This is the true (1), false (0) indicator that the BATCH JOB REQUEST was started to be processed.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.ERROR_CODE IS 'This is an error code describing the reason the BATCH JOB REQUEST failed to be processed. This code is designed to be processed by the client software. For example BAD_RESPONSE_DATA, MISSING_REQUIRED_PARAMETER, INVALID_PARAMETER_VALUE, INPUT_DATA_UNREADABLE, BAD_NUMBER_REQUESTS, TOO_MANY_REQUESTS, BAD_INPUT_DATA_TYPE, BAD_INPUT_DATA_VALUE, BAD_INPUT_DATA_VALUES, BAD_RESULT_DATA_TYPE, or ERROR_PROCESSING_REQUEST.'
-/
-
-COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.ERROR_DEBUG_MESSAGE IS 'This is an debug error message describing the reason the BATCH JOB REQUEST failed to be processed. It is designed for the application administrators to debug the cause of an error. It will not be exposed to clients.'
-/
-
-COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.ERROR_MESSAGE IS 'This is an error message describing the reason the BATCH JOB REQUEST failed to be processed. It is designed to be read by the client users. The message may include a description of the data which caused the failure.'
-/
-
 COMMENT ON COLUMN CPF_BATCH_JOB_EXECUTION_GROUPS.INPUT_DATA IS 'This is the binary opaque input data for a business application containing the input data for the BATCH JOB REQUEST. For business applications which accept opaque input data either this or the INPUT DATA URL must be specified.'
 /
 
@@ -284,8 +275,6 @@ COMMENT ON COLUMN CPF_BATCH_JOBS.JOB_STATUS IS 'This is the current status of th
 COMMENT ON COLUMN CPF_BATCH_JOBS.NUM_COMPLETED_REQUESTS IS 'This is the number of BATCH JOB REQUESTS which have been completed successfully for the BATCH JOB.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOBS.NUM_EXECUTING_REQUESTS IS 'This is the number of BATCH JOB REQUESTS currently being executed for the BATCH JOB.'
-/
 
 COMMENT ON COLUMN CPF_BATCH_JOBS.NUM_FAILED_REQUESTS IS 'This is the number of BATCH JOB REQUESTS which failed to be completed for the BATCH JOB.'
 /

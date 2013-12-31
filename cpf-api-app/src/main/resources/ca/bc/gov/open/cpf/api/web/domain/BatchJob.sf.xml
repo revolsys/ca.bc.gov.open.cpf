@@ -48,12 +48,12 @@
         <bean
           p:name="clientList"
           class="com.revolsys.ui.web.config.Page"
-          p:title="Jobs"
+          p:title="Batch Jobs"
           p:path="/ws/jobs/" />
         <bean
           p:name="clientView"
           class="com.revolsys.ui.web.config.Page"
-          p:title="Job"
+          p:title="Batch Job {batchJobId}"
           p:path="/ws/jobs/{batchJobId}/" />
         <bean
           p:name="clientCancel"
@@ -68,7 +68,7 @@
         <bean
           p:name="clientAppList"
           class="com.revolsys.ui.web.config.Page"
-          p:title="Jobs"
+          p:title="Batch Jobs"
           p:path="/ws/apps/{businessApplicationName}/jobs/" />
       </list>
     </property>
@@ -228,6 +228,7 @@
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Failed Requests" />
 
+
         <bean
           p:name="adminActions"
           p:label="Actions"
@@ -322,6 +323,13 @@
       </list>
     </property>
 
+    <property name="labels">
+      <map>
+        <entry
+          key="jobStatusDate"
+          value="Job Status as of" />
+      </map>
+    </property>
     <property name="views">
       <map>
         <entry key="list">
@@ -346,8 +354,9 @@
                 </map>
               </property>
             </bean>
-            <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>WHEN_CREATED</value>
+            <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
@@ -362,6 +371,7 @@
             <value>BATCH_JOB_ID_CLIENT_LINK</value>
             <value>CLIENT_BUSINESS_APPLICATION_NAME_LINK</value>
             <value>WHEN_CREATED</value>
+            <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
@@ -373,6 +383,7 @@
           <list>
             <value>BATCH_JOB_ID_CLIENT_LINK</value>
             <value>WHEN_CREATED</value>
+            <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
@@ -383,16 +394,27 @@
         <entry key="clientView">
           <list>
             <value>BATCH_JOB_ID_CLIENT_LINK</value>
-            <value>JOB_STATUS</value>
-            <value>USER_ID</value>
             <value>CLIENT_BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>USER_ID</value>
+            <value>JOB_STATUS</value>
+            <value>jobStatusDate</value>
             <value>businessApplicationParameterMap</value>
+            <value>INPUT_DATA_CONTENT_TYPE</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
             <value>WHEN_CREATED</value>
+            <value>WHEN_UPDATED</value>
+            <value>LAST_SCHEDULED_TIMESTAMP</value>
             <value>COMPLETED_TIMESTAMP</value>
+            <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
+            <value>GROUP_SIZE</value>
+            <value>NUM_SUBMITTED_GROUPS</value>
+            <value>NUM_COMPLETED_GROUPS</value>
+            <value>NUM_SCHEDULED_GROUPS</value>
+            <value>WHO_CREATED</value>
+            <value>WHO_UPDATED</value>
             <value>clientActions</value>
           </list>
         </entry>
@@ -419,8 +441,9 @@
                 </map>
               </property>
             </bean>
-            <value>WHEN_CREATED</value>
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
+            <value>WHEN_CREATED</value>
+            <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
@@ -435,11 +458,14 @@
             <value>BUSINESS_APPLICATION_NAME_LINK</value>
             <value>USER_ID</value>
             <value>JOB_STATUS</value>
+            <value>jobStatusDate</value>
             <value>businessApplicationParameterMap</value>
             <value>INPUT_DATA_CONTENT_TYPE</value>
             <value>STRUCTURED_INPUT_DATA_URL</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
             <value>WHEN_CREATED</value>
+            <value>WHEN_UPDATED</value>
+            <value>LAST_SCHEDULED_TIMESTAMP</value>
             <value>COMPLETED_TIMESTAMP</value>
             <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
@@ -449,11 +475,9 @@
             <value>NUM_SUBMITTED_GROUPS</value>
             <value>NUM_COMPLETED_GROUPS</value>
             <value>NUM_SCHEDULED_GROUPS</value>
-            <value>LAST_SCHEDULED_TIMESTAMP</value>
             <value>propertyMap</value>
             <value>WHO_CREATED</value>
             <value>WHO_UPDATED</value>
-            <value>WHEN_UPDATED</value>
             <value>adminActions</value>
           </list>
         </entry>
