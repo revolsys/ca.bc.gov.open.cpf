@@ -54,5 +54,5 @@
     p:mailSender-ref="mailSender"
     p:fromEmail="noreply@localhost"
     p:baseUrl="http://localhost/cpf"
-    p:timeoutForTablespaceErrors="5" />
+    p:timeoutForCapacityErrors="5" />
 </beans>

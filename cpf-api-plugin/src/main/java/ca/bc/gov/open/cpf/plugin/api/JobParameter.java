@@ -55,6 +55,18 @@ public @interface JobParameter {
    */
   int length() default -1;
 
+  /** 
+   * The maximum allowed value for numeric parameters. The string value will be converted to the
+   * correct data type.
+   */
+  String maxValue() default "";
+
+  /**
+   * The minimum allowed value for numeric parameters. The string value will be converted to the
+   * correct data type. 
+   */
+  String minValue() default "";
+
   /**
    * The number of decimal places for fixed precision numeric types.
    */

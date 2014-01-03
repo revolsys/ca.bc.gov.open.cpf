@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.sql.BatchUpdateException;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -162,6 +163,43 @@ public class BatchJobService implements ModuleEventListener {
     return statistics;
   }
 
+  public static boolean isDatabaseResourcesException(final Throwable e) {
+    if (e instanceof BatchUpdateException) {
+      final BatchUpdateException batchException = (BatchUpdateException)e;
+      for (SQLException sqlException = batchException.getNextException(); sqlException != null; sqlException = batchException.getNextException()) {
+        if (isDatabaseResourcesException(sqlException)) {
+          return true;
+        }
+      }
+    } else if (e instanceof SQLException) {
+      final SQLException sqlException = (SQLException)e;
+      final int errorCode = sqlException.getErrorCode();
+      boolean isCapacityError = false;
+      if (errorCode == 1653) {
+        isCapacityError = true;
+      } else if (errorCode == 1688) {
+        isCapacityError = true;
+      } else if (errorCode == 1691) {
+        isCapacityError = true;
+      } else {
+        final String sqlState = ((SQLException)e).getSQLState();
+        if (sqlState != null && sqlState.startsWith("53")) {
+          isCapacityError = true;
+        }
+      }
+      if (isCapacityError) {
+        capacityErrorTime = System.currentTimeMillis();
+      }
+      return isCapacityError;
+    } else {
+      final Throwable cause = e.getCause();
+      if (cause != null) {
+        return isDatabaseResourcesException(cause);
+      }
+    }
+    return false;
+  }
+
   public static Map<String, Object> toMap(final DataObject batchJob,
     final String jobUrl, final long timeUntilNextCheck) {
     try {
@@ -264,9 +302,9 @@ public class BatchJobService implements ModuleEventListener {
 
   private final Set<Long> preprocesedJobIds = new HashSet<Long>();
 
-  private long tablespaceErrorTime;
+  private static long capacityErrorTime;
 
-  private long timeoutForTablespaceErrors = 5 * 60 * 1000;
+  private long timeoutForCapacityErrors = 5 * 60 * 1000;
 
   /**
    * Generate an error result for the job, update the job counts and status, and
@@ -988,8 +1026,8 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public long getTimeoutForTablespaceErrors() {
-    return timeoutForTablespaceErrors;
+  public long getTimeoutForCapacityErrors() {
+    return timeoutForCapacityErrors;
   }
 
   public Map<String, String> getUserClassBaseUrls() {
@@ -1017,8 +1055,8 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public boolean isHasTablespaceError() {
-    if (System.currentTimeMillis() < tablespaceErrorTime
-      + timeoutForTablespaceErrors) {
+    if (System.currentTimeMillis() < capacityErrorTime
+      + timeoutForCapacityErrors) {
       return true;
     } else {
       return false;
@@ -1149,10 +1187,9 @@ public class BatchJobService implements ModuleEventListener {
       InvokeMethodAfterCommit.invoke(this, "addStatistics",
         businessApplication, postProcessStatistics);
     } catch (final Throwable e) {
-      if (dataAccessObject.isTablespaceException(e)) {
+      if (isDatabaseResourcesException(e)) {
         LoggerFactory.getLogger(getClass()).error(
           "Tablespace error pre-processing job " + batchJobId, e);
-        setHasTablespaceError();
         return false;
       } else {
         LoggerFactory.getLogger(getClass()).error(
@@ -1310,10 +1347,9 @@ public class BatchJobService implements ModuleEventListener {
                 }
               }
             } catch (final Throwable e) {
-              if (dataAccessObject.isTablespaceException(e)) {
+              if (isDatabaseResourcesException(e)) {
                 LoggerFactory.getLogger(getClass()).error(
                   "Tablespace error pre-processing job " + batchJobId, e);
-                setHasTablespaceError();
                 return false;
               } else {
                 LoggerFactory.getLogger(getClass()).error(
@@ -2018,10 +2054,9 @@ public class BatchJobService implements ModuleEventListener {
                   + workerId + "\ttime=" + (executionTime / 1000.0));
             }
           } catch (final Throwable e) {
-            if (dataAccessObject.isTablespaceException(e)) {
+            if (isDatabaseResourcesException(e)) {
               LoggerFactory.getLogger(getClass()).error(
                 "Tablespace error saving group results: " + groupId);
-              setHasTablespaceError();
             } else {
               LoggerFactory.getLogger(getClass()).error(
                 "Error saving group results: " + groupId, e);
@@ -2054,10 +2089,6 @@ public class BatchJobService implements ModuleEventListener {
    */
   public void setFromEmail(final String fromEmail) {
     this.fromEmail = fromEmail;
-  }
-
-  private void setHasTablespaceError() {
-    tablespaceErrorTime = System.currentTimeMillis();
   }
 
   /**
@@ -2165,9 +2196,8 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void setTimeoutForTablespaceErrors(
-    final long timeoutForTablespaceErrors) {
-    this.timeoutForTablespaceErrors = timeoutForTablespaceErrors * 60 * 1000;
+  public void setTimeoutForCapacityErrors(final long timeoutForCapacityErrors) {
+    this.timeoutForCapacityErrors = timeoutForCapacityErrors * 60 * 1000;
   }
 
   public void setUserClassBaseUrls(final Map<String, String> userClassBaseUrls) {
@@ -2265,7 +2295,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void waitIfTablespaceError(final Class<?> logClass) {
     final long currentTime = System.currentTimeMillis();
-    final long waitTime = (tablespaceErrorTime + timeoutForTablespaceErrors)
+    final long waitTime = (capacityErrorTime + timeoutForCapacityErrors)
       - currentTime;
     if (waitTime > 0) {
       LoggerFactory.getLogger(logClass).error(

@@ -119,7 +119,11 @@ $(document).ready(function() {
 &lt;/util:map&gt;</pre>
 </figure>
 
-<p>Customization properties can also be specified on a plugin class or on the result object for plugins that return a list of results. This allows the property to be calculated for each result. For example the <code>kmlStyleUrl</code> may vary based on the type of result. The following example show the optional method that must be implemented for plugins that wish to define per result configuration properties.</p>
+<p>Customization properties can also be specified on a plugin class or on the result object
+for plugins that return a list of results. This allows the property to be calculated for
+each result. For example the <code>kmlStyleUrl</code> may vary based on the type of result.
+The following example show the optional method that must be implemented for plugins that
+wish to define per result configuration properties.</p>
 
 <figure>
 <pre class="prettyprint">public Map&lt;String,Object&gt; getCustomizationProperties() {
@@ -145,7 +149,7 @@ $(document).ready(function() {
     </thead>
     <tbody>
       <tr>
-        <td><code>kmlDocumentName</code></code></td>
+        <td><code>kmlDocumentName</code></td>
         <td><code>String</code></td>
         <td>The text to use as the name of the KML Document. <b>NOTE: Don't use on a per result basis.</b></td>
       </tr>
@@ -209,6 +213,60 @@ $(document).ready(function() {
 </div>
 
 <p>See the <a href="https://developers.google.com/kml/documentation/kmlreference">kml reference guide</a> for details on how to use the KML attributes.</p>
+
+<p>The following additional customization properties are used to define the default values 
+for fields on the job submission forms. They can <code>properties</code> map bean in the
+<code>ca.bc.gov.open.cpf.plugin.sf.xml</code> file. They cannot however be specified in the
+<code>getCustomizationProperties</code> method of the plugin.</p>
+
+<div class="simpleDataTable">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>inputDataContentType</code> or <code>inputDataFileExtension</td>
+        <td><code>String</code></td>
+        <td>The default value shown on forms for Input Data Content Type which is the MIME type or file extension of the input data specified by an inputData or inputDataUrl parameter.</td>
+      </tr>
+      <tr>
+        <td><code>srid</code></td>
+        <td><code>int</code></td>
+        <td>The default value shown on forms for Srid which is the EPSG coordinate system code of the source geometry.</td>
+      </tr>
+      <tr>
+        <td><code>resultDataContentType</code> or <code>resutDataFileExtension</td>
+        <td><code>String</code></td>
+        <td>The default value shown on forms for Result Data Content Type which is the MIME type or file extension of the result data specified by an resutData or resutDataUrl parameter.</td>
+      </tr>
+      <tr>
+        <td><code>resultSrid</code></td>
+        <td><code>int</code></td>
+        <td>The default value shown on forms for Result Coordinate System which is the EPSG coordinate system code used for the result geometry.</td>
+      </tr>
+      <tr>
+        <td><code>resultNumAxis</code></td>
+        <td><code>int</code></td>
+        <td>The default value shown on forms for Result Num Axis which is the number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).</td>
+      </tr>
+      <tr>
+        <td><code>resultScaleFactorXy</code></td>
+        <td><code>double</code></td>
+        <td>The default value shown on forms for Result Scale Factor Xy which is the scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</td>
+      </tr>
+      <tr>
+        <td><code>resultScaleFactorZ</code></td>
+        <td><code>double</code></td>
+        <td>The default value shown on forms for Result Scale Factor Z which is the scale factor to apply the z coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <div class="pageNavigation">
   <table>

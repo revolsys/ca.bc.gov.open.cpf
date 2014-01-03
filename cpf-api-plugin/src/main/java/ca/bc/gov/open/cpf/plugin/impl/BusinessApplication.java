@@ -2,11 +2,11 @@ package ca.bc.gov.open.cpf.plugin.impl;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import org.springframework.expression.Expression;
@@ -26,9 +26,11 @@ import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.data.model.types.DataTypes;
+import com.revolsys.gis.model.data.equals.EqualsRegistry;
 import com.revolsys.io.AbstractObjectWithProperties;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.Property;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
@@ -77,6 +79,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return defaultValue;
   }
 
+  private String defaultResultDataContentType;
+
   private Expression batchModeExpression;
 
   private String batchModePermission;
@@ -114,7 +118,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    * The inputDataContentTypes is the list of supported MIME content types the
    * BusinessApplication can accept for input data.
    */
-  private final Set<String> inputDataContentTypes = new TreeSet<>();
+  private final Set<String> inputDataContentTypes = new LinkedHashSet<>();
 
   private Map<String, String> inputDataFileExtensions = new LinkedHashMap<String, String>();
 
@@ -171,7 +175,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    * The resultDataContentTypes is the list of supported MIME content types the
    * BusinessApplication can accept for result data.
    */
-  private final Set<String> resultDataContentTypes = new TreeSet<String>();
+  private final Set<String> resultDataContentTypes = new LinkedHashSet<String>();
 
   private final Map<String, String> resultDataFileExtensions = new LinkedHashMap<String, String>();
 
@@ -192,6 +196,12 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private boolean validateGeometry;
 
+  private String defaultInputDataContentType;
+
+  private String defaultInputDataFileExtension;
+
+  private String defaultResultDataFileExtension;
+
   public BusinessApplication(final BusinessApplicationPlugin pluginMetadata,
     final Module module, final String name) {
     this.name = name;
@@ -209,8 +219,143 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.title = name;
   }
 
+  private void addAttributeRequestSrid() {
+    final Attribute requestSrid = new Attribute(
+      "srid",
+      DataTypes.INT,
+      false,
+      "The coordinate system code of the source geometry. This value is used if the input data file does not specify a coordinate system.");
+    requestSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
+    requestSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
+    Integer firstSrid = null;
+    Integer defaultValue = Property.getInteger(this, "srid");
+    for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
+      final int srid = coordinateSystem.getId();
+      if (firstSrid == null || srid == 3005) {
+        firstSrid = srid;
+      }
+      final String name = coordinateSystem.getName();
+      requestSrid.addAllowedValue(srid, srid + " - " + name);
+    }
+    if (defaultValue == null) {
+      defaultValue = firstSrid;
+    }
+    requestSrid.setDefaultValue(defaultValue);
+    requestSrid.setMinValue(0);
+    this.requestMetaData.addAttribute(requestSrid);
+  }
+
+  private void addAttributeResultDataContentType() {
+    final Attribute resultDataContentType = new Attribute(
+      "resultDataContentType",
+      DataTypes.STRING,
+      false,
+      "The MIME type of the result data specified to be returned after running the request.");
+    resultDataContentType.setProperty(BusinessApplication.CORE_PARAMETER, true);
+    resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
+
+    if (defaultResultDataContentType == null) {
+      defaultResultDataFileExtension = getDefaultFileExtension(resultFileExtensionToContentType);
+      defaultResultDataContentType = getDefaultMimeType(resultDataContentTypes);
+    }
+    resultDataContentType.setDefaultValue(defaultResultDataFileExtension);
+    this.requestMetaData.addAttribute(resultDataContentType);
+  }
+
+  private void addAttributeResultNumAxis() {
+    final Attribute resultNumAxis = new Attribute(
+      "resultNumAxis",
+      DataTypes.INT,
+      false,
+      "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
+    resultNumAxis.setProperty(BusinessApplication.CORE_PARAMETER, true);
+    resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
+    resultNumAxis.addAllowedValue(2, "2D");
+    resultNumAxis.addAllowedValue(3, "3D");
+    Integer defaultValue = Property.getInteger(this, "resultNumAxis", 2);
+    if (defaultValue < 2) {
+      defaultValue = 2;
+    } else if (defaultValue > 3) {
+      defaultValue = 3;
+    }
+    resultNumAxis.setDefaultValue(defaultValue);
+    resultNumAxis.setMinValue(2);
+    resultNumAxis.setMaxValue(3);
+    this.requestMetaData.addAttribute(resultNumAxis);
+  }
+
+  private void addAttributeResultSrid() {
+    final Attribute resultSrid = new Attribute("resultSrid", DataTypes.INT,
+      false,
+      "The coordinate system code of the projection for the result geometry.");
+    resultSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
+    resultSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
+    Integer firstSrid = null;
+    Integer defaultValue = Property.getInteger(this, "resultSrid");
+    for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
+      final int srid = coordinateSystem.getId();
+      if (firstSrid == null || srid == 3005) {
+        firstSrid = 3005;
+      }
+      final String name = coordinateSystem.getName();
+      resultSrid.addAllowedValue(srid, srid + " - " + name);
+    }
+    if (defaultValue == null) {
+      defaultValue = firstSrid;
+    }
+    resultSrid.setDefaultValue(defaultValue);
+    resultSrid.setMinValue(0);
+    this.requestMetaData.addAttribute(resultSrid);
+  }
+
+  private void addAttributeScaleFactorXy() {
+    final Attribute resultScaleFactorXy = new Attribute(
+      "resultScaleFactorXy",
+      DataTypes.DOUBLE,
+      false,
+      "The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
+    resultScaleFactorXy.setProperty(BusinessApplication.CORE_PARAMETER, true);
+    resultScaleFactorXy.setProperty(BusinessApplication.JOB_PARAMETER, true);
+
+    double defaultValue = Property.getDouble(this, "resultScaleFactorXy", 1000);
+    if (defaultValue < 0) {
+      defaultValue = 1000;
+    }
+    resultScaleFactorXy.setDefaultValue(defaultValue);
+
+    this.requestMetaData.addAttribute(resultScaleFactorXy);
+  }
+
+  private void addAttributeScaleFactorZ() {
+    final Attribute resultScaleFactorZ = new Attribute(
+      "resultScaleFactorZ",
+      DataTypes.DOUBLE,
+      false,
+      "The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
+    resultScaleFactorZ.setProperty(BusinessApplication.CORE_PARAMETER, true);
+    double defaultValue = Property.getDouble(this, "resultScaleFactorZ", 1000);
+    if (defaultValue < 0) {
+      defaultValue = 1000;
+    }
+    resultScaleFactorZ.setDefaultValue(defaultValue);
+    resultScaleFactorZ.setProperty(BusinessApplication.JOB_PARAMETER, true);
+    this.requestMetaData.addAttribute(resultScaleFactorZ);
+  }
+
   public void addInputDataContentType(final String contentType,
     final String description, final String fileExtension) {
+    final String inputDataContentType = Property.getString(this,
+      "inputDataContentType");
+    final String inputDataFileExtension = Property.getString(this,
+      "inputDataFileExtension");
+    if (isContentTypeOrFileExtensionEqual(inputDataContentType, contentType,
+      fileExtension)
+      || isContentTypeOrFileExtensionEqual(inputDataFileExtension, contentType,
+        fileExtension)) {
+      defaultInputDataContentType = contentType;
+      defaultInputDataFileExtension = fileExtension;
+    }
+
     this.inputDataContentTypes.add(contentType);
 
     this.inputDataFileExtensions.put(fileExtension, description);
@@ -258,6 +403,18 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public void addResultDataContentType(final String contentType,
     final String fileExtension, final String description) {
+    final String resultDataContentType = Property.getString(this,
+      "resultDataContentType");
+    final String resultDataFileExtension = Property.getString(this,
+      "resultDataFileExtension");
+    if (isContentTypeOrFileExtensionEqual(resultDataContentType, contentType,
+      fileExtension)
+      || isContentTypeOrFileExtensionEqual(resultDataFileExtension,
+        contentType, fileExtension)) {
+      defaultResultDataContentType = contentType;
+      defaultResultDataFileExtension = fileExtension;
+    }
+
     this.resultDataContentTypes.add(contentType);
     this.resultDataFileExtensions.put(fileExtension, description);
     this.resultFileExtensionToContentType.put(fileExtension, contentType);
@@ -297,11 +454,19 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public String getDefaultInputDataContentType() {
-    return inputDataContentTypes.iterator().next();
+    return defaultInputDataContentType;
+  }
+
+  public String getDefaultInputDataFileExtension() {
+    return defaultInputDataFileExtension;
   }
 
   public String getDefaultResultDataContentType() {
-    return inputDataContentTypes.iterator().next();
+    return defaultResultDataContentType;
+  }
+
+  public String getDefaultResultDataFileExtension() {
+    return defaultResultDataFileExtension;
   }
 
   public String getDescription() {
@@ -395,95 +560,24 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           "requestSequenceNumber", DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER,
           true);
+        requestSequenceNumber.setMinValue(1);
 
-        if (this.hasGeometryRequestAttribute) {
-          final Attribute requestSrid = new Attribute(
-            "srid",
-            DataTypes.INT,
-            false,
-            "The coordinate system code of the source geometry. This value is used if the input data file does not specify a coordinate system.");
-          requestSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
-          requestSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
-          Integer defaultSrid = null;
-          for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
-            final int srid = coordinateSystem.getId();
-            if (defaultSrid == null || srid == 3005) {
-              defaultSrid = 3005;
-            }
-            final String name = coordinateSystem.getName();
-            requestSrid.addAllowedValue(srid, name);
-          }
-          requestSrid.setDefaultValue(defaultSrid);
-          this.requestMetaData.addAttribute(requestSrid);
-
+        if (defaultInputDataContentType == null) {
+          defaultInputDataFileExtension = getDefaultFileExtension(inputFileExtensionToContentType);
+          defaultInputDataContentType = getDefaultMimeType(inputDataContentTypes);
         }
 
-        final Attribute resultDataContentType = new Attribute(
-          "resultDataContentType",
-          DataTypes.STRING,
-          false,
-          "The MIME type of the result data specified to be returned after running the request.");
-        resultDataContentType.setProperty(BusinessApplication.CORE_PARAMETER,
-          true);
-        resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER,
-          true);
+        if (this.hasGeometryRequestAttribute) {
+          addAttributeRequestSrid();
+        }
 
-        this.requestMetaData.addAttribute(resultDataContentType);
+        addAttributeResultDataContentType();
 
         if (this.hasGeometryResultAttribute) {
-          final Attribute resultSrid = new Attribute("resultSrid",
-            DataTypes.INT, false,
-            "The coordinate system code of the projection for the result geometry.");
-          resultSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
-          resultSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
-          Integer defaultSrid = null;
-          for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
-            final int srid = coordinateSystem.getId();
-            if (defaultSrid == null || srid == 3005) {
-              defaultSrid = 3005;
-            }
-            final String name = coordinateSystem.getName();
-            resultSrid.addAllowedValue(srid, name);
-            resultSrid.setDefaultValue(defaultSrid);
-          }
-          this.requestMetaData.addAttribute(resultSrid);
-
-          final Attribute resultNumAxis = new Attribute(
-            "resultNumAxis",
-            DataTypes.INT,
-            false,
-            "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
-          resultNumAxis.setProperty(BusinessApplication.CORE_PARAMETER, true);
-          resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
-          resultNumAxis.addAllowedValue(2, "2D");
-          resultNumAxis.addAllowedValue(3, "3D");
-          resultNumAxis.setDefaultValue(2);
-          this.requestMetaData.addAttribute(resultNumAxis);
-
-          final Attribute resultScaleFactorXy = new Attribute(
-            "resultScaleFactorXy",
-            DataTypes.INT,
-            false,
-            "The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
-          resultScaleFactorXy.setProperty(BusinessApplication.CORE_PARAMETER,
-            true);
-          resultScaleFactorXy.setProperty(BusinessApplication.JOB_PARAMETER,
-            true);
-          resultScaleFactorXy.setDefaultValue(1000);
-          this.requestMetaData.addAttribute(resultScaleFactorXy);
-
-          final Attribute resultScaleFactorZ = new Attribute(
-            "resultScaleFactorZ",
-            DataTypes.INT,
-            false,
-            "The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
-          resultScaleFactorZ.setProperty(BusinessApplication.CORE_PARAMETER,
-            true);
-          resultScaleFactorZ.setDefaultValue(1000);
-          resultScaleFactorZ.setProperty(BusinessApplication.JOB_PARAMETER,
-            true);
-          this.requestMetaData.addAttribute(resultScaleFactorZ);
-
+          addAttributeResultSrid();
+          addAttributeResultNumAxis();
+          addAttributeScaleFactorXy();
+          addAttributeScaleFactorZ();
         }
         for (final Attribute attribute : this.requestAttributeMap.values()) {
           this.requestMetaData.addAttribute(attribute);
@@ -553,6 +647,16 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
       this.title = CaseConverter.toCapitalizedWords(this.name);
     }
     return this.title;
+  }
+
+  private boolean isContentTypeOrFileExtensionEqual(final String match,
+    final String contentType, final String fileExtension) {
+    if (StringUtils.hasText(match)) {
+      return EqualsRegistry.equal(match, contentType)
+        || EqualsRegistry.equal(match, fileExtension);
+    } else {
+      return false;
+    }
   }
 
   public boolean isCoreParameter(final String attributeName) {

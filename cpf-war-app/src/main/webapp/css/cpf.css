@@ -109,3 +109,17 @@ div.dataTables_wrapper td.enabled {
   width: 80px;
 }
 
+div.requestAttributes td.name,
+div.requestAttributes th.name {
+  min-width: 200px;
+  max-width: 200px;
+  width: 200px;
+}
+
+div.resultFields td.name,
+div.resultFields th.name {
+  min-width: 200px;
+  max-width: 200px;
+  width: 200px;
+}
+

@@ -49,13 +49,9 @@ public abstract class AbstractBatchJobChannelProcess extends
   public abstract boolean processJob(final long batchJobId);
 
   public void processJobWrapper(final long batchJobId) {
-    try {
-      if (processJob(batchJobId)) {
-        scheduledIds.remove(batchJobId);
-      } else {
-        schedule(batchJobId);
-      }
-    } finally {
+    scheduledIds.remove(batchJobId);
+    boolean success = processJob(batchJobId);
+    if (!success) {
       schedule(batchJobId);
     }
   }

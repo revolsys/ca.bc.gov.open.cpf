@@ -547,7 +547,7 @@ CpfClient.prototype.getJobStatus = function(
   <div>
     <label for="resultDataContentType">Result Data Content Type</label>
     <select name="resultDataContentType">
-      <option value="text/csv">Comma Separated Variable (text/csv)</option>
+      <option value="text/csv">Comma-Separated Values (text/csv)</option>
       <option value="application/x-shp+zip">ESRI Shapefile inside a ZIP archive (application/x-shp+zip)</option>
       <option value="application/x-geo+json">GeoJSON (application/x-geo+json)</option>
       <option value="application/gml+xml">Geography Markup Language (application/gml+xml)</option>

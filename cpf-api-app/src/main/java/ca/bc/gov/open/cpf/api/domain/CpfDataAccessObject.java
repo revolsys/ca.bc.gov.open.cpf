@@ -1,7 +1,5 @@
 package ca.bc.gov.open.cpf.api.domain;
 
-import java.sql.BatchUpdateException;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -860,33 +858,6 @@ public class CpfDataAccessObject {
         return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
       } catch (final IllegalArgumentException e) {
         return false;
-      }
-    }
-    return false;
-  }
-
-  public boolean isTablespaceException(final Throwable e) {
-    if (e instanceof BatchUpdateException) {
-      final BatchUpdateException batchException = (BatchUpdateException)e;
-      for (SQLException sqlException = batchException.getNextException(); sqlException != null; sqlException = batchException.getNextException()) {
-        if (isTablespaceException(sqlException)) {
-          return true;
-        }
-      }
-    } else if (e instanceof SQLException) {
-      final SQLException sqlException = (SQLException)e;
-      final int errorCode = sqlException.getErrorCode();
-      if (errorCode == 1653) {
-        return true;
-      } else if (errorCode == 1688) {
-        return true;
-      } else if (errorCode == 1691) {
-        return true;
-      }
-    } else {
-      final Throwable cause = e.getCause();
-      if (cause != null) {
-        return isTablespaceException(cause);
       }
     }
     return false;
