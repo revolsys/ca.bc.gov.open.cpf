@@ -43,7 +43,7 @@ function CpfClient(url) {
 $(document).ready(function() {
   $('#getBusinessApplicationInstantSpecification').click(function() {
     var client = new CpfClient(cpfServerUrl);
-    client.getBusinessApplicationInstantSpecification('MapTileByTileId', '1.0.0', function(specification) {
+    client.getBusinessApplicationInstantSpecification('MapTileByTileId', function(specification) {
       var div = $('#businessApplicationInstantSpecification');
       client.toHtml(div, specification);
     });
@@ -52,15 +52,12 @@ $(document).ready(function() {
 </script>
 </div>
  * @param {string}   businessApplicationName The name of the business application.
- * @param {string}   businessApplicationVersion The version of the business application.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getBusinessApplicationInstantSpecification = function(
     businessApplicationName,
-    businessApplicationVersion,
     callback) {
-  var path = '/apps/' + businessApplicationName + '/'
-      + businessApplicationVersion + '/instant.json';
+  var path = '/apps/' + businessApplicationName + '/instant.json';
   this.getJsonIfLoggedIn(path, {'specification': 'true'}, callback);
 };
 
@@ -77,7 +74,7 @@ CpfClient.prototype.getBusinessApplicationInstantSpecification = function(
 $(document).ready(function() {
   $('#getBusinessApplicationMultipleSpecification').click(function() {
     var client = new CpfClient(cpfServerUrl);
-    client.getBusinessApplicationMultipleSpecification('MapTileByTileId', '1.0.0', function(specification) {
+    client.getBusinessApplicationMultipleSpecification('MapTileByTileId', function(specification) {
       var div = $('#businessApplicationMultipleSpecification');
       client.toHtml(div, specification);
     });
@@ -86,15 +83,12 @@ $(document).ready(function() {
 </script>
 </div>
  * @param {string}   businessApplicationName The name of the business application.
- * @param {string}   businessApplicationVersion The version of the business application.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getBusinessApplicationMultipleSpecification = function(
     businessApplicationName,
-    businessApplicationVersion,
     callback) {
-  var path = '/apps/' + businessApplicationName + '/'
-      + businessApplicationVersion + '/multiple.json';
+  var path = '/apps/' + businessApplicationName + '/multiple.json';
   this.getJsonIfLoggedIn(path, {'specification': 'true'}, callback);
 };
 
@@ -146,7 +140,7 @@ CpfClient.prototype.getBusinessApplicationNames = function(
 $(document).ready(function() {
   $('#getBusinessApplicationSingleSpecification').click(function() {
     var client = new CpfClient(cpfServerUrl);
-    client.getBusinessApplicationSingleSpecification('MapTileByTileId', '1.0.0', function(specification) {
+    client.getBusinessApplicationSingleSpecification('MapTileByTileId', function(specification) {
       var div = $('#businessApplicationSingleSpecification');
       client.toHtml(div, specification);
     });
@@ -155,54 +149,13 @@ $(document).ready(function() {
 </script>
 </div>
  * @param {string}   businessApplicationName The name of the business application.
- * @param {string}   businessApplicationVersion The version of the business application.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getBusinessApplicationSingleSpecification = function(
     businessApplicationName,
-    businessApplicationVersion,
     callback) {
-  var path = '/apps/' + businessApplicationName + '/'
-      + businessApplicationVersion + '/single.json';
+  var path = '/apps/' + businessApplicationName + '/single.json';
   this.getJsonIfLoggedIn(path, {'specification': 'true'}, callback);
-};
-
-/**
- * <p>Get the list of versions for a business application
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources">Get Business Applications Resources</a> REST API.</p>
- * 
-<div class="htmlExample"><button id="getBusinessApplicationsVersions" type="button">Get Business Application's Versions</button>
-
-<div id="businessApplicationsVersions"></div>
-
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#getBusinessApplicationsVersions').click(function() {
-    var client = new CpfClient(cpfServerUrl);
-    client.getBusinessApplicationVersions('MapTileByTileId', function(businessApplicationsVersions) {
-      var div = $('#businessApplicationsVersions');
-      div.empty();
-      div.append('<p><b>Business Application Versions</b></p>');
-      var ul = $('<ul>').appendTo(div);
-      $(businessApplicationsVersions).each(function() {
-        var businessApplicationVersion = String(this);
-        $('<li>').text(businessApplicationVersion).appendTo(ul);
-      });
-    });
-  });
-});
-</script>
-</div>
- * @param {string}   businessApplicationName The name of the business application.
- * @param {function} callback The callback function that will be called with the result object on success.
- */
-CpfClient.prototype.getBusinessApplicationVersions = function(
-    businessApplicationName,
-    callback) {
-  this.getResourcesValues(
-    '/apps/' + businessApplicationName + '.json',
-    'businessApplicationVersion',
-    callback);
 };
 
 /**
@@ -565,20 +518,18 @@ $(document).ready(function() {
   $('#submitSingleRequestJobForm').click(function() {
     var client = new CpfClient(cpfServerUrl);
     var form = $('#submitSingleRequestJobFormForm');
-    client.submitSingleRequestJobForm(form, 'MapTileByTileId', '1.0.0');
+    client.submitSingleRequestJobForm(form, 'MapTileByTileId');
   });
 });
 </script>
 </div>
  * @param {form}   form The form containing the parameters to submit to the web service.
  * @param {string} applicationName The name of the business application.
- * @param {string} applicationVersion The name of the business application.
  */
 CpfClient.prototype.submitSingleRequestJobForm = function(
     form,
-    applicationName,
-    applicationVersion) {
-  var path = '/apps/' + applicationName + '/' + applicationVersion + '/single/';
+    applicationName) {
+  var path = '/apps/' + applicationName + '/single/';
   this.submitIfLoggedIn(form, path);
 };
 
@@ -587,41 +538,9 @@ CpfClient.prototype.submitSingleRequestJobForm = function(
  */
 CpfClient.prototype.submitMultiple = function(
     form,
-    applicationName,
-    applicationVersion) {
-  var path = '/apps/' + applicationName + '/' + applicationVersion
-      + '/multiple/';
+    applicationName) {
+  var path = '/apps/' + applicationName + '/multiple/';
   this.submitIfLoggedIn(form, path);
-};
-
-/**
- * <p>Get the user's identifier (username)
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersResources">Get Users Resources</a> REST API.</p>
- * 
-<div class="htmlExample"><button id="getUserId" type="button">Get User ID</button>
-
-<div id="userId"></div>
-
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#getUserId').click(function() {
-    var client = new CpfClient(cpfServerUrl);
-    client.getUserId(function(userId) {
-      var div = $('#userId');
-      client.toHtml(div, userId);
-    });
-  });
-});
-</script>
-</div>
- * @param {function} callback The callback function that will be called with the result object on success.
- */
-CpfClient.prototype.getUserId = function(callback) {
-  this.getJsonIfLoggedIn('/users.json', {}, function(result) {
-    var userId = null;
-    var userId = result['userId'];
-    callback(userId);
-  });
 };
 
 /**
@@ -647,17 +566,10 @@ $(document).ready(function() {
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getUserJobIdUrls = function(callback) {
-  var self = this;
-  this.getUserId(function(userId) {
-    if (userId) {
-      self.getResourcesValues(
-        '/users/' + userId + '/jobs',
-        'batchJobUrl',
-        callback);
-    } else {
-      callback(new Array());
-    }
-  });
+  this.getResourcesValues(
+    '/jobs',
+    'batchJobUrl',
+    callback);
 };
 /**
  * <p>Utility method to set the contents parent HTML element to the HTML representation of

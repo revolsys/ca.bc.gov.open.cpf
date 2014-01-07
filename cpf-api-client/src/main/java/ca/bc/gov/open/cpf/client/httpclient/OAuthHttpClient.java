@@ -57,6 +57,23 @@ import com.revolsys.util.UrlUtil;
 
 @SuppressWarnings("javadoc")
 public class OAuthHttpClient extends DefaultHttpClient {
+  public static HttpHost determineTarget(final HttpUriRequest request)
+    throws ClientProtocolException {
+    // A null target may be acceptable if there is a default target.
+    // Otherwise, the null target is detected in the director.
+    HttpHost target = null;
+
+    final URI requestURI = request.getURI();
+    if (requestURI.isAbsolute()) {
+      target = URIUtils.extractHost(requestURI);
+      if (target == null) {
+        throw new ClientProtocolException(
+          "URI does not specify a valid host name: " + requestURI);
+      }
+    }
+    return target;
+  }
+
   private String webServiceUrl;
 
   private final String consumerKey;
@@ -65,7 +82,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
 
   private BasicHttpContext context;
 
-  private OAuthHttpClientPool pool;
+  private final OAuthHttpClientPool pool;
 
   @SuppressWarnings("deprecation")
   public OAuthHttpClient(final OAuthHttpClientPool pool,
@@ -126,16 +143,18 @@ public class OAuthHttpClient extends DefaultHttpClient {
     pool.releaseClient(this);
   }
 
-  protected IOException createException(
-    final HttpEntity entity,
+  protected IOException createException(final HttpEntity entity,
     final StatusLine statusLine) {
     if (LoggerFactory.getLogger(OAuthHttpClient.class).isDebugEnabled()) {
       try {
         final String errorBody = EntityUtils.toString(entity);
-        LoggerFactory.getLogger(OAuthHttpClient.class).debug("Unable to get message from server: " + statusLine + "\n"
-          + errorBody);
+        LoggerFactory.getLogger(OAuthHttpClient.class)
+          .debug(
+            "Unable to get message from server: " + statusLine + "\n"
+              + errorBody);
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(OAuthHttpClient.class).error("Unable to get error message server: " + statusLine + "\n");
+        LoggerFactory.getLogger(OAuthHttpClient.class).error(
+          "Unable to get error message server: " + statusLine + "\n");
       }
     }
     return new IOException("Unable to get message from server: " + statusLine);
@@ -145,7 +164,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     ClientProtocolException {
     final HttpDelete httpDelete = new HttpDelete(url);
     final HttpResponse response = execute(httpDelete, context);
-    HttpEntity entity = response.getEntity();
+    final HttpEntity entity = response.getEntity();
     EntityUtils.consume(entity);
   }
 
@@ -165,23 +184,6 @@ public class OAuthHttpClient extends DefaultHttpClient {
     }
   }
 
-  public static HttpHost determineTarget(HttpUriRequest request)
-    throws ClientProtocolException {
-    // A null target may be acceptable if there is a default target.
-    // Otherwise, the null target is detected in the director.
-    HttpHost target = null;
-
-    URI requestURI = request.getURI();
-    if (requestURI.isAbsolute()) {
-      target = URIUtils.extractHost(requestURI);
-      if (target == null) {
-        throw new ClientProtocolException(
-          "URI does not specify a valid host name: " + requestURI);
-      }
-    }
-    return target;
-  }
-
   public Map<String, Object> getJsonResource(final HttpUriRequest request)
     throws IOException, ClientProtocolException {
     request.addHeader("Accept", "application/json");
@@ -189,7 +191,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     final InvokeMethodResponseHandler<Map<String, Object>> responseHandler = new InvokeMethodResponseHandler<Map<String, Object>>(
       this, "getJsonResource");
 
-    HttpHost target = determineTarget(request);
+    final HttpHost target = determineTarget(request);
     final Map<String, Object> response = execute(target, request,
       responseHandler, context);
 
@@ -211,8 +213,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     return getMapReader(fileName, url);
   }
 
-  public Reader<Map<String, Object>> getMapReader(
-    final String fileName,
+  public Reader<Map<String, Object>> getMapReader(final String fileName,
     final String url) {
     try {
       final HttpGet request = new HttpGet(url);
@@ -261,7 +262,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   public String getUrl(final String path) {
-    return webServiceUrl + path;
+    return webServiceUrl + path.replaceAll("/+", "/");
   }
 
   public Map<String, Object> postJsonResource(final String url)
@@ -270,9 +271,9 @@ public class OAuthHttpClient extends DefaultHttpClient {
     return getJsonResource(request);
   }
 
-  public Map<String, Object> postJsonResource(
-    final String url,
-    final Map<String, ? extends Object> message) throws ClientProtocolException, IOException {
+  public Map<String, Object> postJsonResource(final String url,
+    final Map<String, ? extends Object> message)
+    throws ClientProtocolException, IOException {
     final HttpPost request = new HttpPost(url);
     request.addHeader("Content-type", "application/json");
     final String bodyString = JsonMapIoFactory.toString(message);
@@ -299,9 +300,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     }
   }
 
-  public HttpResponse postResource(
-    final String url,
-    final String contentType,
+  public HttpResponse postResource(final String url, final String contentType,
     final File file) throws IOException, ClientProtocolException {
     try {
       final HttpPost httpPost = new HttpPost(url);

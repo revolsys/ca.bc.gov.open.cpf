@@ -1,6 +1,7 @@
 package ca.bc.gov.open.cpf.client;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 
@@ -29,7 +30,7 @@ public class ClientTest {
 
     testGetBusinessApplicationNames();
     // testGetBusinessApplicationVersions();
-    // testGetBusinessApplicationSpecification();
+    testGetBusinessApplicationSpecification();
     //
     // testMapTileByIdSingle();
     // testMapTileByIdMultiple();
@@ -143,26 +144,16 @@ public class ClientTest {
     }
   }
 
-  // private void testGetBusinessApplicationSpecification() {
-  // final Map<String, Object> specification =
-  // client.getBusinessApplicationSingleSpecification(
-  // "MapTileByTileId", "1.0.0");
-  // Assert.assertEquals("resourceUri", specification.get("resourceUri"), url
-  // + "/apps/MapTileByTileId/1.0.0/specification/");
-  // Assert.assertEquals("businessApplicationName",
-  // specification.get("businessApplicationName"), "MapTileByTileId");
-  // Assert.assertEquals("businessApplicationVersion",
-  // specification.get("businessApplicationVersion"), "1.0.0");
-  // }
-  //
-  // private void testGetBusinessApplicationVersions() {
-  // final String businessApplicationName = "MapTileByTileId";
-  // final List<String> versions =
-  // client.getBusinessApplicationVersions(businessApplicationName);
-  // Assert.assertTrue("Business application versions returned",
-  // !versions.isEmpty());
-  // }
-  //
+  private void testGetBusinessApplicationSpecification() {
+    final Map<String, Object> specification = client.getBusinessApplicationSingleSpecification("MapTileByTileId");
+    Assert.assertEquals("resourceUri", specification.get("resourceUri"), url
+      + "/apps/MapTileByTileId/1.0.0/specification/");
+    Assert.assertEquals("businessApplicationName",
+      specification.get("businessApplicationName"), "MapTileByTileId");
+    Assert.assertEquals("businessApplicationVersion",
+      specification.get("businessApplicationVersion"), "1.0.0");
+  }
+
   // private void testGetUserAppsJobIdUrls() {
   // final Map<String, Object> request = new HashMap<String, Object>();
   // request.put("mapGridName", "BCGS 1:20 000");
