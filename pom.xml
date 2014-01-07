@@ -191,7 +191,7 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  
+
   <modules>
     <module>cpf-api-plugin</module>
     <module>cpf-api-client</module>
@@ -256,7 +256,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <!--  <com.revolsys.open.version>2013.12.17.CPF</com.revolsys.open.version>-->
     <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
     <org.springframework.version>3.0.7.RELEASE</org.springframework.version>
     <org.springframework.security.version>3.0.7.RELEASE</org.springframework.security.version>
