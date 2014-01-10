@@ -1,4 +1,4 @@
-package ca.bc.gov.open.cpg.test.plugin;
+package ca.bc.gov.open.cpf.test.plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;

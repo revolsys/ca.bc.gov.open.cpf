@@ -1269,6 +1269,7 @@ public class ClassLoaderModule implements Module {
             }
             final Attribute attribute = new Attribute(parameterName, dataType,
               length, scale, required, description);
+            attribute.setProperty("units", units);
             if (StringUtils.hasText(minValue)) {
               attribute.setMinValue(StringConverterRegistry.toObject(dataType,
                 minValue));

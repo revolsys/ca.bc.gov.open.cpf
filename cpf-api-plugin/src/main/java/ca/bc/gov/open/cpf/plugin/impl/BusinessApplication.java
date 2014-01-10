@@ -727,10 +727,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.perRequestResultData;
   }
 
-  public boolean isRequestAttributeValid(final String name, final Object value) {
-    return true;
-  }
-
   public boolean isRequestParameter(final String attributeName) {
     final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
     if (attribute == null) {

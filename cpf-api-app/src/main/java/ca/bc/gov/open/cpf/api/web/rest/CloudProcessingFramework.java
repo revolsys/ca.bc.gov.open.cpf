@@ -111,6 +111,7 @@ import com.revolsys.ui.html.fields.FileField;
 import com.revolsys.ui.html.fields.FloatField;
 import com.revolsys.ui.html.fields.IntegerField;
 import com.revolsys.ui.html.fields.LongField;
+import com.revolsys.ui.html.fields.NumberField;
 import com.revolsys.ui.html.fields.SelectField;
 import com.revolsys.ui.html.fields.ShortField;
 import com.revolsys.ui.html.fields.SubmitField;
@@ -963,16 +964,22 @@ public class CloudProcessingFramework {
           hasValue = true;
         }
         if (hasValue) {
-          if (businessApplication.isJobParameter(parameterName)) {
-            businessApplicationParameters.put(parameterName, value);
-          } else {
-            try {
-              batchJobService.setStructuredInputDataValue(srid, inputData,
-                attribute, value, true);
-            } catch (final IllegalArgumentException e) {
-              throw new HttpMessageNotReadableException("Parameter "
-                + parameterName + " cannot be set");
+          try {
+            attribute.validate(value);
+            if (businessApplication.isJobParameter(parameterName)) {
+              businessApplicationParameters.put(parameterName, value);
+            } else {
+              try {
+                batchJobService.setStructuredInputDataValue(srid, inputData,
+                  attribute, value, true);
+              } catch (final IllegalArgumentException e) {
+                throw new HttpMessageNotReadableException("Parameter "
+                  + parameterName + " cannot be set", e);
+              }
             }
+          } catch (final IllegalArgumentException e) {
+            throw new HttpMessageNotReadableException("Parameter "
+              + parameterName + " cannot be set", e);
           }
         } else if (required) {
           throw new HttpMessageNotReadableException("Parameter "
@@ -1436,7 +1443,7 @@ public class CloudProcessingFramework {
     @PathVariable final String businessApplicationName,
     @RequestParam(defaultValue = "false") final boolean specification,
     @RequestParam(required = false) final String srid,
-    @RequestParam final String format,
+    @RequestParam(required = false) final String format,
     @RequestParam(required = false, defaultValue = "3005") final int resultSrid,
     @RequestParam(required = false, defaultValue = "2") final int resultNumAxis,
     @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorXy,
@@ -1449,129 +1456,144 @@ public class CloudProcessingFramework {
       final PluginAdaptor plugin = batchJobService.getBusinessApplicationPlugin(businessApplication);
       checkPermission(businessApplication.getInstantModeExpression(),
         "No instant mode permission for " + businessApplication.getName());
-      if (format == null || specification) {
-        if (MediaTypeUtil.isHtmlPage()) {
+
+      final ElementContainer formElement;
+      final boolean isApiCall = HttpServletUtils.isApiCall();
+      if (specification) {
+        return getBusinessApplicationPageInfo(businessApplication, "instant");
+      } else {
+        formElement = getFormInstant(businessApplication);
+        final Form form = (Form)formElement.getElements().get(0);
+        form.initialize(HttpServletUtils.getRequest());
+        if (StringUtils.hasText(format)) {
+          final boolean valid = form.isValid();
+          if (valid) {
+            final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+            final DataObject requestParameters = new ArrayDataObject(
+              requestMetaData);
+            for (final Attribute attribute : requestMetaData.getAttributes()) {
+              final String name = attribute.getName();
+              String value = HttpServletUtils.getParameter(name);
+              boolean hasValue = StringUtils.hasText(value);
+              if (attribute.getType() == DataTypes.BOOLEAN) {
+                if ("on".equals(value)) {
+                  value = "true";
+                } else {
+                  value = "false";
+                }
+                hasValue = true;
+              }
+              if (hasValue) {
+                if (value == null) {
+                  if (attribute.isRequired()) {
+                    throw new IllegalArgumentException("Parameter is required "
+                      + name);
+                  }
+                } else {
+                  attribute.validate(value);
+                  try {
+                    batchJobService.setStructuredInputDataValue(srid,
+                      requestParameters, attribute, value, true);
+                  } catch (final IllegalArgumentException e) {
+                    throw new IllegalArgumentException(
+                      "Parameter value is not valid " + name + " " + value, e);
+                  }
+                }
+              }
+            }
+            final Map<String, Object> parameters = new LinkedHashMap<>(
+              requestParameters);
+            addTestParameters(businessApplication, parameters);
+            plugin.setParameters(parameters);
+            plugin.execute();
+            final List<Map<String, Object>> list = plugin.getResults();
+            HttpServletUtils.setAttribute("contentDispositionFileName",
+              businessApplicationName);
+            final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+            for (final Entry<String, Object> entry : businessApplication.getProperties()
+              .entrySet()) {
+              final String name = entry.getKey();
+              final Object value = entry.getValue();
+              HttpServletUtils.setAttribute(name, value);
+            }
+
+            try {
+              final HttpServletResponse response = HttpServletUtils.getResponse();
+
+              final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+                .getFactoryByMediaType(DataObjectWriterFactory.class, format);
+              if (writerFactory == null) {
+                throw new HttpMessageNotWritableException("Unsupported format "
+                  + format);
+              } else {
+                final String contentType = writerFactory.getMediaType(format);
+                response.setContentType(contentType);
+                final String fileExtension = writerFactory.getFileExtension(format);
+                final String fileName = businessApplicationName + "-instant."
+                  + fileExtension;
+                response.setHeader("Content-Disposition",
+                  "attachment; filename=" + fileName);
+              }
+
+              final OutputStreamResource resource = new OutputStreamResource(
+                "result", response.getOutputStream());
+              final GeometryFactory geometryFactory = GeometryFactory.getFactory(
+                resultSrid, resultNumAxis, resultScaleFactorXy,
+                resultScaleFactorZ);
+              final Writer<DataObject> writer = batchJobService.createStructuredResultWriter(
+                resource, businessApplication, resultMetaData, format,
+                "Result", geometryFactory);
+              final boolean hasMultipleResults = businessApplication.getResultListProperty() != null;
+              if (!hasMultipleResults) {
+                writer.setProperty(IoConstants.SINGLE_OBJECT_PROPERTY, true);
+              }
+              int i = 1;
+              final Map<String, Object> defaultProperties = new HashMap<String, Object>(
+                writer.getProperties());
+
+              for (final Map<String, Object> structuredResultMap : list) {
+                final DataObject structuredResult = DataObjectUtil.getObject(
+                  resultMetaData, structuredResultMap);
+
+                @SuppressWarnings("unchecked")
+                final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
+                if (properties != null && !properties.isEmpty()) {
+                  writer.setProperties(properties);
+                }
+
+                structuredResult.put("sequenceNumber", 1);
+                structuredResult.put("resultNumber", i);
+                writer.write(structuredResult);
+                if (properties != null && !properties.isEmpty()) {
+                  writer.clearProperties();
+                  writer.setProperties(defaultProperties);
+                }
+                i++;
+
+              }
+              writer.close();
+              return null;
+            } catch (final IOException e) {
+              return ExceptionUtil.throwUncheckedException(e);
+            }
+          } else {
+
+          }
+        }
+        if (isApiCall) {
+          return getBusinessApplicationPageInfo(businessApplication, "instant");
+        } else {
           final Map<String, Object> titleParameters = new HashMap<String, Object>();
           final String title = businessApplication.getTitle();
           titleParameters.put("businessApplicationTitle", title);
           final PageInfo page = createRootPageInfo(title + " Instant");
           setBusinessApplicationDescription(page, businessApplication);
-          page.setPagesElement(getFormInstant(businessApplication));
+
+          page.setPagesElement(formElement);
 
           HttpServletUtils.setAttribute("title", page.getTitle());
+          HttpServletUtils.setAttribute("format", "text/html");
           return page;
-        } else {
-          return getBusinessApplicationPageInfo(businessApplication, "instant");
-        }
-      } else {
-        final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-        final DataObject requestParameters = new ArrayDataObject(
-          requestMetaData);
-        for (final Attribute attribute : requestMetaData.getAttributes()) {
-          final String name = attribute.getName();
-          String value = HttpServletUtils.getParameter(name);
-          boolean hasValue = StringUtils.hasText(value);
-          if (attribute.getType() == DataTypes.BOOLEAN) {
-            if ("on".equals(value)) {
-              value = "true";
-            } else {
-              value = "false";
-            }
-            hasValue = true;
-          }
-          if (hasValue) {
-            if (value == null) {
-              if (attribute.isRequired()) {
-                throw new IllegalArgumentException("Parameter is required "
-                  + name);
-              }
-            } else if (!businessApplication.isRequestAttributeValid(name, value)) {
-              throw new IllegalArgumentException(
-                "Parameter value is not valid " + name + " " + value);
-            } else {
-              try {
-                batchJobService.setStructuredInputDataValue(srid,
-                  requestParameters, attribute, value, true);
-              } catch (final IllegalArgumentException e) {
-                throw new IllegalArgumentException(
-                  "Parameter value is not valid " + name + " " + value, e);
-              }
-            }
-          }
-        }
-        final Map<String, Object> parameters = new LinkedHashMap<>(
-          requestParameters);
-        addTestParameters(businessApplication, parameters);
-        plugin.setParameters(parameters);
-        plugin.execute();
-        final List<Map<String, Object>> list = plugin.getResults();
-        HttpServletUtils.setAttribute("contentDispositionFileName",
-          businessApplicationName);
-        final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
-        for (final Entry<String, Object> entry : businessApplication.getProperties()
-          .entrySet()) {
-          final String name = entry.getKey();
-          final Object value = entry.getValue();
-          HttpServletUtils.setAttribute(name, value);
-        }
-
-        try {
-          final HttpServletResponse response = HttpServletUtils.getResponse();
-
-          final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-            .getFactoryByMediaType(DataObjectWriterFactory.class, format);
-          if (writerFactory == null) {
-            throw new HttpMessageNotWritableException("Unsupported format "
-              + format);
-          } else {
-            final String contentType = writerFactory.getMediaType(format);
-            response.setContentType(contentType);
-            final String fileExtension = writerFactory.getFileExtension(format);
-            final String fileName = businessApplicationName + "-instant."
-              + fileExtension;
-            response.setHeader("Content-Disposition", "attachment; filename="
-              + fileName);
-          }
-
-          final OutputStreamResource resource = new OutputStreamResource(
-            "result", response.getOutputStream());
-          final GeometryFactory geometryFactory = GeometryFactory.getFactory(
-            resultSrid, resultNumAxis, resultScaleFactorXy, resultScaleFactorZ);
-          final Writer<DataObject> writer = batchJobService.createStructuredResultWriter(
-            resource, businessApplication, resultMetaData, format, "Result",
-            geometryFactory);
-          final boolean hasMultipleResults = businessApplication.getResultListProperty() != null;
-          if (!hasMultipleResults) {
-            writer.setProperty(IoConstants.SINGLE_OBJECT_PROPERTY, true);
-          }
-          int i = 1;
-          final Map<String, Object> defaultProperties = new HashMap<String, Object>(
-            writer.getProperties());
-
-          for (final Map<String, Object> structuredResultMap : list) {
-            final DataObject structuredResult = DataObjectUtil.getObject(
-              resultMetaData, structuredResultMap);
-
-            @SuppressWarnings("unchecked")
-            final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
-            if (properties != null && !properties.isEmpty()) {
-              writer.setProperties(properties);
-            }
-
-            structuredResult.put("sequenceNumber", 1);
-            structuredResult.put("resultNumber", i);
-            writer.write(structuredResult);
-            if (properties != null && !properties.isEmpty()) {
-              writer.clearProperties();
-              writer.setProperties(defaultProperties);
-            }
-            i++;
-
-          }
-          writer.close();
-          return null;
-        } catch (final IOException e) {
-          return ExceptionUtil.throwUncheckedException(e);
         }
       }
     }
@@ -2220,10 +2242,25 @@ public class CloudProcessingFramework {
     } else {
       field = new SelectField(name, defaultValue, required, allowedValues);
     }
+    if (field instanceof NumberField) {
+      final NumberField numberField = (NumberField)field;
+      final String units = (String)attribute.getProperty("units");
+      numberField.setUnits(units);
+      final Number minValue = attribute.getMinValue();
+      if (minValue != null) {
+        numberField.setMinimumValue(minValue);
+      }
+      final Number maxValue = attribute.getMaxValue();
+      if (maxValue != null) {
+        numberField.setMaximumValue(maxValue);
+      }
+    }
+    field.setInitialValue(defaultValue);
     return field;
   }
 
-  private Element getFormInstant(final BusinessApplication businessApplication) {
+  private ElementContainer getFormInstant(
+    final BusinessApplication businessApplication) {
     final ElementContainer container = new ElementContainer();
 
     final String url = businessAppBuilder.getPageUrl("clientInstant");

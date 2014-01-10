@@ -1448,15 +1448,16 @@ public class BatchJobService implements ModuleEventListener {
               + parameterName, null);
           return null;
         }
-      } else if (!businessApplication.isRequestAttributeValid(parameterName,
-        parameterValue)) {
-        dataAccessObject.createBatchJobExecutionGroup(batchJobId,
-          requestSequenceNumber,
-          ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
-          ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " "
-            + parameterName + "=" + parameterValue, null);
-        return null;
       } else {
+        try {
+          attribute.validate(parameterValue);
+        } catch (final IllegalArgumentException e) {
+          dataAccessObject.createBatchJobExecutionGroup(batchJobId,
+            requestSequenceNumber,
+            ErrorCode.INVALID_PARAMETER_VALUE.getDescription(), e.getMessage(),
+            null);
+          return null;
+        }
         try {
           final String sridString = jobParameters.get("srid");
           setStructuredInputDataValue(sridString, requestParameters, attribute,
