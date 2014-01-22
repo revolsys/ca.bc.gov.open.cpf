@@ -12,6 +12,7 @@
   <bean
     id="ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.BatchJobRequestExecutionGroupUiBuilder"
+    p:batchJobService-ref="batchJobService"
   >
     <property name="pages">
       <list>
@@ -20,15 +21,13 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="Executing Groups"
           p:path="/admin/workers/{workerId}/executingGroups/"
-          p:permission="hasRole('ROLE_ADMIN')"
-         />
+          p:permission="hasRole('ROLE_ADMIN')" />
         <bean
           p:name="workerView"
           class="com.revolsys.ui.web.config.Page"
           p:title="Executing Group {executionGroupId}"
           p:path="/admin/workers/{workerId}/executingGroups/{executionGroupId}/"
-          p:permission="hasRole('ROLE_ADMIN')"
-         />
+          p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="workerRestart"

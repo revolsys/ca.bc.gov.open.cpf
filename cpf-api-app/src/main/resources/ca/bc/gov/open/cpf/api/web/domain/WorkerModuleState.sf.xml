@@ -12,6 +12,7 @@
   <bean
     id="ca.bc.gov.open.cpf.api.scheduler.WorkerModuleState-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.WorkerModuleStateUiBuilder"
+    p:batchJobService-ref="batchJobService"
   >
     <property name="pages">
       <list>

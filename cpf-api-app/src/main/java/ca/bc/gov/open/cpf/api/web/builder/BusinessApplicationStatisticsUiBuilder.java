@@ -12,10 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -127,12 +124,11 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageBusinessApplicationList(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String moduleName,
     final @PathVariable String businessApplicationName) throws IOException,
     NoSuchRequestHandlingMethodException {
+    checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
       moduleName, businessApplicationName);
     if (businessApplication != null) {
@@ -148,14 +144,13 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
       value = {
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard/{statisticId}"
       }, method = RequestMethod.GET)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ModelAndView pageBusinessApplicationView(
     final HttpServletRequest request, final HttpServletResponse response,
     final @PathVariable String moduleName,
     final @PathVariable String businessApplicationName,
     final @PathVariable String statisticId) throws IOException,
     ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     try {
       final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
         moduleName, businessApplicationName);
@@ -180,9 +175,8 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     "/admin/dashboard"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageIndex(final HttpServletRequest request) {
+    checkAdminOrAnyModuleAdmin();
     setPageTitle(request, "summary");
 
     final TabElementContainer tabs = new TabElementContainer();
@@ -205,11 +199,10 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     "/admin/dashboard/{durationType}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageSummaryList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String durationType)
     throws IOException, NoSuchRequestHandlingMethodException {
+    checkAdminOrAnyModuleAdmin();
     final InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
       this, "getSummaryStatistics", durationType);
     return createDataTableHandlerOrRedirect(request, response, durationType

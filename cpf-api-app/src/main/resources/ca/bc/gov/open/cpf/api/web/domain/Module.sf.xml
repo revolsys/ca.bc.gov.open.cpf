@@ -14,6 +14,7 @@
     class="ca.bc.gov.open.cpf.api.web.builder.ModuleUiBuilder"
     p:mavenRepository-ref="mavenRepository"
     p:moduleLoader-ref="configPropertyModuleLoader"
+    p:batchJobService-ref="batchJobService"
   >
     <property name="pages">
       <list>

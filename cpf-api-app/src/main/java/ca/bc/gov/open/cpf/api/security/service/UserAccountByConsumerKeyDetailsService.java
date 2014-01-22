@@ -15,8 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.TransactionStatus;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -42,29 +41,36 @@ public class UserAccountByConsumerKeyDetailsService implements
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public UserDetails loadUserByUsername(final String username)
     throws UsernameNotFoundException, DataAccessException {
-    final String name = username.toLowerCase();
-    final DataObject user = dataAccessObject.getUserAccount(name);
-    if (user == null) {
-      throw new UsernameNotFoundException("Username or password incorrect");
-    } else {
-      final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-      final boolean active = DataObjectUtil.getBoolean(user,
-        UserAccount.ACTIVE_IND);
-      final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
-      final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-      for (final String groupName : groupNames) {
-        authorities.add(new GrantedAuthorityImpl(groupName));
-        authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
+    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
+    try {
+      final String name = username.toLowerCase();
+      final DataObject user = dataAccessObject.getUserAccount(name);
+      if (user == null) {
+        dataAccessObject.commit(transaction);
+        throw new UsernameNotFoundException("Username or password incorrect");
+      } else {
+        final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
+        final boolean active = DataObjectUtil.getBoolean(user,
+          UserAccount.ACTIVE_IND);
+        final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
+        final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        for (final String groupName : groupNames) {
+          authorities.add(new GrantedAuthorityImpl(groupName));
+          authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
+        }
+        final User userDetails = new User(name, userPassword, active, true,
+          true, true, authorities);
+        if (userDetailsChecker != null) {
+          userDetailsChecker.check(userDetails);
+        }
+        dataAccessObject.commit(transaction);
+        return userDetails;
       }
-      final User userDetails = new User(name, userPassword, active, true, true,
-        true, authorities);
-      if (userDetailsChecker != null) {
-        userDetailsChecker.check(userDetails);
-      }
-      return userDetails;
+    } catch (final Throwable e) {
+      dataAccessObject.handleException(transaction, e);
+      return null;
     }
   }
 

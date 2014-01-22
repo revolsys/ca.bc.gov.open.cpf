@@ -45,6 +45,7 @@
   <bean
     id="ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationStatisticsUiBuilder"
+    p:batchJobService-ref="batchJobService"
   >
     <property name="pages">
       <list>
@@ -140,8 +141,7 @@
               p:pageName="moduleAppView"
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="id"
-              p:width="120px"
-            />
+              p:width="120px" />
             <value>durationType</value>
             <value>submittedJobsCount</value>
             <value>completedJobsCount</value>

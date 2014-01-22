@@ -1,27 +1,21 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import javax.servlet.ServletException;
-
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.api.scheduler.WorkerModuleState;
-import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 
 import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -30,8 +24,7 @@ import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
-public class WorkerUiBuilder extends CpfUiBuilder implements
-  CpfMethodSecurityExpressions {
+public class WorkerUiBuilder extends CpfUiBuilder {
 
   private final Callable<Collection<? extends Object>> workersCallable = new InvokeMethodCallable<Collection<? extends Object>>(
     this, "getWorkers");
@@ -49,9 +42,8 @@ public class WorkerUiBuilder extends CpfUiBuilder implements
     "/admin/workers"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  public Object pageList() throws IOException,
-    NoSuchRequestHandlingMethodException {
+  public Object pageList() {
+    checkHasAnyRole(ADMIN);
     HttpServletUtils.setAttribute("title", "Workers");
     return createDataTableHandler(getRequest(), "list", workersCallable);
   }
@@ -60,9 +52,8 @@ public class WorkerUiBuilder extends CpfUiBuilder implements
     "/admin/workers/{workerId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  public ElementContainer pageView(@PathVariable final String workerId)
-    throws ServletException {
+  public ElementContainer pageView(@PathVariable final String workerId) {
+    checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
     if (worker == null) {

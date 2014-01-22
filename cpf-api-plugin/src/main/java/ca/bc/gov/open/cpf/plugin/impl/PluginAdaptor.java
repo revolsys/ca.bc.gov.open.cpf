@@ -249,31 +249,31 @@ public class PluginAdaptor {
                 value = ((String)value).substring(0, length);
               }
             } else if (LineString.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.WGS84.createLineString(new DoubleCoordinatesList(
+              value = GeometryFactory.wgs84().createLineString(new DoubleCoordinatesList(
                 2, -125, 53, -125.1, 53));
             } else if (Polygon.class.isAssignableFrom(typeClass)) {
               final BoundingBox boundingBox = new BoundingBox(
-                GeometryFactory.WGS84, -125, 53, -125.1, 53);
+                GeometryFactory.wgs84(), -125, 53, -125.1, 53);
               value = boundingBox.toPolygon(10);
             } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-              final LineString line = GeometryFactory.WGS84.createLineString(new DoubleCoordinatesList(
+              final LineString line = GeometryFactory.wgs84().createLineString(new DoubleCoordinatesList(
                 2, -125, 53, -125.1, 53));
-              value = GeometryFactory.WGS84.createMultiLineString(line);
+              value = GeometryFactory.wgs84().createMultiLineString(line);
             } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
               final BoundingBox boundingBox = new BoundingBox(
-                GeometryFactory.WGS84, -125, 53, -125.1, 53);
+                GeometryFactory.wgs84(), -125, 53, -125.1, 53);
               final Polygon polygon = boundingBox.toPolygon(10);
-              value = GeometryFactory.WGS84.createMultiPolygon(polygon);
+              value = GeometryFactory.wgs84().createMultiPolygon(polygon);
             } else if (Date.class.isAssignableFrom(typeClass)) {
               final Timestamp time = new Timestamp(System.currentTimeMillis());
               value = StringConverterRegistry.toObject(typeClass, time);
             } else if (GeometryCollection.class.isAssignableFrom(typeClass)
               || MultiPoint.class.isAssignableFrom(typeClass)) {
-              final Point point = GeometryFactory.WGS84.createPoint(-125, 53);
-              value = GeometryFactory.WGS84.createMultiPoint(point);
+              final Point point = GeometryFactory.wgs84().createPoint(-125, 53);
+              value = GeometryFactory.wgs84().createMultiPoint(point);
             } else if (Geometry.class.isAssignableFrom(typeClass)
               || Point.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.WGS84.createPoint(-125, 53);
+              value = GeometryFactory.wgs84().createPoint(-125, 53);
             } else {
               value = "Unknown";
             }

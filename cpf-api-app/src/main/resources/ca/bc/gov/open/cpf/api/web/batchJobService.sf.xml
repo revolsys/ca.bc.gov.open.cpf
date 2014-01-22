@@ -11,7 +11,8 @@
 >
   <bean
     id="configPropertyLoader"
-    class="ca.bc.gov.open.cpf.api.controller.DaoConfigPropertyLoader" />
+    class="ca.bc.gov.open.cpf.api.controller.DaoConfigPropertyLoader"
+    p:dataAccessObject-ref="cpfDataAccessObject" />
 
   <bean
     id="mavenRepository"
@@ -26,7 +27,8 @@
   <bean
     id="configPropertyModuleLoader"
     class="ca.bc.gov.open.cpf.api.controller.ConfigPropertyModuleLoader"
-    p:mavenRepository-ref="mavenRepository" />
+    p:mavenRepository-ref="mavenRepository"
+    p:dataAccessObject-ref="cpfDataAccessObject" />
 
   <bean
     id="businessApplicationRegistry"

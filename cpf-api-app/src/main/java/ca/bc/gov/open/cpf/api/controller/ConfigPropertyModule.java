@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.TransactionStatus;
 
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
@@ -27,6 +27,8 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   private final ConfigPropertyModuleLoader moduleLoader;
 
+  private final CpfDataAccessObject dataAccessObject;
+
   public ConfigPropertyModule(final ConfigPropertyModuleLoader moduleLoader,
     final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName, final MavenRepository mavenRepository,
@@ -37,41 +39,48 @@ public class ConfigPropertyModule extends ClassLoaderModule {
     this.mavenRepository = mavenRepository;
     this.mavenModuleId = mavenModuleId;
     this.excludeMavenIds = excludeMavenIds;
+    this.dataAccessObject = moduleLoader.getDataAccessObject();
     setConfigPropertyLoader(configPropertyLoader);
     setRemoteable(true);
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void doStart() {
+
     if (isEnabled()) {
       if (!isStarted()) {
+        final TransactionStatus status = dataAccessObject.createNewTransaction();
         try {
-          clearModuleError();
+          try {
+            clearModuleError();
 
-          final ClassLoader classLoader = getClassLoader();
-          final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
-            classLoader, false);
-          if (configUrls.size() == 1) {
-            final URL configUrl = configUrls.get(0);
-            setConfigUrl(configUrl);
-            setClassLoader(classLoader);
-          } else if (configUrls.isEmpty()) {
-            addModuleError("No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
+            final ClassLoader classLoader = getClassLoader();
+            final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
+              classLoader, false);
+            if (configUrls.size() == 1) {
+              final URL configUrl = configUrls.get(0);
+              setConfigUrl(configUrl);
+              setClassLoader(classLoader);
+            } else if (configUrls.isEmpty()) {
+              addModuleError("No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
+            } else {
+              addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
+            }
+            if (!isHasError()) {
+              super.doStart();
+            }
+          } catch (final Throwable e) {
+            addModuleError(e);
+          }
+          if (isHasError()) {
+            doStop();
           } else {
-            addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
+            final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+            batchJobService.collateStatistics();
           }
-          if (!isHasError()) {
-            super.doStart();
-          }
+          dataAccessObject.commit(status);
         } catch (final Throwable e) {
-          addModuleError(e);
-        }
-        if (isHasError()) {
-          doStop();
-        } else {
-          final BatchJobService batchJobService = moduleLoader.getBatchJobService();
-          batchJobService.collateStatistics();
+          dataAccessObject.handleException(status, e);
         }
       }
     } else {
@@ -80,17 +89,22 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void doStop() {
     if (isStarted()) {
-      final List<String> businessApplicationNames = getBusinessApplicationNames();
-      setStartedDate(null);
+      final TransactionStatus status = dataAccessObject.createNewTransaction();
+      try {
+        final List<String> businessApplicationNames = getBusinessApplicationNames();
+        setStartedDate(null);
 
-      super.doStop();
-      setClassLoader(null);
-      setConfigUrl(null);
-      final BatchJobService batchJobService = moduleLoader.getBatchJobService();
-      batchJobService.scheduleSaveStatistics(businessApplicationNames);
+        super.doStop();
+        setClassLoader(null);
+        setConfigUrl(null);
+        final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+        batchJobService.scheduleSaveStatistics(businessApplicationNames);
+        dataAccessObject.commit(status);
+      } catch (final Throwable e) {
+        dataAccessObject.handleException(status, e);
+      }
     } else if (isEnabled()) {
       setStatus("Stopped");
     } else {
@@ -142,12 +156,18 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   @Override
   protected void preLoadApplications() {
-    moduleLoader.refreshConfigProperties(this);
-    moduleLoader.refreshUserGroup(this, "_ADMIN",
-      "Application administrator for ");
-    moduleLoader.refreshUserGroup(this, "_SECURITY",
-      "Security administrator for ");
-    moduleLoader.refreshUserGroups(this);
+    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
+    try {
+      moduleLoader.refreshConfigProperties(this);
+      moduleLoader.refreshUserGroup(this, "_ADMIN",
+        "Application administrator for ");
+      moduleLoader.refreshUserGroup(this, "_SECURITY",
+        "Security administrator for ");
+      moduleLoader.refreshUserGroups(this);
+      dataAccessObject.commit(transaction);
+    } catch (final Throwable e) {
+      dataAccessObject.handleException(transaction, e);
+    }
   }
 
   public void setMavenModuleId(final String mavenModuleId) {

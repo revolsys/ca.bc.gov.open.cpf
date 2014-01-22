@@ -11,7 +11,7 @@
   <bean
     name="/CPF/CPF_USER_GROUPS-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.UserGroupUiBuilder"
-    p:dataStore-ref="cpfDataStore"
+    p:batchJobService-ref="batchJobService"
   >
     <property name="pages">
       <list>

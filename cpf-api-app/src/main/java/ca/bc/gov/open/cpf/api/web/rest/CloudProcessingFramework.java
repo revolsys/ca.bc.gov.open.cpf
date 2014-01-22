@@ -24,7 +24,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -43,8 +40,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,6 +57,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobResultUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationUiBuilder;
+import ca.bc.gov.open.cpf.api.web.builder.CpfUiBuilder;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
@@ -79,7 +75,7 @@ import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.gis.data.model.types.SimpleDataType;
-import com.revolsys.gis.model.data.equals.EqualsRegistry;
+import com.revolsys.gis.model.data.equals.EqualsInstance;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
@@ -91,7 +87,6 @@ import com.revolsys.spring.ByteArrayResource;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.spring.OutputStreamResource;
-import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.HtmlUtil;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.decorator.CollapsibleBox;
@@ -178,7 +173,7 @@ public class CloudProcessingFramework {
 
   private static void checkPermission(
     final BusinessApplication businessApplication) {
-    final EvaluationContext evaluationContext = getSecurityEvaluationContext();
+    final EvaluationContext evaluationContext = CpfUiBuilder.getSecurityEvaluationContext();
     if (!hasPermission(businessApplication, evaluationContext)) {
       throw new AccessDeniedException("No permission for business application "
         + businessApplication.getName());
@@ -191,16 +186,6 @@ public class CloudProcessingFramework {
     final String url = HttpServletUtils.getFullRequestUrl();
     page.setUrl(url);
     return page;
-  }
-
-  private static EvaluationContext getSecurityEvaluationContext() {
-    final SecurityContext securityContext = SecurityContextHolder.getContext();
-    final Authentication authentication = securityContext.getAuthentication();
-    final MethodSecurityExpressionRoot root = new MethodSecurityExpressionRoot(
-      authentication);
-    final EvaluationContext evaluationContext = new StandardEvaluationContext(
-      root);
-    return evaluationContext;
   }
 
   private static boolean hasPermission(
@@ -216,13 +201,6 @@ public class CloudProcessingFramework {
       return false;
     }
 
-  }
-
-  private static boolean hasPermission(final Expression expression) {
-    final EvaluationContext evaluationContext = getSecurityEvaluationContext();
-    final boolean permitted = ExpressionUtils.evaluateAsBoolean(expression,
-      evaluationContext);
-    return permitted;
   }
 
   private BatchJobService batchJobService;
@@ -492,14 +470,6 @@ public class CloudProcessingFramework {
     }
   }
 
-  private void checkPermission(final Expression expression,
-    final String accessDeniedMessage) {
-    final boolean permitted = hasPermission(expression);
-    if (!permitted) {
-      throw new AccessDeniedException(accessDeniedMessage);
-    }
-  }
-
   @PreDestroy
   public void close() {
     this.batchJobService = null;
@@ -604,7 +574,6 @@ public class CloudProcessingFramework {
     "/ws/apps/{businessApplicationName}/multiple"
   }, method = RequestMethod.POST)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void createJobWithMultipleRequests(
     @PathVariable final String businessApplicationName,
     @RequestParam(value = "inputDataContentType", required = false) final String[] inputDataContentTypes,
@@ -623,7 +592,8 @@ public class CloudProcessingFramework {
     final BusinessApplication businessApplication = getBusinessApplication(
       businessApplicationName, "clientMultiple");
     if (businessApplication != null) {
-      checkPermission(businessApplication.getBatchModeExpression(),
+      CpfUiBuilder.checkPermission(
+        businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplication.getName());
       final String consumerKey = getConsumerKey();
 
@@ -876,7 +846,6 @@ public class CloudProcessingFramework {
     "/ws/apps/{businessApplicationName}/single"
   }, method = RequestMethod.POST)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void createJobWithSingleRequest(
     @PathVariable final String businessApplicationName,
     @RequestParam(required = false) String inputDataContentType,
@@ -895,7 +864,8 @@ public class CloudProcessingFramework {
     final BusinessApplication businessApplication = getBusinessApplication(
       businessApplicationName, "clientSingle");
     if (businessApplication != null) {
-      checkPermission(businessApplication.getBatchModeExpression(),
+      CpfUiBuilder.checkPermission(
+        businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplicationName);
 
       final DataObject batchJob = createBatchJob();
@@ -1120,7 +1090,6 @@ public class CloudProcessingFramework {
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}"
   }, method = RequestMethod.DELETE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void deleteJob(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
     final DataObject batchJob = dataAccessObject.getBatchJob(consumerKey,
@@ -1153,7 +1122,6 @@ public class CloudProcessingFramework {
     "/ws/authenticated"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> getAuthenticated() {
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
       "Authenticated");
@@ -1162,7 +1130,7 @@ public class CloudProcessingFramework {
   }
 
   private List<BusinessApplication> getAuthorizedBusinessApplications() {
-    final EvaluationContext evaluationContext = getSecurityEvaluationContext();
+    final EvaluationContext evaluationContext = CpfUiBuilder.getSecurityEvaluationContext();
 
     final List<BusinessApplication> businessApplications = batchJobService.getBusinessApplications();
     for (final Iterator<BusinessApplication> iterator = businessApplications.iterator(); iterator.hasNext();) {
@@ -1266,7 +1234,6 @@ public class CloudProcessingFramework {
     "/ws/apps"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getBusinessApplications() {
     final List<BusinessApplication> applications = getAuthorizedBusinessApplications();
     HttpServletUtils.setAttribute("title", "Business Applications");
@@ -1438,7 +1405,6 @@ public class CloudProcessingFramework {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Object getBusinessApplicationsInstant(
     @PathVariable final String businessApplicationName,
     @RequestParam(defaultValue = "false") final boolean specification,
@@ -1454,7 +1420,8 @@ public class CloudProcessingFramework {
       return null;
     } else {
       final PluginAdaptor plugin = batchJobService.getBusinessApplicationPlugin(businessApplication);
-      checkPermission(businessApplication.getInstantModeExpression(),
+      CpfUiBuilder.checkPermission(
+        businessApplication.getInstantModeExpression(),
         "No instant mode permission for " + businessApplication.getName());
 
       final ElementContainer formElement;
@@ -1644,7 +1611,6 @@ public class CloudProcessingFramework {
     "/ws/apps/{businessApplicationName}/jobs"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getBusinessApplicationsJobs(
     @PathVariable final String businessApplicationName) {
     final BusinessApplication businessApplication = batchJobUiBuilder.getBusinessApplication(businessApplicationName);
@@ -1799,7 +1765,6 @@ public class CloudProcessingFramework {
     "/ws/apps/{businessApplicationName}/multiple"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getBusinessApplicationsMultiple(
     @PathVariable final String businessApplicationName) {
     final BusinessApplication businessApplication = getBusinessApplication(
@@ -1807,7 +1772,8 @@ public class CloudProcessingFramework {
     if (businessApplication == null) {
       return null;
     } else {
-      checkPermission(businessApplication.getBatchModeExpression(),
+      CpfUiBuilder.checkPermission(
+        businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplication.getName());
       final Map<String, Object> titleParameters = new HashMap<String, Object>();
 
@@ -1849,7 +1815,6 @@ public class CloudProcessingFramework {
     "/ws/apps/{businessApplicationName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getBusinessApplicationsResources(
     @PathVariable final String businessApplicationName) {
     final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
@@ -1881,11 +1846,11 @@ public class CloudProcessingFramework {
         final Element specification = getElementSpecification(businessApplication);
         tabs.add("description", "Overview", specification);
 
-        if (hasPermission(businessApplication.getInstantModeExpression())) {
+        if (CpfUiBuilder.hasPermission(businessApplication.getInstantModeExpression())) {
           final Element instantForm = getFormInstant(businessApplication);
           tabs.add("instant", "Instant", instantForm);
         }
-        if (hasPermission(businessApplication.getBatchModeExpression())) {
+        if (CpfUiBuilder.hasPermission(businessApplication.getBatchModeExpression())) {
           final Element singleForm = getFormSingle(businessApplication);
           tabs.add("single", "Create Single Request Job", singleForm);
 
@@ -1901,10 +1866,10 @@ public class CloudProcessingFramework {
       } else {
         final PageInfo page = createRootPageInfo(title);
 
-        if (hasPermission(businessApplication.getInstantModeExpression())) {
+        if (CpfUiBuilder.hasPermission(businessApplication.getInstantModeExpression())) {
           addPage(page, "instant", "Instant");
         }
-        if (hasPermission(businessApplication.getBatchModeExpression())) {
+        if (CpfUiBuilder.hasPermission(businessApplication.getBatchModeExpression())) {
 
           addPage(page, "single", "Create Single Request Job", "post");
           addPage(page, "multiple", "Create Multi-Request Job", "post");
@@ -2023,7 +1988,6 @@ public class CloudProcessingFramework {
     "/ws/apps/{businessApplicationName}/single",
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public PageInfo getBusinessApplicationsSingle(
     @PathVariable final String businessApplicationName) {
     final BusinessApplication businessApplication = getBusinessApplication(
@@ -2031,7 +1995,8 @@ public class CloudProcessingFramework {
     if (businessApplication == null) {
       return null;
     } else {
-      checkPermission(businessApplication.getBatchModeExpression(),
+      CpfUiBuilder.checkPermission(
+        businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplication.getName());
       final Map<String, Object> titleParameters = new HashMap<String, Object>();
 
@@ -2080,11 +2045,11 @@ public class CloudProcessingFramework {
 
       container.add(new RawContent(new ClassPathResource(
         "ca/bc/gov/open/cpf/api/web/service/services.html")));
-      if (hasPermission(businessApplication.getInstantModeExpression())) {
+      if (CpfUiBuilder.hasPermission(businessApplication.getInstantModeExpression())) {
         container.add(new RawContent(new ClassPathResource(
           "ca/bc/gov/open/cpf/api/web/service/instantMode.html")));
       }
-      if (hasPermission(businessApplication.getBatchModeExpression())) {
+      if (CpfUiBuilder.hasPermission(businessApplication.getBatchModeExpression())) {
         container.add(new RawContent(new ClassPathResource(
           "ca/bc/gov/open/cpf/api/web/service/batchMode.html")));
       }
@@ -2427,7 +2392,6 @@ public class CloudProcessingFramework {
     "/ws/jobs"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getJobs() {
     final String consumerKey = getConsumerKey();
     if (HtmlUiBuilder.isDataTableCallback()) {
@@ -2539,7 +2503,6 @@ public class CloudProcessingFramework {
     "/ws/jobs/{batchJobId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getJobsInfo(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
     final DataObject batchJob = dataAccessObject.getBatchJob(consumerKey,
@@ -2586,7 +2549,6 @@ public class CloudProcessingFramework {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void getJobsResult(@PathVariable final long batchJobId,
     @PathVariable final long resultId) throws IOException {
     final String consumerKey = getConsumerKey();
@@ -2596,7 +2558,7 @@ public class CloudProcessingFramework {
 
     if (batchJob != null) {
       final DataObject batchJobResult = dataAccessObject.getBatchJobResult(resultId);
-      if (EqualsRegistry.INSTANCE.equals(batchJobId,
+      if (EqualsInstance.INSTANCE.equals(batchJobId,
         batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
         dataAccessObject.setBatchJobDownloaded(batchJobId);
         final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
@@ -2689,7 +2651,6 @@ public class CloudProcessingFramework {
     "/ws/jobs/{batchJobId}/results"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getJobsResults(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
 
@@ -2839,7 +2800,6 @@ public class CloudProcessingFramework {
     "/ws"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object getRoot() {
     if (MediaTypeUtil.isHtmlPage()) {
       HttpServletUtils.setAttribute("title", "Cloud Processing Framework");
@@ -2864,24 +2824,20 @@ public class CloudProcessingFramework {
     }
   }
 
-  @Resource(name = "/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder")
   public void setBatchJobResultUiBuilder(
     final BatchJobResultUiBuilder batchJobResultUiBuilder) {
     this.batchJobResultUiBuilder = batchJobResultUiBuilder;
   }
 
-  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
+    this.dataAccessObject = batchJobService.getDataAccessObject();
   }
 
-  @Resource(name = "/CPF/CPF_BATCH_JOBS-htmlbuilder")
   public void setBatchJobUiBuilder(final BatchJobUiBuilder batchJobUiBuilder) {
     this.batchJobUiBuilder = batchJobUiBuilder;
   }
 
-  @Resource(
-      name = "ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder")
   public void setBusinessAppBuilder(
     final BusinessApplicationUiBuilder businessAppBuilder) {
     this.businessAppBuilder = businessAppBuilder;
@@ -2905,11 +2861,6 @@ public class CloudProcessingFramework {
     }
     page.setHtmlDescription(description);
     page.setAttribute("businessApplicationName", businessApplication.getName());
-  }
-
-  @Resource(name = "cpfDataAccessObject")
-  public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
-    this.dataAccessObject = dataAccessObject;
   }
 
 }

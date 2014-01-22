@@ -8,10 +8,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,14 +41,13 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   }, method = {
     RequestMethod.GET, RequestMethod.POST
   })
-  @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @ResponseBody
   public Element pageModuleUserGroupPermissionAdd(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
     @PathVariable final String userGroupName) throws ServletException,
     IOException {
+    checkAdminSecurityOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -71,14 +67,13 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       value = {
         "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/delete"
       }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void pageModuleUserGroupPermissionDelete(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
     @PathVariable final String userGroupName,
     @PathVariable final Long userGroupPermissionId,
     @RequestParam final Boolean confirm) throws ServletException, IOException {
+    checkAdminSecurityOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -89,7 +84,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
           final Number userGroupId = group.getIdValue();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
-            final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+            final CpfDataAccessObject dataAccessObject = getDataAccessObject();
             dataAccessObject.delete(permission);
             redirectToTab(UserGroup.USER_GROUP, "moduleView", "moduleList");
             return;
@@ -106,8 +101,6 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
-  @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @ResponseBody
   public Element pageModuleUserGroupPermissionEdit(
     final HttpServletRequest request, final HttpServletResponse response,
@@ -115,6 +108,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @PathVariable final String userGroupName,
     @PathVariable final Long userGroupPermissionId) throws ServletException,
     IOException {
+    checkAdminSecurityOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -138,13 +132,12 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleUserGroupPermissionList(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
     @PathVariable final String userGroupName) throws IOException,
     ServletException {
+    checkAdminSecurityOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -167,8 +160,6 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       value = {
         "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}"
       }, method = RequestMethod.GET)
-  @PreAuthorize(ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   @ResponseBody
   public Element pageModuleUserGroupPermissionView(
     final HttpServletRequest request, final HttpServletResponse response,
@@ -176,6 +167,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @PathVariable final String userGroupName,
     @PathVariable final Long userGroupPermissionId) throws ServletException,
     IOException {
+    checkAdminSecurityOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {

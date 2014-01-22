@@ -1,13 +1,24 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.expression.ExpressionUtils;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
@@ -16,24 +27,166 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
-import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.gis.data.io.DataObjectStore;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.DataObjectHtmlUiBuilder;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
-public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
-  CpfMethodSecurityExpressions {
+public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
+
+  public static final String ADMIN = "ROLE_ADMIN";
+
+  public static final String ADMIN_SECURITY = "ROLE_ADMIN_SECURITY";
+
+  public static void checkAdminOrAnyModuleAdmin() {
+    final boolean permitted = hasAnyRole(ADMIN)
+      || hasRoleRegex("ROLE_ADMIN_MODULE_.*");
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkAdminOrAnyModuleAdmin(final String moduleName) {
+    final boolean permitted = hasAnyRole(ADMIN, "ROLE_ADMIN_MODULE_"
+      + moduleName + ".*");
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkAdminOrAnyModuleAdminExceptSecurity() {
+    final boolean permitted = hasAnyRole(ADMIN)
+      || hasRoleRegex("ROLE_ADMIN_MODULE_.*_ADMIN");
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkAdminOrModuleAdmin(final String moduleName) {
+    final boolean permitted = hasAnyRole(ADMIN, "ROLE_ADMIN_MODULE_"
+      + moduleName + "_ADMIN");
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkAdminSecurityOrAnyModuleAdmin() {
+    final boolean permitted = hasAnyRole(ADMIN, ADMIN_SECURITY)
+      || hasRoleRegex("ROLE_ADMIN_MODULE_.*");
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkAdminSecurityOrAnyModuleAdmin(final String moduleName) {
+    final boolean permitted = hasAnyRole(ADMIN, ADMIN_SECURITY)
+      || hasRoleRegex("ROLE_ADMIN_MODULE_." + moduleName + "*");
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkHasAnyRole(final String... roleNames) {
+    final boolean permitted = hasAnyRole(roleNames);
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkPermission(final Expression expression) {
+    final boolean permitted = hasPermission(expression);
+    if (!permitted) {
+      throw new AccessDeniedException("Permission denied");
+    }
+  }
+
+  public static void checkPermission(final Expression expression,
+    final String accessDeniedMessage) {
+    final boolean permitted = hasPermission(expression);
+    if (!permitted) {
+      throw new AccessDeniedException(accessDeniedMessage);
+    }
+  }
+
+  public static Expression createExpression(final String permission) {
+    return new SpelExpressionParser().parseExpression(permission);
+  }
+
+  protected static Collection<GrantedAuthority> getGrantedAuthorities() {
+    final SecurityContext securityContext = SecurityContextHolder.getContext();
+    final Authentication authentication = securityContext.getAuthentication();
+    final Collection<GrantedAuthority> grantedAuthorities = authentication.getAuthorities();
+    return grantedAuthorities;
+  }
+
+  public static EvaluationContext getSecurityEvaluationContext() {
+    final SecurityContext securityContext = SecurityContextHolder.getContext();
+    final Authentication authentication = securityContext.getAuthentication();
+    final MethodSecurityExpressionRoot root = new MethodSecurityExpressionRoot(
+      authentication);
+    final EvaluationContext evaluationContext = new StandardEvaluationContext(
+      root);
+    return evaluationContext;
+  }
+
+  public static boolean hasAnyRole(final Collection<String> roleNames) {
+    final Collection<GrantedAuthority> grantedAuthorities = getGrantedAuthorities();
+    for (final GrantedAuthority grantedAuthority : grantedAuthorities) {
+      final String authority = grantedAuthority.getAuthority();
+      if (roleNames.contains(authority)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean hasAnyRole(final String... roleNames) {
+    return hasAnyRole(Arrays.asList(roleNames));
+  }
+
+  public static boolean hasPermission(final Expression expression) {
+    final EvaluationContext evaluationContext = getSecurityEvaluationContext();
+    final boolean permitted = ExpressionUtils.evaluateAsBoolean(expression,
+      evaluationContext);
+    return permitted;
+  }
+
+  public static boolean hasRole(final String roleName) {
+    final Collection<GrantedAuthority> grantedAuthorities = getGrantedAuthorities();
+    for (final GrantedAuthority grantedAuthority : grantedAuthorities) {
+      final String authority = grantedAuthority.getAuthority();
+      if (authority.equals(roleName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean hasRoleRegex(final String regex) {
+    final Pattern pattern = Pattern.compile(regex);
+    final Collection<GrantedAuthority> grantedAuthorities = getGrantedAuthorities();
+    for (final GrantedAuthority grantedAuthority : grantedAuthorities) {
+      final String authority = grantedAuthority.getAuthority();
+      final Matcher matcher = pattern.matcher(authority);
+      final boolean matches = matcher.matches();
+      if (matches) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   private BatchJobService batchJobService;
 
-  protected BusinessApplicationRegistry businessApplicationRegistry;
+  private BusinessApplicationRegistry businessApplicationRegistry;
 
-  private CpfDataAccessObject cpfDataAccessObject;
+  private CpfDataAccessObject dataAccessObject;
 
   /** The minimum time in milliseconds between status checks. */
   private int minTimeUntilNextCheck = 10;
@@ -59,7 +212,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
   public void close() {
     batchJobService = null;
     businessApplicationRegistry = null;
-    cpfDataAccessObject = null;
+    dataAccessObject = null;
   }
 
   public DataObject getBatchJob(final String businessApplicationName,
@@ -115,8 +268,8 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
     return consumerKey;
   }
 
-  public CpfDataAccessObject getCpfDataAccessObject() {
-    return cpfDataAccessObject;
+  public CpfDataAccessObject getDataAccessObject() {
+    return dataAccessObject;
   }
 
   public int getMinTimeUntilNextCheck() {
@@ -156,8 +309,22 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
   }
 
   public List<Module> getModules() {
-    final ModuleUiBuilder moduleUiBuilder = getBuilder(Module.class);
+    final CpfUiBuilder moduleUiBuilder = getBuilder(Module.class);
     final List<Module> modules = moduleUiBuilder.getPermittedModules();
+    return modules;
+  }
+
+  public List<Module> getPermittedModules() {
+    final List<Module> modules = businessApplicationRegistry.getModules();
+    if (!hasAnyRole(ADMIN, ADMIN_SECURITY)) {
+      for (final Iterator<Module> iterator = modules.iterator(); iterator.hasNext();) {
+        final Module module = iterator.next();
+        final String moduleName = module.getName();
+        if (!hasRoleRegex("ROLE_ADMIN_MODULE_" + moduleName + ".*")) {
+          iterator.remove();
+        }
+      }
+    }
     return modules;
   }
 
@@ -213,13 +380,13 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
   }
 
   public DataObject getUserAccount(final String consumerKey) {
-    final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+    final CpfDataAccessObject dataAccessObject = getDataAccessObject();
     final DataObject userAccount = dataAccessObject.getUserAccount(consumerKey);
     return userAccount;
   }
 
   public DataObject getUserGroup(final String groupName) {
-    final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+    final CpfDataAccessObject dataAccessObject = getDataAccessObject();
     final DataObject userGroup = dataAccessObject.getUserGroup(groupName);
     return userGroup;
   }
@@ -235,23 +402,15 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
 
   @Override
   protected void insertObject(final DataObject object) {
-    cpfDataAccessObject.write(object);
+    dataAccessObject.write(object);
   }
 
-  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
-  }
-
-  @Resource(name = "businessApplicationRegistry")
-  public void setBusinessApplicationRegistry(
-    final BusinessApplicationRegistry businessApplicationRegistry) {
-    this.businessApplicationRegistry = businessApplicationRegistry;
-  }
-
-  @Resource(name = "cpfDataAccessObject")
-  public void setDataAccessObject(final CpfDataAccessObject cpfDataAccessObject) {
-    this.cpfDataAccessObject = cpfDataAccessObject;
+    this.dataAccessObject = batchJobService.getDataAccessObject();
+    this.businessApplicationRegistry = batchJobService.getBusinessApplicationRegistry();
+    final DataObjectStore dataStore = dataAccessObject.getDataStore();
+    setDataStore(dataStore);
   }
 
   public void setMinTimeUntilNextCheck(final int minTimeUntilNextCheck) {
@@ -260,7 +419,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder implements
 
   @Override
   protected void updateObject(final DataObject object) {
-    cpfDataAccessObject.write(object);
+    dataAccessObject.write(object);
   }
 
 }

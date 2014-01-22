@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,8 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,13 +52,10 @@ import com.revolsys.util.UrlUtil;
 
 @Controller
 public class InternalWebService {
-  @Resource(name = "batchJobService")
   private BatchJobService batchJobService;
 
-  @Resource(name = "configPropertyLoader")
   private ConfigPropertyLoader configPropertyLoader;
 
-  @Resource(name = "cpfDataAccessObject")
   private CpfDataAccessObject dataAccessObject;
 
   private String webServiceUrl = "http://localhost/cpf";
@@ -92,7 +86,6 @@ public class InternalWebService {
   }
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{batchJobExecutionGroupIds}/inputData")
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void getBatchJobExecutionGroupOpaqueInputData(
     @PathVariable("workerId") final String workerId,
     final HttpServletResponse response, @PathVariable final long batchJobId,
@@ -150,7 +143,6 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}")
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, Object> getBatchJobRequestExecutionGroup(
     final HttpServletRequest request,
     @PathVariable("workerId") final String workerId,
@@ -200,8 +192,12 @@ public class InternalWebService {
           requestParameterList.add(requestParameters);
         } else {
           final String structuredInputData = jobRequest.getString(BatchJobExecutionGroup.STRUCTURED_INPUT_DATA);
-          groupSpecification.put("requests", new StringPrinter(
-            structuredInputData));
+          if (structuredInputData.charAt(0) == '{') {
+            groupSpecification.put("requests", new StringPrinter(
+              structuredInputData));
+          } else {
+            groupSpecification.put("requests", structuredInputData);
+          }
         }
       }
       return groupSpecification;
@@ -222,7 +218,6 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/config/{environmentName}/{componentName}")
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> getModuleBeanConfigProperties(
     @PathVariable final String moduleName,
     @PathVariable final String environmentName,
@@ -251,7 +246,6 @@ public class InternalWebService {
     "/worker/modules/{moduleName}/{moduleTime}/urls/{urlId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void getModuleUrl(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Long moduleTime, @PathVariable final int urlId)
@@ -283,7 +277,6 @@ public class InternalWebService {
     "/worker/modules/{moduleName}/{moduleTime}/urls"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, Object> getModuleUrls(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Long moduleTime)
@@ -315,7 +308,6 @@ public class InternalWebService {
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestSequenceNumber}/resultData")
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, ? extends Object> postBatchJobExecutionGroupOpaqueOutputData(
     @PathVariable("workerId") final String workerId,
     @PathVariable final Long batchJobId, @PathVariable final String groupId,
@@ -373,10 +365,9 @@ public class InternalWebService {
     @RequestBody final Map<String, Object> results)
     throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
-
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
       "ExecutionGroupResultsConfirmation");
+    batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
     map.put("workerId", workerId);
     map.put("batchJobId", batchJobId);
     map.put("groupId", groupId);
@@ -386,7 +377,6 @@ public class InternalWebService {
   @RequestMapping(value = "/worker/workers/{workerId}/jobs/groups/nextId",
       method = RequestMethod.POST)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, Object> postNextBatchJobExecutionGroupId(
     @PathVariable("workerId") final String workerId,
     @RequestParam final long workerStartTime,
@@ -415,7 +405,6 @@ public class InternalWebService {
   @RequestMapping(value = "/worker/workers/{workerId}/message",
       method = RequestMethod.POST)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Map<String, Object> postWorkerMessage(
     @PathVariable("workerId") final String workerId,
     @RequestParam final long workerStartTime,
@@ -434,7 +423,6 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{consumerKey}/resourcePermission")
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> securityCanAccessResource(
     final HttpServletRequest request, @PathVariable final String moduleName,
     @PathVariable final String consumerKey,
@@ -465,7 +453,6 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{consumerKey}/actions/{actionName}/hasAccess")
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> securityCanPerformAction(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
@@ -493,7 +480,6 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{consumerKey}/groups/{groupName}/memberOf")
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, ? extends Object> securityIsMemberOfGroup(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
@@ -520,7 +506,6 @@ public class InternalWebService {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{consumerKey}/attributes")
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Map<String, Object> securityUserAttributes(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
@@ -537,6 +522,16 @@ public class InternalWebService {
         "UserAttributes", securityService.getUserAttributes());
       return userAttributes;
     }
+  }
+
+  public void setBatchJobService(final BatchJobService batchJobService) {
+    this.batchJobService = batchJobService;
+    this.dataAccessObject = batchJobService.getDataAccessObject();
+  }
+
+  public void setConfigPropertyLoader(
+    final ConfigPropertyLoader configPropertyLoader) {
+    this.configPropertyLoader = configPropertyLoader;
   }
 
   public void setWebServiceUrl(final String webServiceUrl) {

@@ -686,10 +686,10 @@ public class ClassLoaderModule implements Module {
 
       final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
       final Attribute resultDataContentType = requestMetaData.getAttribute("resultDataContentType");
-      final Set<String> resultDataContentTypeMap = businessApplication.getResultDataContentTypes();
-      resultDataContentType.setAllowedValues(resultDataContentTypeMap);
+      final Set<String> resultDataContentTypeSet = businessApplication.getResultDataContentTypes();
+      resultDataContentType.setAllowedValues(businessApplication.getResultDataFileExtensions());
 
-      final String defaultResultDataContentType = BusinessApplication.getDefaultMimeType(resultDataContentTypeMap);
+      final String defaultResultDataContentType = BusinessApplication.getDefaultMimeType(resultDataContentTypeSet);
       resultDataContentType.setDefaultValue(defaultResultDataContentType);
 
       try {

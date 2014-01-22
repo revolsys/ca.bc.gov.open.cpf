@@ -30,7 +30,6 @@
       <list>
         <value>ca.bc.gov.open.cpf.api.domain.UserAccount-dao</value>
         <value>ca.bc.gov.open.cpf.api.domain.UserGroup-dao</value>
-        <value>ca.bc.gov.open.cpf.api.transactionManager</value>
         <value>userAccountSecurityService</value>
       </list>
     </property>

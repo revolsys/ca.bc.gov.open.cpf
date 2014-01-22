@@ -14,10 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,19 +23,17 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
-import ca.bc.gov.open.cpf.api.security.CpfMethodSecurityExpressions;
 
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.model.data.equals.EqualsRegistry;
+import com.revolsys.gis.model.data.equals.EqualsInstance;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 
 @Controller
-public class BatchJobResultUiBuilder extends CpfUiBuilder implements
-  CpfMethodSecurityExpressions {
+public class BatchJobResultUiBuilder extends CpfUiBuilder {
 
   public BatchJobResultUiBuilder() {
     super("batchJobResult", BatchJobResult.BATCH_JOB_RESULT,
@@ -50,7 +45,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
     final Long batchJobResultId) throws NoSuchRequestHandlingMethodException {
     final DataObject batchJobResult = loadObject(batchJobResultId);
     if (batchJobResult != null) {
-      if (EqualsRegistry.INSTANCE.equals(
+      if (EqualsInstance.INSTANCE.equals(
         batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID), batchJobId)) {
         return batchJobResult;
       }
@@ -65,14 +60,13 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
         RequestMethod.GET, RequestMethod.POST
       })
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public void getModuleAppJobDownload(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId,
     @PathVariable final Long batchJobResultId)
     throws NoSuchRequestHandlingMethodException, IOException {
+    checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
@@ -117,13 +111,12 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results"
       }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId) throws IOException,
     NoSuchRequestHandlingMethodException {
+    checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
@@ -142,8 +135,6 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
         "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}"
       }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ElementContainer pageModuleAppJobView(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
@@ -151,6 +142,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder implements
     @PathVariable final Long batchJobId,
     @PathVariable final Long batchJobResultId) throws IOException,
     ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 

@@ -15,10 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -44,7 +41,7 @@ import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.gis.model.data.equals.EqualsRegistry;
+import com.revolsys.gis.model.data.equals.EqualsInstance;
 import com.revolsys.ui.html.decorator.CollapsibleBox;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
@@ -140,11 +137,10 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/apps"
   }, method = RequestMethod.GET)
-  @PreAuthorize(ADMIN_OR_MODULE_ANY_ADMIN_EXCEPT_SECURITY)
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
+    checkAdminOrAnyModuleAdminExceptSecurity();
     HttpServletUtils.setAttribute("title", "Business Applications");
     final List<BusinessApplication> businessApplications = getBusinessApplications();
     final Map<String, Object> parameters = Collections.emptyMap();
@@ -163,7 +159,6 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String moduleName,
     final @PathVariable String businessApplicationName) throws IOException,
@@ -192,13 +187,13 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
 
       if (form.isPosted() && form.isMainFormTask()) {
         if (form.isValid()) {
-          final CpfDataAccessObject dataAccessObject = getCpfDataAccessObject();
+          final CpfDataAccessObject dataAccessObject = getDataAccessObject();
           final BusinessApplicationPlugin pluginMetaData = businessApplication.getPluginMetadata();
           for (final String propertyName : propertyNames) {
             final Object defaultValue = Property.get(pluginMetaData,
               propertyName);
             final Object newValue = form.getValue(propertyName);
-            final boolean equal = EqualsRegistry.INSTANCE.equals(defaultValue,
+            final boolean equal = EqualsInstance.INSTANCE.equals(defaultValue,
               newValue);
 
             DataObject configProperty = dataAccessObject.getConfigProperty(
@@ -267,12 +262,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/apps"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleList(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String moduleName)
     throws IOException, NoSuchRequestHandlingMethodException {
     final Module module = getModule(request, moduleName);
+    checkAdminOrModuleAdmin(moduleName);
     final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
       module, "getBusinessApplications");
     return createDataTableHandlerOrRedirect(request, response, "moduleList",
@@ -283,12 +277,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String moduleName,
     final @PathVariable String businessApplicationName) throws IOException,
     ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
       moduleName, businessApplicationName);
     if (businessApplication != null) {

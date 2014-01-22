@@ -34,7 +34,9 @@ import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
+import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.parallel.ThreadUtil;
+import com.revolsys.util.Compress;
 
 public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   private final Map<String, Object> groupIdMap;
@@ -342,11 +344,21 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             }
           }
           if (globalError.isEmpty()) {
-            final Map<String, Object> requestWrapper = (Map<String, Object>)group.get("requests");
+            final Object requestsValue = group.get("requests");
+            final Map<String, Object> requestWrapper;
+            if (requestsValue instanceof Map) {
+              requestWrapper = (Map<String, Object>)requestsValue;
+            } else {
+              String requestsString = requestsValue.toString();
+              if (requestsString.charAt(0) != '{') {
+                requestsString = Compress.inflateBase64(requestsString);
+              }
+              requestWrapper = JsonMapIoFactory.toObjectMap(requestsString);
+            }
+
             final List<Map<String, Object>> requests = (List<Map<String, Object>>)requestWrapper.get("items");
 
             final List<Map<String, Object>> groupResults = new ArrayList<Map<String, Object>>();
-            groupResponse.put("results", groupResults);
 
             for (final Map<String, Object> requestParameters : requests) {
               if (ThreadUtil.isInterrupted() || !module.isStarted()) {
@@ -357,6 +369,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
                 requestMetaData, applicationParameters, requestParameters);
               groupResults.add(requestResult);
             }
+            final String groupResultsString = JsonMapIoFactory.toString(groupResults);
+            // groupResultsString = Compress.deflateBase64(groupResultsString);
+            groupResponse.put("results", groupResultsString);
           } else {
             groupResponse.putAll(globalError);
           }

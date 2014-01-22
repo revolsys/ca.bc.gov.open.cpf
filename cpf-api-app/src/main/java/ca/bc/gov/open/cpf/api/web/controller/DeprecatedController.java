@@ -5,8 +5,6 @@ import java.util.Collections;
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -118,7 +116,6 @@ public class DeprecatedController {
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/jobs/{batchJobId}/cancel"
   }, method = RequestMethod.POST)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postClientCancel(@PathVariable final long batchJobId) {
     jobBuilder.postClientCancel(batchJobId);
   }

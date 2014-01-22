@@ -45,7 +45,7 @@ import net.oauth.signature.pem.PKCS1EncodedKeySpec;
  * OAuthConsumer c = new OAuthConsumer(callback_url, consumer_key, null,
  * provider); c.setProperty(RSA_SHA1.PRIVATE_KEY, consumer_privateRSAKey);
  * consumer_privateRSAKey must be an RSA signing key and of type
- * java.security.PrivateKey, String, byte[] or InputStream. The key must either
+ * java.security.PrivateKey, String, byte[] or Base64InputStream. The key must either
  * PKCS#1 or PKCS#8 encoded. A service provider that wishes to verify signatures
  * made by such a consumer does not need a shared secret with the consumer, but
  * it needs to know the consumer's public key. You create the necessary

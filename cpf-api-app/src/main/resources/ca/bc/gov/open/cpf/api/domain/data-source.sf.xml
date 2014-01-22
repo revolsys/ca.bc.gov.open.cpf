@@ -110,11 +110,9 @@
     class="ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject"
     p:dataStore-ref="cpfDataStore" />
 
-  <tx:annotation-driven transaction-manager="ca.bc.gov.open.cpf.api.transactionManager" />
-
   <bean
     id="ca.bc.gov.open.cpf.api.transactionManager"
     name="transactionManager"
-    class="com.revolsys.transaction.DataSourceTransactionManagerFactory"
-    p:dataSource-ref="cpfDataSource" />
+    factory-bean="cpfDataStore"
+    factory-method="getTransactionManager" />
 </beans>

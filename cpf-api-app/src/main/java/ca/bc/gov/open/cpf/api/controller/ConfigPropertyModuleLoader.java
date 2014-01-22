@@ -11,11 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
@@ -111,6 +108,10 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     final Object value = property.get("value");
     dataAccessObject.setConfigPropertyValue(configProperty, value);
     return configProperty;
+  }
+
+  public CpfDataAccessObject getDataAccessObject() {
+    return dataAccessObject;
   }
 
   public Map<String, List<String>> getDeletePropertiesByEnvironment(
@@ -262,38 +263,43 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     }
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Override
   public void refreshModules() {
     synchronized (modulesByName) {
-      final Map<String, Module> modulesToDelete = new HashMap<String, Module>(
-        modulesByName);
-      final Map<String, Module> modulesToUnload = new HashMap<String, Module>(
-        modulesByName);
+      final TransactionStatus status = dataAccessObject.createNewTransaction();
+      try {
+        final Map<String, Module> modulesToDelete = new HashMap<String, Module>(
+          modulesByName);
+        final Map<String, Module> modulesToUnload = new HashMap<String, Module>(
+          modulesByName);
 
-      final Map<String, String> modulesToRefresh = new HashMap<String, String>();
+        final Map<String, String> modulesToRefresh = new HashMap<String, String>();
 
-      for (final DataObject property : dataAccessObject.getConfigPropertiesForAllModules(
-        ConfigProperty.DEFAULT, ConfigProperty.MODULE_CONFIG, MAVEN_MODULE_ID)) {
-        final String moduleName = property.getValue(ConfigProperty.MODULE_NAME);
-        final String mavenModuleId = property.getValue(ConfigProperty.PROPERTY_VALUE);
-        final ConfigPropertyModule module = modulesByName.get(moduleName);
-        if (module != null && mavenModuleId.equals(module.getMavenModuleId())) {
-          modulesToUnload.remove(moduleName);
+        for (final DataObject property : dataAccessObject.getConfigPropertiesForAllModules(
+          ConfigProperty.DEFAULT, ConfigProperty.MODULE_CONFIG, MAVEN_MODULE_ID)) {
+          final String moduleName = property.getValue(ConfigProperty.MODULE_NAME);
+          final String mavenModuleId = property.getValue(ConfigProperty.PROPERTY_VALUE);
+          final ConfigPropertyModule module = modulesByName.get(moduleName);
+          if (module != null && mavenModuleId.equals(module.getMavenModuleId())) {
+            modulesToUnload.remove(moduleName);
+          }
+          modulesToDelete.remove(moduleName);
+          modulesToRefresh.put(moduleName, mavenModuleId);
         }
-        modulesToDelete.remove(moduleName);
-        modulesToRefresh.put(moduleName, mavenModuleId);
-      }
-      for (final Module module : modulesToDelete.values()) {
-        deleteModule(module);
-      }
-      for (final Module module : modulesToUnload.values()) {
-        businessApplicationRegistry.unloadModule(module);
-      }
-      for (final Entry<String, String> entry : modulesToRefresh.entrySet()) {
-        final String moduleName = entry.getKey();
-        final String mavenModuleId = entry.getValue();
-        refreshMavenModule(moduleName, mavenModuleId);
+        for (final Module module : modulesToDelete.values()) {
+          deleteModule(module);
+        }
+        for (final Module module : modulesToUnload.values()) {
+          businessApplicationRegistry.unloadModule(module);
+        }
+        for (final Entry<String, String> entry : modulesToRefresh.entrySet()) {
+          final String moduleName = entry.getKey();
+          final String mavenModuleId = entry.getValue();
+          refreshMavenModule(moduleName, mavenModuleId);
+        }
+        dataAccessObject.commit(status);
+      } catch (final Throwable e) {
+        dataAccessObject.handleException(status, e);
       }
     }
   }
@@ -379,37 +385,41 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     }
   }
 
-  @Resource(name = "cpfDataAccessObject")
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void setMavenModuleConfigProperties(final String moduleName,
     final String mavenModuleId, final boolean enabled) {
-    final String environmentName = ConfigProperty.DEFAULT;
-    final String componentName = ConfigProperty.MODULE_CONFIG;
-    final String propertyName = MAVEN_MODULE_ID;
-    DataObject moduleIdProperty = dataAccessObject.getConfigProperty(
-      environmentName, moduleName, componentName, propertyName);
-    if (moduleIdProperty == null) {
-      moduleIdProperty = dataAccessObject.createConfigProperty(environmentName,
-        moduleName, componentName, propertyName, mavenModuleId,
-        DataTypes.STRING);
-    } else {
-      dataAccessObject.setConfigPropertyValue(moduleIdProperty, mavenModuleId);
-      dataAccessObject.write(moduleIdProperty);
-    }
+    final TransactionStatus status = dataAccessObject.createNewTransaction();
+    try {
+      final String environmentName = ConfigProperty.DEFAULT;
+      final String componentName = ConfigProperty.MODULE_CONFIG;
+      final String propertyName = MAVEN_MODULE_ID;
+      DataObject moduleIdProperty = dataAccessObject.getConfigProperty(
+        environmentName, moduleName, componentName, propertyName);
+      if (moduleIdProperty == null) {
+        moduleIdProperty = dataAccessObject.createConfigProperty(
+          environmentName, moduleName, componentName, propertyName,
+          mavenModuleId, DataTypes.STRING);
+      } else {
+        dataAccessObject.setConfigPropertyValue(moduleIdProperty, mavenModuleId);
+        dataAccessObject.write(moduleIdProperty);
+      }
 
-    DataObject moduleEnabledProperty = dataAccessObject.getConfigProperty(
-      environmentName, moduleName, componentName, ENABLED);
-    if (moduleEnabledProperty == null) {
-      moduleEnabledProperty = dataAccessObject.createConfigProperty(
-        environmentName, moduleName, componentName, ENABLED, enabled,
-        DataTypes.BOOLEAN);
-    } else {
-      dataAccessObject.setConfigPropertyValue(moduleEnabledProperty, enabled);
-      dataAccessObject.write(moduleEnabledProperty);
+      DataObject moduleEnabledProperty = dataAccessObject.getConfigProperty(
+        environmentName, moduleName, componentName, ENABLED);
+      if (moduleEnabledProperty == null) {
+        moduleEnabledProperty = dataAccessObject.createConfigProperty(
+          environmentName, moduleName, componentName, ENABLED, enabled,
+          DataTypes.BOOLEAN);
+      } else {
+        dataAccessObject.setConfigPropertyValue(moduleEnabledProperty, enabled);
+        dataAccessObject.write(moduleEnabledProperty);
+      }
+      dataAccessObject.commit(status);
+    } catch (final Throwable e) {
+      dataAccessObject.handleException(status, e);
     }
   }
 

@@ -11,10 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,6 +28,7 @@ import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
@@ -50,10 +48,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageCpfAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
     final Map<String, Object> defaultValues = new HashMap<String, Object>();
     defaultValues.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL);
 
@@ -63,12 +60,11 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/configProperties/{configPropertyId}/delete"
   }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void pageCpfDelete(final HttpServletRequest request,
     final HttpServletResponse response,
     @PathVariable final Integer configPropertyId) throws IOException,
     ServletException {
+    checkHasAnyRole(ADMIN);
 
     final DataObject configProperty = loadObject(configPropertyId);
     if (configProperty != null) {
@@ -92,12 +88,11 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageCpfEdit(final HttpServletRequest request,
     final HttpServletResponse response,
     @PathVariable final Integer configPropertyId) throws IOException,
     ServletException {
+    checkHasAnyRole(ADMIN);
     final DataObject configProperty = loadObject(configPropertyId);
     return super.createObjectEditPage(configProperty, null);
   }
@@ -106,10 +101,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "/admin/configProperties"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageCpfList(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException {
+    final HttpServletResponse response) {
+    checkHasAnyRole(ADMIN);
     HttpServletUtils.setAttribute("title", "Config Properties");
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
 
@@ -124,12 +118,10 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "/admin/configProperties/{configPropertyId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public ElementContainer pageCpfView(final HttpServletRequest request,
     final HttpServletResponse response,
-    @PathVariable final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable final Integer configPropertyId) {
+    checkHasAnyRole(ADMIN);
     final DataObject configProperty = loadObject(configPropertyId);
     if (configProperty != null) {
       final String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
@@ -142,7 +134,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
         }
       }
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -151,11 +143,10 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageModuleAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Map<String, Object> defaultValues = new HashMap<String, Object>();
     defaultValues.put(ConfigProperty.MODULE_NAME, moduleName);
@@ -168,12 +159,11 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/configProperties/{configPropertyId}/delete"
   }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void pageModuleDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Integer configPropertyId) throws IOException,
     ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
     final DataObject configProperty = loadObject(configPropertyId);
@@ -194,12 +184,11 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Integer configPropertyId) throws IOException,
     ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
     final DataObject configProperty = loadObject(configPropertyId);
@@ -216,11 +205,10 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/configProperties"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageModuleList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, NoSuchRequestHandlingMethodException {
+    checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
@@ -239,12 +227,11 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/configProperties/{configPropertyId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Integer configPropertyId) throws IOException,
     ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
     final DataObject configProperty = loadObject(configPropertyId);

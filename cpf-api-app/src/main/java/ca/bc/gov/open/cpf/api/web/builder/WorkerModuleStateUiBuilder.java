@@ -1,22 +1,16 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
-import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.security.access.prepost.PostFilter;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
@@ -41,11 +35,10 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
     "/admin/workers/{workerId}/modules/{moduleName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element createModulePageView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
-    throws IOException, ServletException {
+    throws ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, module, "worker");
@@ -53,18 +46,12 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
     return tabs;
   }
 
-  @PostFilter(FILTER_ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  public List<Module> getPermittedModules() {
-    return getBusinessApplicationRegistry().getModules();
-  }
-
   @RequestMapping(value = {
     "/admin/workers/{workerId}/modules"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  public Object pageWorkerList(@PathVariable final String workerId)
-    throws IOException, NoSuchRequestHandlingMethodException {
+  public Object pageWorkerList(@PathVariable final String workerId) {
+    checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
     if (worker == null) {

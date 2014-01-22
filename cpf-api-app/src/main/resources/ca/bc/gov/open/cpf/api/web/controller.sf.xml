@@ -124,7 +124,12 @@
 
   <bean
     id="cpfClientService"
-    class="ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework" />
+    class="ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework"
+    p:batchJobService-ref="batchJobService"
+    p:batchJobUiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder"
+    p:batchJobResultUiBuilder-ref="/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder"
+    p:businessAppBuilder-ref="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder"
+   />
 
   <bean
     id="cpfClientDeprecatedService"
@@ -133,7 +138,9 @@
   <bean
     id="cpfInternal"
     class="ca.bc.gov.open.cpf.api.web.service.InternalWebService"
-    p:webServiceUrl="http://localhost/cpf" />
+    p:webServiceUrl="http://localhost/cpf"
+    p:batchJobService-ref="batchJobService"
+    p:configPropertyLoader-ref="configPropertyLoader" />
 
   <bean class="ca.bc.gov.open.cpf.api.web.controller.DocumentationController" />
 

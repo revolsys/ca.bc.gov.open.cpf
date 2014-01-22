@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -13,11 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.security.access.prepost.PostFilter;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -79,10 +74,9 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @PreAuthorize(ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element createModulePageAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
     final Map<String, Object> parameters = new HashMap<String, Object>();
 
     final Form form = new Form(typeName);
@@ -165,11 +159,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public Element createModulePageEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
       final Form form = new Form(typeName);
@@ -234,11 +227,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     "/admin/modules"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ADMIN_SECURITY_OR_ANY_MODULE_ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object createModulePageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     HttpServletUtils.setAttribute("title", "Modules");
+    checkAdminSecurityOrAnyModuleAdmin();
     return createDataTableHandler(request, "list", modulesCallable);
   }
 
@@ -246,11 +238,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  @PreAuthorize(ADMIN_OR_ANY_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Element createModulePageView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, module, null);
@@ -285,19 +276,13 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     return moduleLoader;
   }
 
-  @PostFilter(FILTER_ADMIN_OR_MODULE_ADMIN_OR_SECURITY_ADMINS)
-  public List<Module> getPermittedModules() {
-    return getBusinessApplicationRegistry().getModules();
-  }
-
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/delete"
   }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
     final Module module = getModule(request, moduleName);
     moduleLoader.deleteModule(module);
     redirectPage("list");
@@ -306,11 +291,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/restart"
   }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleRestart(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     module.restart();
     referrerRedirect(request);
@@ -319,11 +303,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/start"
   }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleStart(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     module.start();
     referrerRedirect(request);
@@ -332,11 +315,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/stop"
   }, method = RequestMethod.POST)
-  @PreAuthorize(ADMIN_OR_ADMIN_FOR_MODULE)
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void postModuleStop(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName)
     throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     module.stop();
     referrerRedirect(request);

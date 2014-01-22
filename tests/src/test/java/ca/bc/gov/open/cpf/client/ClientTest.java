@@ -252,9 +252,9 @@ public class ClientTest {
   // for (final Map<String, Object> resultFile : client.getJobResultFileList(
   // jobIdUrl, 5000)) {
   // final String url = (String)resultFile.get("resourceUri");
-  // client.processResultFile(url, new ObjectProcessor<InputStream>() {
+  // client.processResultFile(url, new ObjectProcessor<Base64InputStream>() {
   // @Override
-  // public void process(final InputStream in) {
+  // public void process(final Base64InputStream in) {
   // final DataInputStream din = new DataInputStream(in);
   // try {
   // for (String line = din.readLine(); line != null; line = din.readLine()) {

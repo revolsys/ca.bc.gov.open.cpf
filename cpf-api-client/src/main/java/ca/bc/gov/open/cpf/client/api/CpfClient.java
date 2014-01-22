@@ -1512,8 +1512,8 @@ public class CpfClient {
         jobId, 5000);
       for (Map&lt;String, Object&gt; file : files) {
        String jobResultUrl = (String)file.get("resourceUri");
-      client.processResultFile(jobResultUrl , new Callback&lt;InputStream&gt;() {
-        public void process(InputStream in) {
+      client.processResultFile(jobResultUrl , new Callback&lt;Base64InputStream&gt;() {
+        public void process(Base64InputStream in) {
           // Read file from input stream
         }
       });

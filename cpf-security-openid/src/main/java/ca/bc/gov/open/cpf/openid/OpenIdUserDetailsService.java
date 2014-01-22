@@ -19,8 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.TransactionStatus;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -29,9 +28,6 @@ import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
 
-/**
- * @author Paul Austin paul.austin@revolsys.com
- */
 public class OpenIdUserDetailsService implements UserDetailsService {
   /** The flag to auto create users if they don't exist. */
   private boolean autoCreateUsers;
@@ -70,7 +66,14 @@ public class OpenIdUserDetailsService implements UserDetailsService {
 
   @PostConstruct
   public void init() {
-    dataAccessObject.createUserGroup("USER_TYPE", "OPENID", "OpenID All Users");
+    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
+    try {
+      dataAccessObject.createUserGroup("USER_TYPE", "OPENID",
+        "OpenID All Users");
+      dataAccessObject.commit(transaction);
+    } catch (final Throwable e) {
+      dataAccessObject.handleException(transaction, e);
+    }
   }
 
   /**
@@ -82,12 +85,6 @@ public class OpenIdUserDetailsService implements UserDetailsService {
     return autoCreateUsers;
   }
 
-  @Autowired
-  @Required
-  public void setDataAccessObject(CpfDataAccessObject dataAccessObject) {
-    this.dataAccessObject = dataAccessObject;
-  }
-
   /**
    * Load the external user which has the {@link #userAccountClass} and external
    * user name. If the user does not exist in the database create a new external
@@ -97,41 +94,49 @@ public class OpenIdUserDetailsService implements UserDetailsService {
    * @return The UserDetals object for the user.
    */
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public UserDetails loadUserByUsername(final String userAccountName) {
-    DataObject user = dataAccessObject.getUserAccount(userAccountClass,
-      userAccountName);
-    if (user == null) {
-      if (!autoCreateUsers) {
-        throw new UsernameNotFoundException("Username or password incorrect");
-      } else {
-        final String consumerKey = UUID.randomUUID().toString().toLowerCase();
-        final String consumerSecret = UUID.randomUUID()
-          .toString()
-          .toLowerCase();
-        SecurityContextHolder.getContext().setAuthentication(
-          new UsernamePasswordAuthenticationToken(consumerKey, consumerSecret));
-        user = dataAccessObject.createUserAccount(userAccountClass,
-          userAccountName, consumerKey, consumerSecret);
+    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
+    try {
+      DataObject user = dataAccessObject.getUserAccount(userAccountClass,
+        userAccountName);
+      if (user == null) {
+        if (!autoCreateUsers) {
+          throw new UsernameNotFoundException("Username or password incorrect");
+        } else {
+          final String consumerKey = UUID.randomUUID().toString().toLowerCase();
+          final String consumerSecret = UUID.randomUUID()
+            .toString()
+            .toLowerCase();
+          SecurityContextHolder.getContext()
+            .setAuthentication(
+              new UsernamePasswordAuthenticationToken(consumerKey,
+                consumerSecret));
+          user = dataAccessObject.createUserAccount(userAccountClass,
+            userAccountName, consumerKey, consumerSecret);
+        }
       }
-    }
-    final String userName = user.getValue(UserAccount.CONSUMER_KEY);
-    final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-    final boolean active = DataObjectUtil.getBoolean(user,
-      UserAccount.ACTIVE_IND);
-    List<String> groupNames = userAccountSecurityService.getGroupNames(user);
-    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-    for (String groupName : groupNames) {
-      authorities.add(new GrantedAuthorityImpl(groupName));
-      authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
-    }
-    final User userDetails = new User(userName, userPassword, active, true,
-      true, true, authorities);
+      final String userName = user.getValue(UserAccount.CONSUMER_KEY);
+      final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
+      final boolean active = DataObjectUtil.getBoolean(user,
+        UserAccount.ACTIVE_IND);
+      final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
+      final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+      for (final String groupName : groupNames) {
+        authorities.add(new GrantedAuthorityImpl(groupName));
+        authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
+      }
+      final User userDetails = new User(userName, userPassword, active, true,
+        true, true, authorities);
 
-    if (userDetailsChecker != null) {
-      userDetailsChecker.check(userDetails);
+      if (userDetailsChecker != null) {
+        userDetailsChecker.check(userDetails);
+      }
+      dataAccessObject.commit(transaction);
+      return userDetails;
+    } catch (final Throwable e) {
+      dataAccessObject.handleException(transaction, e);
+      return null;
     }
-    return userDetails;
   }
 
   /**
@@ -141,6 +146,12 @@ public class OpenIdUserDetailsService implements UserDetailsService {
    */
   public void setAutoCreateUsers(final boolean autoCreateUsers) {
     this.autoCreateUsers = autoCreateUsers;
+  }
+
+  @Autowired
+  @Required
+  public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
+    this.dataAccessObject = dataAccessObject;
   }
 
   /**

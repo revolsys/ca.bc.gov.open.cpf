@@ -12,7 +12,7 @@
   <bean
     name="/CPF/CPF_CONFIG_PROPERTIES-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.ConfigPropertyUiBuilder"
-    p:dataStore-ref="cpfDataStore"
+    p:batchJobService-ref="batchJobService"
   >
     <property name="pages">
       <list>
