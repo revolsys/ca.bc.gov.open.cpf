@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
@@ -270,7 +268,6 @@ public class BatchJobScheduler extends
    * @param batchJobService The batch job service used to interact with the
    *          database.
    */
-  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
     batchJobService.setScheduler(this);

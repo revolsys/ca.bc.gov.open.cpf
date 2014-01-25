@@ -20,7 +20,6 @@
  */
 package ca.bc.gov.open.cpf.api.security.interceptor;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -72,7 +71,6 @@ public class LoadUserByConsumerKeyInterceptor extends HandlerInterceptorAdapter 
     return true;
   }
 
-  @Resource(name = "cpfDataAccessObject")
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
   }

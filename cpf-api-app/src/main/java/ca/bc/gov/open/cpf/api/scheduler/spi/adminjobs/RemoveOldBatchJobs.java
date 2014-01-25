@@ -27,10 +27,11 @@ import java.util.List;
 import java.util.TimeZone;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.TransactionStatus;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
+import com.revolsys.transaction.Propagation;
+import com.revolsys.transaction.Transaction;
 import com.revolsys.util.DateUtil;
 
 /**
@@ -45,41 +46,42 @@ public class RemoveOldBatchJobs {
   private int daysToKeepOldJobs = 7;
 
   public void removeOldJobs() {
-    final TransactionStatus status = dataAccessObject.createNewTransaction();
-    try {
-      final int dayInMilliseconds = 1000 * 60 * 60 * 24;
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final int dayInMilliseconds = 1000 * 60 * 60 * 24;
 
-      final Calendar cal = new GregorianCalendar(); // local time
-      final long timeNow = cal.getTimeInMillis();
-      final long timeAtMidnightThisMorning = timeNow
-        - (timeNow % dayInMilliseconds);
-      final long timeXDaysAgo = timeAtMidnightThisMorning
-        - (daysToKeepOldJobs * dayInMilliseconds);
-      final Timestamp keepUntilTimestamp = new Timestamp(timeXDaysAgo);
-      cal.setTimeInMillis(timeXDaysAgo);
-      cal.add(Calendar.MILLISECOND,
-        -TimeZone.getDefault().getOffset(cal.getTimeInMillis()));
+        final Calendar cal = new GregorianCalendar(); // local time
+        final long timeNow = cal.getTimeInMillis();
+        final long timeAtMidnightThisMorning = timeNow
+          - (timeNow % dayInMilliseconds);
+        final long timeXDaysAgo = timeAtMidnightThisMorning
+          - (daysToKeepOldJobs * dayInMilliseconds);
+        final Timestamp keepUntilTimestamp = new Timestamp(timeXDaysAgo);
+        cal.setTimeInMillis(timeXDaysAgo);
+        cal.add(Calendar.MILLISECOND,
+          -TimeZone.getDefault().getOffset(cal.getTimeInMillis()));
 
-      int numberJobsDeleted = 0;
-      final List<Long> batchJobIds = dataAccessObject.getOldBatchJobIds(keepUntilTimestamp);
-      for (final Long batchJobId : batchJobIds) {
-        try {
-          dataAccessObject.deleteBatchJob(batchJobId);
-          numberJobsDeleted++;
-        } catch (final Throwable t) {
-          LoggerFactory.getLogger(RemoveOldBatchJobs.class).error(
-            "Unable to delete Batch Job " + batchJobId, t);
+        int numberJobsDeleted = 0;
+        final List<Long> batchJobIds = dataAccessObject.getOldBatchJobIds(keepUntilTimestamp);
+        for (final Long batchJobId : batchJobIds) {
+          try {
+            dataAccessObject.deleteBatchJob(batchJobId);
+            numberJobsDeleted++;
+          } catch (final Throwable t) {
+            LoggerFactory.getLogger(RemoveOldBatchJobs.class).error(
+              "Unable to delete Batch Job " + batchJobId, t);
+          }
         }
-      }
 
-      if (numberJobsDeleted > 0) {
-        LoggerFactory.getLogger(RemoveOldBatchJobs.class).info(
-          numberJobsDeleted + " old batch jobs deleted for jobs prior to "
-            + DateUtil.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
+        if (numberJobsDeleted > 0) {
+          LoggerFactory.getLogger(RemoveOldBatchJobs.class).info(
+            numberJobsDeleted + " old batch jobs deleted for jobs prior to "
+              + DateUtil.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
+        }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(status);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(status, e);
     }
   }
 

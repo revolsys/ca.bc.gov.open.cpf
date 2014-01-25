@@ -215,7 +215,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         } finally {
           if (resultFile != null) {
             FileUtil.closeSilent(resultData);
-            resultFile.delete();
+            FileUtil.deleteDirectory(resultFile);
           }
         }
         try {

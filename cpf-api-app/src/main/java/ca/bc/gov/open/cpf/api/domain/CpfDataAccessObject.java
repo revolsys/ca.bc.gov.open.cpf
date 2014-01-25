@@ -20,8 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
@@ -33,13 +31,16 @@ import com.revolsys.collection.ResultPager;
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.data.io.DataObjectStore;
+import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.gis.data.query.And;
+import com.revolsys.gis.data.query.Between;
 import com.revolsys.gis.data.query.Condition;
+import com.revolsys.gis.data.query.Equal;
 import com.revolsys.gis.data.query.In;
 import com.revolsys.gis.data.query.Or;
 import com.revolsys.gis.data.query.Q;
@@ -52,7 +53,8 @@ import com.revolsys.io.json.JsonParser;
 import com.revolsys.jdbc.JdbcUtils;
 import com.revolsys.jdbc.attribute.JdbcLongAttribute;
 import com.revolsys.jdbc.io.JdbcDataObjectStore;
-import com.revolsys.transaction.TransactionUtils;
+import com.revolsys.transaction.Propagation;
+import com.revolsys.transaction.Transaction;
 import com.revolsys.util.CollectionUtil;
 
 public class CpfDataAccessObject {
@@ -116,11 +118,6 @@ public class CpfDataAccessObject {
     this.userGroupMetaData = null;
     this.userGroupAccountXrefMetaData = null;
     this.userGroupPermissionMetaData = null;
-  }
-
-  public void commit(final TransactionStatus transaction) {
-    final PlatformTransactionManager transactionManager = getTransactionManager();
-    transactionManager.commit(transaction);
   }
 
   public DataObject create(final String typeName) {
@@ -227,9 +224,9 @@ public class CpfDataAccessObject {
     return (T)dataStore.createPrimaryIdValue(typeName);
   }
 
-  public DefaultTransactionStatus createNewTransaction() {
+  public Transaction createTransaction(final Propagation propagation) {
     final PlatformTransactionManager transactionManager = getTransactionManager();
-    return TransactionUtils.createNewTransaction(transactionManager);
+    return new Transaction(transactionManager, propagation);
   }
 
   public DataObject createUserAccount(final String userAccountClass,
@@ -800,12 +797,6 @@ public class CpfDataAccessObject {
     return username;
   }
 
-  public void handleException(final TransactionStatus transaction,
-    final Throwable e) {
-    final PlatformTransactionManager transactionManager = getTransactionManager();
-    TransactionUtils.handleException(transactionManager, transaction, e);
-  }
-
   public boolean hasBatchJobUnexecutedJobs(final long batchJobId) {
     if (dataStore instanceof JdbcDataObjectStore) {
       final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
@@ -902,11 +893,6 @@ public class CpfDataAccessObject {
       }
       i++;
     }
-  }
-
-  public void rollback(final TransactionStatus transaction) {
-    final PlatformTransactionManager transactionManager = getTransactionManager();
-    TransactionUtils.rollback(transactionManager, transaction);
   }
 
   public void saveStatistics(final BusinessApplicationStatistics statistics) {
@@ -1012,82 +998,82 @@ public class CpfDataAccessObject {
   public boolean setBatchJobRequestsCreated(final long batchJobId,
     final int numSubmittedRequests, final int numFailedRequests,
     final int groupSize, final int numGroups) {
-    final TransactionStatus transaction = createNewTransaction();
-    try {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-        + "NUM_SUBMITTED_REQUESTS = ?, "//
-        + "NUM_FAILED_REQUESTS = ?, "//
-        + "GROUP_SIZE = ?, "//
-        + "NUM_SUBMITTED_GROUPS = ?, "//
-        + "STRUCTURED_INPUT_DATA = NULL, "//
-        + "JOB_STATUS = 'requestsCreated', "//
-        + "LAST_SCHEDULED_TIMESTAMP = ?, "//
-        + "WHEN_STATUS_CHANGED = ?, "//
-        + "WHEN_UPDATED = ?, "//
-        + "WHO_UPDATED = ? "//
-        + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
-      final Timestamp now = new Timestamp(System.currentTimeMillis());
-      final boolean result = JdbcUtils.executeUpdate(dataSource, sql,
-        numSubmittedRequests, numFailedRequests, groupSize, numGroups, now,
-        now, now, getUsername(), batchJobId) == 1;
-      commit(transaction);
-      return result;
-    } catch (final Throwable e) {
-      rollback(transaction);
-      throw new RuntimeException("Unable to set requestsCreated status", e);
+    try (
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+        final DataSource dataSource = jdbcDataStore.getDataSource();
+        final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
+          + "NUM_SUBMITTED_REQUESTS = ?, "//
+          + "NUM_FAILED_REQUESTS = ?, "//
+          + "GROUP_SIZE = ?, "//
+          + "NUM_SUBMITTED_GROUPS = ?, "//
+          + "STRUCTURED_INPUT_DATA = NULL, "//
+          + "JOB_STATUS = 'requestsCreated', "//
+          + "LAST_SCHEDULED_TIMESTAMP = ?, "//
+          + "WHEN_STATUS_CHANGED = ?, "//
+          + "WHEN_UPDATED = ?, "//
+          + "WHO_UPDATED = ? "//
+          + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
+        final Timestamp now = new Timestamp(System.currentTimeMillis());
+        final boolean result = JdbcUtils.executeUpdate(dataSource, sql,
+          numSubmittedRequests, numFailedRequests, groupSize, numGroups, now,
+          now, now, getUsername(), batchJobId) == 1;
+        return result;
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
+      }
     }
   }
 
   public boolean setBatchJobRequestsFailed(final long batchJobId,
     final int numSubmittedRequests, final int numFailedRequests,
     final int groupSize, final int numGroups) {
-    final TransactionStatus transaction = createNewTransaction();
-    try {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-        + "NUM_SUBMITTED_REQUESTS = ?, "//
-        + "NUM_FAILED_REQUESTS = ?, "//
-        + "GROUP_SIZE = ?, "//
-        + "NUM_SUBMITTED_GROUPS = ?, "//
-        + "STRUCTURED_INPUT_DATA = NULL, "//
-        + "JOB_STATUS = 'processed', "//
-        + "LAST_SCHEDULED_TIMESTAMP = ?, "//
-        + "WHEN_STATUS_CHANGED = ?, "//
-        + "WHEN_UPDATED = ?, "//
-        + "WHO_UPDATED = ? "//
-        + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
-      final Timestamp now = new Timestamp(System.currentTimeMillis());
-      final boolean result = JdbcUtils.executeUpdate(dataSource, sql,
-        numSubmittedRequests, numFailedRequests, groupSize, numGroups, now,
-        now, now, getUsername(), batchJobId) == 1;
-      commit(transaction);
-      return result;
-    } catch (final Throwable e) {
-      rollback(transaction);
-      throw new RuntimeException("Unable to set processed status", e);
+    try (
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+        final DataSource dataSource = jdbcDataStore.getDataSource();
+        final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
+          + "NUM_SUBMITTED_REQUESTS = ?, "//
+          + "NUM_FAILED_REQUESTS = ?, "//
+          + "GROUP_SIZE = ?, "//
+          + "NUM_SUBMITTED_GROUPS = ?, "//
+          + "STRUCTURED_INPUT_DATA = NULL, "//
+          + "JOB_STATUS = 'processed', "//
+          + "LAST_SCHEDULED_TIMESTAMP = ?, "//
+          + "WHEN_STATUS_CHANGED = ?, "//
+          + "WHEN_UPDATED = ?, "//
+          + "WHO_UPDATED = ? "//
+          + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
+        final Timestamp now = new Timestamp(System.currentTimeMillis());
+        final boolean result = JdbcUtils.executeUpdate(dataSource, sql,
+          numSubmittedRequests, numFailedRequests, groupSize, numGroups, now,
+          now, now, getUsername(), batchJobId) == 1;
+        return result;
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
+      }
     }
   }
 
   public boolean setBatchJobStatus(final long batchJobId,
     final String oldJobStatus, final String newJobStatus) {
-    final TransactionStatus transaction = createNewTransaction();
-    try {
-      final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
-      final DataSource dataSource = jdbcDataStore.getDataSource();
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ?, JOB_STATUS = ? WHERE JOB_STATUS = ? AND BATCH_JOB_ID = ?";
-      final Timestamp now = new Timestamp(System.currentTimeMillis());
-      final String username = getUsername();
-      final int count = JdbcUtils.executeUpdate(dataSource, sql, now, now,
-        username, newJobStatus, oldJobStatus, batchJobId);
-      commit(transaction);
-      return count == 1;
-    } catch (final Throwable e) {
-      handleException(transaction, e);
+    try (
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+        final DataSource dataSource = jdbcDataStore.getDataSource();
+        final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ?, JOB_STATUS = ? WHERE JOB_STATUS = ? AND BATCH_JOB_ID = ?";
+        final Timestamp now = new Timestamp(System.currentTimeMillis());
+        final String username = getUsername();
+        final int count = JdbcUtils.executeUpdate(dataSource, sql, now, now,
+          username, newJobStatus, oldJobStatus, batchJobId);
+        return count == 1;
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
+      }
     }
-    return false;
   }
 
   public void setConfigPropertyValue(final DataObject object, final Object value) {
@@ -1203,15 +1189,16 @@ public class CpfDataAccessObject {
         + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
         + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
         + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
-      final TransactionStatus transaction = createNewTransaction();
-      try {
-        final int result = JdbcUtils.executeUpdate(dataSource, sql, numGroups,
-          numGroups, numCompletedRequests, numFailedRequests, batchJobId);
-        commit(transaction);
-        return result;
-      } catch (final Throwable e) {
-        rollback(transaction);
-        throw new RuntimeException("Unable to reset started status", e);
+      try (
+        Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+        try {
+          final int result = JdbcUtils.executeUpdate(dataSource, sql,
+            numGroups, numGroups, numCompletedRequests, numFailedRequests,
+            batchJobId);
+          return result;
+        } catch (final Throwable e) {
+          throw transaction.setRollbackOnly(e);
+        }
       }
     }
 
@@ -1314,36 +1301,37 @@ public class CpfDataAccessObject {
     return 0;
   }
 
-  public void write(final DataObject object) {
-    final Writer<DataObject> writer = dataStore.getWriter();
-    try {
-      final String username = getUsername();
-      final Timestamp time = new Timestamp(System.currentTimeMillis());
-      switch (object.getState()) {
-        case New:
-          final DataObjectMetaData metaData = object.getMetaData();
-
-          if (metaData.getIdAttributeIndex() != -1
-            && object.getIdValue() == null) {
-            final Object id = dataStore.createPrimaryIdValue(metaData.getPath());
-            object.setIdValue(id);
-          }
-          object.setValue(Common.WHO_CREATED, username);
-          object.setValue(Common.WHEN_CREATED, time);
-          object.setValue(Common.WHO_UPDATED, username);
-          object.setValue(Common.WHEN_UPDATED, time);
-        break;
-        case Modified:
-          object.setValue(Common.WHO_UPDATED, username);
-          object.setValue(Common.WHEN_UPDATED, time);
-        break;
-        default:
-        break;
-      }
-      writer.write(object);
-    } finally {
-      writer.close();
+  public void write(final DataObject record) {
+    try (
+      final Writer<DataObject> writer = dataStore.getWriter()) {
+      write(writer, record);
     }
+  }
+
+  protected void write(final Writer<DataObject> writer, final DataObject record) {
+    final String username = getUsername();
+    final Timestamp time = new Timestamp(System.currentTimeMillis());
+    switch (record.getState()) {
+      case New:
+        final DataObjectMetaData metaData = record.getMetaData();
+
+        if (metaData.getIdAttributeIndex() != -1 && record.getIdValue() == null) {
+          final Object id = dataStore.createPrimaryIdValue(metaData.getPath());
+          record.setIdValue(id);
+        }
+        record.setValue(Common.WHO_CREATED, username);
+        record.setValue(Common.WHEN_CREATED, time);
+        record.setValue(Common.WHO_UPDATED, username);
+        record.setValue(Common.WHEN_UPDATED, time);
+      break;
+      case Modified:
+        record.setValue(Common.WHO_UPDATED, username);
+        record.setValue(Common.WHEN_UPDATED, time);
+      break;
+      default:
+      break;
+    }
+    writer.write(record);
   }
 
   public int writeGroupResult(final long batchJobExecutionGroupId,
@@ -1352,63 +1340,141 @@ public class CpfDataAccessObject {
     final com.revolsys.io.Writer<DataObject> structuredResultWriter,
     final Map<String, Object> defaultProperties) {
     int mask = 0;
-    final TransactionStatus transaction = createNewTransaction();
-    try {
-      final Query query = Query.equal(batchJobExecutionGroupMetaData,
-        BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID,
-        batchJobExecutionGroupId);
-      query.setAttributeNames(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
-      final Reader<DataObject> reader = getDataStore().query(query);
+    try (
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        for (final DataObject batchJobExecutionGroup : reader) {
-          final Object resultDataObject = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
+        final Query query = Query.equal(batchJobExecutionGroupMetaData,
+          BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID,
+          batchJobExecutionGroupId);
+        query.setAttributeNames(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
+        final Reader<DataObject> reader = getDataStore().query(query);
+        try {
+          for (final DataObject batchJobExecutionGroup : reader) {
+            final Object resultDataObject = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
 
-          if (resultDataObject != null) {
-            final Map<String, Object> resultDataMap = JsonParser.read(resultDataObject);
-            @SuppressWarnings("unchecked")
-            final List<Map<String, Object>> resultDataList = (List<Map<String, Object>>)resultDataMap.get("items");
-            for (final Map<String, Object> resultData : resultDataList) {
-              final Map<String, Object> resultMap = resultData;
-              if (resultMap.containsKey("errorCode")) {
-                postProcessWriteError(errorResultWriter, resultMap);
-                mask |= 4;
-              } else if (!application.isPerRequestResultData()) {
-                postProcessWriteStructuredResult(structuredResultWriter,
-                  resultMetaData, defaultProperties, resultData);
-                mask |= 2;
+            if (resultDataObject != null) {
+              final Map<String, Object> resultDataMap = JsonParser.read(resultDataObject);
+              @SuppressWarnings("unchecked")
+              final List<Map<String, Object>> resultDataList = (List<Map<String, Object>>)resultDataMap.get("items");
+              for (final Map<String, Object> resultData : resultDataList) {
+                final Map<String, Object> resultMap = resultData;
+                if (resultMap.containsKey("errorCode")) {
+                  postProcessWriteError(errorResultWriter, resultMap);
+                  mask |= 4;
+                } else if (!application.isPerRequestResultData()) {
+                  postProcessWriteStructuredResult(structuredResultWriter,
+                    resultMetaData, defaultProperties, resultData);
+                  mask |= 2;
+                }
               }
+
+              // String resultDataString;
+              // if (resultDataObject instanceof Clob) {
+              // try {
+              // final Clob clob = (Clob)resultDataObject;
+              // resultDataString =
+              // FileUtil.getString(clob.getCharacterStream());
+              // } catch (final SQLException e) {
+              // throw new RuntimeException("Unable to read clob", e);
+              // }
+              // } else if (resultDataObject instanceof java.io.Reader) {
+              // final java.io.Reader resultDataReader =
+              // (java.io.Reader)resultDataObject;
+              // resultDataString = FileUtil.getString(resultDataReader);
+              // } else {
+              // resultDataString = resultDataObject.toString();
+              // }
+              // if (resultDataString.charAt(0) != '{') {
+              // resultDataString = Compress.inflateBase64(resultDataString);
+              // }
+
             }
-
-            // String resultDataString;
-            // if (resultDataObject instanceof Clob) {
-            // try {
-            // final Clob clob = (Clob)resultDataObject;
-            // resultDataString = FileUtil.getString(clob.getCharacterStream());
-            // } catch (final SQLException e) {
-            // throw new RuntimeException("Unable to read clob", e);
-            // }
-            // } else if (resultDataObject instanceof java.io.Reader) {
-            // final java.io.Reader resultDataReader =
-            // (java.io.Reader)resultDataObject;
-            // resultDataString = FileUtil.getString(resultDataReader);
-            // } else {
-            // resultDataString = resultDataObject.toString();
-            // }
-            // if (resultDataString.charAt(0) != '{') {
-            // resultDataString = Compress.inflateBase64(resultDataString);
-            // }
-
           }
+        } catch (final Throwable e) {
+          throw new RuntimeException("Unable to read result. executionGroupId="
+            + batchJobExecutionGroupId, e);
+        } finally {
+          reader.close();
         }
       } catch (final Throwable e) {
-        throw new RuntimeException("Unable to read result. executionGroupId="
-          + batchJobExecutionGroupId, e);
-      } finally {
-        reader.close();
+        throw transaction.setRollbackOnly(e);
       }
-      commit(transaction);
-    } catch (final Throwable e) {
-      handleException(transaction, e);
+    }
+
+    return mask;
+  }
+
+  public int writeGroupResults(final long batchJobId, final int startIndex,
+    final int endIndex, final BusinessApplication application,
+    final DataObjectMetaData resultMetaData, final MapWriter errorResultWriter,
+    final com.revolsys.io.Writer<DataObject> structuredResultWriter,
+    final Map<String, Object> defaultProperties) {
+    int mask = 0;
+    try (
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final Attribute sequenceNumberAttribute = batchJobExecutionGroupMetaData.getAttribute(BatchJobExecutionGroup.SEQUENCE_NUMBER);
+        final Between between = Q.between(sequenceNumberAttribute, startIndex,
+          endIndex);
+        final Equal batchJobIdEqual = Q.equal(
+          BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
+        final And whereCondition = Q.and(batchJobIdEqual, between);
+        final Query query = new Query(batchJobExecutionGroupMetaData,
+          whereCondition);
+        query.setOrderByColumns(BatchJobExecutionGroup.SEQUENCE_NUMBER);
+        query.setAttributeNames(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
+
+        try (
+          final Reader<DataObject> reader = getDataStore().query(query);) {
+          for (final DataObject batchJobExecutionGroup : reader) {
+            final Object resultDataObject = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
+
+            if (resultDataObject != null) {
+              final Map<String, Object> resultDataMap = JsonParser.read(resultDataObject);
+              @SuppressWarnings("unchecked")
+              final List<Map<String, Object>> resultDataList = (List<Map<String, Object>>)resultDataMap.get("items");
+              for (final Map<String, Object> resultData : resultDataList) {
+                final Map<String, Object> resultMap = resultData;
+                if (resultMap.containsKey("errorCode")) {
+                  postProcessWriteError(errorResultWriter, resultMap);
+                  mask |= 4;
+                } else if (!application.isPerRequestResultData()) {
+                  postProcessWriteStructuredResult(structuredResultWriter,
+                    resultMetaData, defaultProperties, resultData);
+                  mask |= 2;
+                }
+              }
+
+              // String resultDataString;
+              // if (resultDataObject instanceof Clob) {
+              // try {
+              // final Clob clob = (Clob)resultDataObject;
+              // resultDataString =
+              // FileUtil.getString(clob.getCharacterStream());
+              // } catch (final SQLException e) {
+              // throw new RuntimeException("Unable to read clob", e);
+              // }
+              // } else if (resultDataObject instanceof java.io.Reader) {
+              // final java.io.Reader resultDataReader =
+              // (java.io.Reader)resultDataObject;
+              // resultDataString = FileUtil.getString(resultDataReader);
+              // } else {
+              // resultDataString = resultDataObject.toString();
+              // }
+              // if (resultDataString.charAt(0) != '{') {
+              // resultDataString = Compress.inflateBase64(resultDataString);
+              // }
+
+            }
+          }
+        } catch (final Throwable e) {
+          throw new RuntimeException("Unable to read results. batchJobId="
+            + batchJobId + "\t" + startIndex + " <= SEQUENCE_NUMBER <= "
+            + endIndex, e);
+        }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
+      }
     }
 
     return mask;

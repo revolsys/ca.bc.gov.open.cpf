@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -19,7 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.transaction.TransactionStatus;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -27,6 +25,8 @@ import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.transaction.Propagation;
+import com.revolsys.transaction.Transaction;
 
 public class OpenIdUserDetailsService implements UserDetailsService {
   /** The flag to auto create users if they don't exist. */
@@ -66,13 +66,14 @@ public class OpenIdUserDetailsService implements UserDetailsService {
 
   @PostConstruct
   public void init() {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      dataAccessObject.createUserGroup("USER_TYPE", "OPENID",
-        "OpenID All Users");
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        dataAccessObject.createUserGroup("USER_TYPE", "OPENID",
+          "OpenID All Users");
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
+      }
     }
   }
 
@@ -95,47 +96,49 @@ public class OpenIdUserDetailsService implements UserDetailsService {
    */
   @Override
   public UserDetails loadUserByUsername(final String userAccountName) {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      DataObject user = dataAccessObject.getUserAccount(userAccountClass,
-        userAccountName);
-      if (user == null) {
-        if (!autoCreateUsers) {
-          throw new UsernameNotFoundException("Username or password incorrect");
-        } else {
-          final String consumerKey = UUID.randomUUID().toString().toLowerCase();
-          final String consumerSecret = UUID.randomUUID()
-            .toString()
-            .toLowerCase();
-          SecurityContextHolder.getContext()
-            .setAuthentication(
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        DataObject user = dataAccessObject.getUserAccount(userAccountClass,
+          userAccountName);
+        if (user == null) {
+          if (!autoCreateUsers) {
+            throw new UsernameNotFoundException(
+              "Username or password incorrect");
+          } else {
+            final String consumerKey = UUID.randomUUID()
+              .toString()
+              .toLowerCase();
+            final String consumerSecret = UUID.randomUUID()
+              .toString()
+              .toLowerCase();
+            SecurityContextHolder.getContext().setAuthentication(
               new UsernamePasswordAuthenticationToken(consumerKey,
                 consumerSecret));
-          user = dataAccessObject.createUserAccount(userAccountClass,
-            userAccountName, consumerKey, consumerSecret);
+            user = dataAccessObject.createUserAccount(userAccountClass,
+              userAccountName, consumerKey, consumerSecret);
+          }
         }
-      }
-      final String userName = user.getValue(UserAccount.CONSUMER_KEY);
-      final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-      final boolean active = DataObjectUtil.getBoolean(user,
-        UserAccount.ACTIVE_IND);
-      final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
-      final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-      for (final String groupName : groupNames) {
-        authorities.add(new GrantedAuthorityImpl(groupName));
-        authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
-      }
-      final User userDetails = new User(userName, userPassword, active, true,
-        true, true, authorities);
+        final String userName = user.getValue(UserAccount.CONSUMER_KEY);
+        final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
+        final boolean active = DataObjectUtil.getBoolean(user,
+          UserAccount.ACTIVE_IND);
+        final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
+        final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        for (final String groupName : groupNames) {
+          authorities.add(new GrantedAuthorityImpl(groupName));
+          authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
+        }
+        final User userDetails = new User(userName, userPassword, active, true,
+          true, true, authorities);
 
-      if (userDetailsChecker != null) {
-        userDetailsChecker.check(userDetails);
+        if (userDetailsChecker != null) {
+          userDetailsChecker.check(userDetails);
+        }
+        return userDetails;
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(transaction);
-      return userDetails;
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
-      return null;
     }
   }
 
@@ -164,7 +167,6 @@ public class OpenIdUserDetailsService implements UserDetailsService {
     this.userAccountClass = userAccountClass;
   }
 
-  @Resource(name = "userAccountSecurityService")
   public void setUserAccountSecurityService(
     final UserAccountSecurityService userAccountSecurityService) {
     this.userAccountSecurityService = userAccountSecurityService;

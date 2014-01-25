@@ -25,7 +25,8 @@
 
   <bean
     id="cpfWorkerMessageProcess"
-    class="ca.bc.gov.open.cpf.api.worker.CpfWorkerMessageProcess" />
+    class="ca.bc.gov.open.cpf.api.worker.CpfWorkerMessageProcess"
+    p:scheduler-ref="cpfWorker" />
 
   <bean
     id="businessApplicationRegistry"

@@ -33,7 +33,6 @@ import java.util.TreeMap;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.http.HttpEntity;
@@ -52,12 +51,10 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -88,7 +85,6 @@ import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.data.model.DataObjectUtil;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.query.Query;
-import com.revolsys.io.AbstractWriter;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
@@ -108,7 +104,9 @@ import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.NamedChannelBundle;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
+import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
+import com.revolsys.transaction.Transaction;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Compress;
 import com.revolsys.util.DateUtil;
@@ -412,19 +410,20 @@ public class BatchJobService implements ModuleEventListener {
         group.cancel();
       }
     }
-    final DefaultTransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      cancelled = dataAccessObject.cancelBatchJob(batchJobId) == 1;
-      if (cancelled) {
-        try {
-          dataAccessObject.deleteBatchJobResults(batchJobId);
-        } finally {
-          dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        cancelled = dataAccessObject.cancelBatchJob(batchJobId) == 1;
+        if (cancelled) {
+          try {
+            dataAccessObject.deleteBatchJobResults(batchJobId);
+          } finally {
+            dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
+          }
         }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
     }
     synchronized (workersById) {
       for (final Worker worker : workersById.values()) {
@@ -464,20 +463,24 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   protected void collateAllStatistics() {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
 
-      collateInMemoryStatistics(statisticsByAppAndId);
+        collateInMemoryStatistics(statisticsByAppAndId);
 
-      collateDatabaseStatistics(statisticsByAppAndId);
+        collateDatabaseStatistics(statisticsByAppAndId);
 
-      saveStatistics(statisticsByAppAndId);
+        saveStatistics(statisticsByAppAndId);
 
-      setStatisticsByAppAndId(statisticsByAppAndId);
-      dataAccessObject.commit(transaction);
+        setStatisticsByAppAndId(statisticsByAppAndId);
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
+      }
     } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
+      LoggerFactory.getLogger(getClass()).error("Unable to collate statistics",
+        e);
     }
   }
 
@@ -619,7 +622,7 @@ public class BatchJobService implements ModuleEventListener {
    * 
    * @param batchJobId The DataObject identifier.
    */
-  public void createResults(final long batchJobId) {
+  public void createResults(final AppLog log, final long batchJobId) {
     final DataObject batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
     final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
@@ -650,12 +653,14 @@ public class BatchJobService implements ModuleEventListener {
       boolean hasErrors = false;
       boolean hasResults = false;
       try {
-        final Reader<DataObject> requests = dataAccessObject.getBatchJobExecutionGroupIds(batchJobId);
-        try {
-          for (final DataObject batchJobExecutionGroup : requests) {
-            final long batchJobExecutionGroupId = batchJobExecutionGroup.getLong(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID);
-            final int mask = dataAccessObject.writeGroupResult(
-              batchJobExecutionGroupId, application, resultMetaData,
+        final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
+        if (numSubmittedGroups != null && numSubmittedGroups > 0) {
+          final int groupBatchSize = 100;
+          for (int groupSeqeunceNumber = 0; groupSeqeunceNumber < numSubmittedGroups; groupSeqeunceNumber += groupBatchSize) {
+            final int startIndex = groupSeqeunceNumber + 1;
+            final int endIndex = groupSeqeunceNumber + groupBatchSize;
+            final int mask = dataAccessObject.writeGroupResults(batchJobId,
+              startIndex, endIndex, application, resultMetaData,
               errorResultWriter, structuredResultWriter, defaultProperties);
             if ((mask & 4) > 0) {
               hasErrors = true;
@@ -664,8 +669,6 @@ public class BatchJobService implements ModuleEventListener {
               hasResults = true;
             }
           }
-        } finally {
-          requests.close();
         }
       } finally {
         if (structuredResultWriter != null) {
@@ -687,8 +690,16 @@ public class BatchJobService implements ModuleEventListener {
         FileUtil.closeSilent(errorWriter);
       }
       if (hasResults) {
+        if (log.isInfoEnabled()) {
+          log.info("End\tJob post-process write structued \tbatchJobId="
+            + batchJobId);
+        }
         createBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA,
           resultFormat, structuredResultFile);
+        if (log.isInfoEnabled()) {
+          log.info("Start\tJob post-process write structued \tbatchJobId="
+            + batchJobId);
+        }
       }
       if (hasErrors) {
         createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
@@ -1098,58 +1109,60 @@ public class BatchJobService implements ModuleEventListener {
 
   @Override
   public void moduleChanged(final ModuleEvent event) {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      final String action = event.getAction();
-      final Module module = event.getModule();
-      final String moduleName = module.getName();
-      synchronized (module) {
-        if (action.equals(ModuleEvent.STOP)) {
-          final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
-          message.put("action", "moduleStop");
-          message.put("moduleName", module.getName());
-          message.put("moduleTime", module.getLastStartTime());
-          addWorkerMessage(message);
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final String action = event.getAction();
+        final Module module = event.getModule();
+        final String moduleName = module.getName();
+        synchronized (module) {
+          if (action.equals(ModuleEvent.STOP)) {
+            final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
+            message.put("action", "moduleStop");
+            message.put("moduleName", module.getName());
+            message.put("moduleTime", module.getLastStartTime());
+            addWorkerMessage(message);
 
-          groupsToSchedule.remove(moduleName);
-          for (final Worker worker : getWorkers()) {
-            final String moduleNameAndTime = moduleName + ":"
-              + module.getStartedTime();
-            worker.cancelExecutingGroups(moduleNameAndTime);
+            groupsToSchedule.remove(moduleName);
+            for (final Worker worker : getWorkers()) {
+              final String moduleNameAndTime = moduleName + ":"
+                + module.getStartedTime();
+              worker.cancelExecutingGroups(moduleNameAndTime);
+            }
+          } else if (action.equals(ModuleEvent.START)) {
+            final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
+            message.put("action", "moduleStart");
+            message.put("moduleName", module.getName());
+            message.put("moduleTime", module.getStartedTime());
+            addWorkerMessage(message);
           }
-        } else if (action.equals(ModuleEvent.START)) {
-          final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
-          message.put("action", "moduleStart");
-          message.put("moduleName", module.getName());
-          message.put("moduleTime", module.getStartedTime());
-          addWorkerMessage(message);
-        }
-        final List<String> businessApplicationNames = module.getBusinessApplicationNames();
-        for (final String businessApplicationName : businessApplicationNames) {
-          synchronized (businessApplicationName.intern()) {
-            if (action.equals(ModuleEvent.STOP)) {
-              groupsToSchedule.remove(businessApplicationName);
-            } else if (action.equals(ModuleEvent.START)) {
-              resetProcessingBatchJobs(moduleName, businessApplicationName);
-              resetCreatingRequestsBatchJobs(moduleName,
-                businessApplicationName);
-              resetCreatingResultsBatchJobs(moduleName, businessApplicationName);
-              scheduleFromDatabase(moduleName, businessApplicationName);
-              if (preProcess != null) {
-                preProcess.scheduleFromDatabase(moduleName,
+          final List<String> businessApplicationNames = module.getBusinessApplicationNames();
+          for (final String businessApplicationName : businessApplicationNames) {
+            synchronized (businessApplicationName.intern()) {
+              if (action.equals(ModuleEvent.STOP)) {
+                groupsToSchedule.remove(businessApplicationName);
+              } else if (action.equals(ModuleEvent.START)) {
+                resetProcessingBatchJobs(moduleName, businessApplicationName);
+                resetCreatingRequestsBatchJobs(moduleName,
                   businessApplicationName);
-              }
-              if (postProcess != null) {
-                postProcess.scheduleFromDatabase(moduleName,
+                resetCreatingResultsBatchJobs(moduleName,
                   businessApplicationName);
+                scheduleFromDatabase(moduleName, businessApplicationName);
+                if (preProcess != null) {
+                  preProcess.scheduleFromDatabase(moduleName,
+                    businessApplicationName);
+                }
+                if (postProcess != null) {
+                  postProcess.scheduleFromDatabase(moduleName,
+                    businessApplicationName);
+                }
               }
             }
           }
         }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
     }
 
   }
@@ -1162,79 +1175,77 @@ public class BatchJobService implements ModuleEventListener {
 
   public boolean postProcessBatchJob(final long batchJobId, final long time,
     final long lastChangedTime) {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    com.revolsys.io.Writer<DataObject> writer = null;
     AppLog log = null;
-    try {
-      writer = dataStore.getWriter();
-      final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
-      final StopWatch stopWatch = new StopWatch();
-      stopWatch.start();
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try (
+        com.revolsys.io.Writer<DataObject> writer = dataStore.getWriter();) {
+        final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
 
-      final long numRequests = DataObjectUtil.getInteger(batchJob,
-        BatchJob.NUM_SUBMITTED_REQUESTS);
-      final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-      if (businessApplication == null) {
-        log = getAppLog(businessApplicationName);
-      } else {
-        log = businessApplication.getLog();
+        final long numRequests = DataObjectUtil.getInteger(batchJob,
+          BatchJob.NUM_SUBMITTED_REQUESTS);
+        final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+        final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+        if (businessApplication == null) {
+          log = getAppLog(businessApplicationName);
+        } else {
+          log = businessApplication.getLog();
+        }
+        if (log.isInfoEnabled()) {
+          log.info("Start\tJob post-process\tbatchJobId=" + batchJobId);
+        }
+        final Map<String, Object> postProcessScheduledStatistics = new HashMap<String, Object>();
+        postProcessScheduledStatistics.put("postProcessScheduledJobsTime", time
+          - lastChangedTime);
+        postProcessScheduledStatistics.put("postProcessScheduledJobsCount", 1);
+        addStatistics(businessApplication, postProcessScheduledStatistics);
+
+        createResults(log, batchJobId);
+
+        if (dataAccessObject.setBatchJobCompleted(batchJobId)) {
+          sendNotification(batchJobId, batchJob);
+        }
+        final long numCompletedRequests = DataObjectUtil.getInteger(batchJob,
+          BatchJob.NUM_COMPLETED_REQUESTS);
+        final long numFailedRequests = DataObjectUtil.getInteger(batchJob,
+          BatchJob.NUM_FAILED_REQUESTS);
+        if (log.isInfoEnabled()) {
+          AppLogUtil.infoAfterCommit(log, "End\tJob post-process\tbatchJobId="
+            + batchJobId, stopWatch);
+          AppLogUtil.infoAfterCommit(log, "End\tJob execution\tbatchJobId="
+            + batchJobId);
+        }
+        final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
+
+        final Map<String, Object> postProcessStatistics = new HashMap<String, Object>();
+
+        postProcessStatistics.put("postProcessedTime", stopWatch);
+        postProcessStatistics.put("postProcessedJobsCount", 1);
+        postProcessStatistics.put("postProcessedRequestsCount", numRequests);
+
+        postProcessStatistics.put("completedJobsCount", 1);
+        postProcessStatistics.put("completedRequestsCount",
+          numCompletedRequests + numFailedRequests);
+        postProcessStatistics.put("completedFailedRequestsCount",
+          numFailedRequests);
+        postProcessStatistics.put("completedTime", System.currentTimeMillis()
+          - whenCreated.getTime());
+
+        InvokeMethodAfterCommit.invoke(this, "addStatistics",
+          businessApplication, postProcessStatistics);
+      } catch (final Throwable e) {
+        boolean result = true;
+        if (isDatabaseResourcesException(e)) {
+          error(log, "Tablespace error post-processing job " + batchJobId, e);
+          result = false;
+        } else {
+          error(log, "Error post-processing job " + batchJobId, e);
+        }
+        transaction.setRollbackOnly();
+        return result;
       }
-      if (log.isInfoEnabled()) {
-        log.info("Start\tJob post-process\tbatchJobId=" + batchJobId);
-      }
-      final Map<String, Object> postProcessScheduledStatistics = new HashMap<String, Object>();
-      postProcessScheduledStatistics.put("postProcessScheduledJobsTime", time
-        - lastChangedTime);
-      postProcessScheduledStatistics.put("postProcessScheduledJobsCount", 1);
-      addStatistics(businessApplication, postProcessScheduledStatistics);
-
-      createResults(batchJobId);
-
-      if (dataAccessObject.setBatchJobCompleted(batchJobId)) {
-        sendNotification(batchJobId, batchJob);
-      }
-      final long numCompletedRequests = DataObjectUtil.getInteger(batchJob,
-        BatchJob.NUM_COMPLETED_REQUESTS);
-      final long numFailedRequests = DataObjectUtil.getInteger(batchJob,
-        BatchJob.NUM_FAILED_REQUESTS);
-      if (log.isInfoEnabled()) {
-        AppLogUtil.infoAfterCommit(log, "End\tJob post-process\tbatchJobId="
-          + batchJobId, stopWatch);
-        AppLogUtil.infoAfterCommit(log, "End\tJob execution\tbatchJobId="
-          + batchJobId);
-      }
-      final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
-
-      final Map<String, Object> postProcessStatistics = new HashMap<String, Object>();
-
-      postProcessStatistics.put("postProcessedTime", stopWatch);
-      postProcessStatistics.put("postProcessedJobsCount", 1);
-      postProcessStatistics.put("postProcessedRequestsCount", numRequests);
-
-      postProcessStatistics.put("completedJobsCount", 1);
-      postProcessStatistics.put("completedRequestsCount", numCompletedRequests
-        + numFailedRequests);
-      postProcessStatistics.put("completedFailedRequestsCount",
-        numFailedRequests);
-      postProcessStatistics.put("completedTime", System.currentTimeMillis()
-        - whenCreated.getTime());
-
-      InvokeMethodAfterCommit.invoke(this, "addStatistics",
-        businessApplication, postProcessStatistics);
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      boolean result = true;
-      if (isDatabaseResourcesException(e)) {
-        error(log, "Tablespace error post-processing job " + batchJobId, e);
-        result = false;
-      } else {
-        error(log, "Error post-processing job " + batchJobId, e);
-      }
-      dataAccessObject.rollback(transaction);
-      return result;
-    } finally {
-      AbstractWriter.close(writer);
     }
     return true;
   }
@@ -1251,212 +1262,215 @@ public class BatchJobService implements ModuleEventListener {
       preprocesedJobIds.add(batchJobId);
     }
     AppLog log = null;
-    final DefaultTransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
-      int numSubmittedRequests = 0;
-      final StopWatch stopWatch = new StopWatch();
-      stopWatch.start();
-      final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
-      final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-      if (businessApplication == null) {
-        throw new IllegalArgumentException("Cannot find business application: "
-          + businessApplicationName);
-      }
-      log = businessApplication.getLog();
-      if (log.isInfoEnabled()) {
-        log.info("Start\tJob pre-process\tbatchJobId=" + batchJobId);
-      }
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        final int maxGroupSize = businessApplication.getNumRequestsPerWorker();
-        int numGroups = 0;
-        boolean valid = true;
-        final Map<String, Object> preProcessScheduledStatistics = new HashMap<String, Object>();
-        preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
-        preProcessScheduledStatistics.put("preProcessScheduledJobsTime", time
-          - lastChangedTime);
-
-        InvokeMethodAfterCommit.invoke(this, "addStatistics",
-          businessApplication, preProcessScheduledStatistics);
-
-        addStatistics(businessApplication, preProcessScheduledStatistics);
-
-        final InputStream inputDataStream = getJobInputDataStream(batchJob);
-        int numFailedRequests = batchJob.getInteger(BatchJob.NUM_FAILED_REQUESTS);
+        dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
+        int numSubmittedRequests = 0;
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+        final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+        final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+        if (businessApplication == null) {
+          throw new IllegalArgumentException(
+            "Cannot find business application: " + businessApplicationName);
+        }
+        log = businessApplication.getLog();
+        if (log.isInfoEnabled()) {
+          log.info("Start\tJob pre-process\tbatchJobId=" + batchJobId);
+        }
         try {
-          final Map<String, String> jobParameters = getBusinessApplicationParameters(batchJob);
+          final int maxGroupSize = businessApplication.getNumRequestsPerWorker();
+          int numGroups = 0;
+          boolean valid = true;
+          final Map<String, Object> preProcessScheduledStatistics = new HashMap<String, Object>();
+          preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
+          preProcessScheduledStatistics.put("preProcessScheduledJobsTime", time
+            - lastChangedTime);
 
-          final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
-          final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-          if (!businessApplication.isInputContentTypeSupported(inputContentType)) {
-            valid = addJobValidationError(batchJobId,
-              ErrorCode.BAD_INPUT_DATA_TYPE, "", "");
-          } else if (!businessApplication.isResultContentTypeSupported(resultContentType)) {
-            valid = addJobValidationError(batchJobId,
-              ErrorCode.BAD_RESULT_DATA_TYPE, "", "");
-          } else if (inputDataStream == null) {
-            valid = addJobValidationError(batchJobId,
-              ErrorCode.INPUT_DATA_UNREADABLE, "", "");
-          } else {
-            final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
-            try {
-              final MapReaderFactory factory = IoFactoryRegistry.getInstance()
-                .getFactoryByMediaType(MapReaderFactory.class, inputContentType);
-              if (factory == null) {
-                valid = addJobValidationError(batchJobId,
-                  ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
-                  "Media type not supported");
-              } else {
-                final InputStreamResource resource = new InputStreamResource(
-                  "in", inputDataStream);
-                final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource);
-                if (mapReader == null) {
+          InvokeMethodAfterCommit.invoke(this, "addStatistics",
+            businessApplication, preProcessScheduledStatistics);
+
+          addStatistics(businessApplication, preProcessScheduledStatistics);
+
+          final InputStream inputDataStream = getJobInputDataStream(batchJob);
+          int numFailedRequests = batchJob.getInteger(BatchJob.NUM_FAILED_REQUESTS);
+          try {
+            final Map<String, String> jobParameters = getBusinessApplicationParameters(batchJob);
+
+            final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
+            final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+            if (!businessApplication.isInputContentTypeSupported(inputContentType)) {
+              valid = addJobValidationError(batchJobId,
+                ErrorCode.BAD_INPUT_DATA_TYPE, "", "");
+            } else if (!businessApplication.isResultContentTypeSupported(resultContentType)) {
+              valid = addJobValidationError(batchJobId,
+                ErrorCode.BAD_RESULT_DATA_TYPE, "", "");
+            } else if (inputDataStream == null) {
+              valid = addJobValidationError(batchJobId,
+                ErrorCode.INPUT_DATA_UNREADABLE, "", "");
+            } else {
+              final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
+              try {
+                final MapReaderFactory factory = IoFactoryRegistry.getInstance()
+                  .getFactoryByMediaType(MapReaderFactory.class,
+                    inputContentType);
+                if (factory == null) {
                   valid = addJobValidationError(batchJobId,
                     ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
                     "Media type not supported");
                 } else {
-                  final Reader<DataObject> inputDataReader = new MapReaderDataObjectReader(
-                    requestMetaData, mapReader);
+                  final InputStreamResource resource = new InputStreamResource(
+                    "in", inputDataStream);
+                  final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource);
+                  if (mapReader == null) {
+                    valid = addJobValidationError(batchJobId,
+                      ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
+                      "Media type not supported");
+                  } else {
+                    final Reader<DataObject> inputDataReader = new MapReaderDataObjectReader(
+                      requestMetaData, mapReader);
 
-                  final int commitInterval = 100;
-                  final PlatformTransactionManager transactionManager = dataStore.getTransactionManager();
-                  final TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
-                    TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-                  TransactionStatus status = transactionManager.getTransaction(transactionDefinition);
-                  try {
-                    List<Map<String, Object>> group = new ArrayList<Map<String, Object>>();
-                    for (final Map<String, Object> inputDataRecord : inputDataReader) {
-                      if (group.size() == maxGroupSize) {
-                        numGroups++;
-                        if (createBatchJobExecutionGroup(batchJobId, numGroups,
-                          requestMetaData, group)) {
-                          group = new ArrayList<Map<String, Object>>();
-                          if (numGroups % commitInterval == 0) {
-                            transactionManager.commit(status);
-                            status = transactionManager.getTransaction(transactionDefinition);
+                    final int commitInterval = 100;
+                    final PlatformTransactionManager transactionManager = dataStore.getTransactionManager();
+                    final TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
+                      TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                    TransactionStatus status = transactionManager.getTransaction(transactionDefinition);
+                    try {
+                      List<Map<String, Object>> group = new ArrayList<Map<String, Object>>();
+                      for (final Map<String, Object> inputDataRecord : inputDataReader) {
+                        if (group.size() == maxGroupSize) {
+                          numGroups++;
+                          if (createBatchJobExecutionGroup(batchJobId,
+                            numGroups, requestMetaData, group)) {
+                            group = new ArrayList<Map<String, Object>>();
+                            if (numGroups % commitInterval == 0) {
+                              transactionManager.commit(status);
+                              status = transactionManager.getTransaction(transactionDefinition);
+                            }
+                          } else {
+                            transactionManager.rollback(status);
+                            return true;
                           }
-                        } else {
-                          transactionManager.rollback(status);
-                          return true;
                         }
+                        numSubmittedRequests++;
+                        final Map<String, Object> requestParemeters = processParameters(
+                          batchJob, businessApplication, numSubmittedRequests,
+                          jobParameters, inputDataRecord);
+                        if (requestParemeters == null) {
+                          numFailedRequests++;
+                        } else {
+                          requestParemeters.put("requestSequenceNumber",
+                            numSubmittedRequests);
+                          group.add(requestParemeters);
+                        }
+
                       }
-                      numSubmittedRequests++;
-                      final Map<String, Object> requestParemeters = processParameters(
-                        batchJob, businessApplication, numSubmittedRequests,
-                        jobParameters, inputDataRecord);
-                      if (requestParemeters == null) {
-                        numFailedRequests++;
+                      numGroups++;
+                      if (createBatchJobExecutionGroup(batchJobId, numGroups,
+                        requestMetaData, group)) {
                       } else {
-                        requestParemeters.put("requestSequenceNumber",
-                          numSubmittedRequests);
-                        group.add(requestParemeters);
+                        transactionManager.rollback(status);
+                        return true;
                       }
-
-                    }
-                    numGroups++;
-                    if (createBatchJobExecutionGroup(batchJobId, numGroups,
-                      requestMetaData, group)) {
-                    } else {
+                    } catch (final Throwable e) {
                       transactionManager.rollback(status);
-                      return true;
+                      ExceptionUtil.throwUncheckedException(e);
                     }
-                  } catch (final Throwable e) {
-                    transactionManager.rollback(status);
-                    ExceptionUtil.throwUncheckedException(e);
+                    transactionManager.commit(status);
                   }
-                  transactionManager.commit(status);
-                }
 
-                FileUtil.closeSilent(inputDataStream);
+                  FileUtil.closeSilent(inputDataStream);
 
-                final int maxRequests = businessApplication.getMaxRequestsPerJob();
-                if (numSubmittedRequests == 0) {
-                  valid = addJobValidationError(batchJobId,
-                    ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
-                    String.valueOf(numSubmittedRequests));
-                } else if (numSubmittedRequests > maxRequests) {
-                  valid = addJobValidationError(batchJobId,
-                    ErrorCode.TOO_MANY_REQUESTS, null,
-                    String.valueOf(numSubmittedRequests));
+                  final int maxRequests = businessApplication.getMaxRequestsPerJob();
+                  if (numSubmittedRequests == 0) {
+                    valid = addJobValidationError(batchJobId,
+                      ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
+                      String.valueOf(numSubmittedRequests));
+                  } else if (numSubmittedRequests > maxRequests) {
+                    valid = addJobValidationError(batchJobId,
+                      ErrorCode.TOO_MANY_REQUESTS, null,
+                      String.valueOf(numSubmittedRequests));
+                  }
                 }
-              }
-            } catch (final Throwable e) {
-              if (isDatabaseResourcesException(e)) {
-                LoggerFactory.getLogger(getClass()).error(
-                  "Tablespace error pre-processing job " + batchJobId, e);
-                return false;
-              } else {
-                LoggerFactory.getLogger(getClass()).error(
-                  "Error pre-processing job " + batchJobId, e);
-                final StringWriter errorDebugMessage = new StringWriter();
-                e.printStackTrace(new PrintWriter(errorDebugMessage));
-                valid = addJobValidationError(batchJobId,
-                  ErrorCode.ERROR_PROCESSING_REQUEST,
-                  errorDebugMessage.toString(), e.getMessage());
+              } catch (final Throwable e) {
+                if (isDatabaseResourcesException(e)) {
+                  LoggerFactory.getLogger(getClass()).error(
+                    "Tablespace error pre-processing job " + batchJobId, e);
+                  return false;
+                } else {
+                  LoggerFactory.getLogger(getClass()).error(
+                    "Error pre-processing job " + batchJobId, e);
+                  final StringWriter errorDebugMessage = new StringWriter();
+                  e.printStackTrace(new PrintWriter(errorDebugMessage));
+                  valid = addJobValidationError(batchJobId,
+                    ErrorCode.ERROR_PROCESSING_REQUEST,
+                    errorDebugMessage.toString(), e.getMessage());
+                }
               }
             }
+          } finally {
+            FileUtil.closeSilent(inputDataStream);
           }
-        } finally {
-          FileUtil.closeSilent(inputDataStream);
-        }
 
-        if (!valid || numSubmittedRequests == numFailedRequests) {
-          valid = false;
-          if (dataAccessObject.setBatchJobRequestsFailed(batchJobId,
+          if (!valid || numSubmittedRequests == numFailedRequests) {
+            valid = false;
+            if (dataAccessObject.setBatchJobRequestsFailed(batchJobId,
+              numSubmittedRequests, numFailedRequests, maxGroupSize, numGroups)) {
+              postProcess(batchJobId);
+            } else {
+              dataAccessObject.setBatchJobStatus(batchJobId,
+                BatchJob.CREATING_REQUESTS, BatchJob.SUBMITTED);
+            }
+          } else if (dataAccessObject.setBatchJobRequestsCreated(batchJobId,
             numSubmittedRequests, numFailedRequests, maxGroupSize, numGroups)) {
-            postProcess(batchJobId);
-          } else {
-            dataAccessObject.setBatchJobStatus(batchJobId,
-              BatchJob.CREATING_REQUESTS, BatchJob.SUBMITTED);
+            schedule(businessApplicationName, batchJobId);
           }
-        } else if (dataAccessObject.setBatchJobRequestsCreated(batchJobId,
-          numSubmittedRequests, numFailedRequests, maxGroupSize, numGroups)) {
-          schedule(businessApplicationName, batchJobId);
-        }
-        final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
-        preProcessStatistics.put("preProcessedTime", stopWatch);
-        preProcessStatistics.put("preProcessedJobsCount", 1);
-        preProcessStatistics.put("preProcessedRequestsCount",
-          numSubmittedRequests);
-
-        InvokeMethodAfterCommit.invoke(this, "addStatistics",
-          businessApplication, preProcessStatistics);
-
-        if (!valid) {
-          final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
-
-          final Map<String, Object> jobCompletedStatistics = new HashMap<String, Object>();
-
-          jobCompletedStatistics.put("completedJobsCount", 1);
-          jobCompletedStatistics.put("completedRequestsCount",
-            numFailedRequests);
-          jobCompletedStatistics.put("completedFailedRequestsCount",
-            numFailedRequests);
-          jobCompletedStatistics.put("completedTime",
-            System.currentTimeMillis() - whenCreated.getTime());
+          final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
+          preProcessStatistics.put("preProcessedTime", stopWatch);
+          preProcessStatistics.put("preProcessedJobsCount", 1);
+          preProcessStatistics.put("preProcessedRequestsCount",
+            numSubmittedRequests);
 
           InvokeMethodAfterCommit.invoke(this, "addStatistics",
-            businessApplication, jobCompletedStatistics);
+            businessApplication, preProcessStatistics);
+
+          if (!valid) {
+            final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
+
+            final Map<String, Object> jobCompletedStatistics = new HashMap<String, Object>();
+
+            jobCompletedStatistics.put("completedJobsCount", 1);
+            jobCompletedStatistics.put("completedRequestsCount",
+              numFailedRequests);
+            jobCompletedStatistics.put("completedFailedRequestsCount",
+              numFailedRequests);
+            jobCompletedStatistics.put("completedTime",
+              System.currentTimeMillis() - whenCreated.getTime());
+
+            InvokeMethodAfterCommit.invoke(this, "addStatistics",
+              businessApplication, jobCompletedStatistics);
+          }
+        } finally {
+          if (log.isInfoEnabled()) {
+            AppLogUtil.infoAfterCommit(log, "End\tJob pre-process\tbatchJobId="
+              + batchJobId);
+          }
         }
-      } finally {
-        if (log.isInfoEnabled()) {
-          AppLogUtil.infoAfterCommit(log, "End\tJob pre-process\tbatchJobId="
-            + batchJobId);
+        synchronized (preprocesedJobIds) {
+          preprocesedJobIds.remove(batchJobId);
         }
+
+      } catch (final Throwable e) {
+        synchronized (preprocesedJobIds) {
+          preprocesedJobIds.remove(batchJobId);
+        }
+        dataAccessObject.setBatchJobStatus(batchJobId,
+          BatchJob.CREATING_REQUESTS, BatchJob.SUBMITTED);
+        error(log, "Error\tJob pre-process\tbatchJobId=" + batchJobId, e);
+        throw transaction.setRollbackOnly(e);
       }
-      synchronized (preprocesedJobIds) {
-        preprocesedJobIds.remove(batchJobId);
-      }
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      synchronized (preprocesedJobIds) {
-        preprocesedJobIds.remove(batchJobId);
-      }
-      error(log, "Error\tJob pre-process\tbatchJobId=" + batchJobId, e);
-      dataAccessObject.rollback(transaction);
-      dataAccessObject.setBatchJobStatus(batchJobId,
-        BatchJob.CREATING_REQUESTS, BatchJob.SUBMITTED);
     }
     return true;
   }
@@ -1775,108 +1789,111 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public boolean scheduleBatchJobExecutionGroups(final Long batchJobId) {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      final StopWatch stopWatch = new StopWatch();
-      stopWatch.start();
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
 
-      final long start = System.currentTimeMillis();
-      final Timestamp startTime = new Timestamp(start);
-      final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
-      dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.REQUESTS_CREATED,
-        BatchJob.PROCESSING);
-      if (batchJob == null) {
-        return false;
-      } else {
-        final String consumerKey = batchJob.getValue(BatchJob.USER_ID);
-
-        final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-
-        final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-        if (businessApplication == null) {
+        final long start = System.currentTimeMillis();
+        final Timestamp startTime = new Timestamp(start);
+        final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+        dataAccessObject.setBatchJobStatus(batchJobId,
+          BatchJob.REQUESTS_CREATED, BatchJob.PROCESSING);
+        if (batchJob == null) {
           return false;
         } else {
-          final AppLog log = businessApplication.getLog();
-          if (log.isInfoEnabled()) {
-            log.info("Start\tJob schedule\tbatchJobId=" + batchJobId);
-          }
-          try {
-            final Map<String, String> businessApplicationParameterMap = getBusinessApplicationParameters(batchJob);
-            final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+          final String consumerKey = batchJob.getValue(BatchJob.USER_ID);
 
-            final Long batchJobExecutionGroupId = dataAccessObject.getNonExecutingRequestId(batchJobId);
+          final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
 
-            if (batchJobExecutionGroupId == null) {
-              return false;
-            } else {
-              dataAccessObject.setBatchJobExecutionGroupsStarted(batchJobExecutionGroupId);
-
-              dataAccessObject.updateBatchJobAddScheduledGroupCount(batchJobId,
-                startTime);
-
-              final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(
-                consumerKey, batchJobId, businessApplication,
-                businessApplicationParameterMap, resultDataContentType,
-                new Timestamp(System.currentTimeMillis()),
-                batchJobExecutionGroupId);
-
-              InvokeMethodAfterCommit.invoke(this, "schedule", group);
-
-              final Map<String, Object> statistics = new HashMap<String, Object>();
-              statistics.put("executeScheduledTime", stopWatch);
-              statistics.put("executeScheduledGroupsCount", 1);
-
-              InvokeMethodAfterCommit.invoke(this, "addStatistics",
-                businessApplication, statistics);
-              return true;
-            }
-          } finally {
+          final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+          if (businessApplication == null) {
+            return false;
+          } else {
+            final AppLog log = businessApplication.getLog();
             if (log.isInfoEnabled()) {
-              AppLogUtil.infoAfterCommit(log, "End\tJob schedule\tbatchJobId="
-                + batchJobId, stopWatch);
+              log.info("Start\tJob schedule\tbatchJobId=" + batchJobId);
             }
-            dataAccessObject.commit(transaction);
+            try {
+              final Map<String, String> businessApplicationParameterMap = getBusinessApplicationParameters(batchJob);
+              final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+              final Long batchJobExecutionGroupId = dataAccessObject.getNonExecutingRequestId(batchJobId);
+
+              if (batchJobExecutionGroupId == null) {
+                return false;
+              } else {
+                dataAccessObject.setBatchJobExecutionGroupsStarted(batchJobExecutionGroupId);
+
+                dataAccessObject.updateBatchJobAddScheduledGroupCount(
+                  batchJobId, startTime);
+
+                final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(
+                  consumerKey, batchJobId, businessApplication,
+                  businessApplicationParameterMap, resultDataContentType,
+                  new Timestamp(System.currentTimeMillis()),
+                  batchJobExecutionGroupId);
+
+                InvokeMethodAfterCommit.invoke(this, "schedule", group);
+
+                final Map<String, Object> statistics = new HashMap<String, Object>();
+                statistics.put("executeScheduledTime", stopWatch);
+                statistics.put("executeScheduledGroupsCount", 1);
+
+                InvokeMethodAfterCommit.invoke(this, "addStatistics",
+                  businessApplication, statistics);
+                return true;
+              }
+            } finally {
+              if (log.isInfoEnabled()) {
+                AppLogUtil.infoAfterCommit(log,
+                  "End\tJob schedule\tbatchJobId=" + batchJobId, stopWatch);
+              }
+            }
           }
         }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
     }
-    return false;
   }
 
   public void scheduleFromDatabase() {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      for (final Module module : businessApplicationRegistry.getModules()) {
-        if (module.isStarted()) {
-          final String moduleName = module.getName();
-          for (final String businessApplicationName : module.getBusinessApplicationNames()) {
-            scheduleFromDatabase(moduleName, businessApplicationName);
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        for (final Module module : businessApplicationRegistry.getModules()) {
+          if (module.isStarted()) {
+            final String moduleName = module.getName();
+            for (final String businessApplicationName : module.getBusinessApplicationNames()) {
+              scheduleFromDatabase(moduleName, businessApplicationName);
+            }
           }
         }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
     }
   }
 
   public void scheduleFromDatabase(final String jobStatus) {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      for (final Module module : businessApplicationRegistry.getModules()) {
-        if (module.isEnabled()) {
-          final String moduleName = module.getName();
-          for (final BusinessApplication businessApplication : module.getBusinessApplications()) {
-            final String businessApplicationName = businessApplication.getName();
-            scheduleFromDatabase(moduleName, businessApplicationName, jobStatus);
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        for (final Module module : businessApplicationRegistry.getModules()) {
+          if (module.isEnabled()) {
+            final String moduleName = module.getName();
+            for (final BusinessApplication businessApplication : module.getBusinessApplications()) {
+              final String businessApplicationName = businessApplication.getName();
+              scheduleFromDatabase(moduleName, businessApplicationName,
+                jobStatus);
+            }
           }
         }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
     }
   }
 
@@ -1895,23 +1912,23 @@ public class BatchJobService implements ModuleEventListener {
   public void scheduleFromDatabase(final String moduleName,
     final String businessApplicationName, final String jobStatus) {
     final AppLog log = getAppLog(businessApplicationName);
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      final List<Long> batchJobIds = dataAccessObject.getBatchJobIds(
-        businessApplicationName, jobStatus);
-      for (final Long batchJobId : batchJobIds) {
-        if (jobStatus.equals(BatchJob.SUBMITTED)) {
-          log.info("Pre-process from database\tbatchJobId=" + batchJobId);
-          preProcess.schedule(batchJobId);
-        } else if (jobStatus.equals(BatchJob.PROCESSED)) {
-          log.info("Post-process from database\tbatchJobId=" + batchJobId);
-          postProcess.schedule(batchJobId);
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final List<Long> batchJobIds = dataAccessObject.getBatchJobIds(
+          businessApplicationName, jobStatus);
+        for (final Long batchJobId : batchJobIds) {
+          if (jobStatus.equals(BatchJob.SUBMITTED)) {
+            log.info("Pre-process from database\tbatchJobId=" + batchJobId);
+            preProcess.schedule(batchJobId);
+          } else if (jobStatus.equals(BatchJob.PROCESSED)) {
+            log.info("Post-process from database\tbatchJobId=" + batchJobId);
+            postProcess.schedule(batchJobId);
+          }
         }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable t) {
-      dataAccessObject.rollback(transaction);
-      log.error("Unable to schedule from database", t);
     }
   }
 
@@ -2039,32 +2056,33 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setBatchJobExecutingCounts(final String businessApplicationName,
     final Long batchJobId, final Set<BatchJobRequestExecutionGroup> groups) {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      synchronized (businessApplicationName.intern()) {
-        int numCompletedRequests = 0;
-        int numFailedRequests = 0;
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        synchronized (businessApplicationName.intern()) {
+          int numCompletedRequests = 0;
+          int numFailedRequests = 0;
 
-        int numGroups = 0;
-        for (final BatchJobRequestExecutionGroup group : groups) {
-          numCompletedRequests += group.getNumCompletedRequests();
-          numFailedRequests += group.getNumFailedRequests();
-          numGroups++;
+          int numGroups = 0;
+          for (final BatchJobRequestExecutionGroup group : groups) {
+            numCompletedRequests += group.getNumCompletedRequests();
+            numFailedRequests += group.getNumFailedRequests();
+            numGroups++;
+          }
+          dataAccessObject.updateBatchJobGroupCompleted(batchJobId,
+            numCompletedRequests, numFailedRequests, numGroups);
         }
-        dataAccessObject.updateBatchJobGroupCompleted(batchJobId,
-          numCompletedRequests, numFailedRequests, numGroups);
-      }
 
-      if (dataAccessObject.isBatchJobCompleted(batchJobId)) {
-        dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.PROCESSING,
-          BatchJob.PROCESSED);
-        postProcess(batchJobId);
-      } else if (dataAccessObject.hasBatchJobUnexecutedJobs(batchJobId)) {
-        schedule(businessApplicationName, batchJobId);
+        if (dataAccessObject.isBatchJobCompleted(batchJobId)) {
+          dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.PROCESSING,
+            BatchJob.PROCESSED);
+          postProcess(batchJobId);
+        } else if (dataAccessObject.hasBatchJobUnexecutedJobs(batchJobId)) {
+          schedule(businessApplicationName, batchJobId);
+        }
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
       }
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
     }
   }
 
@@ -2140,7 +2158,6 @@ public class BatchJobService implements ModuleEventListener {
     this.compressData = compressData;
   }
 
-  @Resource(name = "cpfDataAccessObject")
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
   }
@@ -2186,7 +2203,6 @@ public class BatchJobService implements ModuleEventListener {
     this.statisticsByAppAndId = statisticsByAppAndId;
   }
 
-  @Resource(name = "cpfStatisticsProcess")
   public void setStatisticsProcess(final StatisticsProcess statisticsProcess) {
     this.statisticsProcess = statisticsProcess;
     statisticsProcess.getIn().writeConnect();

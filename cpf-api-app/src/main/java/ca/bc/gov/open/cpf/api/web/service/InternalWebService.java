@@ -337,7 +337,7 @@ public class InternalWebService {
                 }
               } finally {
                 FileUtil.closeSilent(in);
-                file.delete();
+                FileUtil.deleteDirectory(file);
               }
             }
           }

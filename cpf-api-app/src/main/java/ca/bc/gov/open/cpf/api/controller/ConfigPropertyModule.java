@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.transaction.TransactionStatus;
-
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -16,6 +14,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModuleLoader;
 
 import com.revolsys.maven.MavenPom;
 import com.revolsys.maven.MavenRepository;
+import com.revolsys.transaction.Propagation;
+import com.revolsys.transaction.Transaction;
 
 public class ConfigPropertyModule extends ClassLoaderModule {
 
@@ -49,38 +49,40 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
     if (isEnabled()) {
       if (!isStarted()) {
-        final TransactionStatus status = dataAccessObject.createNewTransaction();
-        try {
+        try (
+          Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
           try {
-            clearModuleError();
+            try {
+              clearModuleError();
 
-            final ClassLoader classLoader = getClassLoader();
-            final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
-              classLoader, false);
-            if (configUrls.size() == 1) {
-              final URL configUrl = configUrls.get(0);
-              setConfigUrl(configUrl);
-              setClassLoader(classLoader);
-            } else if (configUrls.isEmpty()) {
-              addModuleError("No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
-            } else {
-              addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
+              final ClassLoader classLoader = getClassLoader();
+              final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
+                classLoader, false);
+              if (configUrls.size() == 1) {
+                final URL configUrl = configUrls.get(0);
+                setConfigUrl(configUrl);
+                setClassLoader(classLoader);
+              } else if (configUrls.isEmpty()) {
+                addModuleError("No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
+              } else {
+                addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
+              }
+              if (!isHasError()) {
+                super.doStart();
+              }
+            } catch (final Throwable e) {
+              transaction.setRollbackOnly();
+              addModuleError(e);
             }
-            if (!isHasError()) {
-              super.doStart();
+            if (isHasError()) {
+              doStop();
+            } else {
+              final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+              batchJobService.collateStatistics();
             }
           } catch (final Throwable e) {
-            addModuleError(e);
+            throw transaction.setRollbackOnly(e);
           }
-          if (isHasError()) {
-            doStop();
-          } else {
-            final BatchJobService batchJobService = moduleLoader.getBatchJobService();
-            batchJobService.collateStatistics();
-          }
-          dataAccessObject.commit(status);
-        } catch (final Throwable e) {
-          dataAccessObject.handleException(status, e);
         }
       }
     } else {
@@ -91,19 +93,20 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   @Override
   public void doStop() {
     if (isStarted()) {
-      final TransactionStatus status = dataAccessObject.createNewTransaction();
-      try {
-        final List<String> businessApplicationNames = getBusinessApplicationNames();
-        setStartedDate(null);
+      try (
+        Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+        try {
+          final List<String> businessApplicationNames = getBusinessApplicationNames();
+          setStartedDate(null);
 
-        super.doStop();
-        setClassLoader(null);
-        setConfigUrl(null);
-        final BatchJobService batchJobService = moduleLoader.getBatchJobService();
-        batchJobService.scheduleSaveStatistics(businessApplicationNames);
-        dataAccessObject.commit(status);
-      } catch (final Throwable e) {
-        dataAccessObject.handleException(status, e);
+          super.doStop();
+          setClassLoader(null);
+          setConfigUrl(null);
+          final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+          batchJobService.scheduleSaveStatistics(businessApplicationNames);
+        } catch (final Throwable e) {
+          throw transaction.setRollbackOnly(e);
+        }
       }
     } else if (isEnabled()) {
       setStatus("Stopped");
@@ -156,17 +159,18 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   @Override
   protected void preLoadApplications() {
-    final TransactionStatus transaction = dataAccessObject.createNewTransaction();
-    try {
-      moduleLoader.refreshConfigProperties(this);
-      moduleLoader.refreshUserGroup(this, "_ADMIN",
-        "Application administrator for ");
-      moduleLoader.refreshUserGroup(this, "_SECURITY",
-        "Security administrator for ");
-      moduleLoader.refreshUserGroups(this);
-      dataAccessObject.commit(transaction);
-    } catch (final Throwable e) {
-      dataAccessObject.handleException(transaction, e);
+    try (
+      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        moduleLoader.refreshConfigProperties(this);
+        moduleLoader.refreshUserGroup(this, "_ADMIN",
+          "Application administrator for ");
+        moduleLoader.refreshUserGroup(this, "_SECURITY",
+          "Security administrator for ");
+        moduleLoader.refreshUserGroups(this);
+      } catch (final Throwable e) {
+        throw transaction.setRollbackOnly(e);
+      }
     }
   }
 

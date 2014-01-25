@@ -128,12 +128,14 @@
     p:batchJobService-ref="batchJobService"
     p:batchJobUiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder"
     p:batchJobResultUiBuilder-ref="/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder"
-    p:businessAppBuilder-ref="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder"
-   />
+    p:businessAppBuilder-ref="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder" />
 
   <bean
     id="cpfClientDeprecatedService"
-    class="ca.bc.gov.open.cpf.api.web.controller.DeprecatedController" />
+    class="ca.bc.gov.open.cpf.api.web.controller.DeprecatedController"
+    p:batchJobUiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder"
+    p:batchJobResultUiBuilder-ref="/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder"
+    p:businessApplicationUiBuilder-ref="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder" />
 
   <bean
     id="cpfInternal"

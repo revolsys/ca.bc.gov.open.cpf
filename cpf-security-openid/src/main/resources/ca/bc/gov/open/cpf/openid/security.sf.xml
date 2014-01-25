@@ -92,7 +92,7 @@
         <property name="exceptionMappings">
           <map>
             <entry
-              key="org.springframework.security.DisabledException"
+              key="org.springframework.security.DisabledException" 
               value="/openid/login/disabled" />
           </map>
         </property>
@@ -109,7 +109,8 @@
     id="cpfOpenIdUserDetailsService"
     class="ca.bc.gov.open.cpf.openid.OpenIdUserDetailsService"
     p:userAccountClass="OPENID"
-    p:autoCreateUsers="true" />
+    p:autoCreateUsers="true"
+    p:userAccountSecurityService-ref="userAccountSecurityService" />
 
   <bean
     id="cpfOpenIdAccessDecisionManager"

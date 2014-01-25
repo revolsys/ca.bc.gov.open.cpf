@@ -1,6 +1,7 @@
 package ca.bc.gov.open.cpf.plugin.impl.module;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -271,6 +272,13 @@ public class ClassLoaderModule implements Module {
   @PreDestroy
   public void destroy() {
     doStop();
+    if (classLoader instanceof URLClassLoader) {
+      final URLClassLoader urlClassLoader = (URLClassLoader)classLoader;
+      try {
+        urlClassLoader.close();
+      } catch (final IOException e) {
+      }
+    }
     classLoader = null;
     businessApplicationRegistry = null;
   }

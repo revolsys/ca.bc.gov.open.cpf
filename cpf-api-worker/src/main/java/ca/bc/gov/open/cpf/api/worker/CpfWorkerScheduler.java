@@ -206,6 +206,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     }
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   protected void afterExecute(final Runnable runnable, final Throwable e) {
     if (runnable instanceof FutureTask) {
@@ -258,7 +259,17 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   @PreDestroy
   public void destroy() {
     running = false;
-    getProcessNetwork().stop();
+    if (processNetwork != null) {
+      processNetwork.stop();
+    }
+
+    businessApplicationRegistry = null;
+    configPropertyLoader = null;
+    futureTaskByGroupId.clear();
+    groupIdByFutureTask.clear();
+    messages.clear();
+    processNetwork = null;
+
     this.httpClient = null;
     shutdownNow();
     if (securityServiceFactory != null) {

@@ -45,13 +45,16 @@
 
   <bean
     id="authorizationService"
-    class="ca.bc.gov.open.cpf.api.security.service.BaseAuthorizationService" />
+    class="ca.bc.gov.open.cpf.api.security.service.BaseAuthorizationService"
+    p:dataAccessObject-ref="cpfDataAccessObject"
+    p:userAccountSecurityService-ref="userAccountSecurityService" />
 
   <bean
     id="batchJobService"
     class="ca.bc.gov.open.cpf.api.scheduler.BatchJobService"
     p:businessApplicationRegistry-ref="businessApplicationRegistry"
     p:authorizationService-ref="authorizationService"
+    p:dataAccessObject-ref="cpfDataAccessObject"
     p:maxWorkerWaitTime="60"
     p:mailSender-ref="mailSender"
     p:fromEmail="noreply@localhost"

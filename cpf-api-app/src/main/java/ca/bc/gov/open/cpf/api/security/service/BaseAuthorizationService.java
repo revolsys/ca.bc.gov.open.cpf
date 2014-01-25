@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Required;
 
@@ -110,13 +109,11 @@ public class BaseAuthorizationService implements AuthorizationService {
     }
   }
 
-  @Resource(name = "cpfDataAccessObject")
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
   }
 
   @Required
-  @Resource(name = "userAccountSecurityService")
   public void setUserAccountSecurityService(
     final UserAccountSecurityService userAccountSecurityService) {
     this.userAccountSecurityService = userAccountSecurityService;
