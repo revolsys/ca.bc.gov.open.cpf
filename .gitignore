@@ -5,3 +5,4 @@
 target
 *.log
 *.stackdump
+/cpf-app-war
