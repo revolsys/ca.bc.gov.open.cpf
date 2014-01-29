@@ -37,6 +37,7 @@ import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.web.controller.CpfFileController;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -59,6 +60,8 @@ public class InternalWebService {
   private CpfDataAccessObject dataAccessObject;
 
   private String webServiceUrl = "http://localhost/cpf";
+
+  private CpfFileController fileController;
 
   private void addConfigProperties(
     final Map<String, Map<String, Object>> configProperties,
@@ -83,16 +86,18 @@ public class InternalWebService {
     batchJobService = null;
     configPropertyLoader = null;
     dataAccessObject = null;
+    fileController = null;
   }
 
-  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{batchJobExecutionGroupIds}/inputData")
+  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{sequenceNumber}/inputData")
   public void getBatchJobExecutionGroupOpaqueInputData(
     @PathVariable("workerId") final String workerId,
     final HttpServletResponse response, @PathVariable final long batchJobId,
-    @PathVariable final long batchJobExecutionGroupId)
+    @PathVariable final long sequenceNumber)
     throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
+    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(
+      batchJobId, sequenceNumber);
     if (batchJobExecutionGroup == null) {
       throw new NoSuchRequestHandlingMethodException(
         HttpServletUtils.getRequest());
@@ -179,19 +184,21 @@ public class InternalWebService {
             group.getResultDataContentType());
         }
 
-        final Long batchJobExecutionGroupId = group.getBatchJobExecutionGroupId();
-        final DataObject jobRequest = dataAccessObject.getBatchJobExecutionGroup(batchJobExecutionGroupId);
+        final long groupSequenceNumber = group.getSequenceNumber();
         if (businessApplication.isPerRequestInputData()) {
+          final DataObject executionGroup = dataAccessObject.getBatchJobExecutionGroup(
+            batchJobId, groupSequenceNumber);
           final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
           groupSpecification.put("requests", requestParameterList);
           final Map<String, Object> requestParameters = new HashMap<String, Object>();
-          requestParameters.put("batchJobExecutionGroupId",
-            batchJobExecutionGroupId);
-          requestParameters.put("inputDataContentType",
-            jobRequest.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE));
+          requestParameters.put("sequenceNumber", groupSequenceNumber);
+          requestParameters.put(
+            "inputDataContentType",
+            executionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE));
           requestParameterList.add(requestParameters);
         } else {
-          final String structuredInputData = jobRequest.getString(BatchJobExecutionGroup.STRUCTURED_INPUT_DATA);
+          final String structuredInputData = fileController.getStructuredInputData(
+            batchJobId, groupSequenceNumber);
           if (structuredInputData.charAt(0) == '{') {
             groupSpecification.put("requests", new StringPrinter(
               structuredInputData));
@@ -527,6 +534,7 @@ public class InternalWebService {
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
     this.dataAccessObject = batchJobService.getDataAccessObject();
+    this.fileController = batchJobService.getfileController();
   }
 
   public void setConfigPropertyLoader(

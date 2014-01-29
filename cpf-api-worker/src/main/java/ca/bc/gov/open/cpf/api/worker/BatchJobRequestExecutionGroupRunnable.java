@@ -112,8 +112,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   /**
    * <h2>Fields</h2>
    * 
-   * batchJobExecutionGroupId long
-   * requestSequenceNumber long
+   * groupId long
+   * sequenceNumber long
    * perRequestResultData boolean
    * 
    * errorCode String
@@ -136,12 +136,12 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     final StopWatch requestStopWatch = new StopWatch("Request");
     requestStopWatch.start();
 
-    final Number requestSequenceNumber = (Number)requestParameters.remove("requestSequenceNumber");
+    final Number requestSequenceNumber = (Number)requestParameters.remove("sequenceNumber");
     final boolean perRequestResultData = businessApplication.isPerRequestResultData();
 
     final Map<String, Object> requestResult = new LinkedHashMap<String, Object>();
-    requestResult.put("batchJobExecutionGroupId", groupId);
-    requestResult.put("requestSequenceNumber", requestSequenceNumber);
+    requestResult.put("groupId", groupId);
+    requestResult.put("sequenceNumber", requestSequenceNumber);
     requestResult.put("perRequestResultData", perRequestResultData);
 
     boolean hasError = true;
@@ -161,7 +161,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           // TODO urls for per request input data
           // final String inputDataUrl = httpClient.getOAuthUrl("GET",
           // "/worker/workers/" + workerId + "/jobs/" + batchJobId
-          // + "/groups/" + groupId + "/requests/" + batchJobExecutionGroupId
+          // + "/groups/" + groupId + "/requests/" + sequenceNumber
           // + "/inputData");
           // parameters.put("inputDataUrl", inputDataUrl);
         }

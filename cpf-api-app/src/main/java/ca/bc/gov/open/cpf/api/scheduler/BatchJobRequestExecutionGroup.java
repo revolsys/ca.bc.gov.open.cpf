@@ -10,8 +10,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 public class BatchJobRequestExecutionGroup {
   private final long batchJobId;
 
-  private final Long batchJobExecutionGroupId;
-
   private final BusinessApplication businessApplication;
 
   private final Map<String, String> businessApplicationParameterMap;
@@ -36,11 +34,13 @@ public class BatchJobRequestExecutionGroup {
 
   private boolean cancelled = false;
 
+  private final long sequenceNumber;
+
   public BatchJobRequestExecutionGroup(final String consumerKey,
     final long batchJobId, final BusinessApplication businessApplication,
     final Map<String, String> businessApplicationParameterMap,
     final String resultDataContentType, final Timestamp scheduleTimestamp,
-    final Long batchJobExecutionGroupId) {
+    final long sequenceNumber) {
     this.consumerKey = consumerKey;
     this.batchJobId = batchJobId;
     this.businessApplication = businessApplication;
@@ -48,7 +48,7 @@ public class BatchJobRequestExecutionGroup {
     this.businessApplicationParameterMap = businessApplicationParameterMap;
     this.resultDataContentType = resultDataContentType;
     this.scheduleTimestamp = scheduleTimestamp;
-    this.batchJobExecutionGroupId = batchJobExecutionGroupId;
+    this.sequenceNumber = sequenceNumber;
     resetId();
   }
 
@@ -64,10 +64,6 @@ public class BatchJobRequestExecutionGroup {
     } else {
       return false;
     }
-  }
-
-  public Long getBatchJobExecutionGroupId() {
-    return batchJobExecutionGroupId;
   }
 
   public long getBatchJobId() {
@@ -122,6 +118,10 @@ public class BatchJobRequestExecutionGroup {
     return scheduleTimestamp;
   }
 
+  public long getSequenceNumber() {
+    return sequenceNumber;
+  }
+
   public Timestamp getStartedTimestamp() {
     return scheduleTimestamp;
   }
@@ -136,8 +136,7 @@ public class BatchJobRequestExecutionGroup {
   }
 
   public void resetId() {
-    id = batchJobId + "-" + batchJobExecutionGroupId + "-"
-      + attempt.incrementAndGet();
+    id = batchJobId + "-" + sequenceNumber + "-" + attempt.incrementAndGet();
   }
 
   public void setExecutionStartTime(final long executionStartTime) {

@@ -2,8 +2,6 @@ package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,8 +10,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
-import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +19,7 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;
@@ -78,31 +75,27 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
       response.setHeader("Location", resultDataUrl);
     } else {
-      try {
-        final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
-        final InputStream in = resultData.getBinaryStream();
-        final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
-        response.setContentType(resultDataContentType);
-        final long size = resultData.length();
+      final BatchJobService batchJobService = getBatchJobService();
+      final InputStream in = batchJobService.getBatchJobResultData(batchJobId,
+        batchJobResultId, batchJobResult);
+      final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+      response.setContentType(resultDataContentType);
+      final long size = batchJobService.getBatchJobResultSize(batchJobId,
+        batchJobResultId, batchJobResult);
 
-        final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-          .getFactoryByMediaType(DataObjectWriterFactory.class,
-            resultDataContentType);
-        if (writerFactory != null) {
-          final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
-          final String fileName = "job-" + batchJobId + "-result-"
-            + batchJobResultId + "." + fileExtension;
-          response.setHeader("Content-Disposition", "attachment; filename="
-            + fileName + ";size=" + size);
-        }
-        final ServletOutputStream out = response.getOutputStream();
-
-        FileUtil.copy(in, out);
-      } catch (final SQLException e) {
-        Logger.getLogger(getClass()).error("Unable to get result data", e);
-        throw new HttpMessageNotWritableException("Unable to get result data",
-          e);
+      final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+        .getFactoryByMediaType(DataObjectWriterFactory.class,
+          resultDataContentType);
+      if (writerFactory != null) {
+        final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
+        final String fileName = "job-" + batchJobId + "-result-"
+          + batchJobResultId + "." + fileExtension;
+        response.setHeader("Content-Disposition", "attachment; filename="
+          + fileName + ";size=" + size);
       }
+      final ServletOutputStream out = response.getOutputStream();
+
+      FileUtil.copy(in, out);
     }
   }
 

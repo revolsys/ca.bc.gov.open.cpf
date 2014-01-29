@@ -96,12 +96,6 @@
               p:pageName="moduleAppView"
               p:uiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder" />
             <value>SEQUENCE_NUMBER</value>
-            <bean
-              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
-              p:name="BATCH_JOB_EXECUTION_GROUP_ID"
-              p:label="Request"
-              p:pageName="moduleAppJobView"
-              p:uiBuilder-ref="/CPF/CPF_BATCH_JOB_EXECUTION_GROUPS-htmlbuilder" />
             <value>BATCH_JOB_RESULT_TYPE</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
             <value>DOWNLOAD_TIMESTAMP</value>

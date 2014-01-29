@@ -24,11 +24,11 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.model.data.equals.EqualsInstance;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -41,27 +41,24 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
   public BatchJobExecutionGroupUiBuilder() {
     super("batchJobExecutionGroup",
       BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
-      BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP_ID, "Batch Job Request",
+      BatchJobExecutionGroup.SEQUENCE_NUMBER, "Batch Job Request",
       "Batch Job Requests");
   }
 
   public DataObject getBatchJobExecutionGroup(final Long batchJobId,
-    final Long batchJobExecutionGroupId)
-    throws NoSuchRequestHandlingMethodException {
-    final DataObject batchJobExecutionGroup = loadObject(batchJobExecutionGroupId);
-    if (batchJobExecutionGroup != null) {
-      if (EqualsInstance.INSTANCE.equals(
-        batchJobExecutionGroup.getValue(BatchJobExecutionGroup.BATCH_JOB_ID),
-        batchJobId)) {
-        return batchJobExecutionGroup;
-      }
+    final Long sequenceNumber) throws NoSuchRequestHandlingMethodException {
+    final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(
+      batchJobId, sequenceNumber);
+    if (batchJobExecutionGroup == null) {
+      throw new NoSuchRequestHandlingMethodException(getRequest());
     }
-    throw new NoSuchRequestHandlingMethodException(getRequest());
+    return batchJobExecutionGroup;
   }
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}/inputData"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/inputData"
       }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
@@ -70,17 +67,16 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobExecutionGroupId)
+    @PathVariable final Long batchJobId, @PathVariable final Long sequenceNumber)
     throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
     final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
-      batchJobId, batchJobExecutionGroupId);
-    final String baseName = "job-" + batchJobId + "-request-"
-      + batchJobExecutionGroupId + "-input";
+      batchJobId, sequenceNumber);
+    final String baseName = "job-" + batchJobId + "-request-" + sequenceNumber
+      + "-input";
     if (businessApplication.isPerRequestInputData()) {
       final String dataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_URL);
       if (dataUrl != null) {
@@ -105,7 +101,7 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}/resultData"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/resultData"
       }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
@@ -114,18 +110,17 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobExecutionGroupId)
+    @PathVariable final Long batchJobId, @PathVariable final Long sequenceNumber)
     throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
     final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
     final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
-      batchJobId, batchJobExecutionGroupId);
+      batchJobId, sequenceNumber);
     final String contentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-    final String baseName = "job-" + batchJobId + "-request-"
-      + batchJobExecutionGroupId + "-result";
+    final String baseName = "job-" + batchJobId + "-request-" + sequenceNumber
+      + "-result";
     if (businessApplication.isPerRequestResultData()) {
       final String resultDataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.RESULT_DATA_URL);
       if (resultDataUrl != null) {
@@ -174,21 +169,20 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{batchJobExecutionGroupId}"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}"
       }, method = RequestMethod.GET)
   @ResponseBody
   public ElementContainer pageModuleAppJobView(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobExecutionGroupId) throws IOException,
-    ServletException {
+    @PathVariable final Long batchJobId, @PathVariable final Long sequenceNumber)
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
     final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
-      batchJobId, batchJobExecutionGroupId);
+      batchJobId, sequenceNumber);
 
     final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, batchJobExecutionGroup, "moduleAppJob");

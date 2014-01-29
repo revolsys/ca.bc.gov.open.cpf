@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.sql.Blob;
 import java.sql.Date;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -28,7 +26,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.http.MediaType;
@@ -992,8 +989,9 @@ public class CloudProcessingFramework {
         inputData.put("requestSequenceNumber", 1);
         final String inputDataString = JsonDataObjectIoFactory.toString(
           requestMetaData, Collections.singletonList(inputData));
-        dataAccessObject.createBatchJobExecutionGroup(batchJobId, 1,
-          inputDataString, 1);
+        dataAccessObject.createBatchJobExecutionGroup(
+          batchJobService.getfileController(), batchJobId, 1, inputDataString,
+          1);
       }
 
       batchJobService.schedule(businessApplicationName, batchJobId);
@@ -2567,46 +2565,40 @@ public class CloudProcessingFramework {
           response.setStatus(HttpServletResponse.SC_SEE_OTHER);
           response.setHeader("Location", resultDataUrl);
         } else {
-          try {
-            final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
-            final InputStream in = resultData.getBinaryStream();
-            final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
-            response.setContentType(resultDataContentType);
+          final InputStream in = batchJobService.getBatchJobResultData(
+            batchJobId, resultId, batchJobResult);
+          final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+          response.setContentType(resultDataContentType);
 
-            long size = resultData.length();
-            String jsonCallback = null;
-            if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
-              jsonCallback = HttpServletUtils.getParameter("callback");
-              if (StringUtils.hasText(jsonCallback)) {
-                size += 3 + jsonCallback.length();
-              }
-            }
-            final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-              .getFactoryByMediaType(DataObjectWriterFactory.class,
-                resultDataContentType);
-            if (writerFactory != null) {
-              final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
-              final String fileName = "job-" + batchJobId + "-result-"
-                + resultId + "." + fileExtension;
-              response.setHeader("Content-Disposition", "attachment; filename="
-                + fileName + ";size=" + size);
-            }
-            final ServletOutputStream out = response.getOutputStream();
+          long size = batchJobService.getBatchJobResultSize(batchJobId,
+            resultId, batchJobResult);
+          String jsonCallback = null;
+          if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
+            jsonCallback = HttpServletUtils.getParameter("callback");
             if (StringUtils.hasText(jsonCallback)) {
-              out.write(jsonCallback.getBytes());
-              out.write("(".getBytes());
+              size += 3 + jsonCallback.length();
             }
-            FileUtil.copy(in, out);
-            if (StringUtils.hasText(jsonCallback)) {
-              out.write(");".getBytes());
-            }
-            return;
-          } catch (final SQLException e) {
-            LoggerFactory.getLogger(getClass()).error(
-              "Unable to get result data", e);
-            throw new HttpMessageNotWritableException(
-              "Unable to get result data", e);
           }
+          final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+            .getFactoryByMediaType(DataObjectWriterFactory.class,
+              resultDataContentType);
+          if (writerFactory != null) {
+            final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
+            final String fileName = "job-" + batchJobId + "-result-" + resultId
+              + "." + fileExtension;
+            response.setHeader("Content-Disposition", "attachment; filename="
+              + fileName + ";size=" + size);
+          }
+          final ServletOutputStream out = response.getOutputStream();
+          if (StringUtils.hasText(jsonCallback)) {
+            out.write(jsonCallback.getBytes());
+            out.write("(".getBytes());
+          }
+          FileUtil.copy(in, out);
+          if (StringUtils.hasText(jsonCallback)) {
+            out.write(");".getBytes());
+          }
+          return;
         }
       }
     }
