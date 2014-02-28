@@ -48,23 +48,29 @@
   </filter>
 
   <filter-mapping>
-    <filter-name>transactionFilter</filter-name>
-    <url-pattern>/worker/*</url-pattern>
+    <filter-name>utf8</filter-name>
+    <url-pattern>/*</url-pattern>
   </filter-mapping>
 
   <filter-mapping>
     <filter-name>transactionFilter</filter-name>
     <url-pattern>/ws/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
   </filter-mapping>
 
   <filter-mapping>
     <filter-name>transactionFilter</filter-name>
     <url-pattern>/admin/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
   </filter-mapping>
 
   <filter-mapping>
-    <filter-name>utf8</filter-name>
-    <url-pattern>/*</url-pattern>
+    <filter-name>transactionFilter</filter-name>
+    <url-pattern>/worker/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
   </filter-mapping>
 
   <filter-mapping>
@@ -153,21 +159,24 @@
   <error-page>
     <error-code>400</error-code>
     <location>/error.jsp?subTitle=I'm sorry the path you requested is
-      not valid.</location>
+      not valid.
+    </location>
   </error-page>
 
   <error-page>
     <error-code>401</error-code>
     <location>/error.jsp?subTitle=I'm sorry you must be logged in to
       access this
-      page.</location>
+      page.
+    </location>
   </error-page>
 
   <error-page>
     <error-code>403</error-code>
     <location>/error.jsp?subTitle=I'm sorry you do not have permission
       to access
-      this page.</location>
+      this page.
+    </location>
   </error-page>
 
   <error-page>
@@ -175,13 +184,16 @@
     <location>/error.jsp?subTitle=I'm sorry the page you requested
       could
       not be
-      found.</location>
+      found.
+    </location>
   </error-page>
 
   <error-page>
     <error-code>500</error-code>
     <location>/error.jsp?subTitle=I'm sorry there was an error
       generating the
-      page you requested.</location>
+      page you
+      requested.
+    </location>
   </error-page>
 </web-app>
