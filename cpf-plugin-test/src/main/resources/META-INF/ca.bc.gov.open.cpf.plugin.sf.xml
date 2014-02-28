@@ -15,11 +15,12 @@
     id="multiPartToSimpleGeometry"
     class="ca.bc.gov.open.cpf.test.plugin.MultipartToSimpleGeometry"
     scope="prototype" />
+
   <bean
     id="TestAllDataTypes"
     class="ca.bc.gov.open.cpf.test.plugin.TestAllDataTypes"
     scope="prototype" />
-    
+
 
   <util:map id="properties">
     <entry key="default">
@@ -27,6 +28,129 @@
         <entry
           key="kmlSnippet"
           value="Simple Geometries" />
+      </map>
+    </entry>
+    <entry key="TestAllDataTypes">
+      <map>
+        <entry key="formSectionsOpen">
+          <set>
+            <value>applicationParameters</value>
+            <value>inputData</value>
+            <value>resultFormat</value>
+            <value>resultFormatAdvanced</value>
+          </set>
+        </entry>
+        <entry key="formSectionsOpenInstant">
+          <set>
+            <value>numericTypes</value>
+            <value>dateTypes</value>
+            <value>otherTypes</value>
+            <value>inputData</value>
+            <value>resultFormat</value>
+          </set>
+        </entry>
+        <entry key="formSectionsOpenSingle">
+          <set>
+            <value>numericTypes</value>
+            <value>dateTypes</value>
+            <value>otherTypes</value>
+            <value>inputData</value>
+            <value>resultFormat</value>
+          </set>
+        </entry>
+        <entry key="formSectionsOpenMultiple">
+          <set>
+            <value>inputData</value>
+            <value>resultFormat</value>
+          </set>
+        </entry>
+        <entry key="formSectionsMapInstant">
+          <map>
+            <entry key="numericTypes">
+              <list>
+                <value>int8</value>
+                <value>int16</value>
+                <value>int32</value>
+                <value>int64</value>
+                <value>float32</value>
+                <value>float64</value>
+              </list>
+            </entry>
+            <entry key="dateTypes">
+              <list>
+                <value>date</value>
+                <value>dateTime</value>
+                <value>timestamp</value>
+              </list>
+            </entry>
+            <entry key="otherTypes">
+              <list>
+                <value>bool</value>
+                <value>string</value>
+                <value>url</value>
+                <value>geometry</value>
+              </list>
+            </entry>
+          </map>
+        </entry>
+        <entry key="formSectionsMapSingle">
+          <map>
+            <entry key="numericTypes">
+              <list>
+                <value>int8</value>
+                <value>int16</value>
+                <value>int32</value>
+                <value>int64</value>
+                <value>float32</value>
+                <value>float64</value>
+              </list>
+            </entry>
+            <entry key="dateTypes">
+              <list>
+                <value>date</value>
+                <value>dateTime</value>
+                <value>timestamp</value>
+              </list>
+            </entry>
+            <entry key="otherTypes">
+              <list>
+                <value>bool</value>
+                <value>string</value>
+                <value>url</value>
+                <value>geometry</value>
+              </list>
+            </entry>
+          </map>
+        </entry>
+        <entry key="formSectionsMapMultiple">
+          <map>
+            <entry key="numericTypes">
+              <list>
+                <value>int8</value>
+                <value>int16</value>
+                <value>int32</value>
+                <value>int64</value>
+                <value>float32</value>
+                <value>float64</value>
+              </list>
+            </entry>
+            <entry key="dateTypes">
+              <list>
+                <value>date</value>
+                <value>dateTime</value>
+                <value>timestamp</value>
+              </list>
+            </entry>
+            <entry key="otherTypes">
+              <list>
+                <value>bool</value>
+                <value>string</value>
+                <value>url</value>
+                <value>geometry</value>
+              </list>
+            </entry>
+          </map>
+        </entry>
       </map>
     </entry>
   </util:map>

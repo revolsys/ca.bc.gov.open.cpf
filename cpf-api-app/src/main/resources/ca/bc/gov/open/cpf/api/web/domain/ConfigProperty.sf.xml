@@ -69,6 +69,33 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="Module Add Config Property"
           p:path="/admin/modules/{moduleName}/configProperties/add/" />
+
+        <bean
+          p:name="moduleAppList"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Config Properties"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/"
+          p:permission="hasRole('ROLE_ADMIN')  or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')" />
+        <bean
+          p:name="moduleAppView"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Businness Application Config Property {configPropertyId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/" />
+        <bean
+          p:name="moduleAppEdit"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Businness Application Edit Config Property {configPropertyId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/edit/" />
+        <bean
+          p:name="moduleAppDelete"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Businness Application Delete Config Property {configPropertyId}"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/delete/" />
+        <bean
+          p:name="moduleAppAdd"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Businness Application Add Config Property"
+          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/add/" />
       </list>
     </property>
 
@@ -201,6 +228,15 @@
     <property name="serializers">
       <list>
         <bean
+          p:name="CONFIG_PROPERTY_ID_VIEW"
+          class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
+          p:key="CONFIG_PROPERTY_ID"
+          p:label="ID"
+          p:pageName="view"
+          p:width="5%"
+        />
+
+        <bean
           p:name="CONFIG_PROPERTY_ID_MODULE_VIEW"
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="CONFIG_PROPERTY_ID"
@@ -208,13 +244,13 @@
           p:pageName="moduleView"
           p:width="5%"
         />
-
+        
         <bean
-          p:name="CONFIG_PROPERTY_ID_VIEW"
+          p:name="CONFIG_PROPERTY_ID_MODULE_APP_VIEW"
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="CONFIG_PROPERTY_ID"
           p:label="ID"
-          p:pageName="view"
+          p:pageName="moduleAppView"
           p:width="5%"
         />
         <bean
@@ -302,6 +338,32 @@
             </list>
           </property>
         </bean>
+        
+        <bean
+          p:name="moduleAppActions"
+          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+          p:label="Actions"
+          p:width="6%"
+        >
+          <property name="serializers">
+            <list>
+              <bean
+                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+                p:name="moduleAppDelete"
+                p:label="Delete"
+              >
+                <property name="parameterNameMap">
+                  <map>
+                    <entry
+                      key="configPropertyId"
+                      value="CONFIG_PROPERTY_ID" />
+                  </map>
+                </property>
+              </bean>
+            </list>
+          </property>
+        </bean>
+
         <bean
           p:name="WHO_CREATED"
           p:label="Created By"
@@ -413,6 +475,32 @@
             <value>moduleActions</value>
           </list>
         </entry>
+        <entry key="moduleAppList">
+          <list>
+            <value>CONFIG_PROPERTY_ID_MODULE_APP_VIEW</value>
+            <value>ENVIRONMENT_NAME</value>
+            <value>PROPERTY_NAME</value>
+            <value>PROPERTY_VALUE</value>
+            <value>PROPERTY_VALUE_TYPE</value>
+            <value>moduleAppActions</value>
+          </list>
+        </entry>
+        <entry key="moduleAppView">
+          <list>
+            <value>CONFIG_PROPERTY_ID</value>
+            <value>ENVIRONMENT_NAME</value>
+            <value>MODULE_NAME</value>
+            <value>COMPONENT_NAME</value>
+            <value>PROPERTY_NAME</value>
+            <value>PROPERTY_VALUE</value>
+            <value>PROPERTY_VALUE_TYPE</value>
+            <value>WHO_CREATED</value>
+            <value>WHEN_CREATED</value>
+            <value>WHO_UPDATED</value>
+            <value>WHEN_UPDATED</value>
+            <value>moduleAppActions</value>
+          </list>
+        </entry>
       </map>
     </property>
     <property name="keyLists">
@@ -444,6 +532,22 @@
           </list>
         </entry>
         <entry key="moduleEdit">
+          <list>
+            <value>ENVIRONMENT_NAME</value>
+            <value>PROPERTY_NAME</value>
+            <value>PROPERTY_VALUE</value>
+            <value>PROPERTY_VALUE_TYPE</value>
+          </list>
+        </entry>
+        <entry key="moduleAppAdd">
+          <list>
+            <value>ENVIRONMENT_NAME</value>
+            <value>PROPERTY_NAME</value>
+            <value>PROPERTY_VALUE</value>
+            <value>PROPERTY_VALUE_TYPE</value>
+          </list>
+        </entry>
+        <entry key="moduleAppEdit">
           <list>
             <value>ENVIRONMENT_NAME</value>
             <value>PROPERTY_NAME</value>

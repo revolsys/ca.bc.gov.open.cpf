@@ -17,7 +17,7 @@
     id="removeOldBatchJobs"
     class="ca.bc.gov.open.cpf.api.scheduler.spi.adminjobs.RemoveOldBatchJobs"
     p:daysToKeepOldJobs="7"
-    p:dataAccessObject-ref="cpfDataAccessObject" />
+    p:batchJobService-ref="batchJobService" />
 
   <task:scheduled-tasks scheduler="ca.bc.gov.open.cpf.api.taskScheduler">
     <task:scheduled

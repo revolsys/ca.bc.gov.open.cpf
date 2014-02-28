@@ -1134,6 +1134,7 @@ public class ClassLoaderModule implements Module {
                   final Map<String, Object> configProperties = propertyLoader.getConfigProperties(
                     moduleName, componentName);
                   if (configProperties != null) {
+                    businessApplication.setProperties(configProperties);
                     for (final Entry<String, Object> entry : configProperties.entrySet()) {
                       final String propertyName = entry.getKey();
                       final Object propertyValue = entry.getValue();
@@ -1141,8 +1142,6 @@ public class ClassLoaderModule implements Module {
                         JavaBeanUtil.setProperty(businessApplication,
                           propertyName, propertyValue);
                       } catch (final Throwable t) {
-                        log.error("Unable to set " + businessApplicationName
-                          + "." + propertyName + "=" + propertyValue);
                       }
                     }
                   }

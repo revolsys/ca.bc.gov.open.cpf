@@ -42,6 +42,11 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       "CONFIG_PROPERTY_ID", "Config Property", "Config Properties");
   }
 
+  private String getAppComponentName(final String businessApplicationName) {
+    final String componentName = "APP_" + businessApplicationName;
+    return componentName;
+  }
+
   @RequestMapping(value = {
     "/admin/configProperties/add"
   }, method = {
@@ -54,7 +59,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final Map<String, Object> defaultValues = new HashMap<String, Object>();
     defaultValues.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL);
 
-    return super.createObjectAddPage(defaultValues, null, "preInsert");
+    final Element result = super.createObjectAddPage(defaultValues, null,
+      "preInsert");
+    return result;
   }
 
   @RequestMapping(value = {
@@ -154,6 +161,128 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       ConfigProperty.MODULE_BEAN_PROPERTY);
 
     return createObjectAddPage(defaultValues, "module", "preInsertModule");
+  }
+
+  @RequestMapping(
+      value = {
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/add"
+      }, method = {
+        RequestMethod.GET, RequestMethod.POST
+      })
+  @ResponseBody
+  public Element pageModuleAppAdd(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName) throws IOException,
+    ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final String componentName = getAppComponentName(businessApplicationName);
+    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    defaultValues.put(ConfigProperty.MODULE_NAME, moduleName);
+    defaultValues.put(ConfigProperty.COMPONENT_NAME, componentName);
+
+    return createObjectAddPage(defaultValues, "moduleApp", "preInsertModule");
+  }
+
+  @RequestMapping(
+      value = {
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/delete"
+      }, method = RequestMethod.POST)
+  public void pageModuleAppDelete(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final String componentName = getAppComponentName(businessApplicationName);
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
+        componentName)) {
+      getDataStore().delete(configProperty);
+      redirectPage("moduleAppList");
+      return;
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  @RequestMapping(
+      value = {
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/edit"
+      }, method = {
+        RequestMethod.GET, RequestMethod.POST
+      })
+  @ResponseBody
+  public Element pageModuleAppEdit(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final String componentName = getAppComponentName(businessApplicationName);
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
+        componentName)) {
+      return createObjectEditPage(configProperty, "moduleApp");
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  public Object pageModuleAppList(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName) throws IOException,
+    NoSuchRequestHandlingMethodException {
+    checkAdminOrModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final String componentName = getAppComponentName(businessApplicationName);
+    final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+
+    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    filter.put(ConfigProperty.MODULE_NAME, moduleName);
+    filter.put(ConfigProperty.COMPONENT_NAME, componentName);
+    parameters.put("filter", filter);
+
+    return createDataTableHandlerOrRedirect(request, response, "moduleAppList",
+      Module.class, "view", parameters);
+  }
+
+  @RequestMapping(
+      value = {
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}"
+      }, method = RequestMethod.GET)
+  @ResponseBody
+  public Element pageModuleAppView(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName,
+    @PathVariable final Integer configPropertyId) throws IOException,
+    ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final String componentName = getAppComponentName(businessApplicationName);
+    final DataObject configProperty = loadObject(configPropertyId);
+    if (configProperty != null
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
+        componentName)) {
+      final TabElementContainer tabs = new TabElementContainer();
+      addObjectViewPage(tabs, configProperty, "moduleApp");
+      return tabs;
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
   }
 
   @RequestMapping(value = {

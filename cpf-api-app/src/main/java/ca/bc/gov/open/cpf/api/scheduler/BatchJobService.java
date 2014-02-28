@@ -59,8 +59,8 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.CpfFileController;
-import ca.bc.gov.open.cpf.api.web.controller.DatabaseFileController;
+import ca.bc.gov.open.cpf.api.web.controller.FileJobController;
+import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -258,7 +258,7 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  private CpfFileController fileController;
+  private JobController jobController;
 
   private boolean compressData = false;
 
@@ -400,7 +400,6 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public boolean cancelBatchJob(final long batchJobId) {
-    boolean cancelled = false;
     synchronized (preprocesedJobIds) {
       preprocesedJobIds.remove(batchJobId);
     }
@@ -413,21 +412,8 @@ public class BatchJobService implements ModuleEventListener {
         group.cancel();
       }
     }
-    try (
-      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
-      try {
-        cancelled = dataAccessObject.cancelBatchJob(batchJobId) == 1;
-        if (cancelled) {
-          try {
-            dataAccessObject.deleteBatchJobResults(batchJobId);
-          } finally {
-            dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
-          }
-        }
-      } catch (final Throwable e) {
-        throw transaction.setRollbackOnly(e);
-      }
-    }
+    final JobController jobController = getJobController(batchJobId);
+    final boolean cancelled = jobController.cancelJob(batchJobId);
     synchronized (workersById) {
       for (final Worker worker : workersById.values()) {
         worker.cancelBatchJob(batchJobId);
@@ -574,7 +560,7 @@ public class BatchJobService implements ModuleEventListener {
     }
     synchronized (preprocesedJobIds) {
       if (preprocesedJobIds.contains(batchJobId)) {
-        dataAccessObject.createBatchJobExecutionGroup(fileController,
+        dataAccessObject.createBatchJobExecutionGroup(jobController,
           batchJobId, sequenceNumber, structuredInputDataString, group.size());
         return true;
       } else {
@@ -599,7 +585,7 @@ public class BatchJobService implements ModuleEventListener {
         result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
         result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, resultDataType);
         result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
-        fileController.setJobResultData(batchJobId, result, data);
+        jobController.setJobResultData(batchJobId, result, data);
         dataAccessObject.write(result);
       } catch (final Throwable e) {
         throw new RuntimeException("Unable to save result data", e);
@@ -617,7 +603,7 @@ public class BatchJobService implements ModuleEventListener {
     result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE,
       BatchJobResult.OPAQUE_RESULT_DATA);
     result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
-    fileController.setJobResultData(batchJobId, result, data);
+    jobController.setJobResultData(batchJobId, result, data);
     dataAccessObject.write(result);
   }
 
@@ -664,7 +650,7 @@ public class BatchJobService implements ModuleEventListener {
           for (int groupSeqeunceNumber = 0; groupSeqeunceNumber < numSubmittedGroups; groupSeqeunceNumber += groupBatchSize) {
             final int startIndex = groupSeqeunceNumber + 1;
             final int endIndex = groupSeqeunceNumber + groupBatchSize;
-            final int mask = dataAccessObject.writeGroupResults(fileController,
+            final int mask = dataAccessObject.writeGroupResults(jobController,
               batchJobId, startIndex, endIndex, application, resultMetaData,
               errorResultWriter, structuredResultWriter, defaultProperties);
             if ((mask & 4) > 0) {
@@ -753,9 +739,10 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void deleteBatchJob(final long batchJobId) {
+  public void deleteJob(final long batchJobId) {
     cancelBatchJob(batchJobId);
-    dataAccessObject.deleteBatchJob(batchJobId);
+    final JobController jobController = getJobController(batchJobId);
+    jobController.deleteJob(batchJobId);
   }
 
   @PreDestroy
@@ -793,7 +780,7 @@ public class BatchJobService implements ModuleEventListener {
     }
     userClassBaseUrls.clear();
     workersById.clear();
-    fileController = null;
+    jobController = null;
   }
 
   private void error(final AppLog log, final String message, final Throwable e) {
@@ -833,13 +820,13 @@ public class BatchJobService implements ModuleEventListener {
 
   public InputStream getBatchJobResultData(final long batchJobId,
     final long batchJobResultId, final DataObject batchJobResult) {
-    return fileController.getJobResultData(batchJobId, batchJobResultId,
+    return jobController.getJobResultData(batchJobId, batchJobResultId,
       batchJobResult);
   }
 
   public long getBatchJobResultSize(final long batchJobId,
     final long batchJobResultId, final DataObject batchJobResult) {
-    return fileController.getJobResultSize(batchJobId, batchJobResultId,
+    return jobController.getJobResultSize(batchJobId, batchJobResultId,
       batchJobResult);
   }
 
@@ -884,10 +871,6 @@ public class BatchJobService implements ModuleEventListener {
     return dataStore;
   }
 
-  public CpfFileController getfileController() {
-    return fileController;
-  }
-
   /**
    * Get the email address messages are sent from.
    * 
@@ -913,6 +896,14 @@ public class BatchJobService implements ModuleEventListener {
         "resultScaleFactorZ", geometryFactory.getScaleZ());
       return GeometryFactory.getFactory(srid, numAxis, scaleXY, scaleZ);
     }
+  }
+
+  public JobController getjobController() {
+    return jobController;
+  }
+
+  public JobController getJobController(final long batchJobId) {
+    return jobController;
   }
 
   /**
@@ -1510,7 +1501,7 @@ public class BatchJobService implements ModuleEventListener {
       }
       if (parameterValue == null) {
         if (attribute.isRequired()) {
-          dataAccessObject.createBatchJobExecutionGroup(fileController,
+          dataAccessObject.createBatchJobExecutionGroup(jobController,
             batchJobId, requestSequenceNumber,
             ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
             ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " "
@@ -1521,7 +1512,7 @@ public class BatchJobService implements ModuleEventListener {
         try {
           attribute.validate(parameterValue);
         } catch (final IllegalArgumentException e) {
-          dataAccessObject.createBatchJobExecutionGroup(fileController,
+          dataAccessObject.createBatchJobExecutionGroup(jobController,
             batchJobId, requestSequenceNumber,
             ErrorCode.INVALID_PARAMETER_VALUE.getDescription(), e.getMessage(),
             null);
@@ -1534,7 +1525,7 @@ public class BatchJobService implements ModuleEventListener {
         } catch (final IllegalArgumentException e) {
           final StringWriter errorOut = new StringWriter();
           e.printStackTrace(new PrintWriter(errorOut));
-          dataAccessObject.createBatchJobExecutionGroup(fileController,
+          dataAccessObject.createBatchJobExecutionGroup(jobController,
             batchJobId, requestSequenceNumber,
             ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
             ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " "
@@ -1832,7 +1823,7 @@ public class BatchJobService implements ModuleEventListener {
               final Map<String, String> businessApplicationParameterMap = getBusinessApplicationParameters(batchJob);
               final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
-              final Long sequenceNumber = dataAccessObject.getNonExecutingRequestId(batchJobId);
+              final Long sequenceNumber = jobController.getNonExecutingGroupSequenceNumber(batchJobId);
 
               if (sequenceNumber == null) {
                 return false;
@@ -2129,7 +2120,7 @@ public class BatchJobService implements ModuleEventListener {
               if (batchJob != null) {
                 final long sequenceNumber = group.getSequenceNumber();
                 dataAccessObject.updateBatchJobExecutionGroupFromResponse(
-                  fileController, workerId, group, sequenceNumber,
+                  jobController, workerId, group, sequenceNumber,
                   groupResultObject, successCount, errorCount);
               }
               final long executionTime = updateGroupStatistics(group,
@@ -2172,9 +2163,8 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
-    this.fileController = new DatabaseFileController(dataAccessObject);
-    // this.fileController = new FileSystemFileController(new File(
-    // "/apps/data/cpf"));
+    // this.jobController = new DatabaseJobController(dataAccessObject);
+    this.jobController = new FileJobController(this, new File("/apps/data/cpf"));
   }
 
   /**

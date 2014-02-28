@@ -295,6 +295,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
         "moduleAppList", parameters);
 
       parameters.put("serverSide", Boolean.TRUE);
+      addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleAppList",
+        parameters);
       addTabDataTable(tabs, BatchJob.BATCH_JOB, "moduleAppList", parameters);
 
       return tabs;

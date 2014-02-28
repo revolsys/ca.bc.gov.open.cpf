@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -87,7 +88,6 @@ import com.revolsys.spring.OutputStreamResource;
 import com.revolsys.ui.html.HtmlUtil;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.decorator.CollapsibleBox;
-import com.revolsys.ui.html.decorator.FieldNoLabelDecorator;
 import com.revolsys.ui.html.decorator.TableBody;
 import com.revolsys.ui.html.decorator.TableHeadingDecorator;
 import com.revolsys.ui.html.fields.BigDecimalField;
@@ -233,7 +233,25 @@ public class CloudProcessingFramework {
       DateUtil.format(DateFormat.DEFAULT, DateFormat.SHORT, timestamp));
   }
 
-  private void addFieldRow(final ElementContainer fields,
+  private void addField(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
+    final String fieldName, final Element field, final String labelUrl,
+    final String label, final String instructions) {
+    String sectionName = fieldSectionMap.get(fieldName);
+    if (!StringUtils.hasText(sectionName)) {
+      sectionName = "applicationParameters";
+    }
+    ElementContainer sectionContents = sectionContainers.get(sectionName);
+    if (sectionContents == null) {
+      sectionContents = new ElementContainer(new TableBody());
+      sectionContainers.put(sectionName, sectionContents);
+    }
+    TableHeadingDecorator.addRow(sectionContents, field, labelUrl, label,
+      instructions);
+  }
+
+  private void addFieldRow(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
     final Attribute attribute) {
     final Field field = getField(attribute);
     final String name = attribute.getName();
@@ -243,74 +261,74 @@ public class CloudProcessingFramework {
       instructions = field.getDefaultInstructions();
     }
     final String labelUrl = attribute.getProperty("descriptionUrl");
-    TableHeadingDecorator.addRow(fields, field, labelUrl, label, instructions);
+    addField(fieldSectionMap, sectionContainers, name, field, labelUrl, label,
+      instructions);
   }
 
-  private void addFieldRow(final ElementContainer fields,
+  private void addFieldRow(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
     final DataObjectMetaDataImpl metaData, final String name) {
     if (metaData.hasAttribute(name)) {
-      final Attribute sridField = metaData.getAttribute(name);
-      addFieldRow(fields, sridField);
+      final Attribute attribute = metaData.getAttribute(name);
+      addFieldRow(fieldSectionMap, sectionContainers, attribute);
     }
   }
 
-  private void addGeometryFields(final ElementContainer fields,
+  private void addGeometryFields(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
     final BusinessApplication businessApplication) {
     final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-    addFieldRow(fields, requestMetaData, "srid");
+    addFieldRow(fieldSectionMap, sectionContainers, requestMetaData, "srid");
     if (requestMetaData.hasAttribute("resultSrid")) {
-      final ElementContainer container = new ElementContainer();
-
-      final Attribute resultSrid = requestMetaData.getAttribute("resultSrid");
-      final Field resultSridField = getField(resultSrid);
-      FieldNoLabelDecorator.add(container, resultSridField,
-        resultSrid.getDescription());
-
-      final ElementContainer advancedFields = new ElementContainer(
-        new TableBody());
-      for (final String name : Arrays.asList("resultNumAxis",
+      for (final String name : Arrays.asList("resultSrid", "resultNumAxis",
         "resultScaleFactorXy", "resultScaleFactorZ")) {
-        addFieldRow(advancedFields, requestMetaData, name);
+        addFieldRow(fieldSectionMap, sectionContainers, requestMetaData, name);
       }
 
-      final ElementContainer collapsibleBox = new ElementContainer(
-        new CollapsibleBox("Advanced Geometry Parameters", false),
-        advancedFields);
-      container.add(collapsibleBox);
-      TableHeadingDecorator.addRow(fields, container,
-        "Result Coordinate System", null);
     }
   }
 
-  private void addInputDataFields(final ElementContainer fields,
+  private void addInputDataFields(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
     final BusinessApplication businessApplication) {
     final Map<String, String> inputDataFileExtensions = businessApplication.getInputDataFileExetensions();
     final String defaultInputType = businessApplication.getDefaultInputDataFileExtension();
     final SelectField inputDataContentType = new SelectField(
       "inputDataContentType", defaultInputType, true, inputDataFileExtensions);
 
-    TableHeadingDecorator.addRow(
-      fields,
+    addField(
+      fieldSectionMap,
+      sectionContainers,
+      "inputDataContentType",
       inputDataContentType,
+      null,
       "Input Data Content Type",
       "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
 
     final UrlField inputDataUrl = new UrlField("inputDataUrl", false);
-    TableHeadingDecorator.addRow(
-      fields,
+    addField(
+      fieldSectionMap,
+      sectionContainers,
+      "inputDataUrl",
       inputDataUrl,
+      null,
       "Input Data URL",
       "The http: URL to the file or resource containing input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
 
     final FileField inputData = new FileField("inputData", false);
-    TableHeadingDecorator.addRow(
-      fields,
+    addField(
+      fieldSectionMap,
+      sectionContainers,
+      "inputData",
       inputData,
+      null,
       "Input Data File",
       "The multi-part file containing the input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
   }
 
-  private void addMultiInputDataFields(final ElementContainer fields,
+  private void addMultiInputDataFields(
+    final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
     final BusinessApplication businessApplication) {
     final Map<String, String> inputDataContentTypes = businessApplication.getInputDataFileExetensions();
     final String defaultInputType = BusinessApplication.getDefaultFileExtension(inputDataContentTypes);
@@ -324,26 +342,36 @@ public class CloudProcessingFramework {
       container.add(inputDataContentType);
       addRawContent(container,
         "ca/bc/gov/open/cpf/api/web/service/multiInputDataPost.html");
-      TableHeadingDecorator.addRow(
-        fields,
+      addField(
+        fieldSectionMap,
+        sectionContainers,
+        "inputData",
         container,
+        null,
         "Input Data File",
         "Use the 'Add File' or 'Add URL' buttons to add one or more input data files, then select the MIME type for each file and enter the URL or select the file.");
 
     } else {
-      addInputDataFields(fields, businessApplication);
+      addInputDataFields(fieldSectionMap, sectionContainers,
+        businessApplication);
     }
   }
 
-  private void addNotificationFields(final ElementContainer container) {
+  private void addNotificationFields(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers) {
     final EmailAddressField emailField = new EmailAddressField(
       "notificationEmail", false);
-    TableHeadingDecorator.addRow(container, emailField, "Notification Email",
+    addField(fieldSectionMap, sectionContainers, "notificationEmail",
+      emailField, null, "Notification Email",
       "The email address to send the job status to when the job is completed.");
+
     final UrlField urlField = new UrlField("notificationUrl", false);
-    TableHeadingDecorator.addRow(
-      container,
+    addField(
+      fieldSectionMap,
+      sectionContainers,
+      "notificationUrl",
       urlField,
+      null,
       "Notification URL",
       "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.");
   }
@@ -397,54 +425,81 @@ public class CloudProcessingFramework {
     container.add(content);
   }
 
-  private void addResultDataFields(final ElementContainer container,
+  private void addResultDataFields(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
     final BusinessApplication businessApplication, final String fieldName) {
     final Map<String, String> resultDataFileExtensions = businessApplication.getResultDataFileExtensions();
     final String defaultValue = businessApplication.getDefaultResultDataFileExtension();
 
     final SelectField resultDataContentType = new SelectField(fieldName,
       defaultValue, true, resultDataFileExtensions);
-    TableHeadingDecorator.addRow(
-      container,
+    addField(
+      fieldSectionMap,
+      sectionContainers,
+      fieldName,
       resultDataContentType,
+      null,
       "Result Data Content Type",
       "The MIME type of the result data specified to be returned after running the request");
 
   }
 
-  private void addTestFields(final ElementContainer fields,
+  private void addSections(final String formName,
+    final BusinessApplication businessApplication,
+    final ElementContainer container,
+    final Map<String, ElementContainer> sectionContainers) {
+    final Set<String> openSections = getFormSectionsOpen(businessApplication,
+      formName);
+
+    for (final Entry<String, ElementContainer> entry : sectionContainers.entrySet()) {
+      final ElementContainer sectionContents = entry.getValue();
+      if (sectionContents.getElements().size() > 0) {
+        final String sectionName = entry.getKey();
+        final String sectionTitle = CaseConverter.toCapitalizedWords(sectionName);
+        final boolean open = openSections.contains(sectionName);
+        final CollapsibleBox section = new CollapsibleBox(sectionTitle, open);
+        final ElementContainer sectionContainer = new ElementContainer(section,
+          sectionContents);
+        container.add(sectionContainer);
+      }
+    }
+  }
+
+  private void addTestFields(final Map<String, String> fieldSectionMap,
+    final Map<String, ElementContainer> sectionContainers,
     final BusinessApplication businessApplication) {
     if (businessApplication.isTestModeEnabled()) {
       final CheckBoxField cpfPluginTest = new CheckBoxField("cpfPluginTest");
-      TableHeadingDecorator.addRow(fields, cpfPluginTest, "Test Mode",
-        "Enable test mode for the request.");
+      addField(fieldSectionMap, sectionContainers, "cpfPluginTest",
+        cpfPluginTest, null, "Test Mode", "Enable test mode for the request.");
 
       final DoubleField minTime = new DoubleField("cpfMinExecutionTime", false,
         0);
-      TableHeadingDecorator.addRow(fields, minTime, "Min Execution Time (s)",
-        "The minimum execution time.");
+      addField(fieldSectionMap, sectionContainers, "cpfMinExecutionTime",
+        minTime, null, "Min Execution Time (s)", "The minimum execution time.");
 
       final DoubleField meanTime = new DoubleField("cpfMeanExecutionTime",
         false, 0);
-      TableHeadingDecorator.addRow(fields, meanTime, "Mean Execution Time (s)",
+      addField(fieldSectionMap, sectionContainers, "cpfMeanExecutionTime",
+        meanTime, null, "Mean Execution Time (s)",
         "The mean execution time using a gaussian distribution.");
 
       final DoubleField standardDeviation = new DoubleField(
         "cpfStandardDeviation", false, 2);
-      TableHeadingDecorator.addRow(fields, standardDeviation,
-        "Standard Deviation (s)",
+      addField(fieldSectionMap, sectionContainers, "cpfStandardDeviation",
+        standardDeviation, null, "Standard Deviation (s)",
         "The standard deviation for a gaussian distribution.");
 
       final DoubleField maxTime = new DoubleField("cpfMaxExecutionTime", false,
         10);
-      TableHeadingDecorator.addRow(fields, maxTime, "Max Execution Time (s)",
-        "The maximum execution time.");
+      addField(fieldSectionMap, sectionContainers, "cpfMaxExecutionTime",
+        maxTime, null, "Max Execution Time (s)", "The maximum execution time.");
 
       if (businessApplication.isHasResultListProperty()) {
         final DoubleField meanNumResults = new DoubleField("cpfMeanNumResults",
           false, 3);
-        TableHeadingDecorator.addRow(fields, meanNumResults,
-          "Mean Num Results",
+        addField(fieldSectionMap, sectionContainers, "cpfMeanNumResults",
+          meanNumResults, null, "Mean Num Results",
           "The mean number of results for each request using a gaussian distribution.");
       }
     }
@@ -990,8 +1045,7 @@ public class CloudProcessingFramework {
         final String inputDataString = JsonDataObjectIoFactory.toString(
           requestMetaData, Collections.singletonList(inputData));
         dataAccessObject.createBatchJobExecutionGroup(
-          batchJobService.getfileController(), batchJobId, 1, inputDataString,
-          1);
+          batchJobService.getjobController(), batchJobId, 1, inputDataString, 1);
       }
 
       batchJobService.schedule(businessApplicationName, batchJobId);
@@ -2228,7 +2282,11 @@ public class CloudProcessingFramework {
 
     final String url = businessAppBuilder.getPageUrl("clientInstant");
     final Form form = new Form("instantForm", url);
-    final ElementContainer fields = new ElementContainer(new TableBody());
+    final Map<String, String> fieldSectionMap = getFormSectionsFieldMap(
+      businessApplication, "Instant");
+    final Map<String, ElementContainer> sectionContainers = getFormSectionContainers(
+      businessApplication, "Instant");
+
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
     final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
@@ -2236,17 +2294,19 @@ public class CloudProcessingFramework {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name) || !perRequestInputData) {
-          addFieldRow(fields, attribute);
+          addFieldRow(fieldSectionMap, sectionContainers, attribute);
         }
       }
     }
     if (perRequestInputData) {
-      addInputDataFields(fields, businessApplication);
+      addInputDataFields(fieldSectionMap, sectionContainers,
+        businessApplication);
     }
-    addGeometryFields(fields, businessApplication);
-    addResultDataFields(fields, businessApplication, "format");
-    addTestFields(fields, businessApplication);
-    form.add(fields);
+    addGeometryFields(fieldSectionMap, sectionContainers, businessApplication);
+    addResultDataFields(fieldSectionMap, sectionContainers,
+      businessApplication, "format");
+    addTestFields(fieldSectionMap, sectionContainers, businessApplication);
+    addSections("Instant", businessApplication, form, sectionContainers);
     form.add(new DivElementContainer("actionMenu", new SubmitField(
       "instantForm", "Create Job")));
 
@@ -2257,32 +2317,38 @@ public class CloudProcessingFramework {
   private Element getFormMultiple(final BusinessApplication businessApplication) {
     final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
 
+    final Map<String, String> fieldSectionMap = getFormSectionsFieldMap(
+      businessApplication, "Multiple");
+    final Map<String, ElementContainer> sectionContainers = getFormSectionContainers(
+      businessApplication, "Multiple");
+
     final ElementContainer container = new ElementContainer();
 
     final String url = businessAppBuilder.getPageUrl("clientMultiple");
     final Form form = new Form("clientMultiple", url);
     form.setEncType(Form.MULTIPART_FORM_DATA);
-    final ElementContainer fields = new ElementContainer(new TableBody());
 
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name)) {
-          addFieldRow(fields, attribute);
+          addFieldRow(fieldSectionMap, sectionContainers, attribute);
         }
       }
     }
-    addMultiInputDataFields(fields, businessApplication);
+    addMultiInputDataFields(fieldSectionMap, sectionContainers,
+      businessApplication);
 
-    addGeometryFields(fields, businessApplication);
+    addGeometryFields(fieldSectionMap, sectionContainers, businessApplication);
 
-    addResultDataFields(fields, businessApplication, "resultDataContentType");
+    addResultDataFields(fieldSectionMap, sectionContainers,
+      businessApplication, "resultDataContentType");
 
-    addNotificationFields(fields);
+    addNotificationFields(fieldSectionMap, sectionContainers);
 
-    addTestFields(fields, businessApplication);
+    addTestFields(fieldSectionMap, sectionContainers, businessApplication);
 
-    form.add(fields);
+    addSections("Multiple", businessApplication, form, sectionContainers);
     form.add(new DivElementContainer("actionMenu", new SubmitField(
       "clientMultiple", "Create Job")));
 
@@ -2290,35 +2356,151 @@ public class CloudProcessingFramework {
     return container;
   }
 
+  private Map<String, ElementContainer> getFormSectionContainers(
+    final BusinessApplication businessApplication, final String formName) {
+    final Map<String, ElementContainer> containers = new LinkedHashMap<>();
+    for (final String sectionName : getFormSectionsNames(businessApplication,
+      formName)) {
+      final ElementContainer container = new ElementContainer(new TableBody());
+      containers.put(sectionName, container);
+    }
+    return containers;
+  }
+
+  private Map<String, String> getFormSectionsFieldMap(
+    final BusinessApplication businessApplication, final String formName) {
+
+    Map<String, String> formSectionsFieldMap = businessApplication.getProperty("formSectionsFieldMap"
+      + formName);
+    if (formSectionsFieldMap == null) {
+      // Add defaults
+      formSectionsFieldMap = new LinkedHashMap<>();
+
+      formSectionsFieldMap.put("inputDataContentType", "inputData");
+      formSectionsFieldMap.put("inputDataUrl", "inputData");
+      formSectionsFieldMap.put("inputData", "inputData");
+      formSectionsFieldMap.put("srid", "inputData");
+
+      formSectionsFieldMap.put("resultSrid", "resultFormat");
+      formSectionsFieldMap.put("resultDataContentType", "resultFormat");
+      formSectionsFieldMap.put("format", "resultFormat");
+
+      formSectionsFieldMap.put("resultNumAxis", "resultFormatAdvanced");
+      formSectionsFieldMap.put("resultScaleFactorXy", "resultFormatAdvanced");
+      formSectionsFieldMap.put("resultScaleFactorZ", "resultFormatAdvanced");
+
+      formSectionsFieldMap.put("notificationEmail", "notification");
+      formSectionsFieldMap.put("notificationUrl", "notification");
+
+      formSectionsFieldMap.put("cpfPluginTest", "testParameters");
+      formSectionsFieldMap.put("cpfMinExecutionTime", "testParameters");
+      formSectionsFieldMap.put("cpfMeanExecutionTime", "testParameters");
+      formSectionsFieldMap.put("cpfStandardDeviation", "testParameters");
+      formSectionsFieldMap.put("cpfMaxExecutionTime", "testParameters");
+      formSectionsFieldMap.put("cpfMeanNumResults", "testParameters");
+
+      final Map<String, List<String>> formSectionsMap = getFormSectionsMap(
+        businessApplication, formName);
+      for (final Entry<String, List<String>> section : formSectionsMap.entrySet()) {
+        final String sectionName = section.getKey();
+        for (final String fieldName : section.getValue()) {
+          formSectionsFieldMap.put(fieldName, sectionName);
+        }
+      }
+
+      businessApplication.setProperty("formSectionsFieldMap" + formName,
+        formSectionsFieldMap);
+    }
+    return formSectionsFieldMap;
+  }
+
+  private Map<String, List<String>> getFormSectionsMap(
+    final BusinessApplication businessApplication, final String formName) {
+    Map<String, List<String>> formSectionsMap = businessApplication.getProperty("formSectionsMap"
+      + formName);
+    if (formSectionsMap == null) {
+      formSectionsMap = businessApplication.getProperty("formSectionsMap");
+      if (formSectionsMap == null) {
+        formSectionsMap = new LinkedHashMap<>();
+      }
+      businessApplication.setProperty("formSectionsMap" + formName,
+        formSectionsMap);
+    }
+    return formSectionsMap;
+  }
+
+  private List<String> getFormSectionsNames(
+    final BusinessApplication businessApplication, final String formName) {
+    List<String> sectionNames = businessApplication.getProperty("formSectionsNames"
+      + formName);
+    if (sectionNames == null) {
+      sectionNames = new ArrayList<>();
+      final Map<String, List<String>> formSectionsMap = getFormSectionsMap(
+        businessApplication, formName);
+      sectionNames.addAll(formSectionsMap.keySet());
+      for (final String sectionName : Arrays.asList("applicationParameters",
+        "inputData", "resultFormat", "resultFormatAdvanced", "notification",
+        "testParameters")) {
+        if (!sectionNames.contains(sectionName)) {
+          sectionNames.add(sectionName);
+        }
+      }
+      businessApplication.setProperty("formSectionsNames" + formName,
+        sectionNames);
+    }
+    return sectionNames;
+  }
+
+  private Set<String> getFormSectionsOpen(
+    final BusinessApplication businessApplication, final String formName) {
+    Set<String> openSections = businessApplication.getProperty("formSectionsOpen"
+      + formName);
+    if (openSections == null) {
+      openSections = businessApplication.getProperty("formSectionsOpen");
+      if (openSections == null) {
+        openSections = new HashSet<>(Arrays.asList("applicationParameters",
+          "inputData", "resultFormat"));
+      }
+      businessApplication.setProperty("formSectionsOpen" + formName,
+        openSections);
+    }
+    return openSections;
+  }
+
   private Element getFormSingle(final BusinessApplication businessApplication) {
     final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+    final Map<String, String> fieldSectionMap = getFormSectionsFieldMap(
+      businessApplication, "Single");
+    final Map<String, ElementContainer> sectionContainers = getFormSectionContainers(
+      businessApplication, "Single");
 
     final ElementContainer container = new ElementContainer();
 
     final String url = businessAppBuilder.getPageUrl("clientSingle");
     final Form form = new Form("createSingle", url);
-    final ElementContainer fields = new ElementContainer(new TableBody());
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name) || !perRequestInputData) {
-          addFieldRow(fields, attribute);
+          addFieldRow(fieldSectionMap, sectionContainers, attribute);
         }
       }
     }
-    addGeometryFields(fields, businessApplication);
+    addGeometryFields(fieldSectionMap, sectionContainers, businessApplication);
     if (perRequestInputData) {
-      addInputDataFields(fields, businessApplication);
+      addInputDataFields(fieldSectionMap, sectionContainers,
+        businessApplication);
     }
-    addResultDataFields(fields, businessApplication, "resultDataContentType");
+    addResultDataFields(fieldSectionMap, sectionContainers,
+      businessApplication, "resultDataContentType");
 
-    addNotificationFields(fields);
+    addNotificationFields(fieldSectionMap, sectionContainers);
 
-    addTestFields(fields, businessApplication);
+    addTestFields(fieldSectionMap, sectionContainers, businessApplication);
 
-    form.add(fields);
+    addSections("Single", businessApplication, form, sectionContainers);
     form.add(new DivElementContainer("actionMenu", new SubmitField(
       "createSingle", "Create Job")));
 

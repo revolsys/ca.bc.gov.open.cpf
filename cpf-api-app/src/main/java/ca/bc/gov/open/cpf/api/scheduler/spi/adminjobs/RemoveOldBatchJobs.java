@@ -29,6 +29,7 @@ import java.util.TimeZone;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
@@ -39,6 +40,8 @@ import com.revolsys.util.DateUtil;
  * with all the Batch Jobs associated request and result data.
  */
 public class RemoveOldBatchJobs {
+
+  private BatchJobService batchJobService;
 
   private CpfDataAccessObject dataAccessObject;
 
@@ -66,16 +69,16 @@ public class RemoveOldBatchJobs {
         final List<Long> batchJobIds = dataAccessObject.getOldBatchJobIds(keepUntilTimestamp);
         for (final Long batchJobId : batchJobIds) {
           try {
-            dataAccessObject.deleteBatchJob(batchJobId);
+            batchJobService.deleteJob(batchJobId);
             numberJobsDeleted++;
           } catch (final Throwable t) {
-            LoggerFactory.getLogger(RemoveOldBatchJobs.class).error(
+            LoggerFactory.getLogger(getClass()).error(
               "Unable to delete Batch Job " + batchJobId, t);
           }
         }
 
         if (numberJobsDeleted > 0) {
-          LoggerFactory.getLogger(RemoveOldBatchJobs.class).info(
+          LoggerFactory.getLogger(getClass()).info(
             numberJobsDeleted + " old batch jobs deleted for jobs prior to "
               + DateUtil.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
         }
@@ -85,8 +88,9 @@ public class RemoveOldBatchJobs {
     }
   }
 
-  public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
-    this.dataAccessObject = dataAccessObject;
+  public void setBatchJobService(final BatchJobService batchJobService) {
+    this.batchJobService = batchJobService;
+    this.dataAccessObject = batchJobService.getDataAccessObject();
   }
 
   /**

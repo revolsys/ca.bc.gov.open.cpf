@@ -179,7 +179,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
         + " does not exist");
     } else {
       final BatchJobService batchJobService = getBatchJobService();
-      batchJobService.deleteBatchJob(batchJobId);
+      batchJobService.deleteJob(batchJobId);
       redirectPage("clientList");
     }
   }
@@ -215,7 +215,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     checkAdminOrAnyModuleAdmin();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
-    batchJobService.deleteBatchJob(batchJobId);
+    batchJobService.deleteJob(batchJobId);
     final String url = request.getHeader("Referer");
     if (StringUtils.hasText(url) && url.indexOf("/apps") != -1) {
       redirectPage("moduleAppList");
