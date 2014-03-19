@@ -252,7 +252,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   public Object pageUserAccountList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String consumerKey)
     throws IOException, NoSuchRequestHandlingMethodException {
-    checkHasAnyRole(ADMIN,ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
     final DataObject userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
 
@@ -296,7 +296,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   public void pageUserGroupDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String userGroupName)
     throws IOException, ServletException {
-    checkHasAnyRole(ADMIN,ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
 
     final DataObject userGroup = getUserGroup(userGroupName);
     if (userGroup != null
@@ -316,7 +316,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   public Element pageUserGroupEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String userGroupName)
     throws IOException, ServletException {
-    checkHasAnyRole(ADMIN,ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
     final DataObject userGroup = getUserGroup(userGroupName);
     return super.createObjectEditPage(userGroup, "group");
   }
@@ -327,7 +327,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageUserGroupList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
-    checkHasAnyRole(ADMIN,ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
     HttpServletUtils.setAttribute("title", "User Groups");
     return createDataTableHandler(request, "groupList");
   }
@@ -340,7 +340,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     @PathVariable final String userGroupName,
     @PathVariable final String consumerKey, @RequestParam final Boolean confirm)
     throws ServletException {
-    checkHasAnyRole(ADMIN,ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
     final DataObject userGroup = getUserGroup(userGroupName);
     if (userGroup != null) {
 
@@ -364,7 +364,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   public Element pageUserGroupView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String userGroupName)
     throws IOException, ServletException {
-    checkHasAnyRole(ADMIN,ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
     return createUserGroupView(request, response, "group", "group", null,
       userGroupName, null);
   }
@@ -381,8 +381,10 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     if (group == null) {
       final String moduleName = userGroup.getValue(UserGroup.MODULE_NAME);
       if (!groupName.startsWith(moduleName + "_")) {
-        nameField.addValidationError("Group name must start with " + moduleName
-          + "_");
+        nameField.addValidationError("Must start with " + moduleName + "_");
+        return false;
+      } else if (!groupName.matches("[a-z0-9_]+")) {
+        nameField.addValidationError("Can only contain the characters a-z, 0-9, and _.");
         return false;
       } else {
         final int groupNameLength = groupName.length();
@@ -417,6 +419,9 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
       if (!groupName.startsWith(moduleName + "_")) {
         nameField.addValidationError("Group name must start with " + moduleName
           + "_");
+        return false;
+      } else if (!groupName.matches("[a-z0-9_]+")) {
+        nameField.addValidationError("Can only contain the characters a-z, 0-9, and _.");
         return false;
       } else {
         final int groupNameLength = groupName.length();

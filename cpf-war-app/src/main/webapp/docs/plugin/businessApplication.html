@@ -165,7 +165,6 @@ private DataSource getDataSource() {
   p:url=&quot;<b>jdbc:postgresql://localhost:5432/postgres</b>&quot;
   p:username=&quot;<b>demo</b>&quot;
   p:password=&quot;<b>********</b>&quot;
-  lazy-init=&quot;true&quot;
 &gt;
   &lt;property
    name=&quot;config&quot;
@@ -181,6 +180,10 @@ private DataSource getDataSource() {
   &lt;/property&gt;
 &lt;/bean&gt;</pre>
 </figure>
+
+<p class="note">NOTE: Beans should not be defined with lazy-init="true". This will cause the
+system to think the plug-in has been loaded when not all beans are ready. This can cause worker
+threads to be blocked waiting for the beans to initialize.</p>
 
 <p>Finally the demoDataSource bean will be injected into the <code>dataSource</code> property on the <code>demo</code> bean definition in the plug-in definition spring file.</p>
 
@@ -386,6 +389,63 @@ public void setResultDataContentType(final String format) {
 <p>Due to the distributed nature of the CPF regular logging frameworks such as log4j should not be used as the logs will be on each worker and not available from the CPF admin web application. See the <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.log.AppLog">AppLog</a> class for details
 of the logging API business application plug-ins should use.</p>
 
+<h2>Memory Management</h2>
+
+<p>Plug-ins must ensure that their data and classes can be garbage collected when the plug-in is
+stopped. Below are some guidelines for ensuring garbage collection.</p>
+
+<ul>
+  <li>Avoid using the Java singleton pattern for cached data structures. The data won't be released
+  unil the class is garbage collected (which maybe neve depending on the JVM). Use
+  a spring bean with the default singleton scope instead.</p>
+  <li>Avoid aspect oriented libraries, especially that use CGLIB. These sometimes create classes that
+  can't get garbage collected.</li>
+  <li>If using Java introspection/reflection, ensure that class and method references are not stored in a cache owned by another JVM.
+  CPF has code to perform cache clearing for commons beanutils.</li>
+  <li>Implement a cleanup method on each bean (other than the
+  plug-in prototype bean). This method should close any resources it created (e.g. database
+  connections), clear any cached values and preferably set any fields to null. See the spring framework
+  documentation for details in implementing 
+  <a href="http://docs.spring.io/spring/docs/3.0.7.RELEASE/reference/beans.html#beans-factory-lifecycle-disposablebean">Destruction callbacks</a>
+  or <a href="http://docs.spring.io/spring/docs/3.0.7.RELEASE/reference/beans.html#beans-postconstruct-and-predestroy-annotations">@PreDestory annotation</a>.
+  Spring will automatically call those methods when the plug-in is stopped.</li>
+</ul>
+
+<p>The CPF Tomcat JVM should be started with the following parameters to allow class unloading. Consult your JVM's documentation for more details.</p>
+<figure>
+<pre>-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+UseCodeCacheFlushing</pre>
+</figure>
+
+<p>In a non-production environment you can also turn on the following option to see the classes that
+were garbage collected on the console output from the Tomcat command.</p>
+
+<figure>
+<pre>-XX:+TraceClassUnloading</pre>
+</figure>
+
+<p>The following proceedure can be used to see if a CPF module can be un-loaded successfully.</p>
+
+<ol>
+  <li>Restart the Tomcat JVM to ensure a clean start.</li>
+  <li>Make sure the CPF module is started (don't restart if already started).</li>
+  <li>Stop the CPF module using the CPF admin application. Or to test CPF too undeploy the CPF web apps using the Tomcat manager.</li>
+  <li>Use the jconsole tool that comes with the JDK (not JRE) to connect to the Tomcat Java process.</li>
+  <li>Click on the memory tab.</li>
+  <li>Click on 'Perform GC' about 5 times to force a garbage collection.</li>
+  <li>Click on the Classes tab and see if the Loaded count is lower than the Total Loaded. This
+  shows that some classes were garbage collected. You may need to do 'Perform GC' or wait a while
+  as there is no contract as to when the class garbage collection will occur.</p>
+  <li>The following command creates a memory dump of the JVM you will need to know the process id [PID] of the Tomcat JVM. <code>jmap -dump:live,format=b,file=cpf.hprof [PID]</code>.</li>
+  <li>The cpf.hprof can be loaded into a Java Heap analyzer or the following command can be used to create a web server where you can browse the memory.<ol>
+    <li><code>jhat -J-mx1024m cpf.hprof</code> (NOTE: you may need more memory depending on the amount of memory used in the Tomcat JVM.</li>
+    <li>Open <a href="http://localhost:7000/">http://localhost:7000/</a> in a web browser. 
+    The <a href="http://localhost:7000/showInstanceCounts/">http://localhost:7000/showInstanceCounts/</a>
+    page is the most useful as it shows the counts of objects by class for non core Java class.</li>
+    <li>Check that the custom classes used by your application do no appear on this page. If they do then the application has not been garbage collected.</li>
+    <li>Click the instances link next to a class to see the instances. From there you can naviagte to see the references to that object. This will help identify where cleanup code should be implemented.</li>
+  </ol></li>
+</ol>
+ 
 <div class="pageNavigation">
   <table>
     <tr>

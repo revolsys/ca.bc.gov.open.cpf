@@ -178,7 +178,7 @@ public class BusinessApplicationStatistics {
         }
       }
     }
-    final Date startTime = DateUtil.parse(pattern, dateString);
+    final Date startTime = DateUtil.getDate(pattern, dateString);
     this.businessApplicationName = businessApplicationName;
     this.durationType = durationType;
     final Calendar calendar = new GregorianCalendar();

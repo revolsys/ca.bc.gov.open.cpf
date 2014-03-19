@@ -18,8 +18,6 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
 
 import com.revolsys.beans.InvokeMethodCallable;
-import com.revolsys.ui.html.view.ElementContainer;
-import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
@@ -61,31 +59,6 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder {
     } else {
       return createDataTableHandler(getRequest(), "workerList",
         workerGroupsCallable);
-    }
-  }
-
-  @RequestMapping(value = {
-    "/admin/workers/{workerId}/executingGroups/{executionGroupId}"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public ElementContainer pageWorkerView(@PathVariable final String workerId,
-    @PathVariable final String executionGroupId) {
-    checkHasAnyRole(ADMIN);
-    final BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
-    if (worker == null) {
-      throw new PageNotFoundException("The worker " + workerId
-        + " could not be found. It may no longer be connected.");
-    } else {
-      final BatchJobRequestExecutionGroup group = worker.getExecutingGroup(executionGroupId);
-      if (group == null) {
-        throw new PageNotFoundException("The group " + workerId
-          + " could not be found. It may no longer be executing.");
-      } else {
-        final TabElementContainer tabs = new TabElementContainer();
-        addObjectViewPage(tabs, worker, null);
-        return tabs;
-      }
     }
   }
 

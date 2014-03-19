@@ -22,12 +22,6 @@
           p:title="Executing Groups"
           p:path="/admin/workers/{workerId}/executingGroups/"
           p:permission="hasRole('ROLE_ADMIN')" />
-        <bean
-          p:name="workerView"
-          class="com.revolsys.ui.web.config.Page"
-          p:title="Executing Group {executionGroupId}"
-          p:path="/admin/workers/{workerId}/executingGroups/{executionGroupId}/"
-          p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="workerRestart"
@@ -79,19 +73,6 @@
     <property name="views">
       <map>
         <entry key="workerList">
-          <list>
-            <bean
-              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
-              p:key="id"
-              p:label="ID"
-              p:pageName="workerView" />
-            <value>module.name</value>
-            <value>businessApplication.name</value>
-            <value>scheduleTimestamp</value>
-            <value>actions</value>
-          </list>
-        </entry>
-        <entry key="workerView">
           <list>
             <value>id</value>
             <value>module.name</value>

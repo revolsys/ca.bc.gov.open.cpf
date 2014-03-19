@@ -52,6 +52,7 @@
   <bean
     id="batchJobService"
     class="ca.bc.gov.open.cpf.api.scheduler.BatchJobService"
+    p:jsonpEnabled="true"
     p:businessApplicationRegistry-ref="businessApplicationRegistry"
     p:authorizationService-ref="authorizationService"
     p:dataAccessObject-ref="cpfDataAccessObject"

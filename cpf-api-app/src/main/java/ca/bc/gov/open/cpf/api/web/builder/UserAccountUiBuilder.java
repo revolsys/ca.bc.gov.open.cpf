@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,7 +30,7 @@ import com.revolsys.collection.ArrayListOfMap;
 import com.revolsys.collection.ResultPager;
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.gis.model.data.equals.EqualsRegistry;
 import com.revolsys.io.IoConstants;
 import com.revolsys.ui.html.decorator.FieldLabelDecorator;
 import com.revolsys.ui.html.decorator.TableBody;
@@ -44,11 +45,11 @@ import com.revolsys.ui.html.view.TableRow;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
-public class UserAccountUiBuilder extends CpfUiBuilder {
+public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
   public UserAccountUiBuilder() {
-    super("userAccount", UserAccount.USER_ACCOUNT, UserAccount.CONSUMER_KEY,
-      "User Account", "User Accounts");
+    super("userAccount", USER_ACCOUNT, CONSUMER_KEY, "User Account",
+      "User Accounts");
     setIdParameterName("consumerKey");
   }
 
@@ -144,9 +145,9 @@ public class UserAccountUiBuilder extends CpfUiBuilder {
 
     final ArrayListOfMap<Object> results = new ArrayListOfMap<Object>();
     for (final DataObject userAccount : userAccounts) {
-      final String accountClass = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
-      final String accountName = userAccount.getValue(UserAccount.USER_NAME);
-      final String username = userAccount.getValue(UserAccount.CONSUMER_KEY);
+      final String accountClass = userAccount.getValue(USER_ACCOUNT_CLASS);
+      final String accountName = userAccount.getValue(USER_NAME);
+      final String username = userAccount.getValue(CONSUMER_KEY);
       final String label = username + " (" + accountName + " - " + accountClass
         + ")";
       final Map<String, Object> autoComplete = new LinkedHashMap<String, Object>();
@@ -277,8 +278,10 @@ public class UserAccountUiBuilder extends CpfUiBuilder {
   public Element pageUserAccountAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
     final Map<String, Object> defaultValues = new HashMap<String, Object>();
-    defaultValues.put("USER_ACCOUNT_CLASS", "CPF");
-    defaultValues.put("ACTIVE_IND", "1");
+    defaultValues.put(USER_ACCOUNT_CLASS, USER_ACCOUNT_CLASS_CPF);
+    defaultValues.put(CONSUMER_SECRET,
+      UUID.randomUUID().toString().replaceAll("-", ""));
+    defaultValues.put(ACTIVE_IND, "1");
     return super.createObjectAddPage(defaultValues, null, "preInsert");
   }
 
@@ -292,7 +295,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder {
 
     final DataObject userAccount = getUserAccount(consumerKey);
     if (userAccount != null
-      && userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS).equals("CPF")) {
+      && userAccount.getValue(USER_ACCOUNT_CLASS).equals("CPF")) {
 
       getDataAccessObject().deleteUserAccount(userAccount);
       redirectPage("list");
@@ -310,7 +313,11 @@ public class UserAccountUiBuilder extends CpfUiBuilder {
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN, ADMIN_SECURITY);
     final DataObject userAccount = getUserAccount(consumerKey);
-    return super.createObjectEditPage(userAccount, null);
+    if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
+      return super.createObjectEditPage(userAccount, null);
+    } else {
+      return super.createObjectEditPage(userAccount, "active");
+    }
   }
 
   @RequestMapping(value = {
@@ -334,7 +341,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder {
     checkHasAnyRole(ADMIN, ADMIN_SECURITY);
     final DataObject userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
-      final String userAccountClass = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
+      final String userAccountClass = userAccount.getValue(USER_ACCOUNT_CLASS);
       HttpServletUtils.setPathVariable("userAccountClass", userAccountClass);
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, userAccount, null);
@@ -387,42 +394,67 @@ public class UserAccountUiBuilder extends CpfUiBuilder {
   }
 
   @Override
+  public void postUpdate(final DataObject userAccount) {
+    super.postUpdate(userAccount);
+    final String consumerKey = userAccount.getString(CONSUMER_KEY);
+    final String oldConsumerKey = HttpServletUtils.getAttribute("oldConsumerKey");
+    if (!EqualsRegistry.equal(consumerKey, oldConsumerKey)) {
+      final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+      dataAccessObject.updateJobUserId(oldConsumerKey, consumerKey);
+    }
+  }
+
+  @Override
   public boolean preInsert(final Form form, final DataObject userAccount) {
-    final Field consumerKeyField = form.getField(UserAccount.CONSUMER_KEY);
+    final Field consumerKeyField = form.getField(CONSUMER_KEY);
     String consumerKey = consumerKeyField.getValue();
     consumerKey = consumerKey.toLowerCase();
     consumerKeyField.setValue(consumerKey);
-    userAccount.setValue(UserAccount.CONSUMER_KEY, consumerKey);
-    userAccount.setValue(UserAccount.USER_NAME, consumerKey);
+    userAccount.setValue(CONSUMER_KEY, consumerKey);
+    userAccount.setValue(USER_NAME, consumerKey);
 
-    final DataObject account = getUserAccount(consumerKey);
-    if (account == null) {
-      return true;
-    } else {
-      consumerKeyField.addValidationError("Consumer key is already used");
+    if (!consumerKey.matches("[a-z0-9_]+")) {
+      consumerKeyField.addValidationError("Can only contain the characters a-z, 0-9, and _.");
       return false;
+    } else {
+      final DataObject account = getUserAccount(consumerKey);
+      if (account == null) {
+        return true;
+      } else {
+        consumerKeyField.addValidationError("Consumer key is already used.");
+        return false;
+      }
     }
   }
 
   @Override
   public boolean preUpdate(final Form form, final DataObject userAccount) {
-    final Long userAccountId = DataObjectUtil.getLong(userAccount,
-      UserAccount.USER_ACCOUNT_ID);
-    final Field consumerKeyField = form.getField(UserAccount.CONSUMER_KEY);
-    String consumerKey = consumerKeyField.getValue();
-    consumerKey = consumerKey.toLowerCase();
-    consumerKeyField.setValue(consumerKey);
-    userAccount.setValue(UserAccount.CONSUMER_KEY, consumerKey);
-    userAccount.setValue(UserAccount.USER_NAME, consumerKey);
-
-    final DataObject account = getUserAccount(consumerKey);
-    if (account == null
-      || DataObjectUtil.getLong(account, UserAccount.USER_ACCOUNT_ID) == userAccountId) {
-      HttpServletUtils.setPathVariable("consumerKey", consumerKey);
-      return true;
+    if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
+      final String oldConsumerKey = userAccount.getString(CONSUMER_KEY);
+      final Long userAccountId = userAccount.getLong(USER_ACCOUNT_ID);
+      final Field consumerKeyField = form.getField(CONSUMER_KEY);
+      String consumerKey = consumerKeyField.getValue();
+      consumerKey = consumerKey.toLowerCase();
+      consumerKeyField.setValue(consumerKey);
+      userAccount.setValue(CONSUMER_KEY, consumerKey);
+      userAccount.setValue(USER_NAME, consumerKey);
+      if (!consumerKey.matches("[a-z0-9_]+")) {
+        consumerKeyField.addValidationError("Can only contain the characters a-z, 0-9, and _.");
+        return false;
+      } else {
+        final DataObject account = getUserAccount(consumerKey);
+        if (account == null
+          || account.getLong(USER_ACCOUNT_ID) == userAccountId) {
+          HttpServletUtils.setAttribute("oldConsumerKey", oldConsumerKey);
+          HttpServletUtils.setPathVariable("consumerKey", consumerKey);
+          return true;
+        } else {
+          consumerKeyField.addValidationError("Consumer key is already used");
+          return false;
+        }
+      }
     } else {
-      consumerKeyField.addValidationError("Consumer key is already used");
-      return false;
+      return true;
     }
   }
 

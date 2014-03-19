@@ -350,6 +350,11 @@ public class CpfDataAccessObject {
       UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
     dataStore.delete(membersQuery);
 
+    final String consumerKey = userAccount.getString(UserAccount.CONSUMER_KEY);
+    final Query jobsQuery = Query.equal(batchJobMetaData, BatchJob.USER_ID,
+      consumerKey);
+    dataStore.delete(jobsQuery);
+
     delete(userAccount);
   }
 
@@ -1246,6 +1251,17 @@ public class CpfDataAccessObject {
       }
     }
     return 0;
+  }
+
+  public int updateJobUserId(final String oldUserId, final String newUserId) {
+    final JdbcDataObjectStore jdbcDataStore = (JdbcDataObjectStore)dataStore;
+    final DataSource dataSource = jdbcDataStore.getDataSource();
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET USER_ID = ? WHERE USER_ID = ?";
+    try {
+      return JdbcUtils.executeUpdate(dataSource, sql, newUserId, oldUserId);
+    } catch (final Throwable e) {
+      throw new RuntimeException("Unable to change jobs for user rename", e);
+    }
   }
 
   public int updateResetBatchJobExecutingGroups(

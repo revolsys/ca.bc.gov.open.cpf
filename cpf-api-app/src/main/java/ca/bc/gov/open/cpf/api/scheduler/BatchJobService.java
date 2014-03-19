@@ -258,6 +258,8 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  private boolean jsonpEnabled = true;
+
   private JobController jobController;
 
   private boolean compressData = false;
@@ -1105,6 +1107,10 @@ public class BatchJobService implements ModuleEventListener {
     } else {
       return false;
     }
+  }
+
+  public boolean isJsonpEnabled() {
+    return jsonpEnabled;
   }
 
   public boolean isRunning() {
@@ -2174,6 +2180,10 @@ public class BatchJobService implements ModuleEventListener {
    */
   public void setFromEmail(final String fromEmail) {
     this.fromEmail = fromEmail;
+  }
+
+  public void setJsonpEnabled(final boolean jsonpEnabled) {
+    this.jsonpEnabled = jsonpEnabled;
   }
 
   /**

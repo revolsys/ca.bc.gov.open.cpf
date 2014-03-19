@@ -170,7 +170,6 @@ private DataSource getDataSource() {
   p:url=&quot;<b>jdbc:postgresql://localhost:5432/postgres</b>&quot;
   p:username=&quot;<b>demo</b>&quot;
   p:password=&quot;<b>********</b>&quot;
-  lazy-init=&quot;true&quot;
 &gt;
   &lt;property
    name=&quot;config&quot;
@@ -394,7 +393,7 @@ public void setResultSrid(final int resultSrid) {
 </figure>
 
 <h4>Geometry Processing</h4>
-<p>See <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.GeometryFactory"><code>GeometryFactory</code></a> class for details on creating <a HREF=http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> geometry objects.</p>
+<p>See <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.GeometryFactory"><code>GeometryFactory</code></a> class for details on creating <a href=http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> geometry objects.</p>
 
 <h3>Per request result data</a></h3>
 <p>Plug-ins that accept per request input data perRequestResultData=true cannot return result attributes. They can only return the binary content of the result data. The plug-in must implement the following methods. The resultData output stream can be used to write the result binary blob data. The resultDataContentType indicates to the plug-in the type of result data it should generate.</p>

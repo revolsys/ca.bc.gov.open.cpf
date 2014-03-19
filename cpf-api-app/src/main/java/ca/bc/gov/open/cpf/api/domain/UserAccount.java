@@ -11,6 +11,8 @@ public interface UserAccount extends Common {
 
   String USER_ACCOUNT_CLASS = "USER_ACCOUNT_CLASS";
 
+  String USER_ACCOUNT_CLASS_CPF = "CPF";
+
   String USER_NAME = "USER_NAME";
 
   String USER_ACCOUNT_ID = "USER_ACCOUNT_ID";
