@@ -20,31 +20,31 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="User Accounts"
           p:path="/admin/userAccounts/"
-          p:permission="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY')" />
+          p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="view"
           class="com.revolsys.ui.web.config.Page"
           p:title="User Account {consumerKey}"
-          p:path="/admin/userAccounts/{consumerKey}/" />
+          p:path="/admin/userAccounts/{consumerKey}/" p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="edit"
           class="com.revolsys.ui.web.config.Page"
           p:title="Edit User Account {consumerKey}"
-          p:path="/admin/userAccounts/{consumerKey}/edit/" />
+          p:path="/admin/userAccounts/{consumerKey}/edit/" p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="delete"
           class="com.revolsys.ui.web.config.Page"
           p:title="Delete User Account {consumerKey}"
-          p:path="/admin/userAccounts/{consumerKey}/delete/" />
+          p:path="/admin/userAccounts/{consumerKey}/delete/" p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="add"
           class="com.revolsys.ui.web.config.Page"
           p:title="Add User Account"
-          p:path="/admin/userAccounts/add/" />
+          p:path="/admin/userAccounts/add/" p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="searchLikeName"

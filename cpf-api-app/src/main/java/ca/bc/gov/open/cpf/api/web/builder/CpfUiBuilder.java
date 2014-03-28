@@ -42,8 +42,6 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
 
   public static final String ADMIN = "ROLE_ADMIN";
 
-  public static final String ADMIN_SECURITY = "ROLE_ADMIN_SECURITY";
-
   public static void checkAdminOrAnyModuleAdmin() {
     final boolean permitted = hasAnyRole(ADMIN)
       || hasRoleRegex("ROLE_ADMIN_MODULE_.*");
@@ -53,8 +51,8 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
   }
 
   public static void checkAdminOrAnyModuleAdmin(final String moduleName) {
-    final boolean permitted = hasAnyRole(ADMIN, "ROLE_ADMIN_MODULE_"
-      + moduleName + ".*");
+    final boolean permitted = hasAnyRole(ADMIN)
+      || hasRoleRegex("ROLE_ADMIN_MODULE_" + moduleName + ".*");
     if (!permitted) {
       throw new AccessDeniedException("Permission denied");
     }
@@ -71,22 +69,6 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
   public static void checkAdminOrModuleAdmin(final String moduleName) {
     final boolean permitted = hasAnyRole(ADMIN, "ROLE_ADMIN_MODULE_"
       + moduleName + "_ADMIN");
-    if (!permitted) {
-      throw new AccessDeniedException("Permission denied");
-    }
-  }
-
-  public static void checkAdminSecurityOrAnyModuleAdmin() {
-    final boolean permitted = hasAnyRole(ADMIN, ADMIN_SECURITY)
-      || hasRoleRegex("ROLE_ADMIN_MODULE_.*");
-    if (!permitted) {
-      throw new AccessDeniedException("Permission denied");
-    }
-  }
-
-  public static void checkAdminSecurityOrAnyModuleAdmin(final String moduleName) {
-    final boolean permitted = hasAnyRole(ADMIN, ADMIN_SECURITY)
-      || hasRoleRegex("ROLE_ADMIN_MODULE_." + moduleName + "*");
     if (!permitted) {
       throw new AccessDeniedException("Permission denied");
     }
@@ -316,7 +298,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
 
   public List<Module> getPermittedModules() {
     final List<Module> modules = businessApplicationRegistry.getModules();
-    if (!hasAnyRole(ADMIN, ADMIN_SECURITY)) {
+    if (!hasAnyRole(ADMIN)) {
       for (final Iterator<Module> iterator = modules.iterator(); iterator.hasNext();) {
         final Module module = iterator.next();
         final String moduleName = module.getName();

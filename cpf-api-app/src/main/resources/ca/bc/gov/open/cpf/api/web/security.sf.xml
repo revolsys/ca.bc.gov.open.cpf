@@ -31,7 +31,7 @@
 
     <security:intercept-url
       pattern="/admin/**"
-      access="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />
+      access="hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />
     <security:intercept-url
       pattern="/worker/**"
       access="hasRole('ROLE_WORKER')" />

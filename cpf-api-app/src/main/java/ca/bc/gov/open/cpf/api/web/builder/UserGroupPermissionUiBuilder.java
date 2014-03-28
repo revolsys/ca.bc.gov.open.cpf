@@ -47,7 +47,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @PathVariable final String moduleName,
     @PathVariable final String userGroupName) throws ServletException,
     IOException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -73,7 +73,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @PathVariable final String userGroupName,
     @PathVariable final Long userGroupPermissionId,
     @RequestParam final Boolean confirm) throws ServletException, IOException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -108,7 +108,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @PathVariable final String userGroupName,
     @PathVariable final Long userGroupPermissionId) throws ServletException,
     IOException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -137,7 +137,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @PathVariable final String moduleName,
     @PathVariable final String userGroupName) throws IOException,
     ServletException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {
@@ -167,7 +167,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @PathVariable final String userGroupName,
     @PathVariable final Long userGroupPermissionId) throws ServletException,
     IOException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final DataObject group = getUserGroup(userGroupName);
     if (group != null) {

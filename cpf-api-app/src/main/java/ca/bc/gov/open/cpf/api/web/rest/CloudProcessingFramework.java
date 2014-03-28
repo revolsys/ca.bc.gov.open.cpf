@@ -569,7 +569,7 @@ public class CloudProcessingFramework {
    * <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a>
    * resource should be consulted to get the full list of supported parameters. </p>
    * 
-   * <h5>Structured Input Data</h5>
+   * <h4>Structured Input Data</h4>
    * 
    * <p>For structured input data business applications the requests are specified
    * using either a single inputData file or a single inputDataUrl can be
@@ -580,7 +580,7 @@ public class CloudProcessingFramework {
    * supported by the business application. The names of the parameters are case
    * sensitive.</p>
    * 
-   * <h5>Opaque input data</h5>
+   * <h4>Opaque input data</h4>
    * 
    * <p>For opaque input data (e.g. JPEG image, ESRI Shapefile) the requests can be
    * specified as one or more inputData files or one or more inputDataUrl
@@ -850,12 +850,12 @@ public class CloudProcessingFramework {
    * <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a>
    * resource should be consulted to get the full list of supported parameters. </p>
    * 
-   * <h5>Structured Input Data</h5>
+   * <h4>Structured Input Data</h4>
    * 
    * <p>For structured input data business applications the request parameters are specified
    * in the HTTP POST form.</p>
    * 
-   * <h5>Opaque input data</h5>
+   * <h4>Opaque input data</h4>
    * 
    * <p>For opaque input data (e.g. JPEG image, ESRI Shapefile) the requests can be
    * specified as one inputData files or one inputDataUrl
@@ -1259,7 +1259,7 @@ public class CloudProcessingFramework {
    * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources">Get Business Applications Resources</a>
    * resource for each business application the user is authorized to access.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    * 
    * <div class="simpleDataTable">
    *   <table class="data">
@@ -1318,11 +1318,11 @@ public class CloudProcessingFramework {
    * <code>specification</code> parameter equals <code>true</code> then the specification mode
    * is enabled, otherwise the execute instant request mode is enabled.</p>
    *  
-   * <h5>Specification</h5>
+   * <h4>Specification</h4>
    * 
    * <p>Get the specification of the execute instant request mode of this service.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document with the following additional fields
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document with the following additional fields
    * which are the parameters to the execute instant request mode.</a>.</p>
    * 
    * <div class="simpleDataTable">
@@ -1416,7 +1416,7 @@ public class CloudProcessingFramework {
    *   </table>
    * </div>
    *  
-   * <h5>Execute Instant Request</h5>
+   * <h4>Execute Instant Request</h4>
    * 
    * <p>Execute a single instant request using the business application with the results
    * returned in the request.</p>
@@ -1620,10 +1620,10 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a>
    * resource for each of the user's jobs for the business application.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    * 
    * <div class="simpleDataTable">
    *   <table class="data">
@@ -1640,7 +1640,7 @@ public class CloudProcessingFramework {
    *       </tr>
    *       <tr>
    *         <td>batchJobUrl</td>
-   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> resource without the file format extension.</td>
+   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a> resource without the file format extension.</td>
    *       </tr>
    *       <tr>
    *         <td>jobStatus</td>
@@ -1710,7 +1710,7 @@ public class CloudProcessingFramework {
    * <p>Get the specification of the 
    * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> service.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document with the following additional fields
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document with the following additional fields
    * which are the parameters to the
    * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a>
    * service.</a>.</p>
@@ -1854,7 +1854,7 @@ public class CloudProcessingFramework {
    * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">create multi request jobs</a>
    * resources.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document.</p>
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document.</p>
    * 
    * @param businessApplicationName The name of the business application.
    * @return The resource.
@@ -1935,7 +1935,7 @@ public class CloudProcessingFramework {
    * <p>Get the specification of the 
    * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document with the following additional fields
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document with the following additional fields
    * which are the parameters to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</a>.</p>
    * 
    * <div class="simpleDataTable">
@@ -2530,10 +2530,10 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Jobs Info</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a>
    * resource for each of the user's jobs.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    * 
    * <div class="simpleDataTable">
    *   <table class="data">
@@ -2550,7 +2550,7 @@ public class CloudProcessingFramework {
    *       </tr>
    *       <tr>
    *         <td>batchJobUrl</td>
-   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> resource without the file format extension.</td>
+   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a> resource without the file format extension.</td>
    *       </tr>
    *       <tr>
    *         <td>jobStatus</td>
@@ -2790,10 +2790,10 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Jobs Result</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getrsJobsResult">Get Jobs Result</a>
    * resource for each of the results for a user's job.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    * 
    * <div class="simpleDataTable">
    *   <table class="data">
@@ -2961,10 +2961,11 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the root resource of the CPF web services. The resource contains links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications">Get Business Applications</a>
-   * and <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsers">Get Users</a> resources.</p>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobs">Get Jobs</a>
+   * and <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications">Get Business Applications</a>
+   * resources.</p>
    * 
-   * <p>The method returns a <a href="../../resourceList.html">Resource Description</a> document.</a>
+   * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document.</a>
    * 
    * @return The resource.
    *

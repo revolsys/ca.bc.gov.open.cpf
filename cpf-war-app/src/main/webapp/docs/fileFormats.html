@@ -7,6 +7,7 @@
     
     <!-- InstanceBeginEditable name="doctitle" -->
 <title>File Formats - CPF</title>
+pageId = '';
 <!-- InstanceEndEditable -->
 
     <link
@@ -28,6 +29,8 @@
     <script type="text/javascript">
 $(document).ready(function() {
   prettyPrint();
+  setPageId(pageId);
+  createToc();
 });
 	</script>
 
@@ -51,25 +54,31 @@ $(document).ready(function() {
                 <div class="sideMenu">
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
-                    <li><a href="../ws/" title="Home">Home</a></li>
-                    <li><a href="client/">Client Development</a><ul>
-                      <li><a href="client/rest-api/" title="Client REST API">Client REST API</a></li>
-                      <li><a href="client/java-api/" title="Client Java API">Client Java API</a></li>
-                      <li><a href="client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    <li><a href="../ws/">Home</a></li>
+                    <li id="overviewMenu"><a href="../docs/">Overview</a></li>
+                    <li id="clientMenu"><a href="client/">Client Development</a><ul>
+                      <li id="clientRestMenu"><a href="client/rest-api/">Client REST API</a></li>
+                      <li id="clientJavaMenu"><a href="client/java-api/">Client Java API</a></li>
+                     <!-- <li id="clientJavaMenu"><a href="../docs/client/javascript-api/">Client JavaScript API</a></li>-->
                     </ul></li>
-                    <li><a href="install/">CPF Installation</a><ul>
-                      <li><a href="install/database.html">CPF Database Installation</a></li>
-                      <li><a href="install/webapp.html">CPF Web Application Installation</a></li>
+                    <li id="pluginMenu"><a href="plugin/">Plug-in Development</a><ul>
+                      <li id="pluginOverviewMenu"><a href="plugin/overview.html">Plug-in Overview</a></li>
+                      <li id="pluginProjectMenu"><a href="plugin/mavenProject.html">Plug-in Maven Project</a></li>
+                      <li id="pluginAppMenu"><a href="plugin/businessApplication.html">Plug-in Business Application Class</a></li>
+                      <li id="pluginCustomizationMenu"><a href="plugin/customization.html">Plug-in Customization Properties</a></li>
+                      <li id="pluginConfigurationMenu"><a href="plugin/config.html">Plug-in Configuration Properties</a></li>
+                      <li id="pluginSecurityMenu"><a href="plugin/security.html">Plug-in Security</a></li>
+                      <li id="pluginTestingMenu"><a href="plugin/testing.html">Plug-in Testing</a></li>
+                      <li id="pluginJavaMenu"><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
                     </ul></li>
-                    <li><a href="plugin/">Plug-in Development</a><ul>
-                      <li><a href="plugin/overview.html">Plug-in Overview</a></li>
-                      <li><a href="plugin/mavenProject.html">Plug-in Maven Project</a></li>
-                      <li><a href="plugin/businessApplication.html">Plug-in Business Application Class</a></li>
-                      <li><a href="plugin/customization.html">Plug-in Customization Properties</a></li>
-                      <li><a href="plugin/config.html">Plug-in Configuration Properties</a></li>
-                      <li><a href="plugin/security.html">Plug-in Security</a></li>
-                      <li><a href="plugin/testing.html">Plug-in Testing</a></li>
-                      <li><a href="plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    <li id="installMenu"><a href="install/">Installation</a><ul>
+                      <li id="dbInstallMenu"><a href="install/database.html">Database Installation</a></li>
+                      <li id="webInstallMenu"><a href="install/webapp.html">Web Application Installation</a></li>
+                    </ul></li>
+                    <li id="adminMenu"><a href="admin/">Administration</a><ul>
+                      <li id="userAccountMenu"><a href="admin/userAccount.html">User Accounts</a></li>
+                      <li id="userGroupMenu"><a href="admin/userGroup.html">User Groups</a></li>
+                      <li id="userGroupPermissionMenu"><a href="admin/userGroupPermission.html">User Group Permissions</a></li>
                     </ul></li>
                   </ul>
                   </div>

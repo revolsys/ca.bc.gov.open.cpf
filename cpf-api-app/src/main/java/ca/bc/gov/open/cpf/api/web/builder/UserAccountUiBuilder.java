@@ -138,7 +138,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public ArrayListOfMap<Object> autocompleteUserName(
     final HttpServletRequest request, final HttpServletResponse response,
     @RequestParam final String term) throws IOException, ServletException {
-    checkAdminSecurityOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdmin();
     request.setAttribute(IoConstants.JSON_LIST_ROOT_PROPERTY, Boolean.TRUE);
     final CpfDataAccessObject cpfDataAccessObject = getDataAccessObject();
     final List<DataObject> userAccounts = cpfDataAccessObject.getUserAccountsLikeName(term);
@@ -237,7 +237,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     @PathVariable final String userGroupName,
     @RequestParam final String consumerKey) throws IOException,
     ServletException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     return addUserGroupMembership(request, response, moduleName, userGroupName,
       moduleName, consumerKey, "moduleView", "moduleGroupList");
   }
@@ -251,7 +251,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     @PathVariable final String userGroupName,
     @PathVariable final String consumerKey, @RequestParam final Boolean confirm)
     throws ServletException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     removeUserGroupMembership(request, response, moduleName, userGroupName,
       moduleName, consumerKey, confirm, "moduleView", "moduleGroupList");
   }
@@ -264,7 +264,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String userGroupName) throws IOException,
     ServletException {
-    checkAdminSecurityOrAnyModuleAdmin(moduleName);
+    checkAdminOrAnyModuleAdmin(moduleName);
     return createUserGroupMembersList(request, response, "moduleGroup",
       moduleName, userGroupName, moduleName);
   }
@@ -277,6 +277,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   @ResponseBody
   public Element pageUserAccountAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
     final Map<String, Object> defaultValues = new HashMap<String, Object>();
     defaultValues.put(USER_ACCOUNT_CLASS, USER_ACCOUNT_CLASS_CPF);
     defaultValues.put(CONSUMER_SECRET,
@@ -291,7 +292,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public void pageUserAccountDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String consumerKey)
     throws IOException, ServletException {
-    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN);
 
     final DataObject userAccount = getUserAccount(consumerKey);
     if (userAccount != null
@@ -311,7 +312,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public Element pageUserAccountEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String consumerKey)
     throws IOException, ServletException {
-    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN);
     final DataObject userAccount = getUserAccount(consumerKey);
     if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
       return super.createObjectEditPage(userAccount, null);
@@ -326,7 +327,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   @ResponseBody
   public Object pageUserAccountList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
-    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN);
     HttpServletUtils.setAttribute("title", "User Accounts");
     return createDataTableHandler(request, "list");
   }
@@ -338,7 +339,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public ElementContainer pageUserAccountView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String consumerKey)
     throws IOException, ServletException {
-    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN);
     final DataObject userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
       final String userAccountClass = userAccount.getValue(USER_ACCOUNT_CLASS);
@@ -362,7 +363,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     @PathVariable final String userGroupName,
     @RequestParam final String consumerKey) throws IOException,
     ServletException {
-    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN);
     return addUserGroupMembership(request, response, null, userGroupName, null,
       consumerKey, "groupView", "groupList");
   }
@@ -375,7 +376,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     @PathVariable final String userGroupName,
     @PathVariable final String consumerKey, @RequestParam final Boolean confirm)
     throws ServletException {
-    checkHasAnyRole(ADMIN, ADMIN_SECURITY);
+    checkHasAnyRole(ADMIN);
     removeUserGroupMembership(request, response, null, userGroupName, null,
       consumerKey, confirm, "groupView", "groupList");
 
@@ -388,7 +389,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public Object pageUserGroupMemberList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String userGroupName)
     throws IOException, ServletException {
-    checkAdminSecurityOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdmin();
     return createUserGroupMembersList(request, response, "group", null,
       userGroupName, null);
   }

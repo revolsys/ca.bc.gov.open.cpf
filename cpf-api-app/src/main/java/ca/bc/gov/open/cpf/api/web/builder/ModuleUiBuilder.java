@@ -230,7 +230,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   public Object createModulePageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     HttpServletUtils.setAttribute("title", "Modules");
-    checkAdminSecurityOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdmin();
     return createDataTableHandler(request, "list", modulesCallable);
   }
 

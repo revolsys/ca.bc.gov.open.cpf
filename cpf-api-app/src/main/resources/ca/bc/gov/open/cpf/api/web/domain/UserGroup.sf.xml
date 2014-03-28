@@ -20,7 +20,7 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="User Groups"
           p:path="/admin/userGroups/"
-          p:permission="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY')" />
+          p:permission="hasRole('ROLE_ADMIN')" />
         <bean
           p:name="groupView"
           class="com.revolsys.ui.web.config.Page"
@@ -78,7 +78,7 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="User Group Delete"
           p:path="/admin/modules/{moduleName}/userGroups/{userGroupName}/delete/"
-          p:permission="#userGroupName.startsWith(#moduleName) and (hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY') or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '.*'))" />
+          p:permission="#userGroupName.startsWith(#moduleName) and (hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '.*'))" />
         <bean
           p:name="moduleAdminList"
           class="com.revolsys.ui.web.config.Page"

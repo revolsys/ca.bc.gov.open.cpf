@@ -6,34 +6,42 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
 <title>${docTitle}</title>
-    
+    <script type="text/javascript">
+pageId = '${docId}';
+		</script>
+
     <link
-      href="https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css"
-      rel="stylesheet" type="text/css" />
-    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+      HREF="https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css"
+      REL="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
+      REL="stylesheet" type="text/css" />
+    <link href="../../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../../css/bcgov.css" rel="stylesheet" type="text/css" />
     <link href="../../../css/cpf.css" rel="stylesheet" type="text/css" />
-    <link href="prettify.css" rel="stylesheet" type="text/css" />
-    <link href="javadoc.css" rel="stylesheet" type="text/css" />
-     
-  
+
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="../../../js/rs.js"></script>
+    <script type="text/javascript" src="../../../js/cpf_client.js"></script>
     <script type="text/javascript" src="prettify.js"></script>
     <script type="text/javascript" src="javadoc.js"></script>
-    <script type="text/javascript" src="../../../js/cpf_client.js"></script>
-
+    <script type="text/javascript">
+$(document).ready(function() {
+  prettyPrint();
+  setPageId(pageId);
+  createToc();
+});
+	</script>
     <style type="text/css">
 td > ul {
   margin: 0px;
 }
     </style>
-  </head>
 
+  </head>
   <body>
     <div CLASS="body">
       <div class="header">
@@ -51,24 +59,31 @@ td > ul {
                 <div class="sideMenu">
                   <div class="title"><a href="http://www.gov.bc.ca/" title="B.C. Home">B.C. Home</a></div>
                   <ul>
-                    <li><a href="../../../ws/" title="Home">Home</a></li>
-                    <li><a href="../../client/">Client Development</a><ul>
-                      <li><a href="../../client/rest-api/" title="Client REST API">Client REST API</a></li>
-                      <li><a href="../../client/java-api/" title="Client Java API">Client Java API</a></li>
-                      <li><a href="../../client/javascript-api/" title="Client JavaScript API">Client JavaScript API</a></li>
+                    <li><a href="../../../ws/">Home</a></li>
+                    <li id="overviewMenu"><a href="../../">Overview</a></li>
+                    <li id="clientMenu"><a href="../../client/">Client Development</a><ul>
+                      <li id="clientRestMenu"><a href="../../client/rest-api/">Client REST API</a></li>
+                      <li id="clientJavaMenu"><a href="../../client/java-api/">Client Java API</a></li>
+                     <!-- <li id="clientJavaMenu"><a href="../../client/javascript-api/">Client JavaScript API</a></li>-->
                     </ul></li>
-                    <li><a href="../../install/">CPF Installation</a><ul>
-                      <li><a href="../../install/database.html">CPF Database Installation</a></li>
-                      <li><a href="../../install/webapp.html">CPF Web Application Installation</a></li>
+                    <li id="pluginMenu"><a href="../../plugin/">Plug-in Development</a><ul>
+                      <li id="pluginOverviewMenu"><a href="../../plugin/overview.html">Plug-in Overview</a></li>
+                      <li id="pluginProjectMenu"><a href="../../plugin/mavenProject.html">Plug-in Maven Project</a></li>
+                      <li id="pluginAppMenu"><a href="../../plugin/businessApplication.html">Plug-in Business Application Class</a></li>
+                      <li id="pluginCustomizationMenu"><a href="../../plugin/customization.html">Plug-in Customization Properties</a></li>
+                      <li id="pluginConfigurationMenu"><a href="../../plugin/config.html">Plug-in Configuration Properties</a></li>
+                      <li id="pluginSecurityMenu"><a href="../../plugin/security.html">Plug-in Security</a></li>
+                      <li id="pluginTestingMenu"><a href="../../plugin/testing.html">Plug-in Testing</a></li>
+                      <li id="pluginJavaMenu"><a href="../../plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
                     </ul></li>
-                    <li><a href="../../plugin/">Plug-in Development</a><ul>
-                      <li><a href="../../plugin/overview.html">Plug-in Overview</a></li>
-                      <li><a href="../../plugin/mavenProject.html">Plug-in Maven Project</a></li>
-                      <li><a href="../../plugin/businessApplication.html">Plug-in Business Application Class</a></li>
-                      <li><a href="../../plugin/customization.html">Plug-in Customization Properties</a></li>
-                      <li><a href="../../plugin/config.html">Plug-in Configuration Properties</a></li>
-                      <li><a href="../../plugin/security.html">Plug-in Security</a></li>
-                      <li><a href="../../plugin/java-api/" title="Plug-in Java API">Plug-in Java API</a></li>
+                    <li id="installMenu"><a href="../../install/">Installation</a><ul>
+                      <li id="dbInstallMenu"><a href="../../install/database.html">Database Installation</a></li>
+                      <li id="webInstallMenu"><a href="../../install/webapp.html">Web Application Installation</a></li>
+                    </ul></li>
+                    <li id="adminMenu"><a href="../../admin/">Administration</a><ul>
+                      <li id="userAccountMenu"><a href="../../admin/userAccount.html">User Accounts</a></li>
+                      <li id="userGroupMenu"><a href="../../admin/userGroup.html">User Groups</a></li>
+                      <li id="userGroupPermissionMenu"><a href="../../admin/userGroupPermission.html">User Group Permissions</a></li>
                     </ul></li>
                   </ul>
                   </div>
@@ -77,7 +92,6 @@ td > ul {
             <div CLASS="column_2_2">
               <div CLASS="bodyContainer">
                 <div class="breadcrumbs">
-                  
                     <div class="breadcrumb">
 <ul>
 <li><a href="../../../ws/">HOME</a></li>
