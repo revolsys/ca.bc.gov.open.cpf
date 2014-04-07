@@ -23,6 +23,22 @@ $(document).ready(function() {
     }
     $('input[name=resultScaleFactorXy]', form).val(scale);
   });
+  $('select[name=resultSrid]').each(function() {
+    var form = $(this).closest('form');
+    var value = $(this).val();
+    var scaleField = $('input[name=resultScaleFactorXy]', form);
+    var scale = scaleField.val();
+    if (value == 4326 || value == 4269) {
+      if (scale == 1000) {
+        scale = 10000000;
+      }
+    } else {
+      if (scale == 10000000) {
+        scale = 1000;
+      }
+    }
+    scaleField.val(scale);    
+  });
 });
 
 function updateMultiInputDataSubmit() {
