@@ -73,7 +73,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
-import com.revolsys.gis.cs.GeometryFactory;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.io.DataObjectStore;
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.io.MapReaderDataObjectReader;
@@ -99,6 +99,8 @@ import com.revolsys.io.html.XhtmlMapWriter;
 import com.revolsys.io.json.JsonDataObjectIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.io.kml.Kml22Constants;
+import com.revolsys.jts.geom.Geometry;
+import com.revolsys.jts.operation.valid.IsValidOp;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ClosedException;
@@ -113,8 +115,6 @@ import com.revolsys.util.Compress;
 import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.operation.valid.IsValidOp;
 
 public class BatchJobService implements ModuleEventListener {
   private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
@@ -883,13 +883,13 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public GeometryFactory getGeometryFactory(
-    final GeometryFactory geometryFactory,
+    final com.revolsys.jts.geom.GeometryFactory geometryFactory,
     final Map<String, ? extends Object> parameters) {
     if (geometryFactory == null) {
       return null;
     } else {
       final int srid = CollectionUtil.getInteger(parameters, "resultSrid",
-        geometryFactory.getSRID());
+        geometryFactory.getSrid());
       final int numAxis = CollectionUtil.getInteger(parameters,
         "resultNumAxis", geometryFactory.getNumAxis());
       final double scaleXY = CollectionUtil.getDouble(parameters,
@@ -2230,14 +2230,14 @@ public class BatchJobService implements ModuleEventListener {
     final Class<?> dataClass = dataType.getJavaClass();
     if (Geometry.class.isAssignableFrom(dataClass)) {
       if (parameterValue != null) {
-        final GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
+        final com.revolsys.jts.geom.GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
         Geometry geometry;
         if (parameterValue instanceof Geometry) {
 
           geometry = (Geometry)parameterValue;
           if (geometry.getSRID() == 0 && StringUtils.hasText(sridString)) {
             final int srid = Integer.parseInt(sridString);
-            final GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
+            final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
             geometry = sourceGeometryFactory.createGeometry(geometry);
           }
         } else {
@@ -2254,7 +2254,7 @@ public class BatchJobService implements ModuleEventListener {
           try {
             if (StringUtils.hasText(sridString)) {
               final int srid = Integer.parseInt(sridString);
-              final GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
+              final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
               geometry = sourceGeometryFactory.createGeometry(wkt, false);
             } else {
               geometry = geometryFactory.createGeometry(wkt, false);

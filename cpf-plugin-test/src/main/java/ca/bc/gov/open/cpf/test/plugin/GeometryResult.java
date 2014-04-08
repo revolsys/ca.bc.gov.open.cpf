@@ -5,7 +5,7 @@ import java.util.Map;
 
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 
-import com.vividsolutions.jts.geom.Geometry;
+import com.revolsys.jts.geom.Geometry;
 
 public class GeometryResult {
 

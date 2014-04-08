@@ -29,13 +29,21 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.BoundingBox;
-import com.revolsys.gis.cs.GeometryFactory;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.AttributeProperties;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.revolsys.io.LazyHttpPostOutputStream;
+import com.revolsys.jts.geom.Geometry;
+import com.revolsys.jts.geom.GeometryCollection;
+import com.revolsys.jts.geom.LineString;
+import com.revolsys.jts.geom.MultiLineString;
+import com.revolsys.jts.geom.MultiPoint;
+import com.revolsys.jts.geom.MultiPolygon;
+import com.revolsys.jts.geom.Point;
+import com.revolsys.jts.geom.Polygon;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
@@ -43,14 +51,8 @@ import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.geom.MultiPoint;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 public class PluginAdaptor {
 
@@ -227,7 +229,7 @@ public class PluginAdaptor {
               + application.getName() + "." + fieldName, t);
           }
         }
-        if (value == null) {
+        if (value == null && test) {
           value = attribute.getDefaultValue();
           if (value == null) {
             final Class<?> typeClass = attribute.getTypeClass();
@@ -248,25 +250,25 @@ public class PluginAdaptor {
               if (length > 0 && length < 4) {
                 value = ((String)value).substring(0, length);
               }
+            } else if (Date.class.isAssignableFrom(typeClass)) {
+              final Timestamp time = new Timestamp(System.currentTimeMillis());
+              value = StringConverterRegistry.toObject(typeClass, time);
             } else if (LineString.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.wgs84().createLineString(new DoubleCoordinatesList(
-                2, -125, 53, -125.1, 53));
+              value = GeometryFactory.wgs84().createLineString(
+                new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
             } else if (Polygon.class.isAssignableFrom(typeClass)) {
               final BoundingBox boundingBox = new BoundingBox(
                 GeometryFactory.wgs84(), -125, 53, -125.1, 53);
               value = boundingBox.toPolygon(10);
             } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-              final LineString line = GeometryFactory.wgs84().createLineString(new DoubleCoordinatesList(
-                2, -125, 53, -125.1, 53));
+              final LineString line = GeometryFactory.wgs84().createLineString(
+                new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
               value = GeometryFactory.wgs84().createMultiLineString(line);
             } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
               final BoundingBox boundingBox = new BoundingBox(
                 GeometryFactory.wgs84(), -125, 53, -125.1, 53);
               final Polygon polygon = boundingBox.toPolygon(10);
               value = GeometryFactory.wgs84().createMultiPolygon(polygon);
-            } else if (Date.class.isAssignableFrom(typeClass)) {
-              final Timestamp time = new Timestamp(System.currentTimeMillis());
-              value = StringConverterRegistry.toObject(typeClass, time);
             } else if (GeometryCollection.class.isAssignableFrom(typeClass)
               || MultiPoint.class.isAssignableFrom(typeClass)) {
               final Point point = GeometryFactory.wgs84().createPoint(-125, 53);
@@ -274,6 +276,54 @@ public class PluginAdaptor {
             } else if (Geometry.class.isAssignableFrom(typeClass)
               || Point.class.isAssignableFrom(typeClass)) {
               value = GeometryFactory.wgs84().createPoint(-125, 53);
+            } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
+              // JTS
+              final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
+                new com.vividsolutions.jts.geom.PrecisionModel(
+                  com.vividsolutions.jts.geom.PrecisionModel.FLOATING), 4326);
+              if (com.vividsolutions.jts.geom.LineString.class.isAssignableFrom(typeClass)) {
+                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+                  new double[] {
+                    -125, 53, -125.1, 53
+                  }, 2);
+                final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
+                value = line;
+              } else if (Polygon.class.isAssignableFrom(typeClass)) {
+                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+                  new double[] {
+                    -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
+                  }, 2);
+                final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
+                value = polygon;
+              } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
+                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+                  new double[] {
+                    -125, 53, -125.1, 53
+                  }, 2);
+                final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
+                value = jtsGeometryFactory.createMultiLineString(new com.vividsolutions.jts.geom.LineString[] {
+                  line
+                });
+              } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
+                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+                  new double[] {
+                    -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
+                  }, 2);
+                final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
+                value = jtsGeometryFactory.createMultiPolygon(new com.vividsolutions.jts.geom.Polygon[] {
+                  polygon
+                });
+              } else if (GeometryCollection.class.isAssignableFrom(typeClass)
+                || MultiPoint.class.isAssignableFrom(typeClass)) {
+                final Coordinate[] coordinates = new Coordinate[] {
+                  new Coordinate(-125, 53)
+                };
+                value = jtsGeometryFactory.createMultiPoint(coordinates);
+              } else {
+                final com.vividsolutions.jts.geom.Point point = jtsGeometryFactory.createPoint(new Coordinate(
+                  -125, 53));
+                value = point;
+              }
             } else {
               value = "Unknown";
             }
@@ -282,12 +332,12 @@ public class PluginAdaptor {
         } else {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
-            GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
+            com.revolsys.jts.geom.GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
             if (geometryFactory == GeometryFactory.getFactory()) {
               geometryFactory = GeometryFactory.getFactory(geometry);
             }
             final int srid = CollectionUtil.getInteger(parameters,
-              "resultSrid", geometryFactory.getSRID());
+              "resultSrid", geometryFactory.getSrid());
             final int numAxis = CollectionUtil.getInteger(parameters,
               "resultNumAxis", geometryFactory.getNumAxis());
             final double scaleXY = CollectionUtil.getDouble(parameters,

@@ -21,7 +21,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.gis.cs.CoordinateSystem;
-import com.revolsys.gis.cs.GeometryFactory;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
@@ -31,7 +31,7 @@ import com.revolsys.io.AbstractObjectWithProperties;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Property;
-import com.vividsolutions.jts.geom.Geometry;
+import com.revolsys.jts.geom.Geometry;
 
 /**
  * The BusinessApplication describes a business application which can be invoked
@@ -95,7 +95,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    */
   private String descriptionUrl;
 
-  private GeometryFactory geometryFactory = GeometryFactory.getFactory();
+  private com.revolsys.jts.geom.GeometryFactory geometryFactory = GeometryFactory.getFactory();
 
   private boolean hasCustomizationProperties;
 
@@ -477,7 +477,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.descriptionUrl;
   }
 
-  public GeometryFactory getGeometryFactory() {
+  public com.revolsys.jts.geom.GeometryFactory getGeometryFactory() {
     return this.geometryFactory;
   }
 
@@ -775,7 +775,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.descriptionUrl = descriptionUrl;
   }
 
-  public void setGeometryFactory(final GeometryFactory geometryFactory) {
+  public void setGeometryFactory(final com.revolsys.jts.geom.GeometryFactory geometryFactory) {
     this.geometryFactory = geometryFactory;
   }
 

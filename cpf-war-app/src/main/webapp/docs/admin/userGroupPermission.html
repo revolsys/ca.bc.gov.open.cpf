@@ -6,9 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>User Account - Security Administration - CPF</title>
+<title>User Group Permission - Security Administration - CPF</title>
     <script type="text/javascript">
-pageId = 'userAccount';
+pageId = 'userGroupPermission';
     </script>
 <!-- InstanceEndEditable -->
 
@@ -101,7 +101,7 @@ td > ul {
 <!-- InstanceBeginEditable name="crumbs" -->
 <li><a href="index.html">Administration</a></li>
 <li><a href="security.html">Security</a></li>
-<li>User Account</li>
+<li>User Group Permission</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -109,18 +109,23 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<div class="title">User Accounts - Administration</div>
+<div class="title">User Group Permissions - Administration</div>
 <section>
 <h1 id="overview">Overview</h1>
 
-<p>The CPF maintains a table of user accounts. These user accounts are used to authenticate
-(login) access to the CPF web services and admin application. The user accounts are also used
-to assign users to user groups.</p>
+<p>CPF modules can use User Group Permissions to grant permissions for users who are a member of
+a group permission to perform an action on a resource. User group permissions grant the group
+permission to perform an action (Action Name) on a resource (Resource Class + Resource Id). For
+example view (Action Name) the reportUrl (Resource Class) http://reports.com/demoReport.json (Resource Id).</p>
+
+<p class="note">NOTE: CPF itself does not use user group permissions. Each CPF module can decide if &amp;
+how they use user group permissions. Consult the module's readme file for details on the supported
+resource classes, resource id schemes and action names.</p>
 
 <section>
 <h2 id="fields">Fields</h2>
 
-<p>The following table summarizes the fields used for user accounts.<p>
+<p>The following table summarizes the fields used for user group permissions.<p>
 
 <div class="simpleDataTable">
 <table>
@@ -132,31 +137,35 @@ to assign users to user groups.</p>
   </thead>
   <tbody>
     <tr>
-      <td>User Account Id</td>
-      <td>Unique sequence generated primary key for a user account.</td>
+      <td>User Group Permission Id</td>
+      <td>Unique sequence generated primary key for a user group permission.</td>
     </tr>
     <tr>
-      <td>Consumer Key</td>
-      <td>The unique name for the user account. For CPF user accounts this is their login name.
-      For BCGOV the consumer key is the BC Government user type a colon followed by BC Government username (e.g. idir:jdoe).
-      The BC Government user types are idir (IDIR internal account), ind (BCEID unverified individual account),
-      vin (BCEID verified individual account), and bceid (BCEID business account).</td>
+      <td>Module Name</td>
+      <td>The name of the CPF module the permission was created for.</td>
     </tr>
     <tr>
-      <td>Consumer Secret</td>
-      <td>The password/signing key for the user. For CPF user accounts this can be modified in the admin application, end users can't change it.
-      For BCGOV this is not used and is set to a GUID value.</td>
+      <td>User Group Name</td>
+      <td>The name of the user group the permission applies to.</td>
     </tr>
     <tr>
-      <td>User Account Class</td>
-      <td>The class of user account CPF or BCGOV.</td>
+      <td>Resource Class</td>
+      <td>The resource class is the categorization of the resource. For example databaseInstance,
+      schemaName, tableName, url, reportUrl.
+      Modules are free to decide on their own resource classes, consult the module readme for more details.
+      The special resource class ALL grants the users permission for all resource classes.</td>
     </tr>
     <tr>
-      <td>User Name</td>
-      <td><ul><li>For CPF classes the user name will be kept in-sync with the consumer key.</li>
-      <li>For BCGOV the user name does not change. It is the GUID of the BC Government user account.
-     The BC Government user id can change for a user (e.g. name change) so the GUID is the immutable unique identifier.</li>
-      </ul></td>
+      <td>Resource Id</td>
+      <td>The unique identifier of the resource within the resource class that the users in the group have
+      permission to perform the action. For example a record primary key, resource URL, report name.
+      Modules are free to decide on their own resource id schemes, consult the module readme for more details.
+      The special resource id ALL grants the users permission for all resources in the resource class.</td>
+    </tr>
+    <tr>
+      <td>Action Name</td>
+      <td>The name of the action users in the group are able to perform on the resource. For example ALL, view, edit.
+      The special action name ALL grants the user permission for all actions on the resource.</td>
     </tr>
     <tr>
       <td>Active</td>
@@ -262,7 +271,7 @@ user account's user name field will be set to the consumer key entered.</p>
       <li>Can only contain the characters a-z, 0-9, and _.</li>
       <li>Automatically converted to lower case.</li>
     </ul></li>
-    <li>Enter a Password. A random UUID password is provided as a default.</li>
+    <li>Enter a Password. A default random UUID password is provided as a default.</li>
     <li>Select if the user is to be active.</li>
     <li>Click the 'Save' button to create the user account, 'Clear Fields' to undo any changes, or 'Cancel' to return to the user accounts page.</li>
   </ol></li>

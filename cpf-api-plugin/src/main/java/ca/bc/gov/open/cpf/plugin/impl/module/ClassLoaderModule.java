@@ -62,7 +62,7 @@ import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.AttributeMap;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.CoordinateSystem;
-import com.revolsys.gis.cs.GeometryFactory;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.Attribute;
@@ -76,13 +76,13 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.MapReaderFactory;
 import com.revolsys.io.Reader;
+import com.revolsys.jts.geom.Geometry;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
-import com.vividsolutions.jts.geom.Geometry;
 
 public class ClassLoaderModule implements Module {
 
@@ -134,6 +134,9 @@ public class ClassLoaderModule implements Module {
   private Date startedDate;
 
   {
+    // Prime the JTS Geometry factory
+    ca.bc.gov.open.cpf.plugin.api.GeometryFactory.getFactory();
+
     STANDARD_METHODS.put("setInputDataUrl", new Class<?>[] {
       URL.class
     });
@@ -525,7 +528,7 @@ public class ClassLoaderModule implements Module {
 
       final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
       if (geometryConfiguration != null) {
-        final GeometryFactory geometryFactory = getGeometryFactory(
+        final com.revolsys.jts.geom.GeometryFactory geometryFactory = getGeometryFactory(
           GeometryFactory.getFactory(), className, geometryConfiguration);
         businessApplication.setGeometryFactory(geometryFactory);
         final boolean validateGeometry = geometryConfiguration.validate();
@@ -752,15 +755,15 @@ public class ClassLoaderModule implements Module {
    * @param geometryConfiguration The geometry configuration.
    * @return The geometry factory.
    */
-  private GeometryFactory getGeometryFactory(
-    final GeometryFactory geometryFactory, final String message,
+  private com.revolsys.jts.geom.GeometryFactory getGeometryFactory(
+    final com.revolsys.jts.geom.GeometryFactory geometryFactory, final String message,
     final GeometryConfiguration geometryConfiguration) {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       log.warn(message + " srid must be >= 0");
-      srid = geometryFactory.getSRID();
+      srid = geometryFactory.getSrid();
     } else if (srid == 0) {
-      srid = geometryFactory.getSRID();
+      srid = geometryFactory.getSrid();
     }
     int numAxis = geometryConfiguration.numAxis();
     if (numAxis == 0) {
@@ -1305,7 +1308,7 @@ public class ClassLoaderModule implements Module {
             }
             final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
             if (Geometry.class.isAssignableFrom(parameterType)) {
-              GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
+              com.revolsys.jts.geom.GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {
                 geometryFactory = getGeometryFactory(geometryFactory,
@@ -1385,7 +1388,7 @@ public class ClassLoaderModule implements Module {
               length, scale, required, description);
             final GeometryConfiguration geometryConfiguration = method.getAnnotation(GeometryConfiguration.class);
             if (Geometry.class.isAssignableFrom(returnType)) {
-              GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
+              com.revolsys.jts.geom.GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {
                 geometryFactory = getGeometryFactory(geometryFactory,

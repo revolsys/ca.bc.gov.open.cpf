@@ -1,16 +1,26 @@
 package ca.bc.gov.open.cpf.plugin.api;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsGeometryConverter;
+import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsWktParser;
+
+import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.gis.cs.CoordinateSystem;
+import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
+import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.gis.model.coordinates.Coordinates;
+import com.revolsys.gis.model.coordinates.CoordinatesPrecisionModel;
+import com.revolsys.gis.model.coordinates.SimpleCoordinatesPrecisionModel;
 import com.revolsys.gis.model.coordinates.list.CoordinatesList;
-import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.MultiLineString;
@@ -19,21 +29,48 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
+import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
+import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 
 /**
- * <p>The CPF provides an extended version of the <a href=http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> GeometryFactory to create JTS geometries. The
+ * <p>The CPF provides an extended version of the <a href=http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> GeometryFactoryI to create JTS geometries. The
  * extended version includes support for coordinate system projection, precision model, and controls on the number of axis.</p>
  *
- * <p>The <code>GeometryFactory</code> does not provide a public constructor. <code>GeometryFactory</code> instances can
+ * <p>The <code>GeometryFactoryI</code> does not provide a public constructor. <code>GeometryFactoryI</code> instances can
  * be obtained using the <code>getFactory</code> static methods described below.
  */
 @SuppressWarnings("serial")
-public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
+public class GeometryFactory extends
+  com.vividsolutions.jts.geom.GeometryFactory {
   /** The cached geometry factories. */
   private static Map<String, GeometryFactory> factories = new HashMap<String, GeometryFactory>();
 
+  static {
+    DataTypes.register("JtsGeometry", Geometry.class);
+    DataTypes.register("JtsGeometryCollection", GeometryCollection.class);
+    DataTypes.register("JtsPoint", Point.class);
+    DataTypes.register("JtsMultiPoint", MultiPoint.class);
+    DataTypes.register("JtsLineString", LineString.class);
+    DataTypes.register("JtsLinearRing", LinearRing.class);
+    DataTypes.register("JtsMultiLineString", MultiLineString.class);
+    DataTypes.register("JtsPolygon", Polygon.class);
+    DataTypes.register("JtsMultiPolygon", MultiPolygon.class);
+    final JtsGeometryConverter converter = new JtsGeometryConverter();
+    final StringConverterRegistry registry = StringConverterRegistry.getInstance();
+    registry.addConverter(Geometry.class, converter);
+    registry.addConverter(GeometryCollection.class, converter);
+    registry.addConverter(Point.class, converter);
+    registry.addConverter(MultiPoint.class, converter);
+    registry.addConverter(LineString.class, converter);
+    registry.addConverter(LinearRing.class, converter);
+    registry.addConverter(MultiLineString.class, converter);
+    registry.addConverter(Polygon.class, converter);
+    registry.addConverter(MultiPolygon.class, converter);
+  }
+
   /**
-   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
+   * <p>Get a GeometryFactoryI with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
    * 
    * @return The geometry factory.
    */
@@ -42,7 +79,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
   }
 
   /**
-   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y & floating z precision models.</p>
+   * <p>Get a GeometryFactoryI with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y & floating z precision models.</p>
    * 
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
@@ -65,13 +102,6 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
       final com.vividsolutions.jts.geom.GeometryFactory factory = geometry.getFactory();
       if (factory instanceof GeometryFactory) {
         return (GeometryFactory)factory;
-      } else if (factory instanceof com.revolsys.gis.cs.GeometryFactory) {
-        final com.revolsys.gis.cs.GeometryFactory rsGeometryFactory = (com.revolsys.gis.cs.GeometryFactory)factory;
-        final int srid = rsGeometryFactory.getSRID();
-        final int numAxis = rsGeometryFactory.getNumAxis();
-        final double scaleXY = rsGeometryFactory.getScaleXY();
-        final double scaleZ = rsGeometryFactory.getScaleZ();
-        return getFactory(srid, numAxis, scaleXY, scaleZ);
       } else {
         final int crsId = geometry.getSRID();
         final PrecisionModel precisionModel = factory.getPrecisionModel();
@@ -86,7 +116,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
   }
 
   /**
-   * <p>Get a GeometryFactory with the coordinate system, 3D axis (x, y &amp; z) and a floating precision models.</p>
+   * <p>Get a GeometryFactoryI with the coordinate system, 3D axis (x, y &amp; z) and a floating precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @return The geometry factory.
@@ -96,7 +126,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
   }
 
   /**
-   * <p>Get a GeometryFactory with the coordinate system, 2D axis (x &amp; y) and a fixed x, y precision model.</p>
+   * <p>Get a GeometryFactoryI with the coordinate system, 2D axis (x &amp; y) and a fixed x, y precision model.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
@@ -108,7 +138,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
   }
 
   /**
-   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y &amp; floating z precision models.</p>
+   * <p>Get a GeometryFactoryI with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y &amp; floating z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
@@ -123,7 +153,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
   }
 
   /**
-   * <p>Get a GeometryFactory with the coordinate system, number of axis and a floating precision model.</p>
+   * <p>Get a GeometryFactoryI with the coordinate system, number of axis and a floating precision model.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
@@ -134,7 +164,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
   }
 
   /**
-   * <p>Get a GeometryFactory with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
+   * <p>Get a GeometryFactoryI with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
@@ -157,8 +187,33 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
     }
   }
 
+  private static PrecisionModel getPrecisionModel(final double scaleXY) {
+    if (scaleXY <= 0) {
+      return new PrecisionModel();
+    } else {
+      return new PrecisionModel(scaleXY);
+    }
+  }
+
+  private final CoordinatesPrecisionModel coordinatesPrecisionModel;
+
+  private final CoordinateSystem coordinateSystem;
+
+  private int numAxis = 2;
+
+  private GeometryFactory(final CoordinateSystem coordinateSystem,
+    final int numAxis, final double scaleXY, final double scaleZ) {
+    super(getPrecisionModel(scaleXY), coordinateSystem.getId(),
+      new PackedCoordinateSequenceFactory(
+        PackedCoordinateSequenceFactory.DOUBLE, numAxis));
+    this.coordinateSystem = coordinateSystem;
+    this.coordinatesPrecisionModel = new SimpleCoordinatesPrecisionModel(
+      scaleXY, scaleZ);
+    this.numAxis = Math.max(numAxis, 2);
+  }
+
   /**
-   * <p>Construct a GeometryFactory with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
+   * <p>Construct a GeometryFactoryI with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
@@ -170,7 +225,13 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    */
   private GeometryFactory(final int crsId, final int numAxis,
     final double scaleXY, final double scaleZ) {
-    super(crsId, numAxis, scaleXY, scaleZ);
+    super(getPrecisionModel(scaleXY), crsId,
+      new PackedCoordinateSequenceFactory(
+        PackedCoordinateSequenceFactory.DOUBLE, numAxis));
+    this.coordinateSystem = EpsgCoordinateSystems.getCoordinateSystem(crsId);
+    this.coordinatesPrecisionModel = new SimpleCoordinatesPrecisionModel(
+      scaleXY, scaleZ);
+    this.numAxis = Math.max(numAxis, 2);
   }
 
   /**
@@ -184,9 +245,9 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param geometry The geometry.
    * @return The copied geometry.
    */
-  @Override
+  @SuppressWarnings("unchecked")
   public <G extends Geometry> G copy(final G geometry) {
-    return copy(geometry);
+    return (G)createGeometry(geometry);
   }
 
   /**
@@ -201,7 +262,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * <p>The following example shows a WGS84 EWKT polygon converted to a BC Albers polygon.</p>
    * 
    * <figure>
-   *   <pre class="prettyprint language-java">GeometryFactory geometryFactory = GeometryFactory.getFactory(3005, 1.0);
+   *   <pre class="prettyprint language-java">GeometryFactoryI geometryFactory = GeometryFactoryI.getFactory(3005, 1.0);
   String wkt = "SRID=4326;POLYGON((-122 50,-124 50,-124 51,-122 51,-122 50))";
   Polygon polygon = geometryFactory.createGeometry(wkt);
   System.out.println(polygon);
@@ -210,9 +271,9 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param wkt The <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> or <a href="EWKT">http://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT</a> encoded geometry.</a>
    * @return The created geometry.
    */
-  @Override
   public <T extends Geometry> T createGeometry(final String wkt) {
-    return super.createGeometry(wkt);
+    final JtsWktParser parser = new JtsWktParser(this);
+    return (T)parser.parseGeometry(wkt);
   }
 
   /**
@@ -225,8 +286,8 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @return The created linear ring.
    */
   public LinearRing createLinearRing(final double... coordinates) {
-    return super.createLinearRing(new DoubleCoordinatesList(getNumAxis(),
-      coordinates));
+    return super.createLinearRing(new PackedCoordinateSequence.Double(
+      coordinates, numAxis));
   }
 
   /**
@@ -238,8 +299,9 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @return The created linestring.
    */
   public LineString createLineString(final double... coordinates) {
-    return super.createLineString(new DoubleCoordinatesList(getNumAxis(),
-      coordinates));
+    final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+      coordinates, numAxis);
+    return super.createLineString(points);
   }
 
   /**
@@ -262,9 +324,9 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param lines The list of lines.
    * @return The created multi-linestring.
    */
-  @Override
   public MultiLineString createMultiLineString(final Collection<?> lines) {
-    return super.createMultiLineString(lines);
+    final LineString[] lineArray = getLineStringArray(lines);
+    return createMultiLineString(lineArray);
   }
 
   /**
@@ -287,7 +349,8 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @return The created multi-point.
    */
   public MultiPoint createMultiPoint(final List<?> points) {
-    return super.createMultiPoint(points);
+    final Point[] pointArray = getPointArray(points);
+    return createMultiPoint(pointArray);
   }
 
   /**
@@ -295,7 +358,7 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * 
    * <ul>
    *   <li>{@link Polygon}</li>
-   *   <li>{@link List} see {@link GeometryFactory#createPolygon(List)}</li>
+   *   <li>{@link List} see {@link GeometryFactoryI#createPolygon(List)}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
@@ -305,9 +368,9 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param polygons The list of polygons.
    * @return The created multi-polygon.
    */
-  @Override
   public MultiPolygon createMultiPolygon(final Collection<?> polygons) {
-    return super.createMultiPolygon(polygons);
+    final Polygon[] polygonArray = getPolygonArray(polygons);
+    return createMultiPolygon(polygonArray);
   }
 
   /**
@@ -319,9 +382,30 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param coordinates The coordinates.
    * @return The created point.
    */
-  @Override
   public Point createPoint(final double... coordinates) {
-    return super.createPoint(coordinates);
+    final CoordinateSequence points = new PackedCoordinateSequence.Double(
+      coordinates, numAxis);
+    return super.createPoint(points);
+  }
+
+  public Point createPoint(final Object object) {
+    CoordinateSequence coordinates;
+    if (object instanceof Coordinate) {
+      coordinates = new CoordinateArraySequence(new Coordinate[] {
+        (Coordinate)object
+      });
+    } else if (object instanceof Point) {
+      return copy((Point)object);
+    } else if (object instanceof double[]) {
+      coordinates = new PackedCoordinateSequence.Double((double[])object,
+        numAxis);
+    } else if (object instanceof CoordinateSequence) {
+      final CoordinateSequence coordinatesList = (CoordinateSequence)object;
+      coordinates = coordinatesList;
+    } else {
+      coordinates = null;
+    }
+    return createPoint(coordinates);
   }
 
   /**
@@ -343,8 +427,120 @@ public class GeometryFactory extends com.revolsys.gis.cs.GeometryFactory {
    * @param rings The list of rings.
    * @return The created polygon.
    */
-  @Override
   public Polygon createPolygon(final List<?> rings) {
-    return super.createPolygon(rings);
+    if (rings.size() == 0) {
+      final CoordinateSequence nullPoints = getCoordinateSequenceFactory().create(
+        0, numAxis);
+      final LinearRing ring = createLinearRing(nullPoints);
+      return createPolygon(ring, null);
+    } else {
+      final LinearRing exteriorRing = getLinearRing(rings, 0);
+      final LinearRing[] interiorRings = new LinearRing[rings.size() - 1];
+      for (int i = 1; i < rings.size(); i++) {
+        interiorRings[i - 1] = getLinearRing(rings, i);
+      }
+      return createPolygon(exteriorRing, interiorRings);
+    }
+  }
+
+  public CoordinateSystem getCoordinateSystem() {
+    return coordinateSystem;
+  }
+
+  private LinearRing getLinearRing(final List<?> rings, final int index) {
+    final Object ring = rings.get(index);
+    if (ring instanceof LinearRing) {
+      return (LinearRing)ring;
+    } else if (ring instanceof CoordinateSequence) {
+      final CoordinateSequence points = (CoordinateSequence)ring;
+      return createLinearRing(points);
+    } else if (ring instanceof LineString) {
+      final LineString line = (LineString)ring;
+      final CoordinateSequence points = line.getCoordinateSequence();
+      return createLinearRing(points);
+    } else if (ring instanceof double[]) {
+      final double[] coordinates = (double[])ring;
+      final CoordinateSequence points = new PackedCoordinateSequence.Double(
+        coordinates, numAxis);
+      return createLinearRing(points);
+    } else {
+      return null;
+    }
+  }
+
+  private LineString[] getLineStringArray(final Collection<?> lines) {
+    final List<LineString> lineStrings = new ArrayList<LineString>();
+    for (final Object value : lines) {
+      LineString lineString;
+      if (value instanceof LineString) {
+        lineString = (LineString)value;
+      } else if (value instanceof CoordinateSequence) {
+        final CoordinateSequence coordinates = (CoordinateSequence)value;
+        lineString = createLineString(coordinates);
+      } else if (value instanceof double[]) {
+        final double[] points = (double[])value;
+        lineString = createLineString(points);
+      } else {
+        lineString = null;
+      }
+      if (lineString != null) {
+        lineStrings.add(lineString);
+      }
+    }
+    return lineStrings.toArray(new LineString[lineStrings.size()]);
+  }
+
+  public int getNumAxis() {
+    return numAxis;
+  }
+
+  private Point[] getPointArray(final Collection<?> pointsList) {
+    final List<Point> points = new ArrayList<Point>();
+    for (final Object object : pointsList) {
+      final Point point = createPoint(object);
+      if (point != null && !point.isEmpty()) {
+        points.add(point);
+      }
+    }
+    return points.toArray(new Point[points.size()]);
+  }
+
+  @SuppressWarnings("unchecked")
+  public Polygon[] getPolygonArray(final Collection<?> polygonList) {
+    final List<Polygon> polygons = new ArrayList<Polygon>();
+    for (final Object value : polygonList) {
+      Polygon polygon;
+      if (value instanceof Polygon) {
+        polygon = (Polygon)value;
+      } else if (value instanceof List) {
+        final List<?> coordinateList = (List<?>)value;
+        polygon = createPolygon(coordinateList);
+      } else if (value instanceof CoordinateSequence) {
+        final CoordinateSequence points = (CoordinateSequence)value;
+        polygon = createPolygon(points);
+      } else {
+        polygon = null;
+      }
+      if (polygon != null) {
+        polygons.add(polygon);
+      }
+    }
+    return polygons.toArray(new Polygon[polygons.size()]);
+  }
+
+  public double getScaleXY() {
+    return coordinatesPrecisionModel.getScaleXY();
+  }
+
+  public double getScaleZ() {
+    return coordinatesPrecisionModel.getScaleZ();
+  }
+
+  public boolean hasM() {
+    return numAxis > 3;
+  }
+
+  public boolean hasZ() {
+    return numAxis > 2;
   }
 }

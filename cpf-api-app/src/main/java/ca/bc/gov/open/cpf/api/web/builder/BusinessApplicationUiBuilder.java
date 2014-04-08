@@ -33,7 +33,7 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
-import com.revolsys.gis.cs.GeometryFactory;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.io.DataObjectReader;
 import com.revolsys.gis.data.io.ListDataObjectReader;
 import com.revolsys.gis.data.model.ArrayDataObject;
@@ -69,7 +69,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public DataObjectReader getSampleInputData() {
     final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
       "/Buffer");
-    final GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
+    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
       1000);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("title", DataTypes.STRING);
@@ -100,7 +100,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public DataObjectReader getSampleResultData() {
     final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
       "/Buffer");
-    final GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
+    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
       1000);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
