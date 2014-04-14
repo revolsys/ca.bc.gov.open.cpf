@@ -142,8 +142,6 @@
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="USER_GROUP_PERMISSION_ID"
               p:pageName="moduleView" />
-            <value>MODULE_NAME</value>
-            <value>USER_GROUP_NAME_LINK</value>
             <value>RESOURCE_CLASS</value>
             <value>RESOURCE_ID</value>
             <value>ACTION_NAME</value>

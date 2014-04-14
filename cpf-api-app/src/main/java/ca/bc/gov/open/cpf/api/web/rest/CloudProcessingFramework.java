@@ -62,7 +62,6 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.ArrayDataObject;
 import com.revolsys.gis.data.model.Attribute;
@@ -81,6 +80,7 @@ import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Writer;
 import com.revolsys.io.json.JsonDataObjectIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.ByteArrayResource;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
@@ -2243,6 +2243,8 @@ public class CloudProcessingFramework {
       } else if (java.util.Date.class.isAssignableFrom(typeClass)) {
         field = new DateTimeField(name, required, defaultValue);
       } else if (Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
+        field = new TextAreaField(name, 60, 10, required);
+      } else if (com.revolsys.jts.geom.Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
       } else if (URL.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new UrlField(name, required, defaultValue);

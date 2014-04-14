@@ -29,7 +29,6 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.BoundingBox;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.AttributeProperties;
 import com.revolsys.gis.data.model.DataObjectMetaData;
@@ -38,6 +37,7 @@ import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryCollection;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.jts.geom.LineString;
 import com.revolsys.jts.geom.MultiLineString;
 import com.revolsys.jts.geom.MultiPoint;
@@ -254,14 +254,14 @@ public class PluginAdaptor {
               final Timestamp time = new Timestamp(System.currentTimeMillis());
               value = StringConverterRegistry.toObject(typeClass, time);
             } else if (LineString.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.wgs84().createLineString(
+              value = GeometryFactory.wgs84().lineString(
                 new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
             } else if (Polygon.class.isAssignableFrom(typeClass)) {
               final BoundingBox boundingBox = new BoundingBox(
                 GeometryFactory.wgs84(), -125, 53, -125.1, 53);
               value = boundingBox.toPolygon(10);
             } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-              final LineString line = GeometryFactory.wgs84().createLineString(
+              final LineString line = GeometryFactory.wgs84().lineString(
                 new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
               value = GeometryFactory.wgs84().createMultiLineString(line);
             } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
@@ -271,11 +271,11 @@ public class PluginAdaptor {
               value = GeometryFactory.wgs84().createMultiPolygon(polygon);
             } else if (GeometryCollection.class.isAssignableFrom(typeClass)
               || MultiPoint.class.isAssignableFrom(typeClass)) {
-              final Point point = GeometryFactory.wgs84().createPoint(-125, 53);
+              final Point point = GeometryFactory.wgs84().point(-125, 53);
               value = GeometryFactory.wgs84().createMultiPoint(point);
             } else if (Geometry.class.isAssignableFrom(typeClass)
               || Point.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.wgs84().createPoint(-125, 53);
+              value = GeometryFactory.wgs84().point(-125, 53);
             } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
               // JTS
               final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
@@ -304,7 +304,7 @@ public class PluginAdaptor {
                 value = jtsGeometryFactory.createMultiLineString(new com.vividsolutions.jts.geom.LineString[] {
                   line
                 });
-              } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
+              } else if (com.vividsolutions.jts.geom.MultiPolygon.class.isAssignableFrom(typeClass)) {
                 final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
                   new double[] {
                     -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
@@ -313,8 +313,8 @@ public class PluginAdaptor {
                 value = jtsGeometryFactory.createMultiPolygon(new com.vividsolutions.jts.geom.Polygon[] {
                   polygon
                 });
-              } else if (GeometryCollection.class.isAssignableFrom(typeClass)
-                || MultiPoint.class.isAssignableFrom(typeClass)) {
+              } else if (com.vividsolutions.jts.geom.GeometryCollection.class.isAssignableFrom(typeClass)
+                || com.vividsolutions.jts.geom.MultiPoint.class.isAssignableFrom(typeClass)) {
                 final Coordinate[] coordinates = new Coordinate[] {
                   new Coordinate(-125, 53)
                 };
@@ -348,7 +348,7 @@ public class PluginAdaptor {
             geometryFactory = GeometryFactory.getFactory(srid, numAxis,
               scaleXY, scaleZ);
             geometry = geometryFactory.createGeometry(geometry);
-            if (geometry.getSRID() == 0) {
+            if (geometry.getSrid() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }

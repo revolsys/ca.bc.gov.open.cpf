@@ -13,10 +13,10 @@ import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.gis.model.coordinates.Coordinates;
 import com.revolsys.gis.model.coordinates.CoordinatesPrecisionModel;
 import com.revolsys.gis.model.coordinates.SimpleCoordinatesPrecisionModel;
-import com.revolsys.gis.model.coordinates.list.CoordinatesList;
+import com.revolsys.jts.geom.Coordinates;
+import com.revolsys.jts.geom.CoordinatesList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -34,10 +34,10 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 
 /**
- * <p>The CPF provides an extended version of the <a href=http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> GeometryFactoryI to create JTS geometries. The
+ * <p>The CPF provides an extended version of the <a href=http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> GeometryFactory to create JTS geometries. The
  * extended version includes support for coordinate system projection, precision model, and controls on the number of axis.</p>
  *
- * <p>The <code>GeometryFactoryI</code> does not provide a public constructor. <code>GeometryFactoryI</code> instances can
+ * <p>The <code>GeometryFactory</code> does not provide a public constructor. <code>GeometryFactory</code> instances can
  * be obtained using the <code>getFactory</code> static methods described below.
  */
 @SuppressWarnings("serial")
@@ -70,7 +70,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Get a GeometryFactoryI with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
+   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
    * 
    * @return The geometry factory.
    */
@@ -79,7 +79,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Get a GeometryFactoryI with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y & floating z precision models.</p>
+   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y & floating z precision models.</p>
    * 
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
@@ -116,7 +116,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Get a GeometryFactoryI with the coordinate system, 3D axis (x, y &amp; z) and a floating precision models.</p>
+   * <p>Get a GeometryFactory with the coordinate system, 3D axis (x, y &amp; z) and a floating precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @return The geometry factory.
@@ -126,7 +126,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Get a GeometryFactoryI with the coordinate system, 2D axis (x &amp; y) and a fixed x, y precision model.</p>
+   * <p>Get a GeometryFactory with the coordinate system, 2D axis (x &amp; y) and a fixed x, y precision model.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
@@ -138,7 +138,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Get a GeometryFactoryI with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y &amp; floating z precision models.</p>
+   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y &amp; floating z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
@@ -153,7 +153,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Get a GeometryFactoryI with the coordinate system, number of axis and a floating precision model.</p>
+   * <p>Get a GeometryFactory with the coordinate system, number of axis and a floating precision model.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
@@ -164,7 +164,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Get a GeometryFactoryI with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
+   * <p>Get a GeometryFactory with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
@@ -213,7 +213,7 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Construct a GeometryFactoryI with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
+   * <p>Construct a GeometryFactory with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
    * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
@@ -262,7 +262,7 @@ public class GeometryFactory extends
    * <p>The following example shows a WGS84 EWKT polygon converted to a BC Albers polygon.</p>
    * 
    * <figure>
-   *   <pre class="prettyprint language-java">GeometryFactoryI geometryFactory = GeometryFactoryI.getFactory(3005, 1.0);
+   *   <pre class="prettyprint language-java">GeometryFactory geometryFactory = GeometryFactory.getFactory(3005, 1.0);
   String wkt = "SRID=4326;POLYGON((-122 50,-124 50,-124 51,-122 51,-122 50))";
   Polygon polygon = geometryFactory.createGeometry(wkt);
   System.out.println(polygon);
@@ -271,6 +271,7 @@ public class GeometryFactory extends
    * @param wkt The <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> or <a href="EWKT">http://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT</a> encoded geometry.</a>
    * @return The created geometry.
    */
+  @SuppressWarnings("unchecked")
   public <T extends Geometry> T createGeometry(final String wkt) {
     final JtsWktParser parser = new JtsWktParser(this);
     return (T)parser.parseGeometry(wkt);
@@ -311,10 +312,10 @@ public class GeometryFactory extends
    * <ul>
    *   <li><code>double[]</code></li>
    *   <li>{@link Point}</li>
-   *   <li>{@link Coordinate}</li>
+   *   <li>{@link Coordinates}</li>
    *   <li>{@link Coordinates}</li>
    *   <li>{@link CoordinatesList}</li>
-   *   <li>{@link CoordinateSequence}</li>
+   *   <li>{@link CoordinatesList}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
@@ -335,10 +336,10 @@ public class GeometryFactory extends
    * <ul>
    *   <li><code>double[]</code></li>
    *   <li>{@link Point}</li>
-   *   <li>{@link Coordinate}</li>
+   *   <li>{@link Coordinates}</li>
    *   <li>{@link Coordinates}</li>
    *   <li>{@link CoordinatesList}</li>
-   *   <li>{@link CoordinateSequence}</li>
+   *   <li>{@link CoordinatesList}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
@@ -358,7 +359,7 @@ public class GeometryFactory extends
    * 
    * <ul>
    *   <li>{@link Polygon}</li>
-   *   <li>{@link List} see {@link GeometryFactoryI#createPolygon(List)}</li>
+   *   <li>{@link List} see {@link GeometryFactory#createPolygon(List)}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
@@ -417,7 +418,7 @@ public class GeometryFactory extends
    *   <li>{@link LineString}</li>
    *   <li>{@link LinearRing}</li>
    *   <li>{@link CoordinatesList}</li>
-   *   <li>{@link CoordinateSequence}</li>
+   *   <li>{@link CoordinatesList}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
@@ -505,7 +506,6 @@ public class GeometryFactory extends
     return points.toArray(new Point[points.size()]);
   }
 
-  @SuppressWarnings("unchecked")
   public Polygon[] getPolygonArray(final Collection<?> polygonList) {
     final List<Polygon> polygons = new ArrayList<Polygon>();
     for (final Object value : polygonList) {

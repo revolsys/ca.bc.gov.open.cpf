@@ -2235,7 +2235,7 @@ public class BatchJobService implements ModuleEventListener {
         if (parameterValue instanceof Geometry) {
 
           geometry = (Geometry)parameterValue;
-          if (geometry.getSRID() == 0 && StringUtils.hasText(sridString)) {
+          if (geometry.getSrid() == 0 && StringUtils.hasText(sridString)) {
             final int srid = Integer.parseInt(sridString);
             final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
             geometry = sourceGeometryFactory.createGeometry(geometry);
@@ -2267,7 +2267,7 @@ public class BatchJobService implements ModuleEventListener {
           geometry = geometryFactory.createGeometry(geometry);
         }
         final Boolean validateGeometry = attribute.getProperty(AttributeProperties.VALIDATE_GEOMETRY);
-        if (geometry.getSRID() == 0) {
+        if (geometry.getSrid() == 0) {
           throw new IllegalArgumentException(
             "does not have a coordinate system (SRID) specified");
         }

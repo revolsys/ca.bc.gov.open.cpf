@@ -15,15 +15,13 @@ public abstract class AbstractSecurityServiceFactory implements
 
   private final Map<String, Long> securityServiceAges = new HashMap<String, Long>();
 
-  private final int maxAge = 15 * 60 * 1000;
+  private final int maxAge = 5 * 60 * 1000;
 
   protected abstract AbstractCachingSecurityService createSecurityService(
-    Module module,
-    String consumerKey);
+    Module module, String consumerKey);
 
   @Override
-  public SecurityService getSecurityService(
-    final Module module,
+  public SecurityService getSecurityService(final Module module,
     final String consumerKey) {
     final String key = module.getName() + ":" + consumerKey;
     synchronized (securityServicesByModuleAndUser) {
@@ -51,7 +49,7 @@ public abstract class AbstractSecurityServiceFactory implements
 
   @Override
   public void moduleChanged(final ModuleEvent event) {
-    String action = event.getAction();
+    final String action = event.getAction();
     if (action.equals(ModuleEvent.STOP)
       || action.equals(ModuleEvent.SECURITY_CHANGED)) {
       synchronized (securityServicesByModuleAndUser) {

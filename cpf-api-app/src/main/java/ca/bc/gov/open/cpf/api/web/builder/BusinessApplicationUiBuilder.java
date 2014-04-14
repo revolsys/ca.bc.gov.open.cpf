@@ -81,13 +81,13 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     final DataObject object1 = new ArrayDataObject(metaData);
     object1.setValue("title", "Buffered centroid of BC");
     object1.setValue("buffer", 10000);
-    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357));
+    object1.setGeometryValue(factory.point(921100.281, 1076394.357));
     objects.add(object1);
 
     final DataObject object2 = new ArrayDataObject(metaData);
     object2.setValue("title", "Stanley Park");
     object2.setValue("buffer", 1000);
-    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637));
+    object2.setGeometryValue(factory.point(1207714.288, 480508.637));
     objects.add(object2);
 
     final ListDataObjectReader reader = new ListDataObjectReader(metaData,
@@ -116,7 +116,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object1.setValue("resultNumber", 1);
     object1.setValue("title", "Buffered centroid of BC");
     object1.setValue("buffer", 10000);
-    object1.setGeometryValue(factory.createPoint(921100.281, 1076394.357)
+    object1.setGeometryValue(factory.point(921100.281, 1076394.357)
       .buffer(10000));
     objects.add(object1);
 
@@ -125,7 +125,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object2.setValue("resultNumber", 1);
     object2.setValue("title", "Stanley Park");
     object2.setValue("buffer", 1000);
-    object2.setGeometryValue(factory.createPoint(1207714.288, 480508.637)
+    object2.setGeometryValue(factory.point(1207714.288, 480508.637)
       .buffer(1000));
     objects.add(object2);
 

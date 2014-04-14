@@ -86,6 +86,7 @@ td > ul {
                       <li id="webInstallMenu"><a href="../install/webapp.html">Web Application Installation</a></li>
                     </ul></li>
                     <li id="adminMenu"><a href="../admin/">Administration</a><ul>
+                      <li id="configPropertyMenu"><a href="configProperty.html">Config Properties</a></li>
                       <li id="userAccountMenu"><a href="userAccount.html">User Accounts</a></li>
                       <li id="userGroupMenu"><a href="userGroup.html">User Groups</a></li>
                       <li id="userGroupPermissionMenu"><a href="userGroupPermission.html">User Group Permissions</a></li>
@@ -293,7 +294,7 @@ the user group name, module name, description contain those characters (ignoring
 
 <ol>
   <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
-  <li>Click the '<a href="../../admin/userGroups/">User Groups</a>' menu item.</li>
+  <li>Click the <a href="../../admin/userGroups/">User Groups</a> menu item.</li>
 </ol>
 </section>
 
@@ -312,7 +313,7 @@ available from the <a href="#userGroupAllList">All User Groups List</a> page.</p
 
 <ol>
   <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
-  <li>Click the '<a href="../../admin/modules/">Modules</a>' menu item.</li>
+  <li>Click the <a href="../../admin/modules/">Modules</a> menu item.</li>
   <li>Click the link in the 'Name' column for the module.</li>
   <li>Click the 'User Groups' tab.</li>
 </ol>
@@ -327,7 +328,7 @@ available from the <a href="#userGroupAllList">All User Groups List</a> page.</p
 
 <ol>
   <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
-  <li>Click the '<a href="../../admin/modules/">Modules</a>' menu item.</li>
+  <li>Click the <a href="../../admin/modules/">Modules</a> menu item.</li>
   <li>Click the link in the 'Name' column for the module.</li>
   <li>Click the 'Module Admin User Groups' tab.</li>
 </ol>
@@ -336,21 +337,21 @@ available from the <a href="#userGroupAllList">All User Groups List</a> page.</p
 </section>
 
 <section>
-<h2 id="userGroupView">Viewing a User Group</h2>
+<h2 id="userGroupView">View User Group</h2>
 
 <p>The details of a user group can be viewed from the <a href="#userGroupList">User Group List</a> pages.
 
 <ol>
-  <li>Open one of the '<a href="#userGroupAllList">All User Groups List</a>',
-  '<a href="#userGroupModuleList">Module User Groups List</a>', or '<a href="#userGroupModuleAdminList">Module Admin User Groups List</a>'
+  <li>Open one of the <a href="#userGroupAllList">All User Groups List</a>,
+  <a href="#userGroupModuleList">Module User Groups List</a>, or <a href="#userGroupModuleAdminList">Module Admin User Groups List</a>
   pages.</li>
   <li>Scroll or search for the group to view.</li>
-  <li>Click the link in the 'User Group Name' for the group.</li>
+  <li>Click the link in the 'User Group Name' column for the group.</li>
 </ol>
 </section>
 
 <section>
-<h2 id="userGroupAdd">Adding new User Groups</h2>
+<h2 id="userGroupAdd">Add User Group</h2>
 
 <section>
 <h3 id="userGroupGlobalAdd">Add a Global User Group</h3>
@@ -360,7 +361,7 @@ module name can be created using these steps.</p>
 <p class="note">The user must be in the ADMIN user group.</p>
 
 <ol>
-  <li>Open the '<a href="#userGroupAllList">All User Groups List</a>' page.</li>
+  <li>Open the <a href="#userGroupAllList">All User Groups List</a> page.</li>
   <li>Click 'Add' button on the 'User Groups' page.<ol>
     <li>Enter a User Group Name.<ul>
       <li>Must be unique across all user groups from all modules.</li>
@@ -377,12 +378,12 @@ module name can be created using these steps.</p>
 </section>
 
 <section>
-<h3 id="userGroupModuleAdd">Add a Module User Group</h3>
+<h3 id="userGroupModuleAdd">Add Module User Group</h3>
 <p>New user groups for a module can be added using the following steps. Only accounts with the [MODULE_NAME]
 module name can be created using these steps.</p>
 
 <ol>
-  <li>Open the '<a href="#userGroupModuleList">Module User Groups List</a>' page.</li>
+  <li>Open the <a href="#userGroupModuleList">Module User Groups List</a> page.</li>
   <li>Click 'Add' button on the 'User Groups' page.<ol>
     <li>Enter a User Group Name.<ul>
       <li>Must be unique across all user groups from all modules.</li>
@@ -401,33 +402,70 @@ module name can be created using these steps.</p>
 </section>
 
 <section>
-<h2 id="userGroupDelete">Deleting User Groups</h2>
+<h2 id="userGroupDelete">Delete User Group</h2>
 <p>Only global or module groups can be deleted. All other groups are managed by the system. Deleting
 a group will permanently delete the group, list of group members and any permissions granted to the
 group.</p>
 
 <section>
-<h3 id="userGroupGlobalDelete">Deleting a Global User Group</h3>
+<h3 id="userGroupGlobalDelete">Delete Global User Group</h3>
 
 <p class="note">The user must be in the ADMIN user group.</p>
 
 <ol>
-  <li>Open the '<a href="#userGroupAllList">All User Groups List</a>', or '<a href="#userGroupView">User Groups View</a>' page.</li>
+  <li>Open the <a href="#userGroupAllList">All User Groups List</a>, or <a href="#userGroupView">View User Group</a> page.</li>
   <li>Click the trash can button in the 'Actions' field for the the group.</li>
   <li>Click 'OK' in the confirmation dialog to delete the group, or 'Cancel' to return to the page without deleting.</li>
 </ol>
 </section>
 
 <section>
-<h3 id="userGroupModuleDelete">Deleting a Module User Group</h3>
+<h3 id="userGroupModuleDelete">Delete Module User Group</h3>
 
 <p class="note">The user must be in the ADMIN, ADMIN_MODULE_[MODULE_NAME]_ADMIN, or
 ADMIN_MODULE_[MODULE_NAME]_SECURITY groups.</p>
 
 <ol>
-  <li>Open the '<a href="#userGroupModuleList">Module User Groups List</a>', or '<a href="#userGroupView">User Groups View</a>' page.</li>
+  <li>Open the <a href="#userGroupModuleList">Module User Groups List</a>, or <a href="#userGroupView">View User Group</a> page.</li>
   <li>Click the trash can button in the 'Actions' field for the the group.</li>
   <li>Click 'OK' in the confirmation dialog to delete the group, or 'Cancel' to return to the page without deleting.</li>
+</ol>
+</section>
+</section>
+
+
+<section>
+<h2 id="userGroupEdit">Edit User Group</h2>
+<p>Only global or module groups can be edited. All other groups are managed by the system.</p>
+
+<section>
+<h3 id="userGroupGlobalEdit">Edit Global User Group</h3>
+
+<p class="note">The user must be in the ADMIN user group.</p>
+
+<ol>
+  <li>Open the <a href="#userGroupView">View User Group</a> page.</li>
+  <li>Click the 'Edit' button'.</li>
+  <li>Edit the field values.</li>
+  <li>Click the 'Save' button to save changes,
+  'Revert to Saved' to undo any changes,
+  or 'Cancel' to return to the previous page.</li>
+</ol>
+</section>
+
+<section>
+<h3 id="userGroupModuleEdit">Edit Module User Group</h3>
+
+<p class="note">The user must be in the ADMIN, ADMIN_MODULE_[MODULE_NAME]_ADMIN, or
+ADMIN_MODULE_[MODULE_NAME]_SECURITY groups.</p>
+
+<ol>
+  <li>Open the <a href="#userGroupView">View User Group</a> page.</li>
+  <li>Click the 'Edit' button'.</li>
+  <li>Edit the field values.</li>
+  <li>Click the 'Save' button to save changes,
+  'Revert to Saved' to undo any changes,
+  or 'Cancel' to return to the previous page.</li>
 </ol>
 </section>
 </section>
@@ -440,6 +478,9 @@ in the group will inherit any permissions granted to the group. The user account
 can be viewed managed using the following instructions. The exception is the USER_TYPE group,
 which has implicit members based on the user accounts. The list of user accounts cannot be viewed
 and managed for those groups.</p>
+
+<p class="note">The CPF caches the groups a user is a member of for up to 5 minutes. If adding
+or removing users from a group wait at least 5 minutes before testing.</p>
 
 <section>
 <h3 id="userGroupAccountList">User Accounts for Group List</h3>
