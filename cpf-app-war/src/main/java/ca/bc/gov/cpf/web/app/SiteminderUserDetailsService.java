@@ -149,7 +149,9 @@ public class SiteminderUserDetailsService implements UserDetailsService,
             }
           }
 
-          final String consumerSecret = UUID.randomUUID().toString();
+          final String consumerSecret = UUID.randomUUID()
+            .toString()
+            .replaceAll("-", "");
           final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
             username, consumerSecret);
           context.setAuthentication(authentication);
