@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Config Property - Security Administration - CPF</title>
+<title>Config Properties - Administration - CPF</title>
     <script type="text/javascript">
 pageId = 'configProperty';
     </script>
@@ -101,8 +101,7 @@ td > ul {
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
 <li><a href="index.html">Administration</a></li>
-<li><a href="security.html">Security</a></li>
-<li>Config Property</li>
+<li>Config Properties</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -114,9 +113,8 @@ td > ul {
 <section>
 <h1 id="overview">Overview</h1>
 
-<p>The CPF maintains a table of config properties. These config properties are used to authenticate
-(login) access to the CPF web services and admin application. The config properties are also used
-to assign users to user groups.</p>
+<p>The CPF master web application, CPF workers and modules can be configured by setting config
+properties.</p>
 
 <section>
 <h2 id="fields">Fields</h2>
@@ -138,27 +136,25 @@ to assign users to user groups.</p>
     </tr>
     <tr>
       <td>Environment Name</td>
-      <td></td>
+      <td>The <a href="#environmentName">environment name</a> the config property will be used for.</td>
     </tr>
     <tr>
       <td>Module Name</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Component Name</td>
-      <td></td>
+      <td>The name of the module the config property applies to. The special module names CPF
+      and CPF_WORKER are used for CPF config properties.</td>
     </tr>
     <tr>
       <td>Property Name</td>
-      <td></td>
+      <td>The name of the property.</td>
     </tr>
     <tr>
       <td>Value</td>
-      <td></td>
+      <td>The value of the property.</td>
     </tr>
     <tr>
       <td>Value Type</td>
-      <td></td>
+      <td><p>The <a href="#dataType">data type</a> the value will be converted to.</p>
+   </td>
     </tr>
   </tbody>
 </table>
@@ -166,96 +162,189 @@ to assign users to user groups.</p>
 </section>
 
 <section>
-<h2 id="user_classes">Config Property Classes</h2>
+<h2 id="environmentName">Environment Name</h2>
+<p>The configuration properties support the concept of having different configuration properties
+for different environments. Environment names are currently only used for workers.</p>
 
-<p>The CPF provides two classes of config property <a href="#user_class_CPF">CPF</a> and <a href="#user_class_BCGOV">BCGOV</a>.</p>
+<p>The special 'default' environment name is used as a default value if a config property is not
+created for an environment.</p>
+
+<p>For example the system could have two worker servers. The first has 2 CPUs and the second has 4.
+The first can support 32 threads and the second 64 threads. Two environment names 2cpu and 4cpu
+could be created. The first worker's environment name would be set to 2cpu and the second 4cpu.
+A config property can be created for the property name cpfWorker.maximumPoolSize for each environment
+with the values 32 and 64 respectively.</p>
+</section>
+
 <section>
-<h3 id="user_class_CPF">CPF Config Property Class</h3>
-
-<p>The CPF config property class is used to authenticate access resource under /pub/cpf/ws/ and /pub/cpf/admin/.
-In the BC Government environments users with the CPF class can be created for applications (as opposed
-to end users) who are authorized to use the CPF. These applications use these accounts on the server
-side to access the CPF. In this case client JavaScript use is not recommended as there is no way to hide
-the consumer key or secret from end-users. In non BC Government environments (e.g. development) these
-can be used for end-users or developers.</p>
-
-<p>Each CPF config property has a consumer key (User identifier) and consumer secret (Password/signing key).
-These are used by the user when authenticating using one of the following two authentication mechanisms.</p>
-
-<ul>
-  <li><a href="http://tools.ietf.org/html/rfc2617">HTTP Digest Access Authentication</a> - Supported by most web browsers</li>
-  <li><a href="http://tools.ietf.org/html/rfc5849">OAuth 1.0</a> - Supported by the CPF Java API for direct application access to the CPF.</li>
-</ul>
-
-<p>The CPF is installed with the following two accounts defined.</p>
-
-<div class="simpleDataTable">
-<table>
-  <thead>
-    <tr>
-      <th>Consumer Key</th>
+<h2 id="dataType">Data Types</h2>
+  <div class="simpleDataTable">
+  <table>
+    <thead>
+      <th>Type</th>
       <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>cpf_admin</td>
-      <td>The initial config property that has access to the CPF admin application. For production
-      environments config properties should be created for each admin user (either CPF or BCGOV).
-      Those accounts must be added to the ADMIN user group. Once you have been able to login using
-      your own admin account the cpf_admin account should be deactivated.</td>
-    </tr>
-    <tr>
-      <td>cpf_worker</td>
-      <td>The config property that the CPF worker processes use to connect to the CPF internal web
-      service. The name and password of this account can be changed as long as the worker is
-      configured to use the new values. Additional worker config properties can be added. These
-      accounts must be added to the WORKER user group.</td>
-    </tr>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>string</code></td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code>boolean</code></td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code>long</code></td>
+        <td>Long</td>
+      </tr>
+      <tr>
+        <td><code>int</code></td>
+        <td>Int</td>
+      </tr>
+      <tr>
+        <td><code>double</code></td>
+        <td>Double</td>
+      </tr>
+      <tr>
+        <td><code>float</code></td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code>short</code></td>
+        <td>Short</td>
+      </tr>
+      <tr>
+        <td><code>byte</code></td>
+        <td>Byte</td>
+      </tr>
+      <tr>
+        <td><code>decimal</code></td>
+        <td>Big Decimal</td>
+      </tr>
+      <tr>
+        <td><code>integer</code></td>
+        <td>Big Integer</td>
+      </tr>
+      <tr>
+        <td><code>QName</code></td>
+        <td>Qualified name</td>
+      </tr>
+      <tr>
+        <td><code>anyURI</code></td>
+        <td>URI</td>
+      </tr>
+      <tr>
+        <td><code>date</code></td>
+        <td>Date (YYYY-MM-DD)</td>
+      </tr>
+      <tr>
+        <td><code>dateTime</code></td>
+        <td>Date + Time (YYYY-MM-DDTHH:MM:SS)</td>
+      </tr>
+      <tr>
+        <td><code>Geometry</code></td>
+        <td>WKT Geometry</td>
+      </tr>
+      <tr>
+        <td><code>Point</code></td>
+        <td>WKT Point</td>
+      </tr>
+      <tr>
+        <td><code>LineString</code></td>
+        <td>WKT LineString</td>
+      </tr>
+      <tr>
+        <td><code>Polygon</code></td>
+        <td>WKT Polygon</td>
+      </tr>
+      <tr>
+        <td><code>GeometryCollection</code></td>
+        <td>WKT Geometry Collection</td>
+      </tr>
+      <tr>
+        <td><code>MultiPoint</code></td>
+        <td>WKT Multi-Point</td>
+      </tr>
+      <tr>
+        <td><code>MultiLineString</code></td>
+        <td>WKT Multi-LineString</td>
+      </tr>
+      <tr>
+        <td><code>MultiPolygon</code></td>
+        <td>WKT Multi-Polygon</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
-</section>
-
-<section>
-<h3 id="user_class_CPF">BCGOV (BC Government Siteminder) Config Property Class</h3>
-
-<p>The BCGOV config property class is used only for the BC Government environments. These accounts
-are used to authenticate accss to /pub/cpf/secure/ws/ and /pub/cpf/secure/admin/. The actual authentication
-is performed by the Siteminder agent that redirects the user to the BC Government common login page
-if the user is not logged in. The user can login using an internal IDIR account or
-an external <a href="www.bceid.ca">BCEID</a> account. The config property records are automatically
-created after the user has accessed the CPF for the first time. Therefore to assign a user to a group
-to a user they must first access any CPF URL under /pub/cpf/secure/.</p>
-</section>
 </section>
 </section>
 
 <section>
 <h1 id="management">Config Property Management</h1>
 
-<p>This section describes how to manage user groups and members of those groups.</p>
-
-<p class="note">The user must be in the
-ADMIN user group to view the list of all config properties and to manage config properties.</p>
+<p>This section describes how to manage config properties.</p>
 
 <section>
 <h2 id="list">Config Properties List</h2>
 
 <p>The config properties page contains a scrolling table of the config properties. The contents of this 
 table can be filtered by typing at least 3 characters in search box. The table will show config properties where
-the consumer key, config property class or user name contain those characters characters (ignoring case).</p>
+the environment name, module name, property name, or property value contain those characters characters (ignoring case).</p>
+
+<section>
+<h3 id="globalList">CPF Config Properties</h3>
+
+<p>The list of configuration properties for the <a href="#cpfProperties">CPF master web application</a> and
+<a href="#cpfWorkerProperties">CPF workers</a> can be viewed using
+the following steps.</p>
+
+<p class="note">The user must be in the ADMIN user group.</p>
 
 <ol>
   <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
-  <li>Click the <a href="../../admin/userAccounts/">Config Properties</a> menu item.</li>
+  <li>Click the <a href="../../admin/configProperties/">Config Properties</a> menu item.</li>
 </ol>
+
+</section>
+
+<section>
+<h3 id="globalList">Module Config Properties</h3>
+
+<p>The list of configuration properties for a module can be viewed using the following steps.</p>
+
+<p class="note">The user must be in the ADMIN, or ADMIN_MODULE_[MODULE_NAME]_ADMIN groups.</p>
+
+<p class="note">NOTE: Consult the module's readme file for details on the supported
+configuration properties.</p>
+
+<ol>
+  <li>Open the <a href="module.html#view">Module View</a> page.</li>
+  <li>Click the 'Config Properties' tab.</li>
+</ol>
+</section>
+
+<section>
+<h3 id="globalList">Business Application Config Properties</h3>
+
+<p>The list of configuration properties for a business application can be viewed using the following steps.</p>
+
+<p class="note">The user must be in the ADMIN, or ADMIN_MODULE_[MODULE_NAME]_ADMIN groups.</p>
+
+<p class="note">NOTE: Consult the module's readme file for details on the supported
+configuration properties for a business application.</p>
+
+<ol>
+  <li>Open the <a href="businessApplication.html#view">Business Application View</a> page.</li>
+  <li>Click the 'Config Properties' tab.</li>
+</ol>
+</section>
+
 </section>
 
 <section>
 <h2 id="view">View Config Property</h2>
 
-<p>Config properties can be viewed using the following steps.</p>.
+<p>Config properties can be viewed using the following steps.</p>
 
 <ol>
   <li>Open one of the <a href="list">Config Properties List</a> page.</li>
@@ -271,17 +360,9 @@ be added, therefore the Config Property Class field is not shown as it is set to
 config property's user name field will be set to the consumer key entered.</p>
 
 <ol>
-  <li>Open the <a href="#list">Config Properties List</a> page.</li>
+  <li>Open one of the <a href="#list">Config Properties List</a> page.</li>
   <li>Click 'Add' button.<ol>
-  <li>Edit the field values.<ol>
-    <li>Enter a Consumer Key.<ul>
-      <li>Must be unique across all consumer keys from all classes.</li>
-      <li>Can only contain the characters a-z, 0-9, and _.</li>
-      <li>Automatically converted to lower case.</li>
-    </ul></li>
-    <li>Enter a Password. A random UUID password is provided as a default.</li>
-    <li>Select if the user is to be active.</li>
-  </ol></li>
+  <li>Edit the field values.</li>
   <li>Click the 'Save' button to create the config property,
   'Clear Fields' to undo any changes,
   or 'Cancel' to return to the previous page.</li>
@@ -290,12 +371,10 @@ config property's user name field will be set to the consumer key entered.</p>
 
 <section>
 <h2 id="delete">Delete Config Property</h2>
-<p>A config property can be deleted using the following steps. This will also remove the user
-account from any user group and delete the user's jobs. For the CPF class deleting accounts is permanent. For BCGOV class this
-deletes the record, but a new record will be created when the user next accesses CPF.</p>
+<p>A config property can be deleted using the following steps.</p>
 
 <ol>
-  <li>Open the <a href="#list">Config Properties List</a> or <a href="#view">View Config Property</a> page.</li>
+  <li>Open one of the <a href="#list">Config Properties List</a> or <a href="#view">View Config Property</a> page.</li>
   <li>Click trash button in the 'Actions' field for the config property to delete.</li>
   <li>Click the 'OK' button on the confirm delete dialog to delete the config property, or 'Cancel' to return to the page.</li>
 </ol>
@@ -310,15 +389,7 @@ For the BCGOV class only the active flag can be edited.</p>
 <ol>
   <li>Open the <a href="#view">View Config Property</a> page.</li>
   <li>Click the 'Edit button'.</li>
-  <li>Edit the field values.<ol>
-    <li>Enter a Consumer Key.<ul>
-      <li>Must be unique across all consumer keys from all classes.</li>
-      <li>Can only contain the characters a-z, 0-9, and _.</li>
-      <li>Automatically converted to lower case.</li>
-    </ul></li>
-    <li>Enter a Password.</li>
-    <li>Select if the user is to be active.</li>
-  </ol></li>
+  <li>Edit the field values.</li>
   <li>Click the 'Save' button to save changes, 'Revert to Saved' to undo any changes, or 'Cancel' to return to previous page.</li>
 </ol>
 </section>
@@ -326,17 +397,22 @@ For the BCGOV class only the active flag can be edited.</p>
 <section>
   <h1 id="properties">Property Names &amp; Descriptions</h1>
 
+  <p>This section describes the configuration properties used for the CPF master web application and CPF workers.</p>
+  
+  <p>The CPF uses <a href="http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html#load(java.io.Reader)">Java Properties</a> files
+  for bootstrap configuration of the CPF master web application and CPF workers. In the properties
+  files use '=' not ':' between the keys and values and escape any ':' characters in property values using '\:'.
+  Properties with a tick in the 'Admin App' column can also be defined using the admin application.</p>
+  
+  <p class="note">NOTE: Any changes to config properties using the admin application or in the 
+  properties file will require the CPF master or CPF worker to be restarted for these properties to take affect.</p>
+  
 <section>
-<h2 id="masterFileProperties">Master File Configuration Properties</h2>
+<h2 id="cpfProperties">CPF Configuration Properties</h2>
 <p>The CPF master web application requires the following properties to be defined in the
-<code>/apps/config/cpf.properties</code>
-<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html#load(java.io.Reader)">Java Properties</a> file.
-<span class="note">Use = not : between the keys and values. Also the : character must be escaped using \:.</span>.
+<code>/apps/config/cpf.properties</code> file.
 The master will ignore any other properties in this file. So where the master and worker are on
 the same machine they can share the same configuration file.</p>
-
-<p class="note">NOTE: The CPF master web application will need to be restarted for these
-properties to take affect.</p>
 
 <div class="simpleDataTable">
 <table>
@@ -344,6 +420,7 @@ properties to take affect.</p>
     <tr>
       <th>Property Name</th>
       <th>Description</th>
+      <th>Admin App</th>
       <th>Example</th>
     </tr>
   </thead>
@@ -351,88 +428,77 @@ properties to take affect.</p>
     <tr>
       <td><code>ca.bc.gov.cpf.app.baseUrl</code></td>
       <td>The HTTP URL to the OAuth/Digest secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td><a href="http://apps.gov.bc.ca/pub/cpf">http://apps.gov.bc.ca/pub/cpf</a></td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.app.secureBaseUrl</code></td>
       <td>The HTTPS URL to the Siteminder secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td><a href="https://apps.gov.bc.ca/pub/cpf/secure">https://apps.gov.bc.ca/pub/cpf/secure</a></td>
     </tr>
     <tr>
       <td><code>cpfSiteminderLogoutSuccess.logoutUrl</code></td>
       <td>The URL to the siteminder logoff page.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td><a href="https://logon.gov.bc.ca/clp-cgi/logoff.cgi">https://logon.gov.bc.ca/clp-cgi/logoff.cgi</a> or
       <a href="https://logontest.gov.bc.ca/clp-cgi/logoff.cgi">https://logontest.gov.bc.ca/clp-cgi/logoff.cgi</a></td>
      </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.url</code></td>
       <td>The JDBC URL to the cpf database.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td><code>jdbc:oracle:thin:@localhost:1521:cpf</code> or <code>jdbc\:postgresql\://localhost\:5432/cpf</code></td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.password</code></td>
       <td>The password for the PROXY_CPF_WEB user account.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>cpf_2009</td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.maxConnections</code></td>
       <td>The maximum number of database connections.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>50</td>
+    </tr>
+    <tr>
+      <td><code>ca.bc.gov.cpf.repositoryServer</code></td>
+      <td>The maven repository to download plugins from.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>TODO</td>
+    </tr>
+    <tr>
+      <td><code>ca.bc.gov.cpf.repositoryDirectory</code></td>
+      <td>The cache directory to store maven artifacts.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>TODO</td>
     </tr>
     <tr>
       <td><code>batchJobService.maxWorkerWaitTime</code></td>
       <td>The maximum time (in seconds) the worker will wait in a HTTP request for group to process before
       trying a new HTTP request. This limits the number of polling requests to the server. Must
       be less than any HTTP server inactivity timeouts.</td>
+      <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>100</td>
     </tr>
     <tr>
       <td><code>batchJobService.fromEmail</code></td>
       <td>The email address any emails will be sent from.</td>
+      <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>cpf@localhost</td>
     </tr>
     <tr>
       <td><code>mailSender.host</code></td>
       <td>The mail server to send emails via./td>
+      <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>localhost</td>
     </tr>
-    <tr>
-      <td><code>ca.bc.gov.cpf.repositoryServer</code></td>
-      <td>The maven repository to download plugins from.</td>
-      <td>TODO</td>
-    </tr>
-    <tr>
-      <td><code>ca.bc.gov.cpf.repositoryDirectory</code></td>
-      <td>The cache directory to store maven artifacts.</td>
-      <td>TODO</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</section>
-
-<section>
-<h2 id="masterFileProperties">Master Database Configuration Properties</h2>
-<p>The CPF master process also supports the following configuration properties that can be
-defined in database using the CPF admin application.</p>
-
-<p class="note">NOTE: The CPF master web application will need to be restarted for these
-properties to take affect.</p>
-
-<div class="simpleDataTable">
-<table>
-  <thead>
-    <tr>
-      <th>Property Name</th>
-      <th>Description</th>
-      <th>Example</th>
-    </tr>
-  </thead>
-  <tbody>
     <tr>
       <td>removeOldBatchJobs.daysToKeepOldJobs</td>
       <td>The number of days that jobs will be kept after the results have been created. After
       that time the jobs will be removed in the next daily cleanup.</td>
+      <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>7</td>
     </tr>
   </tbody>
@@ -441,16 +507,11 @@ properties to take affect.</p>
 </section>
 
 <section>
-<h2 id="workerFileProperties">Worker File Configuration Properties</h2>
+<h2 id="cpfWorkerProperties">Worker Configuration Properties</h2>
 <p>The CPF worker web application requires the following properties to be defined in the
-<code>/apps/config/cpf.properties</code>
-<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html#load(java.io.Reader)">Java Properties</a> file.
-<span class="note">Use = not : between the keys and values. Also the : character must be escaped using \:.</span>.
+<code>/apps/config/cpf.properties</code> file.
 The worker will ignore any other properties in this file. So where the worker and master are on
 the same machine they can share the same configuration file.</p>
-
-<p class="note">NOTE: The CPF worker web application will need to be restarted for these
-properties to take affect.</p>
 
 <div class="simpleDataTable">
 <table>
@@ -458,6 +519,7 @@ properties to take affect.</p>
     <tr>
       <th>Property Name</th>
       <th>Description</th>
+      <th>Admin App</th>
       <th>Example</th>
     </tr>
   </thead>
@@ -466,16 +528,25 @@ properties to take affect.</p>
       <td><code>ca.bc.gov.cpf.internal.webServiceUrl</code></td>
       <td>The HTTP URL to the CPF web services behind any reverse proxies. This is used to speed up
       access from the workers.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td><a href="http://localhost/pub/cpf">http://localhost/pub/cpf</a></td>
     </tr>
     <tr>
       <td><code>cpfWorker.password</code></td>
       <td>The password for the cpf_worker user account.</td>
-      <td>w0rk3r</td>
+     <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+       <td>w0rk3r</td>
+    </tr>
+    <tr>
+      <td><code>cpfWorker.environmentName</code></td>
+      <td>The <a href="#environmentName">environment name</a> used for the worker.</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>default</td>
     </tr>
     <tr>
       <td><code>cpfWorker.maximumPoolSize</code></td>
       <td>The maximum number of threads on the worker used to execute requests.</td>
+      <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>32</td>
     </tr>
   </tbody>

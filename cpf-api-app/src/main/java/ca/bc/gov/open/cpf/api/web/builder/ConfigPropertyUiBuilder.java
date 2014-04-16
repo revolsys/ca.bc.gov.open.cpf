@@ -23,6 +23,9 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.gis.data.io.DataObjectStore;
 import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.gis.data.query.Condition;
+import com.revolsys.gis.data.query.Q;
+import com.revolsys.gis.data.query.Query;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
@@ -36,6 +39,11 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
 
   private static final List<String> GLOBAL_MODULE_NAMES = Arrays.asList("CPF",
     "CPF_WORKER");
+
+  private final List<String> INTERNAL_APP_PROPERTY_NAMES = Arrays.asList(
+    "maxConcurrentRequests", "numRequestsPerWorker", "maxRequestsPerJob",
+    "logLevel", "batchModePermission", "instantModePermission",
+    "testModeEnabled");
 
   public ConfigPropertyUiBuilder() {
     super("configProperty", ConfigProperty.CONFIG_PROPERTY,
@@ -250,10 +258,13 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final String componentName = getAppComponentName(businessApplicationName);
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
 
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
-    filter.put(ConfigProperty.MODULE_NAME, moduleName);
-    filter.put(ConfigProperty.COMPONENT_NAME, componentName);
-    parameters.put("filter", filter);
+    final Condition where = Q.and(
+      Q.equal(ConfigProperty.MODULE_NAME, moduleName),
+      Q.equal(ConfigProperty.COMPONENT_NAME, componentName),
+      Q.not(Q.in(ConfigProperty.PROPERTY_NAME, INTERNAL_APP_PROPERTY_NAMES)));
+
+    final Query query = new Query(getTableName(), where);
+    parameters.put("query", query);
 
     return createDataTableHandlerOrRedirect(request, response, "moduleAppList",
       Module.class, "view", parameters);

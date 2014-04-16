@@ -46,7 +46,7 @@
         <bean
           p:name="moduleList"
           class="com.revolsys.ui.web.config.Page"
-          p:title="Module Config Properties"
+          p:title="Config Properties"
           p:path="/admin/modules/{moduleName}/configProperties/"
           p:permission="hasRole('ROLE_ADMIN')  or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')" />
         <bean
@@ -265,12 +265,6 @@
           p:label="Module Name"
            p:width="10%"
         />
-       <bean
-          p:name="COMPONENT_NAME"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Component Name"
-          p:width="15%"
-        />
         <bean
           p:name="PROPERTY_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
@@ -426,7 +420,6 @@
             <value>CONFIG_PROPERTY_ID_VIEW</value>
             <value>ENVIRONMENT_NAME</value>
             <value>MODULE_NAME</value>
-            <value>COMPONENT_NAME</value>
             <value>PROPERTY_NAME</value>
             <value>PROPERTY_VALUE</value>
             <value>PROPERTY_VALUE_TYPE</value>
@@ -438,7 +431,6 @@
             <value>CONFIG_PROPERTY_ID</value>
             <value>ENVIRONMENT_NAME</value>
             <value>MODULE_NAME</value>
-            <value>COMPONENT_NAME</value>
             <value>PROPERTY_NAME</value>
             <value>PROPERTY_VALUE</value>
             <value>PROPERTY_VALUE_TYPE</value>
@@ -464,7 +456,6 @@
             <value>CONFIG_PROPERTY_ID</value>
             <value>ENVIRONMENT_NAME</value>
             <value>MODULE_NAME</value>
-            <value>COMPONENT_NAME</value>
             <value>PROPERTY_NAME</value>
             <value>PROPERTY_VALUE</value>
             <value>PROPERTY_VALUE_TYPE</value>
@@ -490,7 +481,6 @@
             <value>CONFIG_PROPERTY_ID</value>
             <value>ENVIRONMENT_NAME</value>
             <value>MODULE_NAME</value>
-            <value>COMPONENT_NAME</value>
             <value>PROPERTY_NAME</value>
             <value>PROPERTY_VALUE</value>
             <value>PROPERTY_VALUE_TYPE</value>
