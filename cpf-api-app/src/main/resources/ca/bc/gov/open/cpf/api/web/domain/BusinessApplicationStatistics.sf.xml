@@ -54,7 +54,8 @@
           p:name="summary"
           class="com.revolsys.ui.web.config.Page"
           p:title="Dashboard"
-          p:path="/admin/dashboard/" />
+          p:path="/admin/dashboard/"
+          p:permission="hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*_ADMIN')" />
 
         <bean
           p:name="hourList"

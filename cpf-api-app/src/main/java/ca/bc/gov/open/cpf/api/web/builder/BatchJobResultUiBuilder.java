@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,36 +22,37 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.model.data.equals.EqualsInstance;
+import com.revolsys.gis.data.query.And;
+import com.revolsys.gis.data.query.Q;
+import com.revolsys.gis.data.query.Query;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.ui.html.view.ElementContainer;
-import com.revolsys.ui.html.view.TabElementContainer;
 
 @Controller
 public class BatchJobResultUiBuilder extends CpfUiBuilder {
 
   public BatchJobResultUiBuilder() {
     super("batchJobResult", BatchJobResult.BATCH_JOB_RESULT,
-      BatchJobResult.BATCH_JOB_RESULT_ID, "Batch Job Result",
-      "Batch Job Results");
+      BatchJobResult.SEQUENCE_NUMBER, "Batch Job Result", "Batch Job Results");
+    setIdParameterName("sequenceNumber");
   }
 
   public DataObject getBatchJobResult(final Long batchJobId,
-    final Long batchJobResultId) throws NoSuchRequestHandlingMethodException {
-    final DataObject batchJobResult = loadObject(batchJobResultId);
+    final Long sequenceNumber) throws NoSuchRequestHandlingMethodException {
+    final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
+      Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
+    final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
+    final DataObject batchJobResult = getDataStore().queryFirst(query);
+
     if (batchJobResult != null) {
-      if (EqualsInstance.INSTANCE.equals(
-        batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID), batchJobId)) {
-        return batchJobResult;
-      }
+      return batchJobResult;
     }
     throw new NoSuchRequestHandlingMethodException(getRequest());
   }
 
   @RequestMapping(
       value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}/download"
+        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{sequenceNumber}/download"
       }, method = {
         RequestMethod.GET, RequestMethod.POST
       })
@@ -60,15 +60,14 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   public void getModuleAppJobDownload(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobResultId)
+    @PathVariable final Long batchJobId, @PathVariable final Long sequenceNumber)
     throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
     final DataObject batchJobResult = getBatchJobResult(batchJobId,
-      batchJobResultId);
+      sequenceNumber);
 
     final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
     if (resultDataUrl != null) {
@@ -77,11 +76,11 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     } else {
       final BatchJobService batchJobService = getBatchJobService();
       final InputStream in = batchJobService.getBatchJobResultData(batchJobId,
-        batchJobResultId, batchJobResult);
+        sequenceNumber, batchJobResult);
       final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
       response.setContentType(resultDataContentType);
       final long size = batchJobService.getBatchJobResultSize(batchJobId,
-        batchJobResultId, batchJobResult);
+        sequenceNumber, batchJobResult);
 
       final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
         .getFactoryByMediaType(DataObjectWriterFactory.class,
@@ -89,7 +88,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
       if (writerFactory != null) {
         final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
         final String fileName = "job-" + batchJobId + "-result-"
-          + batchJobResultId + "." + fileExtension;
+          + sequenceNumber + "." + fileExtension;
         response.setHeader("Content-Disposition", "attachment; filename="
           + fileName + ";size=" + size);
       }
@@ -123,27 +122,4 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
       "moduleAppJobList", BatchJob.BATCH_JOB, "moduleAppView", parameters);
   }
 
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{batchJobResultId}"
-      }, method = RequestMethod.GET)
-  @ResponseBody
-  public ElementContainer pageModuleAppJobView(
-    final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable final String moduleName,
-    @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId,
-    @PathVariable final Long batchJobResultId) throws IOException,
-    ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    getModuleBusinessApplication(moduleName, businessApplicationName);
-    getBatchJob(businessApplicationName, batchJobId);
-
-    final DataObject batchJobResult = getBatchJobResult(batchJobId,
-      batchJobResultId);
-
-    final TabElementContainer tabs = new TabElementContainer();
-    addObjectViewPage(tabs, batchJobResult, "moduleAppJob");
-    return tabs;
-  }
 }

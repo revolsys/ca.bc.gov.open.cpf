@@ -4,10 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,9 +32,11 @@ import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.ui.html.view.ElementContainer;
-import com.revolsys.ui.html.view.TabElementContainer;
-import com.revolsys.util.Compress;
+import com.revolsys.io.json.JsonMapIoFactory;
+import com.revolsys.io.xml.XmlWriter;
+import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
+import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
+import com.revolsys.util.JavaBeanUtil;
 
 @Controller
 public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
@@ -43,6 +46,24 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
       BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
       BatchJobExecutionGroup.SEQUENCE_NUMBER, "Batch Job Request",
       "Batch Job Requests");
+    setIdParameterName("sequenceNumber");
+  }
+
+  public void completed(final XmlWriter out, final Object object) {
+    final DataObject executionGroup = (DataObject)object;
+    final boolean completed = Boolean.TRUE.equals(JavaBeanUtil.getBooleanValue(
+      executionGroup, BatchJobExecutionGroup.COMPLETED_IND));
+    if (completed) {
+      final List<String> parameterNames = Collections.emptyList();
+      final Map<String, String> map = Collections.emptyMap();
+      ActionFormKeySerializer.serialize(out, executionGroup, this,
+        parameterNames, map, "_top", "Result", null, "resultData",
+        "ui-auto-button-disk");
+    } else {
+      BooleanImageKeySerializer.serialize(out, executionGroup,
+        BatchJobExecutionGroup.COMPLETED_IND);
+    }
+
   }
 
   public DataObject getBatchJobExecutionGroup(final Long batchJobId,
@@ -75,7 +96,7 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
     getBatchJob(businessApplicationName, batchJobId);
     final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
       batchJobId, sequenceNumber);
-    final String baseName = "job-" + batchJobId + "-request-" + sequenceNumber
+    final String baseName = "job-" + batchJobId + "-group-" + sequenceNumber
       + "-input";
     if (businessApplication.isPerRequestInputData()) {
       final String dataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_URL);
@@ -94,8 +115,9 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
         }
       }
     } else {
-      writeJson(response, batchJobExecutionGroup,
-        BatchJobExecutionGroup.STRUCTURED_INPUT_DATA);
+      final String inputData = getBatchJobService().getJobController(batchJobId)
+        .getStructuredInputData(batchJobId, sequenceNumber);
+      writeJson(response, baseName, inputData);
     }
   }
 
@@ -119,7 +141,7 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
     final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
       batchJobId, sequenceNumber);
     final String contentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-    final String baseName = "job-" + batchJobId + "-request-" + sequenceNumber
+    final String baseName = "job-" + batchJobId + "-group-" + sequenceNumber
       + "-result";
     if (businessApplication.isPerRequestResultData()) {
       final String resultDataUrl = batchJobExecutionGroup.getValue(BatchJobExecutionGroup.RESULT_DATA_URL);
@@ -137,8 +159,11 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
         }
       }
     } else {
-      writeJson(response, batchJobExecutionGroup,
-        BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
+      final Map<String, Object> resultData = getBatchJobService().getJobController(
+        batchJobId)
+        .getStructuredResultData(batchJobId, sequenceNumber,
+          batchJobExecutionGroup);
+      writeJson(response, baseName, resultData);
     }
   }
 
@@ -167,45 +192,33 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
       "moduleAppJobList", BatchJob.BATCH_JOB, "moduleAppView", parameters);
   }
 
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}"
-      }, method = RequestMethod.GET)
-  @ResponseBody
-  public ElementContainer pageModuleAppJobView(
-    final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable final String moduleName,
-    @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId, @PathVariable final Long sequenceNumber)
-    throws IOException, ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    getModuleBusinessApplication(moduleName, businessApplicationName);
-    getBatchJob(businessApplicationName, batchJobId);
-    final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
-      batchJobId, sequenceNumber);
-
-    final TabElementContainer tabs = new TabElementContainer();
-    addObjectViewPage(tabs, batchJobExecutionGroup, "moduleAppJob");
-    return tabs;
+  private void writeJson(final HttpServletResponse response,
+    final String filename, final Map<String, Object> map) throws IOException {
+    response.setContentType("application/json");
+    response.setHeader("Content-disposition", "attachment; filename="
+      + filename + ".json");
+    try (
+      java.io.Writer out = response.getWriter()) {
+      if (map != null) {
+        out.write(JsonMapIoFactory.toString(map));
+      } else {
+        out.write("{}");
+      }
+    }
   }
 
-  protected void writeJson(final HttpServletResponse response,
-    final DataObject batchJobExecutionGroup, final String field)
-    throws IOException {
-    String dataString = batchJobExecutionGroup.getString(field);
+  private void writeJson(final HttpServletResponse response,
+    final String filename, final String content) throws IOException {
     response.setContentType("application/json");
-    final java.io.Writer out = response.getWriter();
-    if (StringUtils.hasText(dataString)) {
-      if (dataString.charAt(0) != '{') {
-        dataString = Compress.inflateBase64(dataString);
+    response.setHeader("Content-disposition", "attachment; filename="
+      + filename + ".json");
+    try (
+      java.io.Writer out = response.getWriter()) {
+      if (StringUtils.hasText(content)) {
+        out.write(content);
+      } else {
+        out.write("{}");
       }
-      try {
-        out.write(dataString);
-      } finally {
-        FileUtil.closeSilent(out);
-      }
-    } else {
-      out.write("{}");
     }
   }
 

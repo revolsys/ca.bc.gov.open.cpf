@@ -119,15 +119,15 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public InputStream getJobResultData(final long jobId,
-    final long batchJobResultId, final DataObject batchJobResult) {
-    final File resultFile = getJobFile(jobId, JOB_RESULTS, batchJobResultId);
+    final long sequenceNumber, final DataObject batchJobResult) {
+    final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
     return FileUtil.getInputStream(resultFile);
   }
 
   @Override
-  public long getJobResultSize(final long jobId, final long batchJobResultId,
+  public long getJobResultSize(final long jobId, final long sequenceNumber,
     final DataObject batchJobResult) {
-    final File resultFile = getJobFile(jobId, JOB_RESULTS, batchJobResultId);
+    final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
     return resultFile.length();
   }
 
@@ -168,9 +168,9 @@ public class FileJobController extends AbstractJobController {
   @Override
   public void setJobResultData(final long jobId,
     final DataObject batchJobResult, final Object resultData) {
-    final Long batchJobResultId = batchJobResult.getLong(BatchJobResult.BATCH_JOB_RESULT_ID);
+    final Long sequenceNumber = batchJobResult.getLong(BatchJobResult.SEQUENCE_NUMBER);
     final String path = JOB_RESULTS;
-    final File resultFile = getJobFile(jobId, path, batchJobResultId);
+    final File resultFile = getJobFile(jobId, path, sequenceNumber);
     resultFile.getParentFile().mkdirs();
     if (resultData instanceof File) {
       final File file = (File)resultData;

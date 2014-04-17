@@ -131,7 +131,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     @PathVariable final String businessApplicationName,
     @PathVariable final Integer batchJobId) throws IOException,
     ServletException {
-    checkAdminOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
 
@@ -192,7 +192,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId) throws IOException, ServletException {
-    checkAdminOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
     batchJobService.cancelBatchJob(batchJobId);
@@ -212,7 +212,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId) throws IOException, ServletException {
-    checkAdminOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
     batchJobService.deleteJob(batchJobId);

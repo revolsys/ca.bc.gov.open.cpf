@@ -8,7 +8,7 @@ import com.revolsys.gis.data.model.DataObject;
 public interface JobController {
   String GROUP_RESULTS = "groupResults";
 
-  String GROUP_INPUTS = "groupResults";
+  String GROUP_INPUTS = "groupInputs";
 
   String JOB_RESULTS = "jobResults";
 
@@ -23,10 +23,10 @@ public interface JobController {
 
   void deleteJob(long jobId);
 
-  InputStream getJobResultData(long jobId, long batchJobResultId,
+  InputStream getJobResultData(long jobId, long sequenceNumber,
     DataObject batchJobResult);
 
-  long getJobResultSize(long jobId, long batchJobResultId,
+  long getJobResultSize(long jobId, long sequenceNumber,
     DataObject batchJobResult);
 
   String getKey();

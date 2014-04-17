@@ -176,7 +176,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Object pageIndex(final HttpServletRequest request) {
-    checkAdminOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdminExceptSecurity();
     setPageTitle(request, "summary");
 
     final TabElementContainer tabs = new TabElementContainer();
@@ -202,7 +202,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   public Object pageSummaryList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String durationType)
     throws IOException, NoSuchRequestHandlingMethodException {
-    checkAdminOrAnyModuleAdmin();
+    checkAdminOrAnyModuleAdminExceptSecurity();
     final InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
       this, "getSummaryStatistics", durationType);
     return createDataTableHandlerOrRedirect(request, response, durationType

@@ -6,9 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Client Developer Guide - CPF</title>
+<title>Batch Jobs - Administration - CPF</title>
     <script type="text/javascript">
-pageId = 'client';
+pageId = 'jobs';
     </script>
 <!-- InstanceEndEditable -->
 
@@ -64,8 +64,8 @@ td > ul {
                     <li><a href="../../ws/">Home</a></li>
                     <li id="overviewMenu"><a href="../../docs/">Overview</a></li>
                     <li id="clientMenu"><a href="../client/">Client Development</a><ul>
-                      <li id="clientRestMenu"><a href="rest-api/">Client REST API</a></li>
-                      <li id="clientJavaMenu"><a href="java-api/">Client Java API</a></li>
+                      <li id="clientRestMenu"><a href="../client/rest-api/">Client REST API</a></li>
+                      <li id="clientJavaMenu"><a href="../client/java-api/">Client Java API</a></li>
                      <!-- <li id="clientJavaMenu"><a href="../docs/client/javascript-api/">Client JavaScript API</a></li>-->
                     </ul></li>
                     <li id="pluginMenu"><a href="../plugin/">Plug-in Development</a><ul>
@@ -83,12 +83,12 @@ td > ul {
                       <li id="webInstallMenu"><a href="../install/webapp.html">Web Application Installation</a></li>
                     </ul></li>
                     <li id="adminMenu"><a href="../admin/">Administration</a><ul>
-                      <li id="configPropertyMenu"><a href="../admin/configProperty.html">Config Properties</a></li>
-                      <li id="userAccountMenu"><a href="../admin/userAccount.html">User Accounts</a></li>
-                      <li id="userGroupMenu"><a href="../admin/userGroup.html">User Groups</a></li>
-                      <li id="userGroupPermissionMenu"><a href="../admin/userGroupPermission.html">User Group Permissions</a></li>
-                      <li id="jobsMenu"><a href="../admin/jobs.html">Batch Jobs</a></li>
-                      <li id="statisticsMenu"><a href="../admin/statistics.html">Dashboard Statistics</a></li>
+                      <li id="configPropertyMenu"><a href="configProperty.html">Config Properties</a></li>
+                      <li id="userAccountMenu"><a href="userAccount.html">User Accounts</a></li>
+                      <li id="userGroupMenu"><a href="userGroup.html">User Groups</a></li>
+                      <li id="userGroupPermissionMenu"><a href="userGroupPermission.html">User Group Permissions</a></li>
+                      <li id="jobsMenu"><a href="jobs.html">Batch Jobs</a></li>
+                      <li id="statisticsMenu"><a href="statistics.html">Dashboard Statistics</a></li>
                     </ul></li>
                   </ul>
                   </div>
@@ -102,7 +102,8 @@ td > ul {
 <li><a href="../../ws/">HOME</a></li>
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-<li>Client API</li>
+<li><a href="index.html">Administration</a></li>
+<li>Batch Jobs</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -110,58 +111,107 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-    <div>
-      <div>
-        <h1>Client Developer Guide</h1>
-        <h2>Client Overview</h2>
-        <p>The Cloud Processing Framework (CPF) provides a REST web service API that can be used to develop client applications in JavaScript, Java or another programming language to submit batch jobs to the CPF and to download the results of those batch jobs. The API can also
-        be accessed directly in a web browser.</p>
+<div class="title">Batch Jobs - Administration</div>
+<section>
+<h1 id="overview">Overview</h1>
+<p>The main purpose of the CPF is to execute batch jobs on behalf of users. The CPF admin application
+can be used to view the list of jobs in the system and to monitor the progress of the execution
+of the batch job execution groups.</p>
 
-       <h2>Accessing the Cloud Processing Framework</h2>
-        <p>Cloud Processing Framework is a REST web service enabled application. The web service
-        can be used by end users using a web browser. In this mode the service
-        returns styled HTML pages that can be used without any programming.
-        The web service can also be accessed using a programming language using
-        the <a href="rest-api/">REST Web Service API</a>. Client API's that use
-        the <a href="rest-api/">REST Web Service API</a> are provided for the
-        <a href="java-api/">Java</a> and <a href="javascript-api/">JavaScript</a>
-        programming languages. Other programming languages can also access the
-        <a href="rest-api/">REST Web Service API</a> using custom code.<p>
-         <h3>Security</h3>
-         <p>Access to the REST web service API is limited to authorized users.</p>
-        <h2>API Documentation and Download</h2>
-        <p>Use the links in the following table to view the Client API documentation or download the API libraries.</p>
-        <div class="simpleDataTable">
-          <table style="width: auto; margin-left:0px">
-            <thead>
-              <tr>
-                <th>API</th>
-                <th>Documentation</th>
-                <th>Download</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Client REST Web Service API</td>
-                <td><a href="rest-api/">API Docs</a></td>
-                <td>n/a</td>
-              </tr>
-              <tr>
-                <td>Client Java (6+)</td>
-                <td><a href="java-api/">API Docs</a></td>
-                <td><a href="../../lib/cpf-api-client-${project.version}.jar">Download</a></td>
-              </tr>
-              <tr>
-                <td>Client JavaScript</td>
-                <td><a href="javascript-api/">API Docs</a></td>
-                <td><a href="../../js/cpf_client.js">Download</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-<!-- InstanceEndEditable -->
+</section>
+
+<section>
+<h1 id="management">Batch Job Management</h1>
+
+<p>This section describes how to manage batch jobs.</p>
+
+<p class="note">The user must be in the ADMIN, or ADMIN_MODULE_[MODULE_NAME]_ADMIN user groups
+to view batch jobs. The module admins will only be able to see batch jobs for their modules.</p>
+
+<section>
+<h2 id="list">Batch Job Lists</h2>
+<p>The batch job list pages contain a scrolling table of the batch jobs. The contents of this 
+table can be filtered by typing at least 3 characters in search box. The table will show batch jobs
+where the id, business application, start time, modification time, job status, submitted requests,
+completed requests, failed requests or user id contain those characters characters (ignoring case).</p>
+
+<section>
+<h2 id="allList">All Jobs</h2>
+<p>The all batch jobs page shows the batch jobs for all business applications the user has
+admin permission for.</p>
+
+<p>The batch jobs can be viewed using the following steps.</p>
+
+<ol>
+  <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
+  <li>Click the <a href="../../admin/jobs/">Batch Jobs</a> menu item.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="appList">Business Application Batch Jobs</h2>
+<p>The all batch jobs page shows the batch jobs for all business applications the user has
+admin permission for.</p>
+
+<ol>
+  <li>Open the <a href="businessApplication.html#view">Business Application View</a> page.</li>
+  <li>Click the 'Batch Jobs' tab.</li>
+</ol>
+</section>
+</section>
+
+<section>
+<h2 id="view">View Batch Job</h2>
+<p>The batch jobs can view viewed using the following steps.</p>
+
+<ol>
+  <li>Open one of the <a href="#list">Batch Job Lists</a> pages.</li>
+  <li>Scroll/Search for the batch jobs to view.</li>
+  <li>Click the link in the 'Id' column.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="delete">Delete Batch Job</h2>
+<p>A batch job can be deleted using the following steps. This will also cancel any scheduled
+groups, delete the execution groups and result files .</p>
+
+<ol>
+  <li>Open the <a href="#list">Batch Job Lists</a> or <a href="#view">View Batch Job</a> pages.</li>
+  <li>Click trash button in the 'Actions' field for the batch job to delete.</li>
+  <li>Click the 'OK' button on the confirm delete dialog to delete the batch job, or 'Cancel' to return to the page.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="groupList">Batch Job Execution Group List</h2>
+<p>The batch job execution group list page contain a scrolling table of the execution groups. The contents of this 
+table can be filtered by typing at least 3 characters in search box. The table will show batch job execution groups
+where the sequence number (#), completed (count), failed (count), submitted (count), creation time or modification time contain those characters characters (ignoring case).</p>
+
+<ol>
+  <li>Open the <a href="#view">Batch Job View</a> page.</li>
+  <li>Click the 'Execution Groups' tab.</li>
+  <li>To download the input data click on the button in the Input column.</li>
+  <li>To download the result data click on the button in the Result column. A red x will be shown if the group has not been completed.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="resultList">Batch Job Result File List</h2>
+<p>When the batch job is completed the batch job result file list page contain a scrolling table of the result files.
+The contents of this table can be filtered by typing at least 3 characters in search box. The table will show batch job result files
+where the sequence number (#), result type, content type, creation time or download time contain those characters characters (ignoring case).</p>
+
+<ol>
+  <li>Open the <a href="#view">Batch Job View</a> page.</li>
+  <li>Click the 'Result Files' tab.</li>
+  <li>To download the file click on the button in the Download column.</li>
+</ol>
+</section>
+
+</section>
+										<!-- InstanceEndEditable -->
                 </div>
               </div>
             </div>

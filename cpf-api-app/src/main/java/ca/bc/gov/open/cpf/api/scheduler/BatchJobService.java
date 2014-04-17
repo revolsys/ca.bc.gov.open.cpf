@@ -73,7 +73,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.io.DataObjectStore;
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.io.MapReaderDataObjectReader;
@@ -100,6 +99,7 @@ import com.revolsys.io.json.JsonDataObjectIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.io.kml.Kml22Constants;
 import com.revolsys.jts.geom.Geometry;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.jts.operation.valid.IsValidOp;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
@@ -340,7 +340,7 @@ public class BatchJobService implements ModuleEventListener {
     try {
       final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
       createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
-        errorFormat, errorBytes);
+        errorFormat, errorBytes, 0);
     } catch (final UnsupportedEncodingException e) {
     }
 
@@ -572,7 +572,8 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public void createBatchJobResult(final long batchJobId,
-    final String resultDataType, final String contentType, final Object data) {
+    final String resultDataType, final String contentType, final Object data,
+    final int sequenceNumber) {
     if (data != null) {
       if (data instanceof File) {
         final File file = (File)data;
@@ -582,8 +583,7 @@ public class BatchJobService implements ModuleEventListener {
       }
       try {
         final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
-        result.setValue(BatchJobResult.BATCH_JOB_RESULT_ID,
-          dataAccessObject.createId(BatchJobResult.BATCH_JOB_RESULT));
+        result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
         result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
         result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, resultDataType);
         result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
@@ -597,11 +597,9 @@ public class BatchJobService implements ModuleEventListener {
 
   public void createBatchJobResultOpaque(final long batchJobId,
     final long sequenceNumber, final String contentType, final Object data) {
-    final Number batchJobResultId = dataAccessObject.createId(BatchJobResult.BATCH_JOB_RESULT);
     final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
-    result.setValue(BatchJobResult.BATCH_JOB_RESULT_ID, batchJobResultId);
-    result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
     result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
+    result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
     result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE,
       BatchJobResult.OPAQUE_RESULT_DATA);
     result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
@@ -684,11 +682,11 @@ public class BatchJobService implements ModuleEventListener {
       }
       if (hasResults) {
         createBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA,
-          resultFormat, structuredResultFile);
+          resultFormat, structuredResultFile, 1);
       }
       if (hasErrors) {
         createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
-          "text/csv", errorFile);
+          "text/csv", errorFile, 0);
       }
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to save results", e);
@@ -821,14 +819,14 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public InputStream getBatchJobResultData(final long batchJobId,
-    final long batchJobResultId, final DataObject batchJobResult) {
-    return jobController.getJobResultData(batchJobId, batchJobResultId,
+    final long sequenceNumber, final DataObject batchJobResult) {
+    return jobController.getJobResultData(batchJobId, sequenceNumber,
       batchJobResult);
   }
 
   public long getBatchJobResultSize(final long batchJobId,
-    final long batchJobResultId, final DataObject batchJobResult) {
-    return jobController.getJobResultSize(batchJobId, batchJobResultId,
+    final long sequenceNumber, final DataObject batchJobResult) {
+    return jobController.getJobResultSize(batchJobId, sequenceNumber,
       batchJobResult);
   }
 
@@ -2238,7 +2236,7 @@ public class BatchJobService implements ModuleEventListener {
           if (geometry.getSrid() == 0 && StringUtils.hasText(sridString)) {
             final int srid = Integer.parseInt(sridString);
             final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
-            geometry = sourceGeometryFactory.createGeometry(geometry);
+            geometry = sourceGeometryFactory.geometry(geometry);
           }
         } else {
           String wkt = parameterValue.toString();
@@ -2255,16 +2253,16 @@ public class BatchJobService implements ModuleEventListener {
             if (StringUtils.hasText(sridString)) {
               final int srid = Integer.parseInt(sridString);
               final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
-              geometry = sourceGeometryFactory.createGeometry(wkt, false);
+              geometry = sourceGeometryFactory.geometry(wkt, false);
             } else {
-              geometry = geometryFactory.createGeometry(wkt, false);
+              geometry = geometryFactory.geometry(wkt, false);
             }
           } catch (final Throwable t) {
             throw new IllegalArgumentException("invalid WKT geometry", t);
           }
         }
         if (geometryFactory != GeometryFactory.getFactory()) {
-          geometry = geometryFactory.createGeometry(geometry);
+          geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = attribute.getProperty(AttributeProperties.VALIDATE_GEOMETRY);
         if (geometry.getSrid() == 0) {

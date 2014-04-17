@@ -111,6 +111,10 @@
           p:typeName="ca.bc.gov.open.cpf.api.scheduler.Worker"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="Documentation"
+          p:uri="/docs/admin/" />
          <bean
           class="com.revolsys.ui.model.Menu"
           p:title="Logout"

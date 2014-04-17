@@ -2739,7 +2739,8 @@ public class CloudProcessingFramework {
       batchJobId);
 
     if (batchJob != null) {
-      final DataObject batchJobResult = dataAccessObject.getBatchJobResult(resultId);
+      final DataObject batchJobResult = dataAccessObject.getBatchJobResult(
+        batchJobId, resultId);
       if (EqualsInstance.INSTANCE.equals(batchJobId,
         batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
         dataAccessObject.setBatchJobDownloaded(batchJobId);
@@ -2862,10 +2863,10 @@ public class CloudProcessingFramework {
         if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null
           && !results.isEmpty()) {
           for (final DataObject batchJobResult : results) {
-            final Number batchJobResultId = batchJobResult.getIdValue();
-            parameters.put("batchJobResultId", batchJobResultId);
-            final PageInfo resultPage = addPage(page, batchJobResultId,
-              "Batch Job " + batchJobId + " result " + batchJobResultId);
+            final Number sequenceNumber = batchJobResult.getInteger(BatchJobResult.SEQUENCE_NUMBER);
+            parameters.put("sequenceNumber", sequenceNumber);
+            final PageInfo resultPage = addPage(page, sequenceNumber,
+              "Batch Job " + batchJobId + " result " + sequenceNumber);
             final String batchJobResultType = batchJobResult.getValue(BatchJobResult.BATCH_JOB_RESULT_TYPE);
             resultPage.setAttribute("batchJobResultType", batchJobResultType);
             resultPage.setAttribute("batchJobResultContentType",

@@ -475,15 +475,19 @@ public class CpfDataAccessObject {
     return dataStore.load(BatchJob.BATCH_JOB, batchJobId);
   }
 
-  public DataObject getBatchJobResult(final long batchJobResultId) {
-    return dataStore.load(BatchJobResult.BATCH_JOB_RESULT, batchJobResultId);
+  public DataObject getBatchJobResult(final long batchJobId,
+    final long sequenceNumber) {
+    final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
+      Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
+    final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
+    return dataStore.queryFirst(query);
   }
 
   public List<DataObject> getBatchJobResults(final long batchJobId) {
     final Query query = Query.equal(batchJobResultMetaData,
       BatchJobResult.BATCH_JOB_ID, batchJobId);
     query.setAttributeNames(BatchJobResult.ALL_EXCEPT_BLOB);
-    query.addOrderBy(BatchJobResult.BATCH_JOB_RESULT_ID, true);
+    query.addOrderBy(BatchJobResult.SEQUENCE_NUMBER, true);
     final Reader<DataObject> reader = dataStore.query(query);
     try {
       return reader.read();

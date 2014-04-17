@@ -49,7 +49,7 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   public InputStream getJobResultData(final long jobId,
-    final long batchJobResultId, final DataObject batchJobResult) {
+    final long sequenceNumber, final DataObject batchJobResult) {
     try {
       final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
       return resultData.getBinaryStream();
@@ -59,7 +59,7 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public long getJobResultSize(final long jobId, final long batchJobResultId,
+  public long getJobResultSize(final long jobId, final long sequenceNumber,
     final DataObject batchJobResult) {
     try {
       final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);

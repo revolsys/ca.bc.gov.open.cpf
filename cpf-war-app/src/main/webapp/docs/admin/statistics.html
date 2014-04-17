@@ -6,9 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>User Group Permissions - Administration - CPF</title>
+<title>Dashboard Statistics - Administration - CPF</title>
     <script type="text/javascript">
-pageId = 'userGroupPermission';
+pageId = 'statistics';
     </script>
 <!-- InstanceEndEditable -->
 
@@ -103,7 +103,7 @@ td > ul {
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
 <li><a href="index.html">Administration</a></li>
-<li>User Group Permissions</li>
+<li>Dashboard Statistics</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -111,27 +111,13 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<div class="title">User Group Permissions - Administration</div>
+<div class="title">Dashboard Statistics - Administration</div>
 <section>
 <h1 id="overview">Overview</h1>
+<p>The CPF collects statistics for all phases of job processing. These statistics are collated for each hour
+and business application. Statistics are automatically rolled up for each day, month and year.</p>
 
-<p>CPF modules can use User Group Permissions to grant permissions for users who are a member of
-a group permission to perform an action on a resource. Permissions are granted to a User Group for a
-Module. Cross module permissions are not supported. User group permissions grant the group
-permission to perform an action (Action Name) on a resource (Resource Class + Resource Id). For
-example view (Action Name) the reportUrl (Resource Class) http://reports.com/demoReport.json (Resource Id).</p>
-
-<p class="note">NOTE: CPF itself does not use user group permissions. Each CPF module can decide if &amp;
-how they use user group permissions. Consult the module's readme file for details on the supported
-resource classes, resource id schemes and action names.</p>
-
-<p class="note">The CPF caches the user group permissions for up to 5 minutes. If adding
-or removing permissions wait at least 5 minutes before testing.</p>
-
-<section>
-<h2 id="fields">Fields</h2>
-
-<p>The following table summarizes the fields used for user group permissions.<p>
+<p>The following table shows the statistics that are displayed on the <a href="#view">View Statistics</a> pages.</p>
 
 <div class="simpleDataTable">
 <table>
@@ -143,40 +129,68 @@ or removing permissions wait at least 5 minutes before testing.</p>
   </thead>
   <tbody>
     <tr>
-      <td>User Group Permission Id</td>
-      <td>Unique sequence generated primary key for a user group permission.</td>
+      <td>Duration Type</td>
+      <td>The type of duration (hour, day, month, year) that the statistics were calculated for.</td>
     </tr>
     <tr>
-      <td>Module Name</td>
-      <td>The name of the CPF module the permission was created for.</td>
+      <td>Start Time</td>
+      <td>The start time of the time period the statistics were calculated for.</td>
+    <tr>
+      <td>End Time</td>
+      <td>The end time of the time period the statistics were calculated for.</td>
     </tr>
     <tr>
-      <td>User Group Name</td>
-      <td>The name of the user group the permission applies to.</td>
+      <td>Jobs Completed</td>
+      <td><p>Statistics calculated for jobs that were completed during the time period.
+      Statistics are split by jobs and requests.
+      Statistics are calculated for the total execution average time, total of all times and a count.</td>
     </tr>
     <tr>
-      <td>Resource Class</td>
-      <td>The resource class is the categorization of the resource. For example databaseInstance,
-      schemaName, tableName, url, reportUrl.
-      Modules are free to decide on their own resource classes, consult the module readme for more details.
-      The special resource class ALL grants the users permission for all resource classes.</td>
+      <td>Jobs Submitted</td>
+      <td><p>Statistics calculated for jobs that were submitted during the time period.
+      Statistics are not calculated for requests as this is not known until the pre-processing stage.
+      Statistics are calculated for the average and total times to process the job submission and a count.</td>
     </tr>
     <tr>
-      <td>Resource Id</td>
-      <td>The unique identifier of the resource within the resource class that the users in the group have
-      permission to perform the action. For example a record primary key, resource URL, report name.
-      Modules are free to decide on their own resource id schemes, consult the module readme for more details.
-      The special resource id ALL grants the users permission for all resources in the resource class.</td>
+      <td>Jobs Pre-Process Scheduled</td>
+      <td><p>Statistics calculated for jobs that were scheduled for pre-processing during the time period.
+      Statistics are calculated for the pre-process schedule average time, total of all times and a count.</td>
     </tr>
     <tr>
-      <td>Action Name</td>
-      <td>The name of the action users in the group are able to perform on the resource. For example ALL, view, edit.
-      The special action name ALL grants the user permission for all actions on the resource.</td>
+      <td>Jobs Pre-Processed</td>
+      <td><p>Statistics calculated for jobs that were pre-processed during the time period.
+      Statistics are split by jobs and requests.
+      Statistics are calculated for the pre-process average time, total of all times and a count.</td>
     </tr>
     <tr>
-      <td>Active</td>
-      <td>Boolean flag indicating if the user is active. Setting to false will prevent the user
-      from accessing the CPF.</td>
+      <td>Jobs Request Groups Scheduled</td>
+      <td><p>Statistics calculated for job groups that were scheduled for execution during the time period.
+      Statistics are calculated for the schedule average time, total of all times and a count.</td>
+    </tr>
+    <tr>
+      <td>Jobs Request Groups Executed</td>
+      <td><p>Statistics calculated for job groups that were executed during the time period. These
+      times include master and worker time to execute the group including any wait times.
+      Statistics are split by jobs and requests.
+      Statistics are calculated for the job group execution average time, total of all times and a count.</td>
+    </tr>
+    <tr>
+      <td>Jobs Request Groups Application Executed</td>
+      <td><p>Statistics calculated for job groups that were executed during the time period. These
+      times are the time the business application takes to execute the group without any overhead.
+      Statistics are split by jobs and requests.
+      Statistics are calculated for the job group application execution average time, total of all times and a count.</td>
+    </tr>
+    <tr>
+      <td>Jobs Post-Process Scheduled</td>
+      <td><p>Statistics calculated for jobs that were scheduled for post-processing during the time period.
+      Statistics are calculated for the post-process schedule average time, total of all times and a count.</td>
+    </tr>
+    <tr>
+      <td>Jobs Post-Processed</td>
+      <td><p>Statistics calculated for jobs that were post-processed during the time period.
+      Statistics are split by jobs and requests.
+      Statistics are calculated for the post-process average time, total of all times and a count.</td>
     </tr>
   </tbody>
 </table>
@@ -184,78 +198,58 @@ or removing permissions wait at least 5 minutes before testing.</p>
 </section>
 
 <section>
-<h1 id="management">User Group Permission Management</h1>
+<h1 id="management">Statistics Management</h1>
 
-<p>This section describes how to manage user groups and members of those groups.</p>
+<p>This section describes how to view dashboard statistics.</p>
 
-<p class="note">The user must be in the ADMIN, ADMIN_MODULE_[MODULE_NAME]_ADMIN,
-or ADMIN_MODULE_[MODULE_NAME]_SECURITY user groups to view and manage user group permissions for a module.</p>
+<p class="note">The user must be in the ADMIN, or ADMIN_MODULE_[MODULE_NAME]_ADMIN user groups
+to view statistics. The module admins will only be able to see statistics for their modules.</p>
 
 <section>
-<h2 id="list">User Group Permissions List</h2>
+<h2 id="summaryList">Summary Statistics</h2>
+<p>The summary statistics page shows the statistics for all business applications the user has
+admin permission for. The page has tabs for summary statistics for the current 'Hour', total for 'Today', total
+for this 'Month' and totals for each 'Year'. To view all time periods use the 
+<a href="#appList">Business Application Statistics</a> page.</p>
 
-<p>The user group permission page contains a scrolling table of the permissions for a user group. The contents of this 
-table can be filtered by typing at least 3 characters in search box. The table will show user group permissions where
-the user group permission id, resource class, resource id or action name contain those characters characters (ignoring case).</p>
+<p>Each tab contains a scrolling table of the statistics. The contents of this 
+table can be filtered by typing at least 3 characters in search box. The table will show statistics
+where the id, module, business application, jobs submitted, jobs completed, app groups executed,
+app requests completed, app requests failed contain those characters characters (ignoring case).</p>
+
+<p>The statistics can be viewed using the following steps.</p>
 
 <ol>
-  <li>Open the <a href="userGroup.html#userGroupModuleList">Module User Groups List</a> page.</li>
-  <li>Scroll or search for the group.</li>
-  <li>Click the link in the 'User Group Name' column for the group.</li>
-  <li>Click the 'User Group Permissions' tab.</li>
-  <li>Scroll or search for the permission.</li>
+  <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
+  <li>Click the <a href="../../admin/dashboad/">Dashboard</a> menu item.</li>
+  <li>Click on the Hour, Today, Month or Year tabs to view statistics for those time periods.</li>
 </ol>
 </section>
 
 <section>
-<h2 id="view">View User Group Permission</h2>
+<h2 id="appList">Business Application Statistics</h2>
+<p>The business statistics tab shows the statistics for a business application. The tab has a single
+list containing all the statistics for the current 'Hour', total for 'Today', total for this 'Month' and totals for each 'Year'.</p>
 
-<p>User group permissions can be viewed using the following steps.</p>
+<p>Each tab contains a scrolling table of the statistics. The contents of this 
+table can be filtered by typing at least 3 characters in search box. The table will show statistics
+where the id, duration type, jobs submitted, jobs completed, app groups executed,
+app requests completed, app requests failed contain those characters characters (ignoring case).</p>
 
 <ol>
-  <li>Open one of the <a href="list">User Group Permissions List</a> page.</li>
-  <li>Scroll or search for the user group permission.</li>
-  <li>Click the link in the 'User Group Permission Id' column.</li>
+  <li>Open the <a href="businessApplication.html#view">Business Application View</a> page.</li>
+  <li>Click the 'Dashboard' tab.</li>
 </ol>
 </section>
 
 <section>
-<h2 id="add">Add User Group Permission</h2>
-<p>New user group permissions can be added using the following steps.</p>
+<h2 id="view">View Statistics</h2>
+<p>The statistics can view viewed using the following steps.</p>
 
 <ol>
-  <li>Open the <a href="#list">User Group Permission List</a> page.</li>
-  <li>Click 'Add' button.</li>
-  <li>Enter the field values. Consult the plug-in's readme for more information.</li>
-  <li>Click the 'Save' button to create the user group permission,
-  'Clear Fields' to undo any changes,
-  or 'Cancel' to return to the previous page.</li>
-</ol>
-</section>
-
-<section>
-<h2 id="delete">Delete User Group Permission</h2>
-<p>A user group permission can be deleted using the following steps.</p>
-
-<ol>
-  <li>Open the <a href="#list">User Group Permissions List</a> or <a href="#view">View User Group Permission</a> page.</li>
-  <li>Click trash button in the 'Actions' field for the user group permission to delete.</li>
-  <li>Click the 'OK' button on the confirm delete dialog to delete the user group permission,
-  or 'Cancel' to return to the previous page.</li>
-</ol>
-</section>
-
-<section>
-<h2 id="edit">Edit User Group Permission</h2>
-<p>User group permissions can be edited using the following steps.</p>
-
-<ol>
-  <li>Open the <a href="#view">View User Group Permission</a> page.</li>
-  <li>Click the 'Edit' button'.</li>
-  <li>Edit the field values.</li>
-  <li>Click the 'Save' button to save changes,
-  'Revert to Saved' to undo any changes,
-  or 'Cancel' to return to the previous page.</li>
+  <li>Open the <a href="#summaryList">Summary Statistics</a>, or <a href="#appList">Business Application Statistics</a> page.</li>
+  <li>Scroll/Search for the statistics to view.</li>
+  <li>Click the link in the 'Id' column.</li>
 </ol>
 </section>
 

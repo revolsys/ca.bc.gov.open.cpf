@@ -17,24 +17,27 @@
     <property name="pages">
       <list>
         <bean
-           p:name="moduleAppJobList"
+          p:name="moduleAppJobList"
           class="com.revolsys.ui.web.config.Page"
-         p:title="Execution Groups"
+          p:title="Execution Groups"
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/" />
         <bean
-          p:name="moduleAppJobView"
+          p:name="inputData"
           class="com.revolsys.ui.web.config.Page"
-          p:title="Batch Job {batchJobId} Execution Group {sequenceNumber}"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/" />
-        <bean
-         p:name="inputData"
-           class="com.revolsys.ui.web.config.Page"
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/inputData" />
         <bean
           p:name="resultData"
           class="com.revolsys.ui.web.config.Page"
           p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/resultData" />
       </list>
+    </property>
+
+    <property name="labels">
+      <map>
+        <entry
+          key="SEQUENCE_NUMBER"
+          value="#" />
+      </map>
     </property>
 
     <property name="serializers">
@@ -48,52 +51,39 @@
         <bean
           class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
           p:name="inputData"
-          p:label="Input Data Download"
-          p:cssClass="ui-auto-button-disk"
-          p:target="_top" />
-        <bean
-          class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-          p:name="resultData"
-          p:label="Result Data Download"
+          p:label="Input"
           p:cssClass="ui-auto-button-disk"
           p:target="_top"
-          p:enabledExpression="#COMPLETED_IND == 1" />
+        />
         <bean
           p:name="STARTED_IND"
           class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer"
           p:label="Started" />
         <bean
           p:name="COMPLETED_IND"
-          class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer"
-          p:label="Completed" />
+          class="com.revolsys.ui.html.serializer.BuilderSerializer"
+          p:methodName="completed"
+          p:label="Result" />
 
         <bean
           p:name="NUM_SUBMITTED_REQUESTS"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Submitted Requests" />
+          p:label="Submitted" />
 
         <bean
           p:name="NUM_COMPLETED_REQUESTS"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Completed Requests" />
+          p:label="Completed" />
 
         <bean
           p:name="NUM_FAILED_REQUESTS"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Failed Requests" />
+          p:label="Failed" />
 
-        <bean
-          p:name="WHO_CREATED"
-          p:label="Created By"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
         <bean
           p:name="WHEN_CREATED"
           p:label="Creation Time"
           class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
-        <bean
-          p:name="WHO_UPDATED"
-          p:label="Modified By"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
         <bean
           p:name="WHEN_UPDATED"
           p:label="Modification Time"
@@ -105,40 +95,14 @@
       <map>
         <entry key="moduleAppJobList">
           <list>
-            <bean
-              p:name="SEQUENCE_NUMBER"
-              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
-              p:label="ID"
-              p:pageName="moduleAppJobView" />
-            <value>STARTED_IND</value>
-            <value>COMPLETED_IND</value>
-            <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
-            <value>WHEN_CREATED</value>
-          </list>
-        </entry>
-        <entry key="moduleAppJobView">
-          <list>
             <value>SEQUENCE_NUMBER</value>
-            <bean
-              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
-              p:name="BATCH_JOB_ID"
-              p:label="Batch Job"
-              p:pageName="moduleAppView"
-              p:uiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder" />
             <value>STARTED_IND</value>
+            <value>inputData</value>
             <value>COMPLETED_IND</value>
-            <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
             <value>NUM_FAILED_REQUESTS</value>
-            <value>inputData</value>
-            <value>INPUT_DATA_CONTENT_TYPE</value>
-            <value>INPUT_DATA_URL</value>
-            <value>resultData</value>
-            <value>WHO_CREATED</value>
+            <value>NUM_SUBMITTED_REQUESTS</value>
             <value>WHEN_CREATED</value>
-            <value>WHO_UPDATED</value>
             <value>WHEN_UPDATED</value>
           </list>
         </entry>

@@ -28,13 +28,14 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.gis.cs.BoundingBox;
 import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.AttributeProperties;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.revolsys.io.LazyHttpPostOutputStream;
+import com.revolsys.jts.geom.BoundingBox;
+import com.revolsys.jts.geom.Envelope;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryCollection;
 import com.revolsys.jts.geom.GeometryFactory;
@@ -257,7 +258,7 @@ public class PluginAdaptor {
               value = GeometryFactory.wgs84().lineString(
                 new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
             } else if (Polygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new BoundingBox(
+              final BoundingBox boundingBox = new Envelope(
                 GeometryFactory.wgs84(), -125, 53, -125.1, 53);
               value = boundingBox.toPolygon(10);
             } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
@@ -265,7 +266,7 @@ public class PluginAdaptor {
                 new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
               value = GeometryFactory.wgs84().createMultiLineString(line);
             } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new BoundingBox(
+              final BoundingBox boundingBox = new Envelope(
                 GeometryFactory.wgs84(), -125, 53, -125.1, 53);
               final Polygon polygon = boundingBox.toPolygon(10);
               value = GeometryFactory.wgs84().createMultiPolygon(polygon);
@@ -347,7 +348,7 @@ public class PluginAdaptor {
 
             geometryFactory = GeometryFactory.getFactory(srid, numAxis,
               scaleXY, scaleZ);
-            geometry = geometryFactory.createGeometry(geometry);
+            geometry = geometryFactory.geometry(geometry);
             if (geometry.getSrid() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
