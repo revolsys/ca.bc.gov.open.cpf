@@ -25,7 +25,7 @@ pageId = '';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../js/prettify.js"></script>
     <script type="text/javascript" src="../js/rs.js"></script>
     <script type="text/javascript">
@@ -78,12 +78,16 @@ $(document).ready(function() {
                       <li id="webInstallMenu"><a href="../docs/install/webapp.html">Web Application Installation</a></li>
                     </ul></li>
                     <li id="adminMenu"><a href="../docs/admin/">Administration</a><ul>
+                      <li id="moduleMenu"><a href="../docs/admin/module.html">Modules</a></li>
+                      <li id="appMenu"><a href="../docs/admin/app.html">Business Applications</a></li>
                       <li id="configPropertyMenu"><a href="../docs/admin/configProperty.html">Config Properties</a></li>
                       <li id="userAccountMenu"><a href="../docs/admin/userAccount.html">User Accounts</a></li>
                       <li id="userGroupMenu"><a href="../docs/admin/userGroup.html">User Groups</a></li>
                       <li id="userGroupPermissionMenu"><a href="../docs/admin/userGroupPermission.html">User Group Permissions</a></li>
-                      <li id="jobsMenu"><a href="../docs/admin/jobs.html">Batch Jobs</a></li>
+                      <li id="jobsMenu"><a href="../docs/admin/job.html">Batch Jobs</a></li>
                       <li id="statisticsMenu"><a href="../docs/admin/statistics.html">Dashboard Statistics</a></li>
+                      <li id="workersMenu"><a href="../docs/admin/worker.html">Workers</a></li>
+                      <li id="logMenu"><a href="../docs/admin/log.html">Log Files</a></li>
                     </ul></li>
                   </ul>
                   </div>

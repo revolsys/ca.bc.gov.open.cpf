@@ -70,6 +70,13 @@
           p:permission="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')" />
       </list>
     </property>
+    <property name="labels">
+      <map>
+        <entry
+          key="moduleDescriptor"
+          value="Maven Module Id" />
+      </map>
+    </property>
     <property name="serializers">
       <list>
         <bean

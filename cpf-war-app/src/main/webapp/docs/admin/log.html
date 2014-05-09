@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Batch Jobs - Administration - CPF</title>
+<title>Log Files - Administration - CPF</title>
     <script type="text/javascript">
 pageId = 'jobs';
     </script>
@@ -25,7 +25,7 @@ pageId = 'jobs';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
     <script type="text/javascript">
@@ -83,12 +83,16 @@ td > ul {
                       <li id="webInstallMenu"><a href="../install/webapp.html">Web Application Installation</a></li>
                     </ul></li>
                     <li id="adminMenu"><a href="../admin/">Administration</a><ul>
+                      <li id="moduleMenu"><a href="module.html">Modules</a></li>
+                      <li id="appMenu"><a href="app.html">Business Applications</a></li>
                       <li id="configPropertyMenu"><a href="configProperty.html">Config Properties</a></li>
                       <li id="userAccountMenu"><a href="userAccount.html">User Accounts</a></li>
                       <li id="userGroupMenu"><a href="userGroup.html">User Groups</a></li>
                       <li id="userGroupPermissionMenu"><a href="userGroupPermission.html">User Group Permissions</a></li>
-                      <li id="jobsMenu"><a href="jobs.html">Batch Jobs</a></li>
+                      <li id="jobsMenu"><a href="job.html">Batch Jobs</a></li>
                       <li id="statisticsMenu"><a href="statistics.html">Dashboard Statistics</a></li>
+                      <li id="workersMenu"><a href="worker.html">Workers</a></li>
+                      <li id="logMenu"><a href="log.html">Log Files</a></li>
                     </ul></li>
                   </ul>
                   </div>
@@ -103,7 +107,7 @@ td > ul {
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
 <li><a href="index.html">Administration</a></li>
-<li>Batch Jobs</li>
+<li>Log Files</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -111,104 +115,60 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<div class="title">Batch Jobs - Administration</div>
+<div class="title">Log Files - Administration</div>
 <section>
 <h1 id="overview">Overview</h1>
-<p>The main purpose of the CPF is to execute batch jobs on behalf of users. The CPF admin application
-can be used to view the list of jobs in the system and to monitor the progress of the execution
-of the batch job execution groups.</p>
+<p>The CPF creates additional log files in addition to those created for the Apache web server
+and tomcat servlet container. These log files can be accessed on the machine that the master and
+worker are running on. These maybe exposed for download via the Apache web server if configured.</p>
 
-</section>
+<p>The following table summarizes the log files created by the CPF.
+The log files by default are stored in <code>/apps/logs/cpf/</code>.
+Each module and business application has separate directories for their log files. Log files will
+be rolled over once they reach 10MB. The last 7 log files will be retained with extensions <code>.[i].log</code> (e.g. <code>.2.log</code>).</p>
 
-<section>
-<h1 id="management">Batch Job Management</h1>
-
-<p>This section describes how to manage batch jobs.</p>
-
-<p class="note">The user must be in the ADMIN, or ADMIN_MODULE_[MODULE_NAME]_ADMIN user groups
-to view batch jobs. The module admins will only be able to see batch jobs for their modules.</p>
-
-<section>
-<h2 id="list">Batch Job Lists</h2>
-<p>The batch job list pages contain a scrolling table of the batch jobs. The contents of this 
-table can be filtered by typing at least 3 characters in search box. The table will show batch jobs
-where the id, business application, start time, modification time, job status, submitted requests,
-completed requests, failed requests or user id contain those characters characters (ignoring case).</p>
-
-<section>
-<h2 id="allList">All Jobs</h2>
-<p>The all batch jobs page shows the batch jobs for all business applications the user has
-admin permission for.</p>
-
-<p>The batch jobs can be viewed using the following steps.</p>
-
-<ol>
-  <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
-  <li>Click the <a href="../../admin/jobs/">Batch Jobs</a> menu item.</li>
-</ol>
-</section>
-
-<section>
-<h2 id="appList">Business Application Batch Jobs</h2>
-<p>The all batch jobs page shows the batch jobs for all business applications the user has
-admin permission for.</p>
-
-<ol>
-  <li>Open the <a href="businessApplication.html#view">Business Application View</a> page.</li>
-  <li>Click the 'Batch Jobs' tab.</li>
-</ol>
-</section>
-</section>
-
-<section>
-<h2 id="view">View Batch Job</h2>
-<p>The batch jobs can view viewed using the following steps.</p>
-
-<ol>
-  <li>Open one of the <a href="#list">Batch Job Lists</a> pages.</li>
-  <li>Scroll/Search for the batch jobs to view.</li>
-  <li>Click the link in the 'Id' column.</li>
-</ol>
-</section>
-
-<section>
-<h2 id="delete">Delete Batch Job</h2>
-<p>A batch job can be deleted using the following steps. This will also cancel any scheduled
-groups, delete the execution groups and result files .</p>
-
-<ol>
-  <li>Open the <a href="#list">Batch Job Lists</a> or <a href="#view">View Batch Job</a> pages.</li>
-  <li>Click trash button in the 'Actions' field for the batch job to delete.</li>
-  <li>Click the 'OK' button on the confirm delete dialog to delete the batch job, or 'Cancel' to return to the page.</li>
-</ol>
-</section>
-
-<section>
-<h2 id="groupList">Batch Job Execution Group List</h2>
-<p>The batch job execution group list page contain a scrolling table of the execution groups. The contents of this 
-table can be filtered by typing at least 3 characters in search box. The table will show batch job execution groups
-where the sequence number (#), completed (count), failed (count), submitted (count), creation time or modification time contain those characters characters (ignoring case).</p>
-
-<ol>
-  <li>Open the <a href="#view">Batch Job View</a> page.</li>
-  <li>Click the 'Execution Groups' tab.</li>
-  <li>To download the input data click on the button in the Input column.</li>
-  <li>To download the result data click on the button in the Result column. A red x will be shown if the group has not been completed.</li>
-</ol>
-</section>
-
-<section>
-<h2 id="resultList">Batch Job Result File List</h2>
-<p>When the batch job is completed the batch job result file list page contain a scrolling table of the result files.
-The contents of this table can be filtered by typing at least 3 characters in search box. The table will show batch job result files
-where the sequence number (#), result type, content type, creation time or download time contain those characters characters (ignoring case).</p>
-
-<ol>
-  <li>Open the <a href="#view">Batch Job View</a> page.</li>
-  <li>Click the 'Result Files' tab.</li>
-  <li>To download the file click on the button in the Download column.</li>
-</ol>
-</section>
+<div class="simpleDataTable">
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>cpf-app.log</code></td>
+        <td>Log messages for components on the master not related to a module or a business application.</td>
+      </tr>
+      <tr>
+        <td><code>worker_[environmentName]_[hostName]_[port]_[contextPath].log</code></td>
+        <td>Log messages for components on the worker not related to a module or a business application.</td>
+      </tr>
+      <tr>
+        <td><pre>[moduleName]/
+  [moduleName]_master.log</pre></td>
+        <td>Log messages for a module's components on the master not related to a business application.</td>
+      </tr>
+      <tr>
+        <td><pre>[moduleName]/
+  [moduleName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</pre></td>
+        <td>Log messages for a module's components on the worker not related to a business application.</td>
+      </tr>
+      <tr>
+        <td><pre>[moduleName]/
+  [appName]/
+    [moduleName]_[appName]_master.log</<pre></td>
+        <td>Log messages for a business application's components on the master.</td>
+      </tr>
+      <tr>
+        <td><pre>[moduleName]/
+  [appName]/
+    [moduleName]_[appName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</pre></td>
+        <td>Log messages for a business application's components on the worker.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 </section>
 										<!-- InstanceEndEditable -->

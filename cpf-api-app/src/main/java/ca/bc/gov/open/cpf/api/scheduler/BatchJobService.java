@@ -59,7 +59,7 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.FileJobController;
+import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -888,13 +888,13 @@ public class BatchJobService implements ModuleEventListener {
     } else {
       final int srid = CollectionUtil.getInteger(parameters, "resultSrid",
         geometryFactory.getSrid());
-      final int numAxis = CollectionUtil.getInteger(parameters,
-        "resultNumAxis", geometryFactory.getNumAxis());
+      final int axisCount = CollectionUtil.getInteger(parameters,
+        "resultNumAxis", geometryFactory.getAxisCount());
       final double scaleXY = CollectionUtil.getDouble(parameters,
         "resultScaleFactorXy", geometryFactory.getScaleXY());
       final double scaleZ = CollectionUtil.getDouble(parameters,
         "resultScaleFactorZ", geometryFactory.getScaleZ());
-      return GeometryFactory.getFactory(srid, numAxis, scaleXY, scaleZ);
+      return GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
     }
   }
 
@@ -1561,6 +1561,8 @@ public class BatchJobService implements ModuleEventListener {
         final String action = (String)message.get("action");
         if (action != null) {
           final String moduleName = (String)message.get("moduleName");
+          final Module module = getModule(moduleName);
+          final boolean enabled = module != null && module.isEnabled();
           final WorkerModuleState moduleState = worker.getModuleState(moduleName);
           if ("executingGroupIds".equals(action)) {
             @SuppressWarnings("unchecked")
@@ -1570,23 +1572,29 @@ public class BatchJobService implements ModuleEventListener {
             final String groupId = (String)message.get("groupId");
             cancelGroup(worker, groupId);
           } else if ("moduleStarted".equals(action)) {
-
-            moduleState.setEnabled(true);
+            moduleState.setEnabled(enabled);
             moduleState.setStatus("Started");
             final long moduleTime = CollectionUtil.getLong(message,
               "moduleTime");
             moduleState.setStartedTime(moduleTime);
           } else if ("moduleStartFailed".equals(action)) {
-            moduleState.setEnabled(false);
+            moduleState.setEnabled(enabled);
             moduleState.setStatus("Start Failed");
             final String moduleError = (String)message.get("moduleError");
             moduleState.setModuleError(moduleError);
+            moduleState.setStartedTime(0);
           } else if ("moduleStopped".equals(action)) {
-            moduleState.setEnabled(false);
-            moduleState.setStatus("Stopped");
+            moduleState.setEnabled(enabled);
+            if (enabled) {
+              moduleState.setStatus("Stopped");
+            } else {
+              moduleState.setStatus("Disabled");
+            }
+            moduleState.setStartedTime(0);
           } else if ("moduleDisabled".equals(action)) {
-            moduleState.setEnabled(false);
+            moduleState.setEnabled(enabled);
             moduleState.setStatus("Disabled");
+            moduleState.setStartedTime(0);
           }
         }
         response.put("errorMessage", "Unknown message");
@@ -2167,8 +2175,9 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
-    // this.jobController = new DatabaseJobController(dataAccessObject);
-    this.jobController = new FileJobController(this, new File("/apps/data/cpf"));
+    this.jobController = new DatabaseJobController(dataAccessObject);
+    // this.jobController = new FileJobController(this, new
+    // File("/apps/data/cpf"));
   }
 
   /**

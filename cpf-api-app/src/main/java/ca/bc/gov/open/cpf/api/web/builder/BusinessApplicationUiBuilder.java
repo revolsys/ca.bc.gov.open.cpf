@@ -33,7 +33,6 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.data.io.DataObjectReader;
 import com.revolsys.gis.data.io.ListDataObjectReader;
 import com.revolsys.gis.data.model.ArrayDataObject;
@@ -42,7 +41,7 @@ import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
 import com.revolsys.gis.data.model.types.DataType;
 import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.gis.model.data.equals.EqualsInstance;
-import com.revolsys.ui.html.decorator.CollapsibleBox;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -69,8 +68,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public DataObjectReader getSampleInputData() {
     final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
       "/Buffer");
-    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
-      1000);
+    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(
+      3005, 2, 1000, 1000);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("title", DataTypes.STRING);
     metaData.addAttribute("buffer", DataTypes.DOUBLE);
@@ -100,8 +99,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public DataObjectReader getSampleResultData() {
     final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
       "/Buffer");
-    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(3005, 2, 1000,
-      1000);
+    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(
+      3005, 2, 1000, 1000);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
     metaData.addAttribute("resultNumber", DataTypes.INTEGER);
@@ -116,8 +115,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object1.setValue("resultNumber", 1);
     object1.setValue("title", "Buffered centroid of BC");
     object1.setValue("buffer", 10000);
-    object1.setGeometryValue(factory.point(921100.281, 1076394.357)
-      .buffer(10000));
+    object1.setGeometryValue(factory.point(921100.281, 1076394.357).buffer(
+      10000));
     objects.add(object1);
 
     final DataObject object2 = new ArrayDataObject(metaData);
@@ -163,6 +162,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, final @PathVariable String moduleName,
     final @PathVariable String businessApplicationName) throws IOException,
     ServletException {
+    checkAdminOrModuleAdmin(moduleName);
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     final BusinessApplication businessApplication = businessApplicationRegistry.getModuleBusinessApplication(
       moduleName, businessApplicationName);
@@ -250,8 +250,9 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
         "actionMenu");
       final ElementContainer view = new ElementContainer(form,
         actionMenuElement);
-      view.setDecorator(new CollapsibleBox(title, true));
-      return view;
+      final TabElementContainer tabs = new TabElementContainer();
+      tabs.add(title, view);
+      return tabs;
     }
 
     throw new NoSuchRequestHandlingMethodException(request);

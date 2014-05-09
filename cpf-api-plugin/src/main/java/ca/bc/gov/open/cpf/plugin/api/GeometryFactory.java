@@ -13,8 +13,6 @@ import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.gis.model.coordinates.CoordinatesPrecisionModel;
-import com.revolsys.gis.model.coordinates.SimpleCoordinatesPrecisionModel;
 import com.revolsys.jts.geom.Coordinates;
 import com.revolsys.jts.geom.CoordinatesList;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -156,31 +154,31 @@ public class GeometryFactory extends
    * <p>Get a GeometryFactory with the coordinate system, number of axis and a floating precision model.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
-   * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
+   * @param axisCount The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
    * @return The geometry factory.
    */
-  public static GeometryFactory getFactory(final int srid, final int numAxis) {
-    return getFactory(srid, numAxis, 0, 0);
+  public static GeometryFactory getFactory(final int srid, final int axisCount) {
+    return getFactory(srid, axisCount, 0, 0);
   }
 
   /**
    * <p>Get a GeometryFactory with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
-   * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
+   * @param axisCount The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
    * @param scaleZ The scale factor used to round the z coordinates. The precision is 1 / scaleZ.
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
    * @return The geometry factory.
    */
-  public static GeometryFactory getFactory(final int srid, final int numAxis,
+  public static GeometryFactory getFactory(final int srid, final int axisCount,
     final double scaleXy, final double scaleZ) {
     synchronized (factories) {
-      final String key = srid + "-" + numAxis + "-" + scaleXy + "-" + scaleZ;
+      final String key = srid + "-" + axisCount + "-" + scaleXy + "-" + scaleZ;
       GeometryFactory factory = factories.get(key);
       if (factory == null) {
-        factory = new GeometryFactory(srid, numAxis, scaleXy, scaleZ);
+        factory = new GeometryFactory(srid, axisCount, scaleXy, scaleZ);
         factories.put(key, factory);
       }
       return factory;
@@ -195,43 +193,39 @@ public class GeometryFactory extends
     }
   }
 
-  private final CoordinatesPrecisionModel coordinatesPrecisionModel;
-
   private final CoordinateSystem coordinateSystem;
 
-  private int numAxis = 2;
+  private final com.revolsys.jts.geom.GeometryFactory geometryFactory;
 
   private GeometryFactory(final CoordinateSystem coordinateSystem,
-    final int numAxis, final double scaleXY, final double scaleZ) {
+    final int axisCount, final double scaleXY, final double scaleZ) {
     super(getPrecisionModel(scaleXY), coordinateSystem.getId(),
       new PackedCoordinateSequenceFactory(
-        PackedCoordinateSequenceFactory.DOUBLE, numAxis));
+        PackedCoordinateSequenceFactory.DOUBLE, axisCount));
     this.coordinateSystem = coordinateSystem;
-    this.coordinatesPrecisionModel = new SimpleCoordinatesPrecisionModel(
-      scaleXY, scaleZ);
-    this.numAxis = Math.max(numAxis, 2);
+    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.getFactory(
+      coordinateSystem.getId(), axisCount, scaleXY, scaleZ);
   }
 
   /**
    * <p>Construct a GeometryFactory with the coordinate system, number of axis and a fixed x, y &amp; fixed z precision models.</p>
    * 
    * @param srid The <a href="http://spatialreference.org/ref/epsg/">EPSG coordinate system id</a>. 
-   * @param numAxis The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
+   * @param axisCount The number of coordinate axis. 2 for 2D x &amp; y coordinates. 3 for 3D x, y &amp; z coordinates.
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
    * @param scaleZ The scale factor used to round the z coordinates. The precision is 1 / scaleZ.
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
    * @return The geometry factory.
    */
-  private GeometryFactory(final int crsId, final int numAxis,
+  private GeometryFactory(final int crsId, final int axisCount,
     final double scaleXY, final double scaleZ) {
     super(getPrecisionModel(scaleXY), crsId,
       new PackedCoordinateSequenceFactory(
-        PackedCoordinateSequenceFactory.DOUBLE, numAxis));
+        PackedCoordinateSequenceFactory.DOUBLE, axisCount));
     this.coordinateSystem = EpsgCoordinateSystems.getCoordinateSystem(crsId);
-    this.coordinatesPrecisionModel = new SimpleCoordinatesPrecisionModel(
-      scaleXY, scaleZ);
-    this.numAxis = Math.max(numAxis, 2);
+    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.getFactory(
+      coordinateSystem.getId(), axisCount, scaleXY, scaleZ);
   }
 
   /**
@@ -288,7 +282,7 @@ public class GeometryFactory extends
    */
   public LinearRing createLinearRing(final double... coordinates) {
     return super.createLinearRing(new PackedCoordinateSequence.Double(
-      coordinates, numAxis));
+      coordinates, getAxisCount()));
   }
 
   /**
@@ -301,7 +295,7 @@ public class GeometryFactory extends
    */
   public LineString createLineString(final double... coordinates) {
     final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
-      coordinates, numAxis);
+      coordinates, getAxisCount());
     return super.createLineString(points);
   }
 
@@ -355,26 +349,6 @@ public class GeometryFactory extends
   }
 
   /**
-   * <p>Create a {@link MultiPolygon} using the list of points. The points in the list can be any of the following types.</p>
-   * 
-   * <ul>
-   *   <li>{@link Polygon}</li>
-   *   <li>{@link List} see {@link GeometryFactory#createPolygon(List)}</li>
-   * </ul>
-   * 
-   * <p>For a <code>double[]</code> the size of the array should be a multiple
-   * of the number of axis. For example a 2D geometry will have x1,y1...,xN,yN values and a 3D x1,y1,z1...,xN,yN,zN.
-   * Geographic coordinates are always longitude, latitude and projected easting, northing.</p>
-   * 
-   * @param polygons The list of polygons.
-   * @return The created multi-polygon.
-   */
-  public MultiPolygon createMultiPolygon(final Collection<?> polygons) {
-    final Polygon[] polygonArray = getPolygonArray(polygons);
-    return createMultiPolygon(polygonArray);
-  }
-
-  /**
    * <p>Create a point using the array of coordinates. The size of the array should be the same as the
    * number of axis used on this geometry factory. If the size is less then additional axis will be
    * set to 0. If greater then those values will be ignored. For example a 2D geometry will have x,y values and a 3D x,y,z.
@@ -385,7 +359,7 @@ public class GeometryFactory extends
    */
   public Point createPoint(final double... coordinates) {
     final CoordinateSequence points = new PackedCoordinateSequence.Double(
-      coordinates, numAxis);
+      coordinates, getAxisCount());
     return super.createPoint(points);
   }
 
@@ -399,7 +373,7 @@ public class GeometryFactory extends
       return copy((Point)object);
     } else if (object instanceof double[]) {
       coordinates = new PackedCoordinateSequence.Double((double[])object,
-        numAxis);
+        getAxisCount());
     } else if (object instanceof CoordinateSequence) {
       final CoordinateSequence coordinatesList = (CoordinateSequence)object;
       coordinates = coordinatesList;
@@ -431,7 +405,7 @@ public class GeometryFactory extends
   public Polygon createPolygon(final List<?> rings) {
     if (rings.size() == 0) {
       final CoordinateSequence nullPoints = getCoordinateSequenceFactory().create(
-        0, numAxis);
+        0, getAxisCount());
       final LinearRing ring = createLinearRing(nullPoints);
       return createPolygon(ring, null);
     } else {
@@ -442,6 +416,10 @@ public class GeometryFactory extends
       }
       return createPolygon(exteriorRing, interiorRings);
     }
+  }
+
+  public int getAxisCount() {
+    return geometryFactory.getAxisCount();
   }
 
   public CoordinateSystem getCoordinateSystem() {
@@ -462,7 +440,7 @@ public class GeometryFactory extends
     } else if (ring instanceof double[]) {
       final double[] coordinates = (double[])ring;
       final CoordinateSequence points = new PackedCoordinateSequence.Double(
-        coordinates, numAxis);
+        coordinates, getAxisCount());
       return createLinearRing(points);
     } else {
       return null;
@@ -492,7 +470,7 @@ public class GeometryFactory extends
   }
 
   public int getNumAxis() {
-    return numAxis;
+    return getAxisCount();
   }
 
   private Point[] getPointArray(final Collection<?> pointsList) {
@@ -529,18 +507,39 @@ public class GeometryFactory extends
   }
 
   public double getScaleXY() {
-    return coordinatesPrecisionModel.getScaleXY();
+    return geometryFactory.getScaleXY();
   }
 
   public double getScaleZ() {
-    return coordinatesPrecisionModel.getScaleZ();
+    return geometryFactory.getScaleZ();
   }
 
   public boolean hasM() {
-    return numAxis > 3;
+    return getAxisCount() > 3;
   }
 
   public boolean hasZ() {
-    return numAxis > 2;
+    return getAxisCount() > 2;
   }
+
+  /**
+   * <p>Create a {@link MultiPolygon} using the list of points. The points in the list can be any of the following types.</p>
+   * 
+   * <ul>
+   *   <li>{@link Polygon}</li>
+   *   <li>{@link List} see {@link GeometryFactory#createPolygon(List)}</li>
+   * </ul>
+   * 
+   * <p>For a <code>double[]</code> the size of the array should be a multiple
+   * of the number of axis. For example a 2D geometry will have x1,y1...,xN,yN values and a 3D x1,y1,z1...,xN,yN,zN.
+   * Geographic coordinates are always longitude, latitude and projected easting, northing.</p>
+   * 
+   * @param polygons The list of polygons.
+   * @return The created multi-polygon.
+   */
+  public MultiPolygon multiPolygon(final Collection<?> polygons) {
+    final Polygon[] polygonArray = getPolygonArray(polygons);
+    return createMultiPolygon(polygonArray);
+  }
+
 }

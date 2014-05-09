@@ -55,8 +55,7 @@
     <value>https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js</value>
     <value>https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js
     </value>
-    <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js
-    </value>
+    <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js</value>
     <value>/js/rs.js</value>
     <value>/js/admin.js</value>
     <value>/js/ws.js</value>

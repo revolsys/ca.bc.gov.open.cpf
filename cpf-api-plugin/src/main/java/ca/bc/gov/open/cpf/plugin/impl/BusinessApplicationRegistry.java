@@ -255,8 +255,12 @@ public final class BusinessApplicationRegistry implements
   }
 
   public synchronized Module getModule(final String moduleName) {
-    final Module module = modulesByName.get(moduleName);
-    return module;
+    if (moduleName == null) {
+      return null;
+    } else {
+      final Module module = modulesByName.get(moduleName);
+      return module;
+    }
   }
 
   public BusinessApplication getModuleBusinessApplication(

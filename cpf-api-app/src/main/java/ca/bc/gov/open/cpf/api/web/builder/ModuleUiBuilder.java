@@ -28,7 +28,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.maven.MavenRepository;
-import com.revolsys.ui.html.decorator.CollapsibleBox;
 import com.revolsys.ui.html.decorator.TableBody;
 import com.revolsys.ui.html.decorator.TableHeadingDecorator;
 import com.revolsys.ui.html.fields.CheckBoxField;
@@ -91,6 +90,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     TableHeadingDecorator.addRow(fields, mavenModuleIdField, "Maven Module ID",
       null);
 
+    final CheckBoxField enabledField = new CheckBoxField("enabled");
+    enabledField.setInitialValue(true);
+    TableHeadingDecorator.addRow(fields, enabledField, "Enabled", null);
+
     form.add(fields);
     form.initialize(request);
 
@@ -107,7 +110,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
                 moduleNameField.addValidationError("Module Name is already used");
                 valid = false;
               } else if (Module.RESERVED_MODULE_NAMES.contains(moduleName)) {
-                mavenModuleIdField.addValidationError("Module Name is a reserved word");
+                moduleNameField.addValidationError("Module Name is a reserved word");
+                valid = false;
+              } else if (!moduleName.matches("[A-Z0-9_]+")) {
+                moduleNameField.addValidationError("Can only contain the characters A-Z, 0-9, and _.");
                 valid = false;
               }
 
@@ -120,7 +126,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
               }
             }
             if (valid) {
-              final boolean enabled = Boolean.TRUE;
+              final boolean enabled = enabledField.isSelected();
               moduleLoader.setMavenModuleConfigProperties(moduleName,
                 mavenModuleId, enabled);
               moduleLoader.refreshModules();
@@ -149,8 +155,9 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     final MenuElement actionMenuElement = new MenuElement(actionMenu,
       "actionMenu");
     final ElementContainer view = new ElementContainer(form, actionMenuElement);
-    view.setDecorator(new CollapsibleBox(title, true));
-    return view;
+    final TabElementContainer tabs = new TabElementContainer();
+    tabs.add(title, view);
+    return tabs;
   }
 
   @RequestMapping(value = {
@@ -216,8 +223,9 @@ public class ModuleUiBuilder extends CpfUiBuilder {
         "actionMenu");
       final ElementContainer view = new ElementContainer(form,
         actionMenuElement);
-      view.setDecorator(new CollapsibleBox(title, true));
-      return view;
+      final TabElementContainer tabs = new TabElementContainer();
+      tabs.add(title, view);
+      return tabs;
     }
     throw new NoSuchRequestHandlingMethodException(request);
 

@@ -96,15 +96,11 @@
           p:label="Module"
           p:pageName="view" />
         <bean
-          class="com.revolsys.ui.html.serializer.key.MapTableKeySerializer"
-          p:name="inputDataContentTypes"
-          p:keyLabel="MIME Type"
-          p:valueLabel="Description" />
+          class="com.revolsys.ui.html.serializer.key.BulletListKeySerializer"
+          p:name="inputDataContentTypes" />
         <bean
-          class="com.revolsys.ui.html.serializer.key.MapTableKeySerializer"
-          p:name="resultDataContentTypes"
-          p:keyLabel="MIME Type"
-          p:valueLabel="Description" />
+          class="com.revolsys.ui.html.serializer.key.BulletListKeySerializer"
+          p:name="resultDataContentTypes" />
         <bean
           p:name="testModeEnabled"
           class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer" />

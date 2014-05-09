@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * <figure><pre class="prettyprint language-java">&#064;ResultAttribute
 &#064;GeometryConfiguration(
   srid = 3005,
-  numAxis = 3,
+  axisCount = 3,
   scaleFactorXy = 1000,
   scaleFactorZ = 1,
   validate = true,
@@ -40,9 +40,9 @@ public @interface GeometryConfiguration {
   /**
    * <p>The number or axis used in the geometry. For example a 2D geometry has x, y
    * coordinates, so the number of axis is 2. A 3D geometry has x, y, z so the
-   * number of axis is 3. Currently only numAxis of 2 and 3 are supported.</p>
+   * number of axis is 3. Currently only axisCount of 2 and 3 are supported.</p>
    */
-  public int numAxis() default 2;
+  public int axisCount() default 2;
 
   /**
    * <p>The flag indicating that this bean property is the primary geometry. This

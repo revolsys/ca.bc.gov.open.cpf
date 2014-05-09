@@ -25,7 +25,7 @@ pageId = 'configProperty';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
     <script type="text/javascript">
@@ -83,12 +83,16 @@ td > ul {
                       <li id="webInstallMenu"><a href="../install/webapp.html">Web Application Installation</a></li>
                     </ul></li>
                     <li id="adminMenu"><a href="../admin/">Administration</a><ul>
+                      <li id="moduleMenu"><a href="module.html">Modules</a></li>
+                      <li id="appMenu"><a href="app.html">Business Applications</a></li>
                       <li id="configPropertyMenu"><a href="configProperty.html">Config Properties</a></li>
                       <li id="userAccountMenu"><a href="userAccount.html">User Accounts</a></li>
                       <li id="userGroupMenu"><a href="userGroup.html">User Groups</a></li>
                       <li id="userGroupPermissionMenu"><a href="userGroupPermission.html">User Group Permissions</a></li>
-                      <li id="jobsMenu"><a href="jobs.html">Batch Jobs</a></li>
+                      <li id="jobsMenu"><a href="job.html">Batch Jobs</a></li>
                       <li id="statisticsMenu"><a href="statistics.html">Dashboard Statistics</a></li>
+                      <li id="workersMenu"><a href="worker.html">Workers</a></li>
+                      <li id="logMenu"><a href="log.html">Log Files</a></li>
                     </ul></li>
                   </ul>
                   </div>
@@ -310,7 +314,7 @@ the following steps.</p>
 </section>
 
 <section>
-<h3 id="globalList">Module Config Properties</h3>
+<h3 id="moduleList">Module Config Properties</h3>
 
 <p>The list of configuration properties for a module can be viewed using the following steps.</p>
 
@@ -326,7 +330,7 @@ configuration properties.</p>
 </section>
 
 <section>
-<h3 id="globalList">Business Application Config Properties</h3>
+<h3 id="appList">Business Application Config Properties</h3>
 
 <p>The list of configuration properties for a business application can be viewed using the following steps.</p>
 
@@ -465,13 +469,13 @@ the same machine they can share the same configuration file.</p>
       <td>50</td>
     </tr>
     <tr>
-      <td><code>ca.bc.gov.cpf.repositoryServer</code></td>
+      <td id="repositoryServer"><code>ca.bc.gov.cpf.repositoryServer</code></td>
       <td>The maven repository to download plugins from.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>TODO</td>
     </tr>
     <tr>
-      <td><code>ca.bc.gov.cpf.repositoryDirectory</code></td>
+      <td id="repositoryDirectory"><code>ca.bc.gov.cpf.repositoryDirectory</code></td>
       <td>The cache directory to store maven artifacts.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>TODO</td>
@@ -546,7 +550,7 @@ the same machine they can share the same configuration file.</p>
       <td>default</td>
     </tr>
     <tr>
-      <td><code>cpfWorker.maximumPoolSize</code></td>
+      <td id="workerPoolSize"><code>cpfWorker.maximumPoolSize</code></td>
       <td>The maximum number of threads on the worker used to execute requests.</td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>32</td>

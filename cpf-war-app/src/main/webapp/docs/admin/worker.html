@@ -6,9 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Administration - CPF</title>
+<title>Workers - Administration - CPF</title>
     <script type="text/javascript">
-pageId = 'admin';
+pageId = 'workers';
     </script>
 <!-- InstanceEndEditable -->
 
@@ -106,7 +106,8 @@ td > ul {
 <li><a href="../../ws/">HOME</a></li>
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-<li>Administration</li>
+<li><a href="index.html">Administration</a></li>
+<li>Workers</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -114,56 +115,100 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<div class="title">Administration</div>
-<p>This pages in this section describes how to use the <a href="../../admin/">CPF administration application</a>
-to manage the CPF and business application plug-ins. Click the menu items under administration on
-the left of this page for more details on managing the system.</p>
-
-<p>The following sections provide a quick jumping point to various administration tasks.</p>
-
+<div class="title">Workers - Administration</div>
 <section>
-  <h1 id="security">Configuring CPF</h1>
-  <p>The following sections describe how to configure the CPF.</p>
-  <ul>
-    <li>Configure any <a href="configProperty.html#properties">CPF Configuration Properties</a>.</li>
-    <li>Add the administration users to the  <a href="userGroup.html#userGroupList">CPF_ADMIN User Group</a>.</li>
-  </ul>
+<h1 id="overview">Overview</h1>
+<p>The CPF uses multiple external worker processes to execute groups of requests from a batch job.
+The status of these workers can be viewed and groups restarted using the CPF Admin Application. The
+list of workers and modules is updated on the server whenever workers connect, disconnect or
+modules are started or stopped. These pages require manual refresh to view and changes.</p>
+
+<p>Each worker is given a unique ID that will not change unless the component parts that make up
+the ID change. The ID is made up from the following components. Note the workerTomcatContextPath has
+any '/' characters replaced by '-'.</p>
+
+<pre>[environmentName]:[workerHostName]:[workerTomcatPort]:[workerTomcatContextPath]</pre>
+
+<p>For example:</p>
+
+<pre>default:192.168.1.102:8009:pub-cpf-worker</pre>
+
 </section>
 
 <section>
-  <h1 id="security">Adding Modules</h1>
-  <p>The following sections describe how to manage users, groups and permissions the CPF.</p>
-  <ul>
-    <li>Add a new <a href="module.html#add">Module</a>.</li>
-    <li>Configure any <a href="configProperty.html#moduleList">Module Configuration Properties</a> documented in the plug-ins readme.</li>
-    <li>Configure any <a href="configProperty.html#appList">Business Application Configuration Properties</a> documented in the plug-ins readme.</li>
-    <li>Add the module administration users to the <a href="userGroup.html#userGroupModuleList">Module Admin User Groups</a>.</li>
-    <li>Add users to <a href="userGroup.html#userGroupModuleList">Module User Groups</a> documented in the plug-ins readme.</li>
-    <li>Add any <a href="userGroupPermission.html">User Group Permissions</a> documented in the plug-ins readme.</li>
-  </ul>
+<h1 id="management">Worker Management</h1>
+
+<p>This section describes how to manage workers.</p>
+
+<p class="note">The user must be in the ADMIN user group to view workers.</p>
+
+<section>
+<h2 id="list">Worker List</h2>
+<p>The worker list page shows a scrolling table of workers who have connected in the last 2 minutes.
+The contents of this table can be filtered by typing at least 3 characters in search box.
+The table will workers where the id or last connect time contain those characters characters (ignoring case).</p>
+
+<ol>
+  <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
+  <li>Click the <a href="../../admin/workers/">Workers</a> menu item.</li>
+</ol>
 </section>
 
 <section>
-  <h1 id="security">Security</h1>
-  <p>The following sections describe how to manage users, groups and permissions the CPF.</p>
-  <ul>
-    <li>View and manage <a href="userAccount.html">User Accounts</a>.</li>
-    <li>View and manage <a href="userGroup.html">User Groups</a>.</li>
-    <li>View and manage <a href="userGroupPermission.html">User Group Permissions</a>.</li>
-  </ul>
+<h2 id="view">View Worker</h2>
+<p>The worker can view viewed using the following steps.</p>
+
+<ol>
+  <li>Open the <a href="#list">Worker List</a> page.</li>
+  <li>Scroll/Search for the workers to view.</li>
+  <li>Click the link in the 'Id' column.</li>
+</ol>
 </section>
 
 <section>
-  <h1 id="monitoring">Monitoring</h1>
-  <p>The following sections describe how to monitor the CPF.</p>
-  <ul>
-    <li>View <a href="module.html#list">Module Status</a>.</li>
-    <li>View and manage <a href="job.html">Batch Jobs</a>.</li>
-    <li>View <a href="statistics.html">Dashboard Statistics</a>.</li>
-    <li>View <a href="worker.html">Workers</a> <a href="worker.html#moduleList">Module Status</a> and <a href="worker.html">Executing Groups</a>.</li>
-  </ul>
+<h2 id="groupList">Worker Executing Group List</h2>
+<p>The list of groups that are currently executing can be viewed using the following steps. This
+can be used to check for groups that have been running for too long. Note that this contents of this
+list changes very frequently as new groups are scheduled or completed.</p>
+
+<ol>
+  <li>Open the <a href="#view">View Worker</a> page.</li>
+  <li>Click the 'Modules' tab.</li>
+</ol>
 </section>
 
+<section>
+<h2 id="groupRestart">Restart Worker Executing Group</h2>
+<p>If an execution group has been stuck on a worker it can be rescheduled using the following steps.</p>
+
+<ol>
+  <li>Open the <a href="#groupList">Worker Executing Group List</a> page.</li>
+  <li>Click the 'Restart' button in the 'Actions' column.</li>
+  <li>Click the 'OK' button on the confirm restart dialog to restart the group, or 'Cancel' to return to the page.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="moduleList">Worker Module List</h2>
+<p>The list of modules that are loaded on the worker cab be viewed using the following steps.</p>
+
+<ol>
+  <li>Open the <a href="#view">View Worker</a> page.</li>
+  <li>Click the 'Modules' tab.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="moduleView">View Worker Module</h2>
+<p>The full details of the module on the worker including any startup errors viewed using the following steps.</p>
+
+<ol>
+  <li>Open the <a href="#moduleList">Worker Module List</a> page.</li>
+  <li>Click the link in the 'Name' column.</li>
+</ol>
+</section>
+
+</section>
 										<!-- InstanceEndEditable -->
                 </div>
               </div>

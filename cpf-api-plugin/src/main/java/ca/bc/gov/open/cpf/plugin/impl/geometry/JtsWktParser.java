@@ -129,7 +129,7 @@ public class JtsWktParser {
 
   private CoordinateSequence parseCoordinates(
     final GeometryFactory geometryFactory, final StringBuffer text,
-    final int numAxis) {
+    final int axisCount) {
     final int geometryFactoryNumAxis = geometryFactory.getNumAxis();
     char c = text.charAt(0);
     if (c == '(') {
@@ -148,7 +148,7 @@ public class JtsWktParser {
               "Expecting end of coordinates ')' not" + text);
           }
         } else if (c == ',' || c == ')') {
-          if (axisNum < numAxis) {
+          if (axisNum < axisCount) {
             if (axisNum < geometryFactoryNumAxis) {
               coordinates.add(number);
             }
@@ -160,7 +160,7 @@ public class JtsWktParser {
             axisNum = 0;
           } else {
             throw new IllegalArgumentException(
-              "Too many coordinates, vertex must have " + numAxis
+              "Too many coordinates, vertex must have " + axisCount
                 + " coordinates not " + (axisNum + 1));
           }
           if (c == ')') {
@@ -169,14 +169,14 @@ public class JtsWktParser {
             text.delete(0, 1);
           }
         } else {
-          if (axisNum < numAxis) {
+          if (axisNum < axisCount) {
             if (axisNum < geometryFactoryNumAxis) {
               coordinates.add(number);
             }
             axisNum++;
           } else {
             throw new IllegalArgumentException(
-              "Too many coordinates, vertex must have " + numAxis
+              "Too many coordinates, vertex must have " + axisCount
                 + " coordinates not " + (axisNum + 1));
 
           }
@@ -203,7 +203,7 @@ public class JtsWktParser {
     final boolean useNumAxisFromGeometryFactory) {
     if (StringUtils.hasLength(value)) {
       GeometryFactory geometryFactory = this.geometryFactory;
-      final int numAxis = geometryFactory.getNumAxis();
+      final int axisCount = geometryFactory.getNumAxis();
       final double scaleXY = geometryFactory.getScaleXY();
       final double scaleZ = geometryFactory.getScaleZ();
       Geometry geometry;
@@ -211,7 +211,7 @@ public class JtsWktParser {
       if (hasText(text, "SRID=")) {
         final Integer srid = parseInteger(text);
         if (srid != null && srid != this.geometryFactory.getSRID()) {
-          geometryFactory = GeometryFactory.getFactory(srid, numAxis);
+          geometryFactory = GeometryFactory.getFactory(srid, axisCount);
         }
         hasText(text, ";");
       }
@@ -239,8 +239,8 @@ public class JtsWktParser {
       if (this.geometryFactory.getSRID() == 0) {
         final int srid = geometry.getSRID();
         if (useNumAxisFromGeometryFactory) {
-          geometryFactory = GeometryFactory.getFactory(srid, numAxis, scaleXY,
-            scaleZ);
+          geometryFactory = GeometryFactory.getFactory(srid, axisCount,
+            scaleXY, scaleZ);
           return (T)geometryFactory.createGeometry(geometry);
         } else {
           return (T)geometry;
@@ -257,36 +257,36 @@ public class JtsWktParser {
 
   private LineString parseLineString(GeometryFactory geometryFactory,
     final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
-    int numAxis = getNumAxis(text);
+    int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
-      if (numAxis != geometryFactory.getNumAxis()) {
+      if (axisCount != geometryFactory.getNumAxis()) {
         final int srid = geometryFactory.getSRID();
         final double scaleXY = geometryFactory.getScaleXY();
         final double scaleZ = geometryFactory.getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, numAxis, scaleXY,
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
           scaleZ);
       }
     } else {
-      numAxis = geometryFactory.getNumAxis();
+      axisCount = geometryFactory.getNumAxis();
     }
     if (isEmpty(text)) {
       return geometryFactory.createLineString();
     } else {
       final CoordinateSequence points = parseCoordinates(geometryFactory, text,
-        numAxis);
+        axisCount);
       return geometryFactory.createLineString(points);
     }
   }
 
   private MultiLineString parseMultiLineString(GeometryFactory geometryFactory,
     final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
-    final int numAxis = getNumAxis(text);
+    final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
-      if (numAxis != geometryFactory.getNumAxis()) {
+      if (axisCount != geometryFactory.getNumAxis()) {
         final int srid = geometryFactory.getSRID();
         final double scaleXY = geometryFactory.getScaleXY();
         final double scaleZ = geometryFactory.getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, numAxis, scaleXY,
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
           scaleZ);
       }
     }
@@ -294,20 +294,20 @@ public class JtsWktParser {
     if (isEmpty(text)) {
       lines = new ArrayList<CoordinateSequence>();
     } else {
-      lines = parseParts(geometryFactory, text, numAxis);
+      lines = parseParts(geometryFactory, text, axisCount);
     }
     return geometryFactory.createMultiLineString(lines);
   }
 
   private MultiPoint parseMultiPoint(GeometryFactory geometryFactory,
     final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
-    final int numAxis = getNumAxis(text);
+    final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
-      if (numAxis != geometryFactory.getNumAxis()) {
+      if (axisCount != geometryFactory.getNumAxis()) {
         final int srid = geometryFactory.getSRID();
         final double scaleXY = geometryFactory.getScaleXY();
         final double scaleZ = geometryFactory.getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, numAxis, scaleXY,
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
           scaleZ);
       }
     }
@@ -316,20 +316,20 @@ public class JtsWktParser {
     if (isEmpty(text)) {
       pointsList = new ArrayList<CoordinateSequence>();
     } else {
-      pointsList = parseParts(geometryFactory, text, numAxis);
+      pointsList = parseParts(geometryFactory, text, axisCount);
     }
     return geometryFactory.createMultiPoint(pointsList);
   }
 
   private MultiPolygon parseMultiPolygon(GeometryFactory geometryFactory,
     final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
-    final int numAxis = getNumAxis(text);
+    final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
-      if (numAxis != geometryFactory.getNumAxis()) {
+      if (axisCount != geometryFactory.getNumAxis()) {
         final int srid = geometryFactory.getSRID();
         final double scaleXY = geometryFactory.getScaleXY();
         final double scaleZ = geometryFactory.getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, numAxis, scaleXY,
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
           scaleZ);
       }
     }
@@ -338,14 +338,14 @@ public class JtsWktParser {
     if (isEmpty(text)) {
       polygons = new ArrayList<List<CoordinateSequence>>();
     } else {
-      polygons = parsePartsList(geometryFactory, text, numAxis);
+      polygons = parsePartsList(geometryFactory, text, axisCount);
     }
-    return geometryFactory.createMultiPolygon(polygons);
+    return geometryFactory.multiPolygon(polygons);
   }
 
   private List<CoordinateSequence> parseParts(
     final GeometryFactory geometryFactory, final StringBuffer text,
-    final int numAxis) {
+    final int axisCount) {
     final List<CoordinateSequence> parts = new ArrayList<CoordinateSequence>();
     final char firstChar = text.charAt(0);
     switch (firstChar) {
@@ -353,7 +353,7 @@ public class JtsWktParser {
         do {
           text.delete(0, 1);
           final CoordinateSequence coordinates = parseCoordinates(
-            geometryFactory, text, numAxis);
+            geometryFactory, text, axisCount);
           parts.add(coordinates);
         } while (text.charAt(0) == ',');
         if (text.charAt(0) == ')') {
@@ -374,7 +374,7 @@ public class JtsWktParser {
 
   private List<List<CoordinateSequence>> parsePartsList(
     final GeometryFactory geometryFactory, final StringBuffer text,
-    final int numAxis) {
+    final int axisCount) {
     final List<List<CoordinateSequence>> partsList = new ArrayList<List<CoordinateSequence>>();
     final char firstChar = text.charAt(0);
     switch (firstChar) {
@@ -382,7 +382,7 @@ public class JtsWktParser {
         do {
           text.delete(0, 1);
           final List<CoordinateSequence> parts = parseParts(geometryFactory,
-            text, numAxis);
+            text, axisCount);
           partsList.add(parts);
         } while (text.charAt(0) == ',');
         if (text.charAt(0) == ')') {
@@ -403,13 +403,13 @@ public class JtsWktParser {
 
   private Point parsePoint(GeometryFactory geometryFactory,
     final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
-    final int numAxis = getNumAxis(text);
+    final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
-      if (numAxis != geometryFactory.getNumAxis()) {
+      if (axisCount != geometryFactory.getNumAxis()) {
         final int srid = geometryFactory.getSRID();
         final double scaleXY = geometryFactory.getScaleXY();
         final double scaleZ = geometryFactory.getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, numAxis, scaleXY,
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
           scaleZ);
       }
     }
@@ -417,7 +417,7 @@ public class JtsWktParser {
       return geometryFactory.createPoint();
     } else {
       final CoordinateSequence points = parseCoordinates(geometryFactory, text,
-        numAxis);
+        axisCount);
       if (points.size() > 1) {
         throw new IllegalArgumentException("Points may only have 1 vertex");
       }
@@ -427,24 +427,24 @@ public class JtsWktParser {
 
   private Polygon parsePolygon(GeometryFactory geometryFactory,
     final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
-    int numAxis = getNumAxis(text);
+    int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
-      if (numAxis != geometryFactory.getNumAxis()) {
+      if (axisCount != geometryFactory.getNumAxis()) {
         final int srid = geometryFactory.getSRID();
         final double scaleXY = geometryFactory.getScaleXY();
         final double scaleZ = geometryFactory.getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, numAxis, scaleXY,
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
           scaleZ);
       }
     } else {
-      numAxis = geometryFactory.getNumAxis();
+      axisCount = geometryFactory.getNumAxis();
     }
 
     final List<CoordinateSequence> parts;
     if (isEmpty(text)) {
       parts = new ArrayList<CoordinateSequence>();
     } else {
-      parts = parseParts(geometryFactory, text, numAxis);
+      parts = parseParts(geometryFactory, text, axisCount);
     }
     return geometryFactory.createPolygon(parts);
   }

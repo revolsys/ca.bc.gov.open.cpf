@@ -256,24 +256,24 @@ public class PluginAdaptor {
               value = StringConverterRegistry.toObject(typeClass, time);
             } else if (LineString.class.isAssignableFrom(typeClass)) {
               value = GeometryFactory.wgs84().lineString(
-                new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
+                new DoubleCoordinatesList(2, -125.0, 53.0, -125.1, 53.0));
             } else if (Polygon.class.isAssignableFrom(typeClass)) {
               final BoundingBox boundingBox = new Envelope(
-                GeometryFactory.wgs84(), -125, 53, -125.1, 53);
+                GeometryFactory.wgs84(), 2, -125.0, 53.0, -125.1, 53.0);
               value = boundingBox.toPolygon(10);
             } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
               final LineString line = GeometryFactory.wgs84().lineString(
-                new DoubleCoordinatesList(2, -125, 53, -125.1, 53));
-              value = GeometryFactory.wgs84().createMultiLineString(line);
+                new DoubleCoordinatesList(2, -125.0, 53.0, -125.1, 53.0));
+              value = GeometryFactory.wgs84().multiLineString(line);
             } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
               final BoundingBox boundingBox = new Envelope(
-                GeometryFactory.wgs84(), -125, 53, -125.1, 53);
+                GeometryFactory.wgs84(), 2, -125.0, 53.0, -125.1, 53.0);
               final Polygon polygon = boundingBox.toPolygon(10);
-              value = GeometryFactory.wgs84().createMultiPolygon(polygon);
+              value = GeometryFactory.wgs84().multiPolygon(polygon);
             } else if (GeometryCollection.class.isAssignableFrom(typeClass)
               || MultiPoint.class.isAssignableFrom(typeClass)) {
               final Point point = GeometryFactory.wgs84().point(-125, 53);
-              value = GeometryFactory.wgs84().createMultiPoint(point);
+              value = GeometryFactory.wgs84().multiPoint(point);
             } else if (Geometry.class.isAssignableFrom(typeClass)
               || Point.class.isAssignableFrom(typeClass)) {
               value = GeometryFactory.wgs84().point(-125, 53);
@@ -339,14 +339,14 @@ public class PluginAdaptor {
             }
             final int srid = CollectionUtil.getInteger(parameters,
               "resultSrid", geometryFactory.getSrid());
-            final int numAxis = CollectionUtil.getInteger(parameters,
-              "resultNumAxis", geometryFactory.getNumAxis());
+            final int axisCount = CollectionUtil.getInteger(parameters,
+              "resultNumAxis", geometryFactory.getAxisCount());
             final double scaleXY = CollectionUtil.getDouble(parameters,
               "resultScaleFactorXy", geometryFactory.getScaleXY());
             final double scaleZ = CollectionUtil.getDouble(parameters,
               "resultScaleFactorZ", geometryFactory.getScaleZ());
 
-            geometryFactory = GeometryFactory.getFactory(srid, numAxis,
+            geometryFactory = GeometryFactory.getFactory(srid, axisCount,
               scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
             if (geometry.getSrid() == 0) {

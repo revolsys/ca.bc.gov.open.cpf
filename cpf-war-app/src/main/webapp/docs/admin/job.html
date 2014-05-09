@@ -6,9 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Administration - CPF</title>
+<title>Batch Jobs - Administration - CPF</title>
     <script type="text/javascript">
-pageId = 'admin';
+pageId = 'jobs';
     </script>
 <!-- InstanceEndEditable -->
 
@@ -106,7 +106,8 @@ td > ul {
 <li><a href="../../ws/">HOME</a></li>
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
-<li>Administration</li>
+<li><a href="index.html">Administration</a></li>
+<li>Batch Jobs</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -114,56 +115,106 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<div class="title">Administration</div>
-<p>This pages in this section describes how to use the <a href="../../admin/">CPF administration application</a>
-to manage the CPF and business application plug-ins. Click the menu items under administration on
-the left of this page for more details on managing the system.</p>
-
-<p>The following sections provide a quick jumping point to various administration tasks.</p>
-
+<div class="title">Batch Jobs - Administration</div>
 <section>
-  <h1 id="security">Configuring CPF</h1>
-  <p>The following sections describe how to configure the CPF.</p>
-  <ul>
-    <li>Configure any <a href="configProperty.html#properties">CPF Configuration Properties</a>.</li>
-    <li>Add the administration users to the  <a href="userGroup.html#userGroupList">CPF_ADMIN User Group</a>.</li>
-  </ul>
+<h1 id="overview">Overview</h1>
+<p>The main purpose of the CPF is to execute batch jobs on behalf of users. The CPF admin application
+can be used to view the list of jobs in the system and to monitor the progress of the execution
+of the batch job execution groups.</p>
+
 </section>
 
 <section>
-  <h1 id="security">Adding Modules</h1>
-  <p>The following sections describe how to manage users, groups and permissions the CPF.</p>
-  <ul>
-    <li>Add a new <a href="module.html#add">Module</a>.</li>
-    <li>Configure any <a href="configProperty.html#moduleList">Module Configuration Properties</a> documented in the plug-ins readme.</li>
-    <li>Configure any <a href="configProperty.html#appList">Business Application Configuration Properties</a> documented in the plug-ins readme.</li>
-    <li>Add the module administration users to the <a href="userGroup.html#userGroupModuleList">Module Admin User Groups</a>.</li>
-    <li>Add users to <a href="userGroup.html#userGroupModuleList">Module User Groups</a> documented in the plug-ins readme.</li>
-    <li>Add any <a href="userGroupPermission.html">User Group Permissions</a> documented in the plug-ins readme.</li>
-  </ul>
+<h1 id="management">Batch Job Management</h1>
+
+<p>This section describes how to manage batch jobs.</p>
+
+<p class="note">The user must be in the ADMIN, or ADMIN_MODULE_[MODULE_NAME]_ADMIN user groups
+to view batch jobs. The module admins will only be able to see batch jobs for their modules.</p>
+
+<section>
+<h2 id="list">Batch Job Lists</h2>
+<p>The batch job list pages contain a scrolling table of the batch jobs. The contents of this 
+table can be filtered by typing at least 3 characters in search box. The table will show batch jobs
+where the id, business application, start time, modification time, job status, submitted requests,
+completed requests, failed requests or user id contain those characters characters (ignoring case).</p>
+
+<section>
+<h2 id="allList">All Jobs</h2>
+<p>The all batch jobs page shows the batch jobs for all business applications the user has
+admin permission for.</p>
+
+<p>The batch jobs can be viewed using the following steps.</p>
+
+<ol>
+  <li>Open the <a href="../../admin/">CPF Admin Application</a>.</li>
+  <li>Click the <a href="../../admin/jobs/">Batch Jobs</a> menu item.</li>
+</ol>
 </section>
 
 <section>
-  <h1 id="security">Security</h1>
-  <p>The following sections describe how to manage users, groups and permissions the CPF.</p>
-  <ul>
-    <li>View and manage <a href="userAccount.html">User Accounts</a>.</li>
-    <li>View and manage <a href="userGroup.html">User Groups</a>.</li>
-    <li>View and manage <a href="userGroupPermission.html">User Group Permissions</a>.</li>
-  </ul>
+<h2 id="appList">Business Application Batch Jobs</h2>
+<p>The all batch jobs page shows the batch jobs for all business applications the user has
+admin permission for.</p>
+
+<ol>
+  <li>Open the <a href="app.html#view">Business Application View</a> page.</li>
+  <li>Click the 'Batch Jobs' tab.</li>
+</ol>
+</section>
 </section>
 
 <section>
-  <h1 id="monitoring">Monitoring</h1>
-  <p>The following sections describe how to monitor the CPF.</p>
-  <ul>
-    <li>View <a href="module.html#list">Module Status</a>.</li>
-    <li>View and manage <a href="job.html">Batch Jobs</a>.</li>
-    <li>View <a href="statistics.html">Dashboard Statistics</a>.</li>
-    <li>View <a href="worker.html">Workers</a> <a href="worker.html#moduleList">Module Status</a> and <a href="worker.html">Executing Groups</a>.</li>
-  </ul>
+<h2 id="view">View Batch Job</h2>
+<p>The batch jobs can view viewed using the following steps.</p>
+
+<ol>
+  <li>Open one of the <a href="#list">Batch Job Lists</a> pages.</li>
+  <li>Scroll/Search for the batch jobs to view.</li>
+  <li>Click the link in the 'Id' column.</li>
+</ol>
 </section>
 
+<section>
+<h2 id="delete">Delete Batch Job</h2>
+<p>A batch job can be deleted using the following steps. This will also cancel any scheduled
+groups, delete the execution groups and result files .</p>
+
+<ol>
+  <li>Open the <a href="#list">Batch Job Lists</a> or <a href="#view">View Batch Job</a> pages.</li>
+  <li>Click trash button in the 'Actions' field for the batch job to delete.</li>
+  <li>Click the 'OK' button on the confirm delete dialog to delete the batch job, or 'Cancel' to return to the page.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="groupList">Batch Job Execution Group List</h2>
+<p>The batch job execution group list page contain a scrolling table of the execution groups. The contents of this 
+table can be filtered by typing at least 3 characters in search box. The table will show batch job execution groups
+where the sequence number (#), completed (count), failed (count), submitted (count), creation time or modification time contain those characters characters (ignoring case).</p>
+
+<ol>
+  <li>Open the <a href="#view">Batch Job View</a> page.</li>
+  <li>Click the 'Execution Groups' tab.</li>
+  <li>To download the input data click on the button in the Input column.</li>
+  <li>To download the result data click on the button in the Result column. A red x will be shown if the group has not been completed.</li>
+</ol>
+</section>
+
+<section>
+<h2 id="resultList">Batch Job Result File List</h2>
+<p>When the batch job is completed the batch job result file list page contain a scrolling table of the result files.
+The contents of this table can be filtered by typing at least 3 characters in search box. The table will show batch job result files
+where the sequence number (#), result type, content type, creation time or download time contain those characters characters (ignoring case).</p>
+
+<ol>
+  <li>Open the <a href="#view">Batch Job View</a> page.</li>
+  <li>Click the 'Result Files' tab.</li>
+  <li>To download the file click on the button in the Download column.</li>
+</ol>
+</section>
+
+</section>
 										<!-- InstanceEndEditable -->
                 </div>
               </div>

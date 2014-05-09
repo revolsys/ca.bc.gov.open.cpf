@@ -27,7 +27,7 @@ public class MultipartToSimpleGeometry {
 
   public void execute() {
     this.appLog.debug("Start");
-    for (int i = 0; i < geometry.getNumGeometries(); i++) {
+    for (int i = 0; i < geometry.getGeometryCount(); i++) {
       final Geometry part = geometry.getGeometry(i);
       final GeometryResult result = new GeometryResult(part);
       results.add(result);

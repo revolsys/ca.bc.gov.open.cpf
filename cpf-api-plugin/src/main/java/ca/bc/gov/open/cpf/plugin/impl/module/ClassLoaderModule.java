@@ -62,7 +62,6 @@ import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.AttributeMap;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.CoordinateSystem;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.gis.data.io.DataObjectWriterFactory;
 import com.revolsys.gis.data.model.Attribute;
@@ -77,6 +76,7 @@ import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.MapReaderFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.jts.geom.Geometry;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
@@ -370,7 +370,11 @@ public class ClassLoaderModule implements Module {
       startedDate = null;
       AppLogUtil.info(log, "End\tModule Stop\tmoduleName=" + name, stopWatch);
       closeAppLogAppender(name);
-      setStatus("Stopped");
+      if (isEnabled()) {
+        setStatus("Stopped");
+      } else {
+        setStatus("Disabled");
+      }
     }
   }
 
@@ -756,8 +760,8 @@ public class ClassLoaderModule implements Module {
    * @return The geometry factory.
    */
   private com.revolsys.jts.geom.GeometryFactory getGeometryFactory(
-    final com.revolsys.jts.geom.GeometryFactory geometryFactory, final String message,
-    final GeometryConfiguration geometryConfiguration) {
+    final com.revolsys.jts.geom.GeometryFactory geometryFactory,
+    final String message, final GeometryConfiguration geometryConfiguration) {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       log.warn(message + " srid must be >= 0");
@@ -765,15 +769,15 @@ public class ClassLoaderModule implements Module {
     } else if (srid == 0) {
       srid = geometryFactory.getSrid();
     }
-    int numAxis = geometryConfiguration.numAxis();
-    if (numAxis == 0) {
-      numAxis = geometryFactory.getNumAxis();
-    } else if (numAxis < 2) {
-      log.warn(message + " numAxis must be >= 2");
-      numAxis = 2;
-    } else if (numAxis > 3) {
-      log.warn(message + " numAxis must be <= 3");
-      numAxis = 3;
+    int axisCount = geometryConfiguration.axisCount();
+    if (axisCount == 0) {
+      axisCount = geometryFactory.getAxisCount();
+    } else if (axisCount < 2) {
+      log.warn(message + " axisCount must be >= 2");
+      axisCount = 2;
+    } else if (axisCount > 3) {
+      log.warn(message + " axisCount must be <= 3");
+      axisCount = 3;
     }
     double scaleXy = geometryConfiguration.scaleFactorXy();
     if (scaleXy == 0) {
@@ -789,7 +793,7 @@ public class ClassLoaderModule implements Module {
       log.warn(message + " scaleZ must be >= 0");
       scaleZ = geometryFactory.getScaleZ();
     }
-    return GeometryFactory.getFactory(srid, numAxis, scaleXy, scaleZ);
+    return GeometryFactory.getFactory(srid, axisCount, scaleXy, scaleZ);
   }
 
   public Set<String> getGroupNamesToDelete() {
@@ -1522,7 +1526,7 @@ public class ClassLoaderModule implements Module {
   @PostConstruct
   public void start() {
     if (isEnabled()) {
-      status = "Start Requested";
+      setStatus("Start Requested");
       final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
       if (businessApplicationRegistry != null) {
         businessApplicationRegistry.startModule(name);
@@ -1532,7 +1536,7 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public void stop() {
-    status = "Stop Requested";
+    setStatus("Stop Requested");
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     if (businessApplicationRegistry != null) {
       businessApplicationRegistry.stopModule(name);
