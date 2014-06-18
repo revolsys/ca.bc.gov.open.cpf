@@ -533,7 +533,7 @@ public class ClassLoaderModule implements Module {
       final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
       if (geometryConfiguration != null) {
         final com.revolsys.jts.geom.GeometryFactory geometryFactory = getGeometryFactory(
-          GeometryFactory.getFactory(), className, geometryConfiguration);
+          GeometryFactory.floating3(), className, geometryConfiguration);
         businessApplication.setGeometryFactory(geometryFactory);
         final boolean validateGeometry = geometryConfiguration.validate();
         businessApplication.setValidateGeometry(validateGeometry);
@@ -793,7 +793,7 @@ public class ClassLoaderModule implements Module {
       log.warn(message + " scaleZ must be >= 0");
       scaleZ = geometryFactory.getScaleZ();
     }
-    return GeometryFactory.getFactory(srid, axisCount, scaleXy, scaleZ);
+    return GeometryFactory.fixed(srid, axisCount, scaleXy, scaleZ);
   }
 
   public Set<String> getGroupNamesToDelete() {

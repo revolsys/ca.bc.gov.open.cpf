@@ -1556,7 +1556,7 @@ public class CloudProcessingFramework {
 
               final OutputStreamResource resource = new OutputStreamResource(
                 "result", response.getOutputStream());
-              final GeometryFactory geometryFactory = GeometryFactory.getFactory(
+              final GeometryFactory geometryFactory = GeometryFactory.fixed(
                 resultSrid, resultNumAxis, resultScaleFactorXy,
                 resultScaleFactorZ);
               final Writer<DataObject> writer = batchJobService.createStructuredResultWriter(

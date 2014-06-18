@@ -68,8 +68,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public DataObjectReader getSampleInputData() {
     final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
       "/Buffer");
-    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(
-      3005, 2, 1000, 1000);
+    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.fixed(
+      3005, 1000.0);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("title", DataTypes.STRING);
     metaData.addAttribute("buffer", DataTypes.DOUBLE);
@@ -99,8 +99,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public DataObjectReader getSampleResultData() {
     final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
       "/Buffer");
-    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.getFactory(
-      3005, 2, 1000, 1000);
+    final com.revolsys.jts.geom.GeometryFactory factory = GeometryFactory.fixed(
+      3005, 1000.0);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
     metaData.addAttribute("resultNumber", DataTypes.INTEGER);

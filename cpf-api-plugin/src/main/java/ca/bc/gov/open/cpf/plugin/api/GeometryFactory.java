@@ -13,8 +13,6 @@ import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.jts.geom.Coordinates;
-import com.revolsys.jts.geom.CoordinatesList;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -203,7 +201,7 @@ public class GeometryFactory extends
       new PackedCoordinateSequenceFactory(
         PackedCoordinateSequenceFactory.DOUBLE, axisCount));
     this.coordinateSystem = coordinateSystem;
-    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.getFactory(
+    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.fixed(
       coordinateSystem.getId(), axisCount, scaleXY, scaleZ);
   }
 
@@ -224,7 +222,7 @@ public class GeometryFactory extends
       new PackedCoordinateSequenceFactory(
         PackedCoordinateSequenceFactory.DOUBLE, axisCount));
     this.coordinateSystem = EpsgCoordinateSystems.getCoordinateSystem(crsId);
-    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.getFactory(
+    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.fixed(
       coordinateSystem.getId(), axisCount, scaleXY, scaleZ);
   }
 

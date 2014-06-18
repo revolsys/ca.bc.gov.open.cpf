@@ -32,10 +32,8 @@ import com.revolsys.gis.data.model.Attribute;
 import com.revolsys.gis.data.model.AttributeProperties;
 import com.revolsys.gis.data.model.DataObjectMetaData;
 import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
-import com.revolsys.gis.model.coordinates.list.DoubleCoordinatesList;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.jts.geom.BoundingBox;
-import com.revolsys.jts.geom.Envelope;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryCollection;
 import com.revolsys.jts.geom.GeometryFactory;
@@ -45,6 +43,7 @@ import com.revolsys.jts.geom.MultiPoint;
 import com.revolsys.jts.geom.MultiPolygon;
 import com.revolsys.jts.geom.Point;
 import com.revolsys.jts.geom.Polygon;
+import com.revolsys.jts.geom.impl.BoundingBoxDoubleGf;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
@@ -255,18 +254,18 @@ public class PluginAdaptor {
               final Timestamp time = new Timestamp(System.currentTimeMillis());
               value = StringConverterRegistry.toObject(typeClass, time);
             } else if (LineString.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.wgs84().lineString(
-                new DoubleCoordinatesList(2, -125.0, 53.0, -125.1, 53.0));
+              value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0,
+                -125.1, 53.0);
             } else if (Polygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new Envelope(
+              final BoundingBox boundingBox = new BoundingBoxDoubleGf(
                 GeometryFactory.wgs84(), 2, -125.0, 53.0, -125.1, 53.0);
               value = boundingBox.toPolygon(10);
             } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-              final LineString line = GeometryFactory.wgs84().lineString(
-                new DoubleCoordinatesList(2, -125.0, 53.0, -125.1, 53.0));
+              final LineString line = GeometryFactory.wgs84().lineString(2,
+                -125.0, 53.0, -125.1, 53.0);
               value = GeometryFactory.wgs84().multiLineString(line);
             } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new Envelope(
+              final BoundingBox boundingBox = new BoundingBoxDoubleGf(
                 GeometryFactory.wgs84(), 2, -125.0, 53.0, -125.1, 53.0);
               final Polygon polygon = boundingBox.toPolygon(10);
               value = GeometryFactory.wgs84().multiPolygon(polygon);
@@ -334,8 +333,8 @@ public class PluginAdaptor {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
             com.revolsys.jts.geom.GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
-            if (geometryFactory == GeometryFactory.getFactory()) {
-              geometryFactory = GeometryFactory.getFactory(geometry);
+            if (geometryFactory == GeometryFactory.floating3()) {
+              geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = CollectionUtil.getInteger(parameters,
               "resultSrid", geometryFactory.getSrid());
@@ -346,8 +345,8 @@ public class PluginAdaptor {
             final double scaleZ = CollectionUtil.getDouble(parameters,
               "resultScaleFactorZ", geometryFactory.getScaleZ());
 
-            geometryFactory = GeometryFactory.getFactory(srid, axisCount,
-              scaleXY, scaleZ);
+            geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY,
+              scaleZ);
             geometry = geometryFactory.geometry(geometry);
             if (geometry.getSrid() == 0) {
               throw new IllegalArgumentException(

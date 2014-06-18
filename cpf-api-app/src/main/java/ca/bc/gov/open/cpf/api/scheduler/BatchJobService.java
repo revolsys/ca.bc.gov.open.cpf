@@ -894,7 +894,7 @@ public class BatchJobService implements ModuleEventListener {
         "resultScaleFactorXy", geometryFactory.getScaleXY());
       final double scaleZ = CollectionUtil.getDouble(parameters,
         "resultScaleFactorZ", geometryFactory.getScaleZ());
-      return GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
+      return GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
     }
   }
 
@@ -2244,7 +2244,7 @@ public class BatchJobService implements ModuleEventListener {
           geometry = (Geometry)parameterValue;
           if (geometry.getSrid() == 0 && StringUtils.hasText(sridString)) {
             final int srid = Integer.parseInt(sridString);
-            final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
+            final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
             geometry = sourceGeometryFactory.geometry(geometry);
           }
         } else {
@@ -2261,7 +2261,7 @@ public class BatchJobService implements ModuleEventListener {
           try {
             if (StringUtils.hasText(sridString)) {
               final int srid = Integer.parseInt(sridString);
-              final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.getFactory(srid);
+              final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
               geometry = sourceGeometryFactory.geometry(wkt, false);
             } else {
               geometry = geometryFactory.geometry(wkt, false);
@@ -2270,7 +2270,7 @@ public class BatchJobService implements ModuleEventListener {
             throw new IllegalArgumentException("invalid WKT geometry", t);
           }
         }
-        if (geometryFactory != GeometryFactory.getFactory()) {
+        if (geometryFactory != GeometryFactory.floating3()) {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = attribute.getProperty(AttributeProperties.VALIDATE_GEOMETRY);

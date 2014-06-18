@@ -95,7 +95,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    */
   private String descriptionUrl;
 
-  private com.revolsys.jts.geom.GeometryFactory geometryFactory = GeometryFactory.getFactory();
+  private com.revolsys.jts.geom.GeometryFactory geometryFactory = GeometryFactory.floating3();
 
   private boolean hasCustomizationProperties;
 
