@@ -174,8 +174,7 @@ public class ClassLoaderModule implements Module {
     final String moduleName) {
     this.businessApplicationRegistry = businessApplicationRegistry;
     this.name = moduleName;
-    this.log = new AppLog(moduleName);
-    this.log.setLogLevel("INFO");
+    this.log = new AppLog(moduleName, "INFO");
     environmentId = businessApplicationRegistry.getEnvironmentId();
   }
 
@@ -532,7 +531,7 @@ public class ClassLoaderModule implements Module {
 
       final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
       if (geometryConfiguration != null) {
-        final com.revolsys.jts.geom.GeometryFactory geometryFactory = getGeometryFactory(
+        final GeometryFactory geometryFactory = getGeometryFactory(
           GeometryFactory.floating3(), className, geometryConfiguration);
         businessApplication.setGeometryFactory(geometryFactory);
         final boolean validateGeometry = geometryConfiguration.validate();
@@ -759,9 +758,9 @@ public class ClassLoaderModule implements Module {
    * @param geometryConfiguration The geometry configuration.
    * @return The geometry factory.
    */
-  private com.revolsys.jts.geom.GeometryFactory getGeometryFactory(
-    final com.revolsys.jts.geom.GeometryFactory geometryFactory,
-    final String message, final GeometryConfiguration geometryConfiguration) {
+  private GeometryFactory getGeometryFactory(
+    final GeometryFactory geometryFactory, final String message,
+    final GeometryConfiguration geometryConfiguration) {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       log.warn(message + " srid must be >= 0");
@@ -1312,7 +1311,7 @@ public class ClassLoaderModule implements Module {
             }
             final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
             if (Geometry.class.isAssignableFrom(parameterType)) {
-              com.revolsys.jts.geom.GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
+              GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {
                 geometryFactory = getGeometryFactory(geometryFactory,
@@ -1392,7 +1391,7 @@ public class ClassLoaderModule implements Module {
               length, scale, required, description);
             final GeometryConfiguration geometryConfiguration = method.getAnnotation(GeometryConfiguration.class);
             if (Geometry.class.isAssignableFrom(returnType)) {
-              com.revolsys.jts.geom.GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
+              GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {
                 geometryFactory = getGeometryFactory(geometryFactory,

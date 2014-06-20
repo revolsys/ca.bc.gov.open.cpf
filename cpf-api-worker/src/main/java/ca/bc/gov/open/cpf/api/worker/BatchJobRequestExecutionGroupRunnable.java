@@ -15,6 +15,8 @@ import java.util.Map.Entry;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
@@ -90,6 +92,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     batchJobId = (Number)groupIdMap.get("batchJobId");
     userId = (String)groupIdMap.get("consumerKey");
     logLevel = (String)groupIdMap.get("logLevel");
+    Logger.getLogger(moduleName + "." + businessApplicationName).setLevel(
+      Level.toLevel(logLevel));
     log = new AppLog(businessApplicationName, groupId, logLevel);
   }
 
@@ -127,7 +131,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
    * @param requestMetaData
    * @param applicationParameters
    * @param requestParameters
-   * @return
+   * @return The request map
    */
   protected Map<String, Object> executeRequest(
     final DataObjectMetaData requestMetaData,

@@ -332,7 +332,7 @@ public class PluginAdaptor {
         } else {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
-            com.revolsys.jts.geom.GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
+            GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }

@@ -95,7 +95,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    */
   private String descriptionUrl;
 
-  private com.revolsys.jts.geom.GeometryFactory geometryFactory = GeometryFactory.floating3();
+  private GeometryFactory geometryFactory = GeometryFactory.floating3();
 
   private boolean hasCustomizationProperties;
 
@@ -477,7 +477,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.descriptionUrl;
   }
 
-  public com.revolsys.jts.geom.GeometryFactory getGeometryFactory() {
+  public GeometryFactory getGeometryFactory() {
     return this.geometryFactory;
   }
 
@@ -775,7 +775,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.descriptionUrl = descriptionUrl;
   }
 
-  public void setGeometryFactory(final com.revolsys.jts.geom.GeometryFactory geometryFactory) {
+  public void setGeometryFactory(final GeometryFactory geometryFactory) {
     this.geometryFactory = geometryFactory;
   }
 

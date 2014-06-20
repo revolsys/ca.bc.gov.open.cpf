@@ -1,6 +1,7 @@
 package ca.bc.gov.open.cpf.plugin.api.log;
 
-import org.slf4j.Logger;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
@@ -32,7 +33,12 @@ public class AppLog {
   private final Logger log;
 
   public AppLog(final String name) {
-    this.log = LoggerFactory.getLogger(name);
+    this(name, "ERROR");
+  }
+
+  public AppLog(final String name, final String logLevel) {
+    this.log = Logger.getLogger(name);
+    setLogLevel(logLevel);
   }
 
   public AppLog(final String businessApplicationName, String groupId,
@@ -40,12 +46,12 @@ public class AppLog {
     if (!StringUtils.hasText(groupId)) {
       groupId = String.valueOf(System.currentTimeMillis());
     }
-    this.log = LoggerFactory.getLogger(businessApplicationName + "." + groupId);
+    this.log = Logger.getLogger(businessApplicationName + "." + groupId);
     setLogLevel(logLevel);
   }
 
   /**
-   * <p>Record the info message in the log if {@see #isInfoEnabled()} is true.</p>
+   * <p>Record the info message in the log if {@link #isInfoEnabled()} is true.</p>
    * 
    * @param message The message.
    */
@@ -76,14 +82,14 @@ public class AppLog {
   /**
    * <p>Get the logging level (ERROR, INFO, DEBUG).</p>
    * 
-   * @param The logging level (ERROR, INFO, DEBUG).
+   * @return The logging level (ERROR, INFO, DEBUG).
    */
   public String getLogLevel() {
     return logLevel;
   }
 
   /**
-   * <p>Record the info message in the log if {@see #isInfoEnabled()} is true.</p>
+   * <p>Record the info message in the log if {@link #isInfoEnabled()} is true.</p>
    * 
    * @param message The message.
    */
@@ -122,6 +128,14 @@ public class AppLog {
    */
   public void setLogLevel(final String logLevel) {
     this.logLevel = logLevel;
+    final Level level = Level.toLevel(logLevel);
+    log.setLevel(level);
+    LoggerFactory.getLogger(getClass()).error(this + " " + level);
+  }
+
+  @Override
+  public String toString() {
+    return log.getName();
   }
 
   /**

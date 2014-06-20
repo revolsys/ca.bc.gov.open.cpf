@@ -391,6 +391,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     inMessageChannel.readConnect();
   }
 
+  @SuppressWarnings("deprecation")
   protected void initLogging() {
     final Logger logger = Logger.getRootLogger();
     logger.removeAllAppenders();
