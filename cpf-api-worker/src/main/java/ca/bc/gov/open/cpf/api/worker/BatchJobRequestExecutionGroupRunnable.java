@@ -94,6 +94,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     logLevel = (String)groupIdMap.get("logLevel");
     Logger.getLogger(moduleName + "." + businessApplicationName).setLevel(
       Level.toLevel(logLevel));
+    // Tempory fix for geocoder logging
+    Logger.getLogger(moduleName + ".ca").setLevel(Level.toLevel(logLevel));
     log = new AppLog(businessApplicationName, groupId, logLevel);
   }
 
