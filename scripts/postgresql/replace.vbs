@@ -29,3 +29,4 @@ function WriteFile(FileName, Contents)
     Set OutStream = FS.OpenTextFile(FileName, 2, True)
     OutStream.Write Contents
 End Function
+

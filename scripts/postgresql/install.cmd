@@ -18,7 +18,6 @@ if "" == "%DB_NAME%" (
   set DB_NAME=%PROJECT%
 )
 
-
 psql -h %DB_HOSTNAME% -p %DB_PORT% -U postgres -d postgres -f %TEMP%\%PROJECT%-dba-all.sql > %PROJECT%-dba.log 2>&1
 if %ERRORLEVEL% NEQ 0 (
   echo "ERROR: Psql executed with error code "%ERRORLEVEL%"
