@@ -2721,7 +2721,6 @@ public class CloudProcessingFramework {
    * 
    * @param batchJobId The unique identifier of the cloud job. 
    * @param resultId The unique identifier of the result file. 
-   * @return The resource.
    *
    * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response.</p>
    */

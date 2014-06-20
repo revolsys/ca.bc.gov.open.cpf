@@ -29,6 +29,13 @@
             <configuration>
               <quiet>true</quiet>
               <show>public</show>
+              <tags>
+                <tag>
+                  <name>web.response.status</name>
+                  <placement>X</placement>
+                  <head></head>
+                </tag>
+              </tags>
             </configuration>
             <goals>
               <goal>jar</goal>

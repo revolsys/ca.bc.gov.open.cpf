@@ -24,6 +24,7 @@
 *.ini text eol=crlf
 *.exe.manifest text eol=crlf
 *.nmake text eol=crlf
+*.vbs text eol=crlf
 
 #binary
 *.exe binary

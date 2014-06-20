@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
 
 /**
  * <p>The <code>ResultList</code> annotation can be used in <a href="../../structuredData.html">structured result data</a>
@@ -16,7 +17,7 @@ import java.lang.annotation.Target;
  * 
  * <p>The value object class contains the result attributes to return for each result in the list.
  * Pick an appropriate name for the value object (e.g. Address). The value object class must have
- * one or more get methods with the {@see ResultAttribute} annotation. These
+ * one or more get methods with the {@link ResultAttribute} annotation. These
  * are the attributes that are returned to the client. The same rules apply as per structured result attributes.</p>
  * 
  * <p>The following example shows the use of the annotation on a {@link BusinessApplicationPlugin} method.</p>

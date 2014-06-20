@@ -881,7 +881,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public GeometryFactory getGeometryFactory(
-    final com.revolsys.jts.geom.GeometryFactory geometryFactory,
+    final GeometryFactory geometryFactory,
     final Map<String, ? extends Object> parameters) {
     if (geometryFactory == null) {
       return null;
@@ -2237,14 +2237,14 @@ public class BatchJobService implements ModuleEventListener {
     final Class<?> dataClass = dataType.getJavaClass();
     if (Geometry.class.isAssignableFrom(dataClass)) {
       if (parameterValue != null) {
-        final com.revolsys.jts.geom.GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
+        final GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
         Geometry geometry;
         if (parameterValue instanceof Geometry) {
 
           geometry = (Geometry)parameterValue;
           if (geometry.getSrid() == 0 && StringUtils.hasText(sridString)) {
             final int srid = Integer.parseInt(sridString);
-            final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
+            final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
             geometry = sourceGeometryFactory.geometry(geometry);
           }
         } else {
@@ -2261,7 +2261,7 @@ public class BatchJobService implements ModuleEventListener {
           try {
             if (StringUtils.hasText(sridString)) {
               final int srid = Integer.parseInt(sridString);
-              final com.revolsys.jts.geom.GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
+              final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
               geometry = sourceGeometryFactory.geometry(wkt, false);
             } else {
               geometry = geometryFactory.geometry(wkt, false);

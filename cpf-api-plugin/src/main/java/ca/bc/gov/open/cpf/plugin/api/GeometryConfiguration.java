@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 /**
  * <p>
  * The <code>GeometryConfiguration</code> annotation can be used on a {@link BusinessApplicationPlugin} class,

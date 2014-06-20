@@ -11,7 +11,6 @@ import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsWktParser;
 
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.gis.cs.CoordinateSystem;
-import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.gis.data.model.types.DataTypes;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
@@ -221,9 +220,9 @@ public class GeometryFactory extends
     super(getPrecisionModel(scaleXY), crsId,
       new PackedCoordinateSequenceFactory(
         PackedCoordinateSequenceFactory.DOUBLE, axisCount));
-    this.coordinateSystem = EpsgCoordinateSystems.getCoordinateSystem(crsId);
-    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.fixed(
-      coordinateSystem.getId(), axisCount, scaleXY, scaleZ);
+    this.geometryFactory = com.revolsys.jts.geom.GeometryFactory.fixed(crsId,
+      axisCount, scaleXY, scaleZ);
+    this.coordinateSystem = geometryFactory.getCoordinateSystem();
   }
 
   /**
@@ -303,11 +302,8 @@ public class GeometryFactory extends
    * 
    * <ul>
    *   <li><code>double[]</code></li>
-   *   <li>{@link Point}</li>
-   *   <li>{@link Coordinates}</li>
-   *   <li>{@link Coordinates}</li>
-   *   <li>{@link CoordinatesList}</li>
-   *   <li>{@link CoordinatesList}</li>
+   *   <li>{@link LineString}</li>
+   *   <li>{@link CoordinateSequence}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
@@ -328,10 +324,8 @@ public class GeometryFactory extends
    * <ul>
    *   <li><code>double[]</code></li>
    *   <li>{@link Point}</li>
-   *   <li>{@link Coordinates}</li>
-   *   <li>{@link Coordinates}</li>
-   *   <li>{@link CoordinatesList}</li>
-   *   <li>{@link CoordinatesList}</li>
+   *   <li>{@link Coordinate}</li>
+   *   <li>{@link CoordinateSequence}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
@@ -389,8 +383,7 @@ public class GeometryFactory extends
    *   <li><code>double[]</code></li>
    *   <li>{@link LineString}</li>
    *   <li>{@link LinearRing}</li>
-   *   <li>{@link CoordinatesList}</li>
-   *   <li>{@link CoordinatesList}</li>
+   *   <li>{@link CoordinateSequence}</li>
    * </ul>
    * 
    * <p>For a <code>double[]</code> the size of the array should be a multiple
