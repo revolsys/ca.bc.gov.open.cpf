@@ -113,7 +113,7 @@ $(document).ready(function() {
 <h1>Business Application Class</h1>
 
 <h2>Java Class</h2>
-<p>A business application plug-in is implemented as a Java class with the <a href="http://bcgov.revolsys.com/pub/cpf/docs/plugin/java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin">BusinessApplicationPlugin</a> annotation. See <a href="http://bcgov.revolsys.com/pub/cpf/docs/plugin/java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin">BusinessApplicationPlugin</a> for details of the annotation elements that can be used to configure the business application.</p>
+<p>A business application plug-in is implemented as a Java class with the <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin">BusinessApplicationPlugin</a> annotation. See <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin">BusinessApplicationPlugin</a> for details of the annotation elements that can be used to configure the business application.</p>
 
 <p>A single plug-in module can have more than one plug-in class, one for each plug-in provided by that module.</p>
 
@@ -404,8 +404,25 @@ public void setResultDataContentType(final String format) {
 
 <h2>Logging</h2>
 
-<p>Due to the distributed nature of the CPF regular logging frameworks such as log4j should not be used as the logs will be on each worker and not available from the CPF admin web application. See the <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.log.AppLog">AppLog</a> class for details
-of the logging API business application plug-ins should use.</p>
+<p>The CPF auotmatically creates <a href="../admin/log.html">Log files</a> for each module and
+business application running within the master and worker processes. For a business application
+the log level can be changed using the <a href="../admin/app.html#edit">Edit Business Application</a>
+page without requiring a restart to the module.</p>
+
+<p class="note"><b>NOTE:</b> Applications MUST NOT include logging configuration files (e.g. log4j.xml) in their jars.
+They must also not manually create Appenders or otherwise change the logging configuration.<p>
+
+<p>The preferred approach is for business application plug-ins to use the
+<a href="java-api/#ca.bc.gov.open.cpf.plugin.api.log.AppLog">AppLog</a> class for logging to have
+the messages appear in the appropriate log file.</p>
+
+<p>Th plugin The plug-in may also use <a href="http://logging.apache.org/log4j/">log4j</a> or
+<a href="http://www.slf4j.org">slf4j</a> with the following logger name sub trees.</p>
+<ul>
+  <li>Loggers below <code>[ModuleName].[BusinessApplicationName]</code> (e.g. <code>DEMO.demoApp</code>).</li>
+  <li>Loggers below <a href="java-api/#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin.packageName">BusinessApplicationPlugin.packageName</a> (e.g. <code>ca.bc.gov.demo</code>)</li>
+</ul>
+</p>
 
 <h2>Memory Management</h2>
 
