@@ -7,7 +7,7 @@ Version:           4.1.0
 Software/Hardware Requirements
 ------------------------------
 Oracle:                       N/A
-Java:                         7+
+Java:                         6+
 Maven:                        3.0.3+
 App Server:                   Tomcat 7+
 App Server Additional Memory: 100MB
@@ -16,15 +16,8 @@ App Server Additional Memory: 100MB
 1. Database Installation
 ------------------------
 
-Database:           
-          DBCDLV - Delivery
-          DBCTST - Test
-          DBCPRD - Production
+N/A
 
-Script Files:
-
-sqlplus CPF@DBCDLV @scripts\update\cpf\main.sql
-  
 2. Configuration Files
 ----------------------
 
