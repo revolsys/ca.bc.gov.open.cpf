@@ -154,6 +154,24 @@ div.sideMenu > ul ul {
   padding: 0px 0px 0px 10px;
 }
 
+div.tocMenu {
+  background-color:white;
+}
+
+div.tocMenu div.title {
+  font: bold 11px Verdana, Arial, Helvetica, sans-serif;
+  background-image: none;
+  background-color: #6699CC;
+  color: white;
+}
+
+div.tocMenu ol {
+  font-size: 10px;
+}
+
+div.tocMenu ol ol {
+}
+
 div.footnotes {
   font-size: 0.7em;
   margin: 0px;
