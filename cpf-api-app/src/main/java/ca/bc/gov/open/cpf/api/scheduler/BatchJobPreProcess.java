@@ -12,7 +12,7 @@ public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
   }
 
   @Override
-  public void processJob(final long batchJobId) {
+  public boolean processJob(final long batchJobId) {
     final BatchJobService batchJobService = getBatchJobService();
     final long time = System.currentTimeMillis();
 
@@ -20,7 +20,10 @@ public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
     if (dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.SUBMITTED,
       BatchJob.CREATING_REQUESTS)) {
       final long lastChangedTime = System.currentTimeMillis();
-      batchJobService.preProcessBatchJob(batchJobId, time, lastChangedTime);
+      return batchJobService.preProcessBatchJob(batchJobId, time,
+        lastChangedTime);
+    } else {
+      return true;
     }
   }
 

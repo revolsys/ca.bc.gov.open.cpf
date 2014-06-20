@@ -34,16 +34,16 @@ public void setAlgorithmName(final String algorithmName) {
 @Target(value = ElementType.METHOD)
 public @interface RequestParameter {
   /**
-   * The url to a page that describes the parameter in greater detail than is possible on the
-   * form. If specified the name of the parameter will be a hyper-link to this URL. 
-   */
-  String descriptionUrl() default "";
-
-  /**
    * The description of the request parameter to display on the plug-in overview
    * page and as instructions on the create job forms.
    */
   String description() default "";
+
+  /**
+   * The url to a page that describes the parameter in greater detail than is possible on the
+   * form. If specified the name of the parameter will be a hyper-link to this URL. 
+   */
+  String descriptionUrl() default "";
 
   /** The index (position) of the parameter in the input file form. */
   int index() default -1;
@@ -55,9 +55,27 @@ public @interface RequestParameter {
    */
   int length() default -1;
 
+  /** 
+   * The maximum allowed value for numeric parameters. The string value will be converted to the
+   * correct data type.
+   */
+  String maxValue() default "";
+
+  /**
+   * The minimum allowed value for numeric parameters. The string value will be converted to the
+   * correct data type.
+   */
+  String minValue() default "";
+
   /**
    * The number of decimal places for fixed precision numeric types.
    */
   int scale() default -1;
+
+  /**
+   * The units of measurement for numeric fields (e.g. metres, feet, degrees).
+   * This will be displayed after the field on the form.
+   */
+  String units() default "";
 
 }

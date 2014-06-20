@@ -700,10 +700,10 @@ public class CpfDataAccessObject {
 
   public List<DataObject> getUserAccountsLikeName(final String name) {
     if (StringUtils.hasText(name)) {
-      final Condition consumerKeyLike = Conditions.likeUpper(
+      final Condition consumerKeyLike = Conditions.iLike(
         UserAccount.CONSUMER_KEY, name);
-      final Condition userNameLike = Conditions.likeUpper(
-        UserAccount.USER_NAME, name);
+      final Condition userNameLike = Conditions.iLike(UserAccount.USER_NAME,
+        name);
       final Condition[] conditions = {
         consumerKeyLike, userNameLike
       };
@@ -951,7 +951,7 @@ public class CpfDataAccessObject {
     final DataSource dataSource = jdbcDataStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "NUM_COMPLETED_GROUPS = NUM_SUBMITTED_GROUPS, NUM_SCHEDULED_GROUPS = 0, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, LAST_SCHEDULED_TIMESTAMP = NULL, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "NUM_COMPLETED_GROUPS = NUM_SUBMITTED_GROUPS, NUM_SCHEDULED_GROUPS = 0, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
       + "WHERE JOB_STATUS IN ('creatingRequests','creatingResults') AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());

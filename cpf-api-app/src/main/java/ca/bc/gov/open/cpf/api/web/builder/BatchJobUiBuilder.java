@@ -32,6 +32,8 @@ import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;
+import com.revolsys.ui.web.utils.HttpServletUtils;
+import com.revolsys.util.DateUtil;
 import com.revolsys.util.JavaBeanUtil;
 
 @Controller
@@ -73,8 +75,11 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
       } else {
         return businessApplication;
       }
+    } else if (keyName.equals("jobStatusDate")) {
+      return DateUtil.format("yyyy-MM-dd HH:mm:ss");
+    } else {
+      return super.getProperty(object, keyName);
     }
-    return super.getProperty(object, keyName);
   }
 
   public void module(final XmlWriter out, final Object object) {
@@ -98,6 +103,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder implements
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
+    HttpServletUtils.setAttribute("title", "Batch Jobs");
     return createDataTableHandler(request, "list");
   }
 

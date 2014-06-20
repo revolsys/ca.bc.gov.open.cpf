@@ -18,11 +18,19 @@ div.dataTables_wrapper td.BATCH_JOB_ID {
   width: 100px;
 }
 
-div.dataTables_wrapper th.WHEN_CREATED,
+div.dataTables_wrapper td.WHEN_UPDATED,
 div.dataTables_wrapper td.WHEN_CREATED {
-  min-width: 90px;
-  max-width: 90px;
-  width: 90px;
+  font-size: 9px;
+  min-width: 105px;
+  max-width: 105px;
+  width: 105px;
+}
+
+div.dataTables_wrapper th.WHEN_UPDATED,
+div.dataTables_wrapper th.WHEN_CREATED {
+  min-width: 105px;
+  max-width: 105px;
+  width: 105px;
 }
 
 .businessApplication div.dataTables_wrapper td.name,
@@ -87,9 +95,9 @@ div.dataTables_wrapper th.JOB_STATUS,
 div.dataTables_wrapper td.JOB_STATUS,
 div.dataTables_wrapper th.status,
 div.dataTables_wrapper td.status {
-  min-width: 110px;
-  max-width: 110px;
-  width: 110px;
+  min-width: 115px;
+  max-width: 115px;
+  width: 115px;
 }
 
 div.dataTables_wrapper th.started,
@@ -99,5 +107,19 @@ div.dataTables_wrapper td.enabled {
   min-width: 80px;
   max-width: 80px;
   width: 80px;
+}
+
+div.requestAttributes td.name,
+div.requestAttributes th.name {
+  min-width: 200px;
+  max-width: 200px;
+  width: 200px;
+}
+
+div.resultFields td.name,
+div.resultFields th.name {
+  min-width: 200px;
+  max-width: 200px;
+  width: 200px;
 }
 

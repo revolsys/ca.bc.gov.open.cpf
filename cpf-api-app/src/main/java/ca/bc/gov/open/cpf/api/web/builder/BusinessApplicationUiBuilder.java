@@ -53,6 +53,7 @@ import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.config.Page;
+import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 
@@ -144,6 +145,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
+    HttpServletUtils.setAttribute("title", "Business Applications");
     final List<BusinessApplication> businessApplications = getBusinessApplications();
     final Map<String, Object> parameters = Collections.emptyMap();
 

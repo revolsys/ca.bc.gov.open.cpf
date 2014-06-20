@@ -336,6 +336,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
   public Object pageUserAccountList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
+    HttpServletUtils.setAttribute("title", "User Accounts");
     return createDataTableHandler(request, "list");
   }
 

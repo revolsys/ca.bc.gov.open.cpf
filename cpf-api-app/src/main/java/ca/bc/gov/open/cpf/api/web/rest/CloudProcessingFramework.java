@@ -309,7 +309,7 @@ public class CloudProcessingFramework {
   private void addInputDataFields(final ElementContainer fields,
     final BusinessApplication businessApplication) {
     final Map<String, String> inputDataFileExtensions = businessApplication.getInputDataFileExetensions();
-    final String defaultInputType = BusinessApplication.getDefaultFileExtension(inputDataFileExtensions);
+    final String defaultInputType = businessApplication.getDefaultInputDataFileExtension();
     final SelectField inputDataContentType = new SelectField(
       "inputDataContentType", defaultInputType, true, inputDataFileExtensions);
 
@@ -330,7 +330,7 @@ public class CloudProcessingFramework {
     TableHeadingDecorator.addRow(
       fields,
       inputData,
-      "Input Data",
+      "Input Data File",
       "The multi-part file containing the input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
   }
 
@@ -351,7 +351,7 @@ public class CloudProcessingFramework {
       TableHeadingDecorator.addRow(
         fields,
         container,
-        "Input Data",
+        "Input Data File",
         "Use the 'Add File' or 'Add URL' buttons to add one or more input data files, then select the MIME type for each file and enter the URL or select the file.");
 
     } else {
@@ -424,7 +424,7 @@ public class CloudProcessingFramework {
   private void addResultDataFields(final ElementContainer container,
     final BusinessApplication businessApplication, final String fieldName) {
     final Map<String, String> resultDataFileExtensions = businessApplication.getResultDataFileExtensions();
-    final String defaultValue = BusinessApplication.getDefaultFileExtension(resultDataFileExtensions);
+    final String defaultValue = businessApplication.getDefaultResultDataFileExtension();
 
     final SelectField resultDataContentType = new SelectField(fieldName,
       defaultValue, true, resultDataFileExtensions);
@@ -791,6 +791,14 @@ public class CloudProcessingFramework {
       } catch (final IOException e) {
         dataAccessObject.delete(batchJob);
         throw new HttpMessageNotReadableException(e.getMessage(), e);
+      } catch (final Throwable e) {
+        dataAccessObject.delete(batchJob);
+        if (BatchJobService.isDatabaseResourcesException(e)) {
+          throw new HttpMessageNotReadableException(
+            "The system is at capacity and cannot accept more jobs at this time. Try again in 1 hour.");
+        } else {
+          throw new HttpMessageNotReadableException(e.getMessage(), e);
+        }
       }
       HttpServletUtils.setPathVariable("batchJobId", batchJobId);
       batchJobUiBuilder.redirectPage("clientView");
@@ -2083,6 +2091,9 @@ public class CloudProcessingFramework {
           + BusinessApplication.REQUEST_PARAMETER, "Request Parameter"));
       }
       serializers.add(new StringKeySerializer("typeDescription", "Type"));
+      serializers.add(new StringKeySerializer("minValue", "Min"));
+      serializers.add(new StringKeySerializer("maxValue", "Max"));
+      serializers.add(new StringKeySerializer("defaultValue", "Default"));
       serializers.add(new StringKeySerializer("description"));
 
       final Attribute inputDataContentType = new Attribute(
@@ -2091,6 +2102,7 @@ public class CloudProcessingFramework {
         false,
         "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
       inputDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
+      inputDataContentType.setDefaultValue(businessApplication.getDefaultInputDataContentType());
       requestAttributes.add(0, inputDataContentType);
 
       final Attribute inputData = new Attribute("inputData",
@@ -2390,6 +2402,7 @@ public class CloudProcessingFramework {
 
       return batchJobUiBuilder.createDataTableMap("clientList", parameters);
     } else if (MediaTypeUtil.isHtmlPage()) {
+      HttpServletUtils.setAttribute("title", "Batch Jobs");
       final String url = HttpServletUtils.getFullUrl("/ws/#batchJob_clientList");
       final HttpServletResponse response = HttpServletUtils.getResponse();
       response.setStatus(HttpServletResponse.SC_SEE_OTHER);
@@ -2499,6 +2512,7 @@ public class CloudProcessingFramework {
         + " does not exist.");
     } else {
       if (MediaTypeUtil.isHtmlPage()) {
+        HttpServletUtils.setAttribute("title", "Batch Job " + batchJobId);
         final TabElementContainer tabs = new TabElementContainer();
         batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);

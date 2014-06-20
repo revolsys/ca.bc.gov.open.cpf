@@ -62,7 +62,7 @@ import com.revolsys.spring.ByteArrayResource;
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "92j025");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(jobId, 2000);
       for (Map&lt;String, Object&gt; result : results) {
@@ -166,7 +166,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "92g025");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     // Download the results of the job
     client.closeJob(jobId);
   } finally {
@@ -221,7 +221,6 @@ public class CpfClient {
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
    * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
    * requests.
@@ -232,14 +231,12 @@ public class CpfClient {
    */
   public String createJobWithOpaqueResourceRequests(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, Object> jobParameters, final String inputDataContentType,
     final String resultContentType, final Collection<Resource> requests) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -293,7 +290,6 @@ public class CpfClient {
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
    * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
    * requests.
@@ -304,12 +300,11 @@ public class CpfClient {
    */
   public String createJobWithOpaqueResourceRequests(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, Object> jobParameters, final String inputDataContentType,
     final String resultContentType, final Resource... requests) {
     return createJobWithOpaqueResourceRequests(businessApplicationName,
-      businessApplicationVersion, jobParameters, inputDataContentType,
-      resultContentType, Arrays.asList(requests));
+      jobParameters, inputDataContentType, resultContentType,
+      Arrays.asList(requests));
   }
 
   /**
@@ -342,7 +337,6 @@ public class CpfClient {
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
    * @param inputDataUrls The collection of URLs for the requests.
    * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
@@ -353,15 +347,13 @@ public class CpfClient {
    */
   public String createJobWithOpaqueUrlRequests(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, ? extends Object> jobParameters,
     final String inputDataContentType, final String resultContentType,
     final Collection<String> inputDataUrls) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -408,7 +400,6 @@ public class CpfClient {
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
    * @param inputDataUrls The collection of resources for the requests.
    * @param inputDataContentType The <a href="../../fileFormats.html">media type</a> used for all the
@@ -419,13 +410,12 @@ public class CpfClient {
    */
   public String createJobWithOpaqueUrlRequests(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, ? extends Object> jobParameters,
     final String inputDataContentType, final String resultContentType,
     final String... inputDataUrls) {
     return createJobWithOpaqueUrlRequests(businessApplicationName,
-      businessApplicationVersion, jobParameters, inputDataContentType,
-      resultContentType, Arrays.asList(inputDataUrls));
+      jobParameters, inputDataContentType, resultContentType,
+      Arrays.asList(inputDataUrls));
   }
 
   /**
@@ -455,7 +445,7 @@ public class CpfClient {
     requests.add(Collections.singletonMap("mapTileId", "92j016"));
     
     String jobId = client.createJobWithStructuredMultipleRequestsList(
-      "MapTileByTileId", "1.0.0", jobParameters, requests,"application/json");
+      "MapTileByTileId", jobParameters, requests,"application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
         jobId, 5000);
@@ -471,8 +461,6 @@ public class CpfClient {
    *
    * @param businessApplicationName The name of the web services business
    * application.
-   * @param businessApplicationVersion The version of the web services business
-   * application.
    * @param jobParameters A map of additional parameters specific to the
    * requested Business Application.
    * @param requests A list of data Maps of the requests.
@@ -481,7 +469,6 @@ public class CpfClient {
    */
   public String createJobWithStructuredMultipleRequestsList(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, ? extends Object> jobParameters,
     final List<Map<String, ? extends Object>> requests,
     final String resultContentType) {
@@ -501,8 +488,8 @@ public class CpfClient {
       out.toByteArray());
 
     return createJobWithStructuredMultipleRequestsResource(
-      businessApplicationName, businessApplicationVersion, jobParameters,
-      numRequests, inputData, inputDataType, resultContentType);
+      businessApplicationName, jobParameters, numRequests, inputData,
+      inputDataType, resultContentType);
   }
 
   /**
@@ -535,7 +522,7 @@ public class CpfClient {
       "../cpf-war-app/src/main/webapp/docs/sample/NTS-500000-by-name.csv");
 
     String jobId = client.createJobWithStructuredMultipleRequestsResource(
-      "MapTileByTileId", "1.0.0", jobParameters, numRequests, inputData,
+      "MapTileByTileId", jobParameters, numRequests, inputData,
       "text/csv", "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
@@ -551,7 +538,6 @@ public class CpfClient {
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
    * @param numRequests The number of requests in the input data.
    * @param inputData The resource containing the request input data.
@@ -563,15 +549,13 @@ public class CpfClient {
    */
   public String createJobWithStructuredMultipleRequestsResource(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, ? extends Object> jobParameters, final int numRequests,
     final Resource inputData, final String inputDataContentType,
     final String resultContentType) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -612,7 +596,7 @@ public class CpfClient {
 
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/docs/sample/NTS-500000-by-name.csv";
     String jobId = client.createJobWithStructuredMultipleRequestsUrl(
-      "MapTileByTileId", "1.0.0", jobParameters, numRequests, inputDataUrl,
+      "MapTileByTileId", jobParameters, numRequests, inputDataUrl,
       "text/csv", "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
@@ -628,7 +612,6 @@ public class CpfClient {
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @param jobParameters The global job parameters.
    * @param numRequests The number of requests in the input data.
    * @param inputDataUrl The URL containing the request input data.
@@ -640,15 +623,13 @@ public class CpfClient {
    */
   public String createJobWithStructuredMultipleRequestsUrl(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, ? extends Object> jobParameters, final int numRequests,
     final String inputDataUrl, final String inputDataContentType,
     final String resultContentType) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -683,7 +664,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "92j025");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(
         jobId, 5000);
@@ -698,21 +679,18 @@ public class CpfClient {
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @param parameters The job and request parameters.
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data using.
    * @return The cloud job id (URL) of the created job.
    */
   public String createJobWithStructuredSingleRequest(
     final String businessApplicationName,
-    final String businessApplicationVersion,
     final Map<String, ? extends Object> parameters,
     final String resultContentType) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/single/");
+        + businessApplicationName + "/single/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, parameters);
@@ -737,24 +715,21 @@ public class CpfClient {
   CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
   try {
     Map&lt;String, Object&gt; specification = client.getBusinessApplicationInstantSpecification(
-      "MapTileByTileId", "1.0.0");
+      "MapTileByTileId");
     System.out.println(specification);
    } finally {
     client.closeConnection();
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @return The map containing the business application specification.
    */
   public Map<String, Object> getBusinessApplicationInstantSpecification(
-    final String businessApplicationName,
-    final String businessApplicationVersion) {
+    final String businessApplicationName) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/instant/");
+        + businessApplicationName + "/instant/?format=json&specification=true");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -774,24 +749,21 @@ public class CpfClient {
   CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
   try {
     Map&lt;String, Object&gt; specification = client.getBusinessApplicationMultipleSpecification(
-      "MapTileByTileId", "1.0.0");
+      "MapTileByTileId");
     System.out.println(specification);
    } finally {
     client.closeConnection();
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @return The map containing the business application specification.
    */
   public Map<String, Object> getBusinessApplicationMultipleSpecification(
-    final String businessApplicationName,
-    final String businessApplicationVersion) {
+    final String businessApplicationName) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/multiple/");
+        + businessApplicationName + "/multiple/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -855,73 +827,23 @@ public class CpfClient {
   CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
   try {
     Map&lt;String, Object&gt; specification = client.getBusinessApplicationSingleSpecification(
-      "MapTileByTileId", "1.0.0");
+      "MapTileByTileId");
     System.out.println(specification);
    } finally {
     client.closeConnection();
   }</pre>
    *
    * @param businessApplicationName The name of the business application.
-   * @param businessApplicationVersion The version of the business application.
    * @return The map containing the business application specification.
    */
   public Map<String, Object> getBusinessApplicationSingleSpecification(
-    final String businessApplicationName,
-    final String businessApplicationVersion) {
-    final OAuthHttpClient httpClient = httpClientPool.getClient();
-    try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/" + businessApplicationVersion
-        + "/single/");
-      final Map<String, Object> result = httpClient.getJsonResource(url);
-      return result;
-    } finally {
-      httpClientPool.releaseClient(httpClient);
-    }
-  }
-
-  /**
-   * <p>Get the list of versions for a business application
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources">Get Business Applications Resources</a> REST API.</p>
-   * 
-   * <p>The following code fragment shows an example of using the API.</p>
-   * 
-   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
-  String consumerKey = "cpftest";
-  String consumerSecret = "cpftest";
-  CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-  try {
-    &lt;Resource&gt; versions = client.getBusinessApplicationVersions("MapTileByTileId");
-    for (String version : versions) {
-      System.out.println(version);
-    }
-  } finally {
-    client.closeConnection();
-  }</pre>
-   *
-   * @param businessApplicationName The business application name.
-   * @return The list of version numbers.
-   */
-  public List<String> getBusinessApplicationVersions(
     final String businessApplicationName) {
     final OAuthHttpClient httpClient = httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/");
+        + businessApplicationName + "/single/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
-      @SuppressWarnings("unchecked")
-      final List<Map<String, Object>> items = (List<Map<String, Object>>)result.get("resources");
-      if (items != null && !items.isEmpty()) {
-        final List<String> businessApplicationVersions = new ArrayList<String>();
-        for (final Map<String, Object> item : items) {
-          final String businessApplicationVersion = (String)item.get("businessApplicationVersion");
-          if (StringUtils.hasText(businessApplicationVersion)) {
-            businessApplicationVersions.add(businessApplicationVersion);
-          }
-        }
-        return businessApplicationVersions;
-      }
-      return Collections.emptyList();
+      return result;
     } finally {
       httpClientPool.releaseClient(httpClient);
     }
@@ -973,7 +895,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "INVALID");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobErrorResults(
         jobId, 2000);
@@ -1090,7 +1012,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "INVALID");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; files = client.getJobResultFileList(jobId, 2000);
       for (Map&lt;String, Object&gt; file : files) {
@@ -1140,7 +1062,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "INVALID");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       Map&lt;String, Object&gt; status = client.getJobStatus(jobId);
       System.out.println(status);
@@ -1212,7 +1134,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "92j025");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; results = client.getJobStructuredResults(jobId, 2000);
       for (Map&lt;String, Object&gt; result : results) {
@@ -1269,7 +1191,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "INVALID");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       &lt;Resource&gt; jobIds = client.getUserJobIdUrls();
       for (String jobIdUrl : jobIds) {
@@ -1288,7 +1210,7 @@ public class CpfClient {
    * @return The list of job id URLs.
    */
   public List<String> getUserJobIdUrls() {
-    final String path = "/ws/users/" + consumerKey + "/jobs/";
+    final String path = "/ws/jobs/";
     return getJobIdUrls(path);
   }
 
@@ -1308,7 +1230,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "INVALID");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       &lt;Resource&gt; jobIds = client.getUserJobIdUrls("MapTileByTileId");
       for (String jobIdUrl : jobIds) {
@@ -1328,8 +1250,7 @@ public class CpfClient {
    * @return The list of job id URLs.
    */
   public List<String> getUserJobIdUrls(final String businessApplicationName) {
-    final String path = "/ws/users/" + consumerKey + "/apps/"
-      + businessApplicationName + "/jobs/";
+    final String path = "/ws/apps/" + businessApplicationName + "/jobs/";
     return getJobIdUrls(path);
   }
 
@@ -1351,7 +1272,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "INVALID");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       boolean completed = client.isJobCompleted(jobId, 2000);
       if (completed) {
@@ -1445,7 +1366,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "INVALID");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       int numErrors = client.processJobErrorResults(jobId, 10000,
         new Callback&lt;Map&lt;String, Object&gt;&gt;() {
@@ -1517,7 +1438,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "92j025");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       int numResults = client.processJobStructuredResults(jobId, 10000,
         new Callback&lt;Map&lt;String, Object&gt;&gt;() {
@@ -1585,7 +1506,7 @@ public class CpfClient {
     parameters.put("mapGridName", "BCGS 1:20 000");
     parameters.put("mapTileId", "92j016");
     String jobId = client.createJobWithStructuredSingleRequest(
-      "MapTileByTileId", "1.0.0", parameters, "application/json");
+      "MapTileByTileId", parameters, "application/json");
     try {
       List&lt;Map&lt;String, Object&gt;&gt; files = client.getJobResultFileList(
         jobId, 5000);

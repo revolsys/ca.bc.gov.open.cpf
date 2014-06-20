@@ -455,7 +455,8 @@ public class ClassLoaderModule implements Module {
   }
 
   private BusinessApplication getBusinessApplicaton(final String moduleName,
-    final Class<?> pluginClass) {
+    final Class<?> pluginClass,
+    final Map<String, Map<String, Object>> propertiesByName) {
     final String className = pluginClass.getName();
     final BusinessApplicationPlugin pluginMetadata = pluginClass.getAnnotation(BusinessApplicationPlugin.class);
     if (pluginMetadata == null) {
@@ -471,6 +472,12 @@ public class ClassLoaderModule implements Module {
 
       final BusinessApplication businessApplication = new BusinessApplication(
         pluginMetadata, this, businessApplicationName);
+
+      final Map<String, Object> defaultProperties = propertiesByName.get("default");
+      businessApplication.setProperties(defaultProperties);
+      final Map<String, Object> properties = propertiesByName.get(businessApplicationName);
+      businessApplication.setProperties(properties);
+
       businessApplication.setCoordinateSystems(coordinateSystems);
 
       final String descriptionUrl = pluginMetadata.descriptionUrl();
@@ -1048,7 +1055,8 @@ public class ClassLoaderModule implements Module {
 
   private BusinessApplication loadBusinessApplication(
     final Map<String, BusinessApplication> businessApplicationsByName,
-    final String moduleName, final String pluginClassName) {
+    final String moduleName, final String pluginClassName,
+    final Map<String, Map<String, Object>> propertiesByName) {
     try {
       if (isEnabled()) {
         final ClassLoader classLoader = getClassLoader();
@@ -1056,7 +1064,7 @@ public class ClassLoaderModule implements Module {
         final Class<?> pluginClass = Class.forName(pluginClassName.trim(),
           true, classLoader);
         final BusinessApplication businessApplication = getBusinessApplicaton(
-          moduleName, pluginClass);
+          moduleName, pluginClass, propertiesByName);
         final String pluginName = businessApplication.getName();
         businessApplicationsByName.put(pluginName, businessApplication);
         log.info("End\tLoading plugin\tclass=" + pluginClassName
@@ -1093,10 +1101,6 @@ public class ClassLoaderModule implements Module {
       } else {
         propertiesByName = Collections.emptyMap();
       }
-      Map<String, Object> defaultProperties = propertiesByName.get("default");
-      if (defaultProperties == null) {
-        defaultProperties = Collections.emptyMap();
-      }
       for (final String beanName : applicationContext.getBeanDefinitionNames()) {
         try {
           final BeanDefinition beanDefinition = applicationContext.getBeanDefinition(beanName);
@@ -1105,17 +1109,16 @@ public class ClassLoaderModule implements Module {
             BusinessApplicationPlugin.class) != null) {
             final String scope = beanDefinition.getScope();
             if (BeanDefinition.SCOPE_PROTOTYPE.equals(scope)) {
+
               final BusinessApplication businessApplication = loadBusinessApplication(
-                businessApplicationsByName, name, pluginClassName);
+                businessApplicationsByName, name, pluginClassName,
+                propertiesByName);
               if (businessApplication != null) {
                 final String businessApplicationName = businessApplication.getName();
                 initAppLogAppender(businessApplicationName);
                 businessApplicationNames.add(businessApplicationName);
                 businessApplicationsToBeanNames.put(businessApplication,
                   beanName);
-                businessApplication.setProperties(defaultProperties);
-                final Map<String, Object> properties = propertiesByName.get(businessApplicationName);
-                businessApplication.setProperties(properties);
                 final String componentName = "APP_" + businessApplicationName;
                 final ConfigPropertyLoader propertyLoader = getConfigPropertyLoader();
                 final String moduleName = getName();
@@ -1206,14 +1209,23 @@ public class ClassLoaderModule implements Module {
           String description;
           int length;
           int scale;
+          String units;
+          String minValue;
+          String maxValue;
           if (requestParameter) {
             description = requestParameterMetadata.description();
             length = requestParameterMetadata.length();
             scale = requestParameterMetadata.scale();
+            units = requestParameterMetadata.units();
+            minValue = requestParameterMetadata.minValue();
+            maxValue = requestParameterMetadata.maxValue();
           } else {
             description = jobParameterMetadata.description();
             length = jobParameterMetadata.length();
             scale = jobParameterMetadata.scale();
+            units = jobParameterMetadata.units();
+            minValue = jobParameterMetadata.minValue();
+            maxValue = jobParameterMetadata.maxValue();
           }
           final String parameterName = methodName.substring(3, 4).toLowerCase()
             + methodName.substring(4);
@@ -1257,7 +1269,16 @@ public class ClassLoaderModule implements Module {
             }
             final Attribute attribute = new Attribute(parameterName, dataType,
               length, scale, required, description);
+            if (StringUtils.hasText(minValue)) {
+              attribute.setMinValue(StringConverterRegistry.toObject(dataType,
+                minValue));
+            }
+            if (StringUtils.hasText(maxValue)) {
+              attribute.setMaxValue(StringConverterRegistry.toObject(dataType,
+                maxValue));
+            }
             attribute.setAllowedValues(Arrays.asList(allowedValues));
+            attribute.setProperty("units", units);
 
             final DefaultValue defaultValueMetadata = method.getAnnotation(DefaultValue.class);
             if (defaultValueMetadata != null) {
