@@ -15,8 +15,6 @@ import java.util.Map.Entry;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
@@ -92,10 +90,6 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     batchJobId = (Number)groupIdMap.get("batchJobId");
     userId = (String)groupIdMap.get("consumerKey");
     logLevel = (String)groupIdMap.get("logLevel");
-    Logger.getLogger(moduleName + "." + businessApplicationName).setLevel(
-      Level.toLevel(logLevel));
-    // Tempory fix for geocoder logging
-    Logger.getLogger(moduleName + ".ca").setLevel(Level.toLevel(logLevel));
     log = new AppLog(businessApplicationName, groupId, logLevel);
   }
 
@@ -324,6 +318,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           executor.addFailedGroup(groupId);
           return;
         } else {
+          businessApplication.setLogLevel(logLevel);
+
           module = businessApplication.getModule();
           final String groupUrl = httpClient.getUrl("/worker/workers/"
             + workerId + "/jobs/" + batchJobId + "/groups/" + groupId);

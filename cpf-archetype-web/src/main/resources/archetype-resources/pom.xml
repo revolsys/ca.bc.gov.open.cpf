@@ -11,7 +11,7 @@
   <parent>
     <groupId>ca.bc.gov.open.cpf</groupId>
     <artifactId>cpf-parent</artifactId>
-    <version>4.1.0-SNAPSHOT</version>
+    <version>5.0.0-SNAPSHOT</version>
   </parent>
   <groupId>${groupId}</groupId>
   <artifactId>${artifactId}</artifactId>
@@ -21,6 +21,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ca.bc.gov.open.cpf.version>4.1.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
+    <ca.bc.gov.open.cpf.version>5.0.0-SNAPSHOT</ca.bc.gov.open.cpf.version>
   </properties>
 </project>

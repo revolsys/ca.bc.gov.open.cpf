@@ -24,7 +24,6 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.rolling.FixedWindowRollingPolicy;
 import org.apache.log4j.rolling.RollingFileAppender;
@@ -264,7 +263,6 @@ public class ClassLoaderModule implements Module {
   private void closeAppLogAppender(final String name) {
     final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(name);
     synchronized (logger) {
-      logger.setLevel(Level.DEBUG);
       logger.removeAllAppenders();
       logger.setAdditivity(true);
     }
@@ -510,6 +508,12 @@ public class ClassLoaderModule implements Module {
 
       final String batchModePermission = pluginMetadata.batchModePermission();
       businessApplication.setBatchModePermission(batchModePermission);
+
+      String packageName = pluginMetadata.packageName();
+      if (!StringUtils.hasText(packageName)) {
+        packageName = "ca.bc.gov." + moduleName.toLowerCase();
+      }
+      businessApplication.setPackageName(packageName);
 
       final boolean perRequestInputData = pluginMetadata.perRequestInputData();
       businessApplication.setPerRequestInputData(perRequestInputData);
@@ -913,7 +917,6 @@ public class ClassLoaderModule implements Module {
     final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
     synchronized (logger) {
       logger.removeAllAppenders();
-      logger.setLevel(Level.DEBUG);
       final File rootDirectory = businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null
         || !(rootDirectory.exists() || rootDirectory.mkdirs())) {

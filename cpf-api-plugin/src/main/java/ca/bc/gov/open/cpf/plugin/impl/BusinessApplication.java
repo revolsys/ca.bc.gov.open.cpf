@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.StringUtils;
@@ -78,6 +80,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     return defaultValue;
   }
+
+  private String packageName;
 
   private String defaultResultDataContentType;
 
@@ -549,6 +553,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.numRequestsPerWorker;
   }
 
+  public String getPackageName() {
+    return packageName;
+  }
+
   public BusinessApplicationPlugin getPluginMetadata() {
     return this.pluginMetadata;
   }
@@ -808,6 +816,12 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public void setLogLevel(final String logLevel) {
     this.log.setLogLevel(logLevel);
+    final Level level = Level.toLevel(logLevel);
+    final String moduleName = getModuleName();
+    Logger.getLogger(moduleName + "." + name).setLevel(level);
+    // Tempory fix for geocoder logging
+    Logger.getLogger(moduleName + ".ca").setLevel(level);
+    Logger.getLogger(getPackageName()).setLevel(level);
   }
 
   public void setMaxConcurrentRequests(final int maxConcurrentRequests) {
@@ -824,6 +838,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public void setNumRequestsPerWorker(final int maximumRequestsPerNode) {
     this.numRequestsPerWorker = maximumRequestsPerNode;
+  }
+
+  public void setPackageName(final String packageName) {
+    this.packageName = packageName;
   }
 
   public void setPerRequestInputData(final boolean perRequestInputData) {

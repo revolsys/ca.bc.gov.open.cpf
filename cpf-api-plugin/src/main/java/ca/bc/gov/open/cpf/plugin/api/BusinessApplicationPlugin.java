@@ -31,6 +31,7 @@ import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 
 &#064;BusinessApplicationPlugin(
   name                    = "Demo",
+  packageName             = "ca.bc.gov.demo",
   title                   = "Demonstration Plug-in"
   version                 = "1.1.2",
   compatibleVersions      = { "1.1.0", "1.1.1" },
@@ -155,6 +156,13 @@ public @interface BusinessApplicationPlugin {
    * the cloud overhead in processing the requests.</p>
    */
   int numRequestsPerWorker() default 1;
+
+  /**
+   * <p>The name of the Java package that the business application is in (e.g. <code>ca.bc.gov.gba</code>).
+   * Currently this is used to set the logging level for any loggers created with that package
+   * prefix.</p>
+   */
+  String packageName() default "";
 
   /**
    * <p>Boolean flag indicating that the plug-in accepts a binary blob of data for each request.
