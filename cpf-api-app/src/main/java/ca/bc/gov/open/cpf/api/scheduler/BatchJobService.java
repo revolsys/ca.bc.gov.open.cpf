@@ -397,7 +397,10 @@ public class BatchJobService implements ModuleEventListener {
       for (final Worker worker : workersById.values()) {
         worker.addMessage(message);
       }
-      groupsToSchedule.notifyReaders();
+      final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+      if (groupsToSchedule != null) {
+        groupsToSchedule.notifyReaders();
+      }
     }
   }
 
@@ -420,7 +423,10 @@ public class BatchJobService implements ModuleEventListener {
       for (final Worker worker : workersById.values()) {
         worker.cancelBatchJob(batchJobId);
       }
-      groupsToSchedule.notifyReaders();
+      final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+      if (groupsToSchedule != null) {
+        groupsToSchedule.notifyReaders();
+      }
     }
     return cancelled;
   }
@@ -961,7 +967,12 @@ public class BatchJobService implements ModuleEventListener {
       try {
         final long waitTime = Math.min(10000, endTime - startTime);
         if (waitTime > 0) {
-          group = groupsToSchedule.read(waitTime, moduleNames);
+          final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+          if (groupsToSchedule == null) {
+            return Collections.emptyMap();
+          } else {
+            group = groupsToSchedule.read(waitTime, moduleNames);
+          }
         }
       } catch (final ClosedException e) {
       }
@@ -1131,7 +1142,10 @@ public class BatchJobService implements ModuleEventListener {
             message.put("moduleTime", module.getLastStartTime());
             addWorkerMessage(message);
 
-            groupsToSchedule.remove(moduleName);
+            final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+            if (groupsToSchedule != null) {
+              groupsToSchedule.remove(moduleName);
+            }
             for (final Worker worker : getWorkers()) {
               final String moduleNameAndTime = moduleName + ":"
                 + module.getStartedTime();
@@ -1148,7 +1162,10 @@ public class BatchJobService implements ModuleEventListener {
           for (final String businessApplicationName : businessApplicationNames) {
             synchronized (businessApplicationName.intern()) {
               if (action.equals(ModuleEvent.STOP)) {
-                groupsToSchedule.remove(businessApplicationName);
+                final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+                if (groupsToSchedule != null) {
+                  groupsToSchedule.remove(businessApplicationName);
+                }
               } else if (action.equals(ModuleEvent.START)) {
                 resetProcessingBatchJobs(moduleName, businessApplicationName);
                 resetCreatingRequestsBatchJobs(moduleName,
@@ -1696,7 +1713,10 @@ public class BatchJobService implements ModuleEventListener {
     final String businessApplicationName) {
     final AppLog log = getAppLog(businessApplicationName);
     try {
-      groupsToSchedule.remove(moduleName);
+      final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+      if (groupsToSchedule != null) {
+        groupsToSchedule.remove(moduleName);
+      }
       final int numCleanedRequests = dataAccessObject.updateResetGroupsForRestart(businessApplicationName);
       if (numCleanedRequests > 0) {
         log.info("Groups cleaned for restart\tcount=" + numCleanedRequests);
@@ -1791,7 +1811,10 @@ public class BatchJobService implements ModuleEventListener {
       final BusinessApplication businessApplication = group.getBusinessApplication();
       final Module module = businessApplication.getModule();
       final String moduleName = module.getName();
-      groupsToSchedule.write(moduleName, group);
+      final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+      if (groupsToSchedule != null) {
+        groupsToSchedule.write(moduleName, group);
+      }
     }
   }
 
