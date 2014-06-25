@@ -2,7 +2,6 @@ package ca.bc.gov.open.cpf.plugin.api.log;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
@@ -130,7 +129,6 @@ public class AppLog {
     this.logLevel = logLevel;
     final Level level = Level.toLevel(logLevel);
     log.setLevel(level);
-    LoggerFactory.getLogger(getClass()).error(this + " " + level);
   }
 
   @Override
