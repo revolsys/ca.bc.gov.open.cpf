@@ -24,6 +24,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 
 import com.revolsys.gis.data.model.DataObject;
 import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.gis.data.model.RecordIdentifier;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
 
@@ -81,7 +82,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       if (permission != null) {
         if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
           moduleName)) {
-          final Number userGroupId = group.getIdValue();
+          final RecordIdentifier userGroupId = group.getIdentifier();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
             final CpfDataAccessObject dataAccessObject = getDataAccessObject();
@@ -116,7 +117,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       if (permission != null) {
         if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
           moduleName)) {
-          final Number userGroupId = group.getIdValue();
+          final RecordIdentifier userGroupId = group.getIdentifier();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
             return createObjectEditPage(permission, "module");
@@ -145,7 +146,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
 
       final Map<String, Object> filter = new HashMap<String, Object>();
       filter.put(UserGroupPermission.MODULE_NAME, moduleName);
-      final Number userGroupId = group.getIdValue();
+      final RecordIdentifier userGroupId = group.getIdentifier();
       filter.put(UserGroupPermission.USER_GROUP_ID, userGroupId);
       parameters.put("filter", filter);
 
@@ -175,7 +176,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       if (permission != null) {
         if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
           moduleName)) {
-          final Number userGroupId = group.getIdValue();
+          final RecordIdentifier userGroupId = group.getIdentifier();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
             final TabElementContainer tabs = new TabElementContainer();
