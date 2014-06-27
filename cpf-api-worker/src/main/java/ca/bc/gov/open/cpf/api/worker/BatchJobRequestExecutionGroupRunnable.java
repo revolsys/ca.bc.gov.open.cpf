@@ -84,18 +84,19 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     this.securityServiceFactory = securityServiceFactory;
     this.workerId = workerId;
     this.groupIdMap = groupIdMap;
-    groupId = (String)groupIdMap.get("groupId");
-    moduleName = (String)groupIdMap.get("moduleName");
-    businessApplicationName = (String)groupIdMap.get("businessApplicationName");
-    batchJobId = (Number)groupIdMap.get("batchJobId");
-    userId = (String)groupIdMap.get("consumerKey");
-    logLevel = (String)groupIdMap.get("logLevel");
-    log = new AppLog(businessApplicationName, groupId, logLevel);
+    this.groupId = (String)groupIdMap.get("groupId");
+    this.moduleName = (String)groupIdMap.get("moduleName");
+    this.businessApplicationName = (String)groupIdMap.get("businessApplicationName");
+    this.batchJobId = (Number)groupIdMap.get("batchJobId");
+    this.userId = (String)groupIdMap.get("consumerKey");
+    this.logLevel = (String)groupIdMap.get("logLevel");
+    this.log = new AppLog(this.businessApplicationName, this.groupId,
+      this.logLevel);
   }
 
   public void addError(final Map<String, Object> result,
     final String logPrefix, final String errorCode, final Throwable e) {
-    log.error(logPrefix + errorCode, e);
+    this.log.error(logPrefix + errorCode, e);
     if (result.get("errorCode") == null) {
       result.put("errorCode", errorCode);
       if (e == null) {
@@ -111,19 +112,19 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   /**
    * <h2>Fields</h2>
-   * 
+   *
    * groupId long
    * sequenceNumber long
    * perRequestResultData boolean
-   * 
+   *
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-   * 
+   *
    * pluginExecutionTime long
    * results List<Map<String, Object>>
    * logRecords List<Map<String,Object>>
-   * 
+   *
    * @param requestMetaData
    * @param applicationParameters
    * @param requestParameters
@@ -137,27 +138,29 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     requestStopWatch.start();
 
     final Number requestSequenceNumber = (Number)requestParameters.remove("sequenceNumber");
-    final boolean perRequestResultData = businessApplication.isPerRequestResultData();
+    final boolean perRequestResultData = this.businessApplication.isPerRequestResultData();
 
     final Map<String, Object> requestResult = new LinkedHashMap<String, Object>();
-    requestResult.put("groupId", groupId);
+    requestResult.put("groupId", this.groupId);
     requestResult.put("sequenceNumber", requestSequenceNumber);
     requestResult.put("perRequestResultData", perRequestResultData);
 
     boolean hasError = true;
     try {
-      final Map<String, Object> parameters = getParameters(businessApplication,
-        requestMetaData, applicationParameters, requestParameters);
-      final PluginAdaptor plugin = module.getBusinessApplicationPlugin(
-        businessApplicationName, groupId, logLevel);
+      final Map<String, Object> parameters = getParameters(
+        this.businessApplication, requestMetaData, applicationParameters,
+        requestParameters);
+      final PluginAdaptor plugin = this.module.getBusinessApplicationPlugin(
+        this.businessApplicationName, this.groupId, this.logLevel);
       if (plugin == null) {
         addError(requestResult, "Unable to create plugin "
-          + businessApplicationName + " ", "ERROR_PROCESSING_REQUEST", null);
+            + this.businessApplicationName + " ", "ERROR_PROCESSING_REQUEST",
+          null);
       } else {
         final AppLog appLog = plugin.getAppLog();
         File resultFile = null;
         OutputStream resultData = null;
-        if (businessApplication.isPerRequestInputData()) {
+        if (this.businessApplication.isPerRequestInputData()) {
           // TODO urls for per request input data
           // final String inputDataUrl = httpClient.getOAuthUrl("GET",
           // "/worker/workers/" + workerId + "/jobs/" + batchJobId
@@ -165,15 +168,16 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           // + "/inputData");
           // parameters.put("inputDataUrl", inputDataUrl);
         }
-        if (businessApplication.isPerRequestResultData()) {
-          resultFile = FileUtil.createTempFile(businessApplicationName, ".bin");
+        if (this.businessApplication.isPerRequestResultData()) {
+          resultFile = FileUtil.createTempFile(this.businessApplicationName,
+            ".bin");
           resultData = new FileOutputStream(resultFile);
           parameters.put("resultData", resultData);
         }
         try {
-          if (businessApplication.isSecurityServiceRequired()) {
-            final SecurityService securityService = securityServiceFactory.getSecurityService(
-              module, userId);
+          if (this.businessApplication.isSecurityServiceRequired()) {
+            final SecurityService securityService = this.securityServiceFactory.getSecurityService(
+              this.module, this.userId);
             plugin.setSecurityService(securityService);
           }
           plugin.setParameters(parameters);
@@ -181,8 +185,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           final StopWatch pluginStopWatch = new StopWatch("Plugin execute");
           pluginStopWatch.start();
           if (appLog.isDebugEnabled()) {
-            appLog.debug("Request Execution Start " + groupId + " "
-              + requestSequenceNumber);
+            appLog.debug("Request Execution Start " + this.groupId + " "
+                + requestSequenceNumber);
           }
           try {
             plugin.execute();
@@ -196,8 +200,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             final long pluginTime = pluginStopWatch.getTotalTimeMillis();
             requestResult.put("pluginExecutionTime", pluginTime);
             if (appLog.isDebugEnabled()) {
-              appLog.debug("Request Execution End " + groupId + " "
-                + requestSequenceNumber);
+              appLog.debug("Request Execution End " + this.groupId + " "
+                  + requestSequenceNumber);
             }
           }
           final List<Map<String, Object>> results = plugin.getResults();
@@ -209,7 +213,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           addError(requestResult, "Error processing request ",
             "BAD_INPUT_DATA_VALUE", e);
         } catch (final RecoverableException e) {
-          log.error("Error processing request " + requestSequenceNumber, e);
+          this.log.error("Error processing request " + requestSequenceNumber, e);
           addError(requestResult, "Error processing request ",
             "RECOVERABLE_EXCEPTION", null);
         } finally {
@@ -227,22 +231,22 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
       }
       hasError = false;
     } catch (final Throwable e) {
-      log.error("Error processing request " + requestSequenceNumber, e);
+      this.log.error("Error processing request " + requestSequenceNumber, e);
       addError(requestResult, "Error processing request ",
         "ERROR_PROCESSING_REQUEST", null);
     }
 
     if (hasError) {
-      errorCount++;
+      this.errorCount++;
     } else {
-      successCount++;
+      this.successCount++;
     }
-    applicationExecutionTime = requestStopWatch.getTotalTimeMillis();
+    this.applicationExecutionTime = requestStopWatch.getTotalTimeMillis();
     return requestResult;
   }
 
   public String getGroupId() {
-    return groupId;
+    return this.groupId;
   }
 
   @SuppressWarnings("unchecked")
@@ -252,7 +256,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     final Map<String, Object> applicationParameters,
     final Map<String, Object> requestParameters) {
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>(
-      applicationParameters);
+        applicationParameters);
     parameters.putAll(requestParameters);
     if (!businessApplication.isPerRequestInputData()) {
 
@@ -267,7 +271,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             if (!dataTypeClass.isAssignableFrom(value.getClass())) {
               entry.setValue(value);
               final StringConverter<Object> converter = StringConverterRegistry.getInstance()
-                .getConverter(dataTypeClass);
+                  .getConverter(dataTypeClass);
               if (converter != null) {
                 final Object convertedValue = converter.toObject(value);
                 entry.setValue(convertedValue);
@@ -301,113 +305,116 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   public void run() {
     try {
 
-      log.info("Start\tGroup Execution\tgroupId=" + groupId);
+      this.log.info("Start\tGroup Execution\tgroupId=" + this.groupId);
       try {
         final StopWatch groupStopWatch = new StopWatch("Group");
         groupStopWatch.start();
 
         final Map<String, Object> groupResponse = new NamedLinkedHashMap<String, Object>(
-          "ExecutionGroupResults");
-        groupResponse.put("batchJobId", batchJobId);
-        groupResponse.put("groupId", groupId);
+            "ExecutionGroupResults");
+        groupResponse.put("batchJobId", this.batchJobId);
+        groupResponse.put("groupId", this.groupId);
 
-        final Long moduleTime = ((Number)groupIdMap.get("moduleTime")).longValue();
-        businessApplication = executor.getBusinessApplication(log, moduleName,
-          moduleTime, businessApplicationName);
-        if (businessApplication == null) {
-          executor.addFailedGroup(groupId);
+        final Long moduleTime = ((Number)this.groupIdMap.get("moduleTime")).longValue();
+        this.businessApplication = this.executor.getBusinessApplication(
+          this.log, this.moduleName, moduleTime, this.businessApplicationName);
+        if (this.businessApplication == null) {
+          this.executor.addFailedGroup(this.groupId);
           return;
         } else {
-          businessApplication.setLogLevel(logLevel);
+          this.businessApplication.setLogLevel(this.logLevel);
 
-          module = businessApplication.getModule();
-          final String groupUrl = httpClient.getUrl("/worker/workers/"
-            + workerId + "/jobs/" + batchJobId + "/groups/" + groupId);
-          final Map<String, Object> group = httpClient.getJsonResource(groupUrl);
+          this.module = this.businessApplication.getModule();
+          final String groupUrl = this.httpClient.getUrl("/worker/workers/"
+              + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
+            + this.groupId);
+          final Map<String, Object> group = this.httpClient.getJsonResource(groupUrl);
+          if (!group.isEmpty()) {
+            final Map<String, Object> globalError = new LinkedHashMap<String, Object>();
 
-          final Map<String, Object> globalError = new LinkedHashMap<String, Object>();
-
-          final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
-          final Map<String, Object> applicationParameters = new HashMap<String, Object>(
-            (Map<String, Object>)group.get("applicationParameters"));
-          for (final String name : requestMetaData.getAttributeNames()) {
-            final Object value = applicationParameters.get(name);
-            if (value != null) {
-              try {
-                final DataType dataType = requestMetaData.getAttributeType(name);
-                final Object convertedValue = StringConverterRegistry.toObject(
-                  dataType, value);
-                applicationParameters.put(name, convertedValue);
-              } catch (final Throwable e) {
-                log.error("Error processing group", e);
-                addError(globalError, "Error processing group ",
-                  "BAD_INPUT_DATA_VALUE", null);
+            final DataObjectMetaData requestMetaData = this.businessApplication.getRequestMetaData();
+            final Map<String, Object> applicationParameters = new HashMap<String, Object>(
+                (Map<String, Object>)group.get("applicationParameters"));
+            for (final String name : requestMetaData.getAttributeNames()) {
+              final Object value = applicationParameters.get(name);
+              if (value != null) {
+                try {
+                  final DataType dataType = requestMetaData.getAttributeType(name);
+                  final Object convertedValue = StringConverterRegistry.toObject(
+                    dataType, value);
+                  applicationParameters.put(name, convertedValue);
+                } catch (final Throwable e) {
+                  this.log.error("Error processing group", e);
+                  addError(globalError, "Error processing group ",
+                    "BAD_INPUT_DATA_VALUE", null);
+                }
               }
             }
-          }
-          if (globalError.isEmpty()) {
-            final Object requestsValue = group.get("requests");
-            final Map<String, Object> requestWrapper;
-            if (requestsValue instanceof Map) {
-              requestWrapper = (Map<String, Object>)requestsValue;
+            if (globalError.isEmpty()) {
+              final Object requestsValue = group.get("requests");
+              final Map<String, Object> requestWrapper;
+              if (requestsValue instanceof Map) {
+                requestWrapper = (Map<String, Object>)requestsValue;
+              } else {
+                String requestsString = requestsValue.toString();
+                if (requestsString.charAt(0) != '{') {
+                  requestsString = Compress.inflateBase64(requestsString);
+                }
+                requestWrapper = JsonMapIoFactory.toObjectMap(requestsString);
+              }
+
+              final List<Map<String, Object>> requests = (List<Map<String, Object>>)requestWrapper.get("items");
+
+              final List<Map<String, Object>> groupResults = new ArrayList<Map<String, Object>>();
+
+              for (final Map<String, Object> requestParameters : requests) {
+                if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
+                  this.executor.addFailedGroup(this.groupId);
+                  return;
+                }
+                final Map<String, Object> requestResult = executeRequest(
+                  requestMetaData, applicationParameters, requestParameters);
+                groupResults.add(requestResult);
+              }
+              final String groupResultsString = JsonMapIoFactory.toString(groupResults);
+              // groupResultsString =
+              // Compress.deflateBase64(groupResultsString);
+              groupResponse.put("results", groupResultsString);
             } else {
-              String requestsString = requestsValue.toString();
-              if (requestsString.charAt(0) != '{') {
-                requestsString = Compress.inflateBase64(requestsString);
-              }
-              requestWrapper = JsonMapIoFactory.toObjectMap(requestsString);
+              groupResponse.putAll(globalError);
             }
-
-            final List<Map<String, Object>> requests = (List<Map<String, Object>>)requestWrapper.get("items");
-
-            final List<Map<String, Object>> groupResults = new ArrayList<Map<String, Object>>();
-
-            for (final Map<String, Object> requestParameters : requests) {
-              if (ThreadUtil.isInterrupted() || !module.isStarted()) {
-                executor.addFailedGroup(groupId);
-                return;
-              }
-              final Map<String, Object> requestResult = executeRequest(
-                requestMetaData, applicationParameters, requestParameters);
-              groupResults.add(requestResult);
+          }
+          if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
+            this.executor.addFailedGroup(this.groupId);
+            return;
+          }
+          try {
+            if (groupStopWatch.isRunning()) {
+              groupStopWatch.stop();
             }
-            final String groupResultsString = JsonMapIoFactory.toString(groupResults);
-            // groupResultsString = Compress.deflateBase64(groupResultsString);
-            groupResponse.put("results", groupResultsString);
-          } else {
-            groupResponse.putAll(globalError);
+          } catch (final IllegalStateException e) {
           }
-        }
-        if (ThreadUtil.isInterrupted() || !module.isStarted()) {
-          executor.addFailedGroup(groupId);
-          return;
-        }
-        try {
-          if (groupStopWatch.isRunning()) {
-            groupStopWatch.stop();
-          }
-        } catch (final IllegalStateException e) {
-        }
-        final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
-        groupResponse.put("groupExecutedTime", groupExecutionTime);
-        groupResponse.put("applicationExecutedTime", applicationExecutionTime);
-        groupResponse.put("errorCount", errorCount);
-        groupResponse.put("successCount", successCount);
+          final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
+          groupResponse.put("groupExecutedTime", groupExecutionTime);
+          groupResponse.put("applicationExecutedTime",
+            this.applicationExecutionTime);
+          groupResponse.put("errorCount", this.errorCount);
+          groupResponse.put("successCount", this.successCount);
 
-        final String path = "/worker/workers/" + workerId + "/jobs/"
-          + batchJobId + "/groups/" + groupId + "/results";
-        @SuppressWarnings("unused")
-        final Map<String, Object> submitResponse = httpClient.postJsonResource(
-          httpClient.getUrl(path), groupResponse);
-
+          final String path = "/worker/workers/" + this.workerId + "/jobs/"
+              + this.batchJobId + "/groups/" + this.groupId + "/results";
+          @SuppressWarnings("unused")
+          final Map<String, Object> submitResponse = this.httpClient.postJsonResource(
+            this.httpClient.getUrl(path), groupResponse);
+        }
       } catch (final Throwable e) {
-        log.error("Unable to process group " + groupId, e);
-        executor.addFailedGroup(groupId);
+        this.log.error("Unable to process group " + this.groupId, e);
+        this.executor.addFailedGroup(this.groupId);
       } finally {
-        log.info("End\tGroup execution\tgroupId=" + groupId);
+        this.log.info("End\tGroup execution\tgroupId=" + this.groupId);
       }
     } finally {
-      executor.removeExecutingGroupId(groupId);
+      this.executor.removeExecutingGroupId(this.groupId);
     }
   }
 
@@ -420,26 +427,26 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         resultData.flush();
         FileUtil.closeSilent(resultData);
         final String resultDataContentType = (String)parameters.get("resultDataContentType");
-        final String resultDataUrl = httpClient.getUrl("/worker/workers/"
-          + workerId + "/jobs/" + batchJobId + "/groups/" + groupId
-          + "/requests/" + requestSequenceNumber + "/resultData");
+        final String resultDataUrl = this.httpClient.getUrl("/worker/workers/"
+            + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
+          + this.groupId + "/requests/" + requestSequenceNumber + "/resultData");
 
-        final HttpResponse response = httpClient.postResource(resultDataUrl,
-          resultDataContentType, resultFile);
+        final HttpResponse response = this.httpClient.postResource(
+          resultDataUrl, resultDataContentType, resultFile);
         try {
 
           final StatusLine statusLine = response.getStatusLine();
           if (statusLine.getStatusCode() != HttpURLConnection.HTTP_OK) {
             throw new RecoverableException(
               "Result data not accepted by server "
-                + statusLine.getStatusCode() + " "
-                + statusLine.getReasonPhrase());
+                  + statusLine.getStatusCode() + " "
+                  + statusLine.getReasonPhrase());
           }
         } finally {
           FileUtil.closeSilent(response.getEntity().getContent());
         }
       } catch (final Throwable e) {
-        log.error("Error sending result data", e);
+        this.log.error("Error sending result data", e);
         addError(requestResult, "Error processing request",
           "RECOVERABLE_EXCEPTION", null);
       }

@@ -67,7 +67,7 @@ public class InternalWebService {
     final Map<String, Map<String, Object>> configProperties,
     final String environmentName, final String moduleName,
     final String componentName) {
-    final List<DataObject> properties = dataAccessObject.getConfigPropertiesForModule(
+    final List<DataObject> properties = this.dataAccessObject.getConfigPropertiesForModule(
       environmentName, moduleName, componentName);
     for (final DataObject configProperty : properties) {
       final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
@@ -76,17 +76,17 @@ public class InternalWebService {
   }
 
   private void checkRunning() {
-    if (!batchJobService.isRunning()) {
+    if (!this.batchJobService.isRunning()) {
       throw new IllegalStateException("Application is not running");
     }
   }
 
   @PreDestroy
   public void close() {
-    batchJobService = null;
-    configPropertyLoader = null;
-    dataAccessObject = null;
-    jobController = null;
+    this.batchJobService = null;
+    this.configPropertyLoader = null;
+    this.dataAccessObject = null;
+    this.jobController = null;
   }
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{sequenceNumber}/inputData")
@@ -94,19 +94,19 @@ public class InternalWebService {
     @PathVariable("workerId") final String workerId,
     final HttpServletResponse response, @PathVariable final long batchJobId,
     @PathVariable final long sequenceNumber)
-    throws NoSuchRequestHandlingMethodException {
+        throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(
+    final DataObject batchJobExecutionGroup = this.dataAccessObject.getBatchJobExecutionGroup(
       batchJobId, sequenceNumber);
     if (batchJobExecutionGroup == null) {
       throw new NoSuchRequestHandlingMethodException(
         HttpServletUtils.getRequest());
     } else {
-      final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+      final DataObject batchJob = this.dataAccessObject.getBatchJob(batchJobId);
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
+      final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
       if (businessApplication == null
-        || !businessApplication.isPerRequestInputData()) {
+          || !businessApplication.isPerRequestInputData()) {
         throw new NoSuchRequestHandlingMethodException(
           HttpServletUtils.getRequest());
       } else {
@@ -146,18 +146,18 @@ public class InternalWebService {
   }
 
   @RequestMapping(
-      value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}")
+    value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}")
   @ResponseBody
   public Map<String, Object> getBatchJobRequestExecutionGroup(
     final HttpServletRequest request,
     @PathVariable("workerId") final String workerId,
     @PathVariable("groupId") final String groupId)
-    throws NoSuchRequestHandlingMethodException {
+        throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    final BatchJobRequestExecutionGroup group = batchJobService.getBatchJobRequestExecutionGroup(
+    final BatchJobRequestExecutionGroup group = this.batchJobService.getBatchJobRequestExecutionGroup(
       workerId, groupId);
     if (group == null || group.isCancelled()) {
-      throw new NoSuchRequestHandlingMethodException(request);
+      return Collections.emptyMap();
     } else {
       final Long batchJobId = group.getBatchJobId();
       final Map<String, Object> groupSpecification = new LinkedHashMap<String, Object>();
@@ -168,7 +168,7 @@ public class InternalWebService {
       groupSpecification.put("batchJobId", batchJobId);
       final Module module = businessApplication.getModule();
       if (module == null || !module.isStarted()) {
-        batchJobService.schedule(group);
+        this.batchJobService.schedule(group);
       } else {
         final String moduleName = module.getName();
         groupSpecification.put("moduleName", moduleName);
@@ -186,7 +186,7 @@ public class InternalWebService {
 
         final long groupSequenceNumber = group.getSequenceNumber();
         if (businessApplication.isPerRequestInputData()) {
-          final DataObject executionGroup = dataAccessObject.getBatchJobExecutionGroup(
+          final DataObject executionGroup = this.dataAccessObject.getBatchJobExecutionGroup(
             batchJobId, groupSequenceNumber);
           final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
           groupSpecification.put("requests", requestParameterList);
@@ -197,9 +197,11 @@ public class InternalWebService {
             executionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE));
           requestParameterList.add(requestParameters);
         } else {
-          final String structuredInputData = jobController.getStructuredInputData(
+          final String structuredInputData = this.jobController.getStructuredInputData(
             batchJobId, groupSequenceNumber);
-          if (structuredInputData.charAt(0) == '{') {
+          if (structuredInputData == null) {
+            return Collections.emptyMap();
+          } else if (structuredInputData.charAt(0) == '{') {
             groupSpecification.put("requests", new StringPrinter(
               structuredInputData));
           } else {
@@ -223,7 +225,7 @@ public class InternalWebService {
   }
 
   @RequestMapping(
-      value = "/worker/modules/{moduleName}/config/{environmentName}/{componentName}")
+    value = "/worker/modules/{moduleName}/config/{environmentName}/{componentName}")
   @ResponseBody
   public Map<String, ? extends Object> getModuleBeanConfigProperties(
     @PathVariable final String moduleName,
@@ -232,7 +234,7 @@ public class InternalWebService {
     checkRunning();
 
     final Collection<Map<String, Object>> applicationConfigProperties = new ArrayList<Map<String, Object>>();
-    if (configPropertyLoader != null) {
+    if (this.configPropertyLoader != null) {
       final Collection<Map<String, Object>> configProperties = getConfigProperties(
         environmentName, moduleName, componentName);
       if (configProperties != null) {
@@ -240,7 +242,7 @@ public class InternalWebService {
       }
     }
     final NamedLinkedHashMap<String, Object> map = new NamedLinkedHashMap<String, Object>(
-      "EnvironmentConfiguration");
+        "EnvironmentConfiguration");
     map.put("environmentName", environmentName);
     map.put("moduleName", moduleName);
     map.put("componentName", moduleName);
@@ -256,11 +258,11 @@ public class InternalWebService {
   public void getModuleUrl(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Long moduleTime, @PathVariable final int urlId)
-    throws NoSuchRequestHandlingMethodException, IOException {
+        throws NoSuchRequestHandlingMethodException, IOException {
     checkRunning();
-    final Module module = batchJobService.getModule(moduleName);
+    final Module module = this.batchJobService.getModule(moduleName);
     if (module == null || !module.isStarted()
-      || module.getStartedTime() != moduleTime) {
+        || module.getStartedTime() != moduleTime) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
       final List<URL> jarUrls = module.getJarUrls();
@@ -287,30 +289,30 @@ public class InternalWebService {
   public Map<String, Object> getModuleUrls(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final Long moduleTime)
-    throws NoSuchRequestHandlingMethodException, IOException {
+        throws NoSuchRequestHandlingMethodException, IOException {
     checkRunning();
-    final BusinessApplicationRegistry businessApplicationRegistry = batchJobService.getBusinessApplicationRegistry();
+    final BusinessApplicationRegistry businessApplicationRegistry = this.batchJobService.getBusinessApplicationRegistry();
     final Module module = businessApplicationRegistry.getModule(moduleName);
     if (module == null || !module.isStarted()
-      || module.getStartedTime() != moduleTime) {
+        || module.getStartedTime() != moduleTime) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
       final List<URL> jarUrls = module.getJarUrls();
-      final String url = webServiceUrl + "/worker/modules/" + moduleName + "/"
-        + moduleTime + "/urls/";
+      final String url = this.webServiceUrl + "/worker/modules/" + moduleName
+        + "/" + moduleTime + "/urls/";
       final List<String> webServiceJarUrls = new ArrayList<String>();
       for (int i = 0; i < jarUrls.size(); i++) {
         webServiceJarUrls.add(url + i);
       }
       final Map<String, Object> result = new NamedLinkedHashMap<String, Object>(
-        "ModuleUrls");
+          "ModuleUrls");
       result.put("jarUrls", webServiceJarUrls);
       return result;
     }
   }
 
   public String getWebServiceUrl() {
-    return webServiceUrl;
+    return this.webServiceUrl;
   }
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestSequenceNumber}/resultData")
@@ -319,19 +321,19 @@ public class InternalWebService {
     @PathVariable("workerId") final String workerId,
     @PathVariable final Long batchJobId, @PathVariable final String groupId,
     @PathVariable final long requestSequenceNumber, final InputStream in)
-    throws NoSuchRequestHandlingMethodException {
+        throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    final BatchJobRequestExecutionGroup group = batchJobService.getBatchJobRequestExecutionGroup(
+    final BatchJobRequestExecutionGroup group = this.batchJobService.getBatchJobRequestExecutionGroup(
       workerId, groupId);
 
     if (group != null) {
       synchronized (group) {
         if (!group.isCancelled()) {
-          final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+          final DataObject batchJob = this.dataAccessObject.getBatchJob(batchJobId);
           final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-          final BusinessApplication businessApplication = batchJobService.getBusinessApplication(businessApplicationName);
+          final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
           if (businessApplication != null
-            && businessApplication.isPerRequestResultData()) {
+              && businessApplication.isPerRequestResultData()) {
             synchronized (group) {
               final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
               final File file = FileUtil.createTempFile("result", ".bin");
@@ -339,7 +341,7 @@ public class InternalWebService {
               try {
                 FileUtil.copy(in, file);
                 if (!group.isCancelled()) {
-                  batchJobService.createBatchJobResultOpaque(batchJobId,
+                  this.batchJobService.createBatchJobResultOpaque(batchJobId,
                     requestSequenceNumber, resultDataContentType, file);
                 }
               } finally {
@@ -352,7 +354,7 @@ public class InternalWebService {
       }
     }
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-      "OpaqueOutputDataResults");
+        "OpaqueOutputDataResults");
     map.put("workerId", workerId);
     map.put("batchJobId", batchJobId);
     map.put("groupId", groupId);
@@ -362,19 +364,20 @@ public class InternalWebService {
   }
 
   @RequestMapping(
-      value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/results",
-      method = RequestMethod.POST)
+    value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/results",
+    method = RequestMethod.POST)
   @ResponseBody
   public Map<String, ? extends Object> postBatchJobRequestExecutionGroupResults(
     @PathVariable("workerId") final String workerId,
     @PathVariable("batchJobId") final String batchJobId,
     @PathVariable("groupId") final String groupId,
     @RequestBody final Map<String, Object> results)
-    throws NoSuchRequestHandlingMethodException {
+        throws NoSuchRequestHandlingMethodException {
     checkRunning();
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-      "ExecutionGroupResultsConfirmation");
-    batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
+        "ExecutionGroupResultsConfirmation");
+    this.batchJobService.setBatchJobExecutionGroupResults(workerId, groupId,
+      results);
     map.put("workerId", workerId);
     map.put("batchJobId", batchJobId);
     map.put("groupId", groupId);
@@ -418,35 +421,35 @@ public class InternalWebService {
     @RequestBody final Map<String, Object> message) {
     checkRunning();
     try {
-      return batchJobService.processWorkerMessage(workerId, workerStartTime,
-        message);
+      return this.batchJobService.processWorkerMessage(workerId,
+        workerStartTime, message);
     } catch (final Throwable e) {
       LoggerFactory.getLogger(InternalWebService.class)
-        .error(e.getMessage(), e);
+      .error(e.getMessage(), e);
       throw new HttpMessageNotWritableException("Unable to process message", e);
     }
   }
 
   @RequestMapping(
-      value = "/worker/modules/{moduleName}/users/{consumerKey}/resourcePermission")
+    value = "/worker/modules/{moduleName}/users/{consumerKey}/resourcePermission")
   @ResponseBody
   public Map<String, ? extends Object> securityCanAccessResource(
     final HttpServletRequest request, @PathVariable final String moduleName,
     @PathVariable final String consumerKey,
     @RequestParam final String resourceClass,
     @RequestParam final String resourceId, @RequestParam final String actionName)
-    throws ServletException {
+        throws ServletException {
     checkRunning();
-    final Module module = batchJobService.getModule(moduleName);
+    final Module module = this.batchJobService.getModule(moduleName);
     if (module == null) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
-      final SecurityService securityService = batchJobService.getSecurityService(
+      final SecurityService securityService = this.batchJobService.getSecurityService(
         module, consumerKey);
       final boolean hasAccess = securityService.canAccessResource(
         resourceClass, resourceId, actionName);
       final NamedLinkedHashMap<String, Object> map = new NamedLinkedHashMap<String, Object>(
-        "ResourcePermission");
+          "ResourcePermission");
       map.put("moduleName", moduleName);
       map.put("consumerKey", consumerKey);
       map.put("resourceClass", resourceClass);
@@ -458,24 +461,24 @@ public class InternalWebService {
   }
 
   @RequestMapping(
-      value = "/worker/modules/{moduleName}/users/{consumerKey}/actions/{actionName}/hasAccess")
+    value = "/worker/modules/{moduleName}/users/{consumerKey}/actions/{actionName}/hasAccess")
   @ResponseBody
   public Map<String, ? extends Object> securityCanPerformAction(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("consumerKey") final String consumerKey,
     @PathVariable("actionName") final String actionName)
-    throws ServletException {
+        throws ServletException {
     checkRunning();
-    final Module module = batchJobService.getModule(moduleName);
+    final Module module = this.batchJobService.getModule(moduleName);
     if (module == null) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
-      final SecurityService securityService = batchJobService.getSecurityService(
+      final SecurityService securityService = this.batchJobService.getSecurityService(
         module, consumerKey);
       final boolean hasAccess = securityService.canPerformAction(actionName);
       final NamedLinkedHashMap<String, Object> map = new NamedLinkedHashMap<String, Object>(
-        "ActionPermission");
+          "ActionPermission");
       map.put("moduleName", moduleName);
       map.put("consumerKey", consumerKey);
       map.put("actionName", actionName);
@@ -485,7 +488,7 @@ public class InternalWebService {
   }
 
   @RequestMapping(
-      value = "/worker/modules/{moduleName}/users/{consumerKey}/groups/{groupName}/memberOf")
+    value = "/worker/modules/{moduleName}/users/{consumerKey}/groups/{groupName}/memberOf")
   @ResponseBody
   public Map<String, ? extends Object> securityIsMemberOfGroup(
     final HttpServletRequest request,
@@ -493,15 +496,15 @@ public class InternalWebService {
     @PathVariable("consumerKey") final String consumerKey,
     @PathVariable("groupName") final String groupName) throws ServletException {
     checkRunning();
-    final Module module = batchJobService.getModule(moduleName);
+    final Module module = this.batchJobService.getModule(moduleName);
     if (module == null) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
-      final SecurityService securityService = batchJobService.getSecurityService(
+      final SecurityService securityService = this.batchJobService.getSecurityService(
         module, consumerKey);
       final boolean inGroup = securityService.isInGroup(groupName);
       final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-        "GroupMembership");
+          "GroupMembership");
       map.put("moduleName", moduleName);
       map.put("consumerKey", consumerKey);
       map.put("groupName", groupName);
@@ -511,22 +514,22 @@ public class InternalWebService {
   }
 
   @RequestMapping(
-      value = "/worker/modules/{moduleName}/users/{consumerKey}/attributes")
+    value = "/worker/modules/{moduleName}/users/{consumerKey}/attributes")
   @ResponseBody
   public Map<String, Object> securityUserAttributes(
     final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("consumerKey") final String consumerKey)
-    throws ServletException {
+        throws ServletException {
     checkRunning();
-    final Module module = batchJobService.getModule(moduleName);
+    final Module module = this.batchJobService.getModule(moduleName);
     if (module == null) {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
-      final SecurityService securityService = batchJobService.getSecurityService(
+      final SecurityService securityService = this.batchJobService.getSecurityService(
         module, consumerKey);
       final Map<String, Object> userAttributes = new NamedLinkedHashMap<String, Object>(
-        "UserAttributes", securityService.getUserAttributes());
+          "UserAttributes", securityService.getUserAttributes());
       return userAttributes;
     }
   }
