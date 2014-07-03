@@ -28,10 +28,10 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.gis.data.model.Attribute;
-import com.revolsys.gis.data.model.AttributeProperties;
-import com.revolsys.gis.data.model.DataObjectMetaData;
-import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
+import com.revolsys.data.record.property.AttributeProperties;
+import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.jts.geom.BoundingBox;
 import com.revolsys.jts.geom.Geometry;
@@ -215,7 +215,7 @@ public class PluginAdaptor {
 
   private Map<String, Object> getResult(final Object resultObject,
     final boolean resultList, final boolean test) {
-    final DataObjectMetaData resultMetaData = application.getResultMetaData();
+    final RecordDefinition resultMetaData = application.getResultMetaData();
     final Map<String, Object> result = new HashMap<String, Object>();
     for (final Attribute attribute : resultMetaData.getAttributes()) {
       final String fieldName = attribute.getName();
@@ -398,7 +398,7 @@ public class PluginAdaptor {
       }
     }
 
-    final DataObjectMetaDataImpl requestMetaData = application.getRequestMetaData();
+    final RecordDefinitionImpl requestMetaData = application.getRequestMetaData();
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       final String parameterName = attribute.getName();
       final Object parameterValue = parameters.get(parameterName);
@@ -456,7 +456,7 @@ public class PluginAdaptor {
   public void setPluginProperty(final String parameterName,
     Object parameterValue) {
     try {
-      final DataObjectMetaDataImpl requestMetaData = application.getRequestMetaData();
+      final RecordDefinitionImpl requestMetaData = application.getRequestMetaData();
       final Class<?> attributeClass = requestMetaData.getAttributeClass(parameterName);
       if (attributeClass != null) {
         parameterValue = StringConverterRegistry.toObject(attributeClass,

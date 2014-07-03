@@ -22,7 +22,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -41,7 +41,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
-    final DataObject batchJob = (DataObject)object;
+    final Record batchJob = (Record)object;
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
     final BusinessApplicationUiBuilder appBuilder = getBuilder(BusinessApplication.class);
@@ -55,8 +55,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @Override
   public Object getProperty(final Object object, final String keyName) {
     if (keyName.startsWith("BUSINESS_APPLICATION_NAME")
-      && object instanceof DataObject) {
-      final DataObject batchJob = (DataObject)object;
+      && object instanceof Record) {
+      final Record batchJob = (Record)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       BusinessApplication businessApplication = getBusinessApplicationRegistry().getBusinessApplication(
         businessApplicationName);
@@ -78,7 +78,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }
 
   public void module(final XmlWriter out, final Object object) {
-    final DataObject batchJob = (DataObject)object;
+    final Record batchJob = (Record)object;
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
 
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
@@ -133,7 +133,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
-    final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
+    final Record batchJob = getBatchJob(businessApplicationName, batchJobId);
 
     final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, batchJob, "moduleApp");
@@ -155,7 +155,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void postClientCancel(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final DataObject batchJob = getDataAccessObject().getBatchJob(consumerKey,
+    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
       throw new PageNotFoundException("The cloud job " + batchJobId
@@ -172,7 +172,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void postClientDelete(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final DataObject batchJob = getDataAccessObject().getBatchJob(consumerKey,
+    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
       throw new PageNotFoundException("The cloud job " + batchJobId

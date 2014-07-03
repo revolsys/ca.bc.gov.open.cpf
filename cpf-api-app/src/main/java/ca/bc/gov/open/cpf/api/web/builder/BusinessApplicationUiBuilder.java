@@ -33,14 +33,14 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
-import com.revolsys.gis.data.io.DataObjectReader;
-import com.revolsys.gis.data.io.ListDataObjectReader;
-import com.revolsys.gis.data.model.ArrayDataObject;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
-import com.revolsys.gis.data.model.types.DataType;
-import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.gis.model.data.equals.EqualsInstance;
+import com.revolsys.data.equals.EqualsInstance;
+import com.revolsys.data.io.DataObjectReader;
+import com.revolsys.data.io.ListDataObjectReader;
+import com.revolsys.data.record.ArrayRecord;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.schema.RecordDefinitionImpl;
+import com.revolsys.data.types.DataType;
+import com.revolsys.data.types.DataTypes;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
@@ -66,7 +66,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping("/ws/sample/input")
   @ResponseBody
   public DataObjectReader getSampleInputData() {
-    final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
+    final RecordDefinitionImpl metaData = new RecordDefinitionImpl(
       "/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(
       3005, 1000.0);
@@ -75,15 +75,15 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     metaData.addAttribute("buffer", DataTypes.DOUBLE);
     metaData.addAttribute("geometry", DataTypes.GEOMETRY);
 
-    final List<DataObject> objects = new ArrayList<DataObject>();
+    final List<Record> objects = new ArrayList<Record>();
 
-    final DataObject object1 = new ArrayDataObject(metaData);
+    final Record object1 = new ArrayRecord(metaData);
     object1.setValue("title", "Buffered centroid of BC");
     object1.setValue("buffer", 10000);
     object1.setGeometryValue(factory.point(921100.281, 1076394.357));
     objects.add(object1);
 
-    final DataObject object2 = new ArrayDataObject(metaData);
+    final Record object2 = new ArrayRecord(metaData);
     object2.setValue("title", "Stanley Park");
     object2.setValue("buffer", 1000);
     object2.setGeometryValue(factory.point(1207714.288, 480508.637));
@@ -97,7 +97,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping("/ws/sample/result")
   @ResponseBody
   public DataObjectReader getSampleResultData() {
-    final DataObjectMetaDataImpl metaData = new DataObjectMetaDataImpl(
+    final RecordDefinitionImpl metaData = new RecordDefinitionImpl(
       "/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(
       3005, 1000.0);
@@ -108,9 +108,9 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     metaData.addAttribute("buffer", DataTypes.DOUBLE);
     metaData.addAttribute("geometry", DataTypes.GEOMETRY);
 
-    final List<DataObject> objects = new ArrayList<DataObject>();
+    final List<Record> objects = new ArrayList<Record>();
 
-    final DataObject object1 = new ArrayDataObject(metaData);
+    final Record object1 = new ArrayRecord(metaData);
     object1.setValue("sequenceNumber", 1);
     object1.setValue("resultNumber", 1);
     object1.setValue("title", "Buffered centroid of BC");
@@ -119,7 +119,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       10000));
     objects.add(object1);
 
-    final DataObject object2 = new ArrayDataObject(metaData);
+    final Record object2 = new ArrayRecord(metaData);
     object2.setValue("sequenceNumber", 2);
     object2.setValue("resultNumber", 1);
     object2.setValue("title", "Stanley Park");
@@ -196,7 +196,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
             final boolean equal = EqualsInstance.INSTANCE.equals(defaultValue,
               newValue);
 
-            DataObject configProperty = dataAccessObject.getConfigProperty(
+            Record configProperty = dataAccessObject.getConfigProperty(
               ConfigProperty.DEFAULT, moduleName, componentName, propertyName);
             if (configProperty == null) {
               if (!equal) {

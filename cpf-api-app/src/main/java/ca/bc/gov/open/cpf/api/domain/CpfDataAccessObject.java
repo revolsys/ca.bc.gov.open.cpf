@@ -31,22 +31,22 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 import com.revolsys.collection.ResultPager;
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.gis.data.io.DataObjectStore;
-import com.revolsys.gis.data.model.Attribute;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectMetaData;
-import com.revolsys.gis.data.model.DataObjectUtil;
-import com.revolsys.gis.data.model.RecordIdentifier;
-import com.revolsys.gis.data.model.types.DataType;
-import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.gis.data.query.And;
-import com.revolsys.gis.data.query.Between;
-import com.revolsys.gis.data.query.Condition;
-import com.revolsys.gis.data.query.Equal;
-import com.revolsys.gis.data.query.In;
-import com.revolsys.gis.data.query.Or;
-import com.revolsys.gis.data.query.Q;
-import com.revolsys.gis.data.query.Query;
+import com.revolsys.data.identifier.Identifier;
+import com.revolsys.data.io.DataObjectStore;
+import com.revolsys.data.query.And;
+import com.revolsys.data.query.Between;
+import com.revolsys.data.query.Condition;
+import com.revolsys.data.query.Equal;
+import com.revolsys.data.query.In;
+import com.revolsys.data.query.Or;
+import com.revolsys.data.query.Q;
+import com.revolsys.data.query.Query;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.types.DataType;
+import com.revolsys.data.types.DataTypes;
 import com.revolsys.io.MapWriter;
 import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
@@ -61,23 +61,23 @@ import com.revolsys.util.CollectionUtil;
 public class CpfDataAccessObject {
   private DataObjectStore dataStore;
 
-  private DataObjectMetaData batchJobMetaData;
+  private RecordDefinition batchJobMetaData;
 
-  private DataObjectMetaData batchJobExecutionGroupMetaData;
+  private RecordDefinition batchJobExecutionGroupMetaData;
 
-  private DataObjectMetaData batchJobResultMetaData;
+  private RecordDefinition batchJobResultMetaData;
 
-  private DataObjectMetaData businessApplicationStatisticsMetaData;
+  private RecordDefinition businessApplicationStatisticsMetaData;
 
-  private DataObjectMetaData configPropertyMetaData;
+  private RecordDefinition configPropertyMetaData;
 
-  private DataObjectMetaData userAccountMetaData;
+  private RecordDefinition userAccountMetaData;
 
-  private DataObjectMetaData userGroupMetaData;
+  private RecordDefinition userGroupMetaData;
 
-  private DataObjectMetaData userGroupAccountXrefMetaData;
+  private RecordDefinition userGroupAccountXrefMetaData;
 
-  private DataObjectMetaData userGroupPermissionMetaData;
+  private RecordDefinition userGroupPermissionMetaData;
 
   public CpfDataAccessObject() {
   }
@@ -127,15 +127,15 @@ public class CpfDataAccessObject {
     this.userGroupPermissionMetaData = null;
   }
 
-  public DataObject create(final String typeName) {
+  public Record create(final String typeName) {
     return this.dataStore.create(typeName);
   }
 
-  public DataObject createBatchJobExecutionGroup(
+  public Record createBatchJobExecutionGroup(
     final JobController jobController, final long batchJobId,
     final int groupSequenceNumber, final String structuredInputData,
     final int requestCount) {
-    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+    final Record batchJobExecutionGroup = createBatchJobExecutionGroup(
       batchJobId, groupSequenceNumber, requestCount);
     jobController.setStructuredInputData(batchJobId, groupSequenceNumber,
       batchJobExecutionGroup, structuredInputData);
@@ -143,7 +143,7 @@ public class CpfDataAccessObject {
     return batchJobExecutionGroup;
   }
 
-  public DataObject createBatchJobExecutionGroup(
+  public Record createBatchJobExecutionGroup(
     final JobController jobController, final long batchJobId,
     final int groupSequenceNumber, final String errorCode,
     final String errorMessage, final String errorDebugMessage) {
@@ -156,7 +156,7 @@ public class CpfDataAccessObject {
 
     final Map<String, Object> resultData = Collections.<String, Object> singletonMap(
       "items", resultDataItems);
-    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+    final Record batchJobExecutionGroup = createBatchJobExecutionGroup(
       batchJobId, 1, 1);
     final String resultDataString = JsonMapIoFactory.toString(resultData);
 
@@ -169,9 +169,9 @@ public class CpfDataAccessObject {
     return batchJobExecutionGroup;
   }
 
-  protected DataObject createBatchJobExecutionGroup(final long batchJobId,
+  protected Record createBatchJobExecutionGroup(final long batchJobId,
     final int groupSequenceNumber, final int requestCount) {
-    final DataObject batchJobExecutionGroup = create(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    final Record batchJobExecutionGroup = create(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
     batchJobExecutionGroup.setValue(BatchJobExecutionGroup.BATCH_JOB_ID,
       batchJobId);
     batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 0);
@@ -187,10 +187,10 @@ public class CpfDataAccessObject {
     return batchJobExecutionGroup;
   }
 
-  public DataObject createBatchJobExecutionGroup(final long batchJobId,
+  public Record createBatchJobExecutionGroup(final long batchJobId,
     final int requestSequenceNumber, final String inputDataContentType,
     final Resource inputData) {
-    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+    final Record batchJobExecutionGroup = createBatchJobExecutionGroup(
       batchJobId, requestSequenceNumber, 1);
     batchJobExecutionGroup.setValue(
       BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE, inputDataContentType);
@@ -200,10 +200,10 @@ public class CpfDataAccessObject {
     return batchJobExecutionGroup;
   }
 
-  public DataObject createBatchJobExecutionGroup(final long batchJobId,
+  public Record createBatchJobExecutionGroup(final long batchJobId,
     final int requestSequenceNumber, final String inputDataContentType,
     final String inputDataUrl) {
-    final DataObject batchJobExecutionGroup = createBatchJobExecutionGroup(
+    final Record batchJobExecutionGroup = createBatchJobExecutionGroup(
       batchJobId, requestSequenceNumber, 1);
     batchJobExecutionGroup.setValue(
       BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE, inputDataContentType);
@@ -213,11 +213,11 @@ public class CpfDataAccessObject {
     return batchJobExecutionGroup;
   }
 
-  public DataObject createConfigProperty(final String environmentName,
+  public Record createConfigProperty(final String environmentName,
     final String moduleName, final String componentName,
     final String propertyName, final Object propertyValue,
     final DataType propertyValueType) {
-    final DataObject configProperty = create(ConfigProperty.CONFIG_PROPERTY);
+    final Record configProperty = create(ConfigProperty.CONFIG_PROPERTY);
     configProperty.setValue(ConfigProperty.ENVIRONMENT_NAME, environmentName);
     configProperty.setValue(ConfigProperty.MODULE_NAME, moduleName);
     configProperty.setValue(ConfigProperty.COMPONENT_NAME, componentName);
@@ -240,10 +240,10 @@ public class CpfDataAccessObject {
     return new Transaction(transactionManager, propagation);
   }
 
-  public DataObject createUserAccount(final String userAccountClass,
+  public Record createUserAccount(final String userAccountClass,
     final String userAccountName, final String consumerKey,
     final String consumerSecret) {
-    final DataObject userAccount = create(UserAccount.USER_ACCOUNT);
+    final Record userAccount = create(UserAccount.USER_ACCOUNT);
 
     userAccount.setValue(UserAccount.USER_NAME, userAccountName);
     userAccount.setValue(UserAccount.USER_ACCOUNT_CLASS, userAccountClass);
@@ -255,9 +255,9 @@ public class CpfDataAccessObject {
     return userAccount;
   }
 
-  public DataObject createUserGroup(final String moduleName,
+  public Record createUserGroup(final String moduleName,
     final String groupName, final String description) {
-    DataObject userGroup = getUserGroup(moduleName, groupName);
+    Record userGroup = getUserGroup(moduleName, groupName);
     if (userGroup == null) {
       userGroup = create(UserGroup.USER_GROUP);
       userGroup.setValue(UserGroup.MODULE_NAME, moduleName);
@@ -269,10 +269,10 @@ public class CpfDataAccessObject {
     return userGroup;
   }
 
-  public DataObject createUserGroupAccountXref(final DataObject userGroup,
-    final DataObject userAccount) {
-    final RecordIdentifier userGroupId = userGroup.getIdentifier();
-    final RecordIdentifier userAccountId = userAccount.getIdentifier();
+  public Record createUserGroupAccountXref(final Record userGroup,
+    final Record userAccount) {
+    final Identifier userGroupId = userGroup.getIdentifier();
+    final Identifier userAccountId = userAccount.getIdentifier();
 
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
@@ -280,7 +280,7 @@ public class CpfDataAccessObject {
 
     final Query query = Query.and(this.userGroupAccountXrefMetaData, filter);
 
-    DataObject userGroupAccountXref = this.dataStore.queryFirst(query);
+    Record userGroupAccountXref = this.dataStore.queryFirst(query);
     if (userGroupAccountXref == null) {
 
       userGroupAccountXref = create(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
@@ -294,9 +294,9 @@ public class CpfDataAccessObject {
     return userGroupAccountXref;
   }
 
-  public DataObject createUserGroupPermission(final DataObject userGroup,
+  public Record createUserGroupPermission(final Record userGroup,
     final String groupName, final ResourcePermission permission) {
-    final DataObject userGroupPermission = create(UserGroup.USER_GROUP);
+    final Record userGroupPermission = create(UserGroup.USER_GROUP);
 
     userGroupPermission.setValue(UserGroup.MODULE_NAME, userGroup);
     userGroupPermission.setValue(UserGroup.USER_GROUP_NAME, groupName);
@@ -306,7 +306,7 @@ public class CpfDataAccessObject {
     return userGroup;
   }
 
-  public void delete(final DataObject object) {
+  public void delete(final Record object) {
     this.dataStore.delete(object);
   }
 
@@ -345,8 +345,8 @@ public class CpfDataAccessObject {
     return this.dataStore.delete(query);
   }
 
-  public void deleteUserAccount(final DataObject userAccount) {
-    final RecordIdentifier userAccountId = userAccount.getIdentifier();
+  public void deleteUserAccount(final Record userAccount) {
+    final Identifier userAccountId = userAccount.getIdentifier();
     final Query membersQuery = Query.equal(this.userGroupAccountXrefMetaData,
       UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
     this.dataStore.delete(membersQuery);
@@ -359,8 +359,8 @@ public class CpfDataAccessObject {
     delete(userAccount);
   }
 
-  public void deleteUserGroup(final DataObject userGroup) {
-    final RecordIdentifier userGroupId = userGroup.getIdentifier();
+  public void deleteUserGroup(final Record userGroup) {
+    final Identifier userGroupId = userGroup.getIdentifier();
 
     final Query membersQuery = Query.equal(this.userGroupAccountXrefMetaData,
       UserGroupAccountXref.USER_GROUP_ID, userGroupId);
@@ -374,10 +374,10 @@ public class CpfDataAccessObject {
     delete(userGroup);
   }
 
-  public int deleteUserGroupAccountXref(final DataObject userGroup,
-    final DataObject userAccount) {
-    final RecordIdentifier userGroupId = userGroup.getIdentifier();
-    final RecordIdentifier userAccountId = userAccount.getIdentifier();
+  public int deleteUserGroupAccountXref(final Record userGroup,
+    final Record userAccount) {
+    final Identifier userGroupId = userGroup.getIdentifier();
+    final Identifier userAccountId = userAccount.getIdentifier();
 
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
@@ -391,9 +391,9 @@ public class CpfDataAccessObject {
     final Query query = Query.equal(this.userGroupMetaData,
       UserGroup.MODULE_NAME, moduleName);
     int i = 0;
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
-      for (final DataObject userGroup : reader) {
+      for (final Record userGroup : reader) {
         deleteUserGroup(userGroup);
         i++;
       }
@@ -403,11 +403,11 @@ public class CpfDataAccessObject {
     return i;
   }
 
-  public DataObject getBatchJob(final long batchJobId) {
+  public Record getBatchJob(final long batchJobId) {
     return this.dataStore.load(BatchJob.BATCH_JOB, batchJobId);
   }
 
-  public DataObject getBatchJob(final String consumerKey, final long batchJobId) {
+  public Record getBatchJob(final String consumerKey, final long batchJobId) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(BatchJob.USER_ID, consumerKey);
     filter.put(BatchJob.BATCH_JOB_ID, batchJobId);
@@ -416,7 +416,7 @@ public class CpfDataAccessObject {
     return this.dataStore.queryFirst(query);
   }
 
-  public DataObject getBatchJobExecutionGroup(final long batchJobId,
+  public Record getBatchJobExecutionGroup(final long batchJobId,
     final long groupSequenceNumber) {
     final Query query = new Query(
       BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
@@ -433,11 +433,11 @@ public class CpfDataAccessObject {
     filter.put(BatchJob.JOB_STATUS, jobStatus);
     final Query query = Query.and(this.batchJobMetaData, filter);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
-    final Reader<DataObject> batchJobs = this.dataStore.query(query);
+    final Reader<Record> batchJobs = this.dataStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
-      for (final DataObject batchJob : batchJobs) {
-        final Long batchJobId = DataObjectUtil.getLong(batchJob,
+      for (final Record batchJob : batchJobs) {
+        final Long batchJobId = RecordUtil.getLong(batchJob,
           BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
@@ -459,11 +459,11 @@ public class CpfDataAccessObject {
     query.addOrderBy(BatchJob.NUM_SCHEDULED_GROUPS, true);
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, true);
-    final Reader<DataObject> batchJobs = this.dataStore.query(query);
+    final Reader<Record> batchJobs = this.dataStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
-      for (final DataObject batchJob : batchJobs) {
-        final Long batchJobId = DataObjectUtil.getLong(batchJob,
+      for (final Record batchJob : batchJobs) {
+        final Long batchJobId = RecordUtil.getLong(batchJob,
           BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
@@ -473,11 +473,11 @@ public class CpfDataAccessObject {
     }
   }
 
-  public DataObject getBatchJobLocked(final long batchJobId) {
+  public Record getBatchJobLocked(final long batchJobId) {
     return this.dataStore.load(BatchJob.BATCH_JOB, batchJobId);
   }
 
-  public DataObject getBatchJobResult(final long batchJobId,
+  public Record getBatchJobResult(final long batchJobId,
     final long sequenceNumber) {
     final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
       Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
@@ -485,12 +485,12 @@ public class CpfDataAccessObject {
     return this.dataStore.queryFirst(query);
   }
 
-  public List<DataObject> getBatchJobResults(final long batchJobId) {
+  public List<Record> getBatchJobResults(final long batchJobId) {
     final Query query = Query.equal(this.batchJobResultMetaData,
       BatchJobResult.BATCH_JOB_ID, batchJobId);
     query.setAttributeNames(BatchJobResult.ALL_EXCEPT_BLOB);
     query.addOrderBy(BatchJobResult.SEQUENCE_NUMBER, true);
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -498,11 +498,11 @@ public class CpfDataAccessObject {
     }
   }
 
-  public List<DataObject> getBatchJobsForUser(final String consumerKey) {
+  public List<Record> getBatchJobsForUser(final String consumerKey) {
     final Query query = Query.equal(this.batchJobMetaData, BatchJob.USER_ID,
       consumerKey);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -510,7 +510,7 @@ public class CpfDataAccessObject {
     }
   }
 
-  public List<DataObject> getBatchJobsForUserAndApplication(
+  public List<Record> getBatchJobsForUserAndApplication(
     final String consumerKey, final String businessApplicationName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(BatchJob.USER_ID, consumerKey);
@@ -518,7 +518,7 @@ public class CpfDataAccessObject {
     final Query query = Query.and(this.batchJobMetaData, filter);
 
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -526,7 +526,7 @@ public class CpfDataAccessObject {
     }
   }
 
-  public List<DataObject> getConfigPropertiesForAllModules(
+  public List<Record> getConfigPropertiesForAllModules(
     final String environmentName, final String componentName,
     final String propertyName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
@@ -535,7 +535,7 @@ public class CpfDataAccessObject {
     filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
     final Query query = Query.and(this.configPropertyMetaData, filter);
 
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -543,13 +543,13 @@ public class CpfDataAccessObject {
     }
   }
 
-  public List<DataObject> getConfigPropertiesForComponent(
+  public List<Record> getConfigPropertiesForComponent(
     final String moduleName, final String componentName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     final Query query = Query.and(this.configPropertyMetaData, filter);
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -557,7 +557,7 @@ public class CpfDataAccessObject {
     }
   }
 
-  public List<DataObject> getConfigPropertiesForModule(
+  public List<Record> getConfigPropertiesForModule(
     final String environmentName, final String moduleName,
     final String componentName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
@@ -565,7 +565,7 @@ public class CpfDataAccessObject {
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     final Query query = Query.and(this.configPropertyMetaData, filter);
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -573,7 +573,7 @@ public class CpfDataAccessObject {
     }
   }
 
-  public DataObject getConfigProperty(final String environmentName,
+  public Record getConfigProperty(final String environmentName,
     final String moduleName, final String componentName,
     final String propertyName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
@@ -601,11 +601,11 @@ public class CpfDataAccessObject {
     query.setAttributeNames(BatchJobExecutionGroup.SEQUENCE_NUMBER);
     query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
     query.setLimit(1);
-    final DataObject batchJobExecutionGroup = this.dataStore.queryFirst(query);
+    final Record batchJobExecutionGroup = this.dataStore.queryFirst(query);
     if (batchJobExecutionGroup == null) {
       return null;
     } else {
-      return DataObjectUtil.getLong(batchJobExecutionGroup,
+      return RecordUtil.getLong(batchJobExecutionGroup,
         BatchJobExecutionGroup.SEQUENCE_NUMBER);
     }
   }
@@ -629,11 +629,11 @@ public class CpfDataAccessObject {
         keepUntilTimestamp)
     };
     query.setWhereCondition(new And(conditions));
-    final Reader<DataObject> batchJobs = this.dataStore.query(query);
+    final Reader<Record> batchJobs = this.dataStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
-      for (final DataObject batchJob : batchJobs) {
-        final Long batchJobId = DataObjectUtil.getLong(batchJob,
+      for (final Record batchJob : batchJobs) {
+        final Long batchJobId = RecordUtil.getLong(batchJob,
           BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
@@ -653,7 +653,7 @@ public class CpfDataAccessObject {
    * @param consumerKey The external user class.
    * @return The user account if it exists, null otherwise.
    */
-  public DataObject getUserAccount(final String consumerKey) {
+  public Record getUserAccount(final String consumerKey) {
     final Query query = Query.equal(this.userAccountMetaData,
       UserAccount.CONSUMER_KEY, consumerKey);
     return this.dataStore.queryFirst(query);
@@ -666,7 +666,7 @@ public class CpfDataAccessObject {
    * @param userName The external user name.
    * @return The user account if it exists, null otherwise.
    */
-  public DataObject getUserAccount(final String userClass, final String userName) {
+  public Record getUserAccount(final String userClass, final String userName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserAccount.USER_ACCOUNT_CLASS, userClass);
     filter.put(UserAccount.USER_NAME, userName);
@@ -674,19 +674,19 @@ public class CpfDataAccessObject {
     return this.dataStore.queryFirst(query);
   }
 
-  public ResultPager<DataObject> getUserAccountsForUserGroup(
-    final DataObject userGroup) {
+  public ResultPager<Record> getUserAccountsForUserGroup(
+    final Record userGroup) {
     final Condition equal = Q.equal(UserGroupAccountXref.USER_GROUP_ID,
       userGroup.getIdentifier());
     final Query query = new Query(UserAccount.USER_ACCOUNT, equal);
     query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
 
-    final ResultPager<DataObject> pager = this.dataStore.page(query);
+    final ResultPager<Record> pager = this.dataStore.page(query);
     return pager;
   }
 
-  public List<DataObject> getUserAccountsLikeName(final String name) {
+  public List<Record> getUserAccountsLikeName(final String name) {
     if (StringUtils.hasText(name)) {
       final Condition consumerKeyLike = Q.iLike(UserAccount.CONSUMER_KEY, name);
       final Condition userNameLike = Q.iLike(UserAccount.USER_NAME, name);
@@ -695,7 +695,7 @@ public class CpfDataAccessObject {
       };
       final Or or = new Or(conditions);
       final Query query = new Query(UserAccount.USER_ACCOUNT, or);
-      final Reader<DataObject> reader = this.dataStore.query(query);
+      final Reader<Record> reader = this.dataStore.query(query);
       try {
         return CollectionUtil.subList(reader, 20);
       } finally {
@@ -706,17 +706,17 @@ public class CpfDataAccessObject {
     }
   }
 
-  public DataObject getUserGroup(final long userGroupId) {
+  public Record getUserGroup(final long userGroupId) {
     return this.dataStore.load(UserGroup.USER_GROUP, userGroupId);
   }
 
-  public DataObject getUserGroup(final String groupName) {
+  public Record getUserGroup(final String groupName) {
     final Query query = Query.equal(this.userGroupMetaData,
       UserGroup.USER_GROUP_NAME, groupName);
     return this.dataStore.queryFirst(query);
   }
 
-  public DataObject getUserGroup(final String moduleName, final String groupName) {
+  public Record getUserGroup(final String moduleName, final String groupName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserGroup.MODULE_NAME, moduleName);
     filter.put(UserGroup.USER_GROUP_NAME, groupName);
@@ -724,7 +724,7 @@ public class CpfDataAccessObject {
     return this.dataStore.queryFirst(query);
   }
 
-  public DataObject getUserGroupPermission(final List<String> userGroupNames,
+  public Record getUserGroupPermission(final List<String> userGroupNames,
     final String moduleName, final String resourceClass,
     final String resourceId, final String actionName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
@@ -739,13 +739,13 @@ public class CpfDataAccessObject {
     return this.dataStore.queryFirst(query);
   }
 
-  public List<DataObject> getUserGroupPermissions(final DataObject userGroup,
+  public List<Record> getUserGroupPermissions(final Record userGroup,
     final String moduleName) {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserGroupPermission.USER_GROUP_ID, userGroup.getIdentifier());
     filter.put(UserGroupPermission.MODULE_NAME, moduleName);
     final Query query = Query.and(this.userGroupPermissionMetaData, filter);
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -753,10 +753,10 @@ public class CpfDataAccessObject {
     }
   }
 
-  public List<DataObject> getUserGroupsForModule(final String moduleName) {
+  public List<Record> getUserGroupsForModule(final String moduleName) {
     final Query query = Query.equal(this.userGroupMetaData,
       UserGroup.MODULE_NAME, moduleName);
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
       return reader.read();
     } finally {
@@ -764,18 +764,18 @@ public class CpfDataAccessObject {
     }
   }
 
-  public Set<DataObject> getUserGroupsForUserAccount(
-    final DataObject userAccount) {
+  public Set<Record> getUserGroupsForUserAccount(
+    final Record userAccount) {
     final Query query = new Query(UserGroup.USER_GROUP);
     query.setFromClause("CPF.CPF_USER_GROUPS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
     query.setWhereCondition(Q.equal(new JdbcLongAttribute("X.USER_ACCOUNT_ID"),
       userAccount.getIdentifier()));
-    final Reader<DataObject> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.dataStore.query(query);
     try {
-      final List<DataObject> groups = reader.read();
-      return new LinkedHashSet<DataObject>(groups);
+      final List<Record> groups = reader.read();
+      return new LinkedHashSet<Record>(groups);
     } finally {
       reader.close();
     }
@@ -814,7 +814,7 @@ public class CpfDataAccessObject {
     final String businessApplicationName, final String durationType,
     final Date startTime, final String valuesString) {
     Integer databaseId;
-    final DataObject applicationStatistics;
+    final Record applicationStatistics;
     databaseId = ((Number)this.dataStore.createPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
     applicationStatistics = this.dataStore.create(BusinessApplicationStatistics.APPLICATION_STATISTICS);
     applicationStatistics.setValue(
@@ -864,15 +864,15 @@ public class CpfDataAccessObject {
 
   @SuppressWarnings("unchecked")
   protected void postProcessWriteStructuredResult(
-    final com.revolsys.io.Writer<DataObject> structuredDataWriter,
-    final DataObjectMetaData resultMetaData,
+    final com.revolsys.io.Writer<Record> structuredDataWriter,
+    final RecordDefinition resultMetaData,
     final Map<String, Object> defaultProperties,
     final Map<String, Object> resultData) {
     final List<Map<String, Object>> results = (List<Map<String, Object>>)resultData.get("results");
     final Number sequenceNumber = (Number)resultData.get("requestSequenceNumber");
     int i = 1;
     for (final Map<String, Object> structuredResultMap : results) {
-      final DataObject structuredResult = DataObjectUtil.getObject(
+      final Record structuredResult = RecordUtil.getObject(
         resultMetaData, structuredResultMap);
 
       final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
@@ -906,7 +906,7 @@ public class CpfDataAccessObject {
     } else {
       final String valuesString = JsonMapIoFactory.toString(values);
 
-      final DataObject applicationStatistics;
+      final Record applicationStatistics;
       if (databaseId == null) {
         insertStatistics(statistics, businessApplicationName, durationType,
           startTime, valuesString);
@@ -1073,7 +1073,7 @@ public class CpfDataAccessObject {
     }
   }
 
-  public void setConfigPropertyValue(final DataObject object, final Object value) {
+  public void setConfigPropertyValue(final Record object, final Object value) {
     if (value == null) {
       object.setValue(ConfigProperty.PROPERTY_VALUE, value);
     } else {
@@ -1103,15 +1103,15 @@ public class CpfDataAccessObject {
 
   public void setDataStore(final DataObjectStore dataStore) {
     this.dataStore = dataStore;
-    this.batchJobMetaData = dataStore.getMetaData(BatchJob.BATCH_JOB);
-    this.batchJobExecutionGroupMetaData = dataStore.getMetaData(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    this.batchJobResultMetaData = dataStore.getMetaData(BatchJobResult.BATCH_JOB_RESULT);
-    this.businessApplicationStatisticsMetaData = dataStore.getMetaData(BusinessApplicationStatistics.APPLICATION_STATISTICS);
-    this.configPropertyMetaData = dataStore.getMetaData(ConfigProperty.CONFIG_PROPERTY);
-    this.userAccountMetaData = dataStore.getMetaData(UserAccount.USER_ACCOUNT);
-    this.userGroupMetaData = dataStore.getMetaData(UserGroup.USER_GROUP);
-    this.userGroupPermissionMetaData = dataStore.getMetaData(UserGroupPermission.USER_GROUP_PERMISSION);
-    this.userGroupAccountXrefMetaData = dataStore.getMetaData(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
+    this.batchJobMetaData = dataStore.getRecordDefinition(BatchJob.BATCH_JOB);
+    this.batchJobExecutionGroupMetaData = dataStore.getRecordDefinition(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    this.batchJobResultMetaData = dataStore.getRecordDefinition(BatchJobResult.BATCH_JOB_RESULT);
+    this.businessApplicationStatisticsMetaData = dataStore.getRecordDefinition(BusinessApplicationStatistics.APPLICATION_STATISTICS);
+    this.configPropertyMetaData = dataStore.getRecordDefinition(ConfigProperty.CONFIG_PROPERTY);
+    this.userAccountMetaData = dataStore.getRecordDefinition(UserAccount.USER_ACCOUNT);
+    this.userGroupMetaData = dataStore.getRecordDefinition(UserGroup.USER_GROUP);
+    this.userGroupPermissionMetaData = dataStore.getRecordDefinition(UserGroupPermission.USER_GROUP_PERMISSION);
+    this.userGroupAccountXrefMetaData = dataStore.getRecordDefinition(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
   }
 
   /**
@@ -1149,7 +1149,7 @@ public class CpfDataAccessObject {
     final Object groupResultObject, final int successCount, final int errorCount) {
     if (groupResultObject != null) {
       final long batchJobId = group.getBatchJobId();
-      final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
+      final Record batchJobExecutionGroup = getBatchJobExecutionGroup(
         batchJobId, sequenceNumber);
       if (0 == batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.COMPLETED_IND)) {
 
@@ -1311,19 +1311,19 @@ public class CpfDataAccessObject {
     return 0;
   }
 
-  public void write(final DataObject record) {
+  public void write(final Record record) {
     try (
-      final Writer<DataObject> writer = this.dataStore.getWriter()) {
+      final Writer<Record> writer = this.dataStore.getWriter()) {
       write(writer, record);
     }
   }
 
-  protected void write(final Writer<DataObject> writer, final DataObject record) {
+  protected void write(final Writer<Record> writer, final Record record) {
     final String username = getUsername();
     final Timestamp time = new Timestamp(System.currentTimeMillis());
     switch (record.getState()) {
       case New:
-        final DataObjectMetaData metaData = record.getMetaData();
+        final RecordDefinition metaData = record.getMetaData();
 
         if (metaData.getIdAttributeIndex() != -1
           && record.getIdentifier() == null) {
@@ -1348,8 +1348,8 @@ public class CpfDataAccessObject {
   public int writeGroupResults(final JobController jobController,
     final long batchJobId, final int startIndex, final int endIndex,
     final BusinessApplication application,
-    final DataObjectMetaData resultMetaData, final MapWriter errorResultWriter,
-    final com.revolsys.io.Writer<DataObject> structuredResultWriter,
+    final RecordDefinition resultMetaData, final MapWriter errorResultWriter,
+    final com.revolsys.io.Writer<Record> structuredResultWriter,
     final Map<String, Object> defaultProperties) {
     int mask = 0;
     try (
@@ -1368,8 +1368,8 @@ public class CpfDataAccessObject {
           BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
 
         try (
-          final Reader<DataObject> reader = getDataStore().query(query);) {
-          for (final DataObject batchJobExecutionGroup : reader) {
+          final Reader<Record> reader = getDataStore().query(query);) {
+          for (final Record batchJobExecutionGroup : reader) {
             final Long groupSequenceNumber = batchJobExecutionGroup.getLong(BatchJobExecutionGroup.SEQUENCE_NUMBER);
             final Map<String, Object> resultDataMap = jobController.getStructuredResultData(
               batchJobId, groupSequenceNumber, batchJobExecutionGroup);

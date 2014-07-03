@@ -62,18 +62,18 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.gis.data.io.DataObjectWriterFactory;
-import com.revolsys.gis.data.model.ArrayDataObject;
-import com.revolsys.gis.data.model.Attribute;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectMetaData;
-import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
-import com.revolsys.gis.data.model.DataObjectUtil;
-import com.revolsys.gis.data.model.RecordIdentifier;
-import com.revolsys.gis.data.model.types.DataType;
-import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.gis.data.model.types.SimpleDataType;
-import com.revolsys.gis.model.data.equals.EqualsInstance;
+import com.revolsys.data.equals.EqualsInstance;
+import com.revolsys.data.identifier.Identifier;
+import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.record.ArrayRecord;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.record.schema.RecordDefinitionImpl;
+import com.revolsys.data.types.DataType;
+import com.revolsys.data.types.DataTypes;
+import com.revolsys.data.types.SimpleDataType;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
@@ -219,8 +219,8 @@ public class CloudProcessingFramework {
   public CloudProcessingFramework() {
   }
 
-  private void addBatchJobStatusLink(final PageInfo page, final DataObject job) {
-    final RecordIdentifier batchJobId = job.getIdentifier();
+  private void addBatchJobStatusLink(final PageInfo page, final Record job) {
+    final Identifier batchJobId = job.getIdentifier();
     final String batchJobUrl = HttpServletUtils.getFullUrl("/ws/jobs/"
         + batchJobId + "/");
     final Timestamp timestamp = job.getValue(BatchJob.WHEN_CREATED);
@@ -268,7 +268,7 @@ public class CloudProcessingFramework {
 
   private void addFieldRow(final Map<String, String> fieldSectionMap,
     final Map<String, ElementContainer> sectionContainers,
-    final DataObjectMetaDataImpl metaData, final String name) {
+    final RecordDefinitionImpl metaData, final String name) {
     if (metaData.hasAttribute(name)) {
       final Attribute attribute = metaData.getAttribute(name);
       addFieldRow(fieldSectionMap, sectionContainers, attribute);
@@ -278,7 +278,7 @@ public class CloudProcessingFramework {
   private void addGeometryFields(final Map<String, String> fieldSectionMap,
     final Map<String, ElementContainer> sectionContainers,
     final BusinessApplication businessApplication) {
-    final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+    final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
     addFieldRow(fieldSectionMap, sectionContainers, requestMetaData, "srid");
     if (requestMetaData.hasAttribute("resultSrid")) {
       for (final String name : Arrays.asList("resultSrid", "resultNumAxis",
@@ -534,8 +534,8 @@ public class CloudProcessingFramework {
     this.rawContent = null;
   }
 
-  private DataObject createBatchJob() {
-    final DataObject batchJob = this.dataAccessObject.create(BatchJob.BATCH_JOB);
+  private Record createBatchJob() {
+    final Record batchJob = this.dataAccessObject.create(BatchJob.BATCH_JOB);
     batchJob.setIdValue(this.dataAccessObject.getDataStore()
       .createPrimaryIdValue(BatchJob.BATCH_JOB));
     final String prefix = PathAliasController.getAlias();
@@ -656,7 +656,7 @@ public class CloudProcessingFramework {
       final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
       addTestParameters(businessApplication, businessApplicationParameters);
 
-      final DataObject batchJob = createBatchJob();
+      final Record batchJob = createBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
       final AppLog log = businessApplication.getLog();
@@ -719,7 +719,7 @@ public class CloudProcessingFramework {
         batchJob.setValue(BatchJob.NOTIFICATION_URL, notificationUrl);
       }
 
-      final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+      final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
       for (final Attribute parameter : requestMetaData.getAttributes()) {
         final String parameterName = parameter.getName();
         String value = HttpServletUtils.getParameter(parameterName);
@@ -921,7 +921,7 @@ public class CloudProcessingFramework {
         businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplicationName);
 
-      final DataObject batchJob = createBatchJob();
+      final Record batchJob = createBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
       final AppLog log = businessApplication.getLog();
@@ -971,8 +971,8 @@ public class CloudProcessingFramework {
           notificationUrl = "mailto:" + notificationEmail;
         }
       }
-      final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-      final DataObject inputData = new ArrayDataObject(requestMetaData);
+      final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
+      final Record inputData = new ArrayRecord(requestMetaData);
       for (final Attribute attribute : requestMetaData.getAttributes()) {
         final String parameterName = attribute.getName();
         String value = HttpServletUtils.getParameter(parameterName);
@@ -1075,7 +1075,7 @@ public class CloudProcessingFramework {
   }
 
   private void createStructuredJob(final Long batchJobId,
-    final DataObject batchJob, final List<MultipartFile> inputDataFiles,
+    final Record batchJob, final List<MultipartFile> inputDataFiles,
     final List<String> inputDataUrls) throws IOException {
     if (!inputDataFiles.isEmpty()) {
       if (inputDataFiles.size() == 1) {
@@ -1146,7 +1146,7 @@ public class CloudProcessingFramework {
   }, method = RequestMethod.DELETE)
   public void deleteJob(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final DataObject batchJob = this.dataAccessObject.getBatchJob(consumerKey,
+    final Record batchJob = this.dataAccessObject.getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
       throw new PageNotFoundException("The cloud job " + batchJobId
@@ -1490,8 +1490,8 @@ public class CloudProcessingFramework {
         if (StringUtils.hasText(format)) {
           final boolean valid = form.isValid();
           if (valid) {
-            final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-            final DataObject requestParameters = new ArrayDataObject(
+            final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
+            final Record requestParameters = new ArrayRecord(
               requestMetaData);
             for (final Attribute attribute : requestMetaData.getAttributes()) {
               final String name = attribute.getName();
@@ -1531,7 +1531,7 @@ public class CloudProcessingFramework {
             final List<Map<String, Object>> list = plugin.getResults();
             HttpServletUtils.setAttribute("contentDispositionFileName",
               businessApplicationName);
-            final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+            final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
             for (final Entry<String, Object> entry : businessApplication.getProperties()
                 .entrySet()) {
               final String name = entry.getKey();
@@ -1562,7 +1562,7 @@ public class CloudProcessingFramework {
               final GeometryFactory geometryFactory = GeometryFactory.fixed(
                 resultSrid, resultNumAxis, resultScaleFactorXy,
                 resultScaleFactorZ);
-              final Writer<DataObject> writer = this.batchJobService.createStructuredResultWriter(
+              final Writer<Record> writer = this.batchJobService.createStructuredResultWriter(
                 resource, businessApplication, resultMetaData, format,
                 "Result", geometryFactory);
               final boolean hasMultipleResults = businessApplication.getResultListProperty() != null;
@@ -1574,7 +1574,7 @@ public class CloudProcessingFramework {
                   writer.getProperties());
 
               for (final Map<String, Object> structuredResultMap : list) {
-                final DataObject structuredResult = DataObjectUtil.getObject(
+                final Record structuredResult = RecordUtil.getObject(
                   resultMetaData, structuredResultMap);
 
                 @SuppressWarnings("unchecked")
@@ -1692,9 +1692,9 @@ public class CloudProcessingFramework {
       } else {
         final String title = businessApplication.getTitle();
         final PageInfo page = createRootPageInfo(title + " Batch Jobs");
-        final List<DataObject> batchJobs = this.dataAccessObject.getBatchJobsForUserAndApplication(
+        final List<Record> batchJobs = this.dataAccessObject.getBatchJobsForUserAndApplication(
           consumerKey, businessApplicationName);
-        for (final DataObject job : batchJobs) {
+        for (final Record job : batchJobs) {
           addBatchJobStatusLink(page, job);
         }
         final Object table = this.batchJobUiBuilder.createDataTableHandler(
@@ -2123,7 +2123,7 @@ public class CloudProcessingFramework {
         addRawContent(container,
             "ca/bc/gov/open/cpf/api/web/service/structuredInputData.html");
       }
-      final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
+      final RecordDefinition requestMetaData = businessApplication.getRequestMetaData();
       final List<Attribute> requestAttributes = requestMetaData.getAttributes();
       final List<KeySerializer> serializers = new ArrayList<KeySerializer>();
       serializers.add(new StringKeySerializer("name"));
@@ -2190,7 +2190,7 @@ public class CloudProcessingFramework {
             "ca/bc/gov/open/cpf/api/web/service/opaqueResults.html");
       } else {
         container.add(new XmlTagElement(HtmlUtil.H2, "Result Fields"));
-        final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+        final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
         final List<Attribute> resultAttributes = resultMetaData.getAttributes();
         final List<KeySerializer> resultSerializers = new ArrayList<KeySerializer>();
         resultSerializers.add(new StringKeySerializer("name"));
@@ -2295,7 +2295,7 @@ public class CloudProcessingFramework {
 
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
-    final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+    final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
@@ -2321,7 +2321,7 @@ public class CloudProcessingFramework {
   }
 
   private Element getFormMultiple(final BusinessApplication businessApplication) {
-    final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+    final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
 
     final Map<String, String> fieldSectionMap = getFormSectionsFieldMap(
       businessApplication, "Multiple");
@@ -2474,7 +2474,7 @@ public class CloudProcessingFramework {
   }
 
   private Element getFormSingle(final BusinessApplication businessApplication) {
-    final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+    final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
     final Map<String, String> fieldSectionMap = getFormSectionsFieldMap(
       businessApplication, "Single");
     final Map<String, ElementContainer> sectionContainers = getFormSectionContainers(
@@ -2597,8 +2597,8 @@ public class CloudProcessingFramework {
       return null;
     } else {
       final PageInfo page = createRootPageInfo("Batch Jobs");
-      final List<DataObject> batchJobs = this.dataAccessObject.getBatchJobsForUser(consumerKey);
-      for (final DataObject job : batchJobs) {
+      final List<Record> batchJobs = this.dataAccessObject.getBatchJobsForUser(consumerKey);
+      for (final Record job : batchJobs) {
         addBatchJobStatusLink(page, job);
       }
       return page;
@@ -2691,7 +2691,7 @@ public class CloudProcessingFramework {
   @ResponseBody
   public Object getJobsInfo(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final DataObject batchJob = this.dataAccessObject.getBatchJob(consumerKey,
+    final Record batchJob = this.dataAccessObject.getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobId
@@ -2738,11 +2738,11 @@ public class CloudProcessingFramework {
     @PathVariable final long resultId) throws IOException {
     final String consumerKey = getConsumerKey();
 
-    final DataObject batchJob = this.dataAccessObject.getBatchJob(consumerKey,
+    final Record batchJob = this.dataAccessObject.getBatchJob(consumerKey,
       batchJobId);
 
     if (batchJob != null) {
-      final DataObject batchJobResult = this.dataAccessObject.getBatchJobResult(
+      final Record batchJobResult = this.dataAccessObject.getBatchJobResult(
         batchJobId, resultId);
       if (EqualsInstance.INSTANCE.equals(batchJobId,
         batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
@@ -2834,7 +2834,7 @@ public class CloudProcessingFramework {
   public Object getJobsResults(@PathVariable final long batchJobId) {
     final String consumerKey = getConsumerKey();
 
-    final DataObject batchJob = this.dataAccessObject.getBatchJob(consumerKey,
+    final Record batchJob = this.dataAccessObject.getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobId
@@ -2862,10 +2862,10 @@ public class CloudProcessingFramework {
         final Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("batchJobId", batchJobId);
         final PageInfo page = createRootPageInfo(title);
-        final List<DataObject> results = this.dataAccessObject.getBatchJobResults(batchJobId);
+        final List<Record> results = this.dataAccessObject.getBatchJobResults(batchJobId);
         if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null
             && !results.isEmpty()) {
-          for (final DataObject batchJobResult : results) {
+          for (final Record batchJobResult : results) {
             final Number sequenceNumber = batchJobResult.getInteger(BatchJobResult.SEQUENCE_NUMBER);
             parameters.put("sequenceNumber", sequenceNumber);
             final PageInfo resultPage = addPage(page, sequenceNumber,
@@ -2906,7 +2906,7 @@ public class CloudProcessingFramework {
       "The http: URL to the file or resource containing input data.", true,
       false, perRequestInputData, Collections.emptyList());
 
-    final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
+    final RecordDefinition requestMetaData = businessApplication.getRequestMetaData();
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       addParameter(parameters, attribute, perRequestInputData);
     }
@@ -2948,7 +2948,7 @@ public class CloudProcessingFramework {
     final BusinessApplication businessApplication) {
     final List<Map<String, Object>> resultAttributes = new ArrayList<Map<String, Object>>();
 
-    final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+    final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
     for (final Attribute attribute : resultMetaData.getAttributes()) {
       final String name = attribute.getName();
       final String typeDescription = attribute.getTypeDescription();

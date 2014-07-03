@@ -14,7 +14,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.json.JsonParser;
 
@@ -119,14 +119,14 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public InputStream getJobResultData(final long jobId,
-    final long sequenceNumber, final DataObject batchJobResult) {
+    final long sequenceNumber, final Record batchJobResult) {
     final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
     return FileUtil.getInputStream(resultFile);
   }
 
   @Override
   public long getJobResultSize(final long jobId, final long sequenceNumber,
-    final DataObject batchJobResult) {
+    final Record batchJobResult) {
     final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
     return resultFile.length();
   }
@@ -155,7 +155,7 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public Map<String, Object> getStructuredResultData(final long jobId,
-    final long sequenceNumber, final DataObject batchJobExecutionGroup) {
+    final long sequenceNumber, final Record batchJobExecutionGroup) {
     final File file = getJobFile(jobId, GROUP_RESULTS, sequenceNumber);
     if (file.exists()) {
       final Map<String, Object> resultData = JsonParser.read(file);
@@ -167,7 +167,7 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public void setJobResultData(final long jobId,
-    final DataObject batchJobResult, final Object resultData) {
+    final Record batchJobResult, final Object resultData) {
     final Long sequenceNumber = batchJobResult.getLong(BatchJobResult.SEQUENCE_NUMBER);
     final String path = JOB_RESULTS;
     final File resultFile = getJobFile(jobId, path, sequenceNumber);
@@ -183,7 +183,7 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public void setStructuredInputData(final long jobId,
-    final long sequenceNumber, final DataObject executionGroup,
+    final long sequenceNumber, final Record executionGroup,
     final String structuredInputData) {
     final File file = getJobFile(jobId, GROUP_INPUTS, sequenceNumber);
     file.getParentFile().mkdirs();
@@ -192,7 +192,7 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public void setStructuredResultData(final long jobId,
-    final long sequenceNumber, final DataObject executionGroup,
+    final long sequenceNumber, final Record executionGroup,
     final String structuredResultData) {
     final File file = getJobFile(jobId, GROUP_RESULTS, sequenceNumber);
     file.getParentFile().mkdirs();

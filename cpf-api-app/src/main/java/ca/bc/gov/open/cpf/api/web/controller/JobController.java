@@ -3,7 +3,7 @@ package ca.bc.gov.open.cpf.api.web.controller;
 import java.io.InputStream;
 import java.util.Map;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 
 public interface JobController {
   String GROUP_RESULTS = "groupResults";
@@ -24,10 +24,10 @@ public interface JobController {
   void deleteJob(long jobId);
 
   InputStream getJobResultData(long jobId, long sequenceNumber,
-    DataObject batchJobResult);
+    Record batchJobResult);
 
   long getJobResultSize(long jobId, long sequenceNumber,
-    DataObject batchJobResult);
+    Record batchJobResult);
 
   String getKey();
 
@@ -36,14 +36,14 @@ public interface JobController {
   String getStructuredInputData(long jobId, long executionGroupId);
 
   Map<String, Object> getStructuredResultData(long jobId,
-    long executionGroupId, DataObject batchJobExecutionGroup);
+    long executionGroupId, Record batchJobExecutionGroup);
 
-  void setJobResultData(final long jobId, final DataObject batchJobResult,
+  void setJobResultData(final long jobId, final Record batchJobResult,
     final Object resultData);
 
   void setStructuredInputData(long jobId, long executionGroupId,
-    DataObject executionGroup, String structuredInputData);
+    Record executionGroup, String structuredInputData);
 
   void setStructuredResultData(long jobId, long executionGroupId,
-    DataObject executionGroup, String structuredInputData);
+    Record executionGroup, String structuredInputData);
 }

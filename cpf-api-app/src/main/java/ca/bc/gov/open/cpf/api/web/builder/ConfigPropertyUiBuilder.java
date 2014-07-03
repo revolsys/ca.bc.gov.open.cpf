@@ -21,11 +21,11 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.gis.data.io.DataObjectStore;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.query.Condition;
-import com.revolsys.gis.data.query.Q;
-import com.revolsys.gis.data.query.Query;
+import com.revolsys.data.io.DataObjectStore;
+import com.revolsys.data.query.Condition;
+import com.revolsys.data.query.Q;
+import com.revolsys.data.query.Query;
+import com.revolsys.data.record.Record;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
@@ -81,7 +81,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     ServletException {
     checkHasAnyRole(ADMIN);
 
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null) {
       final String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
       if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
@@ -108,7 +108,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     @PathVariable final Integer configPropertyId) throws IOException,
     ServletException {
     checkHasAnyRole(ADMIN);
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     return super.createObjectEditPage(configProperty, null);
   }
 
@@ -137,7 +137,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response,
     @PathVariable final Integer configPropertyId) {
     checkHasAnyRole(ADMIN);
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null) {
       final String moduleName = configProperty.getValue(ConfigProperty.MODULE_NAME);
       if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
@@ -206,7 +206,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
 
     final String componentName = getAppComponentName(businessApplicationName);
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
@@ -234,7 +234,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
 
     final String componentName = getAppComponentName(businessApplicationName);
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
@@ -284,7 +284,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
 
     final String componentName = getAppComponentName(businessApplicationName);
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
@@ -306,7 +306,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
@@ -331,7 +331,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
@@ -374,7 +374,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final DataObject configProperty = loadObject(configPropertyId);
+    final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
@@ -387,7 +387,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }
 
   @Override
-  public boolean preInsert(final Form form, final DataObject configProperty) {
+  public boolean preInsert(final Form form, final Record configProperty) {
     final Field field = form.getField(ConfigProperty.MODULE_NAME);
     final String moduleName = field.getValue();
     if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
@@ -398,7 +398,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     }
   }
 
-  public boolean preInsertModule(final Form form, final DataObject object) {
+  public boolean preInsertModule(final Form form, final Record object) {
     return true;
   }
 

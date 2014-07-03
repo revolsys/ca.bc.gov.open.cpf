@@ -44,7 +44,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.StringPrinter;
@@ -67,9 +67,9 @@ public class InternalWebService {
     final Map<String, Map<String, Object>> configProperties,
     final String environmentName, final String moduleName,
     final String componentName) {
-    final List<DataObject> properties = this.dataAccessObject.getConfigPropertiesForModule(
+    final List<Record> properties = this.dataAccessObject.getConfigPropertiesForModule(
       environmentName, moduleName, componentName);
-    for (final DataObject configProperty : properties) {
+    for (final Record configProperty : properties) {
       final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
       configProperties.put(propertyName, configProperty);
     }
@@ -96,13 +96,13 @@ public class InternalWebService {
     @PathVariable final long sequenceNumber)
         throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    final DataObject batchJobExecutionGroup = this.dataAccessObject.getBatchJobExecutionGroup(
+    final Record batchJobExecutionGroup = this.dataAccessObject.getBatchJobExecutionGroup(
       batchJobId, sequenceNumber);
     if (batchJobExecutionGroup == null) {
       throw new NoSuchRequestHandlingMethodException(
         HttpServletUtils.getRequest());
     } else {
-      final DataObject batchJob = this.dataAccessObject.getBatchJob(batchJobId);
+      final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
       if (businessApplication == null
@@ -186,7 +186,7 @@ public class InternalWebService {
 
         final long groupSequenceNumber = group.getSequenceNumber();
         if (businessApplication.isPerRequestInputData()) {
-          final DataObject executionGroup = this.dataAccessObject.getBatchJobExecutionGroup(
+          final Record executionGroup = this.dataAccessObject.getBatchJobExecutionGroup(
             batchJobId, groupSequenceNumber);
           final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
           groupSpecification.put("requests", requestParameterList);
@@ -329,7 +329,7 @@ public class InternalWebService {
     if (group != null) {
       synchronized (group) {
         if (!group.isCancelled()) {
-          final DataObject batchJob = this.dataAccessObject.getBatchJob(batchJobId);
+          final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);
           final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
           final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
           if (businessApplication != null

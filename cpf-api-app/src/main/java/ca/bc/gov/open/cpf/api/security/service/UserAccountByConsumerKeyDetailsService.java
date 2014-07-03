@@ -17,8 +17,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
@@ -46,12 +46,12 @@ public class UserAccountByConsumerKeyDetailsService implements
       Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String name = username.toLowerCase();
-        final DataObject user = dataAccessObject.getUserAccount(name);
+        final Record user = dataAccessObject.getUserAccount(name);
         if (user == null) {
           throw new UsernameNotFoundException("Username or password incorrect");
         } else {
           final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-          final boolean active = DataObjectUtil.getBoolean(user,
+          final boolean active = RecordUtil.getBoolean(user,
             UserAccount.ACTIVE_IND);
           final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
           final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();

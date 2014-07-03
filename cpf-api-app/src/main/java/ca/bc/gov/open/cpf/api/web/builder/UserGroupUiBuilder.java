@@ -26,8 +26,8 @@ import ca.bc.gov.open.cpf.api.domain.UserGroupPermission;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.form.Form;
@@ -48,7 +48,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }
 
   public void adminUserGroupLink(final XmlWriter out, final Object object) {
-    final DataObject userGroup = (DataObject)object;
+    final Record userGroup = (Record)object;
 
     final Map<String, String> parameterNames = new HashMap<String, String>();
     parameterNames.put("userGroupName", "userGroupName");
@@ -85,7 +85,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
       hasModule(request, moduleName);
     }
 
-    final DataObject userGroup = getUserGroup(userGroupName);
+    final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null
         && (moduleName == null || moduleNames.contains(userGroup.getValue(UserGroup.MODULE_NAME)))) {
       final TabElementContainer tabs = new TabElementContainer();
@@ -177,7 +177,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final DataObject userGroup = getUserGroup(userGroupName);
+    final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null
         && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
       final CpfDataAccessObject dataAccessObject = getDataAccessObject();
@@ -202,7 +202,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final Map<String, Object> parameters = new HashMap<String, Object>();
     parameters.put("moduleName", moduleName);
 
-    final DataObject userGroup = getUserGroup(userGroupName);
+    final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null
         && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
       return createObjectEditPage(userGroup, "module");
@@ -253,7 +253,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable final String consumerKey)
         throws IOException, NoSuchRequestHandlingMethodException {
     checkHasAnyRole(ADMIN);
-    final DataObject userAccount = getUserAccount(consumerKey);
+    final Record userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
 
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -299,7 +299,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
         throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
 
-    final DataObject userGroup = getUserGroup(userGroupName);
+    final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null
         && userGroup.getValue(UserGroup.MODULE_NAME).equals("GLOBAL")) {
       final CpfDataAccessObject dataAccessObject = getDataAccessObject();
@@ -318,7 +318,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, final @PathVariable String userGroupName)
         throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
-    final DataObject userGroup = getUserGroup(userGroupName);
+    final Record userGroup = getUserGroup(userGroupName);
     return super.createObjectEditPage(userGroup, "group");
   }
 
@@ -342,10 +342,10 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     @PathVariable final String consumerKey, @RequestParam final Boolean confirm)
         throws ServletException {
     checkHasAnyRole(ADMIN);
-    final DataObject userGroup = getUserGroup(userGroupName);
+    final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null) {
 
-      final DataObject userAccount = getUserAccount(consumerKey);
+      final Record userAccount = getUserAccount(consumerKey);
       if (userAccount != null) {
         if (BooleanStringConverter.getBoolean(confirm)) {
           final CpfDataAccessObject dataAccessObject = getDataAccessObject();
@@ -371,14 +371,14 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }
 
   @Override
-  public boolean preInsert(final Form form, final DataObject userGroup) {
+  public boolean preInsert(final Form form, final Record userGroup) {
     final Field nameField = form.getField(UserGroup.USER_GROUP_NAME);
     String groupName = nameField.getValue();
     groupName = groupName.toUpperCase();
     nameField.setValue(groupName);
     userGroup.setValue(UserGroup.USER_GROUP_NAME, groupName);
 
-    final DataObject group = getUserGroup(groupName);
+    final Record group = getUserGroup(groupName);
     if (group == null) {
       final String moduleName = userGroup.getValue(UserGroup.MODULE_NAME);
       if (!groupName.startsWith(moduleName + "_")) {
@@ -404,8 +404,8 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }
 
   @Override
-  public boolean preUpdate(final Form form, final DataObject userGroup) {
-    final Long userGroupId = DataObjectUtil.getLong(userGroup,
+  public boolean preUpdate(final Form form, final Record userGroup) {
+    final Long userGroupId = RecordUtil.getLong(userGroup,
       UserGroup.USER_GROUP_ID);
     final Field nameField = form.getField(UserGroup.USER_GROUP_NAME);
     String groupName = nameField.getValue();
@@ -413,9 +413,9 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     nameField.setValue(groupName);
     userGroup.setValue(UserGroup.USER_GROUP_NAME, groupName);
 
-    final DataObject group = getUserGroup(groupName);
+    final Record group = getUserGroup(groupName);
     if (group == null
-        || DataObjectUtil.getLong(group, UserGroup.USER_GROUP_ID) == userGroupId) {
+        || RecordUtil.getLong(group, UserGroup.USER_GROUP_ID) == userGroupId) {
       final String moduleName = userGroup.getValue(UserGroup.MODULE_NAME);
       if (!groupName.startsWith(moduleName + "_")) {
         nameField.addValidationError("Group name must start with " + moduleName
@@ -442,12 +442,12 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }
 
   public void userGroupName(final XmlWriter out, final Object object) {
-    final DataObject dataObject = (DataObject)object;
-    final long userGroupId = DataObjectUtil.getLong(dataObject,
+    final Record dataObject = (Record)object;
+    final long userGroupId = RecordUtil.getLong(dataObject,
       UserGroup.USER_GROUP_ID);
 
     final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-    final DataObject userGroup = dataAccessObject.getUserGroup(userGroupId);
+    final Record userGroup = dataAccessObject.getUserGroup(userGroupId);
 
     final String name = userGroup.getValue(UserGroup.USER_GROUP_NAME);
     out.text(name);

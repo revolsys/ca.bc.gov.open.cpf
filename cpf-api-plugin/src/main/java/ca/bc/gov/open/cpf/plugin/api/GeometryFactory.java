@@ -10,8 +10,8 @@ import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsGeometryConverter;
 import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsWktParser;
 
 import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
-import com.revolsys.gis.data.model.types.DataTypes;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;

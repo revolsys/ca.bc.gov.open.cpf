@@ -28,8 +28,8 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.gis.data.io.DataObjectWriterFactory;
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.json.JsonMapIoFactory;
@@ -50,7 +50,7 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
   }
 
   public void completed(final XmlWriter out, final Object object) {
-    final DataObject executionGroup = (DataObject)object;
+    final Record executionGroup = (Record)object;
     final boolean completed = Boolean.TRUE.equals(JavaBeanUtil.getBooleanValue(
       executionGroup, BatchJobExecutionGroup.COMPLETED_IND));
     if (completed) {
@@ -66,10 +66,10 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
 
   }
 
-  public DataObject getBatchJobExecutionGroup(final Long batchJobId,
+  public Record getBatchJobExecutionGroup(final Long batchJobId,
     final Long sequenceNumber) throws NoSuchRequestHandlingMethodException {
     final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-    final DataObject batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(
+    final Record batchJobExecutionGroup = dataAccessObject.getBatchJobExecutionGroup(
       batchJobId, sequenceNumber);
     if (batchJobExecutionGroup == null) {
       throw new NoSuchRequestHandlingMethodException(getRequest());
@@ -94,7 +94,7 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
-    final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
+    final Record batchJobExecutionGroup = getBatchJobExecutionGroup(
       batchJobId, sequenceNumber);
     final String baseName = "job-" + batchJobId + "-group-" + sequenceNumber
       + "-input";
@@ -137,8 +137,8 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(
       moduleName, businessApplicationName);
-    final DataObject batchJob = getBatchJob(businessApplicationName, batchJobId);
-    final DataObject batchJobExecutionGroup = getBatchJobExecutionGroup(
+    final Record batchJob = getBatchJob(businessApplicationName, batchJobId);
+    final Record batchJobExecutionGroup = getBatchJobExecutionGroup(
       batchJobId, sequenceNumber);
     final String contentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
     final String baseName = "job-" + batchJobId + "-group-" + sequenceNumber

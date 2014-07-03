@@ -29,9 +29,9 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.gis.data.model.Attribute;
-import com.revolsys.gis.data.model.DataObjectMetaData;
-import com.revolsys.gis.data.model.types.DataType;
+import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.types.DataType;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.json.JsonMapIoFactory;
@@ -131,7 +131,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
    * @return The request map
    */
   protected Map<String, Object> executeRequest(
-    final DataObjectMetaData requestMetaData,
+    final RecordDefinition requestMetaData,
     final Map<String, Object> applicationParameters,
     final Map<String, Object> requestParameters) {
     final StopWatch requestStopWatch = new StopWatch("Request");
@@ -252,7 +252,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   @SuppressWarnings("unchecked")
   protected Map<String, Object> getParameters(
     final BusinessApplication businessApplication,
-    final DataObjectMetaData requestMetaData,
+    final RecordDefinition requestMetaData,
     final Map<String, Object> applicationParameters,
     final Map<String, Object> requestParameters) {
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>(
@@ -332,7 +332,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           if (!group.isEmpty()) {
             final Map<String, Object> globalError = new LinkedHashMap<String, Object>();
 
-            final DataObjectMetaData requestMetaData = this.businessApplication.getRequestMetaData();
+            final RecordDefinition requestMetaData = this.businessApplication.getRequestMetaData();
             final Map<String, Object> applicationParameters = new HashMap<String, Object>(
                 (Map<String, Object>)group.get("applicationParameters"));
             for (final String name : requestMetaData.getAttributeNames()) {

@@ -20,11 +20,11 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.gis.data.io.DataObjectWriterFactory;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.query.And;
-import com.revolsys.gis.data.query.Q;
-import com.revolsys.gis.data.query.Query;
+import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.query.And;
+import com.revolsys.data.query.Q;
+import com.revolsys.data.query.Query;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 
@@ -37,12 +37,12 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     setIdParameterName("sequenceNumber");
   }
 
-  public DataObject getBatchJobResult(final Long batchJobId,
+  public Record getBatchJobResult(final Long batchJobId,
     final Long sequenceNumber) throws NoSuchRequestHandlingMethodException {
     final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
       Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
     final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
-    final DataObject batchJobResult = getDataStore().queryFirst(query);
+    final Record batchJobResult = getDataStore().queryFirst(query);
 
     if (batchJobResult != null) {
       return batchJobResult;
@@ -66,7 +66,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
-    final DataObject batchJobResult = getBatchJobResult(batchJobId,
+    final Record batchJobResult = getBatchJobResult(batchJobId,
       sequenceNumber);
 
     final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);

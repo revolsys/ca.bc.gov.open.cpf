@@ -10,8 +10,8 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
@@ -29,20 +29,20 @@ public class UserAccountSecurityService {
     return dataAccessObject;
   }
 
-  public List<String> getGroupNames(final DataObject userAccount) {
+  public List<String> getGroupNames(final Record userAccount) {
     try (
       Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final List<String> groupNames = new ArrayList<String>();
         try {
           if (userAccount != null
-            && DataObjectUtil.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
+            && RecordUtil.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
             final String userType = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
             groupNames.add("USER");
             groupNames.add(userType);
-            final Set<DataObject> groups = dataAccessObject.getUserGroupsForUserAccount(userAccount);
+            final Set<Record> groups = dataAccessObject.getUserGroupsForUserAccount(userAccount);
             if (groups != null) {
-              for (final DataObject userGroup : groups) {
+              for (final Record userGroup : groups) {
                 final String groupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
                 groupNames.add(groupName);
               }

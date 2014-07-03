@@ -73,18 +73,18 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
-import com.revolsys.gis.data.io.DataObjectStore;
-import com.revolsys.gis.data.io.DataObjectWriterFactory;
-import com.revolsys.gis.data.io.MapReaderDataObjectReader;
-import com.revolsys.gis.data.model.ArrayDataObject;
-import com.revolsys.gis.data.model.Attribute;
-import com.revolsys.gis.data.model.AttributeProperties;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectMetaData;
-import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
-import com.revolsys.gis.data.model.DataObjectUtil;
-import com.revolsys.gis.data.model.types.DataType;
-import com.revolsys.gis.data.query.Query;
+import com.revolsys.data.io.DataObjectStore;
+import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.io.MapReaderDataObjectReader;
+import com.revolsys.data.query.Query;
+import com.revolsys.data.record.ArrayRecord;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.property.AttributeProperties;
+import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.record.schema.RecordDefinitionImpl;
+import com.revolsys.data.types.DataType;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
@@ -120,7 +120,7 @@ public class BatchJobService implements ModuleEventListener {
   private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
   protected static Map<String, String> getBusinessApplicationParameters(
-    final DataObject batchJob) {
+    final Record batchJob) {
     final String jobParameters = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
     final Map<String, String> parameters = JsonMapIoFactory.toMap(jobParameters);
     return parameters;
@@ -200,7 +200,7 @@ public class BatchJobService implements ModuleEventListener {
     return false;
   }
 
-  public static Map<String, Object> toMap(final DataObject batchJob,
+  public static Map<String, Object> toMap(final Record batchJob,
     final String jobUrl, final long timeUntilNextCheck) {
     try {
       final Map<String, Object> jobMap = new NamedLinkedHashMap<String, Object>(
@@ -486,9 +486,9 @@ public class BatchJobService implements ModuleEventListener {
     final Query query = new Query(
       BusinessApplicationStatistics.APPLICATION_STATISTICS);
     query.addOrderBy(BusinessApplicationStatistics.START_TIMESTAMP, true);
-    final Reader<DataObject> reader = dataStore.query(query);
+    final Reader<Record> reader = dataStore.query(query);
     try {
-      for (final DataObject dbStatistics : reader) {
+      for (final Record dbStatistics : reader) {
         boolean delete = false;
         final Date startTime = dbStatistics.getValue(BusinessApplicationStatistics.START_TIMESTAMP);
         final String durationType = dbStatistics.getValue(BusinessApplicationStatistics.DURATION_TYPE);
@@ -559,7 +559,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   protected boolean createBatchJobExecutionGroup(final Long batchJobId,
-    final int sequenceNumber, final DataObjectMetaData requestMetaData,
+    final int sequenceNumber, final RecordDefinition requestMetaData,
     final List<Map<String, Object>> group) {
     String structuredInputDataString = JsonDataObjectIoFactory.toString(
       requestMetaData, group);
@@ -588,7 +588,7 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
       try {
-        final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
+        final Record result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
         result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
         result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
         result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, resultDataType);
@@ -603,7 +603,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void createBatchJobResultOpaque(final long batchJobId,
     final long sequenceNumber, final String contentType, final Object data) {
-    final DataObject result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
+    final Record result = dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
     result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
     result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
     result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE,
@@ -617,15 +617,15 @@ public class BatchJobService implements ModuleEventListener {
    * Create the error BatchJobResult for a BatchJob. This will only be created
    * if there were any errors.
    * 
-   * @param batchJobId The DataObject identifier.
+   * @param batchJobId The Record identifier.
    */
   public void createResults(final AppLog log, final long batchJobId) {
-    final DataObject batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
+    final Record batchJob = dataAccessObject.getBatchJobLocked(batchJobId);
     final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
     final BusinessApplication application = getBusinessApplication(businessApplicationName);
-    final DataObjectMetaData resultMetaData = application.getResultMetaData();
+    final RecordDefinition resultMetaData = application.getResultMetaData();
 
     final String fileExtension = IoFactoryRegistry.getFileExtension(resultFormat);
     File structuredResultFile = null;
@@ -633,7 +633,7 @@ public class BatchJobService implements ModuleEventListener {
     File errorFile = null;
     Writer errorWriter = null;
     MapWriter errorResultWriter = null;
-    com.revolsys.io.Writer<DataObject> structuredResultWriter = null;
+    com.revolsys.io.Writer<Record> structuredResultWriter = null;
     try {
       errorFile = FileUtil.createTempFile("errors", ".csv");
       errorWriter = new FileWriter(errorFile);
@@ -702,10 +702,10 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  protected com.revolsys.io.Writer<DataObject> createStructuredResultWriter(
-    final DataObject batchJob, final long batchJobId,
+  protected com.revolsys.io.Writer<Record> createStructuredResultWriter(
+    final Record batchJob, final long batchJobId,
     final BusinessApplication application, final File structuredResultFile,
-    final DataObjectMetaData resultMetaData, final String resultFormat) {
+    final RecordDefinition resultMetaData, final String resultFormat) {
     final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(batchJob);
     final GeometryFactory geometryFactory = getGeometryFactory(
       resultMetaData.getGeometryFactory(), businessApplicationParameters);
@@ -717,10 +717,10 @@ public class BatchJobService implements ModuleEventListener {
       resultFormat, title, geometryFactory);
   }
 
-  public com.revolsys.io.Writer<DataObject> createStructuredResultWriter(
+  public com.revolsys.io.Writer<Record> createStructuredResultWriter(
     final org.springframework.core.io.Resource resource,
     final BusinessApplication application,
-    final DataObjectMetaData resultMetaData, final String resultFormat,
+    final RecordDefinition resultMetaData, final String resultFormat,
     final String title, final GeometryFactory geometryFactory) {
     final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
     final DataObjectWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
@@ -729,7 +729,7 @@ public class BatchJobService implements ModuleEventListener {
       throw new IllegalArgumentException("Unsupported result content type: "
         + resultFormat);
     } else {
-      final com.revolsys.io.Writer<DataObject> dataObjectWriter = writerFactory.createDataObjectWriter(
+      final com.revolsys.io.Writer<Record> dataObjectWriter = writerFactory.createDataObjectWriter(
         resultMetaData, resource);
       dataObjectWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY, baseUrl
         + "/kml/defaultStyle.kml#default");
@@ -825,13 +825,13 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public InputStream getBatchJobResultData(final long batchJobId,
-    final long sequenceNumber, final DataObject batchJobResult) {
+    final long sequenceNumber, final Record batchJobResult) {
     return jobController.getJobResultData(batchJobId, sequenceNumber,
       batchJobResult);
   }
 
   public long getBatchJobResultSize(final long batchJobId,
-    final long sequenceNumber, final DataObject batchJobResult) {
+    final long sequenceNumber, final Record batchJobResult) {
     return jobController.getJobResultSize(batchJobId, sequenceNumber,
       batchJobResult);
   }
@@ -918,7 +918,7 @@ public class BatchJobService implements ModuleEventListener {
    * 
    * @return BufferedReader or null if unable to connect to data
    */
-  private InputStream getJobInputDataStream(final DataObject batchJob) {
+  private InputStream getJobInputDataStream(final Record batchJob) {
     final String inputDataUrlString = batchJob.getValue(BatchJob.STRUCTURED_INPUT_DATA_URL);
     if (inputDataUrlString != null && !inputDataUrlString.equals("")) {
       try {
@@ -1204,12 +1204,12 @@ public class BatchJobService implements ModuleEventListener {
     try (
       Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try (
-        com.revolsys.io.Writer<DataObject> writer = dataStore.getWriter();) {
-        final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+        com.revolsys.io.Writer<Record> writer = dataStore.getWriter();) {
+        final Record batchJob = dataAccessObject.getBatchJob(batchJobId);
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
 
-        final long numRequests = DataObjectUtil.getInteger(batchJob,
+        final long numRequests = RecordUtil.getInteger(batchJob,
           BatchJob.NUM_SUBMITTED_REQUESTS);
         final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
         final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
@@ -1232,9 +1232,9 @@ public class BatchJobService implements ModuleEventListener {
         if (dataAccessObject.setBatchJobCompleted(batchJobId)) {
           sendNotification(batchJobId, batchJob);
         }
-        final long numCompletedRequests = DataObjectUtil.getInteger(batchJob,
+        final long numCompletedRequests = RecordUtil.getInteger(batchJob,
           BatchJob.NUM_COMPLETED_REQUESTS);
-        final long numFailedRequests = DataObjectUtil.getInteger(batchJob,
+        final long numFailedRequests = RecordUtil.getInteger(batchJob,
           BatchJob.NUM_FAILED_REQUESTS);
         if (log.isInfoEnabled()) {
           AppLogUtil.infoAfterCommit(log, "End\tJob post-process\tbatchJobId="
@@ -1294,7 +1294,7 @@ public class BatchJobService implements ModuleEventListener {
         int numSubmittedRequests = 0;
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+        final Record batchJob = dataAccessObject.getBatchJob(batchJobId);
         final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
         final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
         if (businessApplication == null) {
@@ -1336,7 +1336,7 @@ public class BatchJobService implements ModuleEventListener {
               valid = addJobValidationError(batchJobId,
                 ErrorCode.INPUT_DATA_UNREADABLE, "", "");
             } else {
-              final DataObjectMetaData requestMetaData = businessApplication.getRequestMetaData();
+              final RecordDefinition requestMetaData = businessApplication.getRequestMetaData();
               try {
                 final MapReaderFactory factory = IoFactoryRegistry.getInstance()
                   .getFactoryByMediaType(MapReaderFactory.class,
@@ -1354,7 +1354,7 @@ public class BatchJobService implements ModuleEventListener {
                       ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
                       "Media type not supported");
                   } else {
-                    final Reader<DataObject> inputDataReader = new MapReaderDataObjectReader(
+                    final Reader<Record> inputDataReader = new MapReaderDataObjectReader(
                       requestMetaData, mapReader);
 
                     final int commitInterval = 100;
@@ -1500,14 +1500,14 @@ public class BatchJobService implements ModuleEventListener {
     return true;
   }
 
-  private Map<String, Object> processParameters(final DataObject batchJob,
+  private Map<String, Object> processParameters(final Record batchJob,
     final BusinessApplication businessApplication,
     final int requestSequenceNumber, final Map<String, String> jobParameters,
     final Map<String, Object> inputDataRecord) {
-    final long batchJobId = DataObjectUtil.getInteger(batchJob,
+    final long batchJobId = RecordUtil.getInteger(batchJob,
       BatchJob.BATCH_JOB_ID);
-    final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
-    final DataObject requestParameters = new ArrayDataObject(requestMetaData);
+    final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
+    final Record requestParameters = new ArrayRecord(requestMetaData);
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       boolean jobParameter = false;
       final String parameterName = attribute.getName();
@@ -1836,7 +1836,7 @@ public class BatchJobService implements ModuleEventListener {
 
         final long start = System.currentTimeMillis();
         final Timestamp startTime = new Timestamp(start);
-        final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+        final Record batchJob = dataAccessObject.getBatchJob(batchJobId);
         dataAccessObject.setBatchJobStatus(batchJobId,
           BatchJob.REQUESTS_CREATED, BatchJob.PROCESSING);
         if (batchJob == null) {
@@ -1979,17 +1979,17 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   /**
-   * @param batchJobId The DataObject identifier.
+   * @param batchJobId The Record identifier.
    * @param batchJob The BatchJob.
    */
-  public void sendNotification(final Long batchJobId, final DataObject batchJob) {
+  public void sendNotification(final Long batchJobId, final Record batchJob) {
     String notificationUrl = batchJob.getValue(BatchJob.NOTIFICATION_URL);
     if (StringUtils.hasText(notificationUrl)) {
       try {
         String baseUrl = this.baseUrl;
         if (userClassBaseUrls != null && !userClassBaseUrls.isEmpty()) {
           final String consumerKey = batchJob.getValue(BatchJob.USER_ID);
-          final DataObject userAccount = dataAccessObject.getUserAccount(consumerKey);
+          final Record userAccount = dataAccessObject.getUserAccount(consumerKey);
           final String userClass = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
           if (userClassBaseUrls.containsKey(userClass)) {
             baseUrl = userClassBaseUrls.get(userClass);
@@ -2039,7 +2039,7 @@ public class BatchJobService implements ModuleEventListener {
               MapWriterFactory.class, contentType);
             if (writerFactory == null) {
               LoggerFactory.getLogger(BatchJobService.class).error(
-                "Media type not supported for DataObject #" + batchJobId
+                "Media type not supported for Record #" + batchJobId
                   + " to " + contentType);
             } else {
               final MapWriter writer = writerFactory.getMapWriter(bodyOut);
@@ -2057,7 +2057,7 @@ public class BatchJobService implements ModuleEventListener {
                 final StatusLine statusLine = response.getStatusLine();
                 if (statusLine.getStatusCode() >= 400) {
                   LoggerFactory.getLogger(BatchJobService.class).error(
-                    "Unable to send notification for DataObject #" + batchJobId
+                    "Unable to send notification for Record #" + batchJobId
                       + " to " + notificationUrl + " response=" + statusLine);
                 }
               } finally {
@@ -2069,7 +2069,7 @@ public class BatchJobService implements ModuleEventListener {
         }
       } catch (final Throwable e) {
         LoggerFactory.getLogger(BatchJobService.class).error(
-          "Unable to send notification for DataObject #" + batchJobId + " to "
+          "Unable to send notification for Record #" + batchJobId + " to "
             + notificationUrl, e);
       }
     }
@@ -2127,7 +2127,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setBatchJobExecutionGroupResults(final String workerId,
     final String groupId, final Map<String, Object> results) {
-    final com.revolsys.io.Writer<DataObject> writer = dataStore.getWriter();
+    final com.revolsys.io.Writer<Record> writer = dataStore.getWriter();
     try {
       final Worker worker = getWorker(workerId);
       if (worker != null) {
@@ -2151,7 +2151,7 @@ public class BatchJobService implements ModuleEventListener {
               final int errorCount = CollectionUtil.getInteger(results,
                 "errorCount");
 
-              final DataObject batchJob = dataAccessObject.getBatchJob(batchJobId);
+              final Record batchJob = dataAccessObject.getBatchJob(batchJobId);
               if (batchJob != null) {
                 final long sequenceNumber = group.getSequenceNumber();
                 dataAccessObject.updateBatchJobExecutionGroupFromResponse(

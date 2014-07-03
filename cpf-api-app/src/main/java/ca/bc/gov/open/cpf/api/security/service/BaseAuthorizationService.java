@@ -13,8 +13,8 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 
 public class BaseAuthorizationService implements AuthorizationService {
 
@@ -35,16 +35,16 @@ public class BaseAuthorizationService implements AuthorizationService {
     final String consumerKey, final String resourceClass,
     final String resourceId, final String actionName) {
 
-    final DataObject userAccount = dataAccessObject.getUserAccount(consumerKey);
+    final Record userAccount = dataAccessObject.getUserAccount(consumerKey);
     if (userAccount == null
-      || !DataObjectUtil.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
+      || !RecordUtil.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
       return false;
     } else {
       final List<String> groupNames = new ArrayList<String>();
       for (final String groupName : userAccountSecurityService.getGroupNames(userAccount)) {
         groupNames.add(groupName);
       }
-      final DataObject permission = dataAccessObject.getUserGroupPermission(
+      final Record permission = dataAccessObject.getUserGroupPermission(
         groupNames, moduleName, resourceClass, resourceId, actionName);
       return permission != null;
     }
@@ -75,7 +75,7 @@ public class BaseAuthorizationService implements AuthorizationService {
 
   @Override
   public String getUserClass(final String consumerKey) {
-    final DataObject userAccount = dataAccessObject.getUserAccount(consumerKey);
+    final Record userAccount = dataAccessObject.getUserAccount(consumerKey);
     if (userAccount == null) {
       return null;
     } else {
@@ -85,7 +85,7 @@ public class BaseAuthorizationService implements AuthorizationService {
 
   @Override
   public String getUsername(final String consumerKey) {
-    final DataObject userAccount = dataAccessObject.getUserAccount(consumerKey);
+    final Record userAccount = dataAccessObject.getUserAccount(consumerKey);
     if (userAccount == null) {
       return null;
     } else {
@@ -96,7 +96,7 @@ public class BaseAuthorizationService implements AuthorizationService {
   @Override
   public boolean isInGroup(final String moduleName, final String consumerKey,
     final String groupName) {
-    final DataObject userAccount = dataAccessObject.getUserAccount(consumerKey);
+    final Record userAccount = dataAccessObject.getUserAccount(consumerKey);
     if (userAccount == null) {
       return false;
     } else {

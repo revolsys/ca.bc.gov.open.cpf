@@ -27,7 +27,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.beans.InvokeMethodCallable;
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.ui.html.view.TabElementContainer;
 
@@ -42,7 +42,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
-    final DataObject batchJob = (DataObject)object;
+    final Record batchJob = (Record)object;
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
 
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);

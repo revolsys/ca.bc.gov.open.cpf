@@ -22,9 +22,9 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
-import com.revolsys.gis.data.model.RecordIdentifier;
+import com.revolsys.data.identifier.Identifier;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
 
@@ -50,9 +50,9 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
-    final DataObject group = getUserGroup(userGroupName);
+    final Record group = getUserGroup(userGroupName);
     if (group != null) {
-      final Long groupId = DataObjectUtil.getLong(group,
+      final Long groupId = RecordUtil.getLong(group,
         UserGroup.USER_GROUP_ID);
       final Map<String, Object> parameters = new HashMap<String, Object>();
       parameters.put(UserGroupPermission.MODULE_NAME, moduleName);
@@ -76,13 +76,13 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     @RequestParam final Boolean confirm) throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
-    final DataObject group = getUserGroup(userGroupName);
+    final Record group = getUserGroup(userGroupName);
     if (group != null) {
-      final DataObject permission = loadObject(userGroupPermissionId);
+      final Record permission = loadObject(userGroupPermissionId);
       if (permission != null) {
         if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
           moduleName)) {
-          final RecordIdentifier userGroupId = group.getIdentifier();
+          final Identifier userGroupId = group.getIdentifier();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
             final CpfDataAccessObject dataAccessObject = getDataAccessObject();
@@ -111,13 +111,13 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
-    final DataObject group = getUserGroup(userGroupName);
+    final Record group = getUserGroup(userGroupName);
     if (group != null) {
-      final DataObject permission = loadObject(userGroupPermissionId);
+      final Record permission = loadObject(userGroupPermissionId);
       if (permission != null) {
         if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
           moduleName)) {
-          final RecordIdentifier userGroupId = group.getIdentifier();
+          final Identifier userGroupId = group.getIdentifier();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
             return createObjectEditPage(permission, "module");
@@ -140,13 +140,13 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
-    final DataObject group = getUserGroup(userGroupName);
+    final Record group = getUserGroup(userGroupName);
     if (group != null) {
       final Map<String, Object> parameters = new HashMap<String, Object>();
 
       final Map<String, Object> filter = new HashMap<String, Object>();
       filter.put(UserGroupPermission.MODULE_NAME, moduleName);
-      final RecordIdentifier userGroupId = group.getIdentifier();
+      final Identifier userGroupId = group.getIdentifier();
       filter.put(UserGroupPermission.USER_GROUP_ID, userGroupId);
       parameters.put("filter", filter);
 
@@ -170,13 +170,13 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
-    final DataObject group = getUserGroup(userGroupName);
+    final Record group = getUserGroup(userGroupName);
     if (group != null) {
-      final DataObject permission = loadObject(userGroupPermissionId);
+      final Record permission = loadObject(userGroupPermissionId);
       if (permission != null) {
         if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
           moduleName)) {
-          final RecordIdentifier userGroupId = group.getIdentifier();
+          final Identifier userGroupId = group.getIdentifier();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
             userGroupId)) {
             final TabElementContainer tabs = new TabElementContainer();
@@ -191,12 +191,12 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   }
 
   @Override
-  public void postInsert(final DataObject permission) {
+  public void postInsert(final Record permission) {
     postUpdate(permission);
   }
 
   @Override
-  public void postUpdate(final DataObject permission) {
+  public void postUpdate(final Record permission) {
     final String moduleName = permission.getValue(UserGroupPermission.MODULE_NAME);
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     final Module module = businessApplicationRegistry.getModule(moduleName);

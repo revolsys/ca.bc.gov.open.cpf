@@ -10,7 +10,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.json.JsonParser;
 import com.revolsys.util.WrappedException;
 
@@ -30,7 +30,7 @@ public class DatabaseJobController extends AbstractJobController {
   public void createJobFile(final long jobId, final String path,
     final long sequenceNumber, final String contentType, final Object data) {
     try {
-      final DataObject result = dataAccessObject.create(BatchJobFile.BATCH_JOB_FILE);
+      final Record result = dataAccessObject.create(BatchJobFile.BATCH_JOB_FILE);
       result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
       result.setValue(BatchJobFile.PATH, path);
       result.setValue(BatchJobFile.CONTENT_TYPE, contentType);
@@ -49,7 +49,7 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   public InputStream getJobResultData(final long jobId,
-    final long sequenceNumber, final DataObject batchJobResult) {
+    final long sequenceNumber, final Record batchJobResult) {
     try {
       final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
       return resultData.getBinaryStream();
@@ -60,7 +60,7 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   public long getJobResultSize(final long jobId, final long sequenceNumber,
-    final DataObject batchJobResult) {
+    final Record batchJobResult) {
     try {
       final Blob resultData = batchJobResult.getValue(BatchJobResult.RESULT_DATA);
       return resultData.length();
@@ -82,7 +82,7 @@ public class DatabaseJobController extends AbstractJobController {
   @Override
   public String getStructuredInputData(final long jobId,
     final long groupSequenceNumber) {
-    final DataObject executionGroup = dataAccessObject.getBatchJobExecutionGroup(
+    final Record executionGroup = dataAccessObject.getBatchJobExecutionGroup(
       jobId, groupSequenceNumber);
     if (executionGroup == null) {
       return "";
@@ -94,7 +94,7 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   public Map<String, Object> getStructuredResultData(final long jobId,
-    final long sequenceNumber, final DataObject batchJobExecutionGroup) {
+    final long sequenceNumber, final Record batchJobExecutionGroup) {
     final Object resultData = batchJobExecutionGroup.getString(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
     if (resultData == null) {
       return null;
@@ -105,13 +105,13 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   public void setJobResultData(final long jobId,
-    final DataObject batchJobResult, final Object resultData) {
+    final Record batchJobResult, final Object resultData) {
     batchJobResult.setValue(BatchJobResult.RESULT_DATA, resultData);
   }
 
   @Override
   public void setStructuredInputData(final long jobId,
-    final long sequenceNumber, final DataObject executionGroup,
+    final long sequenceNumber, final Record executionGroup,
     final String structuredInputData) {
     executionGroup.setValue(BatchJobExecutionGroup.STRUCTURED_INPUT_DATA,
       structuredInputData);
@@ -119,7 +119,7 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   public void setStructuredResultData(final long jobId,
-    final long sequenceNumber, final DataObject executionGroup,
+    final long sequenceNumber, final Record executionGroup,
     final String structuredResultData) {
     executionGroup.setValue(BatchJobExecutionGroup.STRUCTURED_RESULT_DATA,
       structuredResultData);

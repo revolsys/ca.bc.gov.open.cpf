@@ -24,8 +24,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.types.DataTypes;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.types.DataTypes;
 import com.revolsys.io.AbstractMapReaderFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.maven.MavenRepository;
@@ -81,9 +81,9 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     return businessApplicationRegistry;
   }
 
-  public DataObject getConfigProperty(final ConfigPropertyModule module,
+  public Record getConfigProperty(final ConfigPropertyModule module,
     final Map<String, Object> property) {
-    final DataObject configProperty = dataAccessObject.create(ConfigProperty.CONFIG_PROPERTY);
+    final Record configProperty = dataAccessObject.create(ConfigProperty.CONFIG_PROPERTY);
     String environmentName = (String)property.get("environmentName");
     if (!StringUtils.hasText(environmentName)) {
       environmentName = ConfigProperty.DEFAULT;
@@ -142,18 +142,18 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     return mavenRepository;
   }
 
-  public Map<String, Map<String, DataObject>> getPropertiesByEnvironment(
+  public Map<String, Map<String, Record>> getPropertiesByEnvironment(
     final ConfigPropertyModule module,
     final List<Map<String, Object>> pluginProperties) {
-    final Map<String, Map<String, DataObject>> propertiesByEnvironment = new HashMap<String, Map<String, DataObject>>();
+    final Map<String, Map<String, Record>> propertiesByEnvironment = new HashMap<String, Map<String, Record>>();
     for (final Map<String, Object> property : pluginProperties) {
       final String action = (String)property.get(ACTION);
       if (!DELETE.equals(action)) {
-        final DataObject configProperty = getConfigProperty(module, property);
+        final Record configProperty = getConfigProperty(module, property);
         final String environmentName = configProperty.getValue(ConfigProperty.ENVIRONMENT_NAME);
-        Map<String, DataObject> propertiesByName = propertiesByEnvironment.get(environmentName);
+        Map<String, Record> propertiesByName = propertiesByEnvironment.get(environmentName);
         if (propertiesByName == null) {
-          propertiesByName = new HashMap<String, DataObject>();
+          propertiesByName = new HashMap<String, Record>();
           propertiesByEnvironment.put(environmentName, propertiesByName);
         }
         final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
@@ -179,7 +179,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   }
 
   public boolean isEnabledInConfig(final String moduleName) {
-    final DataObject enabledProperty = dataAccessObject.getConfigProperty(
+    final Record enabledProperty = dataAccessObject.getConfigProperty(
       ConfigProperty.DEFAULT, moduleName, ConfigProperty.MODULE_CONFIG, ENABLED);
     final String value = enabledProperty.getValue(ConfigProperty.PROPERTY_VALUE);
     final boolean enabled = !"false".equalsIgnoreCase(value);
@@ -197,17 +197,17 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         final Reader<Map<String, Object>> reader = AbstractMapReaderFactory.mapReader(resource);
         final List<Map<String, Object>> pluginProperties = reader.read();
 
-        final Map<String, Map<String, DataObject>> propertiesByEnvironment = getPropertiesByEnvironment(
+        final Map<String, Map<String, Record>> propertiesByEnvironment = getPropertiesByEnvironment(
           module, pluginProperties);
         final Map<String, List<String>> deletePropertiesByEnvironment = getDeletePropertiesByEnvironment(
           module, pluginProperties);
 
         // Exclude and properties that already exist in the config database
-        for (final DataObject configProperty : dataAccessObject.getConfigPropertiesForComponent(
+        for (final Record configProperty : dataAccessObject.getConfigPropertiesForComponent(
           moduleName, ConfigProperty.MODULE_BEAN_PROPERTY)) {
           final String environmentName = configProperty.getValue(ConfigProperty.ENVIRONMENT_NAME);
           final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
-          final Map<String, DataObject> properties = propertiesByEnvironment.get(environmentName);
+          final Map<String, Record> properties = propertiesByEnvironment.get(environmentName);
           if (properties != null) {
             properties.remove(propertyName);
           }
@@ -218,8 +218,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         }
 
         // Add config properties for new properties
-        for (final Map<String, DataObject> properties : propertiesByEnvironment.values()) {
-          for (final DataObject property : properties.values()) {
+        for (final Map<String, Record> properties : propertiesByEnvironment.values()) {
+          for (final Record property : properties.values()) {
             dataAccessObject.write(property);
           }
         }
@@ -277,7 +277,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
           final Map<String, String> modulesToRefresh = new HashMap<String, String>();
 
-          for (final DataObject property : dataAccessObject.getConfigPropertiesForAllModules(
+          for (final Record property : dataAccessObject.getConfigPropertiesForAllModules(
             ConfigProperty.DEFAULT, ConfigProperty.MODULE_CONFIG,
             MAVEN_MODULE_ID)) {
             final String moduleName = property.getValue(ConfigProperty.MODULE_NAME);
@@ -327,7 +327,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       if (!module.isHasError()) {
         final Set<String> existingGroupNames = new HashSet<String>();
         // Exclude or delete user groups that already exist in the database
-        for (final DataObject userGroup : dataAccessObject.getUserGroupsForModule(moduleName)) {
+        for (final Record userGroup : dataAccessObject.getUserGroupsForModule(moduleName)) {
           final String groupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
           if (groupName.startsWith(moduleName.toUpperCase())) {
             if (groupNamesToDelete != null
@@ -347,14 +347,14 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
               dataAccessObject.createUserGroup(moduleName, groupName, null);
             }
-            final DataObject group = dataAccessObject.getUserGroup(groupName);
+            final Record group = dataAccessObject.getUserGroup(groupName);
             if (group == null) {
               module.getLog().error("Group not found " + groupName);
             } else {
               final Set<ResourcePermission> newPermissions = new HashSet<ResourcePermission>(
                 groupPermissions.getValue());
               if (newPermissions != null && !newPermissions.isEmpty()) {
-                for (final DataObject userGroupPermission : dataAccessObject.getUserGroupPermissions(
+                for (final Record userGroupPermission : dataAccessObject.getUserGroupPermissions(
                   group, moduleName)) {
                   final ResourcePermission permission = new ResourcePermission(
                     userGroupPermission);
@@ -401,7 +401,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         final String environmentName = ConfigProperty.DEFAULT;
         final String componentName = ConfigProperty.MODULE_CONFIG;
         final String propertyName = MAVEN_MODULE_ID;
-        DataObject moduleIdProperty = dataAccessObject.getConfigProperty(
+        Record moduleIdProperty = dataAccessObject.getConfigProperty(
           environmentName, moduleName, componentName, propertyName);
         if (moduleIdProperty == null) {
           moduleIdProperty = dataAccessObject.createConfigProperty(
@@ -413,7 +413,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
           dataAccessObject.write(moduleIdProperty);
         }
 
-        DataObject moduleEnabledProperty = dataAccessObject.getConfigProperty(
+        Record moduleEnabledProperty = dataAccessObject.getConfigProperty(
           environmentName, moduleName, componentName, ENABLED);
         if (moduleEnabledProperty == null) {
           moduleEnabledProperty = dataAccessObject.createConfigProperty(

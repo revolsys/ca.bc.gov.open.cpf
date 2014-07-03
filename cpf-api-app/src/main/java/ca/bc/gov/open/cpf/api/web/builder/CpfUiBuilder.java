@@ -31,9 +31,9 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.gis.data.io.DataObjectStore;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.data.io.DataObjectStore;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.DataObjectHtmlUiBuilder;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -197,9 +197,9 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
     dataAccessObject = null;
   }
 
-  public DataObject getBatchJob(final String businessApplicationName,
+  public Record getBatchJob(final String businessApplicationName,
     final Object batchJobId) throws NoSuchRequestHandlingMethodException {
-    final DataObject batchJob = loadObject(BatchJob.BATCH_JOB, batchJobId);
+    final Record batchJob = loadObject(BatchJob.BATCH_JOB, batchJobId);
     if (batchJob != null) {
       if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(
         businessApplicationName)) {
@@ -316,7 +316,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
    * 
    * @return The time in milliseconds.
    */
-  public long getTimeUntilNextCheck(final DataObject batchJob) {
+  public long getTimeUntilNextCheck(final Record batchJob) {
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
     final BusinessApplication application = batchJobService.getBusinessApplication(businessApplicationName);
     long timeRemaining = 0;
@@ -325,7 +325,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
       if (!statistics.isEmpty()) {
         final BusinessApplicationStatistics stats = statistics.get(0);
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-        final int numRequests = DataObjectUtil.getInteger(batchJob,
+        final int numRequests = RecordUtil.getInteger(batchJob,
           BatchJob.NUM_SUBMITTED_REQUESTS);
         if (jobStatus.equals(BatchJob.DOWNLOAD_INITIATED)
           || jobStatus.equals(BatchJob.RESULTS_CREATED)
@@ -336,9 +336,9 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
         } else {
           timeRemaining += stats.getPostProcessScheduledJobsAverageTime();
           if (!jobStatus.equals(BatchJob.PROCESSED)) {
-            final int numCompletedRequests = DataObjectUtil.getInteger(
+            final int numCompletedRequests = RecordUtil.getInteger(
               batchJob, BatchJob.NUM_COMPLETED_REQUESTS);
-            final int numFailedRequests = DataObjectUtil.getInteger(batchJob,
+            final int numFailedRequests = RecordUtil.getInteger(batchJob,
               BatchJob.NUM_FAILED_REQUESTS);
             final int numRequestsRemaining = numRequests - numCompletedRequests
               - numFailedRequests;
@@ -361,15 +361,15 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
     return Math.max(timeRemaining / 1000, minTimeUntilNextCheck);
   }
 
-  public DataObject getUserAccount(final String consumerKey) {
+  public Record getUserAccount(final String consumerKey) {
     final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-    final DataObject userAccount = dataAccessObject.getUserAccount(consumerKey);
+    final Record userAccount = dataAccessObject.getUserAccount(consumerKey);
     return userAccount;
   }
 
-  public DataObject getUserGroup(final String groupName) {
+  public Record getUserGroup(final String groupName) {
     final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-    final DataObject userGroup = dataAccessObject.getUserGroup(groupName);
+    final Record userGroup = dataAccessObject.getUserGroup(groupName);
     return userGroup;
   }
 
@@ -383,7 +383,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
   }
 
   @Override
-  protected void insertObject(final DataObject object) {
+  protected void insertObject(final Record object) {
     dataAccessObject.write(object);
   }
 
@@ -400,7 +400,7 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
   }
 
   @Override
-  protected void updateObject(final DataObject object) {
+  protected void updateObject(final Record object) {
     dataAccessObject.write(object);
   }
 

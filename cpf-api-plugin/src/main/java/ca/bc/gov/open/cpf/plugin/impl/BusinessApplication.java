@@ -22,13 +22,13 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.converter.string.BooleanStringConverter;
+import com.revolsys.data.equals.EqualsRegistry;
+import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.record.schema.RecordDefinitionImpl;
+import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.jts.geom.GeometryFactory;
-import com.revolsys.gis.data.model.Attribute;
-import com.revolsys.gis.data.model.DataObjectMetaData;
-import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
-import com.revolsys.gis.data.model.types.DataTypes;
-import com.revolsys.gis.model.data.equals.EqualsRegistry;
 import com.revolsys.io.AbstractObjectWithProperties;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
@@ -171,7 +171,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private final Map<Integer, Attribute> requestAttributeMap = new TreeMap<Integer, Attribute>();
 
-  private DataObjectMetaDataImpl requestMetaData;
+  private RecordDefinitionImpl requestMetaData;
 
   private final Map<Integer, Attribute> resultAttributeMap = new TreeMap<Integer, Attribute>();
 
@@ -187,7 +187,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private String resultListProperty;
 
-  private DataObjectMetaDataImpl resultMetaData;
+  private RecordDefinitionImpl resultMetaData;
 
   private boolean securityServiceRequired;
 
@@ -214,8 +214,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.module = module;
     this.name = name;
     this.log = new AppLog(module.getName() + "." + name);
-    this.requestMetaData = new DataObjectMetaDataImpl("/" + name);
-    this.resultMetaData = new DataObjectMetaDataImpl("/" + name);
+    this.requestMetaData = new RecordDefinitionImpl("/" + name);
+    this.resultMetaData = new RecordDefinitionImpl("/" + name);
   }
 
   public BusinessApplication(final String name) {
@@ -561,7 +561,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.pluginMetadata;
   }
 
-  public synchronized DataObjectMetaDataImpl getRequestMetaData() {
+  public synchronized RecordDefinitionImpl getRequestMetaData() {
     if (this.requestMetaData.getAttributeCount() == 0) {
       if (this.requestAttributeMap.size() > 0) {
         final Attribute requestSequenceNumber = this.requestMetaData.addAttribute(
@@ -616,7 +616,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.resultListProperty;
   }
 
-  public synchronized DataObjectMetaData getResultMetaData() {
+  public synchronized RecordDefinition getResultMetaData() {
     if (this.resultMetaData.getAttributeCount() == 0) {
       if (this.resultAttributeMap.size() > 0) {
         this.resultMetaData.addAttribute(new Attribute("sequenceNumber",

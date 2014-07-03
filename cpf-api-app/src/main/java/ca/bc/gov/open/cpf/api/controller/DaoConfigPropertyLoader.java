@@ -12,9 +12,9 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.types.DataType;
-import com.revolsys.gis.data.model.types.DataTypes;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.types.DataType;
+import com.revolsys.data.types.DataTypes;
 
 public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
 
@@ -23,9 +23,9 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
   private void addConfigProperties(final Map<String, Object> configProperties,
     final String environmentName, final String moduleName,
     final String componentName) {
-    final List<DataObject> properties = dataAccessObject.getConfigPropertiesForModule(
+    final List<Record> properties = dataAccessObject.getConfigPropertiesForModule(
       environmentName, moduleName, componentName);
-    for (final DataObject configProperty : properties) {
+    for (final Record configProperty : properties) {
       final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
       final String stringValue = configProperty.getValue(ConfigProperty.PROPERTY_VALUE);
       final String type = configProperty.getValue(ConfigProperty.PROPERTY_VALUE_TYPE);

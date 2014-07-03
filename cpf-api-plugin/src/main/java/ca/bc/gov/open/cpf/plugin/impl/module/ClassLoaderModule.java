@@ -60,15 +60,15 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.AttributeMap;
 import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.record.property.AttributeProperties;
+import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.record.schema.RecordDefinitionImpl;
+import com.revolsys.data.types.DataType;
+import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
-import com.revolsys.gis.data.io.DataObjectWriterFactory;
-import com.revolsys.gis.data.model.Attribute;
-import com.revolsys.gis.data.model.AttributeProperties;
-import com.revolsys.gis.data.model.DataObjectMetaData;
-import com.revolsys.gis.data.model.DataObjectMetaDataImpl;
-import com.revolsys.gis.data.model.types.DataType;
-import com.revolsys.gis.data.model.types.DataTypes;
 import com.revolsys.io.AbstractMapReaderFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
@@ -564,7 +564,7 @@ public class ClassLoaderModule implements Module {
         }
       }
       if (perRequestResultData) {
-        final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+        final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
         try {
           pluginClass.getMethod("setResultData", OutputStream.class);
         } catch (final Throwable e) {
@@ -598,7 +598,7 @@ public class ClassLoaderModule implements Module {
 
       } else {
         if (resultListMethod == null) {
-          final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+          final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
           if (resultMetaData.getAttributeCount() == 0) {
             throw new IllegalArgumentException("Business Application "
               + businessApplicationName + " must have result fields");
@@ -702,7 +702,7 @@ public class ClassLoaderModule implements Module {
         }
       }
 
-      final DataObjectMetaDataImpl requestMetaData = businessApplication.getRequestMetaData();
+      final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
       final Attribute resultDataContentType = requestMetaData.getAttribute("resultDataContentType");
       final Set<String> resultDataContentTypeSet = businessApplication.getResultDataContentTypes();
       resultDataContentType.setAllowedValues(businessApplication.getResultDataFileExtensions());
@@ -1428,7 +1428,7 @@ public class ClassLoaderModule implements Module {
   private void processResultListMethod(
     final BusinessApplication businessApplication, final Method resultListMethod) {
     final String businessApplicationName = businessApplication.getName();
-    DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+    RecordDefinition resultMetaData = businessApplication.getResultMetaData();
     if (resultMetaData.getAttributeCount() > 0) {
       throw new IllegalArgumentException("Business Application "
         + businessApplicationName

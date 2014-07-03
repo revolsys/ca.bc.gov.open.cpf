@@ -23,8 +23,8 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
@@ -99,7 +99,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
     try (
       Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        DataObject user = dataAccessObject.getUserAccount(userAccountClass,
+        Record user = dataAccessObject.getUserAccount(userAccountClass,
           userAccountName);
         if (user == null) {
           if (!autoCreateUsers) {
@@ -121,7 +121,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
         }
         final String userName = user.getValue(UserAccount.CONSUMER_KEY);
         final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-        final boolean active = DataObjectUtil.getBoolean(user,
+        final boolean active = RecordUtil.getBoolean(user,
           UserAccount.ACTIVE_IND);
         final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
         final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();

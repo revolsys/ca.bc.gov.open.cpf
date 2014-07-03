@@ -31,7 +31,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 
 /**
  * The LoadUserByConsumerKeyInterceptor intercepts HTTP requests and adds the
@@ -61,7 +61,7 @@ public class LoadUserByConsumerKeyInterceptor extends HandlerInterceptorAdapter 
     final Authentication authentication = context.getAuthentication();
     if (authentication != null) {
       final String userAccountName = authentication.getName();
-      final DataObject userAccount = dataAccessObject.getUserAccount(userAccountName);
+      final Record userAccount = dataAccessObject.getUserAccount(userAccountName);
       if (userAccount != null) {
         request.setAttribute("userAccount", userAccount);
       } else {

@@ -29,8 +29,8 @@ import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import com.revolsys.collection.ArrayListOfMap;
 import com.revolsys.collection.ResultPager;
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.model.data.equals.EqualsRegistry;
+import com.revolsys.data.equals.EqualsRegistry;
+import com.revolsys.data.record.Record;
 import com.revolsys.io.IoConstants;
 import com.revolsys.ui.html.decorator.FieldLabelDecorator;
 import com.revolsys.ui.html.decorator.TableBody;
@@ -105,12 +105,12 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       if (moduleName != null) {
         hasModule(request, moduleName);
       }
-      final DataObject userGroup = getUserGroup(userGroupName);
+      final Record userGroup = getUserGroup(userGroupName);
       if (userGroup != null
         && (moduleGroupName == null || userGroup.getValue(UserGroup.MODULE_NAME)
           .equals(moduleGroupName))) {
 
-        final DataObject userAccount = getUserAccount(consumerKey);
+        final Record userAccount = getUserAccount(consumerKey);
         if (userAccount == null) {
           final ModelMap model = new ModelMap();
           model.put("body", "/WEB-INF/jsp/admin/groupMemberNotFound.jsp");
@@ -141,10 +141,10 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     checkAdminOrAnyModuleAdmin();
     request.setAttribute(IoConstants.JSON_LIST_ROOT_PROPERTY, Boolean.TRUE);
     final CpfDataAccessObject cpfDataAccessObject = getDataAccessObject();
-    final List<DataObject> userAccounts = cpfDataAccessObject.getUserAccountsLikeName(term);
+    final List<Record> userAccounts = cpfDataAccessObject.getUserAccountsLikeName(term);
 
     final ArrayListOfMap<Object> results = new ArrayListOfMap<Object>();
-    for (final DataObject userAccount : userAccounts) {
+    for (final Record userAccount : userAccounts) {
       final String accountClass = userAccount.getValue(USER_ACCOUNT_CLASS);
       final String accountName = userAccount.getValue(USER_NAME);
       final String username = userAccount.getValue(CONSUMER_KEY);
@@ -167,13 +167,13 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       if (moduleName != null) {
         hasModule(request, moduleName);
       }
-      final DataObject userGroup = getUserGroup(userGroupName);
+      final Record userGroup = getUserGroup(userGroupName);
       if (userGroup != null
         && (moduleName == null || userGroup.getValue(UserGroup.MODULE_NAME)
           .equals(groupModuleName))) {
 
         final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-        final ResultPager<DataObject> userAccounts = dataAccessObject.getUserAccountsForUserGroup(userGroup);
+        final ResultPager<Record> userAccounts = dataAccessObject.getUserAccountsForUserGroup(userGroup);
         return createDataTableMap(request, userAccounts, pageName);
       }
       throw new NoSuchRequestHandlingMethodException(request);
@@ -294,7 +294,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
 
-    final DataObject userAccount = getUserAccount(consumerKey);
+    final Record userAccount = getUserAccount(consumerKey);
     if (userAccount != null
       && userAccount.getValue(USER_ACCOUNT_CLASS).equals("CPF")) {
 
@@ -313,7 +313,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final HttpServletResponse response, final @PathVariable String consumerKey)
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
-    final DataObject userAccount = getUserAccount(consumerKey);
+    final Record userAccount = getUserAccount(consumerKey);
     if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
       return super.createObjectEditPage(userAccount, null);
     } else {
@@ -340,7 +340,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final HttpServletResponse response, @PathVariable final String consumerKey)
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
-    final DataObject userAccount = getUserAccount(consumerKey);
+    final Record userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
       final String userAccountClass = userAccount.getValue(USER_ACCOUNT_CLASS);
       HttpServletUtils.setPathVariable("userAccountClass", userAccountClass);
@@ -395,7 +395,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   }
 
   @Override
-  public void postUpdate(final DataObject userAccount) {
+  public void postUpdate(final Record userAccount) {
     super.postUpdate(userAccount);
     final String consumerKey = userAccount.getString(CONSUMER_KEY);
     final String oldConsumerKey = HttpServletUtils.getAttribute("oldConsumerKey");
@@ -406,7 +406,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   }
 
   @Override
-  public boolean preInsert(final Form form, final DataObject userAccount) {
+  public boolean preInsert(final Form form, final Record userAccount) {
     final Field consumerKeyField = form.getField(CONSUMER_KEY);
     String consumerKey = consumerKeyField.getValue();
     consumerKey = consumerKey.toLowerCase();
@@ -418,7 +418,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       consumerKeyField.addValidationError("Can only contain the characters a-z, 0-9, and _.");
       return false;
     } else {
-      final DataObject account = getUserAccount(consumerKey);
+      final Record account = getUserAccount(consumerKey);
       if (account == null) {
         return true;
       } else {
@@ -429,7 +429,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   }
 
   @Override
-  public boolean preUpdate(final Form form, final DataObject userAccount) {
+  public boolean preUpdate(final Form form, final Record userAccount) {
     if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
       final String oldConsumerKey = userAccount.getString(CONSUMER_KEY);
       final Long userAccountId = userAccount.getLong(USER_ACCOUNT_ID);
@@ -443,7 +443,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
         consumerKeyField.addValidationError("Can only contain the characters a-z, 0-9, and _.");
         return false;
       } else {
-        final DataObject account = getUserAccount(consumerKey);
+        final Record account = getUserAccount(consumerKey);
         if (account == null
           || account.getLong(USER_ACCOUNT_ID) == userAccountId) {
           HttpServletUtils.setAttribute("oldConsumerKey", oldConsumerKey);
@@ -467,12 +467,12 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     if (moduleName != null) {
       hasModule(request, moduleName);
     }
-    final DataObject userGroup = getUserGroup(userGroupName);
+    final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null
       && (moduleGroupName == null || userGroup.getValue(UserGroup.MODULE_NAME)
         .equals(moduleGroupName))) {
 
-      final DataObject userAccount = getUserAccount(consumerKey);
+      final Record userAccount = getUserAccount(consumerKey);
       if (userAccount != null) {
         if (BooleanStringConverter.getBoolean(confirm)) {
           final CpfDataAccessObject dataAccessObject = getDataAccessObject();

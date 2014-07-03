@@ -18,8 +18,8 @@ import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityServiceFactory;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectMetaData;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.io.json.JsonDataObjectIoFactory;
 
 /**
@@ -80,7 +80,7 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final DataObject requestDataObject = getRequestDataObject(
+    final Record requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
 
     if (businessApplication.getResultListProperty() != null) {
@@ -101,9 +101,9 @@ public class BusinessApplicationPluginExecutor {
     plugin.setParameters(requestDataObject);
     plugin.execute();
 
-    final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+    final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
     final Map<String, Object> response = plugin.getResponseFields();
-    final DataObject result = getResultDataObject(resultMetaData, response);
+    final Record result = getResultDataObject(resultMetaData, response);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
     return result;
   }
@@ -130,7 +130,7 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final DataObject requestDataObject = getRequestDataObject(
+    final Record requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
     final Map<String, Object> parameters = new HashMap<String, Object>(
       requestDataObject);
@@ -172,7 +172,7 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final DataObject requestDataObject = getRequestDataObject(
+    final Record requestDataObject = getRequestDataObject(
       businessApplicationName, jobParameters);
 
     final Map<String, Object> parameters = new HashMap<String, Object>(
@@ -196,7 +196,7 @@ public class BusinessApplicationPluginExecutor {
     plugin.setParameters(parameters);
     plugin.execute();
     final Map<String, Object> response = plugin.getResponseFields();
-    final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+    final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
     final Map<String, Object> results = getResultDataObject(resultMetaData,
       response);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
@@ -226,7 +226,7 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final DataObject requestDataObject = getRequestDataObject(
+    final Record requestDataObject = getRequestDataObject(
       businessApplicationName, jobParameters);
 
     final Map<String, Object> parameters = new HashMap<String, Object>(
@@ -276,7 +276,7 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final DataObject requestDataObject = getRequestDataObject(
+    final Record requestDataObject = getRequestDataObject(
       businessApplicationName, inputParameters);
 
     if (businessApplication.getResultListProperty() == null) {
@@ -297,7 +297,7 @@ public class BusinessApplicationPluginExecutor {
     plugin.setParameters(requestDataObject);
     plugin.execute();
     final List<Map<String, Object>> results = plugin.getResults();
-    final DataObjectMetaData resultMetaData = businessApplication.getResultMetaData();
+    final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
     final List<Map<String, Object>> resultsList = getResultList(resultMetaData,
       results);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
@@ -331,17 +331,17 @@ public class BusinessApplicationPluginExecutor {
     }
   }
 
-  protected DataObject getRequestDataObject(
+  protected Record getRequestDataObject(
     final String businessApplicationName,
     final Map<String, ? extends Object> parameters) {
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-    final DataObjectMetaData metaData = businessApplication.getRequestMetaData();
+    final RecordDefinition metaData = businessApplication.getRequestMetaData();
     final String jsonString = JsonDataObjectIoFactory.toString(metaData,
       parameters);
     return JsonDataObjectIoFactory.toDataObject(metaData, jsonString);
   }
 
-  protected DataObject getResultDataObject(final DataObjectMetaData metaData,
+  protected Record getResultDataObject(final RecordDefinition metaData,
     final Map<String, Object> object) {
     final String jsonString = JsonDataObjectIoFactory.toString(metaData, object);
     return JsonDataObjectIoFactory.toDataObject(metaData, jsonString);
@@ -351,7 +351,7 @@ public class BusinessApplicationPluginExecutor {
     "rawtypes", "unchecked"
   })
   protected List<Map<String, Object>> getResultList(
-    final DataObjectMetaData metaData, final List<Map<String, Object>> list) {
+    final RecordDefinition metaData, final List<Map<String, Object>> list) {
     if (list.isEmpty()) {
       final List results = list;
       return results;

@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.springframework.util.StringUtils;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 import com.revolsys.util.CollectionUtil;
 
 public class ResourcePermission {
@@ -40,7 +40,7 @@ public class ResourcePermission {
     setActionName(CollectionUtil.get(permission, "action", ALL));
   }
 
-  public ResourcePermission(final DataObject permission) {
+  public ResourcePermission(final Record permission) {
     setResourceClass(CollectionUtil.get(permission, "RESOURCE_CLASS", ALL));
     setResourceId(CollectionUtil.get(permission, "RESOURCE_ID", ALL));
     setActionName(CollectionUtil.get(permission, "ACTION_NAME", ALL));

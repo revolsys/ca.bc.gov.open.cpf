@@ -10,7 +10,7 @@ import org.springframework.web.servlet.mvc.Controller;
 
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 
-import com.revolsys.gis.data.model.DataObject;
+import com.revolsys.data.record.Record;
 
 public class ResetOAuthCredentialsByUserAccountController implements Controller {
   /** The user type to use when finding the user by their external name. */
@@ -41,7 +41,7 @@ public class ResetOAuthCredentialsByUserAccountController implements Controller 
   public ModelAndView handleRequest(final HttpServletRequest request,
     final HttpServletResponse response) throws Exception {
     if (request.getMethod().equals("POST")) {
-      final DataObject user = (DataObject)request.getAttribute("userAccount");
+      final Record user = (Record)request.getAttribute("userAccount");
       if (user != null) {
         user.setValue(UserAccount.CONSUMER_SECRET, UUID.randomUUID().toString());
         return new ModelAndView(successViewName);
