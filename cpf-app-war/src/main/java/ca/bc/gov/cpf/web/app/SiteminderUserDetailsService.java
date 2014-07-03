@@ -25,8 +25,8 @@ import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.GroupNameService;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
-import com.revolsys.gis.data.model.DataObject;
-import com.revolsys.gis.data.model.DataObjectUtil;
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordUtil;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -63,7 +63,7 @@ public class SiteminderUserDetailsService implements UserDetailsService,
   }
 
   @Override
-  public List<String> getGroupNames(final DataObject userAccount) {
+  public List<String> getGroupNames(final Record userAccount) {
     final List<String> groupNames = new ArrayList<String>();
     if (userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS).equals(
       USER_ACCOUNT_CLASS)) {
@@ -126,7 +126,7 @@ public class SiteminderUserDetailsService implements UserDetailsService,
     try (
       Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        DataObject user = dataAccessObject.getUserAccount(USER_ACCOUNT_CLASS,
+        Record user = dataAccessObject.getUserAccount(USER_ACCOUNT_CLASS,
           userGuid);
 
         String username;
@@ -164,7 +164,7 @@ public class SiteminderUserDetailsService implements UserDetailsService,
         }
 
         final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-        final boolean active = DataObjectUtil.getBoolean(user,
+        final boolean active = RecordUtil.getBoolean(user,
           UserAccount.ACTIVE_IND);
         final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
         final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
