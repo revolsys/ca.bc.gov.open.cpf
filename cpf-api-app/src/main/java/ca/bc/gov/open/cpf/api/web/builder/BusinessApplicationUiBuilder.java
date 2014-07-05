@@ -34,8 +34,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.data.equals.EqualsInstance;
-import com.revolsys.data.io.DataObjectReader;
-import com.revolsys.data.io.ListDataObjectReader;
+import com.revolsys.data.io.ListRecordReader;
+import com.revolsys.data.io.RecordReader;
 import com.revolsys.data.record.ArrayRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
@@ -58,18 +58,16 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
 
   public BusinessApplicationUiBuilder() {
     super("businessApplication", "Business Application",
-      "Business Applications");
+        "Business Applications");
     setIdParameterName("businessApplicationName");
     setIdPropertyName("name");
   }
 
   @RequestMapping("/ws/sample/input")
   @ResponseBody
-  public DataObjectReader getSampleInputData() {
-    final RecordDefinitionImpl metaData = new RecordDefinitionImpl(
-      "/Buffer");
-    final GeometryFactory factory = GeometryFactory.fixed(
-      3005, 1000.0);
+  public RecordReader getSampleInputData() {
+    final RecordDefinitionImpl metaData = new RecordDefinitionImpl("/Buffer");
+    final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("title", DataTypes.STRING);
     metaData.addAttribute("buffer", DataTypes.DOUBLE);
@@ -89,18 +87,15 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object2.setGeometryValue(factory.point(1207714.288, 480508.637));
     objects.add(object2);
 
-    final ListDataObjectReader reader = new ListDataObjectReader(metaData,
-      objects);
+    final ListRecordReader reader = new ListRecordReader(metaData, objects);
     return reader;
   }
 
   @RequestMapping("/ws/sample/result")
   @ResponseBody
-  public DataObjectReader getSampleResultData() {
-    final RecordDefinitionImpl metaData = new RecordDefinitionImpl(
-      "/Buffer");
-    final GeometryFactory factory = GeometryFactory.fixed(
-      3005, 1000.0);
+  public RecordReader getSampleResultData() {
+    final RecordDefinitionImpl metaData = new RecordDefinitionImpl("/Buffer");
+    final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     metaData.setGeometryFactory(factory);
     metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
     metaData.addAttribute("resultNumber", DataTypes.INTEGER);
@@ -128,8 +123,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       .buffer(1000));
     objects.add(object2);
 
-    final ListDataObjectReader reader = new ListDataObjectReader(metaData,
-      objects);
+    final ListRecordReader reader = new ListRecordReader(metaData, objects);
     return reader;
   }
 
@@ -247,7 +241,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
         + "').submit()"));
 
       final MenuElement actionMenuElement = new MenuElement(actionMenu,
-        "actionMenu");
+          "actionMenu");
       final ElementContainer view = new ElementContainer(form,
         actionMenuElement);
       final TabElementContainer tabs = new TabElementContainer();
@@ -265,11 +259,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleList(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String moduleName)
-    throws IOException, NoSuchRequestHandlingMethodException {
+        throws IOException, NoSuchRequestHandlingMethodException {
     final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
     final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
-      module, "getBusinessApplications");
+        module, "getBusinessApplications");
     return createDataTableHandlerOrRedirect(request, response, "moduleList",
       rowsCallable, Module.class, "view");
   }
