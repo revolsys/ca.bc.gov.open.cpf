@@ -88,13 +88,13 @@ public class PluginAdaptor {
     if (!StringUtils.hasText(logLevel)) {
       executionId = String.valueOf(System.currentTimeMillis());
     }
-    appLog = new AppLog(application.getName(), executionId, logLevel);
+    this.appLog = new AppLog(application.getName(), executionId, logLevel);
     try {
       final Class<? extends Object> pluginClass = plugin.getClass();
       final Method setAppLogMethod = pluginClass.getMethod("setAppLog",
         AppLog.class);
       try {
-        setAppLogMethod.invoke(plugin, appLog);
+        setAppLogMethod.invoke(plugin, this.appLog);
       } catch (final IllegalAccessException e) {
         ExceptionUtil.throwCauseException(e);
       } catch (final InvocationTargetException e) {
@@ -105,25 +105,25 @@ public class PluginAdaptor {
   }
 
   public void addTestParameter(final String name, final Object value) {
-    testParameters.put(name, value);
+    this.testParameters.put(name, value);
   }
 
   @SuppressWarnings("unchecked")
   public void execute() {
-    final String resultListProperty = application.getResultListProperty();
+    final String resultListProperty = this.application.getResultListProperty();
 
-    final boolean testMode = application.isTestModeEnabled()
-      && BooleanStringConverter.isTrue(testParameters.get("cpfPluginTest"));
+    final boolean testMode = this.application.isTestModeEnabled()
+        && BooleanStringConverter.isTrue(this.testParameters.get("cpfPluginTest"));
     try {
       if (testMode) {
-        double minTime = CollectionUtil.getDouble(testParameters,
+        double minTime = CollectionUtil.getDouble(this.testParameters,
           "cpfMinExecutionTime", -1.0);
-        double maxTime = CollectionUtil.getDouble(testParameters,
+        double maxTime = CollectionUtil.getDouble(this.testParameters,
           "cpfMaxExecutionTime", -1.0);
-        final double meanTime = CollectionUtil.getDouble(testParameters,
+        final double meanTime = CollectionUtil.getDouble(this.testParameters,
           "cpfMeanExecutionTime", -1.0);
         final double standardDeviation = CollectionUtil.getDouble(
-          testParameters, "cpfStandardDeviation", -1.0);
+          this.testParameters, "cpfStandardDeviation", -1.0);
         double executionTime;
         if (standardDeviation <= 0) {
           if (minTime < 0) {
@@ -146,11 +146,12 @@ public class PluginAdaptor {
         if (milliSeconds > 0) {
           ThreadUtil.pause(milliSeconds);
         }
-        if (application.isHasTestExecuteMethod()) {
-          MethodUtils.invokeExactMethod(plugin, "testExecute", new Object[0]);
+        if (this.application.isHasTestExecuteMethod()) {
+          MethodUtils.invokeExactMethod(this.plugin, "testExecute",
+            new Object[0]);
         }
       } else {
-        MethodUtils.invokeExactMethod(plugin, "execute", new Object[0]);
+        MethodUtils.invokeExactMethod(this.plugin, "execute", new Object[0]);
       }
     } catch (final InvocationTargetException e) {
       final Throwable cause = e.getCause();
@@ -160,62 +161,63 @@ public class PluginAdaptor {
         throw (Error)cause;
       } else {
         throw new RuntimeException("Unable to invoke execute on "
-          + application.getName(), cause);
+            + this.application.getName(), cause);
       }
     } catch (final Throwable t) {
       throw new RuntimeException("Unable to invoke execute on "
-        + application.getName(), t);
+          + this.application.getName(), t);
     }
-    if (application.isHasCustomizationProperties()) {
+    if (this.application.isHasCustomizationProperties()) {
       try {
-        customizationProperties = (Map<String, Object>)Property.get(plugin,
-          "customizationProperties");
+        this.customizationProperties = (Map<String, Object>)Property.get(
+          this.plugin, "customizationProperties");
       } catch (final Throwable e) {
-        appLog.error("Unable to get customization properties", e);
+        this.appLog.error("Unable to get customization properties", e);
       }
     }
     if (resultListProperty == null) {
-      this.responseFields = getResult(plugin, false, testMode);
-      results.add(responseFields);
+      this.responseFields = getResult(this.plugin, false, testMode);
+      this.results.add(this.responseFields);
     } else {
-      final List<Object> resultObjects = JavaBeanUtil.getProperty(plugin,
+      final List<Object> resultObjects = JavaBeanUtil.getProperty(this.plugin,
         resultListProperty);
       if (resultObjects == null || resultObjects.isEmpty()) {
         if (testMode) {
           final double meanNumResults = CollectionUtil.getDouble(
-            testParameters, "cpfMeanNumResults", 3.0);
+            this.testParameters, "cpfMeanNumResults", 3.0);
           final int numResults = (int)Math.round(MathUtil.randomGaussian(
             meanNumResults, meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
-            final Map<String, Object> result = getResult(plugin, true, testMode);
-            results.add(result);
+            final Map<String, Object> result = getResult(this.plugin, true,
+              testMode);
+            this.results.add(result);
           }
         }
       } else {
         for (final Object resultObject : resultObjects) {
           final Map<String, Object> result = getResult(resultObject, true,
             false);
-          results.add(result);
+          this.results.add(result);
         }
       }
     }
   }
 
   public BusinessApplication getApplication() {
-    return application;
+    return this.application;
   }
 
   public AppLog getAppLog() {
-    return appLog;
+    return this.appLog;
   }
 
   public Map<String, Object> getResponseFields() {
-    return responseFields;
+    return this.responseFields;
   }
 
   private Map<String, Object> getResult(final Object resultObject,
     final boolean resultList, final boolean test) {
-    final RecordDefinition resultMetaData = application.getResultMetaData();
+    final RecordDefinition resultMetaData = this.application.getResultMetaData();
     final Map<String, Object> result = new HashMap<String, Object>();
     for (final Attribute attribute : resultMetaData.getAttributes()) {
       final String fieldName = attribute.getName();
@@ -226,7 +228,7 @@ public class PluginAdaptor {
         } catch (final Throwable t) {
           if (!test) {
             throw new IllegalArgumentException("Could not read property "
-              + application.getName() + "." + fieldName, t);
+                + this.application.getName() + "." + fieldName, t);
           }
         }
         if (value == null && test) {
@@ -270,11 +272,11 @@ public class PluginAdaptor {
               final Polygon polygon = boundingBox.toPolygon(10);
               value = GeometryFactory.wgs84().multiPolygon(polygon);
             } else if (GeometryCollection.class.isAssignableFrom(typeClass)
-              || MultiPoint.class.isAssignableFrom(typeClass)) {
+                || MultiPoint.class.isAssignableFrom(typeClass)) {
               final Point point = GeometryFactory.wgs84().point(-125, 53);
               value = GeometryFactory.wgs84().multiPoint(point);
             } else if (Geometry.class.isAssignableFrom(typeClass)
-              || Point.class.isAssignableFrom(typeClass)) {
+                || Point.class.isAssignableFrom(typeClass)) {
               value = GeometryFactory.wgs84().point(-125, 53);
             } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
               // JTS
@@ -314,7 +316,7 @@ public class PluginAdaptor {
                   polygon
                 });
               } else if (com.vividsolutions.jts.geom.GeometryCollection.class.isAssignableFrom(typeClass)
-                || com.vividsolutions.jts.geom.MultiPoint.class.isAssignableFrom(typeClass)) {
+                  || com.vividsolutions.jts.geom.MultiPoint.class.isAssignableFrom(typeClass)) {
                 final Coordinate[] coordinates = new Coordinate[] {
                   new Coordinate(-125, 53)
                 };
@@ -336,13 +338,13 @@ public class PluginAdaptor {
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }
-            final int srid = CollectionUtil.getInteger(parameters,
+            final int srid = CollectionUtil.getInteger(this.parameters,
               "resultSrid", geometryFactory.getSrid());
-            final int axisCount = CollectionUtil.getInteger(parameters,
+            final int axisCount = CollectionUtil.getInteger(this.parameters,
               "resultNumAxis", geometryFactory.getAxisCount());
-            final double scaleXY = CollectionUtil.getDouble(parameters,
+            final double scaleXY = CollectionUtil.getDouble(this.parameters,
               "resultScaleFactorXy", geometryFactory.getScaleXY());
-            final double scaleZ = CollectionUtil.getDouble(parameters,
+            final double scaleZ = CollectionUtil.getDouble(this.parameters,
               "resultScaleFactorZ", geometryFactory.getScaleZ());
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY,
@@ -350,13 +352,13 @@ public class PluginAdaptor {
             geometry = geometryFactory.geometry(geometry);
             if (geometry.getSrid() == 0) {
               throw new IllegalArgumentException(
-                "Geometry does not have a coordinate system (SRID) specified");
+                  "Geometry does not have a coordinate system (SRID) specified");
             }
             final Boolean validateGeometry = attribute.getProperty(AttributeProperties.VALIDATE_GEOMETRY);
             if (validateGeometry == true) {
               if (!geometry.isValid()) {
                 throw new IllegalArgumentException("Geometry is not valid for"
-                  + application.getName() + "." + fieldName);
+                    + this.application.getName() + "." + fieldName);
               }
             }
             result.put(fieldName, geometry);
@@ -368,8 +370,8 @@ public class PluginAdaptor {
       }
     }
     final Map<String, Object> customizationProperties = new LinkedHashMap<String, Object>(
-      this.customizationProperties);
-    if (resultList && application.isHasResultListCustomizationProperties()) {
+        this.customizationProperties);
+    if (resultList && this.application.isHasResultListCustomizationProperties()) {
       final Map<String, Object> resultListProperties = Property.get(
         resultObject, "customizationProperties");
       if (resultListProperties != null) {
@@ -381,11 +383,11 @@ public class PluginAdaptor {
   }
 
   public List<Map<String, Object>> getResults() {
-    return results;
+    return this.results;
   }
 
   public SecurityService getSecurityService() {
-    return securityService;
+    return this.securityService;
   }
 
   @SuppressWarnings("resource")
@@ -394,29 +396,24 @@ public class PluginAdaptor {
       final String parameterName = entry.getKey();
       if (parameterName.startsWith("cpf")) {
         final Object parameterValue = entry.getValue();
-        testParameters.put(parameterName, parameterValue);
+        this.testParameters.put(parameterName, parameterValue);
       }
     }
 
-    final RecordDefinitionImpl requestMetaData = application.getRequestMetaData();
+    final RecordDefinitionImpl requestMetaData = this.application.getRequestMetaData();
     for (final Attribute attribute : requestMetaData.getAttributes()) {
       final String parameterName = attribute.getName();
       final Object parameterValue = parameters.get(parameterName);
-      if (parameterValue == null) {
-        if (attribute.isRequired()) {
-          throw new IllegalArgumentException(parameterName + " is required");
-        }
-      } else {
-        setPluginProperty(parameterName, parameterValue);
-      }
+      attribute.validate(parameterValue);
+      setPluginProperty(parameterName, parameterValue);
     }
-    if (application.isPerRequestInputData()) {
+    if (this.application.isPerRequestInputData()) {
       for (final String parameterName : INPUT_DATA_PARAMETER_NAMES) {
         final Object parameterValue = parameters.get(parameterName);
         setPluginProperty(parameterName, parameterValue);
       }
     }
-    if (application.isPerRequestResultData()) {
+    if (this.application.isPerRequestResultData()) {
       final String resultDataContentType = (String)parameters.get("resultDataContentType");
       final String resultDataUrl = (String)parameters.get("resultDataUrl");
       OutputStream resultData;
@@ -438,11 +435,11 @@ public class PluginAdaptor {
       setPluginProperty("resultData", resultData);
       setPluginProperty("resultDataContentType", resultDataContentType);
     }
-    if (application.isSecurityServiceRequired()) {
-      if (securityService == null) {
+    if (this.application.isSecurityServiceRequired()) {
+      if (this.securityService == null) {
         throw new IllegalArgumentException("Security service is required");
       } else {
-        setPluginProperty("securityService", securityService);
+        setPluginProperty("securityService", this.securityService);
       }
     }
   }
@@ -456,7 +453,7 @@ public class PluginAdaptor {
   public void setPluginProperty(final String parameterName,
     Object parameterValue) {
     try {
-      final RecordDefinitionImpl requestMetaData = application.getRequestMetaData();
+      final RecordDefinitionImpl requestMetaData = this.application.getRequestMetaData();
       final Class<?> attributeClass = requestMetaData.getAttributeClass(parameterName);
       if (attributeClass != null) {
         parameterValue = StringConverterRegistry.toObject(attributeClass,
@@ -466,7 +463,7 @@ public class PluginAdaptor {
       this.parameters.put(parameterName, parameterValue);
     } catch (final Throwable t) {
       throw new IllegalArgumentException(this.application.getName() + "."
-        + parameterName + " could not be set", t);
+          + parameterName + " could not be set", t);
     }
   }
 
@@ -480,6 +477,6 @@ public class PluginAdaptor {
 
   @Override
   public String toString() {
-    return application.getName() + ": " + plugin.toString();
+    return this.application.getName() + ": " + this.plugin.toString();
   }
 }
