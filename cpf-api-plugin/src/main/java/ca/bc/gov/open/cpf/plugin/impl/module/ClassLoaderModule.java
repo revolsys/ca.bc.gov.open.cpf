@@ -60,7 +60,7 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.AttributeMap;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.property.AttributeProperties;
 import com.revolsys.data.record.schema.Attribute;
 import com.revolsys.data.record.schema.RecordDefinition;
@@ -667,8 +667,8 @@ public class ClassLoaderModule implements Module {
       } else {
         final boolean hasResultGeometry = businessApplication.isHasGeometryResultAttribute();
         if (resultDataContentTypes.length == 0) {
-          final Set<DataObjectWriterFactory> writerFactories = ioFactoryRegistry.getFactories(DataObjectWriterFactory.class);
-          for (final DataObjectWriterFactory factory : writerFactories) {
+          final Set<RecordWriterFactory> writerFactories = ioFactoryRegistry.getFactories(RecordWriterFactory.class);
+          for (final RecordWriterFactory factory : writerFactories) {
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomAttributionSupported()) {
@@ -685,8 +685,8 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           for (final String contentType : resultDataContentTypes) {
-            final DataObjectWriterFactory factory = ioFactoryRegistry.getFactoryByMediaType(
-              DataObjectWriterFactory.class, contentType);
+            final RecordWriterFactory factory = ioFactoryRegistry.getFactoryByMediaType(
+              RecordWriterFactory.class, contentType);
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomAttributionSupported()) {

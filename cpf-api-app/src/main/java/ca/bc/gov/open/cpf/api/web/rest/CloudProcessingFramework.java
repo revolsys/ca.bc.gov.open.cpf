@@ -64,7 +64,7 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.data.equals.EqualsInstance;
 import com.revolsys.data.identifier.Identifier;
-import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.ArrayRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordUtil;
@@ -79,7 +79,7 @@ import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Writer;
-import com.revolsys.io.json.JsonDataObjectIoFactory;
+import com.revolsys.io.json.JsonRecordIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.ByteArrayResource;
@@ -268,9 +268,9 @@ public class CloudProcessingFramework {
 
   private void addFieldRow(final Map<String, String> fieldSectionMap,
     final Map<String, ElementContainer> sectionContainers,
-    final RecordDefinitionImpl metaData, final String name) {
-    if (metaData.hasAttribute(name)) {
-      final Attribute attribute = metaData.getAttribute(name);
+    final RecordDefinitionImpl recordDefinition, final String name) {
+    if (recordDefinition.hasAttribute(name)) {
+      final Attribute attribute = recordDefinition.getAttribute(name);
       addFieldRow(fieldSectionMap, sectionContainers, attribute);
     }
   }
@@ -536,7 +536,7 @@ public class CloudProcessingFramework {
 
   private Record createBatchJob() {
     final Record batchJob = this.dataAccessObject.create(BatchJob.BATCH_JOB);
-    batchJob.setIdValue(this.dataAccessObject.getDataStore()
+    batchJob.setIdValue(this.dataAccessObject.getRecordStore()
       .createPrimaryIdValue(BatchJob.BATCH_JOB));
     final String prefix = PathAliasController.getAlias();
     if (prefix != null) {
@@ -1043,7 +1043,7 @@ public class CloudProcessingFramework {
       } else {
 
         inputData.put("requestSequenceNumber", 1);
-        final String inputDataString = JsonDataObjectIoFactory.toString(
+        final String inputDataString = JsonRecordIoFactory.toString(
           requestMetaData, Collections.singletonList(inputData));
         this.dataAccessObject.createBatchJobExecutionGroup(
           this.batchJobService.getjobController(), batchJobId, 1,
@@ -1542,8 +1542,8 @@ public class CloudProcessingFramework {
             try {
               final HttpServletResponse response = HttpServletUtils.getResponse();
 
-              final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-                  .getFactoryByMediaType(DataObjectWriterFactory.class, format);
+              final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+                  .getFactoryByMediaType(RecordWriterFactory.class, format);
               if (writerFactory == null) {
                 throw new HttpMessageNotWritableException("Unsupported format "
                     + format);
@@ -2767,8 +2767,8 @@ public class CloudProcessingFramework {
               size += 3 + jsonCallback.length();
             }
           }
-          final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-              .getFactoryByMediaType(DataObjectWriterFactory.class,
+          final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+              .getFactoryByMediaType(RecordWriterFactory.class,
                 resultDataContentType);
           if (writerFactory != null) {
             final String fileExtension = writerFactory.getFileExtension(resultDataContentType);

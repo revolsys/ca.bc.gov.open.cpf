@@ -21,7 +21,7 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.data.io.DataObjectStore;
+import com.revolsys.data.io.RecordStore;
 import com.revolsys.data.query.Condition;
 import com.revolsys.data.query.Q;
 import com.revolsys.data.query.Query;
@@ -87,8 +87,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       if (GLOBAL_MODULE_NAMES.contains(moduleName)) {
         final String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
         if (componentName.equals(ConfigProperty.GLOBAL)) {
-          final DataObjectStore dataStore = getDataStore();
-          dataStore.delete(configProperty);
+          final RecordStore recordStore = getRecordStore();
+          recordStore.delete(configProperty);
           redirectPage("list");
           return;
         }
@@ -211,7 +211,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
         componentName)) {
-      getDataStore().delete(configProperty);
+      getRecordStore().delete(configProperty);
       redirectPage("moduleAppList");
       return;
     }
@@ -311,7 +311,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
         ConfigProperty.MODULE_BEAN_PROPERTY)) {
-      getDataStore().delete(configProperty);
+      getRecordStore().delete(configProperty);
       redirectPage("moduleList");
       return;
     }

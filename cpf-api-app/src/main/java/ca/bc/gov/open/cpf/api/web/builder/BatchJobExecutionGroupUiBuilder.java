@@ -28,7 +28,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
@@ -231,8 +231,8 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
       try {
         final long size = data.length();
 
-        final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-          .getFactoryByMediaType(DataObjectWriterFactory.class, contentType);
+        final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+          .getFactoryByMediaType(RecordWriterFactory.class, contentType);
         if (writerFactory != null) {
           final String fileExtension = writerFactory.getFileExtension(contentType);
           final String fileName = baseName + "." + fileExtension;

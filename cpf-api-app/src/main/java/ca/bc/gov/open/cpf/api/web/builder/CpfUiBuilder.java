@@ -31,14 +31,14 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.data.io.DataObjectStore;
+import com.revolsys.data.io.RecordStore;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordUtil;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
-import com.revolsys.ui.html.builder.DataObjectHtmlUiBuilder;
+import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
-public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
+public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public static final String ADMIN = "ROLE_ADMIN";
 
@@ -391,8 +391,8 @@ public class CpfUiBuilder extends DataObjectHtmlUiBuilder {
     this.batchJobService = batchJobService;
     this.dataAccessObject = batchJobService.getDataAccessObject();
     this.businessApplicationRegistry = batchJobService.getBusinessApplicationRegistry();
-    final DataObjectStore dataStore = dataAccessObject.getDataStore();
-    setDataStore(dataStore);
+    final RecordStore recordStore = dataAccessObject.getRecordStore();
+    setRecordStore(recordStore);
   }
 
   public void setMinTimeUntilNextCheck(final int minTimeUntilNextCheck) {

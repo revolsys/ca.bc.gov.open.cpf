@@ -105,8 +105,8 @@
         <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
         <bean class="org.springframework.http.converter.StringHttpMessageConverter" />
         <bean class="com.revolsys.ui.web.rest.converter.PageInfoHttpMessageConverter" />
-        <bean class="com.revolsys.gis.web.rest.converter.DataObjectReaderHttpMessageConverter" />
-        <bean class="com.revolsys.gis.web.rest.converter.DataObjectHttpMessageConverter" />
+        <bean class="com.revolsys.gis.web.rest.converter.RecordReaderHttpMessageConverter" />
+        <bean class="com.revolsys.gis.web.rest.converter.RecordHttpMessageConverter" />
         <bean class="com.revolsys.ui.web.rest.converter.MapHttpMessageConverter" />
         <bean class="com.revolsys.ui.web.rest.converter.ElementHttpMessageConverter" />
         <bean class="com.revolsys.ui.web.rest.converter.ListOfMapHttpMessageConverter" />

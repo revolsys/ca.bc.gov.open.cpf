@@ -20,7 +20,7 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.schema.RecordDefinition;
-import com.revolsys.io.json.JsonDataObjectIoFactory;
+import com.revolsys.io.json.JsonRecordIoFactory;
 
 /**
  * The BusinessApplicationPluginExecutor can be used to simulate running a
@@ -38,10 +38,10 @@ public class BusinessApplicationPluginExecutor {
 
   public BusinessApplicationPluginExecutor() {
     final ClassLoader classLoader = Thread.currentThread()
-      .getContextClassLoader();
+        .getContextClassLoader();
     final ClassLoaderModuleLoader moduleLoader = new ClassLoaderModuleLoader(
       classLoader);
-    businessApplicationRegistry = new BusinessApplicationRegistry(false,
+    this.businessApplicationRegistry = new BusinessApplicationRegistry(false,
       moduleLoader);
   }
 
@@ -51,20 +51,20 @@ public class BusinessApplicationPluginExecutor {
   }
 
   public void addTestParameter(final String name, final Object value) {
-    testParameters.put(name, value);
+    this.testParameters.put(name, value);
   }
 
   public void close() {
-    if (businessApplicationRegistry != null) {
-      businessApplicationRegistry.destroy();
-      businessApplicationRegistry = null;
+    if (this.businessApplicationRegistry != null) {
+      this.businessApplicationRegistry.destroy();
+      this.businessApplicationRegistry = null;
     }
   }
 
   /**
    * Execute a {@link BusinessApplicationPlugin} which accepts and returns
    * structured data.
-   * 
+   *
    * @param businessApplicationName The name of the business application to
    *          execute.
    * @param inputParameters The input parameters to the business application.
@@ -80,30 +80,30 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final Record requestDataObject = getRequestDataObject(
-      businessApplicationName, inputParameters);
+    final Record requestRecord = getRequestRecord(businessApplicationName,
+      inputParameters);
 
     if (businessApplication.getResultListProperty() != null) {
       throw new IllegalArgumentException(
-        "Business Application return a list of results, use executeList method");
+          "Business Application return a list of results, use executeList method");
     }
 
     if (businessApplication.isPerRequestInputData()) {
       throw new IllegalArgumentException(
-        "Business Application requires an input data URL");
+          "Business Application requires an input data URL");
     }
 
     if (businessApplication.isPerRequestResultData()) {
       throw new IllegalArgumentException(
-        "Business Application requires an result data and content type");
+          "Business Application requires an result data and content type");
     }
 
-    plugin.setParameters(requestDataObject);
+    plugin.setParameters(requestRecord);
     plugin.execute();
 
     final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
     final Map<String, Object> response = plugin.getResponseFields();
-    final Record result = getResultDataObject(resultMetaData, response);
+    final Record result = getResultRecord(resultMetaData, response);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
     return result;
   }
@@ -111,7 +111,7 @@ public class BusinessApplicationPluginExecutor {
   /**
    * Execute a {@link BusinessApplicationPlugin} which accepts structured data
    * and returns opaque data.
-   * 
+   *
    * @param businessApplicationName The name of the business application to
    *          execute.
    * @param inputParameters The input parameters to the business application.
@@ -130,24 +130,24 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final Record requestDataObject = getRequestDataObject(
-      businessApplicationName, inputParameters);
+    final Record requestRecord = getRequestRecord(businessApplicationName,
+      inputParameters);
     final Map<String, Object> parameters = new HashMap<String, Object>(
-      requestDataObject);
+        requestRecord);
 
     if (businessApplication.isPerRequestResultData()) {
       parameters.put("resultData", resultData);
       parameters.put("resultDataContentType", resultDataContentType);
     } else {
       throw new IllegalArgumentException(
-        "Business Application does not support opaque result data");
+          "Business Application does not support opaque result data");
     }
 
     plugin.setParameters(parameters);
     plugin.execute();
     if (!plugin.getResponseFields().isEmpty()) {
       throw new RuntimeException(
-        "Business Application does not support response fields");
+          "Business Application does not support response fields");
     }
     AppLogUtil.info(log, "End\tExecution", stopWatch);
   }
@@ -155,7 +155,7 @@ public class BusinessApplicationPluginExecutor {
   /**
    * Execute a {@link BusinessApplicationPlugin} which accepts opaque data and
    * returns structured data.
-   * 
+   *
    * @param businessApplicationName The name of the business application to
    *          execute.
    * @param jobParameters The global job parameters to the business application.
@@ -172,32 +172,32 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final Record requestDataObject = getRequestDataObject(
-      businessApplicationName, jobParameters);
+    final Record requestRecord = getRequestRecord(businessApplicationName,
+      jobParameters);
 
     final Map<String, Object> parameters = new HashMap<String, Object>(
-      requestDataObject);
+        requestRecord);
 
     if (businessApplication.getResultListProperty() == null) {
       throw new IllegalArgumentException(
-        "Business Application return a list of results");
+          "Business Application return a list of results");
     }
     if (businessApplication.isPerRequestInputData()) {
       parameters.put("inputDataUrl", inputDataUrl);
     } else {
       throw new IllegalArgumentException(
-        "Business Application does not support an input data URL");
+          "Business Application does not support an input data URL");
     }
     if (businessApplication.isPerRequestResultData()) {
       throw new IllegalArgumentException(
-        "Business Application requires an result data and content type");
+          "Business Application requires an result data and content type");
     }
 
     plugin.setParameters(parameters);
     plugin.execute();
     final Map<String, Object> response = plugin.getResponseFields();
     final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
-    final Map<String, Object> results = getResultDataObject(resultMetaData,
+    final Map<String, Object> results = getResultRecord(resultMetaData,
       response);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
     return results;
@@ -206,7 +206,7 @@ public class BusinessApplicationPluginExecutor {
   /**
    * Execute a {@link BusinessApplicationPlugin} which accepts and returns
    * opaque data.
-   * 
+   *
    * @param businessApplicationName The name of the business application to
    *          execute.
    * @param jobParameters The global job parameters to the business application.
@@ -226,17 +226,17 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final Record requestDataObject = getRequestDataObject(
-      businessApplicationName, jobParameters);
+    final Record requestRecord = getRequestRecord(businessApplicationName,
+      jobParameters);
 
     final Map<String, Object> parameters = new HashMap<String, Object>(
-      requestDataObject);
+        requestRecord);
 
     if (businessApplication.isPerRequestInputData()) {
       parameters.put("inputDataUrl", inputDataUrl);
     } else {
       throw new IllegalArgumentException(
-        "Business Application does not support an input data URL");
+          "Business Application does not support an input data URL");
     }
 
     if (businessApplication.isPerRequestResultData()) {
@@ -244,14 +244,14 @@ public class BusinessApplicationPluginExecutor {
       parameters.put("resultDataContentType", resultDataContentType);
     } else {
       throw new IllegalArgumentException(
-        "Business Application does not support opaque result data");
+          "Business Application does not support opaque result data");
     }
 
     plugin.setParameters(parameters);
     plugin.execute();
     if (!plugin.getResponseFields().isEmpty()) {
       throw new RuntimeException(
-        "Business Application does not support response fields");
+          "Business Application does not support response fields");
     }
     AppLogUtil.info(log, "End\tExecution", stopWatch);
   }
@@ -259,7 +259,7 @@ public class BusinessApplicationPluginExecutor {
   /**
    * Execute a {@link BusinessApplicationPlugin} which accepts and returns
    * structured data.
-   * 
+   *
    * @param businessApplicationName The name of the business application to
    *          execute.
    * @param inputParameters The input parameters to the business application.
@@ -276,25 +276,25 @@ public class BusinessApplicationPluginExecutor {
     final AppLog log = businessApplication.getLog();
     log.info("Start\tExecution");
 
-    final Record requestDataObject = getRequestDataObject(
-      businessApplicationName, inputParameters);
+    final Record requestRecord = getRequestRecord(businessApplicationName,
+      inputParameters);
 
     if (businessApplication.getResultListProperty() == null) {
       throw new IllegalArgumentException(
-        "Business Application does not return a list of results");
+          "Business Application does not return a list of results");
     }
 
     if (businessApplication.isPerRequestInputData()) {
       throw new IllegalArgumentException(
-        "Business Application requires an input data URL");
+          "Business Application requires an input data URL");
     }
 
     if (businessApplication.isPerRequestResultData()) {
       throw new IllegalArgumentException(
-        "Business Application requires an result data and content type");
+          "Business Application requires an result data and content type");
     }
 
-    plugin.setParameters(requestDataObject);
+    plugin.setParameters(requestRecord);
     plugin.execute();
     final List<Map<String, Object>> results = plugin.getResults();
     final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
@@ -306,61 +306,59 @@ public class BusinessApplicationPluginExecutor {
 
   protected BusinessApplication getBusinessApplication(
     final String businessApplicationName) {
-    final BusinessApplication businessApplication = businessApplicationRegistry.getBusinessApplication(businessApplicationName);
+    final BusinessApplication businessApplication = this.businessApplicationRegistry.getBusinessApplication(businessApplicationName);
     return businessApplication;
   }
 
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
-    return businessApplicationRegistry;
+    return this.businessApplicationRegistry;
   }
 
   public String getConsumerKey() {
-    return consumerKey;
+    return this.consumerKey;
   }
 
   protected PluginAdaptor getPlugin(final String businessApplicationName) {
-    final PluginAdaptor plugin = businessApplicationRegistry.getBusinessApplicationPlugin(businessApplicationName);
+    final PluginAdaptor plugin = this.businessApplicationRegistry.getBusinessApplicationPlugin(businessApplicationName);
     if (plugin == null) {
       throw new IllegalArgumentException("Cannot find business application "
-        + businessApplicationName);
+          + businessApplicationName);
     } else {
       final SecurityService securityService = getSecurityService(businessApplicationName);
       plugin.setSecurityService(securityService);
-      plugin.setTestParameters(testParameters);
+      plugin.setTestParameters(this.testParameters);
       return plugin;
     }
   }
 
-  protected Record getRequestDataObject(
-    final String businessApplicationName,
+  protected Record getRequestRecord(final String businessApplicationName,
     final Map<String, ? extends Object> parameters) {
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-    final RecordDefinition metaData = businessApplication.getRequestMetaData();
-    final String jsonString = JsonDataObjectIoFactory.toString(metaData,
-      parameters);
-    return JsonDataObjectIoFactory.toDataObject(metaData, jsonString);
-  }
-
-  protected Record getResultDataObject(final RecordDefinition metaData,
-    final Map<String, Object> object) {
-    final String jsonString = JsonDataObjectIoFactory.toString(metaData, object);
-    return JsonDataObjectIoFactory.toDataObject(metaData, jsonString);
+    final RecordDefinition recordDefinition = businessApplication.getRequestMetaData();
+    final String jsonString = JsonRecordIoFactory.toString(recordDefinition, parameters);
+    return JsonRecordIoFactory.toRecord(recordDefinition, jsonString);
   }
 
   @SuppressWarnings({
     "rawtypes", "unchecked"
   })
   protected List<Map<String, Object>> getResultList(
-    final RecordDefinition metaData, final List<Map<String, Object>> list) {
+    final RecordDefinition recordDefinition, final List<Map<String, Object>> list) {
     if (list.isEmpty()) {
       final List results = list;
       return results;
     } else {
-      final String jsonString = JsonDataObjectIoFactory.toString(metaData, list);
-      final List results = JsonDataObjectIoFactory.toDataObjectList(metaData,
+      final String jsonString = JsonRecordIoFactory.toString(recordDefinition, list);
+      final List results = JsonRecordIoFactory.toRecordList(recordDefinition,
         jsonString);
       return results;
     }
+  }
+
+  protected Record getResultRecord(final RecordDefinition recordDefinition,
+    final Map<String, Object> object) {
+    final String jsonString = JsonRecordIoFactory.toString(recordDefinition, object);
+    return JsonRecordIoFactory.toRecord(recordDefinition, jsonString);
   }
 
   public MockSecurityService getSecurityService(
@@ -368,8 +366,8 @@ public class BusinessApplicationPluginExecutor {
     final BusinessApplication application = getBusinessApplication(businessApplicationName);
     if (application != null) {
       final Module module = application.getModule();
-      return (MockSecurityService)securityServiceFactory.getSecurityService(
-        module, consumerKey);
+      return (MockSecurityService)this.securityServiceFactory.getSecurityService(
+        module, this.consumerKey);
     }
     return null;
   }
@@ -387,9 +385,9 @@ public class BusinessApplicationPluginExecutor {
   public void setTestModeEnabled(final String businessApplicationName,
     final boolean enabled) {
     if (enabled) {
-      testParameters.put("cpfPluginTest", Boolean.TRUE);
+      this.testParameters.put("cpfPluginTest", Boolean.TRUE);
     }
-    final BusinessApplication application = businessApplicationRegistry.getBusinessApplication(businessApplicationName);
+    final BusinessApplication application = this.businessApplicationRegistry.getBusinessApplication(businessApplicationName);
     if (application != null) {
       application.setTestModeEnabled(enabled);
     }

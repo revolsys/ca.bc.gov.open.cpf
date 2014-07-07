@@ -442,8 +442,8 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }
 
   public void userGroupName(final XmlWriter out, final Object object) {
-    final Record dataObject = (Record)object;
-    final long userGroupId = RecordUtil.getLong(dataObject,
+    final Record record = (Record)object;
+    final long userGroupId = RecordUtil.getLong(record,
       UserGroup.USER_GROUP_ID);
 
     final CpfDataAccessObject dataAccessObject = getDataAccessObject();

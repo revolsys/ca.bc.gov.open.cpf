@@ -73,8 +73,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
-import com.revolsys.data.io.DataObjectStore;
-import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.io.RecordStore;
+import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.io.MapReaderRecordReader;
 import com.revolsys.data.query.Query;
 import com.revolsys.data.record.ArrayRecord;
@@ -95,7 +95,7 @@ import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Reader;
 import com.revolsys.io.csv.CsvMapWriter;
 import com.revolsys.io.html.XhtmlMapWriter;
-import com.revolsys.io.json.JsonDataObjectIoFactory;
+import com.revolsys.io.json.JsonRecordIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.io.kml.Kml22Constants;
 import com.revolsys.jts.geom.Geometry;
@@ -300,7 +300,7 @@ public class BatchJobService implements ModuleEventListener {
 
   private CpfDataAccessObject dataAccessObject;
 
-  private DataObjectStore dataStore;
+  private RecordStore recordStore;
 
   private final Map<String, Worker> workersById = new TreeMap<String, Worker>();
 
@@ -486,7 +486,7 @@ public class BatchJobService implements ModuleEventListener {
     final Query query = new Query(
       BusinessApplicationStatistics.APPLICATION_STATISTICS);
     query.addOrderBy(BusinessApplicationStatistics.START_TIMESTAMP, true);
-    final Reader<Record> reader = this.dataStore.query(query);
+    final Reader<Record> reader = this.recordStore.query(query);
     try {
       for (final Record dbStatistics : reader) {
         boolean delete = false;
@@ -527,7 +527,7 @@ public class BatchJobService implements ModuleEventListener {
           }
 
           if (delete) {
-            this.dataStore.delete(dbStatistics);
+            this.recordStore.delete(dbStatistics);
           }
         }
       }
@@ -561,7 +561,7 @@ public class BatchJobService implements ModuleEventListener {
   protected boolean createBatchJobExecutionGroup(final Long batchJobId,
     final int sequenceNumber, final RecordDefinition requestMetaData,
     final List<Map<String, Object>> group) {
-    String structuredInputDataString = JsonDataObjectIoFactory.toString(
+    String structuredInputDataString = JsonRecordIoFactory.toString(
       requestMetaData, group);
     if (this.compressData) {
       structuredInputDataString = Compress.deflateBase64(structuredInputDataString);
@@ -709,25 +709,25 @@ public class BatchJobService implements ModuleEventListener {
     final RecordDefinition resultMetaData, final String resultFormat,
     final String title, final GeometryFactory geometryFactory) {
     final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
-    final DataObjectWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
-      DataObjectWriterFactory.class, resultFormat.trim());
+    final RecordWriterFactory writerFactory = ioFactory.getFactoryByMediaType(
+      RecordWriterFactory.class, resultFormat.trim());
     if (writerFactory == null) {
       throw new IllegalArgumentException("Unsupported result content type: "
           + resultFormat);
     } else {
-      final com.revolsys.io.Writer<Record> dataObjectWriter = writerFactory.createDataObjectWriter(
+      final com.revolsys.io.Writer<Record> recordWriter = writerFactory.createRecordWriter(
         resultMetaData, resource);
-      dataObjectWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
+      recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
         this.baseUrl + "/kml/defaultStyle.kml#default");
-      dataObjectWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
-      dataObjectWriter.setProperty("htmlCssStyleUrl", this.baseUrl
+      recordWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
+      recordWriter.setProperty("htmlCssStyleUrl", this.baseUrl
         + "/css/default.css");
 
-      dataObjectWriter.setProperty(IoConstants.GEOMETRY_FACTORY,
+      recordWriter.setProperty(IoConstants.GEOMETRY_FACTORY,
         geometryFactory);
-      dataObjectWriter.setProperties(application.getProperties());
-      dataObjectWriter.open();
-      return dataObjectWriter;
+      recordWriter.setProperties(application.getProperties());
+      recordWriter.open();
+      return recordWriter;
     }
   }
 
@@ -759,7 +759,7 @@ public class BatchJobService implements ModuleEventListener {
     this.businessApplicationRegistry = null;
     this.connectedWorkerCounts.clear();
     this.dataAccessObject = null;
-    this.dataStore = null;
+    this.recordStore = null;
     this.groupsByJobId.clear();
     if (this.groupsToSchedule != null) {
       this.groupsToSchedule.close();
@@ -874,8 +874,8 @@ public class BatchJobService implements ModuleEventListener {
     return this.dataAccessObject;
   }
 
-  public DataObjectStore getDataStore() {
-    return this.dataStore;
+  public RecordStore getRecordStore() {
+    return this.recordStore;
   }
 
   /**
@@ -1103,7 +1103,7 @@ public class BatchJobService implements ModuleEventListener {
     this.securityServiceFactory = new AuthorizationServiceUserSecurityServiceFactory(
       this.authorizationService);
     this.businessApplicationRegistry.addModuleEventListener(this.securityServiceFactory);
-    this.dataStore = this.dataAccessObject.getDataStore();
+    this.recordStore = this.dataAccessObject.getRecordStore();
   }
 
   public boolean isCompressData() {
@@ -1205,7 +1205,7 @@ public class BatchJobService implements ModuleEventListener {
     try (
         Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try (
-          com.revolsys.io.Writer<Record> writer = this.dataStore.getWriter();) {
+          com.revolsys.io.Writer<Record> writer = this.recordStore.getWriter();) {
         final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -1359,7 +1359,7 @@ public class BatchJobService implements ModuleEventListener {
                       requestMetaData, mapReader);
 
                     final int commitInterval = 100;
-                    final PlatformTransactionManager transactionManager = this.dataStore.getTransactionManager();
+                    final PlatformTransactionManager transactionManager = this.recordStore.getTransactionManager();
                     final TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
                       TransactionDefinition.PROPAGATION_REQUIRES_NEW);
                     TransactionStatus status = transactionManager.getTransaction(transactionDefinition);
@@ -2129,7 +2129,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setBatchJobExecutionGroupResults(final String workerId,
     final String groupId, final Map<String, Object> results) {
-    final com.revolsys.io.Writer<Record> writer = this.dataStore.getWriter();
+    final com.revolsys.io.Writer<Record> writer = this.recordStore.getWriter();
     try {
       final Worker worker = getWorker(workerId);
       if (worker != null) {

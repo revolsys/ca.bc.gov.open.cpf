@@ -16,7 +16,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.SetQueue;
 import com.revolsys.parallel.channel.Channel;
-import com.revolsys.parallel.channel.ChannelDataStore;
+import com.revolsys.parallel.channel.ChannelValueStore;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.MultiInputSelector;
 import com.revolsys.parallel.channel.store.Buffer;
@@ -78,7 +78,7 @@ public class BatchJobScheduler extends
   }
 
   @Override
-  protected ChannelDataStore<BatchJobScheduleInfo> createInDataStore() {
+  protected ChannelValueStore<BatchJobScheduleInfo> createInValueStore() {
     return new Buffer<BatchJobScheduleInfo>(
       new SetQueue<BatchJobScheduleInfo>());
   }

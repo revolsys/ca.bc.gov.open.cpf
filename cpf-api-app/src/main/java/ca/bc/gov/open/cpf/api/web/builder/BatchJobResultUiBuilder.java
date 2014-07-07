@@ -20,7 +20,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.data.io.DataObjectWriterFactory;
+import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.query.And;
 import com.revolsys.data.query.Q;
 import com.revolsys.data.query.Query;
@@ -42,7 +42,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
       Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
     final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
-    final Record batchJobResult = getDataStore().queryFirst(query);
+    final Record batchJobResult = getRecordStore().queryFirst(query);
 
     if (batchJobResult != null) {
       return batchJobResult;
@@ -82,8 +82,8 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
       final long size = batchJobService.getBatchJobResultSize(batchJobId,
         sequenceNumber, batchJobResult);
 
-      final DataObjectWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-        .getFactoryByMediaType(DataObjectWriterFactory.class,
+      final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
+        .getFactoryByMediaType(RecordWriterFactory.class,
           resultDataContentType);
       if (writerFactory != null) {
         final String fileExtension = writerFactory.getFileExtension(resultDataContentType);

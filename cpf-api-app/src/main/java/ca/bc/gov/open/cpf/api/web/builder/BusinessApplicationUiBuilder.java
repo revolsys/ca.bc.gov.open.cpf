@@ -66,46 +66,46 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping("/ws/sample/input")
   @ResponseBody
   public RecordReader getSampleInputData() {
-    final RecordDefinitionImpl metaData = new RecordDefinitionImpl("/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
-    metaData.setGeometryFactory(factory);
-    metaData.addAttribute("title", DataTypes.STRING);
-    metaData.addAttribute("buffer", DataTypes.DOUBLE);
-    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
+    recordDefinition.setGeometryFactory(factory);
+    recordDefinition.addAttribute("title", DataTypes.STRING);
+    recordDefinition.addAttribute("buffer", DataTypes.DOUBLE);
+    recordDefinition.addAttribute("geometry", DataTypes.GEOMETRY);
 
     final List<Record> objects = new ArrayList<Record>();
 
-    final Record object1 = new ArrayRecord(metaData);
+    final Record object1 = new ArrayRecord(recordDefinition);
     object1.setValue("title", "Buffered centroid of BC");
     object1.setValue("buffer", 10000);
     object1.setGeometryValue(factory.point(921100.281, 1076394.357));
     objects.add(object1);
 
-    final Record object2 = new ArrayRecord(metaData);
+    final Record object2 = new ArrayRecord(recordDefinition);
     object2.setValue("title", "Stanley Park");
     object2.setValue("buffer", 1000);
     object2.setGeometryValue(factory.point(1207714.288, 480508.637));
     objects.add(object2);
 
-    final ListRecordReader reader = new ListRecordReader(metaData, objects);
+    final ListRecordReader reader = new ListRecordReader(recordDefinition, objects);
     return reader;
   }
 
   @RequestMapping("/ws/sample/result")
   @ResponseBody
   public RecordReader getSampleResultData() {
-    final RecordDefinitionImpl metaData = new RecordDefinitionImpl("/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
-    metaData.setGeometryFactory(factory);
-    metaData.addAttribute("sequenceNumber", DataTypes.INTEGER);
-    metaData.addAttribute("resultNumber", DataTypes.INTEGER);
-    metaData.addAttribute("title", DataTypes.STRING);
-    metaData.addAttribute("buffer", DataTypes.DOUBLE);
-    metaData.addAttribute("geometry", DataTypes.GEOMETRY);
+    recordDefinition.setGeometryFactory(factory);
+    recordDefinition.addAttribute("sequenceNumber", DataTypes.INTEGER);
+    recordDefinition.addAttribute("resultNumber", DataTypes.INTEGER);
+    recordDefinition.addAttribute("title", DataTypes.STRING);
+    recordDefinition.addAttribute("buffer", DataTypes.DOUBLE);
+    recordDefinition.addAttribute("geometry", DataTypes.GEOMETRY);
 
     final List<Record> objects = new ArrayList<Record>();
 
-    final Record object1 = new ArrayRecord(metaData);
+    final Record object1 = new ArrayRecord(recordDefinition);
     object1.setValue("sequenceNumber", 1);
     object1.setValue("resultNumber", 1);
     object1.setValue("title", "Buffered centroid of BC");
@@ -114,7 +114,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       10000));
     objects.add(object1);
 
-    final Record object2 = new ArrayRecord(metaData);
+    final Record object2 = new ArrayRecord(recordDefinition);
     object2.setValue("sequenceNumber", 2);
     object2.setValue("resultNumber", 1);
     object2.setValue("title", "Stanley Park");
@@ -123,7 +123,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       .buffer(1000));
     objects.add(object2);
 
-    final ListRecordReader reader = new ListRecordReader(metaData, objects);
+    final ListRecordReader reader = new ListRecordReader(recordDefinition, objects);
     return reader;
   }
 
