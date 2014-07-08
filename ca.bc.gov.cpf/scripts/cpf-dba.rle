@@ -1,0 +1,14 @@
+-- Z:\Documents\eclipse\ca.bc.gov.cpf\scripts\cpf-dba.rle
+--
+-- Generated for Oracle 10g on Tue Nov 20  16:10:16 2012 by Server Generator 10.1.2.9.28
+ 
+PROMPT Creating Role 'CPF_USER'
+CREATE ROLE CPF_USER NOT IDENTIFIED
+/
+
+
+PROMPT Creating Role 'CPF_VIEWER'
+CREATE ROLE CPF_VIEWER NOT IDENTIFIED
+/
+
+

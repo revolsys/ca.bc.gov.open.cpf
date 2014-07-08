@@ -1,0 +1,7 @@
+.checkstyle
+.settings
+.classpath
+.project
+target
+*.log
+*.stackdump

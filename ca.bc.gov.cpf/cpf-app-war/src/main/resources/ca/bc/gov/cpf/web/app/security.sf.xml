@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xmlns:security="http://www.springframework.org/schema/security"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/security
+    http://www.springframework.org/schema/security/spring-security-3.0.xsd
+  "
+>
+  <tx:annotation-driven transaction-manager="ca.bc.gov.open.cpf.api.transactionManager" />
+
+  <security:http
+    realm="CPF Siteminder"
+    use-expressions="true"
+    auto-config="false"
+    security-context-repository-ref="cpfSiteminderSpringSecurityContext"
+    entry-point-ref="cpfSiteminderEntryPoint"
+    access-decision-manager-ref="cpfSiteminderAccessDecisionManager"
+
+  >
+
+    <security:custom-filter
+      position="PRE_AUTH_FILTER"
+      ref="cpfSiteminderFilter" />
+
+    <security:intercept-url
+      pattern="/secure/admin/**"
+      access="hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_SECURITY') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />
+
+    <security:intercept-url
+      pattern="/secure/worker/**"
+      access="denyAll" />
+
+    <security:intercept-url
+      pattern="/secure/css"
+      access="acceptAll" />
+
+    <security:intercept-url
+      pattern="/secure/images"
+      access="acceptAll" />
+
+    <security:intercept-url
+      pattern="/secure/js"
+      access="acceptAll" />
+
+    <security:intercept-url
+      pattern="/secure/**"
+      access="hasRole('ROLE_USER')" />
+
+    <security:intercept-url
+      pattern="/j_spring_openid_security_check"
+      access="permitAll" />
+    <security:anonymous granted-authority="IS_AUTHENTICATED_ANONYMOUSLY" />
+    <security:logout
+      logout-url="/secure/logout"
+      invalidate-session="true"
+      success-handler-ref="cpfSiteminderLogoutSuccess" />
+  </security:http>
+
+  <bean
+    id="cpfSiteminderLogoutSuccess"
+    class="ca.bc.gov.cpf.web.app.SiteminderLogout"
+    p:logoutUrl="https://logon.gov.bc.ca/clp-cgi/logoff.cgi" />
+
+  <bean
+    id="cpfSiteminderSpringSecurityContext"
+    class="com.revolsys.ui.web.security.HttpSessionSecurityContextRepository"
+    p:springSecurityContextKey="CPF_SITEMINDER_SECURITY_CONTEXT" />
+
+  <bean
+    id="cpfSiteminderEntryPoint"
+    class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint" />
+
+  <bean
+    id="cpfSiteminderFilter"
+    class="ca.bc.gov.cpf.web.app.SiteminderAuthenticationFilter"
+    p:authenticationManager-ref="cpfSiteminderAuthenticationManager" />
+
+  <bean
+    id="cpfSiteminderPreauthAuthProvider"
+    class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider"
+    p:preAuthenticatedUserDetailsService-ref="cpfSiteminderUserDetailsServiceWrapper" />
+
+  <security:authentication-manager alias="cpfSiteminderAuthenticationManager">
+    <security:authentication-provider ref="cpfSiteminderPreauthAuthProvider" />
+  </security:authentication-manager>
+
+  <bean
+    id="cpfSiteminderUserDetailsServiceWrapper"
+    class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper"
+    p:userDetailsService-ref="cpfSiteminderUserDetailsService" />
+
+  <bean
+    id="cpfSiteminderUserDetailsService"
+    class="ca.bc.gov.cpf.web.app.SiteminderUserDetailsService"
+    p:userAccountSecurityService-ref="userAccountSecurityService" />
+
+  <bean
+    id="cpfSiteminderAccessDecisionManager"
+    class="org.springframework.security.access.vote.UnanimousBased"
+    p:allowIfAllAbstainDecisions="true"
+  >
+    <property name="decisionVoters">
+      <list>
+        <bean
+          class="org.springframework.security.web.access.expression.WebExpressionVoter"
+        >
+          <property name="expressionHandler">
+            <bean
+              class="com.revolsys.spring.security.DefaultWebSecurityExpressionHandler" />
+          </property>
+        </bean>
+      </list>
+    </property>
+  </bean>
+</beans>

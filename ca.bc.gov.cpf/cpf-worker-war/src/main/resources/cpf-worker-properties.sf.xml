@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+  "
+>
+  <util:map
+    id="cpfWorkerProperties"
+    map-class="com.revolsys.collection.AttributeMap"
+  >
+    <entry
+      key="cpfWorker.webServiceUrl"
+      value="http://localhost/pub/cpf" />
+  </util:map>
+
+  <bean
+    id="bcgovGlobalProperties"
+    class="com.revolsys.collection.AttributeMap"
+    p:properties="file:///apps/config/global.properties" />
+
+  <bean
+    id="cpfDefaultProperties"
+    class="com.revolsys.collection.AttributeMap"
+    p:properties="file:///apps/config/cpf/cpf.properties" />
+</beans>
