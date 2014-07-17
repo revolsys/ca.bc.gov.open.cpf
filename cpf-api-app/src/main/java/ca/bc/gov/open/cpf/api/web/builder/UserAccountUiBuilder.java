@@ -49,7 +49,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
   public UserAccountUiBuilder() {
     super("userAccount", USER_ACCOUNT, CONSUMER_KEY, "User Account",
-      "User Accounts");
+        "User Accounts");
     setIdParameterName("consumerKey");
   }
 
@@ -80,7 +80,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       final FieldWithSubmitButton submitField = new FieldWithSubmitButton(
         consumerKeyField, "add", "Add");
       final FieldLabelDecorator usernameLabel = new FieldLabelDecorator(
-        "Username");
+          "Username");
       usernameLabel.setInstructions("Search for a user by typing 3 or more consecutive characters from any part of the Consumer Key or User Account Name. The matching users will be displayed in a pop-up list. Select the required user and click the Add button.");
       submitField.setDecorator(usernameLabel);
 
@@ -100,14 +100,14 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final HttpServletResponse response, final String moduleName,
     final String userGroupName, final String moduleGroupName,
     final String consumerKey, final String parentPageName, final String tabName)
-    throws NoSuchRequestHandlingMethodException {
+        throws NoSuchRequestHandlingMethodException {
     if (StringUtils.hasText(consumerKey)) {
       if (moduleName != null) {
         hasModule(request, moduleName);
       }
       final Record userGroup = getUserGroup(userGroupName);
       if (userGroup != null
-        && (moduleGroupName == null || userGroup.getValue(UserGroup.MODULE_NAME)
+          && (moduleGroupName == null || userGroup.getValue(UserGroup.MODULE_NAME)
           .equals(moduleGroupName))) {
 
         final Record userAccount = getUserAccount(consumerKey);
@@ -149,7 +149,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       final String accountName = userAccount.getValue(USER_NAME);
       final String username = userAccount.getValue(CONSUMER_KEY);
       final String label = username + " (" + accountName + " - " + accountClass
-        + ")";
+          + ")";
       final Map<String, Object> autoComplete = new LinkedHashMap<String, Object>();
       autoComplete.put("label", label);
       autoComplete.put("value", username);
@@ -169,7 +169,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       }
       final Record userGroup = getUserGroup(userGroupName);
       if (userGroup != null
-        && (moduleName == null || userGroup.getValue(UserGroup.MODULE_NAME)
+          && (moduleName == null || userGroup.getValue(UserGroup.MODULE_NAME)
           .equals(groupModuleName))) {
 
         final CpfDataAccessObject dataAccessObject = getDataAccessObject();
@@ -194,23 +194,23 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     checkAdminOrModuleAdmin(moduleName);
     return addUserGroupMembership(request, response, moduleName, userGroupName,
       "ADMIN_MODULE_" + moduleName, consumerKey, "moduleAdminView",
-      "moduleAdminGroupList");
+        "moduleAdminGroupList");
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members/{consumerKey}/delete"
-      }, method = RequestMethod.POST)
+    value = {
+      "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members/{consumerKey}/delete"
+    }, method = RequestMethod.POST)
   public void pageModuleAdminUserGroupMemberDelete(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
     @PathVariable final String userGroupName,
     @PathVariable final String consumerKey, @RequestParam final Boolean confirm)
-    throws ServletException {
+        throws ServletException {
     checkAdminOrModuleAdmin(moduleName);
     removeUserGroupMembership(request, response, moduleName, userGroupName,
       "ADMIN_MODULE_" + moduleName, consumerKey, confirm, "moduleAdminView",
-      "moduleAdminGroupList");
+        "moduleAdminGroupList");
 
   }
 
@@ -243,14 +243,14 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/userGroups/{userGroupName}/members/{consumerKey}/delete"
-      }, method = RequestMethod.POST)
+    value = {
+      "/admin/modules/{moduleName}/userGroups/{userGroupName}/members/{consumerKey}/delete"
+    }, method = RequestMethod.POST)
   public void pageModuleUserGroupMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String userGroupName,
     @PathVariable final String consumerKey, @RequestParam final Boolean confirm)
-    throws ServletException {
+        throws ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     removeUserGroupMembership(request, response, moduleName, userGroupName,
       moduleName, consumerKey, confirm, "moduleView", "moduleGroupList");
@@ -291,12 +291,12 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   }, method = RequestMethod.POST)
   public void pageUserAccountDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String consumerKey)
-    throws IOException, ServletException {
+        throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
 
     final Record userAccount = getUserAccount(consumerKey);
     if (userAccount != null
-      && userAccount.getValue(USER_ACCOUNT_CLASS).equals("CPF")) {
+        && userAccount.getValue(USER_ACCOUNT_CLASS).equals("CPF")) {
 
       getDataAccessObject().deleteUserAccount(userAccount);
       redirectPage("list");
@@ -311,7 +311,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   @ResponseBody
   public Element pageUserAccountEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String consumerKey)
-    throws IOException, ServletException {
+        throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Record userAccount = getUserAccount(consumerKey);
     if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
@@ -338,7 +338,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   @ResponseBody
   public ElementContainer pageUserAccountView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String consumerKey)
-    throws IOException, ServletException {
+        throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Record userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
@@ -375,7 +375,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final HttpServletResponse response,
     @PathVariable final String userGroupName,
     @PathVariable final String consumerKey, @RequestParam final Boolean confirm)
-    throws ServletException {
+        throws ServletException {
     checkHasAnyRole(ADMIN);
     removeUserGroupMembership(request, response, null, userGroupName, null,
       consumerKey, confirm, "groupView", "groupList");
@@ -388,7 +388,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   @ResponseBody
   public Object pageUserGroupMemberList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String userGroupName)
-    throws IOException, ServletException {
+        throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin();
     return createUserGroupMembersList(request, response, "group", null,
       userGroupName, null);
@@ -445,7 +445,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       } else {
         final Record account = getUserAccount(consumerKey);
         if (account == null
-          || account.getLong(USER_ACCOUNT_ID) == userAccountId) {
+            || account.getLong(USER_ACCOUNT_ID).equals(userAccountId)) {
           HttpServletUtils.setAttribute("oldConsumerKey", oldConsumerKey);
           HttpServletUtils.setPathVariable("consumerKey", consumerKey);
           return true;
@@ -469,7 +469,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     }
     final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null
-      && (moduleGroupName == null || userGroup.getValue(UserGroup.MODULE_NAME)
+        && (moduleGroupName == null || userGroup.getValue(UserGroup.MODULE_NAME)
         .equals(moduleGroupName))) {
 
       final Record userAccount = getUserAccount(consumerKey);

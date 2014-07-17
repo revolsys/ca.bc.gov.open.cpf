@@ -436,8 +436,7 @@ public class CpfDataAccessObject {
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
       for (final Record batchJob : batchJobs) {
-        final Long batchJobId = RecordUtil.getLong(batchJob,
-          BatchJob.BATCH_JOB_ID);
+        final Long batchJobId = batchJob.getLong(BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
       return batchJobIds;
@@ -462,8 +461,7 @@ public class CpfDataAccessObject {
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
       for (final Record batchJob : batchJobs) {
-        final Long batchJobId = RecordUtil.getLong(batchJob,
-          BatchJob.BATCH_JOB_ID);
+        final Long batchJobId = batchJob.getLong(BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
       return batchJobIds;
@@ -600,8 +598,7 @@ public class CpfDataAccessObject {
     if (batchJobExecutionGroup == null) {
       return null;
     } else {
-      return RecordUtil.getLong(batchJobExecutionGroup,
-        BatchJobExecutionGroup.SEQUENCE_NUMBER);
+      return batchJobExecutionGroup.getLong(BatchJobExecutionGroup.SEQUENCE_NUMBER);
     }
   }
 
@@ -628,8 +625,7 @@ public class CpfDataAccessObject {
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
       for (final Record batchJob : batchJobs) {
-        final Long batchJobId = RecordUtil.getLong(batchJob,
-          BatchJob.BATCH_JOB_ID);
+        final Long batchJobId = batchJob.getLong(BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
       return batchJobIds;

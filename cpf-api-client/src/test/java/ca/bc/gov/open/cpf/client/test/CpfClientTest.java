@@ -55,9 +55,6 @@ public class CpfClientTest {
 
   private static void testCloseBatchJob() {
     System.out.println("Close Batch Job");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -74,9 +71,6 @@ public class CpfClientTest {
 
   private static void testCloseConnection() {
     System.out.println("Close Connection");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       // Use the client
@@ -88,17 +82,11 @@ public class CpfClientTest {
   @SuppressWarnings("unused")
   private static void testConstructor() {
     System.out.println("Constructor");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
   }
 
   private static void testCreateOpaqueResource() {
     System.out.println("Opaque Input Resource");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -118,9 +106,6 @@ public class CpfClientTest {
 
   private static void testCreateOpaqueResourceCollection() {
     System.out.println("Opaque Input Resource Collection");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -141,9 +126,6 @@ public class CpfClientTest {
 
   private static void testCreateOpaqueUrl() {
     System.out.println("Opaque URL Resource");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -162,9 +144,6 @@ public class CpfClientTest {
 
   private static void testCreateOpaqueUrlCollection() {
     System.out.println("Opaque Input URL Collection");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -184,9 +163,6 @@ public class CpfClientTest {
 
   private static void testCreateStructuredMultipleList() {
     System.out.println("Create Batch Job Structured Multiple List");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> jobParameters = new HashMap<String, Object>();
@@ -214,9 +190,6 @@ public class CpfClientTest {
 
   private static void testCreateStructuredMultipleResource() {
     System.out.println("Create Batch Job Structured Multiple Resource");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> jobParameters = new HashMap<String, Object>();
@@ -245,9 +218,6 @@ public class CpfClientTest {
 
   private static void testCreateStructuredMultipleUrl() {
     System.out.println("Create Batch Job Structured Multiple URL");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> jobParameters = new HashMap<String, Object>();
@@ -275,9 +245,6 @@ public class CpfClientTest {
 
   private static void testCreateStructuredSingle() {
     System.out.println("Create Batch Job Structured Single");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -301,9 +268,6 @@ public class CpfClientTest {
 
   private static void testGetBatchJobResultsError() {
     System.out.println("Get Batch Job Results Error");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -327,9 +291,6 @@ public class CpfClientTest {
 
   private static void testGetBatchJobResultsList() {
     System.out.println("Get Batch Job Results File List");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -416,9 +377,6 @@ public class CpfClientTest {
 
   private static void testGetBusinessApplicationMultipleSpecification() {
     System.out.println("Get Business Application Specification");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> specification = client.getBusinessApplicationMultipleSpecification("MapTileByTileId");
@@ -430,9 +388,6 @@ public class CpfClientTest {
 
   private static void testGetBusinessApplicationNames() {
     System.out.println("Get Business Application Names");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final List<String> businessApplicationNames = client.getBusinessApplicationNames();
@@ -446,9 +401,6 @@ public class CpfClientTest {
 
   private static void testGetBusinessApplicationSingleSpecification() {
     System.out.println("Get Business Application Specification");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> specification = client.getBusinessApplicationSingleSpecification("MapTileByTileId");
@@ -460,9 +412,6 @@ public class CpfClientTest {
 
   private static void testIsBatchJobCompleted() {
     System.out.println("Is Batch Job Completed");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -485,9 +434,6 @@ public class CpfClientTest {
 
   private static void testProcessBatchJobResultFile() {
     System.out.println("Process Batch Job Results File");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -526,9 +472,6 @@ public class CpfClientTest {
 
   private static void testProcessBatchJobResultsError() {
     System.out.println("Process Batch Job Results Error");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -555,9 +498,6 @@ public class CpfClientTest {
 
   private static void testProcessBatchJobStructuredResults() {
     System.out.println("Process Batch Job Structured Results");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -584,9 +524,6 @@ public class CpfClientTest {
 
   private static void testUserAppGetBatchJobIds() {
     System.out.println("User Get App Batch Job Ids");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -612,9 +549,6 @@ public class CpfClientTest {
 
   private static void testUserGetBatchJobIds() {
     System.out.println("User Get Batch Job Ids");
-    final String url = "http://localhost/pub/cpf";
-    final String consumerKey = "cpftest";
-    final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
       final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -637,4 +571,10 @@ public class CpfClientTest {
       client.closeConnection();
     }
   }
+
+  private static final String url = "http://localhost/pub/cpf";
+
+  private static final String consumerKey = "cpftest";
+
+  private static final String consumerSecret = "cpftest";
 }

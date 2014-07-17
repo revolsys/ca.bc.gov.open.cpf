@@ -27,7 +27,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.data.record.Record;
-import com.revolsys.data.record.RecordUtil;
 import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.form.Form;
@@ -405,8 +404,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
   @Override
   public boolean preUpdate(final Form form, final Record userGroup) {
-    final Long userGroupId = RecordUtil.getLong(userGroup,
-      UserGroup.USER_GROUP_ID);
+    final Long userGroupId = userGroup.getLong(UserGroup.USER_GROUP_ID);
     final Field nameField = form.getField(UserGroup.USER_GROUP_NAME);
     String groupName = nameField.getValue();
     groupName = groupName.toUpperCase();
@@ -415,7 +413,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
     final Record group = getUserGroup(groupName);
     if (group == null
-        || RecordUtil.getLong(group, UserGroup.USER_GROUP_ID) == userGroupId) {
+        || group.getLong(UserGroup.USER_GROUP_ID).equals(userGroupId)) {
       final String moduleName = userGroup.getValue(UserGroup.MODULE_NAME);
       if (!groupName.startsWith(moduleName + "_")) {
         nameField.addValidationError("Group name must start with " + moduleName
@@ -443,8 +441,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
   public void userGroupName(final XmlWriter out, final Object object) {
     final Record record = (Record)object;
-    final long userGroupId = RecordUtil.getLong(record,
-      UserGroup.USER_GROUP_ID);
+    final long userGroupId = record.getLong(UserGroup.USER_GROUP_ID);
 
     final CpfDataAccessObject dataAccessObject = getDataAccessObject();
     final Record userGroup = dataAccessObject.getUserGroup(userGroupId);

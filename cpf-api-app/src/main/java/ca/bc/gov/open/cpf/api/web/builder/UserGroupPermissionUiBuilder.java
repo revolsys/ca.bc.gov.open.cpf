@@ -24,7 +24,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 
 import com.revolsys.data.identifier.Identifier;
 import com.revolsys.data.record.Record;
-import com.revolsys.data.record.RecordUtil;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
 
@@ -34,7 +33,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   protected UserGroupPermissionUiBuilder() {
     super("userGroupPermission", UserGroupPermission.USER_GROUP_PERMISSION,
       UserGroupPermission.USER_GROUP_PERMISSION_ID, "User Group Permission",
-      "User Group Permissions");
+        "User Group Permissions");
   }
 
   @RequestMapping(value = {
@@ -52,8 +51,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
     if (group != null) {
-      final Long groupId = RecordUtil.getLong(group,
-        UserGroup.USER_GROUP_ID);
+      final Long groupId = group.getLong(UserGroup.USER_GROUP_ID);
       final Map<String, Object> parameters = new HashMap<String, Object>();
       parameters.put(UserGroupPermission.MODULE_NAME, moduleName);
       parameters.put(UserGroupPermission.USER_GROUP_ID, groupId);
@@ -65,9 +63,9 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/delete"
-      }, method = RequestMethod.POST)
+    value = {
+      "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/delete"
+    }, method = RequestMethod.POST)
   public void pageModuleUserGroupPermissionDelete(
     final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable final String moduleName,
@@ -97,11 +95,11 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/edit"
-      }, method = {
-        RequestMethod.GET, RequestMethod.POST
-      })
+    value = {
+      "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/edit"
+    }, method = {
+      RequestMethod.GET, RequestMethod.POST
+    })
   @ResponseBody
   public Element pageModuleUserGroupPermissionEdit(
     final HttpServletRequest request, final HttpServletResponse response,
@@ -158,9 +156,9 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}"
-      }, method = RequestMethod.GET)
+    value = {
+      "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}"
+    }, method = RequestMethod.GET)
   @ResponseBody
   public Element pageModuleUserGroupPermissionView(
     final HttpServletRequest request, final HttpServletResponse response,
