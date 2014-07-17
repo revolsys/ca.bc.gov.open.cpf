@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Cloud Processing Framework Web Application
-Version:           4.1.0
+Version:           4.1.3
 
 Software/Hardware Requirements
 ------------------------------
@@ -121,14 +121,9 @@ is complete.
 7. Perform Release 
 ------------------
 
-This step is performed before migration of an application to the test or
-production environment.
-
-The migration to test occurs after the developer has tested the application in
-the delivery environment. The migration to production occurs after the business
-area has tested the application in the test environment.
-
-Perform a Maven release using the following settings.
-
-Update property dependencies to latest RC or release version:
-  ca.bc.gov.open.cpf.version: 4.1.0+
+This step is performed during migration of an application to the production
+environment. The migration occurs after the developer has tested the application
+in the delivery environment and the business area have completed the UAT in the test environment.
+ 
+Use the Ministry Continuous Integration System to tag the version in Subversion,
+build the release version and deploy it to the Ministry Artifacts Repository.
