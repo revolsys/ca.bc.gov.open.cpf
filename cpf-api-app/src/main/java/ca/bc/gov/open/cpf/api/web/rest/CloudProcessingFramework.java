@@ -79,8 +79,8 @@ import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Writer;
-import com.revolsys.io.json.JsonRecordIoFactory;
 import com.revolsys.io.json.JsonMapIoFactory;
+import com.revolsys.io.json.JsonRecordIoFactory;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.ByteArrayResource;
 import com.revolsys.spring.InputStreamResource;
@@ -1491,8 +1491,7 @@ public class CloudProcessingFramework {
           final boolean valid = form.isValid();
           if (valid) {
             final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
-            final Record requestParameters = new ArrayRecord(
-              requestMetaData);
+            final Record requestParameters = new ArrayRecord(requestMetaData);
             for (final Attribute attribute : requestMetaData.getAttributes()) {
               final String name = attribute.getName();
               String value = HttpServletUtils.getParameter(name);
@@ -1569,6 +1568,8 @@ public class CloudProcessingFramework {
               if (!hasMultipleResults) {
                 writer.setProperty(IoConstants.SINGLE_OBJECT_PROPERTY, true);
               }
+              writer.setProperty(IoConstants.WRITE_NULLS, Boolean.TRUE);
+              writer.open();
               int i = 1;
               final Map<String, Object> defaultProperties = new HashMap<String, Object>(
                   writer.getProperties());
