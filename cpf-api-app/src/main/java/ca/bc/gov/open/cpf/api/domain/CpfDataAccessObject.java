@@ -613,14 +613,12 @@ public class CpfDataAccessObject {
   public List<Long> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
     final Query query = new Query(this.batchJobMetaData);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
-    final Condition[] conditions = {
-      new In(BatchJob.JOB_STATUS, "resultsCreated", "downloadInitiated",
-          "cancelled"),
-          Q.lessThan(
+    final And and = new And(
+      new In(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED,
+        BatchJob.DOWNLOAD_INITIATED, BatchJob.CANCELLED), Q.lessThan(
         this.batchJobMetaData.getAttribute(BatchJob.WHEN_STATUS_CHANGED),
-            keepUntilTimestamp)
-    };
-    query.setWhereCondition(new And(conditions));
+          keepUntilTimestamp));
+    query.setWhereCondition(and);
     final Reader<Record> batchJobs = this.recordStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
@@ -973,12 +971,12 @@ public class CpfDataAccessObject {
     final DataSource dataSource = jdbcRecordStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-        + "NUM_COMPLETED_REQUESTS = 0, NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS, JOB_STATUS = 'resultsCreated', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+        + "NUM_COMPLETED_REQUESTS = 0, NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
         + "WHERE JOB_STATUS = 'creatingRequests' AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
-      return JdbcUtils.executeUpdate(dataSource, sql, now, now, username,
+      return JdbcUtils.executeUpdate(dataSource, sql, now, now, now, username,
         batchJobId) == 1;
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
