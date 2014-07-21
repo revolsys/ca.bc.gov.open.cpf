@@ -4,14 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.util.StringUtils;
-
 import com.revolsys.data.record.Record;
 import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.Property;
 
 public class ResourcePermission {
-  public static final String ALL = "ALL";
-
   public static List<ResourcePermission> getPermissions(
     final List<Map<String, Object>> permissions) {
     final List<ResourcePermission> resourcePermissions = new ArrayList<ResourcePermission>();
@@ -24,6 +21,8 @@ public class ResourcePermission {
     }
     return resourcePermissions;
   }
+
+  public static final String ALL = "ALL";
 
   private String actionName;
 
@@ -60,9 +59,9 @@ public class ResourcePermission {
   }
 
   public boolean canAccess(final ResourcePermission permission) {
-    if (equalOrAll(permission.resourceClass, resourceClass)) {
-      if (equalOrAll(permission.resourceId, resourceId)) {
-        if (equalOrAll(permission.actionName, actionName)) {
+    if (equalOrAll(permission.resourceClass, this.resourceClass)) {
+      if (equalOrAll(permission.resourceId, this.resourceId)) {
+        if (equalOrAll(permission.actionName, this.actionName)) {
           return true;
         }
       }
@@ -86,9 +85,9 @@ public class ResourcePermission {
   public boolean equals(final Object object) {
     if (object instanceof ResourcePermission) {
       final ResourcePermission permission = (ResourcePermission)object;
-      if (permission.resourceClass.equals(resourceClass)) {
-        if (permission.resourceId.equals(resourceId)) {
-          if (permission.actionName.equals(actionName)) {
+      if (permission.resourceClass.equals(this.resourceClass)) {
+        if (permission.resourceId.equals(this.resourceId)) {
+          if (permission.actionName.equals(this.actionName)) {
             return true;
           }
         }
@@ -98,25 +97,25 @@ public class ResourcePermission {
   }
 
   public String getActionName() {
-    return actionName;
+    return this.actionName;
   }
 
   public String getResourceClass() {
-    return resourceClass;
+    return this.resourceClass;
   }
 
   public String getResourceId() {
-    return resourceId;
+    return this.resourceId;
   }
 
   @Override
   public int hashCode() {
-    return resourceClass.hashCode() + resourceId.hashCode()
-      + actionName.hashCode();
+    return this.resourceClass.hashCode() + this.resourceId.hashCode()
+        + this.actionName.hashCode();
   }
 
   public void setActionName(final String actionName) {
-    if (StringUtils.hasText(actionName)) {
+    if (Property.hasValue(actionName)) {
       this.actionName = actionName;
     } else {
       this.actionName = ALL;
@@ -124,7 +123,7 @@ public class ResourcePermission {
   }
 
   public void setResourceClass(final String resourceClass) {
-    if (StringUtils.hasText(resourceClass)) {
+    if (Property.hasValue(resourceClass)) {
       this.resourceClass = resourceClass;
     } else {
       this.resourceClass = ALL;
@@ -132,7 +131,7 @@ public class ResourcePermission {
   }
 
   public void setResourceId(final String resourceId) {
-    if (StringUtils.hasText(resourceId)) {
+    if (Property.hasValue(resourceId)) {
       this.resourceId = resourceId;
     } else {
       this.resourceId = ALL;
@@ -141,6 +140,6 @@ public class ResourcePermission {
 
   @Override
   public String toString() {
-    return resourceClass + ":" + resourceId + ":" + actionName;
+    return this.resourceClass + ":" + this.resourceId + ":" + this.actionName;
   }
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.springframework.util.StringUtils;
+import com.revolsys.util.Property;
 
 public class Worker {
   private final String id;
@@ -36,30 +36,30 @@ public class Worker {
 
   public void addExecutingGroup(final String moduleNameAndTime,
     final BatchJobRequestExecutionGroup group) {
-    synchronized (executingGroupsById) {
+    synchronized (this.executingGroupsById) {
       final String groupId = group.getId();
-      executingGroupsById.put(groupId, group);
-      List<BatchJobRequestExecutionGroup> groups = executingGroupsIdByModule.get(moduleNameAndTime);
+      this.executingGroupsById.put(groupId, group);
+      List<BatchJobRequestExecutionGroup> groups = this.executingGroupsIdByModule.get(moduleNameAndTime);
       if (groups == null) {
         groups = new ArrayList<BatchJobRequestExecutionGroup>();
-        executingGroupsIdByModule.put(moduleNameAndTime, groups);
+        this.executingGroupsIdByModule.put(moduleNameAndTime, groups);
       }
       groups.add(group);
     }
   }
 
   public void addMessage(final Map<String, Object> message) {
-    synchronized (messages) {
-      final int messageId = maxMessageId++;
-      messages.put(messageId, message);
+    synchronized (this.messages) {
+      final int messageId = this.maxMessageId++;
+      this.messages.put(messageId, message);
     }
   }
 
   public boolean cancelBatchJob(final long batchJobId) {
-    synchronized (executingGroupsById) {
+    synchronized (this.executingGroupsById) {
       boolean found = false;
-      for (final Iterator<Entry<String, BatchJobRequestExecutionGroup>> iterator = executingGroupsById.entrySet()
-        .iterator(); iterator.hasNext();) {
+      for (final Iterator<Entry<String, BatchJobRequestExecutionGroup>> iterator = this.executingGroupsById.entrySet()
+          .iterator(); iterator.hasNext();) {
         final Entry<String, BatchJobRequestExecutionGroup> entry = iterator.next();
         final String groupId = entry.getKey();
         final BatchJobRequestExecutionGroup group = entry.getValue();
@@ -78,14 +78,14 @@ public class Worker {
 
   public List<BatchJobRequestExecutionGroup> cancelExecutingGroups(
     final String moduleNameAndTime) {
-    synchronized (executingGroupsById) {
-      final List<BatchJobRequestExecutionGroup> groups = executingGroupsIdByModule.remove(moduleNameAndTime);
+    synchronized (this.executingGroupsById) {
+      final List<BatchJobRequestExecutionGroup> groups = this.executingGroupsIdByModule.remove(moduleNameAndTime);
       if (groups == null) {
         return Collections.emptyList();
       } else {
         for (final BatchJobRequestExecutionGroup group : groups) {
           final String groupId = group.getId();
-          executingGroupsById.remove(groupId);
+          this.executingGroupsById.remove(groupId);
         }
         return groups;
       }
@@ -93,33 +93,33 @@ public class Worker {
   }
 
   public BatchJobRequestExecutionGroup getExecutingGroup(final String groupId) {
-    return executingGroupsById.get(groupId);
+    return this.executingGroupsById.get(groupId);
   }
 
   public List<BatchJobRequestExecutionGroup> getExecutingGroups() {
-    synchronized (executingGroupsById) {
+    synchronized (this.executingGroupsById) {
       return new ArrayList<BatchJobRequestExecutionGroup>(
-        executingGroupsById.values());
+          this.executingGroupsById.values());
     }
   }
 
   public Map<String, BatchJobRequestExecutionGroup> getExecutingGroupsById() {
-    return executingGroupsById;
+    return this.executingGroupsById;
   }
 
   public String getId() {
-    return id;
+    return this.id;
   }
 
   public Timestamp getLastConnectTime() {
-    return lastConnectTime;
+    return this.lastConnectTime;
   }
 
   public Map<String, Map<String, Object>> getMessages(final int maxMessageId) {
     synchronized (this.messages) {
       final Map<String, Map<String, Object>> messages = new LinkedHashMap<>();
       for (final Iterator<Entry<Integer, Map<String, Object>>> iterator = this.messages.entrySet()
-        .iterator(); iterator.hasNext();) {
+          .iterator(); iterator.hasNext();) {
         final Entry<Integer, Map<String, Object>> entry = iterator.next();
         final Integer messageId = entry.getKey();
         if (messageId <= maxMessageId) {
@@ -134,16 +134,16 @@ public class Worker {
   }
 
   public List<WorkerModuleState> getModules() {
-    return new ArrayList<>(moduleStates.values());
+    return new ArrayList<>(this.moduleStates.values());
   }
 
   protected WorkerModuleState getModuleState(final String moduleName) {
-    if (StringUtils.hasText(moduleName)) {
-      synchronized (moduleStates) {
-        WorkerModuleState moduleState = moduleStates.get(moduleName);
+    if (Property.hasValue(moduleName)) {
+      synchronized (this.moduleStates) {
+        WorkerModuleState moduleState = this.moduleStates.get(moduleName);
         if (moduleState == null) {
           moduleState = new WorkerModuleState(moduleName);
-          moduleStates.put(moduleName, moduleState);
+          this.moduleStates.put(moduleName, moduleState);
         }
         return moduleState;
       }
@@ -153,12 +153,12 @@ public class Worker {
   }
 
   public long getStartTime() {
-    return startTime;
+    return this.startTime;
   }
 
   public BatchJobRequestExecutionGroup removeExecutingGroup(final String groupId) {
-    synchronized (executingGroupsById) {
-      return executingGroupsById.remove(groupId);
+    synchronized (this.executingGroupsById) {
+      return this.executingGroupsById.remove(groupId);
     }
   }
 

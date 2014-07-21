@@ -43,7 +43,6 @@ import org.apache.log4j.rolling.RollingFileAppender;
 import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.util.StringUtils;
 import org.springframework.web.context.ServletContextAware;
 
 import ca.bc.gov.open.cpf.api.worker.security.WebSecurityServiceFactory;
@@ -69,10 +68,11 @@ import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
 public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
-  BeanNameAware, ModuleEventListener, ServletContextAware {
+BeanNameAware, ModuleEventListener, ServletContextAware {
 
   private static Integer getPortNumber() {
     try {
@@ -80,8 +80,8 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
       for (final String protocol : Arrays.asList("HTTP/1.1", "AJP/1.3")) {
 
         final Set<ObjectName> objs = mbs.queryNames(new ObjectName(
-          "*:type=Connector,*"), Query.match(Query.attr("protocol"),
-          Query.value(protocol)));
+            "*:type=Connector,*"), Query.match(Query.attr("protocol"),
+              Query.value(protocol)));
         int protocolPort = Integer.MAX_VALUE;
         for (final ObjectName obj : objs) {
           final int port = Integer.parseInt(obj.getKeyProperty("port"));
@@ -127,7 +127,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   private int maxInMessageId = 0;
 
   private final Channel<Map<String, Object>> inMessageChannel = new Channel<>(
-    new Buffer<Map<String, Object>>(1000));
+      new Buffer<Map<String, Object>>(1000));
 
   private String messageUrl;
 
@@ -178,13 +178,13 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
       hostName = "localhost";
     }
 
-    id = environmentName + ":" + hostName + ":" + getPortNumber();
+    this.id = this.environmentName + ":" + hostName + ":" + getPortNumber();
 
   }
 
   protected void addExecutingGroupId(final String groupId) {
-    synchronized (executingGroupIds) {
-      executingGroupIds.add(groupId);
+    synchronized (this.executingGroupIds) {
+      this.executingGroupIds.add(groupId);
     }
   }
 
@@ -201,8 +201,8 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   }
 
   private void addMessage(final Map<String, Object> message) {
-    synchronized (messages) {
-      messages.add(message);
+    synchronized (this.messages) {
+      this.messages.add(message);
     }
   }
 
@@ -211,19 +211,19 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   protected void afterExecute(final Runnable runnable, final Throwable e) {
     if (runnable instanceof FutureTask) {
       final FutureTask futureTask = (FutureTask)runnable;
-      final String groupId = groupIdByFutureTask.remove(futureTask);
-      futureTaskByGroupId.remove(groupId);
+      final String groupId = this.groupIdByFutureTask.remove(futureTask);
+      this.futureTaskByGroupId.remove(groupId);
     }
-    taskCount.decrementAndGet();
-    synchronized (monitor) {
-      monitor.notifyAll();
+    this.taskCount.decrementAndGet();
+    synchronized (this.monitor) {
+      this.monitor.notifyAll();
     }
   }
 
   public void cancelGroup(final Map<String, Object> message) {
     final String groupId = (String)message.get("groupId");
     removeExecutingGroupId(groupId);
-    final Future<?> future = futureTaskByGroupId.get(groupId);
+    final Future<?> future = this.futureTaskByGroupId.get(groupId);
     if (future != null) {
       future.cancel(true);
     }
@@ -232,11 +232,12 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   protected Map<String, Object> createExecutingGroupsMessage() {
     final Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "executingGroupIds");
-    message.put("workerId", id);
-    synchronized (executingGroupIds) {
-      message.put("executingGroupIds", new ArrayList<String>(executingGroupIds));
+    message.put("workerId", this.id);
+    synchronized (this.executingGroupIds) {
+      message.put("executingGroupIds", new ArrayList<String>(
+        this.executingGroupIds));
     }
-    lastPingTime = System.currentTimeMillis();
+    this.lastPingTime = System.currentTimeMillis();
     return message;
   }
 
@@ -258,49 +259,49 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   @PreDestroy
   public void destroy() {
-    running = false;
-    if (processNetwork != null) {
-      processNetwork.stop();
+    this.running = false;
+    if (this.processNetwork != null) {
+      this.processNetwork.stop();
     }
 
-    businessApplicationRegistry = null;
-    configPropertyLoader = null;
-    futureTaskByGroupId.clear();
-    groupIdByFutureTask.clear();
-    messages.clear();
-    processNetwork = null;
+    this.businessApplicationRegistry = null;
+    this.configPropertyLoader = null;
+    this.futureTaskByGroupId.clear();
+    this.groupIdByFutureTask.clear();
+    this.messages.clear();
+    this.processNetwork = null;
 
     this.httpClient = null;
     shutdownNow();
-    if (securityServiceFactory != null) {
-      securityServiceFactory.close();
-      securityServiceFactory = null;
+    if (this.securityServiceFactory != null) {
+      this.securityServiceFactory.close();
+      this.securityServiceFactory = null;
     }
-    if (tempDir != null) {
-      if (!FileUtil.deleteDirectory(tempDir)) {
+    if (this.tempDir != null) {
+      if (!FileUtil.deleteDirectory(this.tempDir)) {
         LoggerFactory.getLogger(getClass()).error(
-          "Unable to delete jar cache " + tempDir);
+          "Unable to delete jar cache " + this.tempDir);
       }
-      tempDir = null;
+      this.tempDir = null;
     }
-    inMessageChannel.readDisconnect();
+    this.inMessageChannel.readDisconnect();
   }
 
   @Override
   public void execute(final Runnable command) {
     if (command != null) {
       while (!isShutdown()) {
-        taskCount.incrementAndGet();
+        this.taskCount.incrementAndGet();
         try {
           super.execute(command);
           return;
         } catch (final RejectedExecutionException e) {
-          taskCount.decrementAndGet();
+          this.taskCount.decrementAndGet();
         } catch (final RuntimeException e) {
-          taskCount.decrementAndGet();
+          this.taskCount.decrementAndGet();
           throw e;
         } catch (final Error e) {
-          taskCount.decrementAndGet();
+          this.taskCount.decrementAndGet();
           throw e;
         }
       }
@@ -309,15 +310,15 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   @Override
   public String getBeanName() {
-    return beanName;
+    return this.beanName;
   }
 
   public BusinessApplication getBusinessApplication(final AppLog log,
     final String moduleName, final Long moduleTime,
     final String businessApplicationName) {
     final BusinessApplication businessApplication;
-    if (StringUtils.hasText(moduleName)) {
-      final ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
+    if (Property.hasValue(moduleName)) {
+      final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
       if (module == null) {
         return null;
       } else if (module.isStarted()) {
@@ -326,29 +327,29 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
         businessApplication = null;
       }
     } else {
-      businessApplication = businessApplicationRegistry.getBusinessApplication(businessApplicationName);
+      businessApplication = this.businessApplicationRegistry.getBusinessApplication(businessApplicationName);
     }
     return businessApplication;
   }
 
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
-    return businessApplicationRegistry;
+    return this.businessApplicationRegistry;
   }
 
   public ConfigPropertyLoader getConfigPropertyLoader() {
-    return configPropertyLoader;
+    return this.configPropertyLoader;
   }
 
   public String getEnvironmentName() {
-    return environmentName;
+    return this.environmentName;
   }
 
   public Channel<Map<String, Object>> getInMessageChannel() {
-    return inMessageChannel;
+    return this.inMessageChannel;
   }
 
   public String getPassword() {
-    return password;
+    return this.password;
   }
 
   public int getPriority() {
@@ -360,44 +361,44 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
    */
   @Override
   public ProcessNetwork getProcessNetwork() {
-    return processNetwork;
+    return this.processNetwork;
   }
 
   public String getUsername() {
-    return username;
+    return this.username;
   }
 
   public String getWebServiceUrl() {
-    return webServiceUrl;
+    return this.webServiceUrl;
   }
 
   @PostConstruct
   public void init() {
     initLogging();
 
-    httpClient = new DigestHttpClient(webServiceUrl, username, password,
-      getMaximumPoolSize() + 1);
+    this.httpClient = new DigestHttpClient(this.webServiceUrl, this.username,
+      this.password, getMaximumPoolSize() + 1);
 
-    securityServiceFactory = new WebSecurityServiceFactory(httpClient);
-    businessApplicationRegistry.addModuleEventListener(securityServiceFactory);
-    tempDir = FileUtil.createTempDirectory("cpf", "jars");
-    configPropertyLoader = new InternalWebServiceConfigPropertyLoader(
-      httpClient, environmentName);
+    this.securityServiceFactory = new WebSecurityServiceFactory(this.httpClient);
+    this.businessApplicationRegistry.addModuleEventListener(this.securityServiceFactory);
+    this.tempDir = FileUtil.createTempDirectory("cpf", "jars");
+    this.configPropertyLoader = new InternalWebServiceConfigPropertyLoader(
+      this.httpClient, this.environmentName);
 
-    messageUrl = webServiceUrl + "/worker/workers/" + id
-      + "/message?workerStartTime=" + startTime;
-    nextIdUrl = webServiceUrl + "/worker/workers/" + id
-      + "/jobs/groups/nextId?workerStartTime=" + startTime;
-    inMessageChannel.readConnect();
+    this.messageUrl = this.webServiceUrl + "/worker/workers/" + this.id
+        + "/message?workerStartTime=" + this.startTime;
+    this.nextIdUrl = this.webServiceUrl + "/worker/workers/" + this.id
+        + "/jobs/groups/nextId?workerStartTime=" + this.startTime;
+    this.inMessageChannel.readConnect();
   }
 
   @SuppressWarnings("deprecation")
   protected void initLogging() {
     final Logger logger = Logger.getRootLogger();
     logger.removeAllAppenders();
-    final File rootDirectory = businessApplicationRegistry.getAppLogDirectory();
+    final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
     if (rootDirectory == null
-      || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
+        || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
       new ConsoleAppender().activateOptions();
       final ConsoleAppender appender = new ConsoleAppender();
       appender.activateOptions();
@@ -405,7 +406,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
       logger.addAppender(appender);
     } else {
       final String baseFileName = rootDirectory + "/" + "worker_"
-        + id.replaceAll(":", "_");
+          + this.id.replaceAll(":", "_");
       final String activeFileName = baseFileName + ".log";
       final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
       rollingPolicy.setActiveFileName(activeFileName);
@@ -434,14 +435,14 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     if (action.equals(ModuleEvent.START)) {
 
     } else if (action.equals(ModuleEvent.START_FAILED)) {
-      businessApplicationRegistry.unloadModule(module);
+      this.businessApplicationRegistry.unloadModule(module);
 
       final String moduleError = module.getModuleError();
       message = createModuleMessage(module, "moduleExcluded");
       message.put("moduleError", moduleError);
     } else if (action.equals(ModuleEvent.STOP)) {
       message = createModuleMessage(module, "moduleStopped");
-      loadedModuleNames.add(moduleName);
+      this.loadedModuleNames.add(moduleName);
     }
     if (message != null) {
       sendMessageWithRetry(message);
@@ -450,40 +451,41 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   @SuppressWarnings("unchecked")
   public boolean processNextTask() {
-    if (System.currentTimeMillis() > lastPingTime + maxTimeBetweenPings * 1000) {
+    if (System.currentTimeMillis() > this.lastPingTime
+      + this.maxTimeBetweenPings * 1000) {
       addExecutingGroupsMessage();
     }
-    while (!messages.isEmpty()) {
-      synchronized (messages) {
-        final Map<String, Object> message = messages.removeFirst();
+    while (!this.messages.isEmpty()) {
+      synchronized (this.messages) {
+        final Map<String, Object> message = this.messages.removeFirst();
         if (!sendMessageWithRetry(message)) {
           return false;
         }
       }
     }
-    if (!running) {
+    if (!this.running) {
       return false;
     }
     final long time = System.currentTimeMillis();
-    if (taskCount.get() >= getMaximumPoolSize()) {
+    if (this.taskCount.get() >= getMaximumPoolSize()) {
       addExecutingGroupsMessage();
-      lastPingTime = time;
+      this.lastPingTime = time;
       return false;
     } else {
       try {
         final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("maxMessageId", maxInMessageId);
+        parameters.put("maxMessageId", this.maxInMessageId);
         Map<String, Object> response = null;
-        parameters.put("moduleName", loadedModuleNames);
+        parameters.put("moduleName", this.loadedModuleNames);
 
-        final String url = UrlUtil.getUrl(nextIdUrl, parameters);
-        if (running) {
+        final String url = UrlUtil.getUrl(this.nextIdUrl, parameters);
+        if (this.running) {
           if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
             LoggerFactory.getLogger(getClass()).debug(url);
           }
-          response = httpClient.postJsonResource(url);
+          response = this.httpClient.postJsonResource(url);
         }
-        if (!running) {
+        if (!this.running) {
           return false;
         } else {
 
@@ -493,9 +495,9 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
               for (final Entry<String, Map<String, Object>> entry : messages.entrySet()) {
                 final int messageId = Integer.parseInt(entry.getKey());
                 final Map<String, Object> message = entry.getValue();
-                if (messageId > maxInMessageId) {
-                  inMessageChannel.write(message);
-                  maxInMessageId = messageId;
+                if (messageId > this.maxInMessageId) {
+                  this.inMessageChannel.write(message);
+                  this.maxInMessageId = messageId;
                 }
               }
             }
@@ -508,13 +510,13 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
               addExecutingGroupId(groupId);
               try {
                 final Runnable runnable = new BatchJobRequestExecutionGroupRunnable(
-                  this, businessApplicationRegistry, httpClient,
-                  securityServiceFactory, id, response);
+                  this, this.businessApplicationRegistry, this.httpClient,
+                  this.securityServiceFactory, this.id, response);
                 final Future<?> future = submit(runnable);
-                futureTaskByGroupId.put(groupId, future);
-                groupIdByFutureTask.put(future, groupId);
+                this.futureTaskByGroupId.put(groupId, future);
+                this.groupIdByFutureTask.put(future, groupId);
               } catch (final Throwable e) {
-                if (running) {
+                if (this.running) {
                   LoggerFactory.getLogger(getClass()).error(
                     "Unable to get execute group " + groupId, e);
                 }
@@ -534,14 +536,14 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
         if (t.getStatusCode() == 404) {
 
         } else {
-          if (running) {
+          if (this.running) {
             LoggerFactory.getLogger(getClass()).error("Unable to get group", t);
           }
         }
       } catch (final Throwable t) {
         if (t.getCause() instanceof SocketException) {
           addExecutingGroupsMessage();
-          if (abbortedRequest) {
+          if (this.abbortedRequest) {
             return true;
           } else {
             LoggerFactory.getLogger(getClass()).error("Unable to get group",
@@ -550,7 +552,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
           }
         } else {
           addExecutingGroupsMessage();
-          if (running) {
+          if (this.running) {
             LoggerFactory.getLogger(getClass()).error("Unable to get group", t);
           }
         }
@@ -560,8 +562,8 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   }
 
   protected void removeExecutingGroupId(final String groupId) {
-    synchronized (executingGroupIds) {
-      executingGroupIds.remove(groupId);
+    synchronized (this.executingGroupIds) {
+      this.executingGroupIds.remove(groupId);
     }
   }
 
@@ -569,25 +571,27 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   public void run() {
     LoggerFactory.getLogger(getClass()).info("Started");
     try {
-      running = true;
-      while (running) {
+      this.running = true;
+      while (this.running) {
         try {
           if (processNextTask()) {
-            timeout = 0;
+            this.timeout = 0;
           } else {
-            if (timeout < maxTimeout) {
-              timeout += timeoutStep;
+            if (this.timeout < this.maxTimeout) {
+              this.timeout += this.timeoutStep;
             }
           }
-          if (running && timeout != 0) {
-            synchronized (monitor) {
-              LoggerFactory.getLogger(getClass()).debug(
-                "Waiting " + timeout + " seconds before getting next task");
-              monitor.wait(timeout * 1000);
+          if (this.running && this.timeout != 0) {
+            synchronized (this.monitor) {
+              LoggerFactory.getLogger(getClass())
+                .debug(
+                  "Waiting " + this.timeout
+                    + " seconds before getting next task");
+              this.monitor.wait(this.timeout * 1000);
             }
           }
         } catch (final InterruptedException e) {
-          if (!running) {
+          if (!this.running) {
             return;
           }
         }
@@ -604,34 +608,35 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
   public boolean sendMessage(final Map<String, ? extends Object> message) {
     try {
       if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
-        LoggerFactory.getLogger(getClass()).debug(messageUrl + "\n" + message);
+        LoggerFactory.getLogger(getClass()).debug(
+          this.messageUrl + "\n" + message);
       }
-      final Map<String, Object> response = httpClient.postJsonResource(
-        messageUrl, message);
+      final Map<String, Object> response = this.httpClient.postJsonResource(
+        this.messageUrl, message);
       if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
         LoggerFactory.getLogger(getClass()).debug("Message sent\n" + response);
       }
-      if (running) {
+      if (this.running) {
         return true;
       } else {
         return false;
       }
     } catch (final HttpStatusCodeException t) {
-      if (running) {
+      if (this.running) {
         if (t.getStatusCode() == 404) {
           LoggerFactory.getLogger(getClass()).error(
-            "Unable to send message to " + messageUrl
-              + " 404 returned from server");
+            "Unable to send message to " + this.messageUrl
+            + " 404 returned from server");
         } else {
           LoggerFactory.getLogger(getClass()).error(
-            "Unable to send message to " + messageUrl + "\n" + message, t);
+            "Unable to send message to " + this.messageUrl + "\n" + message, t);
         }
       }
       return false;
     } catch (final Throwable t) {
-      if (running) {
+      if (this.running) {
         LoggerFactory.getLogger(getClass()).error(
-          "Unable to send message to " + messageUrl + "\n" + message, t);
+          "Unable to send message to " + this.messageUrl + "\n" + message, t);
       }
       return false;
     }
@@ -639,16 +644,16 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   protected boolean sendMessageWithRetry(final Map<String, Object> message) {
     while (!sendMessage(message)) {
-      long timeout = timeoutStep;
-      if (running) {
+      long timeout = this.timeoutStep;
+      if (this.running) {
         try {
           LoggerFactory.getLogger(getClass()).debug(
             "Waiting " + timeout + " seconds before sending message");
-          messages.wait(timeout * 1000);
+          this.messages.wait(timeout * 1000);
         } catch (final InterruptedException e) {
         }
-        if (timeout < maxTimeout) {
-          timeout += timeoutStep;
+        if (timeout < this.maxTimeout) {
+          timeout += this.timeoutStep;
         }
       } else {
         return false;
@@ -688,9 +693,9 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     if (moduleNames != null) {
       for (final String moduleName : moduleNames) {
         if (moduleName.startsWith("-")) {
-          excludedModuleNames.add(moduleName.substring(1));
+          this.excludedModuleNames.add(moduleName.substring(1));
         } else {
-          includedModuleNames.add(moduleName);
+          this.includedModuleNames.add(moduleName);
         }
       }
     }
@@ -722,12 +727,12 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   @Override
   public void setServletContext(final ServletContext servletContext) {
-    id += ":"
-      + servletContext.getContextPath()
+    this.id += ":"
+        + servletContext.getContextPath()
         .replaceFirst("^/", "")
         .replaceAll("/", "-");
-    businessApplicationRegistry.setEnvironmentId("worker_"
-      + id.replaceAll(":", "_"));
+    this.businessApplicationRegistry.setEnvironmentId("worker_"
+        + this.id.replaceAll(":", "_"));
   }
 
   public void setUsername(final String username) {
@@ -743,14 +748,14 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     Map<String, Object> message;
     try {
       module.loadApplications();
-      loadedModuleNames.add(moduleName);
+      this.loadedModuleNames.add(moduleName);
       message = createModuleMessage(module, "moduleStarted");
     } catch (final Throwable e) {
       final AppLog log = new AppLog(moduleName);
       log.error("Unable to load module " + moduleName, e);
       message = createModuleMessage(module, "moduleStartFailed");
       message.put("moduleError", ExceptionUtil.toString(e));
-      businessApplicationRegistry.unloadModule(module);
+      this.businessApplicationRegistry.unloadModule(module);
     }
     if (message != null) {
       sendMessageWithRetry(message);
@@ -761,10 +766,10 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
     final String moduleName = (String)action.get("moduleName");
     final Long moduleTime = CollectionUtil.getLong(action, "moduleTime");
     if ((this.includedModuleNames.isEmpty() || this.includedModuleNames.contains(moduleName))
-      && !excludedModuleNames.contains(moduleName)) {
+        && !this.excludedModuleNames.contains(moduleName)) {
       final AppLog log = new AppLog(moduleName);
 
-      ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
+      ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
       if (module != null) {
         final long lastStartedTime = module.getStartedTime();
         if (lastStartedTime < moduleTime) {
@@ -777,10 +782,11 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
         }
       }
       try {
-        final String modulesUrl = httpClient.getUrl("/worker/modules/"
-          + moduleName + "/" + moduleTime + "/urls.json");
-        final Map<String, Object> response = httpClient.getJsonResource(modulesUrl);
-        final File moduleDir = new File(tempDir, moduleName + "-" + moduleTime);
+        final String modulesUrl = this.httpClient.getUrl("/worker/modules/"
+            + moduleName + "/" + moduleTime + "/urls.json");
+        final Map<String, Object> response = this.httpClient.getJsonResource(modulesUrl);
+        final File moduleDir = new File(this.tempDir, moduleName + "-"
+          + moduleTime);
         moduleDir.mkdir();
         moduleDir.deleteOnExit();
         final List<URL> urls = new ArrayList<URL>();
@@ -791,7 +797,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
           try {
             final File jarFile = new File(moduleDir, i + ".jar");
             jarFile.deleteOnExit();
-            httpClient.getResource(jarUrl, jarFile);
+            this.httpClient.getResource(jarUrl, jarFile);
 
             urls.add(FileUtil.toUrl(jarFile));
           } catch (final Throwable e) {
@@ -804,9 +810,9 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
           parentClassLoader, urls);
         final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
           classLoader, false);
-        module = new ClassLoaderModule(businessApplicationRegistry, moduleName,
-          classLoader, configPropertyLoader, configUrls.get(0));
-        businessApplicationRegistry.addModule(module);
+        module = new ClassLoaderModule(this.businessApplicationRegistry,
+          moduleName, classLoader, this.configPropertyLoader, configUrls.get(0));
+        this.businessApplicationRegistry.addModule(module);
         module.setStartedDate(new Date(moduleTime));
         module.enable();
         execute(new InvokeMethodRunnable(this, "startApplications", module));
@@ -819,7 +825,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
         message.put("moduleError", ExceptionUtil.toString(e));
         addMessage(message);
         if (module != null) {
-          businessApplicationRegistry.unloadModule(module);
+          this.businessApplicationRegistry.unloadModule(module);
         }
       }
     } else {
@@ -831,7 +837,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   protected void stopModule(final Map<String, Object> action) {
     final String moduleName = (String)action.get("moduleName");
-    final ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
+    final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
     if (module != null) {
       unloadModule(module);
     }
@@ -839,13 +845,14 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   @Override
   public String toString() {
-    return beanName;
+    return this.beanName;
   }
 
   public void unloadModule(final ClassLoaderModule module) {
     final long time = module.getStartedTime();
-    businessApplicationRegistry.unloadModule(module);
-    final File lastModuleDir = new File(tempDir, module.getName() + "-" + time);
+    this.businessApplicationRegistry.unloadModule(module);
+    final File lastModuleDir = new File(this.tempDir, module.getName() + "-"
+      + time);
     FileUtil.deleteDirectory(lastModuleDir, true);
   }
 }

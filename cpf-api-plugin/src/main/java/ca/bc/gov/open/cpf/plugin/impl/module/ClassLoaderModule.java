@@ -193,7 +193,7 @@ public class ClassLoaderModule implements Module {
   }
 
   public void addModuleError(String message, final Throwable e) {
-    if (StringUtils.hasText(message)) {
+    if (Property.hasValue(message)) {
       log.error("Unable to initialize module " + getName() + ":\n  " + message,
         e);
       if (e != null) {
@@ -510,7 +510,7 @@ public class ClassLoaderModule implements Module {
       businessApplication.setBatchModePermission(batchModePermission);
 
       String packageName = pluginMetadata.packageName();
-      if (!StringUtils.hasText(packageName)) {
+      if (!Property.hasValue(packageName)) {
         packageName = "ca.bc.gov." + moduleName.toLowerCase();
       }
       businessApplication.setPackageName(packageName);
@@ -907,7 +907,7 @@ public class ClassLoaderModule implements Module {
   private void initAppLogAppender(final String businessApplicationName) {
     final String fileName;
     String logName = this.name;
-    final boolean isApp = StringUtils.hasText(businessApplicationName);
+    final boolean isApp = Property.hasValue(businessApplicationName);
     if (isApp) {
       logName += "." + businessApplicationName;
       fileName = name + "_" + businessApplicationName + "_" + environmentId;
@@ -1001,7 +1001,7 @@ public class ClassLoaderModule implements Module {
   }
 
   public boolean isHasError() {
-    return StringUtils.hasText(getModuleError());
+    return Property.hasValue(getModuleError());
   }
 
   public boolean isInitialized() {
@@ -1204,14 +1204,14 @@ public class ClassLoaderModule implements Module {
     final JobParameter jobParameterMetadata = method.getAnnotation(JobParameter.class);
     if (jobParameterMetadata != null) {
       final String jobDescriptionUrl = jobParameterMetadata.descriptionUrl();
-      if (StringUtils.hasText(jobDescriptionUrl)) {
+      if (Property.hasValue(jobDescriptionUrl)) {
         descriptionUrl = jobDescriptionUrl;
       }
     }
     final RequestParameter requestParameterMetadata = method.getAnnotation(RequestParameter.class);
     if (requestParameterMetadata != null) {
       final String requestDescriptionUrl = requestParameterMetadata.descriptionUrl();
-      if (StringUtils.hasText(requestDescriptionUrl)) {
+      if (Property.hasValue(requestDescriptionUrl)) {
         descriptionUrl = requestDescriptionUrl;
       }
     }
@@ -1286,11 +1286,11 @@ public class ClassLoaderModule implements Module {
             final Attribute attribute = new Attribute(parameterName, dataType,
               length, scale, required, description);
             attribute.setProperty("units", units);
-            if (StringUtils.hasText(minValue)) {
+            if (Property.hasValue(minValue)) {
               attribute.setMinValue(StringConverterRegistry.toObject(dataType,
                 minValue));
             }
-            if (StringUtils.hasText(maxValue)) {
+            if (Property.hasValue(maxValue)) {
               attribute.setMaxValue(StringConverterRegistry.toObject(dataType,
                 maxValue));
             }

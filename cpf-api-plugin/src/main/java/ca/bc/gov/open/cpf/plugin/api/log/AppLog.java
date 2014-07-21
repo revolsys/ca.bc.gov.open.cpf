@@ -2,9 +2,10 @@ package ca.bc.gov.open.cpf.plugin.api.log;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+
+import com.revolsys.util.Property;
 
 /**
  * <p>The AppLog class is a logging API for use by a {@link BusinessApplicationPlugin} class.
@@ -13,10 +14,10 @@ import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
  * class). The message will also be recorded in the module log file on the master if that log level
  * is enabled for the business application. This functionality allows viewing the logs for the
  * all the workers from the CPF admin console.</p>
- * 
+ *
  * <p>The plug-in must implement the following method on the {@link BusinessApplicationPlugin} class
  * to obtain a AppLog instance for this request.</p>
- * 
+ *
  * <figure><pre class="prettyprint language-java">private AppLog appLog;
 
 public void setAppLog(final AppLog appLog) {
@@ -42,7 +43,7 @@ public class AppLog {
 
   public AppLog(final String businessApplicationName, String groupId,
     final String logLevel) {
-    if (!StringUtils.hasText(groupId)) {
+    if (!Property.hasValue(groupId)) {
       groupId = String.valueOf(System.currentTimeMillis());
     }
     this.log = Logger.getLogger(businessApplicationName + "." + groupId);
@@ -51,50 +52,50 @@ public class AppLog {
 
   /**
    * <p>Record the info message in the log if {@link #isInfoEnabled()} is true.</p>
-   * 
+   *
    * @param message The message.
    */
   public void debug(final String message) {
     if (isDebugEnabled()) {
-      log.debug(message);
+      this.log.debug(message);
     }
   }
 
   /**
    * <p>Record the error message in the log.</p>
-   * 
+   *
    * @param message The message.
    */
   public void error(final String message) {
-    log.error(message);
+    this.log.error(message);
   }
 
   /**
    * <p>Record the error message in the log with the exception.</p>
-   * 
+   *
    * @param message The message.
    */
   public void error(final String message, final Throwable exception) {
-    log.error(message, exception);
+    this.log.error(message, exception);
   }
 
   /**
    * <p>Get the logging level (ERROR, INFO, DEBUG).</p>
-   * 
+   *
    * @return The logging level (ERROR, INFO, DEBUG).
    */
   public String getLogLevel() {
-    return logLevel;
+    return this.logLevel;
   }
 
   /**
    * <p>Record the info message in the log if {@link #isInfoEnabled()} is true.</p>
-   * 
+   *
    * @param message The message.
    */
   public void info(final String message) {
     if (isInfoEnabled()) {
-      log.info(message);
+      this.log.info(message);
     }
   }
 
@@ -102,46 +103,46 @@ public class AppLog {
    * <p>Check to see if debug level logging is enabled. Use this in an if block around
    * logging operations that create large amounts of log data to prevent that data from being
    * created if logging is not enabled.</p>
-   * 
+   *
    * @return True if debug level logging is enabled.
    */
   public boolean isDebugEnabled() {
-    return logLevel.equals("DEBUG");
+    return this.logLevel.equals("DEBUG");
   }
 
   /**
    * <p>Check to see if info or debug level logging is enabled. Use this in an if block around
    * logging operations that create large amounts of log data to prevent that data from being
    * created if logging is not enabled.</p>
-   * 
+   *
    * @return True if info or debug level logging is enabled.
    */
   public boolean isInfoEnabled() {
-    return logLevel.equals("DEBUG") || logLevel.equals("INFO");
+    return this.logLevel.equals("DEBUG") || this.logLevel.equals("INFO");
   }
 
   /**
    * <p>Set the current logging level (ERROR, INFO, DEBUG).</p>
-   * 
+   *
    * @param logLevel The logging level (ERROR, INFO, DEBUG).
    */
   public void setLogLevel(final String logLevel) {
     this.logLevel = logLevel;
     final Level level = Level.toLevel(logLevel);
-    log.setLevel(level);
+    this.log.setLevel(level);
   }
 
   @Override
   public String toString() {
-    return log.getName();
+    return this.log.getName();
   }
 
   /**
    * <p>Record the warning message in the log.</p>
-   * 
+   *
    * @param message The warning.
    */
   public void warn(final String message) {
-    log.warn(message);
+    this.log.warn(message);
   }
 }

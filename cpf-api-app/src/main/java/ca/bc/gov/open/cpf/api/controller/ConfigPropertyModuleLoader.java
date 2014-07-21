@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
@@ -32,6 +31,7 @@ import com.revolsys.maven.MavenRepository;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
+import com.revolsys.util.Property;
 
 public class ConfigPropertyModuleLoader implements ModuleLoader {
 
@@ -57,35 +57,35 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   public ConfigPropertyModuleLoader() {
     final String cpfVersion = getClass().getPackage()
-      .getImplementationVersion();
-    excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-app:" + cpfVersion);
-    excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-plugin:" + cpfVersion);
-    excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-client:" + cpfVersion);
+        .getImplementationVersion();
+    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-app:" + cpfVersion);
+    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-plugin:" + cpfVersion);
+    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-client:" + cpfVersion);
   }
 
   public void deleteModule(final Module module) {
     final String moduleName = module.getName();
-    modulesByName.remove(moduleName);
-    businessApplicationRegistry.unloadModule(module);
-    dataAccessObject.deleteUserGroupsForModule(moduleName);
-    dataAccessObject.deleteUserGroupsForModule("ADMIM_" + moduleName);
-    dataAccessObject.deleteConfigPropertiesForModule(moduleName);
+    this.modulesByName.remove(moduleName);
+    this.businessApplicationRegistry.unloadModule(module);
+    this.dataAccessObject.deleteUserGroupsForModule(moduleName);
+    this.dataAccessObject.deleteUserGroupsForModule("ADMIM_" + moduleName);
+    this.dataAccessObject.deleteConfigPropertiesForModule(moduleName);
   }
 
   public BatchJobService getBatchJobService() {
-    return batchJobService;
+    return this.batchJobService;
   }
 
   @Override
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
-    return businessApplicationRegistry;
+    return this.businessApplicationRegistry;
   }
 
   public Record getConfigProperty(final ConfigPropertyModule module,
     final Map<String, Object> property) {
-    final Record configProperty = dataAccessObject.create(ConfigProperty.CONFIG_PROPERTY);
+    final Record configProperty = this.dataAccessObject.create(ConfigProperty.CONFIG_PROPERTY);
     String environmentName = (String)property.get("environmentName");
-    if (!StringUtils.hasText(environmentName)) {
+    if (!Property.hasValue(environmentName)) {
       environmentName = ConfigProperty.DEFAULT;
     }
     configProperty.setValue(ConfigProperty.ENVIRONMENT_NAME, environmentName);
@@ -95,24 +95,24 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       ConfigProperty.MODULE_BEAN_PROPERTY);
 
     final String name = (String)property.get("name");
-    if (!StringUtils.hasText(name)) {
+    if (!Property.hasValue(name)) {
       module.addModuleError("Config property must have a name " + property);
     }
     configProperty.setValue(ConfigProperty.PROPERTY_NAME, name);
 
     String type = (String)property.get("type");
-    if (!StringUtils.hasText(type)) {
+    if (!Property.hasValue(type)) {
       type = "string";
     }
     configProperty.setValue(ConfigProperty.PROPERTY_VALUE_TYPE, type);
 
     final Object value = property.get("value");
-    dataAccessObject.setConfigPropertyValue(configProperty, value);
+    this.dataAccessObject.setConfigPropertyValue(configProperty, value);
     return configProperty;
   }
 
   public CpfDataAccessObject getDataAccessObject() {
-    return dataAccessObject;
+    return this.dataAccessObject;
   }
 
   public Map<String, List<String>> getDeletePropertiesByEnvironment(
@@ -123,7 +123,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       final String action = (String)property.get(ACTION);
       if (DELETE.equals(action)) {
         String environmentName = (String)property.get("environmentName");
-        if (!StringUtils.hasText(environmentName)) {
+        if (!Property.hasValue(environmentName)) {
           environmentName = ConfigProperty.DEFAULT;
         }
         List<String> propertyNames = deletePropertiesByEnvironment.get(environmentName);
@@ -139,7 +139,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   }
 
   public MavenRepository getMavenRepository() {
-    return mavenRepository;
+    return this.mavenRepository;
   }
 
   public Map<String, Map<String, Record>> getPropertiesByEnvironment(
@@ -179,7 +179,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   }
 
   public boolean isEnabledInConfig(final String moduleName) {
-    final Record enabledProperty = dataAccessObject.getConfigProperty(
+    final Record enabledProperty = this.dataAccessObject.getConfigProperty(
       ConfigProperty.DEFAULT, moduleName, ConfigProperty.MODULE_CONFIG, ENABLED);
     final String value = enabledProperty.getValue(ConfigProperty.PROPERTY_VALUE);
     final boolean enabled = !"false".equalsIgnoreCase(value);
@@ -203,7 +203,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
           module, pluginProperties);
 
         // Exclude and properties that already exist in the config database
-        for (final Record configProperty : dataAccessObject.getConfigPropertiesForComponent(
+        for (final Record configProperty : this.dataAccessObject.getConfigPropertiesForComponent(
           moduleName, ConfigProperty.MODULE_BEAN_PROPERTY)) {
           final String environmentName = configProperty.getValue(ConfigProperty.ENVIRONMENT_NAME);
           final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
@@ -213,14 +213,14 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
           }
           if (isConfigPropertyDeleted(deletePropertiesByEnvironment,
             environmentName, propertyName)) {
-            dataAccessObject.delete(configProperty);
+            this.dataAccessObject.delete(configProperty);
           }
         }
 
         // Add config properties for new properties
         for (final Map<String, Record> properties : propertiesByEnvironment.values()) {
           for (final Record property : properties.values()) {
-            dataAccessObject.write(property);
+            this.dataAccessObject.write(property);
           }
         }
       }
@@ -231,23 +231,23 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   private void refreshMavenModule(final String moduleName,
     final String mavenModuleId) {
-    ConfigPropertyModule module = modulesByName.get(moduleName);
+    ConfigPropertyModule module = this.modulesByName.get(moduleName);
     try {
       if (module != null && !module.getMavenModuleId().equals(mavenModuleId)) {
-        businessApplicationRegistry.unloadModule(module);
+        this.businessApplicationRegistry.unloadModule(module);
         module = null;
       }
       final boolean newModule = module == null;
       final boolean enabled = isEnabledInConfig(moduleName);
       if (newModule) {
-        final ConfigPropertyLoader configPropertyLoader = businessApplicationRegistry.getConfigPropertyLoader();
-        module = new ConfigPropertyModule(this, businessApplicationRegistry,
-          moduleName, mavenRepository, mavenModuleId, excludeMavenIds,
-          configPropertyLoader);
-        modulesByName.put(moduleName, module);
+        final ConfigPropertyLoader configPropertyLoader = this.businessApplicationRegistry.getConfigPropertyLoader();
+        module = new ConfigPropertyModule(this,
+          this.businessApplicationRegistry, moduleName, this.mavenRepository,
+          mavenModuleId, this.excludeMavenIds, configPropertyLoader);
+        this.modulesByName.put(moduleName, module);
       }
       if (newModule) {
-        businessApplicationRegistry.addModule(module);
+        this.businessApplicationRegistry.addModule(module);
       }
       if (enabled) {
         module.enable();
@@ -266,25 +266,25 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   @Override
   public void refreshModules() {
-    synchronized (modulesByName) {
+    synchronized (this.modulesByName) {
       try (
-        Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+          Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
         try {
           final Map<String, Module> modulesToDelete = new HashMap<String, Module>(
-            modulesByName);
+              this.modulesByName);
           final Map<String, Module> modulesToUnload = new HashMap<String, Module>(
-            modulesByName);
+              this.modulesByName);
 
           final Map<String, String> modulesToRefresh = new HashMap<String, String>();
 
-          for (final Record property : dataAccessObject.getConfigPropertiesForAllModules(
+          for (final Record property : this.dataAccessObject.getConfigPropertiesForAllModules(
             ConfigProperty.DEFAULT, ConfigProperty.MODULE_CONFIG,
             MAVEN_MODULE_ID)) {
             final String moduleName = property.getValue(ConfigProperty.MODULE_NAME);
             final String mavenModuleId = property.getValue(ConfigProperty.PROPERTY_VALUE);
-            final ConfigPropertyModule module = modulesByName.get(moduleName);
+            final ConfigPropertyModule module = this.modulesByName.get(moduleName);
             if (module != null
-              && mavenModuleId.equals(module.getMavenModuleId())) {
+                && mavenModuleId.equals(module.getMavenModuleId())) {
               modulesToUnload.remove(moduleName);
             }
             modulesToDelete.remove(moduleName);
@@ -294,7 +294,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
             deleteModule(module);
           }
           for (final Module module : modulesToUnload.values()) {
-            businessApplicationRegistry.unloadModule(module);
+            this.businessApplicationRegistry.unloadModule(module);
           }
           for (final Entry<String, String> entry : modulesToRefresh.entrySet()) {
             final String moduleName = entry.getKey();
@@ -314,7 +314,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     final String adminModuleName = "ADMIN_MODULE_" + moduleName;
     final String groupName = adminModuleName + groupNameSuffix;
     final String description = descriptionSuffix + moduleName;
-    dataAccessObject.createUserGroup(adminModuleName, groupName, description);
+    this.dataAccessObject.createUserGroup(adminModuleName, groupName,
+      description);
   }
 
   protected void refreshUserGroups(final ConfigPropertyModule module) {
@@ -327,12 +328,12 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       if (!module.isHasError()) {
         final Set<String> existingGroupNames = new HashSet<String>();
         // Exclude or delete user groups that already exist in the database
-        for (final Record userGroup : dataAccessObject.getUserGroupsForModule(moduleName)) {
+        for (final Record userGroup : this.dataAccessObject.getUserGroupsForModule(moduleName)) {
           final String groupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
           if (groupName.startsWith(moduleName.toUpperCase())) {
             if (groupNamesToDelete != null
-              && groupNamesToDelete.contains(groupName)) {
-              dataAccessObject.delete(userGroup);
+                && groupNamesToDelete.contains(groupName)) {
+              this.dataAccessObject.delete(userGroup);
             } else {
               existingGroupNames.add(groupName);
             }
@@ -343,18 +344,18 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
           for (final Entry<String, Set<ResourcePermission>> groupPermissions : permissionsByGroupName.entrySet()) {
             final String groupName = groupPermissions.getKey();
             if (groupName.startsWith(moduleName + "_")
-              && !existingGroupNames.contains(groupName)) {
+                && !existingGroupNames.contains(groupName)) {
 
-              dataAccessObject.createUserGroup(moduleName, groupName, null);
+              this.dataAccessObject.createUserGroup(moduleName, groupName, null);
             }
-            final Record group = dataAccessObject.getUserGroup(groupName);
+            final Record group = this.dataAccessObject.getUserGroup(groupName);
             if (group == null) {
               module.getLog().error("Group not found " + groupName);
             } else {
               final Set<ResourcePermission> newPermissions = new HashSet<ResourcePermission>(
-                groupPermissions.getValue());
+                  groupPermissions.getValue());
               if (newPermissions != null && !newPermissions.isEmpty()) {
-                for (final Record userGroupPermission : dataAccessObject.getUserGroupPermissions(
+                for (final Record userGroupPermission : this.dataAccessObject.getUserGroupPermissions(
                   group, moduleName)) {
                   final ResourcePermission permission = new ResourcePermission(
                     userGroupPermission);
@@ -362,8 +363,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
                 }
                 for (final ResourcePermission newPermission : newPermissions) {
 
-                  dataAccessObject.createUserGroupPermission(group, moduleName,
-                    newPermission);
+                  this.dataAccessObject.createUserGroupPermission(group,
+                    moduleName, newPermission);
                 }
               }
             }
@@ -384,7 +385,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   public void setBusinessApplicationRegistry(
     final BusinessApplicationRegistry businessApplicationRegistry) {
     if (this.businessApplicationRegistry != businessApplicationRegistry) {
-      businessApplicationRegistry.addModuleEventListener(batchJobService);
+      businessApplicationRegistry.addModuleEventListener(this.batchJobService);
       this.businessApplicationRegistry = businessApplicationRegistry;
     }
   }
@@ -396,33 +397,33 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   public void setMavenModuleConfigProperties(final String moduleName,
     final String mavenModuleId, final boolean enabled) {
     try (
-      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String environmentName = ConfigProperty.DEFAULT;
         final String componentName = ConfigProperty.MODULE_CONFIG;
         final String propertyName = MAVEN_MODULE_ID;
-        Record moduleIdProperty = dataAccessObject.getConfigProperty(
+        Record moduleIdProperty = this.dataAccessObject.getConfigProperty(
           environmentName, moduleName, componentName, propertyName);
         if (moduleIdProperty == null) {
-          moduleIdProperty = dataAccessObject.createConfigProperty(
+          moduleIdProperty = this.dataAccessObject.createConfigProperty(
             environmentName, moduleName, componentName, propertyName,
             mavenModuleId, DataTypes.STRING);
         } else {
-          dataAccessObject.setConfigPropertyValue(moduleIdProperty,
+          this.dataAccessObject.setConfigPropertyValue(moduleIdProperty,
             mavenModuleId);
-          dataAccessObject.write(moduleIdProperty);
+          this.dataAccessObject.write(moduleIdProperty);
         }
 
-        Record moduleEnabledProperty = dataAccessObject.getConfigProperty(
+        Record moduleEnabledProperty = this.dataAccessObject.getConfigProperty(
           environmentName, moduleName, componentName, ENABLED);
         if (moduleEnabledProperty == null) {
-          moduleEnabledProperty = dataAccessObject.createConfigProperty(
+          moduleEnabledProperty = this.dataAccessObject.createConfigProperty(
             environmentName, moduleName, componentName, ENABLED, enabled,
             DataTypes.BOOLEAN);
         } else {
-          dataAccessObject.setConfigPropertyValue(moduleEnabledProperty,
+          this.dataAccessObject.setConfigPropertyValue(moduleEnabledProperty,
             enabled);
-          dataAccessObject.write(moduleEnabledProperty);
+          this.dataAccessObject.write(moduleEnabledProperty);
         }
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);

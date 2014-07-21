@@ -85,7 +85,7 @@ public class PluginAdaptor {
     final Object plugin, String executionId, final String logLevel) {
     this.application = application;
     this.plugin = plugin;
-    if (!StringUtils.hasText(logLevel)) {
+    if (!Property.hasValue(logLevel)) {
       executionId = String.valueOf(System.currentTimeMillis());
     }
     this.appLog = new AppLog(application.getName(), executionId, logLevel);

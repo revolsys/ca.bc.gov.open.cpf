@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
@@ -21,6 +20,7 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.PathUtil;
 import com.revolsys.spring.ClassLoaderFactoryBean;
+import com.revolsys.util.Property;
 
 public class ClassLoaderModuleLoader implements ModuleLoader {
 
@@ -73,20 +73,20 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
 
   @Override
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
-    return businessApplicationRegistry;
+    return this.businessApplicationRegistry;
   }
 
   public ClassLoader getClassLoader() {
-    return classLoader;
+    return this.classLoader;
   }
 
   @Override
   public void refreshModules() {
-    if (modulesByName == null) {
-      modulesByName = new HashMap<String, Module>();
+    if (this.modulesByName == null) {
+      this.modulesByName = new HashMap<String, Module>();
       try {
-        final List<URL> configUrls = getConfigUrls(classLoader,
-          useParentClassLoader);
+        final List<URL> configUrls = getConfigUrls(this.classLoader,
+          this.useParentClassLoader);
         for (final URL configUrl : configUrls) {
           try {
             String moduleName = configUrl.toString();
@@ -105,15 +105,15 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
             } else {
               moduleName = FileUtil.getFileNameExtension(PathUtil.getName(moduleName));
             }
-            if (!StringUtils.hasText(moduleName)) {
+            if (!Property.hasValue(moduleName)) {
               moduleName = UUID.randomUUID().toString();
             }
-            final ConfigPropertyLoader configPropertyLoader = businessApplicationRegistry.getConfigPropertyLoader();
+            final ConfigPropertyLoader configPropertyLoader = this.businessApplicationRegistry.getConfigPropertyLoader();
             final ClassLoaderModule module = new ClassLoaderModule(
-              businessApplicationRegistry, moduleName, classLoader,
+              this.businessApplicationRegistry, moduleName, this.classLoader,
               configPropertyLoader, configUrl);
-            businessApplicationRegistry.addModule(module);
-            modulesByName.put(moduleName, module);
+            this.businessApplicationRegistry.addModule(module);
+            this.modulesByName.put(moduleName, module);
             module.enable();
           } catch (final Throwable e) {
             LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error(

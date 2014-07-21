@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,13 +30,14 @@ import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.DateUtil;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
 
 @Controller
 public class BatchJobUiBuilder extends CpfUiBuilder {
 
   public BatchJobUiBuilder() {
     super("batchJob", BatchJob.BATCH_JOB, BatchJob.BATCH_JOB_ID, "Batch Job",
-      "Batch Jobs");
+        "Batch Jobs");
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
@@ -55,7 +55,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @Override
   public Object getProperty(final Object object, final String keyName) {
     if (keyName.startsWith("BUSINESS_APPLICATION_NAME")
-      && object instanceof Record) {
+        && object instanceof Record) {
       final Record batchJob = (Record)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       BusinessApplication businessApplication = getBusinessApplicationRegistry().getBusinessApplication(
@@ -64,7 +64,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
         businessApplication = new BusinessApplication(businessApplicationName);
       }
       final String subKey = JavaBeanUtil.getSubName(keyName);
-      if (StringUtils.hasText(subKey)) {
+      if (Property.hasValue(subKey)) {
         final HtmlUiBuilder<?> uiBuilder = getBuilder(businessApplication);
         return uiBuilder.getProperty(businessApplication, subKey);
       } else {
@@ -185,9 +185,9 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel"
-      }, method = RequestMethod.POST)
+    value = {
+      "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel"
+    }, method = RequestMethod.POST)
   public void postModuleAppCancel(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
@@ -197,7 +197,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final BatchJobService batchJobService = getBatchJobService();
     batchJobService.cancelBatchJob(batchJobId);
     final String url = request.getHeader("Referer");
-    if (StringUtils.hasText(url) && url.indexOf("/apps") != -1) {
+    if (Property.hasValue(url) && url.indexOf("/apps") != -1) {
       redirectPage("moduleAppList");
     } else {
       redirectPage("list");
@@ -205,9 +205,9 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/delete"
-      }, method = RequestMethod.POST)
+    value = {
+      "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/delete"
+    }, method = RequestMethod.POST)
   public void postModuleAppDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
@@ -217,7 +217,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final BatchJobService batchJobService = getBatchJobService();
     batchJobService.deleteJob(batchJobId);
     final String url = request.getHeader("Referer");
-    if (StringUtils.hasText(url) && url.indexOf("/apps") != -1) {
+    if (Property.hasValue(url) && url.indexOf("/apps") != -1) {
       redirectPage("moduleAppList");
     } else {
       redirectPage("list");

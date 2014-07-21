@@ -632,7 +632,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           final Attribute requestAttribute = this.requestAttributeByNameMap.get(name);
           if (requestAttribute != null) {
             String description = attribute.getDescription();
-            if (!StringUtils.hasText(description)) {
+            if (!Property.hasValue(description)) {
               description = requestAttribute.getDescription();
               attribute.setDescription(description);
             }
@@ -659,7 +659,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private boolean isContentTypeOrFileExtensionEqual(final String match,
     final String contentType, final String fileExtension) {
-    if (StringUtils.hasText(match)) {
+    if (Property.hasValue(match)) {
       return EqualsRegistry.equal(match, contentType)
         || EqualsRegistry.equal(match, fileExtension);
     } else {
@@ -762,7 +762,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public void setBatchModePermission(final String batchModePermission) {
-    if (StringUtils.hasText(batchModePermission)) {
+    if (Property.hasValue(batchModePermission)) {
       this.batchModePermission = batchModePermission;
     } else {
       this.batchModePermission = "permitAll";
@@ -806,7 +806,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public void setInstantModePermission(final String instantModePermission) {
-    if (StringUtils.hasText(instantModePermission)) {
+    if (Property.hasValue(instantModePermission)) {
       this.instantModePermission = instantModePermission;
     } else {
       this.instantModePermission = "permitAll";

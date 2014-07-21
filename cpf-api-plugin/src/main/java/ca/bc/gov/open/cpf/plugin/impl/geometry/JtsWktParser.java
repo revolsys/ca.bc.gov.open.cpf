@@ -3,10 +3,9 @@ package ca.bc.gov.open.cpf.plugin.impl.geometry;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.util.StringUtils;
-
 import ca.bc.gov.open.cpf.plugin.api.GeometryFactory;
 
+import com.revolsys.util.Property;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
@@ -161,7 +160,7 @@ public class JtsWktParser {
           } else {
             throw new IllegalArgumentException(
               "Too many coordinates, vertex must have " + axisCount
-                + " coordinates not " + (axisNum + 1));
+              + " coordinates not " + (axisNum + 1));
           }
           if (c == ')') {
             finished = true;
@@ -177,7 +176,7 @@ public class JtsWktParser {
           } else {
             throw new IllegalArgumentException(
               "Too many coordinates, vertex must have " + axisCount
-                + " coordinates not " + (axisNum + 1));
+              + " coordinates not " + (axisNum + 1));
 
           }
         }
@@ -201,7 +200,7 @@ public class JtsWktParser {
   @SuppressWarnings("unchecked")
   public <T extends Geometry> T parseGeometry(final String value,
     final boolean useNumAxisFromGeometryFactory) {
-    if (StringUtils.hasLength(value)) {
+    if (Property.hasValue(value)) {
       GeometryFactory geometryFactory = this.geometryFactory;
       final int axisCount = geometryFactory.getNumAxis();
       final double scaleXY = geometryFactory.getScaleXY();
@@ -361,10 +360,10 @@ public class JtsWktParser {
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-      break;
+        break;
       case ')':
         text.delete(0, 2);
-      break;
+        break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);
@@ -390,10 +389,10 @@ public class JtsWktParser {
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-      break;
+        break;
       case ')':
         text.delete(0, 2);
-      break;
+        break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);

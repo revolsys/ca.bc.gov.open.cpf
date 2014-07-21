@@ -18,13 +18,15 @@ import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.servlet.HandlerMapping;
 
+import com.revolsys.util.Property;
+
 @Controller
 public class DocumentationController extends WebApplicationObjectSupport {
 
   protected MediaType getMediaType(final Resource resource) {
     final String mimeType = getServletContext().getMimeType(
       resource.getFilename());
-    if (StringUtils.hasText(mimeType)) {
+    if (Property.hasValue(mimeType)) {
       return MediaType.parseMediaType(mimeType);
     } else {
       return null;
@@ -39,10 +41,10 @@ public class DocumentationController extends WebApplicationObjectSupport {
     String path = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
     if (path == null) {
       throw new IllegalStateException("Required request attribute '"
-        + HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE + "' is not set");
+          + HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE + "' is not set");
     } else {
       path = StringUtils.cleanPath(path);
-      if (!StringUtils.hasText(path)) {
+      if (!Property.hasValue(path)) {
         path = "index.html";
       }
       if (!isInvalidPath(path)) {
@@ -72,7 +74,8 @@ public class DocumentationController extends WebApplicationObjectSupport {
   }
 
   protected boolean isInvalidPath(final String path) {
-    return (path.contains("WEB-INF") || path.contains("META-INF") || path.startsWith(".."));
+    return path.contains("WEB-INF") || path.contains("META-INF")
+      || path.startsWith("..");
   }
 
   protected void setHeaders(final HttpServletResponse response,
