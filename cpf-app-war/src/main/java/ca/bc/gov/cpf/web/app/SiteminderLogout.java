@@ -13,9 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.util.StringUtils;
 
 import com.revolsys.ui.web.utils.HttpServletUtils;
+import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
 public class SiteminderLogout implements LogoutSuccessHandler {
@@ -25,18 +25,14 @@ public class SiteminderLogout implements LogoutSuccessHandler {
   private String logoutUrl;
 
   public String getLogoutUrl() {
-    return logoutUrl;
+    return this.logoutUrl;
   }
 
-  public void setLogoutUrl(String logoutUrl) {
-    this.logoutUrl = logoutUrl;
-  }
-
-  public void onLogoutSuccess(
-    HttpServletRequest request,
-    HttpServletResponse response,
-    Authentication authentication) throws IOException, ServletException {
-    for (Cookie cookie : request.getCookies()) {
+  @Override
+  public void onLogoutSuccess(final HttpServletRequest request,
+    final HttpServletResponse response, final Authentication authentication)
+    throws IOException, ServletException {
+    for (final Cookie cookie : request.getCookies()) {
       if (DELETE_COOKIES.contains(cookie.getName())) {
         cookie.setPath("/");
         cookie.setMaxAge(0);
@@ -46,12 +42,17 @@ public class SiteminderLogout implements LogoutSuccessHandler {
 
     String url = HttpServletUtils.getAbsoluteUrl("/secure/");
 
-    if (StringUtils.hasText(logoutUrl)) {
-      Map<String, String> parameters = new LinkedHashMap<String, String>();
+    if (Property.hasValue(this.logoutUrl)) {
+      final Map<String, String> parameters = new LinkedHashMap<String, String>();
       parameters.put("returl", url);
       parameters.put("retname", "Cloud Processing Framework");
-      url = UrlUtil.getUrl(HttpServletUtils.getAbsoluteUrl(logoutUrl), parameters);
+      url = UrlUtil.getUrl(HttpServletUtils.getAbsoluteUrl(this.logoutUrl),
+        parameters);
     }
     response.sendRedirect(url);
+  }
+
+  public void setLogoutUrl(final String logoutUrl) {
+    this.logoutUrl = logoutUrl;
   }
 }
