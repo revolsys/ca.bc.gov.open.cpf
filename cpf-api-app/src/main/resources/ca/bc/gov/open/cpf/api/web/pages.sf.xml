@@ -59,6 +59,7 @@
     <value>/js/rs.js</value>
     <value>/js/admin.js</value>
     <value>/js/ws.js</value>
+    <value>/js/jquery-filestyle.min.js</value>
   </util:list>
   <util:list id="cpfCssUrls">
     <value>https://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/css/jquery.dataTables_themeroller.css
@@ -67,6 +68,7 @@
     </value>
     <value>/css/rs.css</value>
     <value>/css/cpf.css</value>
+    <value>/css/jquery-filestyle.min.css</value>
   </util:list>
   <bean
     id="adminSideMenu"
