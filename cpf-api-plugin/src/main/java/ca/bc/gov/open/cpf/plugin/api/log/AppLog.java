@@ -5,8 +5,6 @@ import org.apache.log4j.Logger;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 
-import com.revolsys.util.Property;
-
 /**
  * <p>The AppLog class is a logging API for use by a {@link BusinessApplicationPlugin} class.
  * Plug-in classes can record error, info and debug messages in the execute method. These messages
@@ -43,7 +41,7 @@ public class AppLog {
 
   public AppLog(final String businessApplicationName, String groupId,
     final String logLevel) {
-    if (!Property.hasValue(groupId)) {
+    if (groupId == null || groupId.trim().length() == 0) {
       groupId = String.valueOf(System.currentTimeMillis());
     }
     this.log = Logger.getLogger(businessApplicationName + "." + groupId);

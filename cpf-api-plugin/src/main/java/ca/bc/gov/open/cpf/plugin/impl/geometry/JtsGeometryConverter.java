@@ -1,10 +1,11 @@
 package ca.bc.gov.open.cpf.plugin.impl.geometry;
 
+import ca.bc.gov.open.cpf.plugin.api.GeometryFactory;
+
 import com.revolsys.converter.string.StringConverter;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class JtsGeometryConverter implements StringConverter<Geometry> {
-  private final JtsWktParser parser = new JtsWktParser();
 
   @Override
   public Class<Geometry> getConvertedClass() {
@@ -29,8 +30,9 @@ public class JtsGeometryConverter implements StringConverter<Geometry> {
   }
 
   @Override
-  public Geometry toObject(final String string) {
-    return parser.parseGeometry(string, false);
+  public Geometry toObject(final String wkt) {
+    final GeometryFactory factory = GeometryFactory.getFactory();
+    return factory.createGeometry(wkt);
   }
 
   @Override

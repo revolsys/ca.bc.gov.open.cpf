@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
+import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsGeometryConverter;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleControlProcess;
@@ -27,12 +28,46 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 
 import com.revolsys.comparator.IgnoreCaseStringComparator;
+import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.data.types.DataTypes;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
 import com.revolsys.util.ExceptionUtil;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.MultiPoint;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 public final class BusinessApplicationRegistry implements
-  ApplicationListener<ContextRefreshedEvent> {
+ApplicationListener<ContextRefreshedEvent> {
+
+  static {
+    DataTypes.register("JtsGeometry", Geometry.class);
+    DataTypes.register("JtsGeometryCollection", GeometryCollection.class);
+    DataTypes.register("JtsPoint", Point.class);
+    DataTypes.register("JtsMultiPoint", MultiPoint.class);
+    DataTypes.register("JtsLineString", LineString.class);
+    DataTypes.register("JtsLinearRing", LinearRing.class);
+    DataTypes.register("JtsMultiLineString", MultiLineString.class);
+    DataTypes.register("JtsPolygon", Polygon.class);
+    DataTypes.register("JtsMultiPolygon", MultiPolygon.class);
+    final JtsGeometryConverter converter = new JtsGeometryConverter();
+    final StringConverterRegistry registry = StringConverterRegistry.getInstance();
+    registry.addConverter(Geometry.class, converter);
+    registry.addConverter(GeometryCollection.class, converter);
+    registry.addConverter(Point.class, converter);
+    registry.addConverter(MultiPoint.class, converter);
+    registry.addConverter(LineString.class, converter);
+    registry.addConverter(LinearRing.class, converter);
+    registry.addConverter(MultiLineString.class, converter);
+    registry.addConverter(Polygon.class, converter);
+    registry.addConverter(MultiPolygon.class, converter);
+  }
 
   private final Map<String, Module> modulesByName = new TreeMap<String, Module>();
 
@@ -49,7 +84,7 @@ public final class BusinessApplicationRegistry implements
   private File appLogDirectory;
 
   private Channel<Map<String, Object>> moduleControlChannel = new Channel<Map<String, Object>>(
-    "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
+      "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
 
   private Thread moduleControlThread;
 
@@ -69,12 +104,13 @@ public final class BusinessApplicationRegistry implements
     final ModuleLoader... moduleLoader) {
     this.useModuleControlThread = useModuleControlThread;
     if (useModuleControlThread) {
-      moduleControlChannel.writeConnect();
+      this.moduleControlChannel.writeConnect();
       final ModuleControlProcess moduleControlProcess = new ModuleControlProcess(
-        this, moduleControlChannel);
-      moduleControlThread = new Thread(moduleControlProcess, "ModuleControl");
-      moduleControlThread.setDaemon(true);
-      moduleControlThread.start();
+        this, this.moduleControlChannel);
+      this.moduleControlThread = new Thread(moduleControlProcess,
+        "ModuleControl");
+      this.moduleControlThread.setDaemon(true);
+      this.moduleControlThread.start();
     }
     setModuleLoaders(Arrays.asList(moduleLoader));
     refreshModules();
@@ -83,10 +119,10 @@ public final class BusinessApplicationRegistry implements
   public synchronized void addModule(final Module module) {
     clearModuleToAppCache();
     final String name = module.getName();
-    final Module currentModule = modulesByName.get(name);
+    final Module currentModule = this.modulesByName.get(name);
     if (currentModule != module) {
       if (currentModule == null) {
-        modulesByName.put(name, module);
+        this.modulesByName.put(name, module);
       } else {
         module.clearModuleError();
         module.addModuleError("Module with the same name is already loaded");
@@ -96,26 +132,26 @@ public final class BusinessApplicationRegistry implements
 
   public void addModuleEventListener(final ModuleEventListener listener) {
     if (listener != null) {
-      listeners.add(listener);
+      this.listeners.add(listener);
     }
   }
 
   public void clearModuleToAppCache() {
-    moduleNamesByBusinessApplicationName = null;
+    this.moduleNamesByBusinessApplicationName = null;
   }
 
   @SuppressWarnings("deprecation")
   @PreDestroy
   public void destroy() {
     try {
-      if (moduleControlChannel != null) {
-        moduleControlChannel.writeDisconnect();
+      if (this.moduleControlChannel != null) {
+        this.moduleControlChannel.writeDisconnect();
       }
-      if (moduleControlThread != null) {
-        moduleControlThread.interrupt();
+      if (this.moduleControlThread != null) {
+        this.moduleControlThread.interrupt();
       }
 
-      useModuleControlThread = false;
+      this.useModuleControlThread = false;
       final List<Module> modules = getModules();
       for (final Module module : modules) {
         try {
@@ -126,24 +162,24 @@ public final class BusinessApplicationRegistry implements
       }
 
     } finally {
-      if (moduleControlThread != null) {
+      if (this.moduleControlThread != null) {
         final long maxWait = System.currentTimeMillis() + 5000;
-        while (moduleControlThread.isAlive()
-          && System.currentTimeMillis() < maxWait) {
-          moduleControlThread.stop();
+        while (this.moduleControlThread.isAlive()
+            && System.currentTimeMillis() < maxWait) {
+          this.moduleControlThread.stop();
         }
       }
-      configPropertyLoader = null;
-      listeners.clear();
-      moduleControlChannel = null;
-      moduleControlThread = null;
-      moduleLoaders.clear();
-      modulesByName.clear();
+      this.configPropertyLoader = null;
+      this.listeners.clear();
+      this.moduleControlChannel = null;
+      this.moduleControlThread = null;
+      this.moduleLoaders.clear();
+      this.modulesByName.clear();
     }
   }
 
   public File getAppLogDirectory() {
-    return appLogDirectory;
+    return this.appLogDirectory;
   }
 
   public BusinessApplication getBusinessApplication(
@@ -178,7 +214,7 @@ public final class BusinessApplicationRegistry implements
 
   public synchronized List<String> getBusinessApplicationNames() {
     final List<String> names = new ArrayList<String>();
-    for (final Module module : modulesByName.values()) {
+    for (final Module module : this.modulesByName.values()) {
       if (module.isEnabled()) {
         final List<String> businessApplicationNames = module.getBusinessApplicationNames();
         if (businessApplicationNames != null) {
@@ -243,22 +279,22 @@ public final class BusinessApplicationRegistry implements
   }
 
   public ConfigPropertyLoader getConfigPropertyLoader() {
-    return configPropertyLoader;
+    return this.configPropertyLoader;
   }
 
   public String getEnvironmentId() {
-    return environmentId;
+    return this.environmentId;
   }
 
   public File getLogDirectory() {
-    return logDirectory;
+    return this.logDirectory;
   }
 
   public synchronized Module getModule(final String moduleName) {
     if (moduleName == null) {
       return null;
     } else {
-      final Module module = modulesByName.get(moduleName);
+      final Module module = this.modulesByName.get(moduleName);
       return module;
     }
   }
@@ -274,10 +310,10 @@ public final class BusinessApplicationRegistry implements
 
   private synchronized Module getModuleForBusinessApplication(
     final String businessApplicationName) {
-    if (moduleNamesByBusinessApplicationName == null) {
-      moduleNamesByBusinessApplicationName = new HashMap<String, String>();
+    if (this.moduleNamesByBusinessApplicationName == null) {
+      this.moduleNamesByBusinessApplicationName = new HashMap<String, String>();
       final Map<BusinessApplication, Module> businessApplicationModuleMap = new TreeMap<BusinessApplication, Module>();
-      for (final Module module : modulesByName.values()) {
+      for (final Module module : this.modulesByName.values()) {
         for (final BusinessApplication application : module.getBusinessApplications()) {
           businessApplicationModuleMap.put(application, module);
         }
@@ -289,10 +325,10 @@ public final class BusinessApplicationRegistry implements
         final String name = businessApplication.getName();
         final String moduleName = module.getName();
 
-        moduleNamesByBusinessApplicationName.put(name, moduleName);
+        this.moduleNamesByBusinessApplicationName.put(name, moduleName);
       }
     }
-    final String moduleName = moduleNamesByBusinessApplicationName.get(businessApplicationName);
+    final String moduleName = this.moduleNamesByBusinessApplicationName.get(businessApplicationName);
     if (moduleName == null) {
       return null;
     } else {
@@ -301,15 +337,15 @@ public final class BusinessApplicationRegistry implements
   }
 
   public List<ModuleLoader> getModuleLoaders() {
-    return moduleLoaders;
+    return this.moduleLoaders;
   }
 
   public List<String> getModuleNames() {
-    return new ArrayList<String>(modulesByName.keySet());
+    return new ArrayList<String>(this.modulesByName.keySet());
   }
 
   public synchronized List<Module> getModules() {
-    final Collection<Module> modules = modulesByName.values();
+    final Collection<Module> modules = this.modulesByName.values();
     return new ArrayList<Module>(modules);
   }
 
@@ -328,7 +364,7 @@ public final class BusinessApplicationRegistry implements
 
   public void moduleEvent(final Module module, final String action) {
     final ModuleEvent event = new ModuleEvent(module, action);
-    for (final ModuleEventListener listener : listeners) {
+    for (final ModuleEventListener listener : this.listeners) {
       try {
         listener.moduleChanged(event);
       } catch (final Throwable t) {
@@ -344,7 +380,7 @@ public final class BusinessApplicationRegistry implements
   }
 
   public void refreshModules() {
-    for (final ModuleLoader moduleLoader : moduleLoaders) {
+    for (final ModuleLoader moduleLoader : this.moduleLoaders) {
       moduleLoader.setBusinessApplicationRegistry(this);
       moduleLoader.refreshModules();
     }
@@ -352,16 +388,16 @@ public final class BusinessApplicationRegistry implements
 
   public void removeModuleEventListener(final ModuleEventListener listener) {
     if (listener != null) {
-      listeners.remove(listener);
+      this.listeners.remove(listener);
     }
   }
 
   public void restartModule(final String moduleName) {
-    if (useModuleControlThread) {
+    if (this.useModuleControlThread) {
       final HashMap<String, Object> parameters = new HashMap<String, Object>();
       parameters.put("moduleName", moduleName);
       parameters.put("action", "restart");
-      moduleControlChannel.write(parameters);
+      this.moduleControlChannel.write(parameters);
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
       module.doRestart();
@@ -386,11 +422,11 @@ public final class BusinessApplicationRegistry implements
   }
 
   public void startModule(final String moduleName) {
-    if (useModuleControlThread) {
+    if (this.useModuleControlThread) {
       final HashMap<String, Object> parameters = new HashMap<String, Object>();
       parameters.put("moduleName", moduleName);
       parameters.put("action", "start");
-      moduleControlChannel.write(parameters);
+      this.moduleControlChannel.write(parameters);
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
       if (module != null) {
@@ -400,11 +436,11 @@ public final class BusinessApplicationRegistry implements
   }
 
   public void stopModule(final String moduleName) {
-    if (useModuleControlThread) {
+    if (this.useModuleControlThread) {
       final HashMap<String, Object> parameters = new HashMap<String, Object>();
       parameters.put("moduleName", moduleName);
       parameters.put("action", "stop");
-      moduleControlChannel.write(parameters);
+      this.moduleControlChannel.write(parameters);
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
       if (module != null) {
@@ -418,8 +454,8 @@ public final class BusinessApplicationRegistry implements
       "Unloading module " + module.toString());
     clearModuleToAppCache();
     final String moduleName = module.getName();
-    if (module == modulesByName.get(moduleName)) {
-      modulesByName.remove(moduleName);
+    if (module == this.modulesByName.get(moduleName)) {
+      this.modulesByName.remove(moduleName);
     }
     module.destroy();
   }
