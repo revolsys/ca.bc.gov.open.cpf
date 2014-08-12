@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsWktWriter;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -30,7 +32,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
  */
 @SuppressWarnings("serial")
 public class GeometryFactory extends
-com.vividsolutions.jts.geom.GeometryFactory {
+  com.vividsolutions.jts.geom.GeometryFactory {
 
   /**
    * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
@@ -156,6 +158,14 @@ com.vividsolutions.jts.geom.GeometryFactory {
     } else {
       return new PrecisionModel(scaleXY);
     }
+  }
+
+  public static String toWkt(final Geometry geometry) {
+    return JtsWktWriter.toString(geometry);
+  }
+
+  public static String toWkt(final Geometry geometry, final boolean writeSrid) {
+    return JtsWktWriter.toString(geometry, writeSrid);
   }
 
   /** The cached geometry factories. */
@@ -574,7 +584,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
           } else {
             throw new IllegalArgumentException(
               "Too many coordinates, vertex must have " + axisCount
-              + " coordinates not " + (axisNum + 1));
+                + " coordinates not " + (axisNum + 1));
           }
           if (c == ')') {
             finished = true;
@@ -590,7 +600,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
           } else {
             throw new IllegalArgumentException(
               "Too many coordinates, vertex must have " + axisCount
-              + " coordinates not " + (axisNum + 1));
+                + " coordinates not " + (axisNum + 1));
 
           }
         }
@@ -807,10 +817,10 @@ com.vividsolutions.jts.geom.GeometryFactory {
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-        break;
+      break;
       case ')':
         text.delete(0, 2);
-        break;
+      break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);
@@ -836,10 +846,10 @@ com.vividsolutions.jts.geom.GeometryFactory {
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-        break;
+      break;
       case ')':
         text.delete(0, 2);
-        break;
+      break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);

@@ -20,9 +20,6 @@
     id="cpfWebProperties"
     map-class="com.revolsys.collection.AttributeMap"
   >
-    <entry
-      key="businessApplicationRegistry.appLogDirectory"
-      value="${cpfLogDirectory}" />
 
     <entry
       key="mavenRepository.root"

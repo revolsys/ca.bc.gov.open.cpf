@@ -87,7 +87,7 @@ $(document).ready(function() {
                       <li id="jobsMenu"><a href="../docs/admin/job.html">Batch Jobs</a></li>
                       <li id="statisticsMenu"><a href="../docs/admin/statistics.html">Dashboard Statistics</a></li>
                       <li id="workersMenu"><a href="../docs/admin/worker.html">Workers</a></li>
-                      <li id="logMenu"><a href="../docs/admin/log.html">Log Files</a></li>
+                      <li id="logMenu"><a href="../docs/admin/log.html">Log Files &amp; Diagnostics</a></li>
                     </ul></li>
                   </ul>
                   </div>

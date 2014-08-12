@@ -332,18 +332,19 @@ public class BatchJobService implements ModuleEventListener {
     if (validationErrorMessage.equals("")) {
       newErrorMessage = validationErrorCode.getDescription();
     }
-    final MapWriter errorMapWriter = new CsvMapWriter(errorWriter);
-    final Map<String, String> errorResultMap = new HashMap<String, String>();
-    errorResultMap.put("Code", validationErrorCode.name());
-    errorResultMap.put("Message", newErrorMessage);
-    errorMapWriter.write(errorResultMap);
-    try {
-      final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
-      createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
-        errorFormat, errorBytes, 0);
-    } catch (final UnsupportedEncodingException e) {
+    try (
+        final MapWriter errorMapWriter = new CsvMapWriter(errorWriter)) {
+      final Map<String, String> errorResultMap = new HashMap<String, String>();
+      errorResultMap.put("Code", validationErrorCode.name());
+      errorResultMap.put("Message", newErrorMessage);
+      errorMapWriter.write(errorResultMap);
+      try {
+        final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
+        createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
+          errorFormat, errorBytes, 0);
+      } catch (final UnsupportedEncodingException e) {
+      }
     }
-
     this.dataAccessObject.setBatchJobFailed(batchJobId);
     LoggerFactory.getLogger(BatchJobService.class).debug(
       validationErrorDebugMessage);
@@ -1103,6 +1104,7 @@ public class BatchJobService implements ModuleEventListener {
       this.authorizationService);
     this.businessApplicationRegistry.addModuleEventListener(this.securityServiceFactory);
     this.recordStore = this.dataAccessObject.getRecordStore();
+    LoggerFactory.getLogger(getClass()).info("Started");
   }
 
   public boolean isCompressData() {
@@ -1348,75 +1350,81 @@ public class BatchJobService implements ModuleEventListener {
                 } else {
                   final InputStreamResource resource = new InputStreamResource(
                     "in", inputDataStream);
-                  final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource);
-                  if (mapReader == null) {
-                    valid = addJobValidationError(batchJobId,
-                      ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
-                        "Media type not supported");
-                  } else {
-                    final Reader<Record> inputDataReader = new MapReaderRecordReader(
-                      requestMetaData, mapReader);
+                  try (
+                      final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource)) {
+                    if (mapReader == null) {
+                      valid = addJobValidationError(batchJobId,
+                        ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
+                          "Media type not supported");
+                    } else {
+                      try (
+                          final Reader<Record> inputDataReader = new MapReaderRecordReader(
+                            requestMetaData, mapReader)) {
 
-                    final int commitInterval = 100;
-                    final PlatformTransactionManager transactionManager = this.recordStore.getTransactionManager();
-                    final TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
-                      TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-                    TransactionStatus status = transactionManager.getTransaction(transactionDefinition);
-                    try {
-                      List<Map<String, Object>> group = new ArrayList<Map<String, Object>>();
-                      for (final Map<String, Object> inputDataRecord : inputDataReader) {
-                        if (group.size() == maxGroupSize) {
+                        final int commitInterval = 100;
+                        final PlatformTransactionManager transactionManager = this.recordStore.getTransactionManager();
+                        final TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
+                          TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                        TransactionStatus status = transactionManager.getTransaction(transactionDefinition);
+                        try {
+                          List<Map<String, Object>> group = new ArrayList<Map<String, Object>>();
+                          for (final Map<String, Object> inputDataRecord : inputDataReader) {
+                            if (group.size() == maxGroupSize) {
+                              numGroups++;
+                              if (createBatchJobExecutionGroup(batchJobId,
+                                numGroups, requestMetaData, group)) {
+                                group = new ArrayList<Map<String, Object>>();
+                                if (numGroups % commitInterval == 0) {
+                                  transactionManager.commit(status);
+                                  status = transactionManager.getTransaction(transactionDefinition);
+                                }
+                              } else {
+                                transactionManager.rollback(status);
+                                return true;
+                              }
+                            }
+                            numSubmittedRequests++;
+                            final Map<String, Object> requestParemeters = processParameters(
+                              batchJob, businessApplication,
+                              numSubmittedRequests, jobParameters,
+                              inputDataRecord);
+                            if (requestParemeters == null) {
+                              numFailedRequests++;
+                            } else {
+                              requestParemeters.put("requestSequenceNumber",
+                                numSubmittedRequests);
+                              group.add(requestParemeters);
+                            }
+
+                          }
                           numGroups++;
                           if (createBatchJobExecutionGroup(batchJobId,
                             numGroups, requestMetaData, group)) {
-                            group = new ArrayList<Map<String, Object>>();
-                            if (numGroups % commitInterval == 0) {
-                              transactionManager.commit(status);
-                              status = transactionManager.getTransaction(transactionDefinition);
-                            }
                           } else {
                             transactionManager.rollback(status);
                             return true;
                           }
+                        } catch (final Throwable e) {
+                          transactionManager.rollback(status);
+                          ExceptionUtil.throwUncheckedException(e);
                         }
-                        numSubmittedRequests++;
-                        final Map<String, Object> requestParemeters = processParameters(
-                          batchJob, businessApplication, numSubmittedRequests,
-                          jobParameters, inputDataRecord);
-                        if (requestParemeters == null) {
-                          numFailedRequests++;
-                        } else {
-                          requestParemeters.put("requestSequenceNumber",
-                            numSubmittedRequests);
-                          group.add(requestParemeters);
-                        }
+                        transactionManager.commit(status);
+                      }
 
+                      FileUtil.closeSilent(inputDataStream);
+
+                      final int maxRequests = businessApplication.getMaxRequestsPerJob();
+                      if (numSubmittedRequests == 0) {
+                        valid = addJobValidationError(batchJobId,
+                          ErrorCode.INPUT_DATA_UNREADABLE,
+                          "No records specified",
+                          String.valueOf(numSubmittedRequests));
+                      } else if (numSubmittedRequests > maxRequests) {
+                        valid = addJobValidationError(batchJobId,
+                          ErrorCode.TOO_MANY_REQUESTS, null,
+                          String.valueOf(numSubmittedRequests));
                       }
-                      numGroups++;
-                      if (createBatchJobExecutionGroup(batchJobId, numGroups,
-                        requestMetaData, group)) {
-                      } else {
-                        transactionManager.rollback(status);
-                        return true;
-                      }
-                    } catch (final Throwable e) {
-                      transactionManager.rollback(status);
-                      ExceptionUtil.throwUncheckedException(e);
                     }
-                    transactionManager.commit(status);
-                  }
-
-                  FileUtil.closeSilent(inputDataStream);
-
-                  final int maxRequests = businessApplication.getMaxRequestsPerJob();
-                  if (numSubmittedRequests == 0) {
-                    valid = addJobValidationError(batchJobId,
-                      ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
-                      String.valueOf(numSubmittedRequests));
-                  } else if (numSubmittedRequests > maxRequests) {
-                    valid = addJobValidationError(batchJobId,
-                      ErrorCode.TOO_MANY_REQUESTS, null,
-                      String.valueOf(numSubmittedRequests));
                   }
                 }
               } catch (final Throwable e) {
@@ -2041,7 +2049,7 @@ public class BatchJobService implements ModuleEventListener {
             if (writerFactory == null) {
               LoggerFactory.getLogger(BatchJobService.class).error(
                 "Media type not supported for Record #" + batchJobId + " to "
-                  + contentType);
+                    + contentType);
             } else {
               final MapWriter writer = writerFactory.getMapWriter(bodyOut);
               writer.setProperty("title", subject);

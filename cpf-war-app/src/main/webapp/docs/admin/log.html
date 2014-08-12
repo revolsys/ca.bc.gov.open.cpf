@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Log Files - Administration - CPF</title>
+<title>Log Files &amp; Diagnostics - Administration - CPF</title>
     <script type="text/javascript">
 pageId = 'log';
     </script>
@@ -92,7 +92,7 @@ td > ul {
                       <li id="jobsMenu"><a href="job.html">Batch Jobs</a></li>
                       <li id="statisticsMenu"><a href="statistics.html">Dashboard Statistics</a></li>
                       <li id="workersMenu"><a href="worker.html">Workers</a></li>
-                      <li id="logMenu"><a href="log.html">Log Files</a></li>
+                      <li id="logMenu"><a href="log.html">Log Files &amp; Diagnostics</a></li>
                     </ul></li>
                   </ul>
                   </div>
@@ -115,7 +115,7 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<div class="title">Log Files - Administration</div>
+<div class="title">Log Files &amp; Diagnostics - Administration</div>
 <section>
 <h1 id="overview">Overview</h1>
 <p>The CPF creates additional log files in addition to those created for the Apache web server
@@ -124,20 +124,21 @@ worker are running on. These maybe exposed for download via the Apache web serve
 
 <section>
 <h2 id="format">Log File Format</h2>
-<p>Each log file has lines with the following format, separated by tabs.</p>
+<p>Each log file has lines with the following format, separated by tabs (\t).</p>
 
 <figure>
-<pre class="prettyprint">[Date YYYY-MM-DD HH:MI:SS,SSS] [Level DEBUG, INFO,WARN, or ERROR] [Category] [Message]</pre>
+<pre class="prettyprint">[Date YYYY-MM-DD HH:MI:SS,SSS]\t[Level DEBUG, INFO,WARN, or ERROR]\t[Category]\t[Message]</pre>
 </figure>
 
-<p>For example</p>
+<p>For example:</p>
 
 <figure>
 <pre class="prettyprint">2014-07-30 13:56:16,432 INFO  CPF-TEST  Start Module Start  moduleName=CPF-TEST</pre>
 </figure>
 </section>
 
-<p>Log entries may also have a <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace()">java stack trace</a>, shown on multiple lines. For example.</p>
+<p>Log entries may also have a <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace()">java stack trace</a>,
+shown on multiple lines. For example.</p>
 
 <figure>
 <pre class="prettyprint">2014-07-17 17:08:25,305  ERROR ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess Could not open JDBC Connection for transaction; nested exception is java.sql.SQLRecoverableException: IO Error: The Network Adapter could not establish the connection
@@ -215,49 +216,121 @@ be rolled over once they reach 10MB. The last 7 log files will be retained with 
     </thead>
     <tbody>
       <tr>
+        <td><code>catalina.out</code></td>
+        <td>If running on tomcat the tomcat server log file. Exact file name and location will vary
+        based on the servlet container used and it's configuration. If the CPF does not start check this
+        log file for any errors.</td>
+      </tr>
+      <tr>
         <td><code>cpf-app.log</code></td>
         <td>Log messages for components on the master not related to a module or a business application.</td>
       </tr>
       <tr>
         <td><code>worker_[environmentName]_[hostName]_[port]_[contextPath].log</code></td>
-        <td>Log messages for components on the worker not related to a module or a business application.</td>
+        <td>Log messages for components on the worker not related to a module or a business application.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [moduleName]_master.log</pre></td>
-        <td>Log messages for a module's components on the master not related to a business application.</td>
+        <td>Log messages for a module's components on the master not related to a business application.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [moduleName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</pre></td>
-        <td>Log messages for a module's components on the worker not related to a business application.</td>
+        <td>Log messages for a module's components on the worker not related to a business application.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [appName]/
     [moduleName]_[appName]_master.log</<pre></td>
-        <td>Log messages for a business application's components on the master.</td>
+        <td>Log messages for a business application's components on the master.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [appName]/
     [moduleName]_[appName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</pre></td>
-        <td>Log messages for a business application's components on the worker.</td>
+        <td>Log messages for a business application's components on the worker.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
       </tr>
     </tbody>
   </table>
 </div>
-</section
+</section>
+
+</section>
+<section>
+  <h1 id="diagnostics">Diagnosing Issues</h1>
+<p>This section describes how to diagnose issues with the CPF system or plug-ins running within the
+system.</p>
+
+<<p>The first step in diagnosing an issue is to detect if it is a plug-in specific issue that must
+be reported to the plug-in developer or a general CPF issue that must be reported to the CPF
+developer. The general rule is check to see if the problem is isolated to this plug-in by submitting
+jobs to other plug-ins (e.g. MapTileByTileId). <b>If the error is specific to a single plug-in then
+contact the plug-in developer for resolution first. Only contact the CPF developer if the plug-in
+developer cannot resolve the issue.</b></p>
+
+<section>
+<h2 id="pluginStarted">Verify Plug-in Started</h2>
+<p>Use the following steps to verify that the plug-in is started on the master or worker.</p>
+
+<ul>
+  <li>Check that the plug-in is enabled and started on the master using the <a href="module.html#view">View Module</a> page.<ul>
+    <li>Enable the module if it is not enabled.</li>
+    <li>Start the module if not started.</li>
+    <li>If there is a module error:<ul>
+      <li>Check the master module log file <code>[moduleName]/[moduleName]_master.log</code> for more details on the error.</li>
+      <li>Check the configuration properties using the plug-ins documentation to verify they are correct.
+      Especially check database URL, username and password.</li>
+      <li>Check that the Maven Module Id is correct. Fix and start module if incorrect.</li>
+      <li>If there is a Maven error downloading files verify that the Maven repository has all the
+      required modules for the plug-in. Clear the CPF cache if necessary to reset the system.
+      Verify using a web browser that the Maven modules exist in the Maven repository and can be downloaded.
+      If not contact the Maven repository administrator.</li>
+    </ul></li>
+  </ul></li>
+  <li>Check there is a worker connected using the <a href="workers.html#list">Worker List</a> page.</li>
+  <li>Check the module is started using the <a href="workers.html#moduleList">Worker Module List</a> page.</li>
+  <li>If not started check for module errors using the <a href="workers.html#moduleView">Worker Module View</a> page.</li>
+  <li>Check the worker module log file <code>[moduleName]/[moduleName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</code> for more details on the error.
+</ul>
+
+<p>If the plug-in loaded successfully
+the master module log file <code>[moduleName]/[moduleName]_master.log</code> and
+worker module log file <code>[moduleName]/[moduleName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</code>
+will be rolled over and the following entries will appear at the top of the log file.</p>
+
+<figure>
+<pre class="prettyprint">
+2014-07-30 16:28:24,183 INFO  [Module Name]  Start Module Start    moduleName=[Module Name]
+2014-07-30 16:28:24,200 INFO  [Module Name]  Start Loading plugin  class=[businessApplicationClass]
+2014-07-30 16:28:24,212 INFO  [Module Name]  End Loading plugin    class=[businessApplicationClass]  businessApplicationName=[businessApplicationName]
+2014-07-30 16:28:24,238 INFO  [Module Name]  End Module Start      moduleName=[Module Name] time=0.06
+</pre>
+</figure>
 
 </section>
 
 <section>
-  <h1 id="diagnostics">Diagnosing Issues</h1>
-<p>This section describes how to diagnose issues with the CPF system or plug-ins running within the
-system.<p>
+<h2 id="jobSubmission">Job Submission</h2>
+<p>Use the following steps if experiencing difficulty accessing the business application pages
+and in submitting instant, single or multiple request jobs.</p>
 
+<ul>
+  <li>Using above verify the plug-in for the business application is started.</li>
+  <li>Verify the business application is available on the <a href="../../#businessApplication_clientList">Business Application</a> page.
+  Refresh if necessary. If not the plug-in does not exist (contact plug-in developer) or is not loaded.</li>
+  
+  
+</ul>
+</section>
 
 </section>
+
 										<!-- InstanceEndEditable -->
                 </div>
               </div>

@@ -144,7 +144,7 @@ import com.vividsolutions.jts.geom.Geometry;
  *
  * <p>Most of the resources can return JSON or XML documents by appending the <code>.json</code> or <code>.xml</code>
  * file format extension to the URI Templates before any query string parameters. JSON is the preferred
- * format due to it's well defined mpa, list and value structure. Some resources that
+ * format due to it's well defined map, list and value structure. Some resources that
  * always return a specific data type will ignore the file format extension if specified.</p>
  *
  * <p>The CPF REST API can also be accessed directly using a web browser by not specifying a file format extension.
@@ -174,7 +174,7 @@ public class CloudProcessingFramework {
     final EvaluationContext evaluationContext = CpfUiBuilder.getSecurityEvaluationContext();
     if (!hasPermission(businessApplication, evaluationContext)) {
       throw new AccessDeniedException("No permission for business application "
-        + businessApplication.getName());
+          + businessApplication.getName());
     }
   }
 
@@ -222,10 +222,10 @@ public class CloudProcessingFramework {
   private void addBatchJobStatusLink(final PageInfo page, final Record job) {
     final Identifier batchJobId = job.getIdentifier();
     final String batchJobUrl = HttpServletUtils.getFullUrl("/ws/jobs/"
-      + batchJobId + "/");
+        + batchJobId + "/");
     final Timestamp timestamp = job.getValue(BatchJob.WHEN_CREATED);
     final PageInfo childPage = addPage(page, batchJobUrl, "Batch Job "
-      + batchJobId + " Status");
+        + batchJobId + " Status");
 
     childPage.setAttribute("batchJobId", batchJobId);
     childPage.setAttribute("batchJobUrl", batchJobUrl);
@@ -304,7 +304,7 @@ public class CloudProcessingFramework {
       inputDataContentType,
       null,
       "Input Data Content Type",
-      "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
+        "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
 
     final UrlField inputDataUrl = new UrlField("inputDataUrl", false);
     addField(
@@ -314,7 +314,7 @@ public class CloudProcessingFramework {
       inputDataUrl,
       null,
       "Input Data URL",
-      "The http: URL to the file or resource containing input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
+        "The http: URL to the file or resource containing input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
 
     final FileField inputData = new FileField("inputData", false);
     addField(
@@ -324,7 +324,7 @@ public class CloudProcessingFramework {
       inputData,
       null,
       "Input Data File",
-      "The multi-part file containing the input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
+        "The multi-part file containing the input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
   }
 
   private void addMultiInputDataFields(
@@ -339,10 +339,10 @@ public class CloudProcessingFramework {
     if (businessApplication.isPerRequestInputData()) {
       final ElementContainer container = new ElementContainer();
       addRawContent(container,
-        "ca/bc/gov/open/cpf/api/web/service/multiInputDataPre.html");
+          "ca/bc/gov/open/cpf/api/web/service/multiInputDataPre.html");
       container.add(inputDataContentType);
       addRawContent(container,
-        "ca/bc/gov/open/cpf/api/web/service/multiInputDataPost.html");
+          "ca/bc/gov/open/cpf/api/web/service/multiInputDataPost.html");
       addField(
         fieldSectionMap,
         sectionContainers,
@@ -350,7 +350,7 @@ public class CloudProcessingFramework {
         container,
         null,
         "Input Data File",
-        "Use the 'Add File' or 'Add URL' buttons to add one or more input data files, then select the MIME type for each file and enter the URL or select the file.");
+          "Use the 'Add File' or 'Add URL' buttons to add one or more input data files, then select the MIME type for each file and enter the URL or select the file.");
 
     } else {
       addInputDataFields(fieldSectionMap, sectionContainers,
@@ -364,7 +364,7 @@ public class CloudProcessingFramework {
       "notificationEmail", false);
     addField(fieldSectionMap, sectionContainers, "notificationEmail",
       emailField, null, "Notification Email",
-      "The email address to send the job status to when the job is completed.");
+        "The email address to send the job status to when the job is completed.");
 
     final UrlField urlField = new UrlField("notificationUrl", false);
     addField(
@@ -374,7 +374,7 @@ public class CloudProcessingFramework {
       urlField,
       null,
       "Notification URL",
-      "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.");
+        "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.");
   }
 
   private void addParameter(final List<Map<String, Object>> parameters,
@@ -386,7 +386,7 @@ public class CloudProcessingFramework {
     final boolean requestParameter = BooleanStringConverter.getBoolean(attribute.getProperty(BusinessApplication.REQUEST_PARAMETER));
     if (jobParameter || requestParameter) {
       final Collection<Object> allowedValues = attribute.getAllowedValues()
-        .keySet();
+          .keySet();
       final String descriptionUrl = attribute.getProperty("descriptionUrl");
       addParameter(parameters, name, typeDescription, descriptionUrl,
         description, jobParameter, requestParameter, perRequestInputData,
@@ -441,7 +441,7 @@ public class CloudProcessingFramework {
       resultDataContentType,
       null,
       "Result Data Content Type",
-      "The MIME type of the result data specified to be returned after running the request");
+        "The MIME type of the result data specified to be returned after running the request");
 
   }
 
@@ -483,13 +483,13 @@ public class CloudProcessingFramework {
         false, 0);
       addField(fieldSectionMap, sectionContainers, "cpfMeanExecutionTime",
         meanTime, null, "Mean Execution Time (s)",
-        "The mean execution time using a gaussian distribution.");
+          "The mean execution time using a gaussian distribution.");
 
       final DoubleField standardDeviation = new DoubleField(
         "cpfStandardDeviation", false, 2);
       addField(fieldSectionMap, sectionContainers, "cpfStandardDeviation",
         standardDeviation, null, "Standard Deviation (s)",
-        "The standard deviation for a gaussian distribution.");
+          "The standard deviation for a gaussian distribution.");
 
       final DoubleField maxTime = new DoubleField("cpfMaxExecutionTime", false,
         10);
@@ -501,7 +501,7 @@ public class CloudProcessingFramework {
           false, 3);
         addField(fieldSectionMap, sectionContainers, "cpfMeanNumResults",
           meanNumResults, null, "Mean Num Results",
-          "The mean number of results for each request using a gaussian distribution.");
+            "The mean number of results for each request using a gaussian distribution.");
       }
     }
   }
@@ -639,7 +639,7 @@ public class CloudProcessingFramework {
     @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorXy,
     @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorZ,
     @RequestParam(required = false) String notificationUrl, @RequestParam(
-        required = false) final String notificationEmail) {
+      required = false) final String notificationEmail) {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     final BusinessApplication businessApplication = getBusinessApplication(
@@ -680,7 +680,7 @@ public class CloudProcessingFramework {
             inputContentType);
           if (contentType == null) {
             throw new HttpMessageNotReadableException("inputDataContentType="
-              + inputDataContentType + " is not supported.");
+                + inputDataContentType + " is not supported.");
           } else {
             iterator.set(contentType);
           }
@@ -693,7 +693,7 @@ public class CloudProcessingFramework {
           } else {
             this.dataAccessObject.delete(batchJob);
             throw new HttpMessageNotReadableException(
-              "inputDataContentType can only have one value.");
+                "inputDataContentType can only have one value.");
           }
         }
       }
@@ -701,7 +701,7 @@ public class CloudProcessingFramework {
         final String resultType = businessApplication.getResultContentType(resultDataContentType);
         if (resultType == null) {
           throw new HttpMessageNotReadableException("resultDataContentType="
-            + resultDataContentType + " is not supported.");
+              + resultDataContentType + " is not supported.");
         } else {
           batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultType);
         }
@@ -710,7 +710,7 @@ public class CloudProcessingFramework {
       if (Property.hasValue(notificationEmail)) {
         if (Property.hasValue(notificationUrl)) {
           throw new HttpMessageNotReadableException(
-            "Both notificationUrl and notificationEmail cannot be specified. Enter a value in one or the other but not both.");
+              "Both notificationUrl and notificationEmail cannot be specified. Enter a value in one or the other but not both.");
         } else {
           notificationUrl = "mailto:" + notificationEmail;
         }
@@ -739,17 +739,17 @@ public class CloudProcessingFramework {
             businessApplicationParameters.put(parameterName, value);
           } else if (requestParameter) {
             if (parameter.getType() != DataTypes.BOOLEAN
-              || Property.hasValue(HttpServletUtils.getParameter(parameterName))) {
+                || Property.hasValue(HttpServletUtils.getParameter(parameterName))) {
               throw new HttpMessageNotReadableException(
                 "Parameter "
-                  + parameterName
-                  + " cannot be specified on a job. It can only be specified as a field in the input data.");
+                    + parameterName
+                    + " cannot be specified on a job. It can only be specified as a field in the input data.");
             }
           }
         } else {
           if (jobParameter && !requestParameter && parameter.isRequired()) {
             throw new HttpMessageNotReadableException("Parameter "
-              + parameterName + " is required");
+                + parameterName + " is required");
           }
         }
       }
@@ -781,7 +781,7 @@ public class CloudProcessingFramework {
 
         if (inputDataUrls.isEmpty() == inputDataFiles.isEmpty()) {
           throw new HttpMessageNotReadableException(
-            "Either inputData files or inputDataUrl(s) must be specified but not both");
+              "Either inputData files or inputDataUrl(s) must be specified but not both");
         } else if (businessApplication.isPerRequestInputData()) {
           batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
             inputDataFiles.size() + inputDataUrls.size());
@@ -819,7 +819,7 @@ public class CloudProcessingFramework {
         this.dataAccessObject.delete(batchJob);
         if (BatchJobService.isDatabaseResourcesException(e)) {
           throw new HttpMessageNotReadableException(
-            "The system is at capacity and cannot accept more jobs at this time. Try again in 1 hour.");
+              "The system is at capacity and cannot accept more jobs at this time. Try again in 1 hour.");
         } else {
           throw new HttpMessageNotReadableException(e.getMessage(), e);
         }
@@ -829,7 +829,7 @@ public class CloudProcessingFramework {
 
       if (businessApplication.isInfoLogEnabled()) {
         AppLogUtil.info(log, "End\tJob submit multiple\tbatchJobId="
-          + batchJobId, stopWatch);
+            + batchJobId, stopWatch);
       }
       final Map<String, Object> statistics = new HashMap<String, Object>();
       statistics.put("submittedJobsTime", stopWatch);
@@ -911,7 +911,7 @@ public class CloudProcessingFramework {
     @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorXy,
     @RequestParam(required = false, defaultValue = "-1") final int resultScaleFactorZ,
     @RequestParam(required = false) String notificationUrl, @RequestParam(
-        required = false) final String notificationEmail) throws IOException {
+      required = false) final String notificationEmail) throws IOException {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     final BusinessApplication businessApplication = getBusinessApplication(
@@ -941,16 +941,16 @@ public class CloudProcessingFramework {
       org.springframework.core.io.Resource inputDataIn = null;
       if (perRequestInputData) {
         if (!businessApplication.isInputContentTypeSupported(inputDataContentType)
-          && !businessApplication.isInputContentTypeSupported("*/*")) {
+            && !businessApplication.isInputContentTypeSupported("*/*")) {
           throw new HttpMessageNotReadableException("inputDataContentType="
-            + inputDataContentType + " is not supported.");
+              + inputDataContentType + " is not supported.");
         }
         inputDataIn = getResource("inputData");
         final boolean hasInputDataIn = inputDataIn != null;
         final boolean hasInputDataUrl = Property.hasValue(inputDataUrl);
         if (hasInputDataIn == hasInputDataUrl) {
           throw new HttpMessageNotReadableException(
-            "Either an inputData file or inputDataUrl parameter must be specified, but not both");
+              "Either an inputData file or inputDataUrl parameter must be specified, but not both");
         }
       }
       if (!Property.hasValue(resultDataContentType)) {
@@ -959,14 +959,14 @@ public class CloudProcessingFramework {
       final String resultContentType = businessApplication.getResultContentType(resultDataContentType);
       if (resultContentType == null) {
         throw new HttpMessageNotReadableException("resultDataContentType="
-          + resultDataContentType + " is not supported.");
+            + resultDataContentType + " is not supported.");
       } else {
         resultDataContentType = resultContentType;
       }
       if (Property.hasValue(notificationEmail)) {
         if (Property.hasValue(notificationUrl)) {
           throw new HttpMessageNotReadableException(
-            "Both notificationUrl and notificationEmail cannot be specified. Enter a value in one or the other but not both.");
+              "Both notificationUrl and notificationEmail cannot be specified. Enter a value in one or the other but not both.");
         } else {
           notificationUrl = "mailto:" + notificationEmail;
         }
@@ -997,16 +997,16 @@ public class CloudProcessingFramework {
                   inputData, attribute, value, true);
               } catch (final IllegalArgumentException e) {
                 throw new HttpMessageNotReadableException("Parameter "
-                  + parameterName + " cannot be set", e);
+                    + parameterName + " cannot be set", e);
               }
             }
           } catch (final IllegalArgumentException e) {
             throw new HttpMessageNotReadableException("Parameter "
-              + parameterName + " cannot be set", e);
+                + parameterName + " cannot be set", e);
           }
         } else if (required) {
           throw new HttpMessageNotReadableException("Parameter "
-            + parameterName + " is required");
+              + parameterName + " is required");
         }
 
       }
@@ -1055,7 +1055,7 @@ public class CloudProcessingFramework {
       HttpServletUtils.setPathVariable("batchJobId", batchJobId);
 
       AppLogUtil.infoAfterCommit(log, "End\tJob submit single\tbatchJobId="
-        + batchJobId, stopWatch);
+          + batchJobId, stopWatch);
       final Map<String, Object> statistics = new HashMap<String, Object>();
       statistics.put("submittedJobsTime", stopWatch);
       statistics.put("submittedJobsCount", 1);
@@ -1091,7 +1091,7 @@ public class CloudProcessingFramework {
 
       } else {
         throw new HttpMessageNotReadableException(
-          "inputData can only be specified once");
+            "inputData can only be specified once");
       }
     } else {
       if (inputDataUrls.size() == 1) {
@@ -1100,7 +1100,7 @@ public class CloudProcessingFramework {
           inputDataUrl.trim());
       } else {
         throw new HttpMessageNotReadableException(
-          "inputDataUrl must only be specified onces");
+            "inputDataUrl must only be specified onces");
       }
     }
     this.dataAccessObject.write(batchJob);
@@ -1178,7 +1178,7 @@ public class CloudProcessingFramework {
   @ResponseBody
   public Map<String, ? extends Object> getAuthenticated() {
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-      "Authenticated");
+        "Authenticated");
     map.put("authenticated", true);
     return map;
   }
@@ -1201,7 +1201,7 @@ public class CloudProcessingFramework {
     final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
     if (businessApplication == null || !businessApplication.isEnabled()) {
       throw new PageNotFoundException("Business application "
-        + businessApplicationName + " does not exist.");
+          + businessApplicationName + " does not exist.");
     } else {
       checkPermission(businessApplication);
       return businessApplication;
@@ -1508,7 +1508,7 @@ public class CloudProcessingFramework {
                 if (value == null) {
                   if (attribute.isRequired()) {
                     throw new IllegalArgumentException("Parameter is required "
-                      + name);
+                        + name);
                   }
                 } else {
                   attribute.validate(value);
@@ -1523,7 +1523,7 @@ public class CloudProcessingFramework {
               }
             }
             final Map<String, Object> parameters = new LinkedHashMap<>(
-              requestParameters);
+                requestParameters);
             addTestParameters(businessApplication, parameters);
             plugin.setParameters(parameters);
             plugin.execute();
@@ -1532,7 +1532,7 @@ public class CloudProcessingFramework {
               businessApplicationName);
             final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
             for (final Entry<String, Object> entry : businessApplication.getProperties()
-              .entrySet()) {
+                .entrySet()) {
               final String name = entry.getKey();
               final Object value = entry.getValue();
               HttpServletUtils.setAttribute(name, value);
@@ -1542,16 +1542,16 @@ public class CloudProcessingFramework {
               final HttpServletResponse response = HttpServletUtils.getResponse();
 
               final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-                .getFactoryByMediaType(RecordWriterFactory.class, format);
+                  .getFactoryByMediaType(RecordWriterFactory.class, format);
               if (writerFactory == null) {
                 throw new HttpMessageNotWritableException("Unsupported format "
-                  + format);
+                    + format);
               } else {
                 final String contentType = writerFactory.getMediaType(format);
                 response.setContentType(contentType);
                 final String fileExtension = writerFactory.getFileExtension(format);
                 final String fileName = businessApplicationName + "-instant."
-                  + fileExtension;
+                    + fileExtension;
                 response.setHeader("Content-Disposition",
                   "attachment; filename=" + fileName);
               }
@@ -1572,7 +1572,7 @@ public class CloudProcessingFramework {
               writer.open();
               int i = 1;
               final Map<String, Object> defaultProperties = new HashMap<String, Object>(
-                writer.getProperties());
+                  writer.getProperties());
 
               for (final Map<String, Object> structuredResultMap : list) {
                 final Record structuredResult = RecordUtil.getObject(
@@ -1672,7 +1672,7 @@ public class CloudProcessingFramework {
     final BusinessApplication businessApplication = this.batchJobUiBuilder.getBusinessApplication(businessApplicationName);
     if (businessApplication == null || !businessApplication.isEnabled()) {
       throw new PageNotFoundException("Business application "
-        + businessApplicationName + " does not exist.");
+          + businessApplicationName + " does not exist.");
     } else {
       final String consumerKey = getConsumerKey();
       CloudProcessingFramework.checkPermission(businessApplication);
@@ -1877,7 +1877,7 @@ public class CloudProcessingFramework {
     final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
     if (businessApplication == null || !businessApplication.isEnabled()) {
       throw new PageNotFoundException("Business application "
-        + businessApplicationName + " does not exist.");
+          + businessApplicationName + " does not exist.");
     } else {
       checkPermission(businessApplication);
       final Map<String, Object> titleParameters = new HashMap<String, Object>();
@@ -2088,7 +2088,7 @@ public class CloudProcessingFramework {
       container = new ElementContainer();
       container.add(new XmlTagElement(HtmlUtil.H1,
         businessApplication.getTitle() + " (" + businessApplication.getName()
-          + ")"));
+        + ")"));
 
       final String description = businessApplication.getDescription();
       if (Property.hasValue(description)) {
@@ -2101,38 +2101,38 @@ public class CloudProcessingFramework {
       }
 
       container.add(new RawContent(new ClassPathResource(
-        "ca/bc/gov/open/cpf/api/web/service/services.html")));
+          "ca/bc/gov/open/cpf/api/web/service/services.html")));
       if (CpfUiBuilder.hasPermission(businessApplication.getInstantModeExpression())) {
         container.add(new RawContent(new ClassPathResource(
-          "ca/bc/gov/open/cpf/api/web/service/instantMode.html")));
+            "ca/bc/gov/open/cpf/api/web/service/instantMode.html")));
       }
       if (CpfUiBuilder.hasPermission(businessApplication.getBatchModeExpression())) {
         container.add(new RawContent(new ClassPathResource(
-          "ca/bc/gov/open/cpf/api/web/service/batchMode.html")));
+            "ca/bc/gov/open/cpf/api/web/service/batchMode.html")));
       }
 
       addRawContent(container,
-        "ca/bc/gov/open/cpf/api/web/service/inputData.html");
+          "ca/bc/gov/open/cpf/api/web/service/inputData.html");
       final Set<String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
       container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI,
         inputDataContentTypes));
 
       if (businessApplication.isPerRequestInputData()) {
         addRawContent(container,
-          "ca/bc/gov/open/cpf/api/web/service/opaqueInputData.html");
+            "ca/bc/gov/open/cpf/api/web/service/opaqueInputData.html");
       } else {
         addRawContent(container,
-          "ca/bc/gov/open/cpf/api/web/service/structuredInputData.html");
+            "ca/bc/gov/open/cpf/api/web/service/structuredInputData.html");
       }
       final RecordDefinition requestMetaData = businessApplication.getRequestMetaData();
       final List<Attribute> requestAttributes = requestMetaData.getAttributes();
       final List<KeySerializer> serializers = new ArrayList<KeySerializer>();
       serializers.add(new StringKeySerializer("name"));
       serializers.add(new BooleanImageKeySerializer("properties."
-        + BusinessApplication.JOB_PARAMETER, "Job Parameter"));
+          + BusinessApplication.JOB_PARAMETER, "Job Parameter"));
       if (!businessApplication.isPerRequestInputData()) {
         serializers.add(new BooleanImageKeySerializer("properties."
-          + BusinessApplication.REQUEST_PARAMETER, "Request Parameter"));
+            + BusinessApplication.REQUEST_PARAMETER, "Request Parameter"));
       }
       serializers.add(new StringKeySerializer("typeDescription", "Type"));
       serializers.add(new StringKeySerializer("minValue", "Min"));
@@ -2144,26 +2144,26 @@ public class CloudProcessingFramework {
         "inputDataContentType",
         DataTypes.STRING,
         false,
-        "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
+          "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
       inputDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
       inputDataContentType.setDefaultValue(businessApplication.getDefaultInputDataContentType());
       requestAttributes.add(0, inputDataContentType);
 
       final Attribute inputData = new Attribute("inputData",
         new SimpleDataType("File", File.class), false,
-        "The multi-part file containing the input data.");
+          "The multi-part file containing the input data.");
       inputData.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(1, inputData);
 
       final Attribute inputDataUrl = new Attribute("inputDataUrl",
         DataTypes.STRING, false,
-        "The http: URL to the file or resource containing input data.");
+          "The http: URL to the file or resource containing input data.");
       inputDataUrl.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(2, inputDataUrl);
 
       final Attribute notificationEmail = new Attribute("notificationEmail",
         DataTypes.STRING, false,
-        "The email address to send the job status to when the job is completed.");
+          "The email address to send the job status to when the job is completed.");
       notificationEmail.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(notificationEmail);
 
@@ -2171,24 +2171,24 @@ public class CloudProcessingFramework {
         "notificationUrl",
         DataTypes.STRING,
         false,
-        "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.");
+          "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.");
       notificationUrl.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(notificationUrl);
 
       final RowsTableSerializer requestModel = new KeySerializerTableSerializer(
         serializers, requestAttributes);
       final TableView requestAttributesTable = new TableView(requestModel,
-        "objectList resultAttributes");
+          "objectList resultAttributes");
       container.add(requestAttributesTable);
 
       addRawContent(container,
-        "ca/bc/gov/open/cpf/api/web/service/resultFiles.html");
+          "ca/bc/gov/open/cpf/api/web/service/resultFiles.html");
       final Set<String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
       container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI,
         resultDataContentTypes));
       if (businessApplication.isPerRequestResultData()) {
         addRawContent(container,
-          "ca/bc/gov/open/cpf/api/web/service/opaqueResults.html");
+            "ca/bc/gov/open/cpf/api/web/service/opaqueResults.html");
       } else {
         container.add(new XmlTagElement(HtmlUtil.H2, "Result Fields"));
         final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
@@ -2200,11 +2200,11 @@ public class CloudProcessingFramework {
         final RowsTableSerializer resultModel = new KeySerializerTableSerializer(
           resultSerializers, resultAttributes);
         final TableView resultAttributesTable = new TableView(resultModel,
-          "objectList resultAttributes");
+            "objectList resultAttributes");
         container.add(resultAttributesTable);
       }
       addRawContent(container,
-        "ca/bc/gov/open/cpf/api/web/service/errorResults.html");
+          "ca/bc/gov/open/cpf/api/web/service/errorResults.html");
 
     }
     return container;
@@ -2261,7 +2261,7 @@ public class CloudProcessingFramework {
         field = new TextField(name, length, defaultValue, required);
       } else {
         throw new IllegalArgumentException("Values with class "
-          + typeClass.getName() + " are not supported");
+            + typeClass.getName() + " are not supported");
       }
     } else {
       field = new SelectField(name, defaultValue, required, allowedValues);
@@ -2378,7 +2378,7 @@ public class CloudProcessingFramework {
     final BusinessApplication businessApplication, final String formName) {
 
     Map<String, String> formSectionsFieldMap = businessApplication.getProperty("formSectionsFieldMap"
-      + formName);
+        + formName);
     if (formSectionsFieldMap == null) {
       // Add defaults
       formSectionsFieldMap = new LinkedHashMap<>();
@@ -2424,7 +2424,7 @@ public class CloudProcessingFramework {
   private Map<String, List<String>> getFormSectionsMap(
     final BusinessApplication businessApplication, final String formName) {
     Map<String, List<String>> formSectionsMap = businessApplication.getProperty("formSectionsMap"
-      + formName);
+        + formName);
     if (formSectionsMap == null) {
       formSectionsMap = businessApplication.getProperty("formSectionsMap");
       if (formSectionsMap == null) {
@@ -2439,7 +2439,7 @@ public class CloudProcessingFramework {
   private List<String> getFormSectionsNames(
     final BusinessApplication businessApplication, final String formName) {
     List<String> sectionNames = businessApplication.getProperty("formSectionsNames"
-      + formName);
+        + formName);
     if (sectionNames == null) {
       sectionNames = new ArrayList<>();
       final Map<String, List<String>> formSectionsMap = getFormSectionsMap(
@@ -2447,7 +2447,7 @@ public class CloudProcessingFramework {
       sectionNames.addAll(formSectionsMap.keySet());
       for (final String sectionName : Arrays.asList("applicationParameters",
         "inputData", "resultFormat", "resultFormatAdvanced", "notification",
-        "testParameters")) {
+          "testParameters")) {
         if (!sectionNames.contains(sectionName)) {
           sectionNames.add(sectionName);
         }
@@ -2461,7 +2461,7 @@ public class CloudProcessingFramework {
   private Set<String> getFormSectionsOpen(
     final BusinessApplication businessApplication, final String formName) {
     Set<String> openSections = businessApplication.getProperty("formSectionsOpen"
-      + formName);
+        + formName);
     if (openSections == null) {
       openSections = businessApplication.getProperty("formSectionsOpen");
       if (openSections == null) {
@@ -2704,7 +2704,7 @@ public class CloudProcessingFramework {
         this.batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
         if (BatchJob.RESULTS_CREATED.equals(jobStatus)
-          || BatchJob.DOWNLOAD_INITIATED.equals(jobStatus)) {
+            || BatchJob.DOWNLOAD_INITIATED.equals(jobStatus)) {
           final Map<String, Object> parameters = Collections.emptyMap();
           this.batchJobUiBuilder.addTabDataTable(tabs,
             BatchJobResult.BATCH_JOB_RESULT, "clientList", parameters);
@@ -2745,8 +2745,9 @@ public class CloudProcessingFramework {
     if (batchJob != null) {
       final Record batchJobResult = this.dataAccessObject.getBatchJobResult(
         batchJobId, resultId);
-      if (EqualsInstance.INSTANCE.equals(batchJobId,
-        batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
+      if (batchJobResult != null
+          && EqualsInstance.INSTANCE.equals(batchJobId,
+            batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
         this.dataAccessObject.setBatchJobDownloaded(batchJobId);
         final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
         final HttpServletResponse response = HttpServletUtils.getResponse();
@@ -2769,14 +2770,14 @@ public class CloudProcessingFramework {
             }
           }
           final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-            .getFactoryByMediaType(RecordWriterFactory.class,
-              resultDataContentType);
+              .getFactoryByMediaType(RecordWriterFactory.class,
+                resultDataContentType);
           if (writerFactory != null) {
             final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
             final String fileName = "job-" + batchJobId + "-result-" + resultId
-              + "." + fileExtension;
+                + "." + fileExtension;
             response.setHeader("Content-Disposition", "attachment; filename="
-              + fileName + ";size=" + size);
+                + fileName + ";size=" + size);
           }
           final ServletOutputStream out = response.getOutputStream();
           if (Property.hasValue(jsonCallback)) {
@@ -2865,7 +2866,7 @@ public class CloudProcessingFramework {
         final PageInfo page = createRootPageInfo(title);
         final List<Record> results = this.dataAccessObject.getBatchJobResults(batchJobId);
         if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null
-          && !results.isEmpty()) {
+            && !results.isEmpty()) {
           for (final Record batchJobResult : results) {
             final Number sequenceNumber = batchJobResult.getInteger(BatchJobResult.SEQUENCE_NUMBER);
             parameters.put("sequenceNumber", sequenceNumber);
@@ -3031,7 +3032,7 @@ public class CloudProcessingFramework {
     String descriptionUrl = businessApplication.getDescriptionUrl();
     if (Property.hasValue(descriptionUrl)) {
       descriptionUrl = "<p>Click <a href=\"" + descriptionUrl
-        + "\">here</a> for a more detailed description of the service.</p>";
+          + "\">here</a> for a more detailed description of the service.</p>";
     }
     if (Property.hasValue(description)) {
       description = "<p>" + description + "</p>";

@@ -44,7 +44,7 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
 public final class BusinessApplicationRegistry implements
-ApplicationListener<ContextRefreshedEvent> {
+  ApplicationListener<ContextRefreshedEvent> {
 
   static {
     DataTypes.register("JtsGeometry", Geometry.class);
@@ -84,7 +84,7 @@ ApplicationListener<ContextRefreshedEvent> {
   private File appLogDirectory;
 
   private Channel<Map<String, Object>> moduleControlChannel = new Channel<Map<String, Object>>(
-      "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
+    "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
 
   private Thread moduleControlThread;
 
@@ -108,7 +108,7 @@ ApplicationListener<ContextRefreshedEvent> {
       final ModuleControlProcess moduleControlProcess = new ModuleControlProcess(
         this, this.moduleControlChannel);
       this.moduleControlThread = new Thread(moduleControlProcess,
-        "ModuleControl");
+          "ModuleControl");
       this.moduleControlThread.setDaemon(true);
       this.moduleControlThread.start();
     }
@@ -165,7 +165,7 @@ ApplicationListener<ContextRefreshedEvent> {
       if (this.moduleControlThread != null) {
         final long maxWait = System.currentTimeMillis() + 5000;
         while (this.moduleControlThread.isAlive()
-            && System.currentTimeMillis() < maxWait) {
+          && System.currentTimeMillis() < maxWait) {
           this.moduleControlThread.stop();
         }
       }

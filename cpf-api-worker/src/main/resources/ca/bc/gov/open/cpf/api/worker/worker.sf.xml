@@ -32,7 +32,7 @@
     id="businessApplicationRegistry"
     class="ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry"
     p:configPropertyLoader="#{cpfWorker.configPropertyLoader}"
-    p:appLogDirectory="/apps/logs/cpf"
+    p:appLogDirectory="${cpfLogDirectory}"
   >
     <constructor-arg
       type="boolean"
