@@ -186,14 +186,6 @@
   </error-page>
 
   <error-page>
-    <error-code>org.springframework.security.access.AccessDeniedException</error-code>
-    <location>/error.jsp?subTitle=I'm sorry you do not have permission
-      to access
-      this page.
-    </location>
-  </error-page>
-
-  <error-page>
     <error-code>404</error-code>
     <location>/error.jsp?subTitle=I'm sorry the page you requested
       could

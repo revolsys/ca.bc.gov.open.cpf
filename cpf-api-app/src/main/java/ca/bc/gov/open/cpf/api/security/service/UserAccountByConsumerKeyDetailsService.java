@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.userdetails.User;
@@ -23,7 +24,7 @@ import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
 public class UserAccountByConsumerKeyDetailsService implements
-  UserDetailsService {
+UserDetailsService {
 
   private UserDetailsChecker userDetailsChecker = new AccountStatusUserDetailsChecker();
 
@@ -32,28 +33,28 @@ public class UserAccountByConsumerKeyDetailsService implements
   private UserAccountSecurityService userAccountSecurityService;
 
   public UserAccountSecurityService getUserAccountSecurityService() {
-    return userAccountSecurityService;
+    return this.userAccountSecurityService;
   }
 
   public UserDetailsChecker getUserDetailsChecker() {
-    return userDetailsChecker;
+    return this.userDetailsChecker;
   }
 
   @Override
   public UserDetails loadUserByUsername(final String username)
-    throws UsernameNotFoundException, DataAccessException {
+      throws UsernameNotFoundException, DataAccessException {
     try (
-      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String name = username.toLowerCase();
-        final Record user = dataAccessObject.getUserAccount(name);
+        final Record user = this.dataAccessObject.getUserAccount(name);
         if (user == null) {
           throw new UsernameNotFoundException("Username or password incorrect");
         } else {
           final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
           final boolean active = RecordUtil.getBoolean(user,
             UserAccount.ACTIVE_IND);
-          final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
+          final List<String> groupNames = this.userAccountSecurityService.getGroupNames(user);
           final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
           for (final String groupName : groupNames) {
             authorities.add(new GrantedAuthorityImpl(groupName));
@@ -61,12 +62,12 @@ public class UserAccountByConsumerKeyDetailsService implements
           }
           final User userDetails = new User(name, userPassword, active, true,
             true, true, authorities);
-          if (userDetailsChecker != null) {
-            userDetailsChecker.check(userDetails);
+          if (this.userDetailsChecker != null) {
+            this.userDetailsChecker.check(userDetails);
           }
           return userDetails;
         }
-      } catch (final UsernameNotFoundException e) {
+      } catch (final AuthenticationException e) {
         throw e;
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);
@@ -78,7 +79,7 @@ public class UserAccountByConsumerKeyDetailsService implements
   public void setUserAccountSecurityService(
     final UserAccountSecurityService userAccountSecurityService) {
     this.userAccountSecurityService = userAccountSecurityService;
-    dataAccessObject = userAccountSecurityService.getDataAccessObject();
+    this.dataAccessObject = userAccountSecurityService.getDataAccessObject();
   }
 
   @Required

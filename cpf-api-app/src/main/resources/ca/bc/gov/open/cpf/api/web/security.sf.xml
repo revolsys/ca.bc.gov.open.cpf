@@ -25,10 +25,11 @@
     <security:custom-filter
       after="LOGOUT_FILTER"
       ref="oAuthProcessingFilter" />
+      
     <security:custom-filter
       before="BASIC_AUTH_FILTER"
       ref="digestProcessingFilter" />
-
+ 
     <security:intercept-url
       pattern="/admin/**"
       access="hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />
@@ -52,9 +53,7 @@
   </security:http>
 
   <security:authentication-manager>
-    <security:authentication-provider
-      user-service-ref="consumerDetailsService"
-    >
+    <security:authentication-provider user-service-ref="consumerDetailsService">
 
     </security:authentication-provider>
   </security:authentication-manager>
@@ -78,7 +77,7 @@
 
   <bean
     id="digestProcessingFilter"
-    class="org.springframework.security.web.authentication.www.DigestAuthenticationFilter"
+    class="ca.bc.gov.open.cpf.api.security.digest.DigestAuthenticationFilter"
     p:userDetailsService-ref="consumerDetailsService"
     p:authenticationEntryPoint-ref="processingFilterEntryPoint"
     lazy-init="true" />
@@ -95,12 +94,9 @@
   >
     <property name="decisionVoters">
       <list>
-        <bean
-          class="org.springframework.security.web.access.expression.WebExpressionVoter"
-        >
+        <bean class="org.springframework.security.web.access.expression.WebExpressionVoter">
           <property name="expressionHandler">
-            <bean
-              class="com.revolsys.spring.security.DefaultWebSecurityExpressionHandler" />
+            <bean class="com.revolsys.spring.security.DefaultWebSecurityExpressionHandler" />
           </property>
         </bean>
       </list>
