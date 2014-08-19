@@ -18,6 +18,11 @@
     <param-value>classpath:log4j.xml</param-value>
   </context-param>
 
+  <context-param>
+    <param-name>cpfLogDirectory</param-name>
+    <param-value>/apps/logs/cpf</param-value>
+  </context-param>
+
   <filter>
     <filter-name>utf8</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -90,6 +95,10 @@
 
   <listener>
     <listener-class>com.revolsys.ui.web.servlet.listener.ContextCleanupListener</listener-class>
+  </listener>
+
+  <listener>
+    <listener-class>ca.bc.gov.open.cpf.api.web.CpfLog4jContextListener</listener-class>
   </listener>
 
   <listener>

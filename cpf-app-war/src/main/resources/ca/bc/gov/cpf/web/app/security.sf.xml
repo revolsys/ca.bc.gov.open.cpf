@@ -118,4 +118,14 @@
       </list>
     </property>
   </bean>
+
+  <bean
+    id="accessDeniedHandler"
+    class="org.springframework.security.web.access.AccessDeniedHandlerImpl" />
+    
+  <bean
+    id="exceptionTranslationFilter"
+    class="org.springframework.security.web.access.ExceptionTranslationFilter"
+    p:authenticationEntryPoint-ref="cpfSiteminderEntryPoint"
+    p:accessDeniedHandler-ref="accessDeniedHandler" />
 </beans>
