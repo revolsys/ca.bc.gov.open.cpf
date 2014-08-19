@@ -78,7 +78,7 @@ import com.revolsys.util.Property;
  * encoding be used for all text files. This includes the text in a .dbf file for a .shpz archive, unless
  * a .cpf file is provided in the shpz archive.</p>
  */
-public class CpfClient {
+public class CpfClient implements AutoCloseable {
   /** OAuth consumer key */
   private String consumerKey = "";
 
@@ -137,6 +137,29 @@ public class CpfClient {
    * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
   String consumerKey = "cpftest";
   String consumerSecret = "cpftest";
+
+  try (CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
+    // Use the client
+  }</pre>
+   */
+  @Override
+  @PreDestroy
+  public void close() {
+    this.httpClientPool.close();
+    this.httpClientPool = null;
+    this.consumerKey = null;
+  }
+
+  /**
+   * <p>Close the connection to the CPF service. Once this method has been called
+   * the client can no longer be used and a new instance must be created. This should be called
+   * when the client is no longer needed to clean up resources.<p>
+   *
+   * <p>The following code fragment shows an example of using the API.</p>
+   *
+   * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
+  String consumerKey = "cpftest";
+  String consumerSecret = "cpftest";
   CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
   try {
     // Use the client
@@ -144,11 +167,9 @@ public class CpfClient {
     client.closeConnection();
   }</pre>
    */
-  @PreDestroy
+  @Deprecated
   public void closeConnection() {
-    this.httpClientPool.close();
-    this.httpClientPool = null;
-    this.consumerKey = null;
+    close();
   }
 
   /**
@@ -236,7 +257,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -353,7 +374,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -476,7 +497,7 @@ public class CpfClient {
     final int numRequests = requests.size();
 
     final MapWriterFactory factory = IoFactoryRegistry.getInstance()
-        .getFactoryByMediaType(MapWriterFactory.class, inputDataType);
+      .getFactoryByMediaType(MapWriterFactory.class, inputDataType);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     final MapWriter mapWriter = factory.getMapWriter(out);
 
@@ -555,7 +576,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -629,7 +650,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/multiple/");
+        + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -690,7 +711,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/single/");
+        + businessApplicationName + "/single/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, parameters);
@@ -729,7 +750,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/instant/?format=json&specification=true");
+        + businessApplicationName + "/instant/?format=json&specification=true");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -763,7 +784,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/multiple/");
+        + businessApplicationName + "/multiple/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -841,7 +862,7 @@ public class CpfClient {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       final String url = httpClient.getUrl("/ws/apps/"
-          + businessApplicationName + "/single/");
+        + businessApplicationName + "/single/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -1169,7 +1190,7 @@ public class CpfClient {
         }
       }
       throw new IllegalStateException("Cannot find structured result file for "
-          + jobIdUrl);
+        + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
@@ -1410,7 +1431,7 @@ public class CpfClient {
         return i;
       }
       throw new IllegalStateException("Cannot find error result file for "
-          + jobIdUrl);
+        + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
@@ -1482,7 +1503,7 @@ public class CpfClient {
         return i;
       }
       throw new IllegalStateException("Cannot find structured result file for "
-          + jobIdUrl);
+        + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }

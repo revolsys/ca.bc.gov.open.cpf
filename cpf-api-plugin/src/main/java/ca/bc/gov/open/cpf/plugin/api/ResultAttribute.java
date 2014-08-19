@@ -9,18 +9,18 @@ import java.lang.annotation.Target;
  * <p>The <code>ResultAttribute</code> method annotation indicates that a <code>getXXX</code> or <code>isXXX</code> method is a <a href="../../structuredData.html">structured
  * result data</a> attribute on a {@link BusinessApplicationPlugin} or {@link ResultList}
  * class that has {@link BusinessApplicationPlugin#perRequestResultData()}=false.</p>
- * 
+ *
  * <p>Result attributes are implemented as Java bean properties on the plug-in class or {@link ResultList} class.
  * The plug-in must implement a <code>getXXX</code> or <code>isXXX</code> property method for each result attribute. The
  * result attribute name is the name of the Java bean property. The return type can
  * only use the supported <a href="../../dataTypes.html">data types</a>. The result attributes will be converted by
  * the CPF to the correct representation in the output format or a string
  * representation of the value before being returned to the user.</p>
- * 
+ *
  * <p>After execution of the plug-in the result attribute methods will be invoked to get the result attribute values.</p>
- * 
+ *
  * <p>The following example shows the use of the annotation on a {@link BusinessApplicationPlugin} class.</p>
- * 
+ *
  * <figure><pre class="prettyprint language-java">&#064;BusinessApplicationPlugin
 public class Square {
   private int square;
@@ -47,14 +47,22 @@ public @interface ResultAttribute {
   int index() default -1;
 
   /**
-   * The maximum length of the attribute including the scale. This is ignored for
-   * fixed size data types such as boolean, byte, short, int, long, float and
-   * double. The value -1 indicates no defined limit to the scale.
+   * <p>The maximum length of the attribute including the scale, sign '-' and decimal point '.'.
+   * This is ignored for fixed size data types such as boolean, byte, short, int, long.
+   * The value -1 indicates the use of the default value for that data type.</p>
+   *
+   * <p class="note">NOTE: decimal types such as float, double and BigDecimal should have a
+   * length specified if fixed size file formats such as shapefile are to be used.</p>
    */
   int length() default -1;
 
   /**
-   * The number of decimal places for fixed precision numeric types.
+   * <p>The number of decimal places for fixed precision numeric types. This is ignored for
+   * data types such as boolean, byte, short, int, long, string.
+   * The value -1 indicates the use of the default value for that data type.</p>
+   *
+   * <p class="note">NOTE: decimal types such as float, double and BigDecimal should have a
+   * scaled specified if fixed size file formats such as shapefile are to be used.</p>
    */
   int scale() default -1;
 }
