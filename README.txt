@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Cloud Processing Framework Web Application
-Version:           4.1.3
+Version:           4.1.4
 
 Software/Hardware Requirements
 ------------------------------
@@ -20,10 +20,6 @@ N/A
 
 2. Configuration Files
 ----------------------
-
-NOTE: This release adds the following configuration property
-
-cpfSiteminderLogoutSuccess.logoutUrl
 
 CPF requires a configuration file on each server.
 
