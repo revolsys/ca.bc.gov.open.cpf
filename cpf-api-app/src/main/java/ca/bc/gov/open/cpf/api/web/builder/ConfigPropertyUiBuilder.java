@@ -21,11 +21,11 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.data.io.RecordStore;
 import com.revolsys.data.query.Condition;
 import com.revolsys.data.query.Q;
 import com.revolsys.data.query.Query;
 import com.revolsys.data.record.Record;
+import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;

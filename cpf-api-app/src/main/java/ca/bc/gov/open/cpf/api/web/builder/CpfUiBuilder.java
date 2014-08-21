@@ -31,9 +31,9 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.data.io.RecordStore;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
 import com.revolsys.ui.web.utils.HttpServletUtils;

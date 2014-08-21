@@ -73,7 +73,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.data.io.MapReaderRecordReader;
-import com.revolsys.data.io.RecordStore;
 import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.query.Query;
 import com.revolsys.data.record.ArrayRecord;
@@ -83,6 +82,7 @@ import com.revolsys.data.record.property.AttributeProperties;
 import com.revolsys.data.record.schema.Attribute;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
+import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.data.types.DataType;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
