@@ -58,7 +58,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
 
   public BusinessApplicationUiBuilder() {
     super("businessApplication", "Business Application",
-        "Business Applications");
+      "Business Applications");
     setIdParameterName("businessApplicationName");
     setIdPropertyName("name");
   }
@@ -66,7 +66,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping("/ws/sample/input")
   @ResponseBody
   public RecordReader getSampleInputData() {
-    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
+      "/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addAttribute("title", DataTypes.STRING);
@@ -87,14 +88,16 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object2.setGeometryValue(factory.point(1207714.288, 480508.637));
     objects.add(object2);
 
-    final ListRecordReader reader = new ListRecordReader(recordDefinition, objects);
+    final ListRecordReader reader = new ListRecordReader(recordDefinition,
+      objects);
     return reader;
   }
 
   @RequestMapping("/ws/sample/result")
   @ResponseBody
   public RecordReader getSampleResultData() {
-    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
+      "/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addAttribute("sequenceNumber", DataTypes.INTEGER);
@@ -123,7 +126,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       .buffer(1000));
     objects.add(object2);
 
-    final ListRecordReader reader = new ListRecordReader(recordDefinition, objects);
+    final ListRecordReader reader = new ListRecordReader(recordDefinition,
+      objects);
     return reader;
   }
 
@@ -182,9 +186,9 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       if (form.isPosted() && form.isMainFormTask()) {
         if (form.isValid()) {
           final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-          final BusinessApplicationPlugin pluginMetaData = businessApplication.getPluginMetadata();
+          final BusinessApplicationPlugin pluginAnnotation = businessApplication.getPluginAnnotation();
           for (final String propertyName : propertyNames) {
-            final Object defaultValue = Property.get(pluginMetaData,
+            final Object defaultValue = Property.get(pluginAnnotation,
               propertyName);
             final Object newValue = form.getValue(propertyName);
             final boolean equal = EqualsInstance.INSTANCE.equals(defaultValue,
@@ -241,7 +245,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
         + "').submit()"));
 
       final MenuElement actionMenuElement = new MenuElement(actionMenu,
-          "actionMenu");
+        "actionMenu");
       final ElementContainer view = new ElementContainer(form,
         actionMenuElement);
       final TabElementContainer tabs = new TabElementContainer();
@@ -259,11 +263,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleList(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable String moduleName)
-        throws IOException, NoSuchRequestHandlingMethodException {
+    throws IOException, NoSuchRequestHandlingMethodException {
     final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
     final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
-        module, "getBusinessApplications");
+      module, "getBusinessApplications");
     return createDataTableHandlerOrRedirect(request, response, "moduleList",
       rowsCallable, Module.class, "view");
   }

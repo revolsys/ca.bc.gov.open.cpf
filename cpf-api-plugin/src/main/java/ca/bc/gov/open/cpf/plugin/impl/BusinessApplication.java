@@ -13,7 +13,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
@@ -28,32 +27,23 @@ import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.io.AbstractObjectWithProperties;
+import com.revolsys.jts.geom.Geometry;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Property;
-import com.revolsys.jts.geom.Geometry;
 
 /**
  * The BusinessApplication describes a business application which can be invoked
  * via the CPF. It contains all the metadata to generate a capabilities document
  * for the service and for the CPF to be able to invoke the application.
- * 
+ *
  * @author paustin
  * @version 1.0
  */
 public class BusinessApplication extends AbstractObjectWithProperties implements
   Comparable<BusinessApplication> {
-
-  public static final String CORE_PARAMETER = BusinessApplication.class.getName()
-    + "/CORE_PARAMETER";
-
-  public static final String JOB_PARAMETER = BusinessApplication.class.getName()
-    + "/JOB_PARAMETER";
-
-  public static final String REQUEST_PARAMETER = BusinessApplication.class.getName()
-    + "/REQUEST_PARAMETER";
 
   public static String getDefaultFileExtension(
     final Map<String, ?> fileExtensionMap) {
@@ -80,6 +70,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     return defaultValue;
   }
+
+  public static final String CORE_PARAMETER = BusinessApplication.class.getName()
+    + "/CORE_PARAMETER";
+
+  public static final String JOB_PARAMETER = BusinessApplication.class.getName()
+    + "/JOB_PARAMETER";
+
+  public static final String REQUEST_PARAMETER = BusinessApplication.class.getName()
+    + "/REQUEST_PARAMETER";
 
   private String packageName;
 
@@ -165,13 +164,13 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
    */
   private boolean perRequestResultData;
 
-  private BusinessApplicationPlugin pluginMetadata;
+  private BusinessApplicationPlugin pluginAnnotation;
 
   private final Map<String, Attribute> requestAttributeByNameMap = new TreeMap<String, Attribute>();
 
   private final Map<Integer, Attribute> requestAttributeMap = new TreeMap<Integer, Attribute>();
 
-  private RecordDefinitionImpl requestMetaData;
+  private RecordDefinitionImpl requestRecordDefinition;
 
   private final Map<Integer, Attribute> resultAttributeMap = new TreeMap<Integer, Attribute>();
 
@@ -187,7 +186,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private String resultListProperty;
 
-  private RecordDefinitionImpl resultMetaData;
+  private RecordDefinitionImpl resultRecordDefinition;
 
   private boolean securityServiceRequired;
 
@@ -206,16 +205,16 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private String defaultResultDataFileExtension;
 
-  public BusinessApplication(final BusinessApplicationPlugin pluginMetadata,
+  public BusinessApplication(final BusinessApplicationPlugin pluginAnnotation,
     final Module module, final String name) {
     this.name = name;
     this.title = name;
-    this.pluginMetadata = pluginMetadata;
+    this.pluginAnnotation = pluginAnnotation;
     this.module = module;
     this.name = name;
     this.log = new AppLog(module.getName() + "." + name);
-    this.requestMetaData = new RecordDefinitionImpl("/" + name);
-    this.resultMetaData = new RecordDefinitionImpl("/" + name);
+    this.requestRecordDefinition = new RecordDefinitionImpl("/" + name);
+    this.resultRecordDefinition = new RecordDefinitionImpl("/" + name);
   }
 
   public BusinessApplication(final String name) {
@@ -246,7 +245,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     requestSrid.setDefaultValue(defaultValue);
     requestSrid.setMinValue(0);
-    this.requestMetaData.addAttribute(requestSrid);
+    this.requestRecordDefinition.addAttribute(requestSrid);
   }
 
   private void addAttributeResultDataContentType() {
@@ -258,12 +257,12 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     resultDataContentType.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
 
-    if (defaultResultDataContentType == null) {
-      defaultResultDataFileExtension = getDefaultFileExtension(resultFileExtensionToContentType);
-      defaultResultDataContentType = getDefaultMimeType(resultDataContentTypes);
+    if (this.defaultResultDataContentType == null) {
+      this.defaultResultDataFileExtension = getDefaultFileExtension(this.resultFileExtensionToContentType);
+      this.defaultResultDataContentType = getDefaultMimeType(this.resultDataContentTypes);
     }
-    resultDataContentType.setDefaultValue(defaultResultDataFileExtension);
-    this.requestMetaData.addAttribute(resultDataContentType);
+    resultDataContentType.setDefaultValue(this.defaultResultDataFileExtension);
+    this.requestRecordDefinition.addAttribute(resultDataContentType);
   }
 
   private void addAttributeResultNumAxis() {
@@ -285,7 +284,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     resultNumAxis.setDefaultValue(defaultValue);
     resultNumAxis.setMinValue(2);
     resultNumAxis.setMaxValue(3);
-    this.requestMetaData.addAttribute(resultNumAxis);
+    this.requestRecordDefinition.addAttribute(resultNumAxis);
   }
 
   private void addAttributeResultSrid() {
@@ -309,7 +308,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     resultSrid.setDefaultValue(defaultValue);
     resultSrid.setMinValue(0);
-    this.requestMetaData.addAttribute(resultSrid);
+    this.requestRecordDefinition.addAttribute(resultSrid);
   }
 
   private void addAttributeScaleFactorXy() {
@@ -327,7 +326,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     resultScaleFactorXy.setDefaultValue(defaultValue);
 
-    this.requestMetaData.addAttribute(resultScaleFactorXy);
+    this.requestRecordDefinition.addAttribute(resultScaleFactorXy);
   }
 
   private void addAttributeScaleFactorZ() {
@@ -343,7 +342,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     resultScaleFactorZ.setDefaultValue(defaultValue);
     resultScaleFactorZ.setProperty(BusinessApplication.JOB_PARAMETER, true);
-    this.requestMetaData.addAttribute(resultScaleFactorZ);
+    this.requestRecordDefinition.addAttribute(resultScaleFactorZ);
   }
 
   public void addInputDataContentType(final String contentType,
@@ -356,8 +355,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
       fileExtension)
       || isContentTypeOrFileExtensionEqual(inputDataFileExtension, contentType,
         fileExtension)) {
-      defaultInputDataContentType = contentType;
-      defaultInputDataFileExtension = fileExtension;
+      this.defaultInputDataContentType = contentType;
+      this.defaultInputDataFileExtension = fileExtension;
     }
 
     this.inputDataContentTypes.add(contentType);
@@ -415,8 +414,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
       fileExtension)
       || isContentTypeOrFileExtensionEqual(resultDataFileExtension,
         contentType, fileExtension)) {
-      defaultResultDataContentType = contentType;
-      defaultResultDataFileExtension = fileExtension;
+      this.defaultResultDataContentType = contentType;
+      this.defaultResultDataFileExtension = fileExtension;
     }
 
     this.resultDataContentTypes.add(contentType);
@@ -427,7 +426,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   /**
    * Compare the business applications, return in alphabetical order (ignoring
    * case), followed by versions with the lowest version number first.
-   * 
+   *
    * @param businessApplication
    */
   @Override
@@ -458,19 +457,19 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public String getDefaultInputDataContentType() {
-    return defaultInputDataContentType;
+    return this.defaultInputDataContentType;
   }
 
   public String getDefaultInputDataFileExtension() {
-    return defaultInputDataFileExtension;
+    return this.defaultInputDataFileExtension;
   }
 
   public String getDefaultResultDataContentType() {
-    return defaultResultDataContentType;
+    return this.defaultResultDataContentType;
   }
 
   public String getDefaultResultDataFileExtension() {
-    return defaultResultDataFileExtension;
+    return this.defaultResultDataFileExtension;
   }
 
   public String getDescription() {
@@ -493,7 +492,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     if (isInputContentTypeSupported(fileExtension)) {
       return fileExtension;
     } else {
-      return inputFileExtensionToContentType.get(fileExtension);
+      return this.inputFileExtensionToContentType.get(fileExtension);
     }
   }
 
@@ -506,11 +505,11 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public Map<String, String> getInputFileExtensionToContentType() {
-    return inputFileExtensionToContentType;
+    return this.inputFileExtensionToContentType;
   }
 
   public Map<String, String> getInputFileExtensionToMediaType() {
-    return inputFileExtensionToContentType;
+    return this.inputFileExtensionToContentType;
   }
 
   public Expression getInstantModeExpression() {
@@ -522,7 +521,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public AppLog getLog() {
-    return log;
+    return this.log;
   }
 
   public String getLogLevel() {
@@ -554,25 +553,25 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public String getPackageName() {
-    return packageName;
+    return this.packageName;
   }
 
-  public BusinessApplicationPlugin getPluginMetadata() {
-    return this.pluginMetadata;
+  public BusinessApplicationPlugin getPluginAnnotation() {
+    return this.pluginAnnotation;
   }
 
-  public synchronized RecordDefinitionImpl getRequestMetaData() {
-    if (this.requestMetaData.getAttributeCount() == 0) {
+  public synchronized RecordDefinitionImpl getRequestRecordDefinition() {
+    if (this.requestRecordDefinition.getAttributeCount() == 0) {
       if (this.requestAttributeMap.size() > 0) {
-        final Attribute requestSequenceNumber = this.requestMetaData.addAttribute(
+        final Attribute requestSequenceNumber = this.requestRecordDefinition.addAttribute(
           "requestSequenceNumber", DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER,
           true);
         requestSequenceNumber.setMinValue(1);
 
-        if (defaultInputDataContentType == null) {
-          defaultInputDataFileExtension = getDefaultFileExtension(inputFileExtensionToContentType);
-          defaultInputDataContentType = getDefaultMimeType(inputDataContentTypes);
+        if (this.defaultInputDataContentType == null) {
+          this.defaultInputDataFileExtension = getDefaultFileExtension(this.inputFileExtensionToContentType);
+          this.defaultInputDataContentType = getDefaultMimeType(this.inputDataContentTypes);
         }
 
         if (this.hasGeometryRequestAttribute) {
@@ -588,19 +587,19 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           addAttributeScaleFactorZ();
         }
         for (final Attribute attribute : this.requestAttributeMap.values()) {
-          this.requestMetaData.addAttribute(attribute);
+          this.requestRecordDefinition.addAttribute(attribute);
         }
       }
     }
 
-    return this.requestMetaData;
+    return this.requestRecordDefinition;
   }
 
   public String getResultContentType(final String fileExtension) {
     if (isResultContentTypeSupported(fileExtension)) {
       return fileExtension;
     } else {
-      return resultFileExtensionToContentType.get(fileExtension);
+      return this.resultFileExtensionToContentType.get(fileExtension);
     }
   }
 
@@ -609,22 +608,22 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public Map<String, String> getResultDataFileExtensions() {
-    return resultDataFileExtensions;
+    return this.resultDataFileExtensions;
   }
 
   public String getResultListProperty() {
     return this.resultListProperty;
   }
 
-  public synchronized RecordDefinition getResultMetaData() {
-    if (this.resultMetaData.getAttributeCount() == 0) {
+  public synchronized RecordDefinition getResultRecordDefinition() {
+    if (this.resultRecordDefinition.getAttributeCount() == 0) {
       if (this.resultAttributeMap.size() > 0) {
-        this.resultMetaData.addAttribute(new Attribute("sequenceNumber",
-          DataTypes.INT, true,
+        this.resultRecordDefinition.addAttribute(new Attribute(
+          "sequenceNumber", DataTypes.INT, true,
           "The index of the request record that this result relates to."));
         if (this.resultListProperty != null) {
-          this.resultMetaData.addAttribute(new Attribute("resultNumber",
-            DataTypes.INT, true,
+          this.resultRecordDefinition.addAttribute(new Attribute(
+            "resultNumber", DataTypes.INT, true,
             "The index of the result record within the result for a request."));
         }
         for (final Attribute attribute : this.resultAttributeMap.values()) {
@@ -643,11 +642,11 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
             }
           }
 
-          this.resultMetaData.addAttribute(attribute);
+          this.resultRecordDefinition.addAttribute(attribute);
         }
       }
     }
-    return this.resultMetaData;
+    return this.resultRecordDefinition;
   }
 
   public String getTitle() {
@@ -668,7 +667,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isCoreParameter(final String attributeName) {
-    final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
+    final Attribute attribute = this.requestRecordDefinition.getAttribute(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
         + attributeName);
@@ -706,7 +705,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isHasTestExecuteMethod() {
-    return hasTestExecuteMethod;
+    return this.hasTestExecuteMethod;
   }
 
   public boolean isInfoLogEnabled() {
@@ -714,11 +713,11 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isInputContentTypeSupported(final String contentType) {
-    return inputDataContentTypes.contains(contentType);
+    return this.inputDataContentTypes.contains(contentType);
   }
 
   public boolean isJobParameter(final String attributeName) {
-    final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
+    final Attribute attribute = this.requestRecordDefinition.getAttribute(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
         + attributeName);
@@ -736,7 +735,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isRequestParameter(final String attributeName) {
-    final Attribute attribute = this.requestMetaData.getAttribute(attributeName);
+    final Attribute attribute = this.requestRecordDefinition.getAttribute(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
         + attributeName);
@@ -746,7 +745,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isResultContentTypeSupported(final String contentType) {
-    return resultDataContentTypes.contains(contentType);
+    return this.resultDataContentTypes.contains(contentType);
   }
 
   public boolean isSecurityServiceRequired() {
@@ -754,7 +753,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isTestModeEnabled() {
-    return testModeEnabled;
+    return this.testModeEnabled;
   }
 
   public boolean isValidateGeometry() {
@@ -818,7 +817,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.log.setLogLevel(logLevel);
     final Level level = Level.toLevel(logLevel);
     final String moduleName = getModuleName();
-    Logger.getLogger(moduleName + "." + name).setLevel(level);
+    Logger.getLogger(moduleName + "." + this.name).setLevel(level);
     // Tempory fix for geocoder logging
     Logger.getLogger(moduleName + ".ca").setLevel(level);
     Logger.getLogger(getPackageName()).setLevel(level);

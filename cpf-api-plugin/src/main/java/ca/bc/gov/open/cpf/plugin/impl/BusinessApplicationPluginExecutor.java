@@ -101,9 +101,9 @@ public class BusinessApplicationPluginExecutor {
     plugin.setParameters(requestRecord);
     plugin.execute();
 
-    final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
+    final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
     final Map<String, Object> response = plugin.getResponseFields();
-    final Record result = getResultRecord(resultMetaData, response);
+    final Record result = getResultRecord(resultRecordDefinition, response);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
     return result;
   }
@@ -196,8 +196,8 @@ public class BusinessApplicationPluginExecutor {
     plugin.setParameters(parameters);
     plugin.execute();
     final Map<String, Object> response = plugin.getResponseFields();
-    final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
-    final Map<String, Object> results = getResultRecord(resultMetaData,
+    final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+    final Map<String, Object> results = getResultRecord(resultRecordDefinition,
       response);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
     return results;
@@ -297,9 +297,9 @@ public class BusinessApplicationPluginExecutor {
     plugin.setParameters(requestRecord);
     plugin.execute();
     final List<Map<String, Object>> results = plugin.getResults();
-    final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
-    final List<Map<String, Object>> resultsList = getResultList(resultMetaData,
-      results);
+    final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+    final List<Map<String, Object>> resultsList = getResultList(
+      resultRecordDefinition, results);
     AppLogUtil.info(log, "End\tExecution", stopWatch);
     return resultsList;
   }
@@ -334,8 +334,9 @@ public class BusinessApplicationPluginExecutor {
   protected Record getRequestRecord(final String businessApplicationName,
     final Map<String, ? extends Object> parameters) {
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
-    final RecordDefinition recordDefinition = businessApplication.getRequestMetaData();
-    final String jsonString = JsonRecordIoFactory.toString(recordDefinition, parameters);
+    final RecordDefinition recordDefinition = businessApplication.getRequestRecordDefinition();
+    final String jsonString = JsonRecordIoFactory.toString(recordDefinition,
+      parameters);
     return JsonRecordIoFactory.toRecord(recordDefinition, jsonString);
   }
 
@@ -343,12 +344,14 @@ public class BusinessApplicationPluginExecutor {
     "rawtypes", "unchecked"
   })
   protected List<Map<String, Object>> getResultList(
-    final RecordDefinition recordDefinition, final List<Map<String, Object>> list) {
+    final RecordDefinition recordDefinition,
+    final List<Map<String, Object>> list) {
     if (list.isEmpty()) {
       final List results = list;
       return results;
     } else {
-      final String jsonString = JsonRecordIoFactory.toString(recordDefinition, list);
+      final String jsonString = JsonRecordIoFactory.toString(recordDefinition,
+        list);
       final List results = JsonRecordIoFactory.toRecordList(recordDefinition,
         jsonString);
       return results;
@@ -357,7 +360,8 @@ public class BusinessApplicationPluginExecutor {
 
   protected Record getResultRecord(final RecordDefinition recordDefinition,
     final Map<String, Object> object) {
-    final String jsonString = JsonRecordIoFactory.toString(recordDefinition, object);
+    final String jsonString = JsonRecordIoFactory.toString(recordDefinition,
+      object);
     return JsonRecordIoFactory.toRecord(recordDefinition, jsonString);
   }
 

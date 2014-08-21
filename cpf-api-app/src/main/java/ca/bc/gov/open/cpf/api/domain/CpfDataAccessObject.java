@@ -61,40 +61,40 @@ import com.revolsys.util.Property;
 public class CpfDataAccessObject {
   private RecordStore recordStore;
 
-  private RecordDefinition batchJobMetaData;
+  private RecordDefinition batchJobRecordDefinition;
 
-  private RecordDefinition batchJobExecutionGroupMetaData;
+  private RecordDefinition batchJobExecutionGroupRecordDefinition;
 
-  private RecordDefinition batchJobResultMetaData;
+  private RecordDefinition batchJobResultRecordDefinition;
 
-  private RecordDefinition businessApplicationStatisticsMetaData;
+  private RecordDefinition businessApplicationStatisticsRecordDefinition;
 
-  private RecordDefinition configPropertyMetaData;
+  private RecordDefinition configPropertyRecordDefinition;
 
-  private RecordDefinition userAccountMetaData;
+  private RecordDefinition userAccountRecordDefinition;
 
-  private RecordDefinition userGroupMetaData;
+  private RecordDefinition userGroupRecordDefinition;
 
-  private RecordDefinition userGroupAccountXrefMetaData;
+  private RecordDefinition userGroupAccountXrefRecordDefinition;
 
-  private RecordDefinition userGroupPermissionMetaData;
+  private RecordDefinition userGroupPermissionRecordDefinition;
 
   public CpfDataAccessObject() {
   }
 
   public boolean cancelBatchJob(final long jobId) {
     try (
-        Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String username = getUsername();
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final DataSource dataSource = jdbcRecordStore.getDataSource();
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-            + "NUM_SCHEDULED_GROUPS  = 0, " + "NUM_COMPLETED_REQUESTS = 0, "
-            + "NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS,"
-            + "STRUCTURED_INPUT_DATA = NULL, " + "WHEN_STATUS_CHANGED = ?, "
-            + "JOB_STATUS = 'cancelled',"
-            + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
+          + "NUM_SCHEDULED_GROUPS  = 0, " + "NUM_COMPLETED_REQUESTS = 0, "
+          + "NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS,"
+          + "STRUCTURED_INPUT_DATA = NULL, " + "WHEN_STATUS_CHANGED = ?, "
+          + "JOB_STATUS = 'cancelled',"
+          + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         if (JdbcUtils.executeUpdate(dataSource, sql, now, now, username, jobId) == 1) {
           try {
@@ -116,15 +116,15 @@ public class CpfDataAccessObject {
   @PreDestroy
   public void close() {
     this.recordStore = null;
-    this.batchJobMetaData = null;
-    this.batchJobExecutionGroupMetaData = null;
-    this.batchJobResultMetaData = null;
-    this.businessApplicationStatisticsMetaData = null;
-    this.configPropertyMetaData = null;
-    this.userAccountMetaData = null;
-    this.userGroupMetaData = null;
-    this.userGroupAccountXrefMetaData = null;
-    this.userGroupPermissionMetaData = null;
+    this.batchJobRecordDefinition = null;
+    this.batchJobExecutionGroupRecordDefinition = null;
+    this.batchJobResultRecordDefinition = null;
+    this.businessApplicationStatisticsRecordDefinition = null;
+    this.configPropertyRecordDefinition = null;
+    this.userAccountRecordDefinition = null;
+    this.userGroupRecordDefinition = null;
+    this.userGroupAccountXrefRecordDefinition = null;
+    this.userGroupPermissionRecordDefinition = null;
   }
 
   public Record create(final String typeName) {
@@ -277,7 +277,8 @@ public class CpfDataAccessObject {
     filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
     filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
 
-    final Query query = Query.and(this.userGroupAccountXrefMetaData, filter);
+    final Query query = Query.and(this.userGroupAccountXrefRecordDefinition,
+      filter);
 
     Record userGroupAccountXref = this.recordStore.queryFirst(query);
     if (userGroupAccountXref == null) {
@@ -313,45 +314,48 @@ public class CpfDataAccessObject {
     deleteBatchJobResults(batchJobId);
     deleteBatchJobExecutionGroups(batchJobId);
 
-    final Query query = Query.equal(this.batchJobMetaData,
+    final Query query = Query.equal(this.batchJobRecordDefinition,
       BatchJob.BATCH_JOB_ID, batchJobId);
     return this.recordStore.delete(query);
   }
 
   public int deleteBatchJobExecutionGroups(final Long batchJobId) {
-    final Query query = Query.equal(this.batchJobExecutionGroupMetaData,
+    final Query query = Query.equal(
+      this.batchJobExecutionGroupRecordDefinition,
       BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     return this.recordStore.delete(query);
   }
 
   public int deleteBatchJobResults(final Long batchJobId) {
-    final Query query = Query.equal(this.batchJobResultMetaData,
+    final Query query = Query.equal(this.batchJobResultRecordDefinition,
       BatchJobResult.BATCH_JOB_ID, batchJobId);
     return this.recordStore.delete(query);
   }
 
   public int deleteBusinessApplicationStatistics(
     final Integer businessApplicationStatisticsId) {
-    final Query query = Query.equal(this.businessApplicationStatisticsMetaData,
+    final Query query = Query.equal(
+      this.businessApplicationStatisticsRecordDefinition,
       BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
       businessApplicationStatisticsId);
     return this.recordStore.delete(query);
   }
 
   public int deleteConfigPropertiesForModule(final String moduleName) {
-    final Query query = Query.equal(this.configPropertyMetaData,
+    final Query query = Query.equal(this.configPropertyRecordDefinition,
       ConfigProperty.MODULE_NAME, moduleName);
     return this.recordStore.delete(query);
   }
 
   public void deleteUserAccount(final Record userAccount) {
     final Identifier userAccountId = userAccount.getIdentifier();
-    final Query membersQuery = Query.equal(this.userGroupAccountXrefMetaData,
+    final Query membersQuery = Query.equal(
+      this.userGroupAccountXrefRecordDefinition,
       UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
     this.recordStore.delete(membersQuery);
 
     final String consumerKey = userAccount.getString(UserAccount.CONSUMER_KEY);
-    final Query jobsQuery = Query.equal(this.batchJobMetaData,
+    final Query jobsQuery = Query.equal(this.batchJobRecordDefinition,
       BatchJob.USER_ID, consumerKey);
     this.recordStore.delete(jobsQuery);
 
@@ -361,13 +365,14 @@ public class CpfDataAccessObject {
   public void deleteUserGroup(final Record userGroup) {
     final Identifier userGroupId = userGroup.getIdentifier();
 
-    final Query membersQuery = Query.equal(this.userGroupAccountXrefMetaData,
+    final Query membersQuery = Query.equal(
+      this.userGroupAccountXrefRecordDefinition,
       UserGroupAccountXref.USER_GROUP_ID, userGroupId);
     this.recordStore.delete(membersQuery);
 
     final Query permissionsQuery = Query.equal(
-      this.userGroupPermissionMetaData, UserGroupPermission.USER_GROUP_ID,
-      userGroupId);
+      this.userGroupPermissionRecordDefinition,
+      UserGroupPermission.USER_GROUP_ID, userGroupId);
     this.recordStore.delete(permissionsQuery);
 
     delete(userGroup);
@@ -382,12 +387,13 @@ public class CpfDataAccessObject {
     filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
     filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
 
-    final Query query = Query.and(this.userGroupAccountXrefMetaData, filter);
+    final Query query = Query.and(this.userGroupAccountXrefRecordDefinition,
+      filter);
     return this.recordStore.delete(query);
   }
 
   public int deleteUserGroupsForModule(final String moduleName) {
-    final Query query = Query.equal(this.userGroupMetaData,
+    final Query query = Query.equal(this.userGroupRecordDefinition,
       UserGroup.MODULE_NAME, moduleName);
     int i = 0;
     final Reader<Record> reader = this.recordStore.query(query);
@@ -411,7 +417,7 @@ public class CpfDataAccessObject {
     filter.put(BatchJob.USER_ID, consumerKey);
     filter.put(BatchJob.BATCH_JOB_ID, batchJobId);
 
-    final Query query = Query.and(this.batchJobMetaData, filter);
+    final Query query = Query.and(this.batchJobRecordDefinition, filter);
     return this.recordStore.queryFirst(query);
   }
 
@@ -430,7 +436,7 @@ public class CpfDataAccessObject {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     filter.put(BatchJob.JOB_STATUS, jobStatus);
-    final Query query = Query.and(this.batchJobMetaData, filter);
+    final Query query = Query.and(this.batchJobRecordDefinition, filter);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
     final Reader<Record> batchJobs = this.recordStore.query(query);
     try {
@@ -447,13 +453,13 @@ public class CpfDataAccessObject {
 
   public List<Long> getBatchJobIdsToSchedule(
     final String businessApplicationName) {
-    final Query query = Query.equal(this.batchJobMetaData,
+    final Query query = Query.equal(this.batchJobRecordDefinition,
       BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
     // TODO move to scheduling groups
     query.setWhereCondition(Q.sql("JOB_STATUS IN ('requestsCreated', 'processing') AND "
-        + "NUM_SUBMITTED_GROUPS > 0 AND "
-        + "NUM_SCHEDULED_GROUPS + NUM_COMPLETED_GROUPS < NUM_SUBMITTED_GROUPS "));
+      + "NUM_SUBMITTED_GROUPS > 0 AND "
+      + "NUM_SCHEDULED_GROUPS + NUM_COMPLETED_GROUPS < NUM_SUBMITTED_GROUPS "));
     query.addOrderBy(BatchJob.NUM_SCHEDULED_GROUPS, true);
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, true);
@@ -483,7 +489,7 @@ public class CpfDataAccessObject {
   }
 
   public List<Record> getBatchJobResults(final long batchJobId) {
-    final Query query = Query.equal(this.batchJobResultMetaData,
+    final Query query = Query.equal(this.batchJobResultRecordDefinition,
       BatchJobResult.BATCH_JOB_ID, batchJobId);
     query.setAttributeNames(BatchJobResult.ALL_EXCEPT_BLOB);
     query.addOrderBy(BatchJobResult.SEQUENCE_NUMBER, true);
@@ -496,8 +502,8 @@ public class CpfDataAccessObject {
   }
 
   public List<Record> getBatchJobsForUser(final String consumerKey) {
-    final Query query = Query.equal(this.batchJobMetaData, BatchJob.USER_ID,
-      consumerKey);
+    final Query query = Query.equal(this.batchJobRecordDefinition,
+      BatchJob.USER_ID, consumerKey);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
     final Reader<Record> reader = this.recordStore.query(query);
     try {
@@ -512,7 +518,7 @@ public class CpfDataAccessObject {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(BatchJob.USER_ID, consumerKey);
     filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-    final Query query = Query.and(this.batchJobMetaData, filter);
+    final Query query = Query.and(this.batchJobRecordDefinition, filter);
 
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
     final Reader<Record> reader = this.recordStore.query(query);
@@ -530,7 +536,7 @@ public class CpfDataAccessObject {
     filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
-    final Query query = Query.and(this.configPropertyMetaData, filter);
+    final Query query = Query.and(this.configPropertyRecordDefinition, filter);
 
     final Reader<Record> reader = this.recordStore.query(query);
     try {
@@ -545,7 +551,7 @@ public class CpfDataAccessObject {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
-    final Query query = Query.and(this.configPropertyMetaData, filter);
+    final Query query = Query.and(this.configPropertyRecordDefinition, filter);
     final Reader<Record> reader = this.recordStore.query(query);
     try {
       return reader.read();
@@ -561,7 +567,7 @@ public class CpfDataAccessObject {
     filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
-    final Query query = Query.and(this.configPropertyMetaData, filter);
+    final Query query = Query.and(this.configPropertyRecordDefinition, filter);
     final Reader<Record> reader = this.recordStore.query(query);
     try {
       return reader.read();
@@ -578,7 +584,7 @@ public class CpfDataAccessObject {
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
-    final Query query = Query.and(this.configPropertyMetaData, filter);
+    final Query query = Query.and(this.configPropertyRecordDefinition, filter);
     return this.recordStore.queryFirst(query);
   }
 
@@ -590,7 +596,8 @@ public class CpfDataAccessObject {
     filter.put(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     filter.put(BatchJobExecutionGroup.STARTED_IND, 0);
     filter.put(BatchJobExecutionGroup.COMPLETED_IND, 0);
-    final Query query = Query.and(this.batchJobExecutionGroupMetaData, filter);
+    final Query query = Query.and(this.batchJobExecutionGroupRecordDefinition,
+      filter);
     query.setAttributeNames(BatchJobExecutionGroup.SEQUENCE_NUMBER);
     query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
     query.setLimit(1);
@@ -611,13 +618,14 @@ public class CpfDataAccessObject {
    * @return The batch job ids.
    */
   public List<Long> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
-    final Query query = new Query(this.batchJobMetaData);
+    final Query query = new Query(this.batchJobRecordDefinition);
     query.setAttributeNames(BatchJob.BATCH_JOB_ID);
     final And and = new And(
       new In(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED,
-        BatchJob.DOWNLOAD_INITIATED, BatchJob.CANCELLED), Q.lessThan(
-        this.batchJobMetaData.getAttribute(BatchJob.WHEN_STATUS_CHANGED),
-          keepUntilTimestamp));
+        BatchJob.DOWNLOAD_INITIATED, BatchJob.CANCELLED),
+      Q.lessThan(
+          this.batchJobRecordDefinition.getAttribute(BatchJob.WHEN_STATUS_CHANGED),
+        keepUntilTimestamp));
     query.setWhereCondition(and);
     final Reader<Record> batchJobs = this.recordStore.query(query);
     try {
@@ -647,7 +655,7 @@ public class CpfDataAccessObject {
    * @return The user account if it exists, null otherwise.
    */
   public Record getUserAccount(final String consumerKey) {
-    final Query query = Query.equal(this.userAccountMetaData,
+    final Query query = Query.equal(this.userAccountRecordDefinition,
       UserAccount.CONSUMER_KEY, consumerKey);
     return this.recordStore.queryFirst(query);
   }
@@ -663,7 +671,7 @@ public class CpfDataAccessObject {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserAccount.USER_ACCOUNT_CLASS, userClass);
     filter.put(UserAccount.USER_NAME, userName);
-    final Query query = Query.and(this.userAccountMetaData, filter);
+    final Query query = Query.and(this.userAccountRecordDefinition, filter);
     return this.recordStore.queryFirst(query);
   }
 
@@ -672,7 +680,7 @@ public class CpfDataAccessObject {
       userGroup.getIdentifier());
     final Query query = new Query(UserAccount.USER_ACCOUNT, equal);
     query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
-        + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
+      + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
 
     final ResultPager<Record> pager = this.recordStore.page(query);
     return pager;
@@ -703,7 +711,7 @@ public class CpfDataAccessObject {
   }
 
   public Record getUserGroup(final String groupName) {
-    final Query query = Query.equal(this.userGroupMetaData,
+    final Query query = Query.equal(this.userGroupRecordDefinition,
       UserGroup.USER_GROUP_NAME, groupName);
     return this.recordStore.queryFirst(query);
   }
@@ -712,7 +720,7 @@ public class CpfDataAccessObject {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserGroup.MODULE_NAME, moduleName);
     filter.put(UserGroup.USER_GROUP_NAME, groupName);
-    final Query query = Query.and(this.userGroupMetaData, filter);
+    final Query query = Query.and(this.userGroupRecordDefinition, filter);
     return this.recordStore.queryFirst(query);
   }
 
@@ -725,9 +733,10 @@ public class CpfDataAccessObject {
     filter.put(UserGroupPermission.RESOURCE_CLASS, resourceClass);
     filter.put(UserGroupPermission.RESOURCE_ID, resourceId);
     filter.put(UserGroupPermission.ACTION_NAME, actionName);
-    final Query query = Query.and(this.userGroupPermissionMetaData, filter);
+    final Query query = Query.and(this.userGroupPermissionRecordDefinition,
+      filter);
     query.setFromClause("CPF.CPF_USER_GROUP_PERMISSIONS T"
-        + " JOIN CPF.CPF_USER_GROUPS G ON T.USER_GROUP_ID = G.USER_GROUP_ID");
+      + " JOIN CPF.CPF_USER_GROUPS G ON T.USER_GROUP_ID = G.USER_GROUP_ID");
     return this.recordStore.queryFirst(query);
   }
 
@@ -736,7 +745,8 @@ public class CpfDataAccessObject {
     final Map<String, Object> filter = new LinkedHashMap<String, Object>();
     filter.put(UserGroupPermission.USER_GROUP_ID, userGroup.getIdentifier());
     filter.put(UserGroupPermission.MODULE_NAME, moduleName);
-    final Query query = Query.and(this.userGroupPermissionMetaData, filter);
+    final Query query = Query.and(this.userGroupPermissionRecordDefinition,
+      filter);
     final Reader<Record> reader = this.recordStore.query(query);
     try {
       return reader.read();
@@ -746,7 +756,7 @@ public class CpfDataAccessObject {
   }
 
   public List<Record> getUserGroupsForModule(final String moduleName) {
-    final Query query = Query.equal(this.userGroupMetaData,
+    final Query query = Query.equal(this.userGroupRecordDefinition,
       UserGroup.MODULE_NAME, moduleName);
     final Reader<Record> reader = this.recordStore.query(query);
     try {
@@ -759,7 +769,7 @@ public class CpfDataAccessObject {
   public Set<Record> getUserGroupsForUserAccount(final Record userAccount) {
     final Query query = new Query(UserGroup.USER_GROUP);
     query.setFromClause("CPF.CPF_USER_GROUPS T"
-        + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
+      + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
     query.setWhereCondition(Q.equal(new JdbcLongAttribute("X.USER_ACCOUNT_ID"),
       userAccount.getIdentifier()));
@@ -791,7 +801,7 @@ public class CpfDataAccessObject {
       final DataSource dataSource = jdbcRecordStore.getDataSource();
       // TODO move to scheduling groups
       final String sql = "SELECT NUM_SUBMITTED_GROUPS - NUM_COMPLETED_GROUPS - NUM_SCHEDULED_GROUPS"
-          + " FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
+        + " FROM CPF.CPF_BATCH_JOBS WHERE BATCH_JOB_ID = ?";
       try {
         return JdbcUtils.selectInt(dataSource, sql, batchJobId) <= 0;
       } catch (final IllegalArgumentException e) {
@@ -856,15 +866,15 @@ public class CpfDataAccessObject {
   @SuppressWarnings("unchecked")
   protected void postProcessWriteStructuredResult(
     final com.revolsys.io.Writer<Record> structuredDataWriter,
-    final RecordDefinition resultMetaData,
+    final RecordDefinition resultRecordDefinition,
     final Map<String, Object> defaultProperties,
     final Map<String, Object> resultData) {
     final List<Map<String, Object>> results = (List<Map<String, Object>>)resultData.get("results");
     final Number sequenceNumber = (Number)resultData.get("requestSequenceNumber");
     int i = 1;
     for (final Map<String, Object> structuredResultMap : results) {
-      final Record structuredResult = RecordUtil.getObject(resultMetaData,
-        structuredResultMap);
+      final Record structuredResult = RecordUtil.getObject(
+        resultRecordDefinition, structuredResultMap);
 
       final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
       if (properties != null && !properties.isEmpty()) {
@@ -923,8 +933,8 @@ public class CpfDataAccessObject {
     final DataSource dataSource = jdbcRecordStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-        + "NUM_COMPLETED_GROUPS = NUM_SUBMITTED_GROUPS, NUM_SCHEDULED_GROUPS = 0, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
-        + "WHERE JOB_STATUS IN ('creatingRequests','creatingResults') AND BATCH_JOB_ID = ?";
+      + "NUM_COMPLETED_GROUPS = NUM_SUBMITTED_GROUPS, NUM_SCHEDULED_GROUPS = 0, STRUCTURED_INPUT_DATA = NULL, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "WHERE JOB_STATUS IN ('creatingRequests','creatingResults') AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       return JdbcUtils.executeUpdate(dataSource, sql, now, now, now,
@@ -939,8 +949,8 @@ public class CpfDataAccessObject {
     final DataSource dataSource = jdbcRecordStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-        + "JOB_STATUS = 'downloadInitiated', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
-        + "WHERE JOB_STATUS = 'resultsCreated' AND BATCH_JOB_ID = ?";
+      + "JOB_STATUS = 'downloadInitiated', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "WHERE JOB_STATUS = 'resultsCreated' AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
@@ -971,8 +981,8 @@ public class CpfDataAccessObject {
     final DataSource dataSource = jdbcRecordStore.getDataSource();
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-        + "NUM_COMPLETED_REQUESTS = 0, NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
-        + "WHERE JOB_STATUS = 'creatingRequests' AND BATCH_JOB_ID = ?";
+      + "NUM_COMPLETED_REQUESTS = 0, NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "WHERE JOB_STATUS = 'creatingRequests' AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
@@ -987,22 +997,22 @@ public class CpfDataAccessObject {
     final int numSubmittedRequests, final int numFailedRequests,
     final int groupSize, final int numGroups) {
     try (
-        Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final DataSource dataSource = jdbcRecordStore.getDataSource();
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-            + "NUM_SUBMITTED_REQUESTS = ?, "//
-            + "NUM_FAILED_REQUESTS = ?, "//
-            + "GROUP_SIZE = ?, "//
-            + "NUM_SUBMITTED_GROUPS = ?, "//
-            + "STRUCTURED_INPUT_DATA = NULL, "//
-            + "JOB_STATUS = 'requestsCreated', "//
-            + "LAST_SCHEDULED_TIMESTAMP = ?, "//
-            + "WHEN_STATUS_CHANGED = ?, "//
-            + "WHEN_UPDATED = ?, "//
-            + "WHO_UPDATED = ? "//
-            + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
+          + "NUM_SUBMITTED_REQUESTS = ?, "//
+          + "NUM_FAILED_REQUESTS = ?, "//
+          + "GROUP_SIZE = ?, "//
+          + "NUM_SUBMITTED_GROUPS = ?, "//
+          + "STRUCTURED_INPUT_DATA = NULL, "//
+          + "JOB_STATUS = 'requestsCreated', "//
+          + "LAST_SCHEDULED_TIMESTAMP = ?, "//
+          + "WHEN_STATUS_CHANGED = ?, "//
+          + "WHEN_UPDATED = ?, "//
+          + "WHO_UPDATED = ? "//
+          + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         final boolean result = JdbcUtils.executeUpdate(dataSource, sql,
           numSubmittedRequests, numFailedRequests, groupSize, numGroups, now,
@@ -1018,22 +1028,22 @@ public class CpfDataAccessObject {
     final int numSubmittedRequests, final int numFailedRequests,
     final int groupSize, final int numGroups) {
     try (
-        Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final DataSource dataSource = jdbcRecordStore.getDataSource();
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-            + "NUM_SUBMITTED_REQUESTS = ?, "//
-            + "NUM_FAILED_REQUESTS = ?, "//
-            + "GROUP_SIZE = ?, "//
-            + "NUM_SUBMITTED_GROUPS = ?, "//
-            + "STRUCTURED_INPUT_DATA = NULL, "//
-            + "JOB_STATUS = 'processed', "//
-            + "LAST_SCHEDULED_TIMESTAMP = ?, "//
-            + "WHEN_STATUS_CHANGED = ?, "//
-            + "WHEN_UPDATED = ?, "//
-            + "WHO_UPDATED = ? "//
-            + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
+          + "NUM_SUBMITTED_REQUESTS = ?, "//
+          + "NUM_FAILED_REQUESTS = ?, "//
+          + "GROUP_SIZE = ?, "//
+          + "NUM_SUBMITTED_GROUPS = ?, "//
+          + "STRUCTURED_INPUT_DATA = NULL, "//
+          + "JOB_STATUS = 'processed', "//
+          + "LAST_SCHEDULED_TIMESTAMP = ?, "//
+          + "WHEN_STATUS_CHANGED = ?, "//
+          + "WHEN_UPDATED = ?, "//
+          + "WHO_UPDATED = ? "//
+          + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         final boolean result = JdbcUtils.executeUpdate(dataSource, sql,
           numSubmittedRequests, numFailedRequests, groupSize, numGroups, now,
@@ -1048,7 +1058,7 @@ public class CpfDataAccessObject {
   public boolean setBatchJobStatus(final long batchJobId,
     final String oldJobStatus, final String newJobStatus) {
     try (
-        Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final DataSource dataSource = jdbcRecordStore.getDataSource();
@@ -1077,7 +1087,7 @@ public class CpfDataAccessObject {
         @SuppressWarnings("unchecked")
         final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
         final StringConverter<Object> converter = StringConverterRegistry.getInstance()
-            .getConverter(dataTypeClass);
+          .getConverter(dataTypeClass);
         if (converter == null) {
           stringValue = value.toString();
         } else {
@@ -1094,15 +1104,15 @@ public class CpfDataAccessObject {
 
   public void setRecordStore(final RecordStore recordStore) {
     this.recordStore = recordStore;
-    this.batchJobMetaData = recordStore.getRecordDefinition(BatchJob.BATCH_JOB);
-    this.batchJobExecutionGroupMetaData = recordStore.getRecordDefinition(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    this.batchJobResultMetaData = recordStore.getRecordDefinition(BatchJobResult.BATCH_JOB_RESULT);
-    this.businessApplicationStatisticsMetaData = recordStore.getRecordDefinition(BusinessApplicationStatistics.APPLICATION_STATISTICS);
-    this.configPropertyMetaData = recordStore.getRecordDefinition(ConfigProperty.CONFIG_PROPERTY);
-    this.userAccountMetaData = recordStore.getRecordDefinition(UserAccount.USER_ACCOUNT);
-    this.userGroupMetaData = recordStore.getRecordDefinition(UserGroup.USER_GROUP);
-    this.userGroupPermissionMetaData = recordStore.getRecordDefinition(UserGroupPermission.USER_GROUP_PERMISSION);
-    this.userGroupAccountXrefMetaData = recordStore.getRecordDefinition(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
+    this.batchJobRecordDefinition = recordStore.getRecordDefinition(BatchJob.BATCH_JOB);
+    this.batchJobExecutionGroupRecordDefinition = recordStore.getRecordDefinition(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
+    this.batchJobResultRecordDefinition = recordStore.getRecordDefinition(BatchJobResult.BATCH_JOB_RESULT);
+    this.businessApplicationStatisticsRecordDefinition = recordStore.getRecordDefinition(BusinessApplicationStatistics.APPLICATION_STATISTICS);
+    this.configPropertyRecordDefinition = recordStore.getRecordDefinition(ConfigProperty.CONFIG_PROPERTY);
+    this.userAccountRecordDefinition = recordStore.getRecordDefinition(UserAccount.USER_ACCOUNT);
+    this.userGroupRecordDefinition = recordStore.getRecordDefinition(UserGroup.USER_GROUP);
+    this.userGroupPermissionRecordDefinition = recordStore.getRecordDefinition(UserGroupPermission.USER_GROUP_PERMISSION);
+    this.userGroupAccountXrefRecordDefinition = recordStore.getRecordDefinition(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
   }
 
   /**
@@ -1117,9 +1127,9 @@ public class CpfDataAccessObject {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final DataSource dataSource = jdbcRecordStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-          + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS + 1,"
-          + " WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-          + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
+        + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS + 1,"
+        + " WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
+        + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, now, now, batchJobId);
@@ -1155,11 +1165,11 @@ public class CpfDataAccessObject {
         jobController.setStructuredResultData(batchJobId, sequenceNumber,
           batchJobExecutionGroup, resultData);
         final int numCompletedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS)
-            + successCount;
+          + successCount;
         batchJobExecutionGroup.setValue(
           BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, numCompletedRequests);
         final int numFailedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_FAILED_REQUESTS)
-            + errorCount;
+          + errorCount;
         batchJobExecutionGroup.setValue(
           BatchJobExecutionGroup.NUM_FAILED_REQUESTS, numFailedRequests);
         write(batchJobExecutionGroup);
@@ -1174,13 +1184,13 @@ public class CpfDataAccessObject {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final DataSource dataSource = jdbcRecordStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-          + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS - ?,"
-          + "NUM_COMPLETED_GROUPS = NUM_COMPLETED_GROUPS + ?,"
-          + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
-          + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
-          + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
+        + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS - ?,"
+        + "NUM_COMPLETED_GROUPS = NUM_COMPLETED_GROUPS + ?,"
+        + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
+        + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
+        + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
       try (
-          Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
         try {
           final int result = JdbcUtils.executeUpdate(dataSource, sql,
             numGroups, numGroups, numCompletedRequests, numFailedRequests,
@@ -1209,8 +1219,8 @@ public class CpfDataAccessObject {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final DataSource dataSource = jdbcRecordStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-          + "JOB_STATUS = 'processed', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-          + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ? AND NUM_COMPLETED_REQUESTS + NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS";
+        + "JOB_STATUS = 'processed', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
+        + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ? AND NUM_COMPLETED_REQUESTS + NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS";
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, now, now,
@@ -1238,8 +1248,8 @@ public class CpfDataAccessObject {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final DataSource dataSource = jdbcRecordStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-          + "JOB_STATUS = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-          + "WHERE JOB_STATUS = ? AND BUSINESS_APPLICATION_NAME = ?";
+        + "JOB_STATUS = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
+        + "WHERE JOB_STATUS = ? AND BUSINESS_APPLICATION_NAME = ?";
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, newStatus, now, now,
@@ -1268,12 +1278,12 @@ public class CpfDataAccessObject {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final DataSource dataSource = jdbcRecordStore.getDataSource();
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-          + "NUM_SCHEDULED_GROUPS = 0,"
-          + " NUM_COMPLETED_REQUESTS = COALESCE((SELECT SUM(NUM_COMPLETED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
-          + " NUM_FAILED_REQUESTS = COALESCE((SELECT SUM(NUM_FAILED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
-          + " NUM_COMPLETED_GROUPS = COALESCE((SELECT COUNT(SEQUENCE_NUMBER) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
-          + " WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-          + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ?";
+        + "NUM_SCHEDULED_GROUPS = 0,"
+        + " NUM_COMPLETED_REQUESTS = COALESCE((SELECT SUM(NUM_COMPLETED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " NUM_FAILED_REQUESTS = COALESCE((SELECT SUM(NUM_FAILED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " NUM_COMPLETED_GROUPS = COALESCE((SELECT COUNT(SEQUENCE_NUMBER) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
+        + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ?";
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(dataSource, sql, now, now,
@@ -1304,7 +1314,7 @@ public class CpfDataAccessObject {
 
   public void write(final Record record) {
     try (
-        final Writer<Record> writer = this.recordStore.getWriter()) {
+      final Writer<Record> writer = this.recordStore.getWriter()) {
       write(writer, record);
     }
   }
@@ -1317,7 +1327,7 @@ public class CpfDataAccessObject {
         final RecordDefinition recordDefinition = record.getRecordDefinition();
 
         if (recordDefinition.getIdAttributeIndex() != -1
-            && record.getIdentifier() == null) {
+          && record.getIdentifier() == null) {
           final Object id = this.recordStore.createPrimaryIdValue(recordDefinition.getPath());
           record.setIdValue(id);
         }
@@ -1325,13 +1335,13 @@ public class CpfDataAccessObject {
         record.setValue(Common.WHEN_CREATED, time);
         record.setValue(Common.WHO_UPDATED, username);
         record.setValue(Common.WHEN_UPDATED, time);
-        break;
+      break;
       case Modified:
         record.setValue(Common.WHO_UPDATED, username);
         record.setValue(Common.WHEN_UPDATED, time);
-        break;
+      break;
       default:
-        break;
+      break;
     }
     writer.write(record);
   }
@@ -1339,27 +1349,28 @@ public class CpfDataAccessObject {
   public int writeGroupResults(final JobController jobController,
     final long batchJobId, final int startIndex, final int endIndex,
     final BusinessApplication application,
-    final RecordDefinition resultMetaData, final MapWriter errorResultWriter,
+    final RecordDefinition resultRecordDefinition,
+    final MapWriter errorResultWriter,
     final com.revolsys.io.Writer<Record> structuredResultWriter,
     final Map<String, Object> defaultProperties) {
     int mask = 0;
     try (
-        Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        final Attribute sequenceNumberAttribute = this.batchJobExecutionGroupMetaData.getAttribute(BatchJobExecutionGroup.SEQUENCE_NUMBER);
+        final Attribute sequenceNumberAttribute = this.batchJobExecutionGroupRecordDefinition.getAttribute(BatchJobExecutionGroup.SEQUENCE_NUMBER);
         final Between between = Q.between(sequenceNumberAttribute, startIndex,
           endIndex);
         final Equal batchJobIdEqual = Q.equal(
           BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
         final And whereCondition = Q.and(batchJobIdEqual, between);
-        final Query query = new Query(this.batchJobExecutionGroupMetaData,
-          whereCondition);
+        final Query query = new Query(
+          this.batchJobExecutionGroupRecordDefinition, whereCondition);
         query.setOrderByColumns(BatchJobExecutionGroup.SEQUENCE_NUMBER);
         query.setAttributeNames(BatchJobExecutionGroup.SEQUENCE_NUMBER,
           BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
 
         try (
-            final Reader<Record> reader = getRecordStore().query(query);) {
+          final Reader<Record> reader = getRecordStore().query(query);) {
           for (final Record batchJobExecutionGroup : reader) {
             final Long groupSequenceNumber = batchJobExecutionGroup.getLong(BatchJobExecutionGroup.SEQUENCE_NUMBER);
             final Map<String, Object> resultDataMap = jobController.getStructuredResultData(
@@ -1375,7 +1386,7 @@ public class CpfDataAccessObject {
                   mask |= 4;
                 } else if (!application.isPerRequestResultData()) {
                   postProcessWriteStructuredResult(structuredResultWriter,
-                    resultMetaData, defaultProperties, resultData);
+                    resultRecordDefinition, defaultProperties, resultData);
                   mask |= 2;
                 }
               }
@@ -1404,8 +1415,8 @@ public class CpfDataAccessObject {
           }
         } catch (final Throwable e) {
           throw new RuntimeException("Unable to read results. batchJobId="
-              + batchJobId + "\t" + startIndex + " <= SEQUENCE_NUMBER <= "
-              + endIndex, e);
+            + batchJobId + "\t" + startIndex + " <= SEQUENCE_NUMBER <= "
+            + endIndex, e);
         }
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);

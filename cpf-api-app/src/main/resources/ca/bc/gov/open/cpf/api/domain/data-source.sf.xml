@@ -41,7 +41,7 @@
         <entry
           key="label"
           value="CPF" />
-        <entry key="typeMetaDataProperties">
+        <entry key="typeRecordDefinitionProperties">
           <map>
             <entry key="/CPF/CPF_BATCH_JOBS">
               <list>

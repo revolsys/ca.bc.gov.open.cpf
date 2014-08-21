@@ -38,7 +38,6 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.util.StopWatch;
-import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
@@ -174,7 +173,7 @@ public class ClassLoaderModule implements Module {
     this.businessApplicationRegistry = businessApplicationRegistry;
     this.name = moduleName;
     this.log = new AppLog(moduleName, "INFO");
-    environmentId = businessApplicationRegistry.getEnvironmentId();
+    this.environmentId = businessApplicationRegistry.getEnvironmentId();
   }
 
   public ClassLoaderModule(
@@ -194,13 +193,13 @@ public class ClassLoaderModule implements Module {
 
   public void addModuleError(String message, final Throwable e) {
     if (Property.hasValue(message)) {
-      log.error("Unable to initialize module " + getName() + ":\n  " + message,
-        e);
+      this.log.error("Unable to initialize module " + getName() + ":\n  "
+          + message, e);
       if (e != null) {
         message += ":\n  " + ExceptionUtil.toString(e);
       }
     } else {
-      log.error("Unable to initialize module " + getName(), e);
+      this.log.error("Unable to initialize module " + getName(), e);
       message = ExceptionUtil.toString(e);
     }
 
@@ -257,7 +256,7 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public void clearModuleError() {
-    moduleError = "";
+    this.moduleError = "";
   }
 
   private void closeAppLogAppender(final String name) {
@@ -272,15 +271,15 @@ public class ClassLoaderModule implements Module {
   @PreDestroy
   public void destroy() {
     doStop();
-    if (classLoader instanceof URLClassLoader) {
-      final URLClassLoader urlClassLoader = (URLClassLoader)classLoader;
+    if (this.classLoader instanceof URLClassLoader) {
+      final URLClassLoader urlClassLoader = (URLClassLoader)this.classLoader;
       try {
         urlClassLoader.close();
       } catch (final IOException e) {
       }
     }
-    classLoader = null;
-    businessApplicationRegistry = null;
+    this.classLoader = null;
+    this.businessApplicationRegistry = null;
   }
 
   @Override
@@ -309,30 +308,32 @@ public class ClassLoaderModule implements Module {
         stopWatch.start();
         initAppLogAppender(null);
         setStatus("Starting");
-        log.info("Start\tModule Start\tmoduleName=" + name);
+        this.log.info("Start\tModule Start\tmoduleName=" + this.name);
         clearModuleError();
         try {
           initializeGroupPermissions();
           preLoadApplications();
           if (!isHasError()) {
             for (final String businessApplicationName : getBusinessApplicationNames()) {
-              log.info("Found business application " + businessApplicationName
-                + " from " + configUrl);
+              this.log.info("Found business application "
+                  + businessApplicationName + " from " + this.configUrl);
             }
             loadBusinessApplications();
-            businessApplicationRegistry.clearModuleToAppCache();
+            this.businessApplicationRegistry.clearModuleToAppCache();
             if (isHasError()) {
-              businessApplicationRegistry.moduleEvent(this,
+              this.businessApplicationRegistry.moduleEvent(this,
                 ModuleEvent.START_FAILED);
             } else {
               setStatus("Started");
-              businessApplicationRegistry.moduleEvent(this, ModuleEvent.START);
+              this.businessApplicationRegistry.moduleEvent(this,
+                ModuleEvent.START);
             }
           }
         } catch (final Throwable e) {
           addModuleError(e);
         }
-        AppLogUtil.info(log, "End\tModule Start\tmoduleName=" + name, stopWatch);
+        AppLogUtil.info(this.log, "End\tModule Start\tmoduleName=" + this.name,
+          stopWatch);
       }
     } else {
       setStatus("Disabled");
@@ -343,30 +344,31 @@ public class ClassLoaderModule implements Module {
     setStatus("Stopping");
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
-    log.info("Start\tModule Stop\tmoduleName=" + name);
-    started = false;
-    applicationsLoaded = false;
-    if (applicationContext != null && applicationContext.isActive()) {
-      applicationContext.close();
+    this.log.info("Start\tModule Stop\tmoduleName=" + this.name);
+    this.started = false;
+    this.applicationsLoaded = false;
+    if (this.applicationContext != null && this.applicationContext.isActive()) {
+      this.applicationContext.close();
     }
-    final List<String> names = businessApplicationNames;
-    applicationContext = null;
-    businessApplicationsByName = Collections.emptyMap();
-    businessApplicationsToBeanNames = Collections.emptyMap();
-    businessApplicationNames = Collections.emptyList();
-    permissionsByGroupName = null;
-    groupNamesToDelete = null;
-    businessApplicationRegistry.clearModuleToAppCache();
+    final List<String> names = this.businessApplicationNames;
+    this.applicationContext = null;
+    this.businessApplicationsByName = Collections.emptyMap();
+    this.businessApplicationsToBeanNames = Collections.emptyMap();
+    this.businessApplicationNames = Collections.emptyList();
+    this.permissionsByGroupName = null;
+    this.groupNamesToDelete = null;
+    this.businessApplicationRegistry.clearModuleToAppCache();
     for (final String businessApplicationName : names) {
-      closeAppLogAppender(name + "." + businessApplicationName);
+      closeAppLogAppender(this.name + "." + businessApplicationName);
     }
     try {
-      businessApplicationRegistry.moduleEvent(this, ModuleEvent.STOP);
+      this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.STOP);
     } finally {
-      lastStartTime = getStartedTime();
-      startedDate = null;
-      AppLogUtil.info(log, "End\tModule Stop\tmoduleName=" + name, stopWatch);
-      closeAppLogAppender(name);
+      this.lastStartTime = getStartedTime();
+      this.startedDate = null;
+      AppLogUtil.info(this.log, "End\tModule Stop\tmoduleName=" + this.name,
+        stopWatch);
+      closeAppLogAppender(this.name);
       if (isEnabled()) {
         setStatus("Stopped");
       } else {
@@ -389,7 +391,7 @@ public class ClassLoaderModule implements Module {
 
   private synchronized GenericApplicationContext getApplicationContext() {
     loadApplications();
-    return applicationContext;
+    return this.applicationContext;
   }
 
   @Override
@@ -398,13 +400,13 @@ public class ClassLoaderModule implements Module {
     if (businessApplicationName == null) {
       return null;
     } else {
-      return businessApplicationsByName.get(businessApplicationName);
+      return this.businessApplicationsByName.get(businessApplicationName);
     }
   }
 
   @Override
   public List<String> getBusinessApplicationNames() {
-    return businessApplicationNames;
+    return this.businessApplicationNames;
   }
 
   @Override
@@ -425,7 +427,7 @@ public class ClassLoaderModule implements Module {
           + businessApplicationName + ": unable to get application context");
       } else {
         try {
-          final String beanName = businessApplicationsToBeanNames.get(application);
+          final String beanName = this.businessApplicationsToBeanNames.get(application);
           plugin = applicationContext.getBean(beanName);
           final PluginAdaptor pluginAdaptor = new PluginAdaptor(application,
             plugin, executionId, logLevel);
@@ -451,7 +453,7 @@ public class ClassLoaderModule implements Module {
   }
 
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
-    return businessApplicationRegistry;
+    return this.businessApplicationRegistry;
   }
 
   @Override
@@ -470,12 +472,12 @@ public class ClassLoaderModule implements Module {
     final Class<?> pluginClass,
     final Map<String, Map<String, Object>> propertiesByName) {
     final String className = pluginClass.getName();
-    final BusinessApplicationPlugin pluginMetadata = pluginClass.getAnnotation(BusinessApplicationPlugin.class);
-    if (pluginMetadata == null) {
+    final BusinessApplicationPlugin pluginAnnotation = pluginClass.getAnnotation(BusinessApplicationPlugin.class);
+    if (pluginAnnotation == null) {
       throw new IllegalArgumentException(className
         + " does not have the annotation " + BusinessApplicationPlugin.class);
     } else {
-      String businessApplicationName = pluginMetadata.name();
+      String businessApplicationName = pluginAnnotation.name();
       if (businessApplicationName == null
         || businessApplicationName.trim().length() == 0) {
         businessApplicationName = className.substring(
@@ -483,54 +485,54 @@ public class ClassLoaderModule implements Module {
       }
 
       final BusinessApplication businessApplication = new BusinessApplication(
-        pluginMetadata, this, businessApplicationName);
+        pluginAnnotation, this, businessApplicationName);
 
       final Map<String, Object> defaultProperties = propertiesByName.get("default");
       businessApplication.setProperties(defaultProperties);
       final Map<String, Object> properties = propertiesByName.get(businessApplicationName);
       businessApplication.setProperties(properties);
 
-      businessApplication.setCoordinateSystems(coordinateSystems);
+      businessApplication.setCoordinateSystems(this.coordinateSystems);
 
-      final String descriptionUrl = pluginMetadata.descriptionUrl();
+      final String descriptionUrl = pluginAnnotation.descriptionUrl();
       businessApplication.setDescriptionUrl(descriptionUrl);
 
-      final String description = pluginMetadata.description();
+      final String description = pluginAnnotation.description();
       businessApplication.setDescription(description);
 
-      final String title = pluginMetadata.title();
+      final String title = pluginAnnotation.title();
       if (title != null && title.trim().length() > 0) {
         businessApplication.setTitle(title);
       }
 
-      final String instantModePermission = pluginMetadata.instantModePermission();
+      final String instantModePermission = pluginAnnotation.instantModePermission();
       businessApplication.setInstantModePermission(instantModePermission);
 
-      final String batchModePermission = pluginMetadata.batchModePermission();
+      final String batchModePermission = pluginAnnotation.batchModePermission();
       businessApplication.setBatchModePermission(batchModePermission);
 
-      String packageName = pluginMetadata.packageName();
+      String packageName = pluginAnnotation.packageName();
       if (!Property.hasValue(packageName)) {
         packageName = "ca.bc.gov." + moduleName.toLowerCase();
       }
       businessApplication.setPackageName(packageName);
 
-      final boolean perRequestInputData = pluginMetadata.perRequestInputData();
+      final boolean perRequestInputData = pluginAnnotation.perRequestInputData();
       businessApplication.setPerRequestInputData(perRequestInputData);
 
-      final boolean perRequestResultData = pluginMetadata.perRequestResultData();
+      final boolean perRequestResultData = pluginAnnotation.perRequestResultData();
       businessApplication.setPerRequestResultData(perRequestResultData);
 
-      final int maxRequestsPerJob = pluginMetadata.maxRequestsPerJob();
+      final int maxRequestsPerJob = pluginAnnotation.maxRequestsPerJob();
       businessApplication.setMaxRequestsPerJob(maxRequestsPerJob);
 
-      final int numRequestsPerWorker = pluginMetadata.numRequestsPerWorker();
+      final int numRequestsPerWorker = pluginAnnotation.numRequestsPerWorker();
       businessApplication.setNumRequestsPerWorker(numRequestsPerWorker);
 
-      final int maxConcurrentRequests = pluginMetadata.maxConcurrentRequests();
+      final int maxConcurrentRequests = pluginAnnotation.maxConcurrentRequests();
       businessApplication.setMaxConcurrentRequests(maxConcurrentRequests);
 
-      final String logLevel = pluginMetadata.logLevel();
+      final String logLevel = pluginAnnotation.logLevel();
       businessApplication.setLogLevel(logLevel);
 
       final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
@@ -564,7 +566,7 @@ public class ClassLoaderModule implements Module {
         }
       }
       if (perRequestResultData) {
-        final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
+        final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
         try {
           pluginClass.getMethod("setResultData", OutputStream.class);
         } catch (final Throwable e) {
@@ -584,7 +586,7 @@ public class ClassLoaderModule implements Module {
             e);
         }
         businessApplication.setPerRequestResultData(true);
-        if (resultMetaData.getAttributeCount() > 0) {
+        if (resultRecordDefinition.getAttributeCount() > 0) {
           throw new IllegalArgumentException("Business Application "
             + businessApplicationName
             + " cannot have a setResultData method and result fields");
@@ -598,8 +600,8 @@ public class ClassLoaderModule implements Module {
 
       } else {
         if (resultListMethod == null) {
-          final RecordDefinition resultMetaData = businessApplication.getResultMetaData();
-          if (resultMetaData.getAttributeCount() == 0) {
+          final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+          if (resultRecordDefinition.getAttributeCount() == 0) {
             throw new IllegalArgumentException("Business Application "
               + businessApplicationName + " must have result fields");
           }
@@ -609,7 +611,7 @@ public class ClassLoaderModule implements Module {
       }
 
       final IoFactoryRegistry ioFactoryRegistry = IoFactoryRegistry.getInstance();
-      final String[] inputDataContentTypes = pluginMetadata.inputDataContentTypes();
+      final String[] inputDataContentTypes = pluginAnnotation.inputDataContentTypes();
       if (perRequestInputData) {
         if (inputDataContentTypes.length == 0) {
           businessApplication.addInputDataContentType("*/*",
@@ -653,7 +655,7 @@ public class ClassLoaderModule implements Module {
         }
       }
 
-      final String[] resultDataContentTypes = pluginMetadata.resultDataContentTypes();
+      final String[] resultDataContentTypes = pluginAnnotation.resultDataContentTypes();
       if (perRequestResultData) {
         if (resultDataContentTypes.length == 0) {
           businessApplication.addResultDataContentType("*/*", "*",
@@ -702,8 +704,8 @@ public class ClassLoaderModule implements Module {
         }
       }
 
-      final RecordDefinitionImpl requestMetaData = businessApplication.getRequestMetaData();
-      final Attribute resultDataContentType = requestMetaData.getAttribute("resultDataContentType");
+      final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+      final Attribute resultDataContentType = requestRecordDefinition.getAttribute("resultDataContentType");
       final Set<String> resultDataContentTypeSet = businessApplication.getResultDataContentTypes();
       resultDataContentType.setAllowedValues(businessApplication.getResultDataFileExtensions());
 
@@ -731,32 +733,32 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public ClassLoader getClassLoader() {
-    return classLoader;
+    return this.classLoader;
   }
 
   private Map<String, Object> getConfigProperties(final String moduleName,
     final String componentName) {
-    if (configPropertyLoader == null) {
+    if (this.configPropertyLoader == null) {
       return new HashMap<String, Object>();
     } else {
-      final Map<String, Object> configProperties = configPropertyLoader.getConfigProperties(
+      final Map<String, Object> configProperties = this.configPropertyLoader.getConfigProperties(
         moduleName, componentName);
       return configProperties;
     }
   }
 
   public ConfigPropertyLoader getConfigPropertyLoader() {
-    return configPropertyLoader;
+    return this.configPropertyLoader;
   }
 
   @Override
   public URL getConfigUrl() {
-    return configUrl;
+    return this.configUrl;
   }
 
   /**
    * Get the geometry factory instance for the specified geometry configuration.
-   * 
+   *
    * @param geometryFactory
    * @param message The message to prefix any log messages with.
    * @param geometryConfiguration The geometry configuration.
@@ -767,7 +769,7 @@ public class ClassLoaderModule implements Module {
     final GeometryConfiguration geometryConfiguration) {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
-      log.warn(message + " srid must be >= 0");
+      this.log.warn(message + " srid must be >= 0");
       srid = geometryFactory.getSrid();
     } else if (srid == 0) {
       srid = geometryFactory.getSrid();
@@ -776,31 +778,31 @@ public class ClassLoaderModule implements Module {
     if (axisCount == 0) {
       axisCount = geometryFactory.getAxisCount();
     } else if (axisCount < 2) {
-      log.warn(message + " axisCount must be >= 2");
+      this.log.warn(message + " axisCount must be >= 2");
       axisCount = 2;
     } else if (axisCount > 3) {
-      log.warn(message + " axisCount must be <= 3");
+      this.log.warn(message + " axisCount must be <= 3");
       axisCount = 3;
     }
     double scaleXy = geometryConfiguration.scaleFactorXy();
     if (scaleXy == 0) {
       scaleXy = geometryFactory.getScaleXY();
     } else if (scaleXy < 0) {
-      log.warn(message + " scaleXy must be >= 0");
+      this.log.warn(message + " scaleXy must be >= 0");
       scaleXy = geometryFactory.getScaleXY();
     }
     double scaleZ = geometryConfiguration.scaleFactorZ();
     if (scaleXy == 0) {
       scaleXy = geometryFactory.getScaleZ();
     } else if (scaleZ < 0) {
-      log.warn(message + " scaleZ must be >= 0");
+      this.log.warn(message + " scaleZ must be >= 0");
       scaleZ = geometryFactory.getScaleZ();
     }
     return GeometryFactory.fixed(srid, axisCount, scaleXy, scaleZ);
   }
 
   public Set<String> getGroupNamesToDelete() {
-    return groupNamesToDelete;
+    return this.groupNamesToDelete;
   }
 
   @Override
@@ -823,25 +825,25 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public long getLastStartTime() {
-    return lastStartTime;
+    return this.lastStartTime;
   }
 
   public AppLog getLog() {
-    return log;
+    return this.log;
   }
 
   @Override
   public String getModuleDescriptor() {
-    if (classLoader == null) {
+    if (this.classLoader == null) {
       return "Class Loader Module undefined";
     } else {
-      return classLoader.toString();
+      return this.classLoader.toString();
     }
   }
 
   @Override
   public String getModuleError() {
-    return moduleError;
+    return this.moduleError;
   }
 
   @Override
@@ -851,37 +853,37 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public String getName() {
-    return name;
+    return this.name;
   }
 
   @Override
   public Map<String, Set<ResourcePermission>> getPermissionsByGroupName() {
-    return permissionsByGroupName;
+    return this.permissionsByGroupName;
   }
 
   @Override
   public Date getStartedDate() {
-    return startedDate;
+    return this.startedDate;
   }
 
   @Override
   public long getStartedTime() {
-    if (startedDate == null) {
+    if (this.startedDate == null) {
       return -1;
     } else {
-      return startedDate.getTime();
+      return this.startedDate.getTime();
     }
   }
 
   public String getStatus() {
-    return status;
+    return this.status;
   }
 
   private List<Map<String, Object>> getUserGroupMaps() {
     try {
       final ClassLoader classLoader = getClassLoader();
       if (!isHasError()) {
-        final String parentUrl = UrlUtil.getParentString(configUrl);
+        final String parentUrl = UrlUtil.getParentString(this.configUrl);
         final Enumeration<URL> urls = classLoader.getResources("META-INF/ca.bc.gov.open.cpf.plugin.UserGroups.json");
         while (urls.hasMoreElements()) {
           final URL userGroups = urls.nextElement();
@@ -910,21 +912,22 @@ public class ClassLoaderModule implements Module {
     final boolean isApp = Property.hasValue(businessApplicationName);
     if (isApp) {
       logName += "." + businessApplicationName;
-      fileName = name + "_" + businessApplicationName + "_" + environmentId;
+      fileName = this.name + "_" + businessApplicationName + "_"
+          + this.environmentId;
     } else {
-      fileName = name + "_" + environmentId;
+      fileName = this.name + "_" + this.environmentId;
     }
     final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
     synchronized (logger) {
       logger.removeAllAppenders();
-      final File rootDirectory = businessApplicationRegistry.getAppLogDirectory();
+      final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null
         || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
         logger.setAdditivity(true);
       } else {
         logger.setAdditivity(false);
 
-        File logDirectory = FileUtil.getDirectory(rootDirectory, name);
+        File logDirectory = FileUtil.getDirectory(rootDirectory, this.name);
         if (isApp) {
           logDirectory = FileUtil.getDirectory(logDirectory,
             businessApplicationName);
@@ -969,7 +972,7 @@ public class ClassLoaderModule implements Module {
           } else if (groupNamesToDelete.contains(groupName)) {
             addModuleError("A UserGroup cannot be deleted and created in the same file: "
               + pluginGroup);
-          } else if (groupName.startsWith("ROLE_" + name.toUpperCase())
+          } else if (groupName.startsWith("ROLE_" + this.name.toUpperCase())
             && "delete".equalsIgnoreCase(action)) {
             groupNamesToDelete.add(groupName);
           } else {
@@ -988,12 +991,12 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public boolean isApplicationsLoaded() {
-    return applicationsLoaded;
+    return this.applicationsLoaded;
   }
 
   @Override
   public boolean isEnabled() {
-    return enabled;
+    return this.enabled;
   }
 
   public boolean isGroupNameValid(final String groupName) {
@@ -1005,7 +1008,7 @@ public class ClassLoaderModule implements Module {
   }
 
   public boolean isInitialized() {
-    return initialized;
+    return this.initialized;
   }
 
   @Override
@@ -1015,53 +1018,54 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public boolean isRemoteable() {
-    return remoteable;
+    return this.remoteable;
   }
 
   @Override
   public boolean isStarted() {
-    return started;
+    return this.started;
   }
 
   @Override
   public void loadApplications() {
     if (isStarted() && !isApplicationsLoaded()) {
 
-      log.debug("Loading spring config file " + configUrl);
+      this.log.debug("Loading spring config file " + this.configUrl);
       try {
         final ClassLoader classLoader = getClassLoader();
-        applicationContext = new GenericApplicationContext();
-        applicationContext.setClassLoader(classLoader);
+        this.applicationContext = new GenericApplicationContext();
+        this.applicationContext.setClassLoader(classLoader);
 
         AnnotationConfigUtils.registerAnnotationConfigProcessors(
-          applicationContext, null);
+          this.applicationContext, null);
         final AttributesBeanConfigurer attributesConfig = new AttributesBeanConfigurer(
-          applicationContext);
-        applicationContext.addBeanFactoryPostProcessor(attributesConfig);
-        registerConfigPropertyBeans(name, applicationContext, configUrl);
+          this.applicationContext);
+        this.applicationContext.addBeanFactoryPostProcessor(attributesConfig);
+        registerConfigPropertyBeans(this.name, this.applicationContext,
+          this.configUrl);
 
         final XmlBeanDefinitionReader beanReader = new XmlBeanDefinitionReader(
-          applicationContext);
+          this.applicationContext);
         beanReader.setBeanClassLoader(classLoader);
-        beanReader.loadBeanDefinitions(new UrlResource(configUrl));
-        if (applicationContext.containsBeanDefinition("beanImports")) {
+        beanReader.loadBeanDefinitions(new UrlResource(this.configUrl));
+        if (this.applicationContext.containsBeanDefinition("beanImports")) {
           @SuppressWarnings("unchecked")
-          final List<String> beanImports = (List<String>)applicationContext.getBean("beanImports");
+          final List<String> beanImports = (List<String>)this.applicationContext.getBean("beanImports");
           for (final String beanImport : beanImports) {
             try {
-              final Resource[] resources = applicationContext.getResources(beanImport);
+              final Resource[] resources = this.applicationContext.getResources(beanImport);
               for (final Resource resource : resources) {
                 beanReader.loadBeanDefinitions(resource);
               }
             } catch (final Throwable e) {
               addModuleError("Error loading bean import " + beanImport
-                + " from " + configUrl, e);
+                + " from " + this.configUrl, e);
             }
           }
         }
         if (!isHasError()) {
-          applicationContext.refresh();
-          applicationsLoaded = true;
+          this.applicationContext.refresh();
+          this.applicationsLoaded = true;
         }
       } catch (final Throwable t) {
         addModuleError(t);
@@ -1077,14 +1081,14 @@ public class ClassLoaderModule implements Module {
     try {
       if (isEnabled()) {
         final ClassLoader classLoader = getClassLoader();
-        log.info("Start\tLoading plugin\tclass=" + pluginClassName);
+        this.log.info("Start\tLoading plugin\tclass=" + pluginClassName);
         final Class<?> pluginClass = Class.forName(pluginClassName.trim(),
           true, classLoader);
         final BusinessApplication businessApplication = getBusinessApplicaton(
           moduleName, pluginClass, propertiesByName);
         final String pluginName = businessApplication.getName();
         businessApplicationsByName.put(pluginName, businessApplication);
-        log.info("End\tLoading plugin\tclass=" + pluginClassName
+        this.log.info("End\tLoading plugin\tclass=" + pluginClassName
           + "\tbusinessApplicationName=" + pluginName);
         return businessApplication;
       }
@@ -1102,7 +1106,7 @@ public class ClassLoaderModule implements Module {
     final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<BusinessApplication, String>();
     clearModuleError();
     final Map<String, BusinessApplication> businessApplicationsByName = new HashMap<String, BusinessApplication>();
-    log.debug("Loading spring config file " + configUrl);
+    this.log.debug("Loading spring config file " + this.configUrl);
     final GenericApplicationContext applicationContext = new GenericApplicationContext();
     try {
       final ClassLoader classLoader = getClassLoader();
@@ -1110,7 +1114,7 @@ public class ClassLoaderModule implements Module {
       final XmlBeanDefinitionReader beanReader = new XmlBeanDefinitionReader(
         applicationContext);
       beanReader.setBeanClassLoader(classLoader);
-      beanReader.loadBeanDefinitions(new UrlResource(configUrl));
+      beanReader.loadBeanDefinitions(new UrlResource(this.configUrl));
 
       Map<String, Map<String, Object>> propertiesByName;
       if (applicationContext.containsBean("properties")) {
@@ -1128,7 +1132,7 @@ public class ClassLoaderModule implements Module {
             if (BeanDefinition.SCOPE_PROTOTYPE.equals(scope)) {
 
               final BusinessApplication businessApplication = loadBusinessApplication(
-                businessApplicationsByName, name, pluginClassName,
+                businessApplicationsByName, this.name, pluginClassName,
                 propertiesByName);
               if (businessApplication != null) {
                 final String businessApplicationName = businessApplication.getName();
@@ -1159,21 +1163,25 @@ public class ClassLoaderModule implements Module {
             } else {
               addModuleError("Plugin bean scope " + scope
                 + " != expected value prototype " + pluginClassName + " from "
-                + configUrl);
+                + this.configUrl);
             }
           } else if (beanName.equals("properties")) {
 
           } else if (!beanName.equals("beanImports")
             && !beanName.equals("name") && !beanName.equals("properties")) {
             addModuleError("Plugin spring file cannot have any non-plugin beans "
-              + beanName + " class=" + pluginClassName + " from " + configUrl);
+              + beanName
+                + " class="
+                + pluginClassName
+                + " from "
+                + this.configUrl);
           }
         } catch (final Throwable e) {
           addModuleError("Error loading plugin " + beanName + " from "
-            + configUrl, e);
+            + this.configUrl, e);
         }
       }
-      registerConfigPropertyBeans(name, applicationContext, configUrl);
+      registerConfigPropertyBeans(this.name, applicationContext, this.configUrl);
     } finally {
       applicationContext.close();
     }
@@ -1182,10 +1190,10 @@ public class ClassLoaderModule implements Module {
     } else {
       this.businessApplicationNames = new ArrayList<String>(
         businessApplicationNames);
-      if (startedDate == null) {
-        startedDate = date;
+      if (this.startedDate == null) {
+        this.startedDate = date;
       }
-      started = true;
+      this.started = true;
       this.businessApplicationsByName = businessApplicationsByName;
       this.businessApplicationsToBeanNames = businessApplicationsToBeanNames;
     }
@@ -1201,22 +1209,22 @@ public class ClassLoaderModule implements Module {
     final String methodName = method.getName();
 
     String descriptionUrl = null;
-    final JobParameter jobParameterMetadata = method.getAnnotation(JobParameter.class);
-    if (jobParameterMetadata != null) {
-      final String jobDescriptionUrl = jobParameterMetadata.descriptionUrl();
+    final JobParameter jobParameterAnnotation = method.getAnnotation(JobParameter.class);
+    if (jobParameterAnnotation != null) {
+      final String jobDescriptionUrl = jobParameterAnnotation.descriptionUrl();
       if (Property.hasValue(jobDescriptionUrl)) {
         descriptionUrl = jobDescriptionUrl;
       }
     }
-    final RequestParameter requestParameterMetadata = method.getAnnotation(RequestParameter.class);
-    if (requestParameterMetadata != null) {
-      final String requestDescriptionUrl = requestParameterMetadata.descriptionUrl();
+    final RequestParameter requestParameterAnnotation = method.getAnnotation(RequestParameter.class);
+    if (requestParameterAnnotation != null) {
+      final String requestDescriptionUrl = requestParameterAnnotation.descriptionUrl();
       if (Property.hasValue(requestDescriptionUrl)) {
         descriptionUrl = requestDescriptionUrl;
       }
     }
-    final boolean requestParameter = requestParameterMetadata != null;
-    final boolean jobParameter = jobParameterMetadata != null;
+    final boolean requestParameter = requestParameterAnnotation != null;
+    final boolean jobParameter = jobParameterAnnotation != null;
     if (requestParameter || jobParameter) {
       final Class<?>[] parameterTypes = method.getParameterTypes();
       final Class<?>[] standardMethodParameters = STANDARD_METHODS.get(methodName);
@@ -1229,19 +1237,19 @@ public class ClassLoaderModule implements Module {
           String minValue;
           String maxValue;
           if (requestParameter) {
-            description = requestParameterMetadata.description();
-            length = requestParameterMetadata.length();
-            scale = requestParameterMetadata.scale();
-            units = requestParameterMetadata.units();
-            minValue = requestParameterMetadata.minValue();
-            maxValue = requestParameterMetadata.maxValue();
+            description = requestParameterAnnotation.description();
+            length = requestParameterAnnotation.length();
+            scale = requestParameterAnnotation.scale();
+            units = requestParameterAnnotation.units();
+            minValue = requestParameterAnnotation.minValue();
+            maxValue = requestParameterAnnotation.maxValue();
           } else {
-            description = jobParameterMetadata.description();
-            length = jobParameterMetadata.length();
-            scale = jobParameterMetadata.scale();
-            units = jobParameterMetadata.units();
-            minValue = jobParameterMetadata.minValue();
-            maxValue = jobParameterMetadata.maxValue();
+            description = jobParameterAnnotation.description();
+            length = jobParameterAnnotation.length();
+            scale = jobParameterAnnotation.scale();
+            units = jobParameterAnnotation.units();
+            minValue = jobParameterAnnotation.minValue();
+            maxValue = jobParameterAnnotation.maxValue();
           }
           final String parameterName = methodName.substring(3, 4).toLowerCase()
             + methodName.substring(4);
@@ -1271,14 +1279,14 @@ public class ClassLoaderModule implements Module {
               + parameterType);
           } else {
             int index = -1;
-            if (jobParameterMetadata != null) {
-              final int jobParameterIndex = jobParameterMetadata.index();
+            if (jobParameterAnnotation != null) {
+              final int jobParameterIndex = jobParameterAnnotation.index();
               if (jobParameterIndex != -1) {
                 index = jobParameterIndex;
               }
             }
-            if (index == -1 && requestParameterMetadata != null) {
-              final int requestParameterIndex = requestParameterMetadata.index();
+            if (index == -1 && requestParameterAnnotation != null) {
+              final int requestParameterIndex = requestParameterAnnotation.index();
               if (requestParameterIndex != -1) {
                 index = 100000 + requestParameterIndex;
               }
@@ -1373,8 +1381,8 @@ public class ClassLoaderModule implements Module {
       }
 
     } else if (fieldMetadata != null) {
-      if ((methodName.startsWith("get") && methodName.length() > 3)
-        || (methodName.startsWith("is") && methodName.length() > 2)) {
+      if (methodName.startsWith("get") && methodName.length() > 3
+        || methodName.startsWith("is") && methodName.length() > 2) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length == 0) {
           final String attributeName = JavaBeanUtil.getPropertyName(methodName);
@@ -1428,8 +1436,8 @@ public class ClassLoaderModule implements Module {
   private void processResultListMethod(
     final BusinessApplication businessApplication, final Method resultListMethod) {
     final String businessApplicationName = businessApplication.getName();
-    RecordDefinition resultMetaData = businessApplication.getResultMetaData();
-    if (resultMetaData.getAttributeCount() > 0) {
+    RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+    if (resultRecordDefinition.getAttributeCount() > 0) {
       throw new IllegalArgumentException("Business Application "
         + businessApplicationName
         + " may not have result fields and the annotation " + ResultList.class);
@@ -1443,8 +1451,8 @@ public class ClassLoaderModule implements Module {
       for (final Method method : JavaBeanUtil.getMethods(resultClass)) {
         processResultAttribute(resultClass, businessApplication, method, true);
       }
-      resultMetaData = businessApplication.getResultMetaData();
-      if (resultMetaData.getAttributeCount() == 0) {
+      resultRecordDefinition = businessApplication.getResultRecordDefinition();
+      if (resultRecordDefinition.getAttributeCount() == 0) {
         throw new IllegalArgumentException("Business Application "
           + businessApplicationName + " result class " + resultClass.getName()
           + " must have result fields");
@@ -1496,7 +1504,7 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public void restart() {
-    getBusinessApplicationRegistry().restartModule(name);
+    getBusinessApplicationRegistry().restartModule(this.name);
   }
 
   public void setClassLoader(final ClassLoader classLoader) {
@@ -1531,7 +1539,7 @@ public class ClassLoaderModule implements Module {
       setStatus("Start Requested");
       final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
       if (businessApplicationRegistry != null) {
-        businessApplicationRegistry.startModule(name);
+        businessApplicationRegistry.startModule(this.name);
       }
     }
   }
@@ -1541,7 +1549,7 @@ public class ClassLoaderModule implements Module {
     setStatus("Stop Requested");
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     if (businessApplicationRegistry != null) {
-      businessApplicationRegistry.stopModule(name);
+      businessApplicationRegistry.stopModule(this.name);
     }
   }
 

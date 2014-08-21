@@ -21,7 +21,6 @@ import java.util.Map.Entry;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.MethodUtils;
 import org.apache.log4j.Logger;
-import org.springframework.util.StringUtils;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -113,7 +112,7 @@ public class PluginAdaptor {
     final String resultListProperty = this.application.getResultListProperty();
 
     final boolean testMode = this.application.isTestModeEnabled()
-        && BooleanStringConverter.isTrue(this.testParameters.get("cpfPluginTest"));
+      && BooleanStringConverter.isTrue(this.testParameters.get("cpfPluginTest"));
     try {
       if (testMode) {
         double minTime = CollectionUtil.getDouble(this.testParameters,
@@ -161,11 +160,11 @@ public class PluginAdaptor {
         throw (Error)cause;
       } else {
         throw new RuntimeException("Unable to invoke execute on "
-            + this.application.getName(), cause);
+          + this.application.getName(), cause);
       }
     } catch (final Throwable t) {
       throw new RuntimeException("Unable to invoke execute on "
-          + this.application.getName(), t);
+        + this.application.getName(), t);
     }
     if (this.application.isHasCustomizationProperties()) {
       try {
@@ -217,9 +216,9 @@ public class PluginAdaptor {
 
   private Map<String, Object> getResult(final Object resultObject,
     final boolean resultList, final boolean test) {
-    final RecordDefinition resultMetaData = this.application.getResultMetaData();
+    final RecordDefinition resultRecordDefinition = this.application.getResultRecordDefinition();
     final Map<String, Object> result = new HashMap<String, Object>();
-    for (final Attribute attribute : resultMetaData.getAttributes()) {
+    for (final Attribute attribute : resultRecordDefinition.getAttributes()) {
       final String fieldName = attribute.getName();
       if (!INTERNAL_PROPERTY_NAMES.contains(fieldName)) {
         Object value = null;
@@ -228,7 +227,7 @@ public class PluginAdaptor {
         } catch (final Throwable t) {
           if (!test) {
             throw new IllegalArgumentException("Could not read property "
-                + this.application.getName() + "." + fieldName, t);
+              + this.application.getName() + "." + fieldName, t);
           }
         }
         if (value == null && test) {
@@ -272,11 +271,11 @@ public class PluginAdaptor {
               final Polygon polygon = boundingBox.toPolygon(10);
               value = GeometryFactory.wgs84().multiPolygon(polygon);
             } else if (GeometryCollection.class.isAssignableFrom(typeClass)
-                || MultiPoint.class.isAssignableFrom(typeClass)) {
+              || MultiPoint.class.isAssignableFrom(typeClass)) {
               final Point point = GeometryFactory.wgs84().point(-125, 53);
               value = GeometryFactory.wgs84().multiPoint(point);
             } else if (Geometry.class.isAssignableFrom(typeClass)
-                || Point.class.isAssignableFrom(typeClass)) {
+              || Point.class.isAssignableFrom(typeClass)) {
               value = GeometryFactory.wgs84().point(-125, 53);
             } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
               // JTS
@@ -316,7 +315,7 @@ public class PluginAdaptor {
                   polygon
                 });
               } else if (com.vividsolutions.jts.geom.GeometryCollection.class.isAssignableFrom(typeClass)
-                  || com.vividsolutions.jts.geom.MultiPoint.class.isAssignableFrom(typeClass)) {
+                || com.vividsolutions.jts.geom.MultiPoint.class.isAssignableFrom(typeClass)) {
                 final Coordinate[] coordinates = new Coordinate[] {
                   new Coordinate(-125, 53)
                 };
@@ -352,13 +351,13 @@ public class PluginAdaptor {
             geometry = geometryFactory.geometry(geometry);
             if (geometry.getSrid() == 0) {
               throw new IllegalArgumentException(
-                  "Geometry does not have a coordinate system (SRID) specified");
+                "Geometry does not have a coordinate system (SRID) specified");
             }
             final Boolean validateGeometry = attribute.getProperty(AttributeProperties.VALIDATE_GEOMETRY);
             if (validateGeometry == true) {
               if (!geometry.isValid()) {
                 throw new IllegalArgumentException("Geometry is not valid for"
-                    + this.application.getName() + "." + fieldName);
+                  + this.application.getName() + "." + fieldName);
               }
             }
             result.put(fieldName, geometry);
@@ -370,7 +369,7 @@ public class PluginAdaptor {
       }
     }
     final Map<String, Object> customizationProperties = new LinkedHashMap<String, Object>(
-        this.customizationProperties);
+      this.customizationProperties);
     if (resultList && this.application.isHasResultListCustomizationProperties()) {
       final Map<String, Object> resultListProperties = Property.get(
         resultObject, "customizationProperties");
@@ -400,8 +399,8 @@ public class PluginAdaptor {
       }
     }
 
-    final RecordDefinitionImpl requestMetaData = this.application.getRequestMetaData();
-    for (final Attribute attribute : requestMetaData.getAttributes()) {
+    final RecordDefinitionImpl requestRecordDefinition = this.application.getRequestRecordDefinition();
+    for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
       final String parameterName = attribute.getName();
       final Object parameterValue = parameters.get(parameterName);
       attribute.validate(parameterValue);
@@ -453,8 +452,8 @@ public class PluginAdaptor {
   public void setPluginProperty(final String parameterName,
     Object parameterValue) {
     try {
-      final RecordDefinitionImpl requestMetaData = this.application.getRequestMetaData();
-      final Class<?> attributeClass = requestMetaData.getAttributeClass(parameterName);
+      final RecordDefinitionImpl requestRecordDefinition = this.application.getRequestRecordDefinition();
+      final Class<?> attributeClass = requestRecordDefinition.getAttributeClass(parameterName);
       if (attributeClass != null) {
         parameterValue = StringConverterRegistry.toObject(attributeClass,
           parameterValue);
@@ -463,7 +462,7 @@ public class PluginAdaptor {
       this.parameters.put(parameterName, parameterValue);
     } catch (final Throwable t) {
       throw new IllegalArgumentException(this.application.getName() + "."
-          + parameterName + " could not be set", t);
+        + parameterName + " could not be set", t);
     }
   }
 
