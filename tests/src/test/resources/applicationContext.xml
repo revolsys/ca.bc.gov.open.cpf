@@ -9,5 +9,4 @@
 >
   <import resource="classpath:ca/bc/gov/open/cpf/api/api.sf.xml"/>
   <import resource="dataSource.sf.xml" />
-  <import resource="jpa.sf.xml" />
-</beans>
+ </beans>

@@ -142,22 +142,7 @@ shown on multiple lines. For example.</p>
 
 <figure>
 <pre class="prettyprint">2014-07-17 17:08:25,305  ERROR ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess Could not open JDBC Connection for transaction; nested exception is java.sql.SQLRecoverableException: IO Error: The Network Adapter could not establish the connection
-org.springframework.transaction.CannotCreateTransactionException: Could not open JDBC Connection for transaction; nested exception is java.sql.SQLRecoverableException: IO Error: The Network Adapter could not establish the connection
-  at org.springframework.jdbc.datasource.DataSourceTransactionManager.doBegin(DataSourceTransactionManager.java:240)
-  at org.springframework.transaction.support.AbstractPlatformTransactionManager.getTransaction(AbstractPlatformTransactionManager.java:371)
-  at org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary(TransactionAspectSupport.java:335)
-  at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:105)
-  at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:172)
-  at org.springframework.aop.framework.Cglib2AopProxy$DynamicAdvisedInterceptor.intercept(Cglib2AopProxy.java:621)
-  at ca.bc.gov.open.cpf.api.scheduler.BatchJobService$$EnhancerByCGLIB$$c33c333b.scheduleFromDatabase(<generated>)
-  at ca.bc.gov.open.cpf.api.scheduler.AbstractBatchJobChannelProcess.run(AbstractBatchJobChannelProcess.java:69)
-  at com.revolsys.parallel.process.AbstractInOutProcess.run(AbstractInOutProcess.java:99)
-  at com.revolsys.parallel.process.ProcessRunnable.doRun(ProcessRunnable.java:19)
-  at com.revolsys.parallel.AbstractRunnable.run(AbstractRunnable.java:74)
-  at com.revolsys.logging.log4j.ThreadLocalAppenderRunnable.doRun(ThreadLocalAppenderRunnable.java:30)
-  at com.revolsys.parallel.AbstractRunnable.run(AbstractRunnable.java:74)
-  at java.lang.Thread.run(Thread.java:745)
-Caused by: java.sql.SQLRecoverableException: IO Error: The Network Adapter could not establish the connection
+java.sql.SQLRecoverableException: IO Error: The Network Adapter could not establish the connection
   at oracle.jdbc.driver.T4CConnection.logon(T4CConnection.java:458)
   at oracle.jdbc.driver.PhysicalConnection.<init>(PhysicalConnection.java:546)
   at oracle.jdbc.driver.T4CConnection.<init>(T4CConnection.java:236)
@@ -174,7 +159,6 @@ Caused by: java.sql.SQLRecoverableException: IO Error: The Network Adapter could
   at oracle.jdbc.pool.OracleDataSource.getConnection(OracleDataSource.java:395)
   at oracle.jdbc.pool.OracleDataSource.getConnection(OracleDataSource.java:179)
   at oracle.jdbc.pool.OracleDataSource.getConnection(OracleDataSource.java:157)
-  at org.springframework.jdbc.datasource.DataSourceTransactionManager.doBegin(DataSourceTransactionManager.java:202)
   ... 13 more
 Caused by: oracle.net.ns.NetException: The Network Adapter could not establish the connection
   at oracle.net.nt.ConnStrategy.execute(ConnStrategy.java:392)
