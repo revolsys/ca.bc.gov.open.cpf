@@ -85,7 +85,7 @@ import com.revolsys.spring.ByteArrayResource;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.spring.OutputStreamResource;
-import com.revolsys.ui.html.HtmlUtil;
+import com.revolsys.util.HtmlUtil;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.decorator.CollapsibleBox;
 import com.revolsys.ui.html.decorator.TableBody;
