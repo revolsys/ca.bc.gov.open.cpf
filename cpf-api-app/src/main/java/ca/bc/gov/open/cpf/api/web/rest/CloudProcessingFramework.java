@@ -67,7 +67,7 @@ import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.ArrayRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordUtil;
-import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
@@ -85,7 +85,6 @@ import com.revolsys.spring.ByteArrayResource;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.spring.OutputStreamResource;
-import com.revolsys.util.HtmlUtil;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.decorator.CollapsibleBox;
 import com.revolsys.ui.html.decorator.TableBody;
@@ -134,6 +133,7 @@ import com.revolsys.ui.web.utils.MultipartFileResource;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.HtmlUtil;
 import com.revolsys.util.Property;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -253,7 +253,7 @@ public class CloudProcessingFramework {
 
   private void addFieldRow(final Map<String, String> fieldSectionMap,
     final Map<String, ElementContainer> sectionContainers,
-    final Attribute attribute) {
+    final FieldDefinition attribute) {
     final Field field = getField(attribute);
     final String name = attribute.getName();
     final String label = CaseConverter.toCapitalizedWords(name);
@@ -269,8 +269,8 @@ public class CloudProcessingFramework {
   private void addFieldRow(final Map<String, String> fieldSectionMap,
     final Map<String, ElementContainer> sectionContainers,
     final RecordDefinitionImpl recordDefinition, final String name) {
-    if (recordDefinition.hasAttribute(name)) {
-      final Attribute attribute = recordDefinition.getAttribute(name);
+    if (recordDefinition.hasField(name)) {
+      final FieldDefinition attribute = recordDefinition.getField(name);
       addFieldRow(fieldSectionMap, sectionContainers, attribute);
     }
   }
@@ -281,7 +281,7 @@ public class CloudProcessingFramework {
     final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
     addFieldRow(fieldSectionMap, sectionContainers, requestRecordDefinition,
       "srid");
-    if (requestRecordDefinition.hasAttribute("resultSrid")) {
+    if (requestRecordDefinition.hasField("resultSrid")) {
       for (final String name : Arrays.asList("resultSrid", "resultNumAxis",
         "resultScaleFactorXy", "resultScaleFactorZ")) {
         addFieldRow(fieldSectionMap, sectionContainers,
@@ -380,7 +380,7 @@ public class CloudProcessingFramework {
   }
 
   private void addParameter(final List<Map<String, Object>> parameters,
-    final Attribute attribute, final boolean perRequestInputData) {
+    final FieldDefinition attribute, final boolean perRequestInputData) {
     final String name = attribute.getName();
     final String typeDescription = attribute.getTypeDescription();
     final String description = attribute.getDescription();
@@ -722,7 +722,7 @@ public class CloudProcessingFramework {
       }
 
       final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
-      for (final Attribute parameter : requestRecordDefinition.getAttributes()) {
+      for (final FieldDefinition parameter : requestRecordDefinition.getFields()) {
         final String parameterName = parameter.getName();
         String value = HttpServletUtils.getParameter(parameterName);
         final boolean jobParameter = businessApplication.isJobParameter(parameterName);
@@ -975,7 +975,7 @@ public class CloudProcessingFramework {
       }
       final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
       final Record inputData = new ArrayRecord(requestRecordDefinition);
-      for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+      for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
         final String parameterName = attribute.getName();
         String value = HttpServletUtils.getParameter(parameterName);
         final boolean required = attribute.isRequired();
@@ -1495,7 +1495,7 @@ public class CloudProcessingFramework {
             final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
             final Record requestParameters = new ArrayRecord(
               requestRecordDefinition);
-            for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+            for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
               final String name = attribute.getName();
               String value = HttpServletUtils.getParameter(name);
               boolean hasValue = Property.hasValue(value);
@@ -2128,7 +2128,7 @@ public class CloudProcessingFramework {
           "ca/bc/gov/open/cpf/api/web/service/structuredInputData.html");
       }
       final RecordDefinition requestRecordDefinition = businessApplication.getRequestRecordDefinition();
-      final List<Attribute> requestAttributes = requestRecordDefinition.getAttributes();
+      final List<FieldDefinition> requestAttributes = requestRecordDefinition.getFields();
       final List<KeySerializer> serializers = new ArrayList<KeySerializer>();
       serializers.add(new StringKeySerializer("name"));
       serializers.add(new BooleanImageKeySerializer("properties."
@@ -2143,7 +2143,7 @@ public class CloudProcessingFramework {
       serializers.add(new StringKeySerializer("defaultValue", "Default"));
       serializers.add(new StringKeySerializer("description"));
 
-      final Attribute inputDataContentType = new Attribute(
+      final FieldDefinition inputDataContentType = new FieldDefinition(
         "inputDataContentType",
         DataTypes.STRING,
         false,
@@ -2152,25 +2152,25 @@ public class CloudProcessingFramework {
       inputDataContentType.setDefaultValue(businessApplication.getDefaultInputDataContentType());
       requestAttributes.add(0, inputDataContentType);
 
-      final Attribute inputData = new Attribute("inputData",
+      final FieldDefinition inputData = new FieldDefinition("inputData",
         new SimpleDataType("File", File.class), false,
         "The multi-part file containing the input data.");
       inputData.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(1, inputData);
 
-      final Attribute inputDataUrl = new Attribute("inputDataUrl",
+      final FieldDefinition inputDataUrl = new FieldDefinition("inputDataUrl",
         DataTypes.STRING, false,
         "The http: URL to the file or resource containing input data.");
       inputDataUrl.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(2, inputDataUrl);
 
-      final Attribute notificationEmail = new Attribute("notificationEmail",
+      final FieldDefinition notificationEmail = new FieldDefinition("notificationEmail",
         DataTypes.STRING, false,
         "The email address to send the job status to when the job is completed.");
       notificationEmail.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(notificationEmail);
 
-      final Attribute notificationUrl = new Attribute(
+      final FieldDefinition notificationUrl = new FieldDefinition(
         "notificationUrl",
         DataTypes.STRING,
         false,
@@ -2195,7 +2195,7 @@ public class CloudProcessingFramework {
       } else {
         container.add(new XmlTagElement(HtmlUtil.H2, "Result Fields"));
         final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
-        final List<Attribute> resultAttributes = resultRecordDefinition.getAttributes();
+        final List<FieldDefinition> resultAttributes = resultRecordDefinition.getFields();
         final List<KeySerializer> resultSerializers = new ArrayList<KeySerializer>();
         resultSerializers.add(new StringKeySerializer("name"));
         resultSerializers.add(new StringKeySerializer("typeDescription", "Type"));
@@ -2213,7 +2213,7 @@ public class CloudProcessingFramework {
     return container;
   }
 
-  private Field getField(final Attribute attribute) {
+  private Field getField(final FieldDefinition attribute) {
     final String name = attribute.getName();
     final boolean required = attribute.isRequired();
     final DataType dataType = attribute.getType();
@@ -2300,7 +2300,7 @@ public class CloudProcessingFramework {
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
     final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
-    for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name) || !perRequestInputData) {
@@ -2338,7 +2338,7 @@ public class CloudProcessingFramework {
     final Form form = new Form("clientMultiple", url);
     form.setEncType(Form.MULTIPART_FORM_DATA);
 
-    for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name)) {
@@ -2490,7 +2490,7 @@ public class CloudProcessingFramework {
     final Form form = new Form("createSingle", url);
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
-    for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name) || !perRequestInputData) {
@@ -2912,7 +2912,7 @@ public class CloudProcessingFramework {
       false, perRequestInputData, Collections.emptyList());
 
     final RecordDefinition requestRecordDefinition = businessApplication.getRequestRecordDefinition();
-    for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       addParameter(parameters, attribute, perRequestInputData);
     }
 
@@ -2954,7 +2954,7 @@ public class CloudProcessingFramework {
     final List<Map<String, Object>> resultAttributes = new ArrayList<Map<String, Object>>();
 
     final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
-    for (final Attribute attribute : resultRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : resultRecordDefinition.getFields()) {
       final String name = attribute.getName();
       final String typeDescription = attribute.getTypeDescription();
       final String description = attribute.getDescription();

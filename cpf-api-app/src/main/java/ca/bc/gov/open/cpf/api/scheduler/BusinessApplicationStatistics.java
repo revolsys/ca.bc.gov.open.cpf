@@ -280,7 +280,7 @@ public class BusinessApplicationStatistics {
     final long seconds = (time / 1000) % 60;
     final long minutes = (time / (60 * 1000)) % 60;
     final long hours = time / (60 * 60 * 1000);
-    final StringBuffer s = new StringBuffer();
+    final StringBuilder s = new StringBuilder();
     if (hours < 10) {
       s.append("0");
     }

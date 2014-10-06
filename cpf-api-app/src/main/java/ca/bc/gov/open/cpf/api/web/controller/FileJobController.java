@@ -27,7 +27,7 @@ public class FileJobController extends AbstractJobController {
   }
 
   public static String toPath(final long id) {
-    final StringBuffer path = new StringBuffer();
+    final StringBuilder path = new StringBuilder();
     if (id < 0) {
       path.append('-');
     }

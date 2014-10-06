@@ -51,7 +51,7 @@ import org.apache.http.protocol.HttpContext;
  * <li>In your DigestHttpClient, add an instance of this interceptor.
  * </ul>
  * Here's an example using OAuth:
- * 
+ *
  * <pre>
  * context = new BasicHttpContext();
  * context.setAttribute(ClientContext.AUTH_SCHEME_PREF,
@@ -65,7 +65,7 @@ import org.apache.http.protocol.HttpContext;
  *   ProtectedResource.REALM);
  * client.addRequestInterceptor(new PreemptiveAuthorizer(), 0);
  * </pre>
- * 
+ *
  * @author John Kristian
  */
 public class PreemptiveAuthorizer implements HttpRequestInterceptor {
@@ -80,7 +80,7 @@ public class PreemptiveAuthorizer implements HttpRequestInterceptor {
   })
   @Override
   public void process(final HttpRequest request, final HttpContext context)
-    throws HttpException, IOException {
+      throws HttpException, IOException {
     final AuthState authState = (AuthState)context.getAttribute(ClientContext.TARGET_AUTH_STATE);
     if (authState != null && authState.getAuthScheme() != null) {
       return;

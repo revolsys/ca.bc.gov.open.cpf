@@ -22,7 +22,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.data.equals.EqualsRegistry;
-import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataTypes;
@@ -43,7 +43,7 @@ import com.revolsys.util.Property;
  * @version 1.0
  */
 public class BusinessApplication extends AbstractObjectWithProperties implements
-  Comparable<BusinessApplication> {
+Comparable<BusinessApplication> {
 
   public static String getDefaultFileExtension(
     final Map<String, ?> fileExtensionMap) {
@@ -72,13 +72,13 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public static final String CORE_PARAMETER = BusinessApplication.class.getName()
-    + "/CORE_PARAMETER";
+      + "/CORE_PARAMETER";
 
   public static final String JOB_PARAMETER = BusinessApplication.class.getName()
-    + "/JOB_PARAMETER";
+      + "/JOB_PARAMETER";
 
   public static final String REQUEST_PARAMETER = BusinessApplication.class.getName()
-    + "/REQUEST_PARAMETER";
+      + "/REQUEST_PARAMETER";
 
   private String packageName;
 
@@ -166,13 +166,13 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private BusinessApplicationPlugin pluginAnnotation;
 
-  private final Map<String, Attribute> requestAttributeByNameMap = new TreeMap<String, Attribute>();
+  private final Map<String, FieldDefinition> requestAttributeByNameMap = new TreeMap<>();
 
-  private final Map<Integer, Attribute> requestAttributeMap = new TreeMap<Integer, Attribute>();
+  private final Map<Integer, FieldDefinition> requestAttributeMap = new TreeMap<>();
 
   private RecordDefinitionImpl requestRecordDefinition;
 
-  private final Map<Integer, Attribute> resultAttributeMap = new TreeMap<Integer, Attribute>();
+  private final Map<Integer, FieldDefinition> resultAttributeMap = new TreeMap<>();
 
   /**
    * The resultDataContentTypes is the list of supported MIME content types the
@@ -222,12 +222,12 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.title = name;
   }
 
-  private void addAttributeRequestSrid() {
-    final Attribute requestSrid = new Attribute(
+  private void addFieldRequestSrid() {
+    final FieldDefinition requestSrid = new FieldDefinition(
       "srid",
       DataTypes.INT,
       false,
-      "The coordinate system code of the source geometry. This value is used if the input data file does not specify a coordinate system.");
+        "The coordinate system code of the source geometry. This value is used if the input data file does not specify a coordinate system.");
     requestSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
     requestSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
     Integer firstSrid = null;
@@ -245,15 +245,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     requestSrid.setDefaultValue(defaultValue);
     requestSrid.setMinValue(0);
-    this.requestRecordDefinition.addAttribute(requestSrid);
+    this.requestRecordDefinition.addField(requestSrid);
   }
 
-  private void addAttributeResultDataContentType() {
-    final Attribute resultDataContentType = new Attribute(
+  private void addFieldResultDataContentType() {
+    final FieldDefinition resultDataContentType = new FieldDefinition(
       "resultDataContentType",
       DataTypes.STRING,
       false,
-      "The MIME type of the result data specified to be returned after running the request.");
+        "The MIME type of the result data specified to be returned after running the request.");
     resultDataContentType.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
 
@@ -262,15 +262,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
       this.defaultResultDataContentType = getDefaultMimeType(this.resultDataContentTypes);
     }
     resultDataContentType.setDefaultValue(this.defaultResultDataFileExtension);
-    this.requestRecordDefinition.addAttribute(resultDataContentType);
+    this.requestRecordDefinition.addField(resultDataContentType);
   }
 
-  private void addAttributeResultNumAxis() {
-    final Attribute resultNumAxis = new Attribute(
+  private void addFieldResultNumAxis() {
+    final FieldDefinition resultNumAxis = new FieldDefinition(
       "resultNumAxis",
       DataTypes.INT,
       false,
-      "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
+        "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
     resultNumAxis.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
     resultNumAxis.addAllowedValue(2, "2D");
@@ -284,13 +284,13 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     resultNumAxis.setDefaultValue(defaultValue);
     resultNumAxis.setMinValue(2);
     resultNumAxis.setMaxValue(3);
-    this.requestRecordDefinition.addAttribute(resultNumAxis);
+    this.requestRecordDefinition.addField(resultNumAxis);
   }
 
-  private void addAttributeResultSrid() {
-    final Attribute resultSrid = new Attribute("resultSrid", DataTypes.INT,
-      false,
-      "The coordinate system code of the projection for the result geometry.");
+  private void addFieldResultSrid() {
+    final FieldDefinition resultSrid = new FieldDefinition("resultSrid",
+      DataTypes.INT, false,
+        "The coordinate system code of the projection for the result geometry.");
     resultSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
     Integer firstSrid = null;
@@ -308,15 +308,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     resultSrid.setDefaultValue(defaultValue);
     resultSrid.setMinValue(0);
-    this.requestRecordDefinition.addAttribute(resultSrid);
+    this.requestRecordDefinition.addField(resultSrid);
   }
 
-  private void addAttributeScaleFactorXy() {
-    final Attribute resultScaleFactorXy = new Attribute(
+  private void addFieldScaleFactorXy() {
+    final FieldDefinition resultScaleFactorXy = new FieldDefinition(
       "resultScaleFactorXy",
       DataTypes.DOUBLE,
       false,
-      "The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
+        "The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
     resultScaleFactorXy.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultScaleFactorXy.setProperty(BusinessApplication.JOB_PARAMETER, true);
 
@@ -326,15 +326,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     resultScaleFactorXy.setDefaultValue(defaultValue);
 
-    this.requestRecordDefinition.addAttribute(resultScaleFactorXy);
+    this.requestRecordDefinition.addField(resultScaleFactorXy);
   }
 
-  private void addAttributeScaleFactorZ() {
-    final Attribute resultScaleFactorZ = new Attribute(
+  private void addFieldScaleFactorZ() {
+    final FieldDefinition resultScaleFactorZ = new FieldDefinition(
       "resultScaleFactorZ",
       DataTypes.DOUBLE,
       false,
-      "The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
+        "The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
     resultScaleFactorZ.setProperty(BusinessApplication.CORE_PARAMETER, true);
     double defaultValue = Property.getDouble(this, "resultScaleFactorZ", 1000);
     if (defaultValue < 0) {
@@ -342,15 +342,15 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     }
     resultScaleFactorZ.setDefaultValue(defaultValue);
     resultScaleFactorZ.setProperty(BusinessApplication.JOB_PARAMETER, true);
-    this.requestRecordDefinition.addAttribute(resultScaleFactorZ);
+    this.requestRecordDefinition.addField(resultScaleFactorZ);
   }
 
   public void addInputDataContentType(final String contentType,
     final String description, final String fileExtension) {
     final String inputDataContentType = Property.getString(this,
-      "inputDataContentType");
+        "inputDataContentType");
     final String inputDataFileExtension = Property.getString(this,
-      "inputDataFileExtension");
+        "inputDataFileExtension");
     if (isContentTypeOrFileExtensionEqual(inputDataContentType, contentType,
       fileExtension)
       || isContentTypeOrFileExtensionEqual(inputDataFileExtension, contentType,
@@ -366,7 +366,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.inputFileExtensionToContentType.put(fileExtension, contentType);
   }
 
-  public void addRequestAttribute(int index, final Attribute attribute) {
+  public void addRequestAttribute(int index, final FieldDefinition attribute) {
     if (attribute == null) {
       throw new RuntimeException("Unknwon attribute");
     }
@@ -388,7 +388,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.requestAttributeByNameMap.put(attribute.getName(), attribute);
   }
 
-  public void addResultAttribute(int index, final Attribute attribute) {
+  public void addResultAttribute(int index, final FieldDefinition attribute) {
     if (index == -1) {
       index = 100000 + this.resultAttributeMap.size();
     }
@@ -407,9 +407,9 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public void addResultDataContentType(final String contentType,
     final String fileExtension, final String description) {
     final String resultDataContentType = Property.getString(this,
-      "resultDataContentType");
+        "resultDataContentType");
     final String resultDataFileExtension = Property.getString(this,
-      "resultDataFileExtension");
+        "resultDataFileExtension");
     if (isContentTypeOrFileExtensionEqual(resultDataContentType, contentType,
       fileExtension)
       || isContentTypeOrFileExtensionEqual(resultDataFileExtension,
@@ -561,9 +561,9 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public synchronized RecordDefinitionImpl getRequestRecordDefinition() {
-    if (this.requestRecordDefinition.getAttributeCount() == 0) {
+    if (this.requestRecordDefinition.getFieldCount() == 0) {
       if (this.requestAttributeMap.size() > 0) {
-        final Attribute requestSequenceNumber = this.requestRecordDefinition.addAttribute(
+        final FieldDefinition requestSequenceNumber = this.requestRecordDefinition.addField(
           "requestSequenceNumber", DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER,
           true);
@@ -575,19 +575,19 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
         }
 
         if (this.hasGeometryRequestAttribute) {
-          addAttributeRequestSrid();
+          addFieldRequestSrid();
         }
 
-        addAttributeResultDataContentType();
+        addFieldResultDataContentType();
 
         if (this.hasGeometryResultAttribute) {
-          addAttributeResultSrid();
-          addAttributeResultNumAxis();
-          addAttributeScaleFactorXy();
-          addAttributeScaleFactorZ();
+          addFieldResultSrid();
+          addFieldResultNumAxis();
+          addFieldScaleFactorXy();
+          addFieldScaleFactorZ();
         }
-        for (final Attribute attribute : this.requestAttributeMap.values()) {
-          this.requestRecordDefinition.addAttribute(attribute);
+        for (final FieldDefinition attribute : this.requestAttributeMap.values()) {
+          this.requestRecordDefinition.addField(attribute);
         }
       }
     }
@@ -616,19 +616,19 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public synchronized RecordDefinition getResultRecordDefinition() {
-    if (this.resultRecordDefinition.getAttributeCount() == 0) {
+    if (this.resultRecordDefinition.getFieldCount() == 0) {
       if (this.resultAttributeMap.size() > 0) {
-        this.resultRecordDefinition.addAttribute(new Attribute(
+        this.resultRecordDefinition.addField(new FieldDefinition(
           "sequenceNumber", DataTypes.INT, true,
-          "The index of the request record that this result relates to."));
+            "The index of the request record that this result relates to."));
         if (this.resultListProperty != null) {
-          this.resultRecordDefinition.addAttribute(new Attribute(
+          this.resultRecordDefinition.addField(new FieldDefinition(
             "resultNumber", DataTypes.INT, true,
-            "The index of the result record within the result for a request."));
+              "The index of the result record within the result for a request."));
         }
-        for (final Attribute attribute : this.resultAttributeMap.values()) {
+        for (final FieldDefinition attribute : this.resultAttributeMap.values()) {
           final String name = attribute.getName();
-          final Attribute requestAttribute = this.requestAttributeByNameMap.get(name);
+          final FieldDefinition requestAttribute = this.requestAttributeByNameMap.get(name);
           if (requestAttribute != null) {
             String description = attribute.getDescription();
             if (!Property.hasValue(description)) {
@@ -642,7 +642,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
             }
           }
 
-          this.resultRecordDefinition.addAttribute(attribute);
+          this.resultRecordDefinition.addField(attribute);
         }
       }
     }
@@ -660,17 +660,17 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     final String contentType, final String fileExtension) {
     if (Property.hasValue(match)) {
       return EqualsRegistry.equal(match, contentType)
-        || EqualsRegistry.equal(match, fileExtension);
+          || EqualsRegistry.equal(match, fileExtension);
     } else {
       return false;
     }
   }
 
   public boolean isCoreParameter(final String attributeName) {
-    final Attribute attribute = this.requestRecordDefinition.getAttribute(attributeName);
+    final FieldDefinition attribute = this.requestRecordDefinition.getField(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
-        + attributeName);
+          + attributeName);
     } else {
       return BooleanStringConverter.getBoolean(attribute.getProperty(CORE_PARAMETER));
     }
@@ -717,10 +717,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isJobParameter(final String attributeName) {
-    final Attribute attribute = this.requestRecordDefinition.getAttribute(attributeName);
+    final FieldDefinition attribute = this.requestRecordDefinition.getField(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
-        + attributeName);
+          + attributeName);
     } else {
       return BooleanStringConverter.getBoolean(attribute.getProperty(JOB_PARAMETER));
     }
@@ -735,10 +735,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   public boolean isRequestParameter(final String attributeName) {
-    final Attribute attribute = this.requestRecordDefinition.getAttribute(attributeName);
+    final FieldDefinition attribute = this.requestRecordDefinition.getField(attributeName);
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist"
-        + attributeName);
+          + attributeName);
     } else {
       return BooleanStringConverter.getBoolean(attribute.getProperty(REQUEST_PARAMETER));
     }

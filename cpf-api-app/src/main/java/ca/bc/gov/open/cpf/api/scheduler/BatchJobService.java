@@ -78,8 +78,8 @@ import com.revolsys.data.query.Query;
 import com.revolsys.data.record.ArrayRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordUtil;
-import com.revolsys.data.record.property.AttributeProperties;
-import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.property.FieldProperties;
+import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.record.schema.RecordStore;
@@ -1518,7 +1518,7 @@ public class BatchJobService implements ModuleEventListener {
       BatchJob.BATCH_JOB_ID);
     final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
     final Record requestParameters = new ArrayRecord(requestRecordDefinition);
-    for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       boolean jobParameter = false;
       final String parameterName = attribute.getName();
       Object parameterValue = null;
@@ -2264,13 +2264,13 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public void setStructuredInputDataValue(final String sridString,
-    final Map<String, Object> requestParemeters, final Attribute attribute,
+    final Map<String, Object> requestParemeters, final FieldDefinition attribute,
     Object parameterValue, final boolean setValue) {
     final DataType dataType = attribute.getType();
     final Class<?> dataClass = dataType.getJavaClass();
     if (Geometry.class.isAssignableFrom(dataClass)) {
       if (parameterValue != null) {
-        final GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
+        final GeometryFactory geometryFactory = attribute.getProperty(FieldProperties.GEOMETRY_FACTORY);
         Geometry geometry;
         if (parameterValue instanceof Geometry) {
 
@@ -2306,7 +2306,7 @@ public class BatchJobService implements ModuleEventListener {
         if (geometryFactory != GeometryFactory.floating3()) {
           geometry = geometryFactory.geometry(geometry);
         }
-        final Boolean validateGeometry = attribute.getProperty(AttributeProperties.VALIDATE_GEOMETRY);
+        final Boolean validateGeometry = attribute.getProperty(FieldProperties.VALIDATE_GEOMETRY);
         if (geometry.getSrid() == 0) {
           throw new IllegalArgumentException(
             "does not have a coordinate system (SRID) specified");

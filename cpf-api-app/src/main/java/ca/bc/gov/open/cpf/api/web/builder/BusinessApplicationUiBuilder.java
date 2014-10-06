@@ -70,9 +70,9 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       "/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
-    recordDefinition.addAttribute("title", DataTypes.STRING);
-    recordDefinition.addAttribute("buffer", DataTypes.DOUBLE);
-    recordDefinition.addAttribute("geometry", DataTypes.GEOMETRY);
+    recordDefinition.addField("title", DataTypes.STRING);
+    recordDefinition.addField("buffer", DataTypes.DOUBLE);
+    recordDefinition.addField("geometry", DataTypes.GEOMETRY);
 
     final List<Record> objects = new ArrayList<Record>();
 
@@ -100,11 +100,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       "/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
-    recordDefinition.addAttribute("sequenceNumber", DataTypes.INTEGER);
-    recordDefinition.addAttribute("resultNumber", DataTypes.INTEGER);
-    recordDefinition.addAttribute("title", DataTypes.STRING);
-    recordDefinition.addAttribute("buffer", DataTypes.DOUBLE);
-    recordDefinition.addAttribute("geometry", DataTypes.GEOMETRY);
+    recordDefinition.addField("sequenceNumber", DataTypes.INTEGER);
+    recordDefinition.addField("resultNumber", DataTypes.INTEGER);
+    recordDefinition.addField("title", DataTypes.STRING);
+    recordDefinition.addField("buffer", DataTypes.DOUBLE);
+    recordDefinition.addField("geometry", DataTypes.GEOMETRY);
 
     final List<Record> objects = new ArrayList<Record>();
 

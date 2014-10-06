@@ -432,7 +432,7 @@ public class GeometryFactory extends
     return getAxisCount();
   }
 
-  private int getNumAxis(final StringBuffer text) {
+  private int getNumAxis(final StringBuilder text) {
     skipWhitespace(text);
     final char c = text.charAt(0);
     switch (c) {
@@ -501,7 +501,7 @@ public class GeometryFactory extends
     return getAxisCount() > 3;
   }
 
-  private boolean hasText(final StringBuffer text, final String expected) {
+  private boolean hasText(final StringBuilder text, final String expected) {
     skipWhitespace(text);
     final int length = expected.length();
     final CharSequence subText = text.subSequence(0, length);
@@ -517,7 +517,7 @@ public class GeometryFactory extends
     return getAxisCount() > 2;
   }
 
-  private boolean isEmpty(final StringBuffer text) {
+  private boolean isEmpty(final StringBuilder text) {
     if (hasText(text, "EMPTY")) {
       skipWhitespace(text);
       if (text.length() > 0) {
@@ -551,7 +551,7 @@ public class GeometryFactory extends
   }
 
   private CoordinateSequence parseCoordinates(
-    final GeometryFactory geometryFactory, final StringBuffer text,
+    final GeometryFactory geometryFactory, final StringBuilder text,
     final int axisCount) {
     final int geometryFactoryNumAxis = getNumAxis();
     char c = text.charAt(0);
@@ -617,7 +617,7 @@ public class GeometryFactory extends
     }
   }
 
-  private Double parseDouble(final StringBuffer text) {
+  private Double parseDouble(final StringBuilder text) {
     skipWhitespace(text);
     int i = 0;
     for (; i < text.length(); i++) {
@@ -645,7 +645,7 @@ public class GeometryFactory extends
       final double scaleXY = getScaleXY();
       final double scaleZ = getScaleZ();
       Geometry geometry;
-      final StringBuffer text = new StringBuffer(value);
+      final StringBuilder text = new StringBuilder(value);
       if (hasText(text, "SRID=")) {
         final Integer srid = parseInteger(text);
         if (srid != null && srid != this.getSRID()) {
@@ -693,7 +693,7 @@ public class GeometryFactory extends
     }
   }
 
-  private Integer parseInteger(final StringBuffer text) {
+  private Integer parseInteger(final StringBuilder text) {
     skipWhitespace(text);
     int i = 0;
     while (i < text.length() && Character.isDigit(text.charAt(i))) {
@@ -712,7 +712,7 @@ public class GeometryFactory extends
   }
 
   private LineString parseLineString(GeometryFactory geometryFactory,
-    final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
+    final boolean useNumAxisFromGeometryFactory, final StringBuilder text) {
     int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
       if (axisCount != getNumAxis()) {
@@ -735,7 +735,7 @@ public class GeometryFactory extends
   }
 
   private MultiLineString parseMultiLineString(GeometryFactory geometryFactory,
-    final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
+    final boolean useNumAxisFromGeometryFactory, final StringBuilder text) {
     final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
       if (axisCount != getNumAxis()) {
@@ -756,7 +756,7 @@ public class GeometryFactory extends
   }
 
   private MultiPoint parseMultiPoint(GeometryFactory geometryFactory,
-    final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
+    final boolean useNumAxisFromGeometryFactory, final StringBuilder text) {
     final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
       if (axisCount != getNumAxis()) {
@@ -778,7 +778,7 @@ public class GeometryFactory extends
   }
 
   private MultiPolygon parseMultiPolygon(GeometryFactory geometryFactory,
-    final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
+    final boolean useNumAxisFromGeometryFactory, final StringBuilder text) {
     final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
       if (axisCount != getNumAxis()) {
@@ -800,7 +800,7 @@ public class GeometryFactory extends
   }
 
   private List<CoordinateSequence> parseParts(
-    final GeometryFactory geometryFactory, final StringBuffer text,
+    final GeometryFactory geometryFactory, final StringBuilder text,
     final int axisCount) {
     final List<CoordinateSequence> parts = new ArrayList<CoordinateSequence>();
     final char firstChar = text.charAt(0);
@@ -829,7 +829,7 @@ public class GeometryFactory extends
   }
 
   private List<List<CoordinateSequence>> parsePartsList(
-    final GeometryFactory geometryFactory, final StringBuffer text,
+    final GeometryFactory geometryFactory, final StringBuilder text,
     final int axisCount) {
     final List<List<CoordinateSequence>> partsList = new ArrayList<List<CoordinateSequence>>();
     final char firstChar = text.charAt(0);
@@ -858,7 +858,7 @@ public class GeometryFactory extends
   }
 
   private Point parsePoint(GeometryFactory geometryFactory,
-    final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
+    final boolean useNumAxisFromGeometryFactory, final StringBuilder text) {
     final int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
       if (axisCount != getNumAxis()) {
@@ -882,7 +882,7 @@ public class GeometryFactory extends
   }
 
   private Polygon parsePolygon(GeometryFactory geometryFactory,
-    final boolean useNumAxisFromGeometryFactory, final StringBuffer text) {
+    final boolean useNumAxisFromGeometryFactory, final StringBuilder text) {
     int axisCount = getNumAxis(text);
     if (!useNumAxisFromGeometryFactory) {
       if (axisCount != getNumAxis()) {
@@ -905,7 +905,7 @@ public class GeometryFactory extends
     return createPolygon(parts);
   }
 
-  private void skipWhitespace(final StringBuffer text) {
+  private void skipWhitespace(final StringBuilder text) {
     for (int i = 0; i < text.length(); i++) {
       final char c = text.charAt(i);
       if (!Character.isWhitespace(c)) {

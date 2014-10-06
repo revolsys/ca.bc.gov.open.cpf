@@ -41,7 +41,7 @@ public class DocumentationController extends WebApplicationObjectSupport {
     String path = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
     if (path == null) {
       throw new IllegalStateException("Required request attribute '"
-          + HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE + "' is not set");
+        + HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE + "' is not set");
     } else {
       path = StringUtils.cleanPath(path);
       if (!Property.hasValue(path)) {
@@ -75,7 +75,7 @@ public class DocumentationController extends WebApplicationObjectSupport {
 
   protected boolean isInvalidPath(final String path) {
     return path.contains("WEB-INF") || path.contains("META-INF")
-      || path.startsWith("..");
+        || path.startsWith("..");
   }
 
   protected void setHeaders(final HttpServletResponse response,

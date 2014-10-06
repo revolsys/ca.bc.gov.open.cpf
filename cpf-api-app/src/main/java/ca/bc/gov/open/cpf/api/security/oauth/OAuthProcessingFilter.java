@@ -45,7 +45,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.util.Assert;
 
 public class OAuthProcessingFilter extends
-AbstractAuthenticationProcessingFilter implements InitializingBean {
+  AbstractAuthenticationProcessingFilter implements InitializingBean {
   /**
    * Extract the parts of the given request that are relevant to OAuth.
    * Parameters include OAuth Authorization headers and the usual request
@@ -98,7 +98,7 @@ AbstractAuthenticationProcessingFilter implements InitializingBean {
   public void afterPropertiesSet() {
     if (!isIgnoreFailure()) {
       Assert.notNull(this.authenticationEntryPoint,
-          "An AuthenticationEntryPoint is required");
+        "An AuthenticationEntryPoint is required");
     }
   }
 

@@ -60,8 +60,8 @@ import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.AttributeMap;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.data.io.RecordWriterFactory;
-import com.revolsys.data.record.property.AttributeProperties;
-import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.property.FieldProperties;
+import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
@@ -586,7 +586,7 @@ public class ClassLoaderModule implements Module {
             e);
         }
         businessApplication.setPerRequestResultData(true);
-        if (resultRecordDefinition.getAttributeCount() > 0) {
+        if (resultRecordDefinition.getFieldCount() > 0) {
           throw new IllegalArgumentException("Business Application "
             + businessApplicationName
             + " cannot have a setResultData method and result fields");
@@ -601,7 +601,7 @@ public class ClassLoaderModule implements Module {
       } else {
         if (resultListMethod == null) {
           final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
-          if (resultRecordDefinition.getAttributeCount() == 0) {
+          if (resultRecordDefinition.getFieldCount() == 0) {
             throw new IllegalArgumentException("Business Application "
               + businessApplicationName + " must have result fields");
           }
@@ -705,7 +705,7 @@ public class ClassLoaderModule implements Module {
       }
 
       final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
-      final Attribute resultDataContentType = requestRecordDefinition.getAttribute("resultDataContentType");
+      final FieldDefinition resultDataContentType = requestRecordDefinition.getField("resultDataContentType");
       final Set<String> resultDataContentTypeSet = businessApplication.getResultDataContentTypes();
       resultDataContentType.setAllowedValues(businessApplication.getResultDataFileExtensions());
 
@@ -1291,7 +1291,7 @@ public class ClassLoaderModule implements Module {
                 index = 100000 + requestParameterIndex;
               }
             }
-            final Attribute attribute = new Attribute(parameterName, dataType,
+            final FieldDefinition attribute = new FieldDefinition(parameterName, dataType,
               length, scale, required, description);
             attribute.setProperty("units", units);
             if (Property.hasValue(minValue)) {
@@ -1331,9 +1331,9 @@ public class ClassLoaderModule implements Module {
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
-              attribute.setProperty(AttributeProperties.GEOMETRY_FACTORY,
+              attribute.setProperty(FieldProperties.GEOMETRY_FACTORY,
                 geometryFactory);
-              attribute.setProperty(AttributeProperties.VALIDATE_GEOMETRY,
+              attribute.setProperty(FieldProperties.VALIDATE_GEOMETRY,
                 validateGeometry);
             } else if (geometryConfiguration != null) {
               throw new IllegalArgumentException(
@@ -1398,7 +1398,7 @@ public class ClassLoaderModule implements Module {
             final int length = fieldMetadata.length();
             final int scale = fieldMetadata.scale();
             final boolean required = method.getAnnotation(Required.class) != null;
-            final Attribute attribute = new Attribute(attributeName, dataType,
+            final FieldDefinition attribute = new FieldDefinition(attributeName, dataType,
               length, scale, required, description);
             final GeometryConfiguration geometryConfiguration = method.getAnnotation(GeometryConfiguration.class);
             if (Geometry.class.isAssignableFrom(returnType)) {
@@ -1411,9 +1411,9 @@ public class ClassLoaderModule implements Module {
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
-              attribute.setProperty(AttributeProperties.GEOMETRY_FACTORY,
+              attribute.setProperty(FieldProperties.GEOMETRY_FACTORY,
                 geometryFactory);
-              attribute.setProperty(AttributeProperties.VALIDATE_GEOMETRY,
+              attribute.setProperty(FieldProperties.VALIDATE_GEOMETRY,
                 validateGeometry);
             } else if (geometryConfiguration != null) {
               throw new IllegalArgumentException(
@@ -1437,7 +1437,7 @@ public class ClassLoaderModule implements Module {
     final BusinessApplication businessApplication, final Method resultListMethod) {
     final String businessApplicationName = businessApplication.getName();
     RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
-    if (resultRecordDefinition.getAttributeCount() > 0) {
+    if (resultRecordDefinition.getFieldCount() > 0) {
       throw new IllegalArgumentException("Business Application "
         + businessApplicationName
         + " may not have result fields and the annotation " + ResultList.class);
@@ -1452,7 +1452,7 @@ public class ClassLoaderModule implements Module {
         processResultAttribute(resultClass, businessApplication, method, true);
       }
       resultRecordDefinition = businessApplication.getResultRecordDefinition();
-      if (resultRecordDefinition.getAttributeCount() == 0) {
+      if (resultRecordDefinition.getFieldCount() == 0) {
         throw new IllegalArgumentException("Business Application "
           + businessApplicationName + " result class " + resultClass.getName()
           + " must have result fields");

@@ -29,7 +29,7 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.types.DataType;
 import com.revolsys.io.FileUtil;
@@ -264,7 +264,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         final String name = entry.getKey();
         final Object value = entry.getValue();
         if (value != null) {
-          final Attribute attribute = requestRecordDefinition.getAttribute(name);
+          final FieldDefinition attribute = requestRecordDefinition.getField(name);
           if (attribute != null) {
             final DataType dataType = attribute.getType();
             final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
@@ -335,11 +335,11 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             final RecordDefinition requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
             final Map<String, Object> applicationParameters = new HashMap<String, Object>(
               (Map<String, Object>)group.get("applicationParameters"));
-            for (final String name : requestRecordDefinition.getAttributeNames()) {
+            for (final String name : requestRecordDefinition.getFieldNames()) {
               final Object value = applicationParameters.get(name);
               if (value != null) {
                 try {
-                  final DataType dataType = requestRecordDefinition.getAttributeType(name);
+                  final DataType dataType = requestRecordDefinition.getFieldType(name);
                   final Object convertedValue = StringConverterRegistry.toObject(
                     dataType, value);
                   applicationParameters.put(name, convertedValue);

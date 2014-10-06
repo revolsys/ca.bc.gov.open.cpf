@@ -27,8 +27,8 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.data.record.property.AttributeProperties;
-import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.property.FieldProperties;
+import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.io.LazyHttpPostOutputStream;
@@ -218,7 +218,7 @@ public class PluginAdaptor {
     final boolean resultList, final boolean test) {
     final RecordDefinition resultRecordDefinition = this.application.getResultRecordDefinition();
     final Map<String, Object> result = new HashMap<String, Object>();
-    for (final Attribute attribute : resultRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : resultRecordDefinition.getFields()) {
       final String fieldName = attribute.getName();
       if (!INTERNAL_PROPERTY_NAMES.contains(fieldName)) {
         Object value = null;
@@ -333,7 +333,7 @@ public class PluginAdaptor {
         } else {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
-            GeometryFactory geometryFactory = attribute.getProperty(AttributeProperties.GEOMETRY_FACTORY);
+            GeometryFactory geometryFactory = attribute.getProperty(FieldProperties.GEOMETRY_FACTORY);
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }
@@ -353,7 +353,7 @@ public class PluginAdaptor {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }
-            final Boolean validateGeometry = attribute.getProperty(AttributeProperties.VALIDATE_GEOMETRY);
+            final Boolean validateGeometry = attribute.getProperty(FieldProperties.VALIDATE_GEOMETRY);
             if (validateGeometry == true) {
               if (!geometry.isValid()) {
                 throw new IllegalArgumentException("Geometry is not valid for"
@@ -400,7 +400,7 @@ public class PluginAdaptor {
     }
 
     final RecordDefinitionImpl requestRecordDefinition = this.application.getRequestRecordDefinition();
-    for (final Attribute attribute : requestRecordDefinition.getAttributes()) {
+    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       final String parameterName = attribute.getName();
       final Object parameterValue = parameters.get(parameterName);
       attribute.validate(parameterValue);
@@ -453,7 +453,7 @@ public class PluginAdaptor {
     Object parameterValue) {
     try {
       final RecordDefinitionImpl requestRecordDefinition = this.application.getRequestRecordDefinition();
-      final Class<?> attributeClass = requestRecordDefinition.getAttributeClass(parameterName);
+      final Class<?> attributeClass = requestRecordDefinition.getFieldClass(parameterName);
       if (attributeClass != null) {
         parameterValue = StringConverterRegistry.toObject(attributeClass,
           parameterValue);

@@ -38,7 +38,7 @@ public List&lt;ResultObject&gt; getResults() {
 private String attribute1;
 
 &#064;ResultAttribute
-public int getAttribute1 () {
+public int getField1 () {
   return attribute1;
 }</pre>
 </figure>

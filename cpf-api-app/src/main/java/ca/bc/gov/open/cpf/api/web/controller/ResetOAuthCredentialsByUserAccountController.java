@@ -21,20 +21,20 @@ public class ResetOAuthCredentialsByUserAccountController implements Controller 
   private String viewName;
 
   public String getSuccessViewName() {
-    return successViewName;
+    return this.successViewName;
   }
 
   /**
    * Get the user type to use when finding the user by their external name.
-   * 
+   *
    * @return The user type to use when finding the user by their external name.
    */
   public String getUserAccountClass() {
-    return userAccountClass;
+    return this.userAccountClass;
   }
 
   public String getViewName() {
-    return viewName;
+    return this.viewName;
   }
 
   @Override
@@ -44,10 +44,10 @@ public class ResetOAuthCredentialsByUserAccountController implements Controller 
       final Record user = (Record)request.getAttribute("userAccount");
       if (user != null) {
         user.setValue(UserAccount.CONSUMER_SECRET, UUID.randomUUID().toString());
-        return new ModelAndView(successViewName);
+        return new ModelAndView(this.successViewName);
       }
     }
-    return new ModelAndView(viewName);
+    return new ModelAndView(this.viewName);
   }
 
   public void setSuccessViewName(final String successViewName) {
@@ -56,7 +56,7 @@ public class ResetOAuthCredentialsByUserAccountController implements Controller 
 
   /**
    * Set the user type to use when finding the user by their external name.
-   * 
+   *
    * @param userType The user type to use when finding the user by their
    *          external name.
    */

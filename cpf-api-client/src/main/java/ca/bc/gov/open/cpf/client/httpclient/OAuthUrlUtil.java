@@ -63,7 +63,7 @@ public class OAuthUrlUtil {
   }
 
   private static void addParameter(
-    final StringBuffer url,
+    final StringBuilder url,
     final Entry<String, String> parameter) {
     final String key = parameter.getKey();
     final String value = parameter.getValue();
@@ -112,7 +112,7 @@ public class OAuthUrlUtil {
     final Collection<Entry<String, String>> parameters) {
     final Iterator<Entry<String, String>> parameterIter = parameters.iterator();
     if (parameterIter.hasNext()) {
-      final StringBuffer url = new StringBuffer(baseUrl);
+      final StringBuilder url = new StringBuilder(baseUrl);
       url.append('?');
       Entry<String, String> parameter = parameterIter.next();
       addParameter(url, parameter);

@@ -40,7 +40,7 @@ import com.revolsys.data.query.Q;
 import com.revolsys.data.query.Query;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordUtil;
-import com.revolsys.data.record.schema.Attribute;
+import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.data.types.DataType;
@@ -50,7 +50,7 @@ import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.jdbc.JdbcUtils;
-import com.revolsys.jdbc.attribute.JdbcLongAttribute;
+import com.revolsys.jdbc.attribute.JdbcLongFieldDefinition;
 import com.revolsys.jdbc.io.JdbcRecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
@@ -623,7 +623,7 @@ public class CpfDataAccessObject {
       new In(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED,
         BatchJob.DOWNLOAD_INITIATED, BatchJob.CANCELLED),
         Q.lessThan(
-        this.batchJobRecordDefinition.getAttribute(BatchJob.WHEN_STATUS_CHANGED),
+        this.batchJobRecordDefinition.getField(BatchJob.WHEN_STATUS_CHANGED),
           keepUntilTimestamp));
     query.setWhereCondition(and);
     final Reader<Record> batchJobs = this.recordStore.query(query);
@@ -770,7 +770,7 @@ public class CpfDataAccessObject {
     query.setFromClause("CPF.CPF_USER_GROUPS T"
         + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
-    query.setWhereCondition(Q.equal(new JdbcLongAttribute("X.USER_ACCOUNT_ID"),
+    query.setWhereCondition(Q.equal(new JdbcLongFieldDefinition("X.USER_ACCOUNT_ID"),
       userAccount.getIdentifier()));
     final Reader<Record> reader = this.recordStore.query(query);
     try {
@@ -1312,7 +1312,7 @@ public class CpfDataAccessObject {
       case New:
         final RecordDefinition recordDefinition = record.getRecordDefinition();
 
-        if (recordDefinition.getIdAttributeIndex() != -1
+        if (recordDefinition.getIdFieldIndex() != -1
             && record.getIdentifier() == null) {
           final Object id = this.recordStore.createPrimaryIdValue(recordDefinition.getPath());
           record.setIdValue(id);
@@ -1343,7 +1343,7 @@ public class CpfDataAccessObject {
     try (
         Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        final Attribute sequenceNumberAttribute = this.batchJobExecutionGroupRecordDefinition.getAttribute(BatchJobExecutionGroup.SEQUENCE_NUMBER);
+        final FieldDefinition sequenceNumberAttribute = this.batchJobExecutionGroupRecordDefinition.getField(BatchJobExecutionGroup.SEQUENCE_NUMBER);
         final Between between = Q.between(sequenceNumberAttribute, startIndex,
           endIndex);
         final Equal batchJobIdEqual = Q.equal(
