@@ -163,16 +163,16 @@
               value="/view/breadcrumb" />
             <entry
               key="title"
-              value="Cloud Processing Framework Web Services" />
+              value="Concurrent Processing Framework Web Services" />
             <entry
               key="applicationName"
-              value="Cloud Processing Framework" />
+              value="Concurrent Processing Framework" />
             <entry key="applicationVersion">
               <bean
                 class="com.revolsys.util.ManifestUtil"
                 factory-method="getImplementationVersion"
               >
-                <constructor-arg value="Cloud Processing Framework Application Java API" />
+                <constructor-arg value="Concurrent Processing Framework Application Java API" />
               </bean>
             </entry>
             <entry

@@ -124,7 +124,7 @@
 
   <bean
     id="cpfClientService"
-    class="ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework"
+    class="ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework"
     p:batchJobService-ref="batchJobService"
     p:batchJobUiBuilder-ref="/CPF/CPF_BATCH_JOBS-htmlbuilder"
     p:batchJobResultUiBuilder-ref="/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder"

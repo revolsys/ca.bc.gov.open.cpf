@@ -138,9 +138,9 @@ import com.revolsys.util.Property;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * <p>The Cloud Processing Framework REST API allows client applications in Java, JavaScript or other
- * programming languages to query the available business applications, create cloud jobs and download
- * the results of cloud jobs on behalf of their users.<p>
+ * <p>The Concurrent Processing Framework REST API allows client applications in Java, JavaScript or other
+ * programming languages to query the available business applications, create jobs and download
+ * the results of jobs on behalf of their users.<p>
  *
  * <p>Most of the resources can return JSON or XML documents by appending the <code>.json</code> or <code>.xml</code>
  * file format extension to the URI Templates before any query string parameters. JSON is the preferred
@@ -155,7 +155,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * described in this API.</p>
  */
 @Controller
-public class CloudProcessingFramework {
+public class ConcurrentProcessingFramework {
 
   private static PageInfo addPage(final PageInfo parent, final Object path,
     final String title) {
@@ -214,9 +214,9 @@ public class CloudProcessingFramework {
   private Map<String, RawContent> rawContent = new HashMap<String, RawContent>();
 
   /**
-   * Construct a new CloudProcessingFramework.
+   * Construct a new ConcurrentProcessingFramework.
    */
-  public CloudProcessingFramework() {
+  public ConcurrentProcessingFramework() {
   }
 
   private void addBatchJobStatusLink(final PageInfo page, final Record job) {
@@ -561,7 +561,7 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>Create a new cloud job containing multiple requests to be processed by the
+   * <p>Create a new job containing multiple requests to be processed by the
    * business application.</p>
    *
    * <p>The service parameters must be passed
@@ -569,7 +569,7 @@ public class CloudProcessingFramework {
    *
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. The
-   * <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a>
+   * <a href= "#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a>
    * resource should be consulted to get the full list of supported parameters. </p>
    *
    * <h4>Structured Input Data</h4>
@@ -588,7 +588,7 @@ public class CloudProcessingFramework {
    * <p>For opaque input data (e.g. JPEG image, ESRI Shapefile) the requests can be
    * specified as one or more inputData files or one or more inputDataUrl
    * parameters. It is not possible to mix inputData and inputDataUrl parameters
-   * in the same cloud job. If all the requests have the same content type a
+   * in the same job. If all the requests have the same content type a
    * single inputDataContentType can be specified. Otherwise an
    * inputDataContentType must be specified for each inputData or inputDataUrl
    * in the same order.</p>
@@ -850,7 +850,7 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>Create a new cloud job containing multiple requests to be processed by the
+   * <p>Create a new job containing multiple requests to be processed by the
    * business application.</p>
    *
    * <p>The job and request parameters for the business application must be passed
@@ -858,7 +858,7 @@ public class CloudProcessingFramework {
    *
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. The
-   * <a href= "#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a>
+   * <a href= "#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a>
    * resource should be consulted to get the full list of supported parameters. </p>
    *
    * <h4>Structured Input Data</h4>
@@ -871,7 +871,7 @@ public class CloudProcessingFramework {
    * <p>For opaque input data (e.g. JPEG image, ESRI Shapefile) the requests can be
    * specified as one inputData files or one inputDataUrl
    * parameter. It is not possible to mix inputData and inputDataUrl parameters
-   * in the same cloud job.</p>
+   * in the same job.</p>
    *
    * <p class="note">NOTE: The maximum size including all parameters and protocol overhead of a
    * multi-part request is 20MB. Therefore inputDataUrl should be used instead
@@ -1126,35 +1126,35 @@ public class CloudProcessingFramework {
 
   /**
    * <p>
-   * Cancel the user's cloud job. This will mark the job as cancelled and remove all requests
+   * Cancel the user's job. This will mark the job as cancelled and remove all requests
    * and results from the job. The job will be removed after a few days.
    * </p>
    * <p>
-   * This service should be invoked after the results from the cloud job are
-   * downloaded. If this method is not called the cloud job will automatically
+   * This service should be invoked after the results from the job are
+   * downloaded. If this method is not called the job will automatically
    * be deleted 7 days after the result download was started.
    * </p>
    * <p>
-   * This method can also be used to cancel a cloud job before it was finished.
-   * If a cloud job was submitted in error or no longer required use this method
-   * to cancel the cloud job to help free resources on the system to process
-   * other cloud jobs.
+   * This method can also be used to cancel a job before it was finished.
+   * If a job was submitted in error or no longer required use this method
+   * to cancel the job to help free resources on the system to process
+   * other jobs.
    * </p>
    *
-   * @param batchJobId The cloud job identifier.
+   * @param batchJobId The job identifier.
    * @web.response.status 200
    * <p>
    * <b>OK</b>
    * </p>
    * <p>
-   * If the cloud job was deleted an empty response will be returned.
+   * If the job was deleted an empty response will be returned.
    * </p>
    * @web.response.status 404
    * <p>
    * <b>Not Found</b>
    * </p>
    * <p>
-   * If the cloud job does not exist, has been deleted, or was owned by another
+   * If the job does not exist, has been deleted, or was owned by another
    * user.
    * </p>
    */
@@ -1166,11 +1166,11 @@ public class CloudProcessingFramework {
     final Record batchJob = this.dataAccessObject.getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
-      throw new PageNotFoundException("The cloud job " + batchJobId
+      throw new PageNotFoundException("The job " + batchJobId
         + " does not exist");
     } else {
       if (this.batchJobService.cancelBatchJob(batchJobId)) {
-        throw new PageNotFoundException("The cloud job " + batchJobId
+        throw new PageNotFoundException("The job " + batchJobId
           + " does not exist");
       } else {
         final HttpServletResponse response = HttpServletUtils.getResponse();
@@ -1275,7 +1275,7 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsResources">Get Business Applications Resources</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsResources">Get Business Applications Resources</a>
    * resource for each business application the user is authorized to access.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
@@ -1642,7 +1642,7 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getJobsInfo">Get Jobs Info</a>
    * resource for each of the user's jobs for the business application.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
@@ -1658,11 +1658,11 @@ public class CloudProcessingFramework {
    *     <tbody>
    *       <tr>
    *         <td>batchJobId</td>
-   *         <td>The unique identifier of the cloud job.</td>
+   *         <td>The unique identifier of the job.</td>
    *       </tr>
    *       <tr>
    *         <td>batchJobUrl</td>
-   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a> resource without the file format extension.</td>
+   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getJobsInfo">Get Jobs Info</a> resource without the file format extension.</td>
    *       </tr>
    *       <tr>
    *         <td>jobStatus</td>
@@ -1693,7 +1693,7 @@ public class CloudProcessingFramework {
           + businessApplicationName + " does not exist.");
     } else {
       final String consumerKey = getConsumerKey();
-      CloudProcessingFramework.checkPermission(businessApplication);
+      ConcurrentProcessingFramework.checkPermission(businessApplication);
       if (HtmlUiBuilder.isDataTableCallback()) {
         final Map<String, Object> parameters = new HashMap<String, Object>();
 
@@ -1731,11 +1731,11 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the specification of the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> service.</p>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> service.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document with the following additional fields
    * which are the parameters to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a>
    * service.</a>.</p>
    *
    * <div class="simpleDataTable">
@@ -1872,9 +1872,9 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the resources for a business application. The resource contains links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant">instant</a>,
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">create single request job</a>, and
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">create multi request jobs</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsInstant">instant</a>,
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsSingle">create single request job</a>, and
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsMultiple">create multi request jobs</a>
    * resources.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document.</p>
@@ -1956,10 +1956,10 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the specification of the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</p>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document with the following additional fields
-   * which are the parameters to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</a>.</p>
+   * which are the parameters to the <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</a>.</p>
    *
    * <div class="simpleDataTable">
    *   <table class="data">
@@ -2555,7 +2555,7 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getJobsInfo">Get Jobs Info</a>
    * resource for each of the user's jobs.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
@@ -2571,11 +2571,11 @@ public class CloudProcessingFramework {
    *     <tbody>
    *       <tr>
    *         <td>batchJobId</td>
-   *         <td>The unique identifier of the cloud job.</td>
+   *         <td>The unique identifier of the job.</td>
    *       </tr>
    *       <tr>
    *         <td>batchJobUrl</td>
-   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobsInfo">Get Jobs Info</a> resource without the file format extension.</td>
+   *         <td>The URL to the <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getJobsInfo">Get Jobs Info</a> resource without the file format extension.</td>
    *       </tr>
    *       <tr>
    *         <td>jobStatus</td>
@@ -2625,7 +2625,7 @@ public class CloudProcessingFramework {
   }
 
   /**
-   * <p>Get the details of a cloud job.</p>
+   * <p>Get the details of a job.</p>
    *
    *
    * <p>The method returns a BatchJob object with the following attributes.</a>
@@ -2641,7 +2641,7 @@ public class CloudProcessingFramework {
    *     <tbody>
    *       <tr>
    *         <td>id</td>
-   *         <td>The unique identifier of the cloud job.</td>
+   *         <td>The unique identifier of the job.</td>
    *       </tr>
    *       <tr>
    *         <td>businessApplicationName</td>
@@ -2699,7 +2699,7 @@ public class CloudProcessingFramework {
    *   </table>
    * </div>
    *
-   * @param batchJobId The unique identifier of the cloud job.
+   * @param batchJobId The unique identifier of the job.
    * @return The resource.
    *
    * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
@@ -2740,9 +2740,9 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the contents of a user's job result file. The content type will be the content type
-   * requested in the cloud job.</p>
+   * requested in the job.</p>
    *
-   * @param batchJobId The unique identifier of the cloud job.
+   * @param batchJobId The unique identifier of the job.
    * @param resultId The unique identifier of the result file.
    *
    * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response.</p>
@@ -2816,7 +2816,7 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the list of links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getrsJobsResult">Get Jobs Result</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getrsJobsResult">Get Jobs Result</a>
    * resource for each of the results for a user's job.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
@@ -2842,7 +2842,7 @@ public class CloudProcessingFramework {
    *   </table>
    * </div>
    *
-   * @param batchJobId The unique identifier of the cloud job.
+   * @param batchJobId The unique identifier of the job.
    * @return The resource.
    *
    * @web.response.status 200 <p>The resource will be returned in the body of the HTTP response in the requested format.</p>
@@ -2987,8 +2987,8 @@ public class CloudProcessingFramework {
 
   /**
    * <p>Get the root resource of the CPF web services. The resource contains links to the
-   * <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getJobs">Get Jobs</a>
-   * and <a href="#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications">Get Business Applications</a>
+   * <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getJobs">Get Jobs</a>
+   * and <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplications">Get Business Applications</a>
    * resources.</p>
    *
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document.</a>
@@ -3003,7 +3003,7 @@ public class CloudProcessingFramework {
   @ResponseBody
   public Object getRoot() {
     if (MediaTypeUtil.isHtmlPage()) {
-      HttpServletUtils.setAttribute("title", "Cloud Processing Framework");
+      HttpServletUtils.setAttribute("title", "Concurrent Processing Framework");
 
       final TabElementContainer tabs = new TabElementContainer();
 
@@ -3018,7 +3018,7 @@ public class CloudProcessingFramework {
 
       return tabs;
     } else {
-      final PageInfo page = createRootPageInfo("Cloud Processing Framework");
+      final PageInfo page = createRootPageInfo("Concurrent Processing Framework");
       addPage(page, "jobs", "Jobs");
       addPage(page, "apps", "Business Applications");
       return page;

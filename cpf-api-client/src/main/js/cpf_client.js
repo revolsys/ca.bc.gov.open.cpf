@@ -18,7 +18,7 @@ $(document).ready(function() {
 });
 </script>
  * 
- * @param {string} url The full URL of the Cloud Web Services, including the
+ * @param {string} url The full URL of the CPF Web Services, including the
  * domain, port number and path e.g. http://apps.gov.bc.ca/cpf/ws/
  * @constructor
  */
@@ -33,7 +33,7 @@ function CpfClient(url) {
 
 /**
  * <p>Get the specification of the instant execution service for a business application
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant">Get Business Applications Instant</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsInstant">Get Business Applications Instant</a> REST API.</p>
  * 
 <div class="htmlExample"><button id="getBusinessApplicationInstantSpecification" type="button">Get Business Application's Instant Specification</button>
 
@@ -64,7 +64,7 @@ CpfClient.prototype.getBusinessApplicationInstantSpecification = function(
 
 /**
  * <p>Get the specification of the instant execution service for a business application
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a> REST API.</p>
  * 
 <div class="htmlExample"><button id="getBusinessApplicationMultipleSpecification" type="button">Get Business Application's Multiple Specification</button>
 
@@ -94,7 +94,7 @@ CpfClient.prototype.getBusinessApplicationMultipleSpecification = function(
 
 /**
  * <p>Get the list of business application names a user has access to
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications">Get Business Applications</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplications">Get Business Applications</a> REST API.</p>
  * 
 <div class="htmlExample"><button id="getBusinessApplicationNames" type="button">Get Business Application Names</button>
 
@@ -130,7 +130,7 @@ CpfClient.prototype.getBusinessApplicationNames = function(
 
 /**
  * <p>Get the specification of the instant execution service for a business application
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a> REST API.</p>
  * 
 <div class="htmlExample"><button id="getBusinessApplicationSingleSpecification" type="button">Get Business Application's Single Specification</button>
 
@@ -160,7 +160,7 @@ CpfClient.prototype.getBusinessApplicationSingleSpecification = function(
 
 /**
  * <p>Get the URL to the error results file for a job using the
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
  *
  * <p><b>NOTE: due to cross domain constraints and the CSV format used for errors it is not possible to parse the contents of the CSV file in JavaScript.</b></p>
  *
@@ -183,7 +183,7 @@ $(document).ready(function() {
 });
 </script>
 </div>
- * @param {string}   jobIdUrl The URL to the cloud job status page.
+ * @param {string}   jobIdUrl The URL to the job status page.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getJobErrorResultUrl = function(
@@ -204,7 +204,7 @@ CpfClient.prototype.getJobErrorResultUrl = function(
 
 /**
  * <p>Get the list of result file descriptions for a job using the
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
  * 
  * <p>Each result file description contains the following fields.</p>
  * 
@@ -255,7 +255,7 @@ $(document).ready(function() {
 });
 </script>
 </div>
- * @param {string}   jobIdUrl The URL to the cloud job status page.
+ * @param {string}   jobIdUrl The URL to the job status page.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getJobResultFileList = function(
@@ -274,8 +274,8 @@ CpfClient.prototype.getJobResultFileList = function(
 
 /**
  * <p>Get the list of structured data results for a job using the
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
- * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+ * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
  *
  *
  * <p>Each structured data record is a map containing the following fields.</p>
@@ -327,7 +327,7 @@ $(document).ready(function() {
 });
 </script>
 </div>
- * @param {string}   jobIdUrl The URL to the cloud job status page.
+ * @param {string}   jobIdUrl The URL to the job status page.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getJobStructuredResults = function(
@@ -372,7 +372,7 @@ CpfClient.prototype.getJobStructuredResults = function(
 
 /**
  * <p>Get the URL to the structured data results file for a job using the
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
  *
 <div class="htmlExample"><button id="getJobStructuredResultsUrl" type="button">Get Job Structured Results URL</button>
 
@@ -393,7 +393,7 @@ $(document).ready(function() {
 });
 </script>
 </div>
- * @param {string}   jobIdUrl The URL to the cloud job status page.
+ * @param {string}   jobIdUrl The URL to the job status page.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getJobStructuredResultUrl = function(
@@ -413,8 +413,8 @@ CpfClient.prototype.getJobStructuredResultUrl = function(
 };
 
 /**
- * <p>Get the <a href="../../jobStatus.html">cloud job status</a> using the
- * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
+ * <p>Get the <a href="../../jobStatus.html">job status</a> using the
+ * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
  * 
 <div class="htmlExample"><button id="getJobStatus" type="button">Get Job Status</button>
 
@@ -435,7 +435,7 @@ $(document).ready(function() {
 });
 </script>
 </div>
- * @param {string}   jobIdUrl The URL to the cloud job status page.
+ * @param {string}   jobIdUrl The URL to the job status page.
  * @param {function} callback The callback function that will be called with the result object on success.
  */
 CpfClient.prototype.getJobStatus = function(
@@ -446,9 +446,9 @@ CpfClient.prototype.getJobStatus = function(
 };
 
 /**
- * <p>Submit a form to create a new cloud job on the CPF server for a business application that
+ * <p>Submit a form to create a new job on the CPF server for a business application that
  * accepts <a href="../../structuredData.html">structured input data</a>
- * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> REST API.</p>
+ * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> REST API.</p>
  * 
  * <p>The job and request parameters for the single request in the job are specified using a
  * multipart/form-data form comtainin a field for each parameter.</p>
@@ -545,7 +545,7 @@ CpfClient.prototype.submitMultiple = function(
 
 /**
  * <p>Get the job id URLs for all the user's jobs using the
- * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobs">Get Users Jobs</a> REST API.</p>
+ * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobs">Get Users Jobs</a> REST API.</p>
  * 
 <div class="htmlExample"><button id="getUserJobIdUrls" type="button">Get Users Jobs</button>
 

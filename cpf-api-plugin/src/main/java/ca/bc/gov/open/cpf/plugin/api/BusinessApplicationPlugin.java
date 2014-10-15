@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * <p>The instance of the plug-in is executed within a single thread so does not need to be
  * synchronized. Any services that it uses must however be thread safe as they will be used by
  * multiple instances of the plug-in in different threads.</p>
- * 
+ *
  * <p class="note">NOTE: An instance of the plug-in class is created for each request processed by the plug-in.
  * Therefore state will not be maintained between requests it must not include the initialization
  * of any resources that have significant overhead to create. These should be defined as spring
@@ -89,7 +89,7 @@ public @interface BusinessApplicationPlugin {
   /**
    * <p>A <a href="http://static.springsource.org/spring-security/site/docs/3.0.x/reference/el-access.html">Spring security expression</a>
    * indicating if a user has permission to submit single request for instant execution.</p>
-   * 
+   *
    * <p class="note">NOTE: DO NOT enable this for plug-ins that consume lots of resources
    * or take more than a second to run as it will tie up available web server threads.</p>
    */
@@ -97,7 +97,7 @@ public @interface BusinessApplicationPlugin {
 
   /**
    * <p>The level of logging to include for requests processed by the plug-in.</p>
-   * 
+   *
    * <div class="simpleDataTable">
    *   <table>
    *     <thead>
@@ -122,7 +122,7 @@ public @interface BusinessApplicationPlugin {
    *     </tbody>
    *   </table>
    * </div>
-   * 
+   *
    * <p class="note">Enabling INFO or DEBUG will increase the time it takes to process a request
    * so should not be enabled in production unless an issue is being investigated.</p>
    */
@@ -153,7 +153,7 @@ public @interface BusinessApplicationPlugin {
   /**
    * <p>The maximum number of requests that will be added to an execution group to send to a worker
    * for sequential execution. If a plug-in takes milliseconds to execute set this to 100 to reduce
-   * the cloud overhead in processing the requests.</p>
+   * the communication overhead in processing the requests.</p>
    */
   int numRequestsPerWorker() default 1;
 

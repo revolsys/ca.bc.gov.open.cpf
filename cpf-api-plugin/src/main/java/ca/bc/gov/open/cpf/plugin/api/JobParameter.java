@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * <p>The <code>JobParameter</code> method annotation indicates that a <code>setXXX</code> method is
- * a parameter that will be applied to all requests in a cloud job on a {@link BusinessApplicationPlugin}
+ * a parameter that will be applied to all requests in a job on a {@link BusinessApplicationPlugin}
  * class.</p>
  * 
  * <p>Job parameters are implemented as Java bean properties on the plug-in class.

@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>cpf-war-worker</artifactId>
   <packaging>war</packaging>
-  <name>Cloud Processing Framework Base WAR Worker</name>
+  <name>Concurrent Processing Framework Base WAR Worker</name>
   <parent>
     <groupId>ca.bc.gov.open.cpf</groupId>
     <artifactId>cpf-parent</artifactId>

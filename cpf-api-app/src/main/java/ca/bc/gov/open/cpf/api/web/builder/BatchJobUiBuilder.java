@@ -158,7 +158,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final Record batchJob = getDataAccessObject().getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
-      throw new PageNotFoundException("The cloud job " + batchJobId
+      throw new PageNotFoundException("The job " + batchJobId
         + " does not exist");
     } else {
       final BatchJobService batchJobService = getBatchJobService();
@@ -175,7 +175,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final Record batchJob = getDataAccessObject().getBatchJob(consumerKey,
       batchJobId);
     if (batchJob == null) {
-      throw new PageNotFoundException("The cloud job " + batchJobId
+      throw new PageNotFoundException("The job " + batchJobId
         + " does not exist");
     } else {
       final BatchJobService batchJobService = getBatchJobService();

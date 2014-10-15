@@ -34,7 +34,7 @@ import com.revolsys.util.Property;
  * <p>
  * The CPF Java (6+) client allows applications to use the <a
  * href="../rest-api/">CPF Web Service REST API</a> to query the available
- * business applications, create cloud jobs and download the results of cloud
+ * business applications, create jobs and download the results of
  * jobs on behalf of their users.
  * </p>
  *
@@ -93,7 +93,7 @@ public class CpfClient implements AutoCloseable {
   String consumerSecret = "cpftest";
   CpfClient client = new CpfClient(url, consumerKey, consumerSecret);</pre>
    *
-   * @param url The full URL of the Cloud Web Services, including the domain,
+   * @param url The full URL of the CPF Web Services, including the domain,
    * port number and path e.g. https://apps.gov.bc.ca/cpf/ws/
    * @param consumerKey The application's OAuth Consumer Key (user name) to
    * connect to the service.
@@ -169,8 +169,8 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Delete the cloud job
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.deleteJob">Delete Job</a> REST API.</p>
+   * <p>Delete the job
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.deleteJob">Delete Job</a> REST API.</p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
    *
@@ -204,15 +204,15 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The content of the opaque data for each request is specified using
    * a spring framework <a href="http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/core/io/Resource.html">Resource</a> object.</p>
    *
    * <p><b>NOTE: There is a limit of 20MB of data for a multipart/form-data HTTP request. For
-   * cloud jobs with large volumes of data make the data available on a HTTP server use the URL
+   * jobs with large volumes of data make the data available on a HTTP server use the URL
    * versions of this method instead.</b></p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
@@ -244,7 +244,7 @@ public class CpfClient implements AutoCloseable {
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
    * using.
    * @param requests The resource for the requests.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithOpaqueResourceRequests(
     final String businessApplicationName,
@@ -273,9 +273,9 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The content of the opaque data for each request is specified using
    * a spring framework <a href="http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/core/io/Resource.html">Resource</a> object.</p>
@@ -313,7 +313,7 @@ public class CpfClient implements AutoCloseable {
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
    * using.
    * @param requests The resource for the requests.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithOpaqueResourceRequests(
     final String businessApplicationName,
@@ -325,9 +325,9 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The content of the opaque data for each request is specified using
    * a URL to the data on a publicly accessible HTTP server.</p>
@@ -360,7 +360,7 @@ public class CpfClient implements AutoCloseable {
    * requests.
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
    * using.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithOpaqueUrlRequests(
     final String businessApplicationName,
@@ -389,9 +389,9 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The content of the opaque data for each request is specified using
    * a URL to the data on a publicly accessible HTTP server.</p>
@@ -423,7 +423,7 @@ public class CpfClient implements AutoCloseable {
    * requests.
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
    * using.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithOpaqueUrlRequests(
     final String businessApplicationName,
@@ -436,9 +436,9 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The content of the structured data is specified as a list of requests. Each request is specified
    * as a map containing the request parameters.</p>
@@ -482,7 +482,7 @@ public class CpfClient implements AutoCloseable {
    * requested Business Application.
    * @param requests A list of data Maps of the requests.
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> of the result data.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithStructuredMultipleRequestsList(
     final String businessApplicationName,
@@ -510,9 +510,9 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The content of the structured in data for each request is specified using
    * a spring framework <a href="http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/core/io/Resource.html">Resource</a> object.
@@ -562,7 +562,7 @@ public class CpfClient implements AutoCloseable {
    * requests.
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
    * using.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithStructuredMultipleRequestsResource(
     final String businessApplicationName,
@@ -589,9 +589,9 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The content of the structured in data for each request is specified using
    * a URL to the data on a publicly accessible HTTP server.
@@ -636,7 +636,7 @@ public class CpfClient implements AutoCloseable {
    * requests.
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data
    * using.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithStructuredMultipleRequestsUrl(
     final String businessApplicationName,
@@ -663,9 +663,9 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Create a new cloud job on the CPF server for a business application that
+   * <p>Create a new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
    * <p>The job and request parameters for the single request in the job are specified using a
    * map of parameter values.</p>
@@ -698,7 +698,7 @@ public class CpfClient implements AutoCloseable {
    * @param businessApplicationName The name of the business application.
    * @param parameters The job and request parameters.
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data using.
-   * @return The cloud job id (URL) of the created job.
+   * @return The job id (URL) of the created job.
    */
   public String createJobWithStructuredSingleRequest(
     final String businessApplicationName,
@@ -722,7 +722,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the specification of the instant execution service for a business application
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsInstant">Get Business Applications Instant</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsInstant">Get Business Applications Instant</a> REST API.</p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
    *
@@ -756,7 +756,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the specification of the create job with multiple requests service for a business application
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsMultiple">Get Business Applications Multiple</a> REST API.</p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
    *
@@ -790,7 +790,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the list of business application names a user has access to
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplications">Get Business Applications</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplications">Get Business Applications</a> REST API.</p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
    *
@@ -834,7 +834,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the specification of the create job with a single request service for a business application
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getBusinessApplicationsSingle">Get Business Applications Single</a> REST API.</p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
    *
@@ -868,8 +868,8 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the list of error results for a job using the
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
    *
    * <p>Each error record is a map containing the following fields.</p>
    *
@@ -986,7 +986,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the list of result file descriptions for a job using the
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a> REST API.</p>
    *
    * <p>Each result file description contains the following fields.</p>
    *
@@ -1065,8 +1065,8 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Get the <a href="../../jobStatus.html">cloud job status</a> using the
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
+   * <p>Get the <a href="../../jobStatus.html">job status</a> using the
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
    *
@@ -1090,8 +1090,8 @@ public class CpfClient implements AutoCloseable {
     client.closeConnection();
   }</pre>
    *
-   * @param jobUrl WS URL of the Cloud Job.
-   * @return A map containing the <a href="../../jobStatus.html">cloud job status</a>.
+   * @param jobUrl WS URL of the job.
+   * @return A map containing the <a href="../../jobStatus.html">job status</a>.
    */
   public Map<String, Object> getJobStatus(final String jobUrl) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
@@ -1105,8 +1105,8 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the list of structured data results for a job using the
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
    *
    *
    * <p>Each structured data record is a map containing the following fields.</p>
@@ -1164,7 +1164,7 @@ public class CpfClient implements AutoCloseable {
     client.closeConnection();
   }</pre>
    *
-   * @param jobIdUrl The cloud job id (URL) of the job.
+   * @param jobIdUrl The job id (URL) of the job.
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
    * @return The list of results.
    */
@@ -1195,7 +1195,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the job id URLs for all the user's jobs using the
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobs">Get Users Jobs</a> REST API.</p>
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobs">Get Users Jobs</a> REST API.</p>
    *
    * <p>The following code fragment shows an example of using the API.</p>
    *
@@ -1233,7 +1233,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Get the job id URLs to the user's jobs for a business application using the
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersBusinessApplicationsJobs">Get Business Applications Users Jobs</a> REST API.</p>
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersBusinessApplicationsJobs">Get Business Applications Users Jobs</a> REST API.</p>
    * Get the list of all job id URLs the user created.
    *
    * <p>The following code fragment shows an example of using the API.</p>
@@ -1272,8 +1272,8 @@ public class CpfClient implements AutoCloseable {
   }
 
   /**
-   * <p>Check the <a href="../../jobStatus.html">cloud job</a> status to see if it has been completed using the
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
+   * <p>Check the <a href="../../jobStatus.html">job</a> status to see if it has been completed using the
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsInfo">Get Users Jobs Info</a> REST API.</p>
    *
    * <p>If the job has not been completed within the maxWait number of milliseconds false will be
    * returned.</p>
@@ -1341,8 +1341,8 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Process the list of error results for a job using the
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
    *
    * <p>Each error record is a map containing the following fields.</p>
    *
@@ -1399,7 +1399,7 @@ public class CpfClient implements AutoCloseable {
     client.closeConnection();
   }</pre>
    *
-   * @param jobIdUrl The cloud job id (URL) of the job.
+   * @param jobIdUrl The job id (URL) of the job.
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
    * @param callback The call back in the client application that will be called for each error record.
    * @return The number of error results processed.
@@ -1435,8 +1435,8 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Process the list of structured data results for a job using the
-   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResults">Get Users Job Results</a>  and
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
    *
    * <p>Each structured record is a map with the fields sequenceNumber (to map back
    * to the input request), resultNumber (if multiple results were returned for a single request
@@ -1471,7 +1471,7 @@ public class CpfClient implements AutoCloseable {
     client.closeConnection();
   }</pre>
    *
-   * @param jobIdUrl The cloud job id (URL) of the job.
+   * @param jobIdUrl The job id (URL) of the job.
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
    * @param callback The call back in the client application that will be called for each result record.
    * @return The number of results processed.
@@ -1507,7 +1507,7 @@ public class CpfClient implements AutoCloseable {
 
   /**
    * <p>Process the result file for a job using the
-   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.CloudProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
+   * <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.getUsersJobsResult">Get Users Job Result</a> REST API.</p>
    *
    * <p>The callback method will be invoked with the input stream to the file. This method ensures
    * that the input stream is closed correctly after being processed.</p>
