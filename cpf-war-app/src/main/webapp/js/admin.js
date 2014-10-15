@@ -19,3 +19,14 @@ $(document).ready(function() {
   });
   refreshButtons($(document));
 });
+
+
+function generateConsumerSecret() {
+  var seed = new Date().getTime();
+  var consumerSecret = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = (seed + Math.random()*16)%16 | 0;
+      seed = Math.floor(seed/16);
+      return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+  });
+  $('#userAccount input[name=CONSUMER_SECRET]').val(consumerSecret);
+}

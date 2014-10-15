@@ -39,8 +39,10 @@ import com.revolsys.ui.html.fields.FieldWithSubmitButton;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
+import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.html.view.TableRow;
+import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
 
@@ -283,7 +285,14 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     defaultValues.put(CONSUMER_SECRET,
       UUID.randomUUID().toString().replaceAll("-", ""));
     defaultValues.put(ACTIVE_IND, "1");
-    return super.createObjectAddPage(defaultValues, null, "preInsert");
+    final ElementContainer page = (ElementContainer)super.createObjectAddPage(
+      defaultValues, null, "preInsert");
+    final List<Element> elements = page.getElements();
+    final MenuElement menuView = (MenuElement)elements.get(elements.size() - 1);
+    final Menu menu = menuView.getMenu();
+    menu.addMenuItem("Generate Consumer Secret",
+      "javascript:generateConsumerSecret()");
+    return page;
   }
 
   @RequestMapping(value = {
@@ -315,7 +324,14 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     checkHasAnyRole(ADMIN);
     final Record userAccount = getUserAccount(consumerKey);
     if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
-      return super.createObjectEditPage(userAccount, null);
+      final ElementContainer page = (ElementContainer)super.createObjectEditPage(
+        userAccount, null);
+      final List<Element> elements = page.getElements();
+      final MenuElement menuView = (MenuElement)elements.get(elements.size() - 1);
+      final Menu menu = menuView.getMenu();
+      menu.addMenuItem("Generate Consumer Secret",
+          "javascript:generateConsumerSecret()");
+      return page;
     } else {
       return super.createObjectEditPage(userAccount, "active");
     }
