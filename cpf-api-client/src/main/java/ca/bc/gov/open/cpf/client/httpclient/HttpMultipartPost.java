@@ -52,19 +52,19 @@ public class HttpMultipartPost {
   }
 
   public HttpMultipartPost(final HttpPost httppost) {
-    httpclient = new DefaultHttpClient();
+    this.httpclient = new DefaultHttpClient();
     this.httppost = httppost;
 
   }
 
   public HttpMultipartPost(final String urlString) {
     this(new HttpPost(urlString));
-    if (!"".equals(userAgent)) {
-      httppost.setHeader("User-Agent", userAgent);
+    if (!"".equals(this.userAgent)) {
+      this.httppost.setHeader("User-Agent", this.userAgent);
     }
-    httppost.setHeader("Accept", "text/csv");
-    if (httpclient == null) {
-      httpclient = new DefaultHttpClient();
+    this.httppost.setHeader("Accept", "text/csv");
+    if (this.httpclient == null) {
+      this.httpclient = new DefaultHttpClient();
     }
   }
 
@@ -72,15 +72,19 @@ public class HttpMultipartPost {
     this(url.toString());
   }
 
+  public void addHeader(final String name, final String value) {
+    this.httppost.addHeader(name, value);
+  }
+
   public void addParameter(final String parameterName, final File file) {
-    requestEntity.addPart(parameterName, new FileBody(file));
+    this.requestEntity.addPart(parameterName, new FileBody(file));
   }
 
   public void addParameter(final String parameterName,
     final Object parameterValue) {
     if (parameterValue != null) {
       try {
-        requestEntity.addPart(parameterName,
+        this.requestEntity.addPart(parameterName,
           new StringBody(parameterValue.toString()));
       } catch (final UnsupportedEncodingException e) {
         e.printStackTrace();
@@ -91,48 +95,48 @@ public class HttpMultipartPost {
   public void addParameter(final String parameterName, final Resource resource,
     final String cotentType) {
     final ResourceBody body = new ResourceBody(resource, cotentType);
-    requestEntity.addPart(parameterName, body);
+    this.requestEntity.addPart(parameterName, body);
   }
 
   public void addParameter(final String parameterName, final String filename,
     final InputStream inputStream) throws IOException {
-    requestEntity.addPart(parameterName, new InputStreamBody(inputStream,
+    this.requestEntity.addPart(parameterName, new InputStreamBody(inputStream,
       filename));
   }
 
   @SuppressWarnings("deprecation")
   public void close() throws IOException {
-    if (responseEntity != null) {
-      responseEntity.consumeContent();
+    if (this.responseEntity != null) {
+      this.responseEntity.consumeContent();
     }
   }
 
   public HttpResponse getResponse() {
-    return response;
+    return this.response;
   }
 
   public InputStream getResponseContentStream() throws IOException {
-    return responseEntity.getContent();
+    return this.responseEntity.getContent();
   }
 
   public HttpEntity getResponseEntity() {
-    return responseEntity;
+    return this.responseEntity;
   }
 
   public String getUrl() {
-    return url;
+    return this.url;
   }
 
   public int postRequest(final HttpContext context) throws IOException {
-    response = null;
+    this.response = null;
     int statusCode = HttpStatus.SC_BAD_REQUEST; // 400
-    httppost.setEntity(requestEntity);
+    this.httppost.setEntity(this.requestEntity);
 
     try {
-      response = httpclient.execute(httppost, context);
-      statusCode = response.getStatusLine().getStatusCode();
+      this.response = this.httpclient.execute(this.httppost, context);
+      statusCode = this.response.getStatusLine().getStatusCode();
       if (statusCode < HttpStatus.SC_BAD_REQUEST) {
-        responseEntity = response.getEntity();
+        this.responseEntity = this.response.getEntity();
       }
     } catch (final ClientProtocolException e) {
       e.printStackTrace();

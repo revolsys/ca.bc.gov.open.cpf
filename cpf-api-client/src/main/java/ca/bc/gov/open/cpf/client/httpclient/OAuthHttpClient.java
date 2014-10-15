@@ -58,7 +58,7 @@ import com.revolsys.util.UrlUtil;
 @SuppressWarnings("javadoc")
 public class OAuthHttpClient extends DefaultHttpClient {
   public static HttpHost determineTarget(final HttpUriRequest request)
-    throws ClientProtocolException {
+      throws ClientProtocolException {
     // A null target may be acceptable if there is a default target.
     // Otherwise, the null target is detected in the director.
     HttpHost target = null;
@@ -102,10 +102,10 @@ public class OAuthHttpClient extends DefaultHttpClient {
         this.webServiceUrl = protocol + "://" + webServiceHost + wsPath;
       } else {
         this.webServiceUrl = protocol + "://" + webServiceHost + ":"
-          + webServicePort + wsPath;
+            + webServicePort + wsPath;
       }
-      context = new BasicHttpContext();
-      context.setAttribute(ClientContext.AUTH_SCHEME_PREF,
+      this.context = new BasicHttpContext();
+      this.context.setAttribute(ClientContext.AUTH_SCHEME_PREF,
         Arrays.asList(OAuthSchemeFactory.SCHEME_NAME));
 
       final HttpParams parameters = getParams();
@@ -135,12 +135,12 @@ public class OAuthHttpClient extends DefaultHttpClient {
 
   public String appendOAuthToUrl(final String method, final String url) {
     final String oauthUrl = OAuthUrlUtil.addAuthenticationToUrl(method, url,
-      consumerKey, consumerSecret);
+      this.consumerKey, this.consumerSecret);
     return oauthUrl;
   }
 
   public void close() {
-    pool.releaseClient(this);
+    this.pool.releaseClient(this);
   }
 
   protected IOException createException(final HttpEntity entity,
@@ -149,8 +149,8 @@ public class OAuthHttpClient extends DefaultHttpClient {
       try {
         final String errorBody = EntityUtils.toString(entity);
         LoggerFactory.getLogger(OAuthHttpClient.class)
-          .debug(
-            "Unable to get message from server: " + statusLine + "\n"
+        .debug(
+          "Unable to get message from server: " + statusLine + "\n"
               + errorBody);
       } catch (final Throwable e) {
         LoggerFactory.getLogger(OAuthHttpClient.class).error(
@@ -161,39 +161,40 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   public void deleteUrl(final String url) throws IOException,
-    ClientProtocolException {
+  ClientProtocolException {
     final HttpDelete httpDelete = new HttpDelete(url);
-    final HttpResponse response = execute(httpDelete, context);
+    final HttpResponse response = execute(httpDelete, this.context);
     final HttpEntity entity = response.getEntity();
     EntityUtils.consume(entity);
   }
 
   public Map<String, Object> getJsonResource(final HttpResponse response)
-    throws IOException {
+      throws IOException {
     final StatusLine statusLine = response.getStatusLine();
     final int httpStatusCode = statusLine.getStatusCode();
     final HttpEntity entity = response.getEntity();
 
     if (httpStatusCode == HttpStatus.SC_OK) {
-      final InputStream in = entity.getContent();
-      final Map<String, Object> map = JsonParser.read(in);
-      return map;
-
+      try (
+          final InputStream in = entity.getContent()) {
+        final Map<String, Object> map = JsonParser.read(in);
+        return map;
+      }
     } else {
       throw createException(entity, statusLine);
     }
   }
 
   public Map<String, Object> getJsonResource(final HttpUriRequest request)
-    throws IOException, ClientProtocolException {
+      throws IOException, ClientProtocolException {
     request.addHeader("Accept", "application/json");
 
     final InvokeMethodResponseHandler<Map<String, Object>> responseHandler = new InvokeMethodResponseHandler<Map<String, Object>>(
-      this, "getJsonResource");
+        this, "getJsonResource");
 
     final HttpHost target = determineTarget(request);
     final Map<String, Object> response = execute(target, request,
-      responseHandler, context);
+      responseHandler, this.context);
 
     return response;
   }
@@ -217,7 +218,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     final String url) {
     try {
       final HttpGet request = new HttpGet(url);
-      final HttpResponse response = execute(request, context);
+      final HttpResponse response = execute(request, this.context);
       final StatusLine statusLine = response.getStatusLine();
       final int httpStatusCode = statusLine.getStatusCode();
       final HttpEntity entity = response.getEntity();
@@ -228,7 +229,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
 
         final String contentType = contentTypeHeader.getValue();
         final MapReaderFactory factory = IoFactoryRegistry.getInstance()
-          .getFactoryByMediaType(MapReaderFactory.class, contentType);
+            .getFactoryByMediaType(MapReaderFactory.class, contentType);
         if (factory == null) {
           throw new RuntimeException("Unable to read " + contentType);
         }
@@ -246,15 +247,15 @@ public class OAuthHttpClient extends DefaultHttpClient {
 
   public String getOAuthUrl(final String method, final String path) {
     String url = getUrl(path);
-    url = OAuthUrlUtil.addAuthenticationToUrl(method, url, consumerKey,
-      consumerSecret);
+    url = OAuthUrlUtil.addAuthenticationToUrl(method, url, this.consumerKey,
+      this.consumerSecret);
     return url;
   }
 
   public HttpResponse getResource(final String url) {
     try {
       final HttpGet httpGet = new HttpGet(url);
-      final HttpResponse response = execute(httpGet, context);
+      final HttpResponse response = execute(httpGet, this.context);
       return response;
     } catch (final Exception e) {
       return (HttpResponse)ExceptionUtil.throwUncheckedException(e);
@@ -262,18 +263,18 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   public String getUrl(final String path) {
-    return webServiceUrl + path.replaceAll("/+", "/");
+    return this.webServiceUrl + path.replaceAll("/+", "/");
   }
 
   public Map<String, Object> postJsonResource(final String url)
-    throws ClientProtocolException, IOException {
+      throws ClientProtocolException, IOException {
     final HttpPost request = new HttpPost(url);
     return getJsonResource(request);
   }
 
   public Map<String, Object> postJsonResource(final String url,
     final Map<String, ? extends Object> message)
-    throws ClientProtocolException, IOException {
+        throws ClientProtocolException, IOException {
     final HttpPost request = new HttpPost(url);
     request.addHeader("Content-type", "application/json");
     final String bodyString = JsonMapIoFactory.toString(message);
@@ -283,17 +284,17 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   public int postResource(final HttpMultipartPost post) throws IOException {
-    return post.postRequest(context);
+    return post.postRequest(this.context);
   }
 
   public HttpResponse postResource(final String url) throws IOException,
-    ClientProtocolException {
+  ClientProtocolException {
     try {
       final HttpPost httpPost = new HttpPost(url);
       final List<NameValuePair> parameters = Collections.emptyList();
       final UrlEncodedFormEntity entity = new UrlEncodedFormEntity(parameters);
       httpPost.setEntity(entity);
-      final HttpResponse response = execute(httpPost, context);
+      final HttpResponse response = execute(httpPost, this.context);
       return response;
     } catch (final Throwable e) {
       return ExceptionUtil.throwUncheckedException(e);
@@ -306,7 +307,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
       final HttpPost httpPost = new HttpPost(url);
       final FileEntity entity = new FileEntity(file, contentType);
       httpPost.setEntity(entity);
-      final HttpResponse response = execute(httpPost, context);
+      final HttpResponse response = execute(httpPost, this.context);
       return response;
     } catch (final Throwable e) {
       return ExceptionUtil.throwUncheckedException(e);
@@ -322,21 +323,30 @@ public class OAuthHttpClient extends DefaultHttpClient {
           final StatusLine statusLine = response.getStatusLine();
           final String statusMessage = statusLine.getReasonPhrase();
           throw new RuntimeException(statusCode + " " + statusMessage);
-        }
-        final Header[] header = response.getHeaders("Location");
-        if (header.length > 0) {
-          final String jobIdUrl = header[0].getValue();
-          return jobIdUrl;
+        } else if (statusCode == HttpStatus.SC_OK) {
+          final HttpEntity entity = response.getEntity();
+          try (
+              final InputStream in = entity.getContent()) {
+
+            final Map<String, Object> map = JsonParser.read(in);
+            return (String)map.get("id");
+          }
         } else {
-          throw new RuntimeException("Unable to location header for "
-            + request.getUrl());
+          final Header[] header = response.getHeaders("Location");
+          if (header.length > 0) {
+            final String jobIdUrl = header[0].getValue();
+            return jobIdUrl;
+          } else {
+            throw new RuntimeException("Unable to get location header for "
+                + request.getUrl());
+          }
         }
       } finally {
         request.close();
       }
     } catch (final IOException e) {
       throw new RuntimeException("Unable to send POST request "
-        + request.getUrl(), e);
+          + request.getUrl(), e);
     }
   }
 
@@ -351,13 +361,23 @@ public class OAuthHttpClient extends DefaultHttpClient {
         if (statusCode >= HttpStatus.SC_BAD_REQUEST) {
           final String statusMessage = statusLine.getReasonPhrase();
           throw new RuntimeException(statusCode + " " + statusMessage);
-        }
-        final Header[] header = response.getHeaders("Location");
-        if (header.length > 0) {
-          final String jobIdUrl = header[0].getValue();
-          return jobIdUrl;
+        } else if (statusCode == HttpStatus.SC_OK) {
+          final HttpEntity entity = response.getEntity();
+          try (
+              final InputStream in = entity.getContent()) {
+
+            final Map<String, Object> map = JsonParser.read(in);
+            return (String)map.get("id");
+          }
         } else {
-          throw new RuntimeException("Unable to location header for " + url);
+          final Header[] header = response.getHeaders("Location");
+          if (header.length > 0) {
+            final String jobIdUrl = header[0].getValue();
+            return jobIdUrl;
+          } else {
+            throw new RuntimeException("Unable to get location header for "
+              + url);
+          }
         }
       } finally {
         response.getEntity().consumeContent();

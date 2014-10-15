@@ -79,9 +79,6 @@ import com.revolsys.util.Property;
  * a .cpf file is provided in the shpz archive.</p>
  */
 public class CpfClient implements AutoCloseable {
-  /** OAuth consumer key */
-  private String consumerKey = "";
-
   /** DigestHttpClient using OAuth credentials */
   private OAuthHttpClientPool httpClientPool;
 
@@ -108,7 +105,6 @@ public class CpfClient implements AutoCloseable {
     url = url.replaceAll("(/ws)?/*$", "");
     this.httpClientPool = new OAuthHttpClientPool(url, consumerKey,
       consumerSecret, 1);
-    this.consumerKey = consumerKey;
   }
 
   /**
@@ -119,6 +115,7 @@ public class CpfClient implements AutoCloseable {
    */
   private void addJobParameters(final HttpMultipartPost request,
     final Map<String, ? extends Object> jobParameters) {
+    request.addHeader("Accept", "application/json");
     if (jobParameters != null && !jobParameters.isEmpty()) {
       for (final String parameterName : jobParameters.keySet()) {
         final Object value = jobParameters.get(parameterName);
@@ -147,7 +144,6 @@ public class CpfClient implements AutoCloseable {
   public void close() {
     this.httpClientPool.close();
     this.httpClientPool = null;
-    this.consumerKey = null;
   }
 
   /**
