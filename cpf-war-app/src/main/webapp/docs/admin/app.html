@@ -173,15 +173,13 @@ manage items related to a business application.</p>
       </tr>
       <tr>
         <th id="batchModePermission">Batch Mode Permission</th>
-        <td>The <a href="http://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html">Spring Security Expression</a>
-        to restrict access to submission of batch jobs.</td>
+        <td>The <a href="#permission">permission</a> to restrict access to submission of jobs.</td>
       </tr>
       <tr>
         <th id="instantModePermission">Instant Mode Permission</th>
-        <td>The <a href="http://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html">Spring Security Expression</a>
-        to restrict access to submission of instance requests.</td>
+        <td>The <a href="#permission">permission</a> to restrict access to submission of instant mode requests.</td>
       </tr>
-      <tr>
+       <tr>
         <th id="geometryFactory">Geometry Factory</th>
         <td>The geometry factory that all geometries will be converted to before execution on the plug-in.</td>
       </tr>
@@ -252,6 +250,38 @@ manage items related to a business application.</p>
     </tbody>
   </table>
 </div>
+</section>
+
+<section>
+  <h2 id="permission">Permission Strings</h2>
+  <p>Permissions are defined using a <a href="http://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html">Spring Security Expression</a>
+  that if evaluated to true will grant the user permission.</p>
+  
+  <p>The simplest permission is uses the <code>hasRole</code> function to see if the user is a member of a CPF
+  group. The function takes a single argument that is the CPF group name prefixed by 'ROLE_'. The
+  following example grants access to all internal users.</p>
+  
+  <pre>hasRole('ROLE_BCGOV_INTERNAL')</pre>
+  
+  <p>The <code>hasAnyRole</code> function will allow access if the user is a member of any of the listed groups. The
+  following example grants access to all internal and business users.<p>
+    
+  <pre>hasAnyRole('ROLE_BCGOV_INTERNAL','ROLE_BCGOV_BUSINESS')</pre>
+  
+  <p>This could also be written using the <code>or</code> operator.</p>
+      
+  <pre>hasRole('ROLE_BCGOV_INTERNAL') or hasRole('ROLE_BCGOV_BUSINESS')</pre>
+  
+  <p>The <code>hasRoleRegex</code> will allow users who have a CPF group that matches the
+  <a href="http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html">Java regular expression</a>.
+  The following example matches all CPF groups that start with BCGOV</p>
+  
+  <pre>hasRoleRegex('ROLE_BCGOV_.*')</pre>
+  
+  <p>The permission <code>permitAll</code> grants all users permission.</p>
+  
+  <p>The permission <code>denyAll</code> grants no users permission.</p>
+  
 </section>
 
 </section>
