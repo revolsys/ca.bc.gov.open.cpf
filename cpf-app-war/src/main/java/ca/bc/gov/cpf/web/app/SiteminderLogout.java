@@ -45,7 +45,7 @@ public class SiteminderLogout implements LogoutSuccessHandler {
     if (Property.hasValue(this.logoutUrl)) {
       final Map<String, String> parameters = new LinkedHashMap<String, String>();
       parameters.put("returl", url);
-      parameters.put("retname", "Cloud Processing Framework");
+      parameters.put("retname", "Concurrent Processing Framework");
       url = UrlUtil.getUrl(HttpServletUtils.getAbsoluteUrl(this.logoutUrl),
         parameters);
     }
