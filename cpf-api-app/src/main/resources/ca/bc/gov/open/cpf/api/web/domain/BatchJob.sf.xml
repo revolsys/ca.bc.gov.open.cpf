@@ -400,6 +400,7 @@
             <value>jobStatusDate</value>
             <value>businessApplicationParameterMap</value>
             <value>INPUT_DATA_CONTENT_TYPE</value>
+            <value>STRUCTURED_INPUT_DATA_URL</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
             <value>WHEN_CREATED</value>
             <value>WHEN_UPDATED</value>
