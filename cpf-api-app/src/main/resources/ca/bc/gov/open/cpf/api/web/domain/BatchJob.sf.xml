@@ -406,6 +406,7 @@
             <value>WHEN_UPDATED</value>
             <value>LAST_SCHEDULED_TIMESTAMP</value>
             <value>COMPLETED_TIMESTAMP</value>
+            <value>expiryDate</value>
             <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>
@@ -468,6 +469,7 @@
             <value>WHEN_UPDATED</value>
             <value>LAST_SCHEDULED_TIMESTAMP</value>
             <value>COMPLETED_TIMESTAMP</value>
+            <value>expiryDate</value>
             <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>NUM_COMPLETED_REQUESTS</value>

@@ -75,6 +75,7 @@
             <value>SEQUENCE_NUMBER</value>
             <value>BATCH_JOB_RESULT_TYPE</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
+            <value>expiryDate</value>
             <value>download</value>
             <value>WHEN_CREATED</value>
             <value>DOWNLOAD_TIMESTAMP</value>
@@ -85,6 +86,7 @@
             <value>SEQUENCE_NUMBER</value>
             <value>BATCH_JOB_RESULT_TYPE</value>
             <value>RESULT_DATA_CONTENT_TYPE</value>
+            <value>expiryDate</value>
             <bean
               p:name="clientView"
               class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"

@@ -198,69 +198,7 @@ public class BatchJobService implements ModuleEventListener {
     return false;
   }
 
-  public static Map<String, Object> toMap(final Record batchJob,
-    final String jobUrl, final long timeUntilNextCheck) {
-    try {
-      final Map<String, Object> jobMap = new NamedLinkedHashMap<String, Object>(
-          "BatchJob");
-      jobMap.put("id", new URI(jobUrl));
-      jobMap.put("consumerKey", batchJob.getValue(BatchJob.USER_ID));
-      jobMap.put("businessApplicationName",
-        batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME));
-      jobMap.put("inputDataContentType",
-        batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE));
-      jobMap.put("structuredInputDataUrl",
-        batchJob.getValue(BatchJob.STRUCTURED_INPUT_DATA_URL));
-      jobMap.put("resultDataContentType",
-        batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE));
-      final Map<String, String> parameters = getBusinessApplicationParameters(batchJob);
-      for (final Entry<String, String> param : parameters.entrySet()) {
-        jobMap.put(param.getKey(), param.getValue());
-      }
-      jobMap.put("jobStatus", batchJob.getValue(BatchJob.JOB_STATUS));
-      jobMap.put("jobStatusDate", DateUtil.format(DATE_TIME_FORMAT));
-      jobMap.put(
-        "startTime",
-        DateUtil.format(DATE_TIME_FORMAT,
-          (Date)batchJob.getValue(BatchJob.WHEN_CREATED)));
-      jobMap.put(
-        "modificationTime",
-        DateUtil.format(DATE_TIME_FORMAT,
-          (Date)batchJob.getValue(BatchJob.WHEN_UPDATED)));
-      jobMap.put(
-        "lastScheduledTime",
-        DateUtil.format(DATE_TIME_FORMAT,
-          (Date)batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP)));
-      jobMap.put(
-        "completionTime",
-        DateUtil.format(DATE_TIME_FORMAT,
-          (Date)batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP)));
-
-      jobMap.put("secondsToWaitForStatusCheck", timeUntilNextCheck);
-
-      jobMap.put("numSubmittedRequests",
-        batchJob.getValue(BatchJob.NUM_SUBMITTED_REQUESTS));
-      jobMap.put("numCompletedRequests",
-        batchJob.getValue(BatchJob.NUM_COMPLETED_REQUESTS));
-      jobMap.put("numFailedRequests",
-        batchJob.getValue(BatchJob.NUM_FAILED_REQUESTS));
-      jobMap.put("resultDataContentType",
-        batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE));
-      if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null) {
-        String path;
-        if (jobUrl.endsWith("/")) {
-          path = jobUrl + "results/";
-        } else {
-          path = jobUrl + "/results/";
-        }
-
-        jobMap.put("resultsUrl", new URI(path));
-      }
-      return jobMap;
-    } catch (final URISyntaxException e) {
-      throw new IllegalArgumentException(jobUrl + " is not a valid URI", e);
-    }
-  }
+  private int daysToKeepOldJobs = 7;
 
   private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
@@ -339,7 +277,7 @@ public class BatchJobService implements ModuleEventListener {
       newErrorMessage = validationErrorCode.getDescription();
     }
     try (
-        final MapWriter errorMapWriter = new CsvMapWriter(errorWriter)) {
+      final MapWriter errorMapWriter = new CsvMapWriter(errorWriter)) {
       final Map<String, String> errorResultMap = new HashMap<String, String>();
       errorResultMap.put("Code", validationErrorCode.name());
       errorResultMap.put("Message", newErrorMessage);
@@ -468,7 +406,7 @@ public class BatchJobService implements ModuleEventListener {
 
   protected void collateAllStatistics() {
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
 
@@ -647,13 +585,13 @@ public class BatchJobService implements ModuleEventListener {
       errorResultWriter = new CsvMapWriter(errorWriter);
 
       structuredResultFile = FileUtil.createTempFile("result", "."
-          + fileExtension);
+        + fileExtension);
       structuredResultWriter = createStructuredResultWriter(batchJob,
         batchJobId, application, structuredResultFile, resultRecordDefinition,
         resultFormat);
       structuredResultWriter.open();
       final Map<String, Object> defaultProperties = new HashMap<String, Object>(
-          structuredResultWriter.getProperties());
+        structuredResultWriter.getProperties());
 
       boolean hasErrors = false;
       boolean hasResults = false;
@@ -721,7 +659,7 @@ public class BatchJobService implements ModuleEventListener {
       RecordWriterFactory.class, resultFormat.trim());
     if (writerFactory == null) {
       throw new IllegalArgumentException("Unsupported result content type: "
-          + resultFormat);
+        + resultFormat);
     } else {
       final com.revolsys.io.Writer<Record> recordWriter = writerFactory.createRecordWriter(
         resultRecordDefinition, resource);
@@ -879,6 +817,17 @@ public class BatchJobService implements ModuleEventListener {
 
   public CpfDataAccessObject getDataAccessObject() {
     return this.dataAccessObject;
+  }
+
+  public int getDaysToKeepOldJobs() {
+    return this.daysToKeepOldJobs;
+  }
+
+  public java.sql.Date getExpiryDate(final Date completionTimestamp) {
+    final int dayInMilliseconds = 1000 * 60 * 60 * 24;
+    final long timeXDaysAgo = completionTimestamp.getTime()
+        + this.daysToKeepOldJobs * dayInMilliseconds;
+    return new java.sql.Date(timeXDaysAgo);
   }
 
   /**
@@ -1081,7 +1030,7 @@ public class BatchJobService implements ModuleEventListener {
       final Map<String, BusinessApplicationStatistics> statisticsById = getStatistics(
         this.statisticsByAppAndId, businessApplicationName);
       return new ArrayList<BusinessApplicationStatistics>(
-          statisticsById.values());
+        statisticsById.values());
     }
   }
 
@@ -1120,7 +1069,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public boolean isHasTablespaceError() {
     if (System.currentTimeMillis() < capacityErrorTime
-        + this.timeoutForCapacityErrors) {
+      + this.timeoutForCapacityErrors) {
       return true;
     } else {
       return false;
@@ -1138,7 +1087,7 @@ public class BatchJobService implements ModuleEventListener {
   @Override
   public void moduleChanged(final ModuleEvent event) {
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String action = event.getAction();
         final Module module = event.getModule();
@@ -1157,7 +1106,7 @@ public class BatchJobService implements ModuleEventListener {
             }
             for (final Worker worker : getWorkers()) {
               final String moduleNameAndTime = moduleName + ":"
-                  + module.getStartedTime();
+                + module.getStartedTime();
               worker.cancelExecutingGroups(moduleNameAndTime);
             }
           } else if (action.equals(ModuleEvent.START)) {
@@ -1211,9 +1160,9 @@ public class BatchJobService implements ModuleEventListener {
     final long lastChangedTime) {
     AppLog log = null;
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try (
-          com.revolsys.io.Writer<Record> writer = this.recordStore.getWriter();) {
+        com.revolsys.io.Writer<Record> writer = this.recordStore.getWriter();) {
         final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -1247,9 +1196,9 @@ public class BatchJobService implements ModuleEventListener {
           BatchJob.NUM_FAILED_REQUESTS);
         if (log.isInfoEnabled()) {
           AppLogUtil.infoAfterCommit(log, "End\tJob post-process\tbatchJobId="
-              + batchJobId, stopWatch);
+            + batchJobId, stopWatch);
           AppLogUtil.infoAfterCommit(log, "End\tJob execution\tbatchJobId="
-              + batchJobId);
+            + batchJobId);
         }
         final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
 
@@ -1297,7 +1246,7 @@ public class BatchJobService implements ModuleEventListener {
     }
     AppLog log = null;
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         this.dataAccessObject.deleteBatchJobExecutionGroups(batchJobId);
         int numSubmittedRequests = 0;
@@ -1348,25 +1297,25 @@ public class BatchJobService implements ModuleEventListener {
               final RecordDefinition requestRecordDefinition = businessApplication.getRequestRecordDefinition();
               try {
                 final MapReaderFactory factory = IoFactoryRegistry.getInstance()
-                    .getFactoryByMediaType(MapReaderFactory.class,
-                      inputContentType);
+                  .getFactoryByMediaType(MapReaderFactory.class,
+                    inputContentType);
                 if (factory == null) {
                   valid = addJobValidationError(batchJobId,
                     ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
-                      "Media type not supported");
+                    "Media type not supported");
                 } else {
                   final InputStreamResource resource = new InputStreamResource(
                     "in", inputDataStream);
                   try (
-                      final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource)) {
+                    final Reader<Map<String, Object>> mapReader = factory.createMapReader(resource)) {
                     if (mapReader == null) {
                       valid = addJobValidationError(batchJobId,
                         ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
-                          "Media type not supported");
+                        "Media type not supported");
                     } else {
                       try (
-                          final Reader<Record> inputDataReader = new MapReaderRecordReader(
-                            requestRecordDefinition, mapReader)) {
+                        final Reader<Record> inputDataReader = new MapReaderRecordReader(
+                          requestRecordDefinition, mapReader)) {
 
                         final int commitInterval = 100;
                         final PlatformTransactionManager transactionManager = this.recordStore.getTransactionManager();
@@ -1496,7 +1445,7 @@ public class BatchJobService implements ModuleEventListener {
         } finally {
           if (log.isInfoEnabled()) {
             AppLogUtil.infoAfterCommit(log, "End\tJob pre-process\tbatchJobId="
-                + batchJobId);
+              + batchJobId);
           }
         }
         synchronized (this.preprocesedJobIds) {
@@ -1532,7 +1481,7 @@ public class BatchJobService implements ModuleEventListener {
         parameterValue = getNonEmptyValue(inputDataRecord, parameterName);
       }
       if (parameterValue == null
-          && businessApplication.isJobParameter(parameterName)) {
+        && businessApplication.isJobParameter(parameterName)) {
         jobParameter = true;
         parameterValue = getNonEmptyValue(jobParameters, parameterName);
       }
@@ -1542,7 +1491,7 @@ public class BatchJobService implements ModuleEventListener {
             this.jobController, batchJobId, requestSequenceNumber,
             ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
             ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " "
-                + parameterName, null);
+              + parameterName, null);
           return null;
         }
       } else {
@@ -1566,7 +1515,7 @@ public class BatchJobService implements ModuleEventListener {
             this.jobController, batchJobId, requestSequenceNumber,
             ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
             ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " "
-                + parameterName + " " + e.getMessage(), errorOut.toString());
+              + parameterName + " " + e.getMessage(), errorOut.toString());
           return null;
         }
       }
@@ -1587,7 +1536,7 @@ public class BatchJobService implements ModuleEventListener {
     try {
       setWorkerConnected(workerId, workerStartTime, true);
       final Map<String, Object> response = new NamedLinkedHashMap<String, Object>(
-          "MessageResponse");
+        "MessageResponse");
       response.put("workerId", "workerId");
       final Worker worker = getWorker(workerId);
       if (worker != null) {
@@ -1608,7 +1557,7 @@ public class BatchJobService implements ModuleEventListener {
             moduleState.setEnabled(enabled);
             moduleState.setStatus("Started");
             final long moduleTime = CollectionUtil.getLong(message,
-                "moduleTime");
+              "moduleTime");
             moduleState.setStartedTime(moduleTime);
           } else if ("moduleStartFailed".equals(action)) {
             moduleState.setEnabled(enabled);
@@ -1701,10 +1650,10 @@ public class BatchJobService implements ModuleEventListener {
               for (final BatchJobRequestExecutionGroup group : groupsById.values()) {
                 final String groupId = group.getId();
                 if (LoggerFactory.getLogger(BatchJobService.class)
-                    .isDebugEnabled()) {
+                  .isDebugEnabled()) {
                   LoggerFactory.getLogger(BatchJobService.class).debug(
                     "Rescheduling group " + groupId + " from worker "
-                        + workerId);
+                      + workerId);
                 }
                 group.resetId();
                 schedule(group);
@@ -1754,7 +1703,7 @@ public class BatchJobService implements ModuleEventListener {
     List<String> businessApplicationNames;
     synchronized (this.statisticsByAppAndId) {
       businessApplicationNames = new ArrayList<String>(
-          this.statisticsByAppAndId.keySet());
+        this.statisticsByAppAndId.keySet());
     }
     saveStatistics(businessApplicationNames);
   }
@@ -1781,7 +1730,7 @@ public class BatchJobService implements ModuleEventListener {
     final Map<String, BusinessApplicationStatistics> statsById,
     final Date currentTime) {
     for (final Iterator<BusinessApplicationStatistics> iterator = statsById.values()
-        .iterator(); iterator.hasNext();) {
+      .iterator(); iterator.hasNext();) {
       final BusinessApplicationStatistics statistics = iterator.next();
       if (canDeleteStatistic(statistics, currentTime)) {
         iterator.remove();
@@ -1845,7 +1794,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public boolean scheduleBatchJobExecutionGroups(final Long batchJobId) {
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -1916,7 +1865,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void scheduleFromDatabase() {
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         for (final Module module : this.businessApplicationRegistry.getModules()) {
           if (module.isStarted()) {
@@ -1934,7 +1883,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void scheduleFromDatabase(final String jobStatus) {
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         for (final Module module : this.businessApplicationRegistry.getModules()) {
           if (module.isEnabled()) {
@@ -1968,7 +1917,7 @@ public class BatchJobService implements ModuleEventListener {
     final String businessApplicationName, final String jobStatus) {
     final AppLog log = getAppLog(businessApplicationName);
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final List<Long> batchJobIds = this.dataAccessObject.getBatchJobIds(
           businessApplicationName, jobStatus);
@@ -2015,7 +1964,7 @@ public class BatchJobService implements ModuleEventListener {
         String batchJobUrl = baseUrl;
         if (Property.hasValue(propertiesText)) {
           final String webServicePrefix = JsonMapIoFactory.toMap(propertiesText)
-              .get("webServicePrefix");
+            .get("webServicePrefix");
           if (Property.hasValue(webServicePrefix)) {
             batchJobUrl += webServicePrefix;
           }
@@ -2056,7 +2005,7 @@ public class BatchJobService implements ModuleEventListener {
             if (writerFactory == null) {
               LoggerFactory.getLogger(BatchJobService.class).error(
                 "Media type not supported for Record #" + batchJobId + " to "
-                    + contentType);
+                  + contentType);
             } else {
               final MapWriter writer = writerFactory.getMapWriter(bodyOut);
               writer.setProperty("title", subject);
@@ -2074,7 +2023,7 @@ public class BatchJobService implements ModuleEventListener {
                 if (statusLine.getStatusCode() >= 400) {
                   LoggerFactory.getLogger(BatchJobService.class).error(
                     "Unable to send notification for Record #" + batchJobId
-                    + " to " + notificationUrl + " response=" + statusLine);
+                      + " to " + notificationUrl + " response=" + statusLine);
                 }
               } finally {
                 final InputStream content = entity.getContent();
@@ -2086,7 +2035,7 @@ public class BatchJobService implements ModuleEventListener {
       } catch (final Throwable e) {
         LoggerFactory.getLogger(BatchJobService.class).error(
           "Unable to send notification for Record #" + batchJobId + " to "
-              + notificationUrl, e);
+            + notificationUrl, e);
       }
     }
   }
@@ -2112,7 +2061,7 @@ public class BatchJobService implements ModuleEventListener {
   public void setBatchJobExecutingCounts(final String businessApplicationName,
     final Long batchJobId, final Set<BatchJobRequestExecutionGroup> groups) {
     try (
-        Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         synchronized (businessApplicationName.intern()) {
           int numCompletedRequests = 0;
@@ -2159,13 +2108,13 @@ public class BatchJobService implements ModuleEventListener {
               final Object groupResultObject = results.get("results");
 
               final long groupExecutedTime = CollectionUtil.getLong(results,
-                  "groupExecutedTime");
+                "groupExecutedTime");
               final long applicationExecutedTime = CollectionUtil.getLong(
                 results, "applicationExecutedTime");
               final int successCount = CollectionUtil.getInteger(results,
-                  "successCount");
+                "successCount");
               final int errorCount = CollectionUtil.getInteger(results,
-                  "errorCount");
+                "errorCount");
 
               final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);
               if (batchJob != null) {
@@ -2183,7 +2132,7 @@ public class BatchJobService implements ModuleEventListener {
               final AppLog appLog = businessApplication.getLog();
               AppLogUtil.infoAfterCommit(appLog,
                 "End\tGroup execution\tgroupId=" + groupId + "\tworkerId="
-                    + workerId + "\ttime=" + executionTime / 1000.0);
+                  + workerId + "\ttime=" + executionTime / 1000.0);
             }
           } catch (final Throwable e) {
             if (isDatabaseResourcesException(e)) {
@@ -2217,6 +2166,10 @@ public class BatchJobService implements ModuleEventListener {
     this.jobController = new DatabaseJobController(dataAccessObject);
     // this.jobController = new FileJobController(this, new
     // File("/apps/data/cpf"));
+  }
+
+  public void setDaysToKeepOldJobs(final int daysToKeepOldJobs) {
+    this.daysToKeepOldJobs = daysToKeepOldJobs;
   }
 
   /**
@@ -2316,7 +2269,7 @@ public class BatchJobService implements ModuleEventListener {
         final Boolean validateGeometry = attribute.getProperty(FieldProperties.VALIDATE_GEOMETRY);
         if (geometry.getSrid() == 0) {
           throw new IllegalArgumentException(
-              "does not have a coordinate system (SRID) specified");
+            "does not have a coordinate system (SRID) specified");
         }
         if (validateGeometry == true) {
           final IsValidOp validOp = new IsValidOp(geometry);
@@ -2387,6 +2340,73 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public Map<String, Object> toMap(final Record batchJob, final String jobUrl,
+    final long timeUntilNextCheck) {
+    try {
+      final Map<String, Object> jobMap = new NamedLinkedHashMap<String, Object>(
+        "BatchJob");
+      jobMap.put("id", new URI(jobUrl));
+      jobMap.put("consumerKey", batchJob.getValue(BatchJob.USER_ID));
+      jobMap.put("businessApplicationName",
+        batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME));
+      jobMap.put("inputDataContentType",
+        batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE));
+      jobMap.put("structuredInputDataUrl",
+        batchJob.getValue(BatchJob.STRUCTURED_INPUT_DATA_URL));
+      jobMap.put("resultDataContentType",
+        batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE));
+      final Map<String, String> parameters = getBusinessApplicationParameters(batchJob);
+      for (final Entry<String, String> param : parameters.entrySet()) {
+        jobMap.put(param.getKey(), param.getValue());
+      }
+      jobMap.put("jobStatus", batchJob.getValue(BatchJob.JOB_STATUS));
+      jobMap.put("jobStatusDate", DateUtil.format(DATE_TIME_FORMAT));
+      jobMap.put(
+        "startTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          (Date)batchJob.getValue(BatchJob.WHEN_CREATED)));
+      jobMap.put(
+        "modificationTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          (Date)batchJob.getValue(BatchJob.WHEN_UPDATED)));
+      jobMap.put(
+        "lastScheduledTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          (Date)batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP)));
+      Date completedDate = (Date)batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP);
+      jobMap.put(
+        "completionTime",
+        DateUtil.format(DATE_TIME_FORMAT,
+          completedDate));
+      jobMap.put("expiryDate",
+        DateUtil.format("yyyy-MM-dd", getExpiryDate(completedDate)));
+
+      jobMap.put("secondsToWaitForStatusCheck", timeUntilNextCheck);
+
+      jobMap.put("numSubmittedRequests",
+        batchJob.getValue(BatchJob.NUM_SUBMITTED_REQUESTS));
+      jobMap.put("numCompletedRequests",
+        batchJob.getValue(BatchJob.NUM_COMPLETED_REQUESTS));
+      jobMap.put("numFailedRequests",
+        batchJob.getValue(BatchJob.NUM_FAILED_REQUESTS));
+      jobMap.put("resultDataContentType",
+        batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE));
+      if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null) {
+        String path;
+        if (jobUrl.endsWith("/")) {
+          path = jobUrl + "results/";
+        } else {
+          path = jobUrl + "/results/";
+        }
+
+        jobMap.put("resultsUrl", new URI(path));
+      }
+      return jobMap;
+    } catch (final URISyntaxException e) {
+      throw new IllegalArgumentException(jobUrl + " is not a valid URI", e);
+    }
+  }
+
   protected long updateGroupStatistics(
     final BatchJobRequestExecutionGroup group,
     final BusinessApplication businessApplication, final String moduleName,
@@ -2406,7 +2426,7 @@ public class BatchJobService implements ModuleEventListener {
 
     final long executionStartTime = group.getExecutionStartTime();
     final long durationInMillis = System.currentTimeMillis()
-        - executionStartTime;
+      - executionStartTime;
     final Map<String, Object> executedStatistics = new HashMap<String, Object>();
     executedStatistics.put("executedGroupsCount", 1);
     executedStatistics.put("executedRequestsCount", successCount + errorCount);
@@ -2437,7 +2457,7 @@ public class BatchJobService implements ModuleEventListener {
   public void waitIfTablespaceError(final Class<?> logClass) {
     final long currentTime = System.currentTimeMillis();
     final long waitTime = capacityErrorTime + this.timeoutForCapacityErrors
-        - currentTime;
+      - currentTime;
     if (waitTime > 0) {
       LoggerFactory.getLogger(logClass).error(
         "Waiting " + waitTime / 1000 + " seconds for tablespace error");

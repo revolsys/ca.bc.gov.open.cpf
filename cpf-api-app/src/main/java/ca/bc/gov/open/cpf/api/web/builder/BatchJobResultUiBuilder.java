@@ -2,6 +2,7 @@ package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,8 @@ import com.revolsys.data.query.Query;
 import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.xml.XmlWriter;
+import com.revolsys.util.DateUtil;
 
 @Controller
 public class BatchJobResultUiBuilder extends CpfUiBuilder {
@@ -35,6 +38,19 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     super("batchJobResult", BatchJobResult.BATCH_JOB_RESULT,
       BatchJobResult.SEQUENCE_NUMBER, "Batch Job Result", "Batch Job Results");
     setIdParameterName("sequenceNumber");
+  }
+
+  public void expiryDate(final XmlWriter out, final Object object)
+    throws IOException {
+    final Record batchJobResult = (Record)object;
+    final Date completionTimestamp = batchJobResult.getValue(BatchJob.WHEN_CREATED);
+    if (completionTimestamp == null) {
+      out.append('-');
+    } else {
+      final java.sql.Date expiryDate = getBatchJobService().getExpiryDate(
+        completionTimestamp);
+      out.append(DateUtil.format("yyyy-MM-dd", expiryDate));
+    }
   }
 
   public Record getBatchJobResult(final Long batchJobId,
@@ -51,23 +67,22 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{sequenceNumber}/download"
-      }, method = {
-        RequestMethod.GET, RequestMethod.POST
-      })
+    value = {
+      "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{sequenceNumber}/download"
+    }, method = {
+      RequestMethod.GET, RequestMethod.POST
+    })
   @ResponseBody
   public void getModuleAppJobDownload(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,
     @PathVariable final String businessApplicationName,
     @PathVariable final Long batchJobId, @PathVariable final Long sequenceNumber)
-    throws NoSuchRequestHandlingMethodException, IOException {
+        throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
-    final Record batchJobResult = getBatchJobResult(batchJobId,
-      sequenceNumber);
+    final Record batchJobResult = getBatchJobResult(batchJobId, sequenceNumber);
 
     final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
     if (resultDataUrl != null) {
@@ -83,14 +98,13 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
         sequenceNumber, batchJobResult);
 
       final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-        .getFactoryByMediaType(RecordWriterFactory.class,
-          resultDataContentType);
+          .getFactoryByMediaType(RecordWriterFactory.class, resultDataContentType);
       if (writerFactory != null) {
         final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
         final String fileName = "job-" + batchJobId + "-result-"
-          + sequenceNumber + "." + fileExtension;
+            + sequenceNumber + "." + fileExtension;
         response.setHeader("Content-Disposition", "attachment; filename="
-          + fileName + ";size=" + size);
+            + fileName + ";size=" + size);
       }
       final ServletOutputStream out = response.getOutputStream();
 
@@ -99,9 +113,9 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results"
-      }, method = RequestMethod.GET)
+    value = {
+      "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results"
+    }, method = RequestMethod.GET)
   @ResponseBody
   public Object pageModuleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable final String moduleName,

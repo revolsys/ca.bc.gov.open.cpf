@@ -2731,8 +2731,8 @@ public class ConcurrentProcessingFramework {
         return tabs;
       } else {
         final String url = this.batchJobUiBuilder.getPageUrl("clientView");
-        final Map<String, Object> batchJobMap = BatchJobService.toMap(batchJob,
-          url, this.batchJobUiBuilder.getTimeUntilNextCheck(batchJob));
+        final Map<String, Object> batchJobMap = this.batchJobService.toMap(
+          batchJob, url, this.batchJobUiBuilder.getTimeUntilNextCheck(batchJob));
         return batchJobMap;
       }
     }
@@ -2894,6 +2894,9 @@ public class ConcurrentProcessingFramework {
             resultPage.setAttribute("batchJobResultType", batchJobResultType);
             resultPage.setAttribute("batchJobResultContentType",
               batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
+            resultPage.setAttribute(
+              "expiryDate",
+              this.batchJobService.getExpiryDate((java.util.Date)batchJobResult.getValue(BatchJobResult.WHEN_CREATED)));
             if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
               resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
                 batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));
