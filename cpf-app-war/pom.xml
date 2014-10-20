@@ -7,7 +7,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>cpf-app-war</artifactId>
   <packaging>war</packaging>
-  <name>BCGOV Cloud Processing Framework WAR APP</name>
+  <name>BCGOV Concurrent Processing Framework WAR APP</name>
   <parent>
     <groupId>ca.bc.gov.cpf</groupId>
     <artifactId>cpf</artifactId>

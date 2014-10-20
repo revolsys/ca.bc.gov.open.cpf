@@ -77,7 +77,7 @@ li {
       <div class="body">
         <div class="header">
           <div class="headerContent">
-            <div class="title">Cloud Processing Framework</div>
+            <div class="title">Concurrent Processing Framework</div>
           </div>
         </div>
         <div class="content">

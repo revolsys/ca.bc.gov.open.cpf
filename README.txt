@@ -1,7 +1,7 @@
 Description
 -----------
 Project:           cpf
-Title:             Cloud Processing Framework Web Application
+Title:             Concurrent Processing Framework Web Application
 Version:           4.1.4
 
 Software/Hardware Requirements
