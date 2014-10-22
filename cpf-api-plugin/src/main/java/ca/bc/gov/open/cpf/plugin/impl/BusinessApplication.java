@@ -43,7 +43,7 @@ import com.revolsys.util.Property;
  * @version 1.0
  */
 public class BusinessApplication extends AbstractObjectWithProperties implements
-Comparable<BusinessApplication> {
+  Comparable<BusinessApplication> {
 
   public static String getDefaultFileExtension(
     final Map<String, ?> fileExtensionMap) {
@@ -72,13 +72,13 @@ Comparable<BusinessApplication> {
   }
 
   public static final String CORE_PARAMETER = BusinessApplication.class.getName()
-      + "/CORE_PARAMETER";
+    + "/CORE_PARAMETER";
 
   public static final String JOB_PARAMETER = BusinessApplication.class.getName()
-      + "/JOB_PARAMETER";
+    + "/JOB_PARAMETER";
 
   public static final String REQUEST_PARAMETER = BusinessApplication.class.getName()
-      + "/REQUEST_PARAMETER";
+    + "/REQUEST_PARAMETER";
 
   private String packageName;
 
@@ -227,7 +227,7 @@ Comparable<BusinessApplication> {
       "srid",
       DataTypes.INT,
       false,
-        "The coordinate system code of the source geometry. This value is used if the input data file does not specify a coordinate system.");
+      "The coordinate system code of the source geometry. This value is used if the input data file does not specify a coordinate system.");
     requestSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
     requestSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
     Integer firstSrid = null;
@@ -253,7 +253,7 @@ Comparable<BusinessApplication> {
       "resultDataContentType",
       DataTypes.STRING,
       false,
-        "The MIME type of the result data specified to be returned after running the request.");
+      "The MIME type of the result data specified to be returned after running the request.");
     resultDataContentType.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
 
@@ -270,7 +270,7 @@ Comparable<BusinessApplication> {
       "resultNumAxis",
       DataTypes.INT,
       false,
-        "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
+      "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
     resultNumAxis.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
     resultNumAxis.addAllowedValue(2, "2D");
@@ -290,7 +290,7 @@ Comparable<BusinessApplication> {
   private void addFieldResultSrid() {
     final FieldDefinition resultSrid = new FieldDefinition("resultSrid",
       DataTypes.INT, false,
-        "The coordinate system code of the projection for the result geometry.");
+      "The coordinate system code of the projection for the result geometry.");
     resultSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
     Integer firstSrid = null;
@@ -316,7 +316,7 @@ Comparable<BusinessApplication> {
       "resultScaleFactorXy",
       DataTypes.DOUBLE,
       false,
-        "The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
+      "The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
     resultScaleFactorXy.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultScaleFactorXy.setProperty(BusinessApplication.JOB_PARAMETER, true);
 
@@ -334,7 +334,7 @@ Comparable<BusinessApplication> {
       "resultScaleFactorZ",
       DataTypes.DOUBLE,
       false,
-        "The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
+      "The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
     resultScaleFactorZ.setProperty(BusinessApplication.CORE_PARAMETER, true);
     double defaultValue = Property.getDouble(this, "resultScaleFactorZ", 1000);
     if (defaultValue < 0) {
@@ -348,9 +348,9 @@ Comparable<BusinessApplication> {
   public void addInputDataContentType(final String contentType,
     final String description, final String fileExtension) {
     final String inputDataContentType = Property.getString(this,
-        "inputDataContentType");
+      "inputDataContentType");
     final String inputDataFileExtension = Property.getString(this,
-        "inputDataFileExtension");
+      "inputDataFileExtension");
     if (isContentTypeOrFileExtensionEqual(inputDataContentType, contentType,
       fileExtension)
       || isContentTypeOrFileExtensionEqual(inputDataFileExtension, contentType,
@@ -407,9 +407,9 @@ Comparable<BusinessApplication> {
   public void addResultDataContentType(final String contentType,
     final String fileExtension, final String description) {
     final String resultDataContentType = Property.getString(this,
-        "resultDataContentType");
+      "resultDataContentType");
     final String resultDataFileExtension = Property.getString(this,
-        "resultDataFileExtension");
+      "resultDataFileExtension");
     if (isContentTypeOrFileExtensionEqual(resultDataContentType, contentType,
       fileExtension)
       || isContentTypeOrFileExtensionEqual(resultDataFileExtension,
@@ -620,11 +620,11 @@ Comparable<BusinessApplication> {
       if (this.resultAttributeMap.size() > 0) {
         this.resultRecordDefinition.addField(new FieldDefinition(
           "sequenceNumber", DataTypes.INT, true,
-            "The index of the request record that this result relates to."));
+          "The index of the request record that this result relates to."));
         if (this.resultListProperty != null) {
           this.resultRecordDefinition.addField(new FieldDefinition(
             "resultNumber", DataTypes.INT, true,
-              "The index of the result record within the result for a request."));
+            "The index of the result record within the result for a request."));
         }
         for (final FieldDefinition attribute : this.resultAttributeMap.values()) {
           final String name = attribute.getName();
@@ -660,17 +660,16 @@ Comparable<BusinessApplication> {
     final String contentType, final String fileExtension) {
     if (Property.hasValue(match)) {
       return EqualsRegistry.equal(match, contentType)
-          || EqualsRegistry.equal(match, fileExtension);
+        || EqualsRegistry.equal(match, fileExtension);
     } else {
       return false;
     }
   }
 
-  public boolean isCoreParameter(final String attributeName) {
-    final FieldDefinition attribute = this.requestRecordDefinition.getField(attributeName);
+  public boolean isCoreParameter(final String fieldName) {
+    final FieldDefinition attribute = this.requestRecordDefinition.getField(fieldName);
     if (attribute == null) {
-      throw new IllegalArgumentException("Parameter does not exist"
-          + attributeName);
+      throw new IllegalArgumentException("Parameter does not exist" + fieldName);
     } else {
       return BooleanStringConverter.getBoolean(attribute.getProperty(CORE_PARAMETER));
     }
@@ -716,11 +715,10 @@ Comparable<BusinessApplication> {
     return this.inputDataContentTypes.contains(contentType);
   }
 
-  public boolean isJobParameter(final String attributeName) {
-    final FieldDefinition attribute = this.requestRecordDefinition.getField(attributeName);
+  public boolean isJobParameter(final String fieldName) {
+    final FieldDefinition attribute = this.requestRecordDefinition.getField(fieldName);
     if (attribute == null) {
-      throw new IllegalArgumentException("Parameter does not exist"
-          + attributeName);
+      throw new IllegalArgumentException("Parameter does not exist" + fieldName);
     } else {
       return BooleanStringConverter.getBoolean(attribute.getProperty(JOB_PARAMETER));
     }
@@ -734,11 +732,10 @@ Comparable<BusinessApplication> {
     return this.perRequestResultData;
   }
 
-  public boolean isRequestParameter(final String attributeName) {
-    final FieldDefinition attribute = this.requestRecordDefinition.getField(attributeName);
+  public boolean isRequestParameter(final String fieldName) {
+    final FieldDefinition attribute = this.requestRecordDefinition.getField(fieldName);
     if (attribute == null) {
-      throw new IllegalArgumentException("Parameter does not exist"
-          + attributeName);
+      throw new IllegalArgumentException("Parameter does not exist" + fieldName);
     } else {
       return BooleanStringConverter.getBoolean(attribute.getProperty(REQUEST_PARAMETER));
     }

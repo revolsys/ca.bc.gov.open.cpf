@@ -436,7 +436,7 @@ public class CpfDataAccessObject {
     filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     filter.put(BatchJob.JOB_STATUS, jobStatus);
     final Query query = Query.and(this.batchJobRecordDefinition, filter);
-    query.setAttributeNames(BatchJob.BATCH_JOB_ID);
+    query.setFieldNames(BatchJob.BATCH_JOB_ID);
     final Reader<Record> batchJobs = this.recordStore.query(query);
     try {
       final List<Long> batchJobIds = new ArrayList<Long>();
@@ -454,7 +454,7 @@ public class CpfDataAccessObject {
     final String businessApplicationName) {
     final Query query = Query.equal(this.batchJobRecordDefinition,
       BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-    query.setAttributeNames(BatchJob.BATCH_JOB_ID);
+    query.setFieldNames(BatchJob.BATCH_JOB_ID);
     // TODO move to scheduling groups
     query.setWhereCondition(Q.sql("JOB_STATUS IN ('requestsCreated', 'processing') AND "
         + "NUM_SUBMITTED_GROUPS > 0 AND "
@@ -490,7 +490,7 @@ public class CpfDataAccessObject {
   public List<Record> getBatchJobResults(final long batchJobId) {
     final Query query = Query.equal(this.batchJobResultRecordDefinition,
       BatchJobResult.BATCH_JOB_ID, batchJobId);
-    query.setAttributeNames(BatchJobResult.ALL_EXCEPT_BLOB);
+    query.setFieldNames(BatchJobResult.ALL_EXCEPT_BLOB);
     query.addOrderBy(BatchJobResult.SEQUENCE_NUMBER, true);
     final Reader<Record> reader = this.recordStore.query(query);
     try {
@@ -597,7 +597,7 @@ public class CpfDataAccessObject {
     filter.put(BatchJobExecutionGroup.COMPLETED_IND, 0);
     final Query query = Query.and(this.batchJobExecutionGroupRecordDefinition,
       filter);
-    query.setAttributeNames(BatchJobExecutionGroup.SEQUENCE_NUMBER);
+    query.setFieldNames(BatchJobExecutionGroup.SEQUENCE_NUMBER);
     query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
     query.setLimit(1);
     final Record batchJobExecutionGroup = this.recordStore.queryFirst(query);
@@ -618,7 +618,7 @@ public class CpfDataAccessObject {
    */
   public List<Long> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
     final Query query = new Query(this.batchJobRecordDefinition);
-    query.setAttributeNames(BatchJob.BATCH_JOB_ID);
+    query.setFieldNames(BatchJob.BATCH_JOB_ID);
     final And and = new And(
       new In(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED,
         BatchJob.DOWNLOAD_INITIATED, BatchJob.CANCELLED),
@@ -1352,7 +1352,7 @@ public class CpfDataAccessObject {
         final Query query = new Query(
           this.batchJobExecutionGroupRecordDefinition, whereCondition);
         query.setOrderByColumns(BatchJobExecutionGroup.SEQUENCE_NUMBER);
-        query.setAttributeNames(BatchJobExecutionGroup.SEQUENCE_NUMBER,
+        query.setFieldNames(BatchJobExecutionGroup.SEQUENCE_NUMBER,
           BatchJobExecutionGroup.STRUCTURED_RESULT_DATA);
 
         try (
