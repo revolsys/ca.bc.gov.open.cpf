@@ -2,6 +2,7 @@ package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -13,9 +14,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.SetQueue;
+import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ChannelValueStore;
 import com.revolsys.parallel.channel.ClosedException;
@@ -23,7 +26,9 @@ import com.revolsys.parallel.channel.MultiInputSelector;
 import com.revolsys.parallel.channel.store.Buffer;
 import com.revolsys.parallel.process.AbstractInOutProcess;
 import com.revolsys.parallel.process.InvokeMethodRunnable;
+import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
+import com.revolsys.transaction.Transaction;
 import com.revolsys.util.CollectionUtil;
 
 public class BatchJobScheduler extends
@@ -40,6 +45,10 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
   private final Map<String, Set<Long>> scheduledJobIdsByBusinessApplication = new HashMap<String, Set<Long>>();
 
   private final long timeout = 600000;
+
+  private final Set<Long> updateCountsJobIds = new HashSet<>();
+
+  private long errorTime;
 
   private Channel<BatchJobScheduleInfo> groupFinished;
 
@@ -182,6 +191,9 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
             out.write(loadJobIds);
           }
         } else {
+          if (System.currentTimeMillis() - this.errorTime < 60000) {
+            ThreadUtil.pause(60000);
+          }
           final BatchJobScheduleInfo jobInfo = channels.get(index).read();
           final Long batchJobId = jobInfo.getBatchJobId();
           final String businessApplicationName = jobInfo.getBusinessApplicationName();
@@ -232,9 +244,11 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
         }
 
         if (businessApplicationName != null) {
-          final Runnable runnable = new InvokeMethodRunnable(this,
-            "updateBatchJobCounts", businessApplicationName, batchJobId);
-          out.write(runnable);
+          if (this.updateCountsJobIds.add(batchJobId)) {
+            final Runnable runnable = new InvokeMethodRunnable(this,
+              "updateBatchJobCounts", businessApplicationName, batchJobId);
+            out.write(runnable);
+          }
         }
       }
     }
@@ -282,19 +296,53 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
 
   public void updateBatchJobCounts(final String businessApplicationName,
     final Long batchJobId) {
+    final AppLog log = this.batchJobService.getAppLog(businessApplicationName);
     Set<BatchJobRequestExecutionGroup> groups;
     synchronized (this.queuedFinishedGroupsByJobId) {
       groups = this.queuedFinishedGroupsByJobId.remove(batchJobId);
     }
-    final BatchJobScheduleInfo resultJobInfo = new BatchJobScheduleInfo(
-      businessApplicationName, batchJobId,
-      BatchJobScheduleInfo.SCHEDULE_FINISHED);
-    try {
+    try (
+        Transaction transaction = this.batchJobService.getDataAccessObject()
+        .createTransaction(Propagation.REQUIRES_NEW)) {
       if (groups != null) {
-        this.batchJobService.setBatchJobExecutingCounts(
-          businessApplicationName, batchJobId, groups);
+        try {
+          this.batchJobService.setBatchJobExecutingCounts(
+            businessApplicationName, batchJobId, groups);
+        } catch (final Throwable e) {
+          this.errorTime = System.currentTimeMillis();
+          synchronized (this.queuedFinishedGroupsByJobId) {
+            final Set<BatchJobRequestExecutionGroup> newGroups = this.queuedFinishedGroupsByJobId.remove(batchJobId);
+            if (newGroups == null) {
+              this.queuedFinishedGroupsByJobId.put(batchJobId, groups);
+            } else {
+              newGroups.addAll(groups);
+            }
+          }
+          transaction.setRollbackOnly();
+          log.error(
+            "Pausing 60 seconds: Unable to update group counts for job #"
+                + batchJobId, e);
+        }
       }
+    } catch (final Throwable e) {
+      this.errorTime = System.currentTimeMillis();
+      synchronized (this.queuedFinishedGroupsByJobId) {
+        final Set<BatchJobRequestExecutionGroup> newGroups = this.queuedFinishedGroupsByJobId.remove(batchJobId);
+        if (newGroups == null) {
+          this.queuedFinishedGroupsByJobId.put(batchJobId, groups);
+        } else {
+          newGroups.addAll(groups);
+        }
+      }
+      log.error("Pausing 60 seconds: Unable to update group counts for job #"
+          + batchJobId, e);
     } finally {
+      synchronized (this.queuedFinishedGroupsByJobId) {
+        this.updateCountsJobIds.remove(batchJobId);
+      }
+      final BatchJobScheduleInfo resultJobInfo = new BatchJobScheduleInfo(
+        businessApplicationName, batchJobId,
+        BatchJobScheduleInfo.SCHEDULE_FINISHED);
       this.scheduleFinished.write(resultJobInfo);
     }
   }

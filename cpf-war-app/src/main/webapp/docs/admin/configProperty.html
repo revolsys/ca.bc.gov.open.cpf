@@ -34,7 +34,7 @@ $(document).ready(function() {
   setPageId(pageId);
   createToc();
 });
-	</script>
+  </script>
 
 <!-- InstanceBeginEditable name="head" -->
     <style type="text/css">
@@ -172,8 +172,8 @@ properties.</p>
 <p>The configuration properties support the concept of having different configuration properties
 for different environments. Environment names are currently only used for workers.</p>
 
-<p>The special 'default' environment name is used as a default value if a config property is not
-created for an environment.</p>
+<p>The special environment name 'default' is used as a default value if a config property is not
+created for an environment. For most properties the value of 'default' should be used.</p>
 
 <p>For example the system could have two worker servers. The first has 2 CPUs and the second has 4.
 The first can support 32 threads and the second 64 threads. Two environment names 2cpu and 4cpu
@@ -355,15 +355,16 @@ configuration properties for a business application.</p>
 <ol>
   <li>Open one of the <a href="list">Config Properties List</a> page.</li>
   <li>Scroll or search for the config property.</li>
-  <li>Click the link in the 'Consumer Key' column.</li>
+  <li>Click the link in the 'ID' column.</li>
 </ol>
 </section>
 
 <section>
 <h2 id="add">Add Config Property</h2>
-<p>New config properties can be added using the following steps. Only accounts with the CPF class can
-be added, therefore the Config Property Class field is not shown as it is set to CPF. The created
-config property's user name field will be set to the consumer key entered.</p>
+<p>Config properties not shown in the list can be added using the following steps. See
+<a href="#cpfProperties">CPF master web application</a> and
+<a href="#cpfWorkerProperties">CPF workers</a> for the supported config properties.
+Consult the plug-in's documentation for the config properties they support</p>
 
 <ol>
   <li>Open one of the <a href="#list">Config Properties List</a> page.</li>
@@ -388,9 +389,7 @@ config property's user name field will be set to the consumer key entered.</p>
 
 <section>
 <h2 id="edit">Edit Config Property</h2>
-<p>Config properties can be edited using the following steps.
-For the CPF class the consumer key, consumer secret and active flag can be edited.
-For the BCGOV class only the active flag can be edited.</p>
+<p>Config properties can be edited using the following steps.</p>
 
 <ol>
   <li>Open the <a href="#view">View Config Property</a> page.</li>
@@ -427,6 +426,7 @@ the same machine they can share the same configuration file.</p>
       <th>Property Name</th>
       <th>Description</th>
       <th>Admin App</th>
+      <th>Data Type</th>
       <th>Example</th>
     </tr>
   </thead>
@@ -435,18 +435,21 @@ the same machine they can share the same configuration file.</p>
       <td><code>ca.bc.gov.cpf.app.baseUrl</code></td>
       <td>The HTTP URL to the OAuth/Digest secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>URI</td>
       <td><a href="http://apps.gov.bc.ca/pub/cpf">http://apps.gov.bc.ca/pub/cpf</a></td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.app.secureBaseUrl</code></td>
       <td>The HTTPS URL to the Siteminder secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>URI</td>
       <td><a href="https://apps.gov.bc.ca/pub/cpf/secure">https://apps.gov.bc.ca/pub/cpf/secure</a></td>
     </tr>
     <tr>
       <td><code>cpfSiteminderLogoutSuccess.logoutUrl</code></td>
       <td>The URL to the siteminder logoff page.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>URI</td>
       <td><a href="https://logon.gov.bc.ca/clp-cgi/logoff.cgi">https://logon.gov.bc.ca/clp-cgi/logoff.cgi</a> or
       <a href="https://logontest.gov.bc.ca/clp-cgi/logoff.cgi">https://logontest.gov.bc.ca/clp-cgi/logoff.cgi</a></td>
      </tr>
@@ -454,31 +457,36 @@ the same machine they can share the same configuration file.</p>
       <td><code>ca.bc.gov.cpf.db.url</code></td>
       <td>The JDBC URL to the cpf database.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>URI</td>
       <td><code>jdbc:oracle:thin:@localhost:1521:cpf</code> or <code>jdbc\:postgresql\://localhost\:5432/cpf</code></td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.password</code></td>
       <td>The password for the PROXY_CPF_WEB user account.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>String</td>
       <td>cpf_2009</td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.maxConnections</code></td>
       <td>The maximum number of database connections.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>int</td>
       <td>50</td>
     </tr>
     <tr>
       <td id="repositoryServer"><code>ca.bc.gov.cpf.repositoryServer</code></td>
       <td>The maven repository to download plugins from.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
-      <td>TODO</td>
+      <td>int</td>
+      <td>https://developer.gov.bc.ca/artifactory/repo/</td>
     </tr>
     <tr>
       <td id="repositoryDirectory"><code>ca.bc.gov.cpf.repositoryDirectory</code></td>
       <td>The cache directory to store maven artifacts.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
-      <td>TODO</td>
+      <td>String</td>
+      <td>/apps/cpf/repository/</td>
     </tr>
     <tr>
       <td><code>batchJobService.maxWorkerWaitTime</code></td>
@@ -486,18 +494,21 @@ the same machine they can share the same configuration file.</p>
       trying a new HTTP request. This limits the number of polling requests to the server. Must
       be less than any HTTP server inactivity timeouts.</td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
+      <td>int</td>
       <td>100</td>
     </tr>
     <tr>
       <td><code>batchJobService.fromEmail</code></td>
       <td>The email address any emails will be sent from.</td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
+      <td>String</td>
       <td>cpf@localhost</td>
     </tr>
     <tr>
       <td><code>mailSender.host</code></td>
       <td>The mail server to send emails via./td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
+      <td>String</td>
       <td>localhost</td>
     </tr>
     <tr>
@@ -505,6 +516,7 @@ the same machine they can share the same configuration file.</p>
       <td>The number of days that jobs will be kept after the results have been created. After
       that time the jobs will be removed in the next daily cleanup.</td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
+      <td>int</td>
       <td>7</td>
     </tr>
   </tbody>
@@ -526,6 +538,7 @@ the same machine they can share the same configuration file.</p>
       <th>Property Name</th>
       <th>Description</th>
       <th>Admin App</th>
+      <th>Data Type</th>
       <th>Example</th>
     </tr>
   </thead>
@@ -535,24 +548,28 @@ the same machine they can share the same configuration file.</p>
       <td>The HTTP URL to the CPF web services behind any reverse proxies. This is used to speed up
       access from the workers.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>URL</td>
       <td><a href="http://localhost/pub/cpf">http://localhost/pub/cpf</a></td>
     </tr>
     <tr>
       <td><code>cpfWorker.password</code></td>
       <td>The password for the cpf_worker user account.</td>
-     <td><img src="../../images/cross.png" alt="No" title="No" /></td>
-       <td>w0rk3r</td>
+      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>String</td>
+      <td>w0rk3r</td>
     </tr>
     <tr>
       <td><code>cpfWorker.environmentName</code></td>
       <td>The <a href="#environmentName">environment name</a> used for the worker.</td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
+      <td>String</td>
       <td>default</td>
     </tr>
     <tr>
       <td id="workerPoolSize"><code>cpfWorker.maximumPoolSize</code></td>
       <td>The maximum number of threads on the worker used to execute requests.</td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
+      <td>int</td>
       <td>32</td>
     </tr>
   </tbody>
@@ -560,7 +577,7 @@ the same machine they can share the same configuration file.</p>
 </div>
 </section>
 </section>
-										<!-- InstanceEndEditable -->
+                    <!-- InstanceEndEditable -->
                 </div>
               </div>
             </div>
