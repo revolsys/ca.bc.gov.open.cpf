@@ -1,13 +1,13 @@
 Description
 -----------
 Project:           cpf
-Title:             Concurrent Processing Framework Web Application
-Version:           4.1.4
+Title:             Cloud Processing Framework Web Application
+Version:           4.1.0
 
 Software/Hardware Requirements
 ------------------------------
 Oracle:                       N/A
-Java:                         6+
+Java:                         7+
 Maven:                        3.0.3+
 App Server:                   Tomcat 7+
 App Server Additional Memory: 100MB
@@ -16,10 +16,21 @@ App Server Additional Memory: 100MB
 1. Database Installation
 ------------------------
 
-N/A
+Database:           
+          DBCDLV - Delivery
+          DBCTST - Test
+          DBCPRD - Production
 
+Script Files:
+
+sqlplus CPF@DBCDLV @scripts\update\cpf\main.sql
+  
 2. Configuration Files
 ----------------------
+
+NOTE: This release adds the following configuration property
+
+cpfSiteminderLogoutSuccess.logoutUrl
 
 CPF requires a configuration file on each server.
 
@@ -117,9 +128,14 @@ is complete.
 7. Perform Release 
 ------------------
 
-This step is performed during migration of an application to the production
-environment. The migration occurs after the developer has tested the application
-in the delivery environment and the business area have completed the UAT in the test environment.
- 
-Use the Ministry Continuous Integration System to tag the version in Subversion,
-build the release version and deploy it to the Ministry Artifacts Repository.
+This step is performed before migration of an application to the test or
+production environment.
+
+The migration to test occurs after the developer has tested the application in
+the delivery environment. The migration to production occurs after the business
+area has tested the application in the test environment.
+
+Perform a Maven release using the following settings.
+
+Update property dependencies to latest RC or release version:
+  ca.bc.gov.open.cpf.version: 4.1.0+

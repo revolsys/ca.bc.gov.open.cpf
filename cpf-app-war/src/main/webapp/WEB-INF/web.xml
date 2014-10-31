@@ -18,11 +18,6 @@
     <param-value>classpath:log4j.xml</param-value>
   </context-param>
 
-  <context-param>
-    <param-name>cpfLogDirectory</param-name>
-    <param-value>/apps/logs/cpf</param-value>
-  </context-param>
-
   <filter>
     <filter-name>utf8</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -30,6 +25,11 @@
       <param-name>encoding</param-name>
       <param-value>UTF-8</param-value>
     </init-param>
+  </filter>
+
+  <filter>
+    <filter-name>transactionFilter</filter-name>
+    <filter-class>com.revolsys.ui.web.servlet.TransactionFilter</filter-class>
   </filter>
 
   <filter>
@@ -50,6 +50,27 @@
   <filter-mapping>
     <filter-name>utf8</filter-name>
     <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>transactionFilter</filter-name>
+    <url-pattern>/ws/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>transactionFilter</filter-name>
+    <url-pattern>/admin/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>transactionFilter</filter-name>
+    <url-pattern>/worker/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
   </filter-mapping>
 
   <filter-mapping>
@@ -69,10 +90,6 @@
 
   <listener>
     <listener-class>com.revolsys.ui.web.servlet.listener.ContextCleanupListener</listener-class>
-  </listener>
-
-  <listener>
-    <listener-class>ca.bc.gov.open.cpf.api.web.CpfLog4jContextListener</listener-class>
   </listener>
 
   <listener>
@@ -142,25 +159,20 @@
   <error-page>
     <error-code>400</error-code>
     <location>/error.jsp?subTitle=I'm sorry the path you requested is
-      not valid.</location>
+      not valid.
+    </location>
   </error-page>
 
   <error-page>
     <error-code>401</error-code>
     <location>/error.jsp?subTitle=I'm sorry you must be logged in to
       access this
-      page.</location>
+      page.
+    </location>
   </error-page>
 
   <error-page>
     <error-code>403</error-code>
-    <location>/error.jsp?subTitle=I'm sorry you do not have permission
-      to access
-      this page.</location>
-  </error-page>
-
-  <error-page>
-    <error-code>org.springframework.security.access.AccessDeniedException</error-code>
     <location>/error.jsp?subTitle=I'm sorry you do not have permission
       to access
       this page.
@@ -172,13 +184,16 @@
     <location>/error.jsp?subTitle=I'm sorry the page you requested
       could
       not be
-      found.</location>
+      found.
+    </location>
   </error-page>
 
   <error-page>
     <error-code>500</error-code>
     <location>/error.jsp?subTitle=I'm sorry there was an error
       generating the
-      page you requested.</location>
+      page you
+      requested.
+    </location>
   </error-page>
 </web-app>

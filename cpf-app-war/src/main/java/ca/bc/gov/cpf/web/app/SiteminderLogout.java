@@ -49,7 +49,7 @@ public class SiteminderLogout implements LogoutSuccessHandler {
     if (StringUtils.hasText(logoutUrl)) {
       Map<String, String> parameters = new LinkedHashMap<String, String>();
       parameters.put("returl", url);
-      parameters.put("retname", "Concurrent Processing Framework");
+      parameters.put("retname", "Cloud Processing Framework");
       url = UrlUtil.getUrl(HttpServletUtils.getAbsoluteUrl(logoutUrl), parameters);
     }
     response.sendRedirect(url);
