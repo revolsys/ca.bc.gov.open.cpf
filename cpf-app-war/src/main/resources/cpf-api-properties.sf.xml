@@ -12,45 +12,7 @@
   "
 >
   <bean
-    id="bcgovGlobalProperties"
-    class="com.revolsys.collection.AttributeMap"
-    p:properties="file:///apps/config/global.properties" />
-
-  <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="file:///apps/config/cpf/cpf.properties" />
-
-  <util:map
-    id="cpfApiProperties"
-    map-class="com.revolsys.collection.AttributeMap"
-  >
-    <!-- The URL to the cpf database. -->
-    <entry
-      key="cpfDataSource.url"
-      value="${ca.bc.gov.cpf.db.url}" />
-
-    <!-- The password for the cpf database. -->
-    <entry
-      key="cpfDataSource.password"
-      value="${ca.bc.gov.cpf.db.password}" />
-    <entry key="cpfDataSource.config">
-      <map>
-        <entry
-          key="minPoolSize"
-          value="1" />
-        <entry
-          key="maxPoolSize"
-          value="${ca.bc.gov.cpf.db.maxConnections}" />
-      </map>
-    </entry>
-
-    <entry
-      key="serverRenameFilter.serverUrl"
-      value="${ca.bc.gov.cpf.app.baseUrl}" />
-
-    <entry
-      key="secureServerRenameFilter.serverUrl"
-      value="${ca.bc.gov.cpf.app.secureBaseUrl}" />
-  </util:map>
 </beans>

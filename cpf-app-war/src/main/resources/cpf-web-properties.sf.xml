@@ -12,11 +12,6 @@
   "
 >
   <bean
-    id="bcgovGlobalProperties"
-    class="com.revolsys.collection.AttributeMap"
-    p:properties="file:///apps/config/global.properties" />
-
-  <bean
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="file:///apps/config/cpf/cpf.properties" />
@@ -25,10 +20,7 @@
     id="cpfWebProperties"
     map-class="com.revolsys.collection.AttributeMap"
   >
-    <entry
-      key="cpfInternal.webServiceUrl"
-      value="${ca.bc.gov.cpf.internal.webServiceUrl}" />
-    
+     
     <entry
       key="mavenRepository.root"
       value="file://${ca.bc.gov.cpf.repositoryDirectory}" />
@@ -39,14 +31,11 @@
       </list>
     </entry>
 
-    <entry
-      key="batchJobService.baseUrl"
-      value="${ca.bc.gov.cpf.app.baseUrl}" />
     <entry key="batchJobService.userClassBaseUrls">
       <map>
         <entry
           key="http://gov.bc.ca/"
-          value="${ca.bc.gov.cpf.app.secureBaseUrl}" />
+          value="${cpfConfig.secureBaseUrl}" />
       </map>
     </entry>
 
