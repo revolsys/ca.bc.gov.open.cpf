@@ -45,7 +45,7 @@ function updateMultiInputDataSubmit() {
   $('#multiInputDataTable table').each(function() {
     var table = $(this).dataTable();
     $('input[name="multiInputDataCount"]').each(function() {
-      var count = table.fnGetData().length;
+      var count = table.rows().data().length;
       if (count == 0) {
         $(this).prop('value', '');
       } else {
@@ -64,7 +64,7 @@ function addMultiInputDataRow(type) {
   var inputDataField = $('#multiInputData' + type + 'Template').html();
   var inputDataActions = $('#multiInputDataActionsTemplate').html();
   var table = $('#multiInputDataTable table').dataTable();
-  table.fnAddData([ inputDataContentType, inputDataField, inputDataActions ]);
+  table.row.add([ inputDataContentType, inputDataField, inputDataActions ]);
   updateMultiInputDataSubmit();
 }
 
@@ -72,7 +72,7 @@ function deleteMultiInputDataRow(self) {
   var row = $(self).closest('tr');
   $(row).each(function() {
     var table = $('#multiInputDataTable table').dataTable();
-    table.fnDeleteRow(this);
+    table.row(this).remove();
   });
   updateMultiInputDataSubmit();
 }
