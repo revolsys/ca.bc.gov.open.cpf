@@ -235,7 +235,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
     message.put("workerId", this.id);
     synchronized (this.executingGroupIds) {
       message.put("executingGroupIds", new ArrayList<String>(
-        this.executingGroupIds));
+          this.executingGroupIds));
     }
     this.lastPingTime = System.currentTimeMillis();
     return message;
@@ -452,7 +452,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
   @SuppressWarnings("unchecked")
   public boolean processNextTask() {
     if (System.currentTimeMillis() > this.lastPingTime
-      + this.maxTimeBetweenPings * 1000) {
+        + this.maxTimeBetweenPings * 1000) {
       addExecutingGroupsMessage();
     }
     while (!this.messages.isEmpty()) {
@@ -584,9 +584,9 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
           if (this.running && this.timeout != 0) {
             synchronized (this.monitor) {
               LoggerFactory.getLogger(getClass())
-                .debug(
-                  "Waiting " + this.timeout
-                    + " seconds before getting next task");
+              .debug(
+                "Waiting " + this.timeout
+                + " seconds before getting next task");
               this.monitor.wait(this.timeout * 1000);
             }
           }
@@ -748,8 +748,15 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
     Map<String, Object> message;
     try {
       module.loadApplications();
-      this.loadedModuleNames.add(moduleName);
-      message = createModuleMessage(module, "moduleStarted");
+      final String moduleError = module.getModuleError();
+      if (Property.hasValue(moduleError)) {
+        message = createModuleMessage(module, "moduleStartFailed");
+        message.put("moduleError", moduleError);
+        this.businessApplicationRegistry.unloadModule(module);
+      } else {
+        this.loadedModuleNames.add(moduleName);
+        message = createModuleMessage(module, "moduleStarted");
+      }
     } catch (final Throwable e) {
       final AppLog log = new AppLog(moduleName);
       log.error("Unable to load module " + moduleName, e);
@@ -786,7 +793,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
             + moduleName + "/" + moduleTime + "/urls.json");
         final Map<String, Object> response = this.httpClient.getJsonResource(modulesUrl);
         final File moduleDir = new File(this.tempDir, moduleName + "-"
-          + moduleTime);
+            + moduleTime);
         moduleDir.mkdir();
         moduleDir.deleteOnExit();
         final List<URL> urls = new ArrayList<URL>();
@@ -852,7 +859,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
     final long time = module.getStartedTime();
     this.businessApplicationRegistry.unloadModule(module);
     final File lastModuleDir = new File(this.tempDir, module.getName() + "-"
-      + time);
+        + time);
     FileUtil.deleteDirectory(lastModuleDir, true);
   }
 }

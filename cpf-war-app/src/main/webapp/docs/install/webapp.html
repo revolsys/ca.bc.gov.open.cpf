@@ -78,7 +78,7 @@ $(document).ready(function() {
                     <li id="adminMenu"><a href="../admin/">Administration</a><ul>
                       <li id="moduleMenu"><a href="../admin/module.html">Modules</a></li>
                       <li id="appMenu"><a href="../admin/app.html">Business Applications</a></li>
-                      <li id="configPropertyMenu"><a href="../admin/configProperty.html">Config Properties</a></li>
+                      <li id="configPropertyMenu"><a href="../admin/configProperty.html">Configuration &Amp; Tuning</a></li>
                       <li id="userAccountMenu"><a href="../admin/userAccount.html">User Accounts</a></li>
                       <li id="userGroupMenu"><a href="../admin/userGroup.html">User Groups</a></li>
                       <li id="userGroupPermissionMenu"><a href="../admin/userGroupPermission.html">User Group Permissions</a></li>
@@ -408,12 +408,12 @@ paste the above text into a command window.</p>
     </thead>
     <tbody>
     <tr>
-    <td><code>cpfApplicationBaseUrl</code></td>
-    <td><p>The base URL to the CPF apps web application (e.g. http://localhost:8080/cpf).</p></td>
+    <td><code>cpfConfig.baseUrl</code></td>
+    <td><p>The base URL to the CPF apps web application (e.g. http://localhost/pub/cpf).</p></td>
     </tr>
     <tr>
     <td><code>cpfDataSource.url</code></td>
-    <td><p>The full JDBC URL to the CPF database server (e.g. jdbc:postgresql:cpf.).</p></td>
+    <td><p>The full JDBC URL to the CPF database server (e.g. jdbc:postgresql:cpf).</p></td>
     </tr>
     <tr>
     <td><code>cpfDataSource.password</code></td>
@@ -421,7 +421,7 @@ paste the above text into a command window.</p>
     </tr>
     <tr>
     <td><code>cpfWorker.webServiceUrl</code></td>
-    <td><p>The base url to the internal web services (e.g. http://localhost/cpf).</p></td>
+    <td><p>The base url to the internal web services (e.g. http://localhost/pub/cpf).</p></td>
     </tr>
     <tr>
     <td><code>cpfWorker.password</code></td>

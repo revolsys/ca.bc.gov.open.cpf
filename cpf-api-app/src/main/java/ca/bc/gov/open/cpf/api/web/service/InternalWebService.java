@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
+import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
@@ -59,7 +61,8 @@ public class InternalWebService {
 
   private CpfDataAccessObject dataAccessObject;
 
-  private String webServiceUrl = "http://localhost/cpf";
+  @Resource
+  private CpfConfig cpfConfig;
 
   private JobController jobController;
 
@@ -298,8 +301,8 @@ public class InternalWebService {
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
       final List<URL> jarUrls = module.getJarUrls();
-      final String url = this.webServiceUrl + "/worker/modules/" + moduleName
-          + "/" + moduleTime + "/urls/";
+      final String url = this.getWebServiceUrl() + "/worker/modules/"
+          + moduleName + "/" + moduleTime + "/urls/";
       final List<String> webServiceJarUrls = new ArrayList<String>();
       for (int i = 0; i < jarUrls.size(); i++) {
         webServiceJarUrls.add(url + i);
@@ -312,7 +315,7 @@ public class InternalWebService {
   }
 
   public String getWebServiceUrl() {
-    return this.webServiceUrl;
+    return this.cpfConfig.getInternalWebServiceUrl();
   }
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestSequenceNumber}/resultData")
@@ -538,9 +541,4 @@ public class InternalWebService {
     final ConfigPropertyLoader configPropertyLoader) {
     this.configPropertyLoader = configPropertyLoader;
   }
-
-  public void setWebServiceUrl(final String webServiceUrl) {
-    this.webServiceUrl = webServiceUrl;
-  }
-
 }

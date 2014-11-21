@@ -59,6 +59,5 @@
     p:maxWorkerWaitTime="60"
     p:mailSender-ref="mailSender"
     p:fromEmail="noreply@localhost"
-    p:baseUrl="http://localhost/cpf"
     p:timeoutForCapacityErrors="5" />
 </beans>

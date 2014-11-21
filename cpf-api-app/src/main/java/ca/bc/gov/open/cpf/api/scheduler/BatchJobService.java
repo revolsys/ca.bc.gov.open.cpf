@@ -220,8 +220,6 @@ public class BatchJobService implements ModuleEventListener {
 
   private AuthorizationService authorizationService;
 
-  private String baseUrl;
-
   private BusinessApplicationRegistry businessApplicationRegistry;
 
   /** The email address messages are sent from. */
@@ -673,10 +671,10 @@ public class BatchJobService implements ModuleEventListener {
     } else {
       final com.revolsys.io.Writer<Record> recordWriter = writerFactory.createRecordWriter(
         resultRecordDefinition, resource);
-      recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY, this.baseUrl
-        + "/kml/defaultStyle.kml#default");
+      recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
+        this.getBaseUrl() + "/kml/defaultStyle.kml#default");
       recordWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
-      recordWriter.setProperty("htmlCssStyleUrl", this.baseUrl
+      recordWriter.setProperty("htmlCssStyleUrl", this.getBaseUrl()
         + "/css/default.css");
 
       recordWriter.setProperty(IoConstants.GEOMETRY_FACTORY, geometryFactory);
@@ -767,7 +765,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public String getBaseUrl() {
-    return this.baseUrl;
+    return this.config.getBaseUrl();
   }
 
   public BatchJobRequestExecutionGroup getBatchJobRequestExecutionGroup(
@@ -1969,7 +1967,7 @@ public class BatchJobService implements ModuleEventListener {
     String notificationUrl = batchJob.getValue(BatchJob.NOTIFICATION_URL);
     if (Property.hasValue(notificationUrl)) {
       try {
-        String baseUrl = this.baseUrl;
+        String baseUrl = this.getBaseUrl();
         if (this.userClassBaseUrls != null && !this.userClassBaseUrls.isEmpty()) {
           final String consumerKey = batchJob.getValue(BatchJob.USER_ID);
           final Record userAccount = this.dataAccessObject.getUserAccount(consumerKey);
@@ -2072,10 +2070,6 @@ public class BatchJobService implements ModuleEventListener {
     this.authorizationService = authorizationService;
   }
 
-  public void setBaseUrl(final String baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-
   @SuppressWarnings("unchecked")
   public Map<String, Object> setBatchJobExecutionGroupResults(
     final String workerId, final String groupId,
@@ -2099,7 +2093,8 @@ public class BatchJobService implements ModuleEventListener {
             final long batchJobId = group.getBatchJobId();
             map.put("batchJobId", batchJobId);
             try (
-                Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+                final Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW);
+                com.revolsys.io.Writer<Record> writer = this.recordStore.createWriter()) {
               final BusinessApplication businessApplication = group.getBusinessApplication();
               final String moduleName = group.getModuleName();
 

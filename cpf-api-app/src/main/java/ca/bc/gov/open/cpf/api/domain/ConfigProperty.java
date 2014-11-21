@@ -5,6 +5,8 @@ public interface ConfigProperty extends Common {
 
   String CONFIG_PROPERTY = "/CPF/CPF_CONFIG_PROPERTIES";
 
+  Object CPF_TUNING = "CPF_TUNING";
+
   String DEFAULT = "default";
 
   String ENVIRONMENT_NAME = "ENVIRONMENT_NAME";

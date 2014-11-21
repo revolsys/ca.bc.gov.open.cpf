@@ -15,6 +15,7 @@
   <bean
     id="ca.bc.gov.open.cpf.api.scheduler.Tuning-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.TuningUiBuilder"
+    p:dataStore-ref="cpfDataStore"
   >
     <property name="pages">
       <list>
@@ -23,6 +24,12 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="List"
           p:path="/admin/tuning/" />
+        <bean
+          p:name="config"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="Config Tuning Parameters"
+          p:path="/admin/tuning/config/"
+          p:permission="hasRole('ROLE_ADMIN')" />
       </list>
     </property>
 
@@ -51,5 +58,20 @@
         </entry>
       </map>
     </property>
+
+    <property name="keyLists">
+      <map>
+        <entry key="config">
+          <list>
+            <value>preProcessPoolSize</value>
+            <value>schedulerPoolSize</value>
+            <value>groupResultPoolSize</value>
+            <value>postProcessPoolSize</value>
+            <value>databaseConnectionPoolSize</value>
+          </list>
+        </entry>
+      </map>
+    </property>
   </bean>
+
 </beans>

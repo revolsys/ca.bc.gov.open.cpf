@@ -25,7 +25,7 @@
       <map>
         <entry
           key="maxConnections"
-          value="10" />
+          value="50" />
       </map>
     </property>
   </bean>

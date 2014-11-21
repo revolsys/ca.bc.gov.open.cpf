@@ -17,10 +17,10 @@
   <bean
     id="serverRenameFilter"
     class="com.revolsys.ui.web.servlet.ServerOverrideFilter"
-    p:serverUrl="http://localhost" />
+    p:serverUrl="#{cpfConfig.baseUrl}" />
 
   <bean
     id="secureServerRenameFilter"
     class="com.revolsys.ui.web.servlet.ServerOverrideFilter"
-    p:serverUrl="https://localhost" />
+    p:serverUrl="#{cpfConfig.secureBaseUrl}" />
 </beans>

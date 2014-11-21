@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10,IE=Edge" />
     
     <!-- InstanceBeginEditable name="doctitle" -->
-<title>Config Properties - Administration - CPF</title>
+<title>Configuration &amp; Tuning - Administration - CPF</title>
     <script type="text/javascript">
 pageId = 'configProperty';
     </script>
@@ -83,7 +83,7 @@ td > ul {
                     <li id="adminMenu"><a href="../admin/">Administration</a><ul>
                       <li id="moduleMenu"><a href="module.html">Modules</a></li>
                       <li id="appMenu"><a href="app.html">Business Applications</a></li>
-                      <li id="configPropertyMenu"><a href="configProperty.html">Config Properties</a></li>
+                      <li id="configPropertyMenu"><a href="configProperty.html">Configuration &Amp; Tuning</a></li>
                       <li id="userAccountMenu"><a href="userAccount.html">User Accounts</a></li>
                       <li id="userGroupMenu"><a href="userGroup.html">User Groups</a></li>
                       <li id="userGroupPermissionMenu"><a href="userGroupPermission.html">User Group Permissions</a></li>
@@ -105,7 +105,7 @@ td > ul {
 <li><a href="../../docs/">Developer Guide</a></li>
 <!-- InstanceBeginEditable name="crumbs" -->
 <li><a href="index.html">Administration</a></li>
-<li>Config Properties</li>
+<li>Configuration &amp; Tuning</li>
 <!-- InstanceEndEditable -->
 </ul>
 </div>
@@ -113,173 +113,314 @@ td > ul {
                 </div>
                 <div class="bodyContent">
 <!-- InstanceBeginEditable name="body" -->
-<div class="title">Config Properties - Administration</div>
+<div class="title">Configuration &amp; Tuning - Administration</div>
 <section>
-<h1 id="overview">Overview</h1>
-
-<p>The CPF master web application, CPF workers and modules can be configured by setting config
-properties.</p>
-
-<section>
-<h2 id="fields">Fields</h2>
-
-<p>The following table summarizes the fields used for config properties.<p>
-
-<div class="simpleDataTable">
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Config Property Id</td>
-      <td><p>Unique sequence generated primary key for a config property.</p></td>
-    </tr>
-    <tr>
-      <td>Environment Name</td>
-      <td><p>The <a href="#environmentName">environment name</a> the config property will be used for.</p></td>
-    </tr>
-    <tr>
-      <td>Module Name</td>
-      <td><p>The name of the module the config property applies to. The special module names CPF
-      and CPF_WORKER are used for CPF config properties.</p></td>
-    </tr>
-    <tr>
-      <td>Property Name</td>
-      <td><p>The name of the property.</p></td>
-    </tr>
-    <tr>
-      <td>Value</td>
-      <td><p>The value of the property.</p></td>
-    </tr>
-    <tr>
-      <td>Value Type</td>
-      <td><p>The <a href="#dataType">data type</a> the value will be converted to.</p></td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</section>
-
-<section>
-<h2 id="environmentName">Environment Name</h2>
-<p>The configuration properties support the concept of having different configuration properties
-for different environments. Environment names are currently only used for workers.</p>
-
-<p>The special environment name 'default' is used as a default value if a config property is not
-created for an environment. For most properties the value of 'default' should be used.</p>
-
-<p>For example the system could have two worker servers. The first has 2 CPUs and the second has 4.
-The first can support 32 threads and the second 64 threads. Two environment names 2cpu and 4cpu
-could be created. The first worker's environment name would be set to 2cpu and the second 4cpu.
-A config property can be created for the property name cpfWorker.maximumPoolSize for each environment
-with the values 32 and 64 respectively.</p>
-</section>
-
-<section>
-<h2 id="dataType">Data Types</h2>
+  <h1 id="overview">Overview</h1>
+  <section>
+  <h2 id="overviewConfig">Config Properties</h2>
+  
+  <p>The CPF master web application, CPF workers and modules can be configured by setting config
+  properties.</p>
+  
+  <section>
+  <h3 id="fields">Fields</h3>
+  
+  <p>The following table summarizes the fields used for config properties.<p>
+  
   <div class="simpleDataTable">
   <table>
     <thead>
-      <th>Type</th>
-      <th>Description</th>
+      <tr>
+        <th>Field</th>
+        <th>Description</th>
+      </tr>
     </thead>
     <tbody>
       <tr>
-        <td><code>string</code></td>
-        <td>String</td>
+        <td>Config Property Id</td>
+        <td><p>Unique sequence generated primary key for a config property.</p></td>
       </tr>
       <tr>
-        <td><code>boolean</code></td>
-        <td>Boolean</td>
+        <td>Environment Name</td>
+        <td><p>The <a href="#environmentName">environment name</a> the config property will be used for.</p></td>
       </tr>
       <tr>
-        <td><code>long</code></td>
-        <td>Long</td>
+        <td>Module Name</td>
+        <td><p>The name of the module the config property applies to. The special module names CPF
+        and CPF_WORKER are used for CPF config properties.</p></td>
       </tr>
       <tr>
-        <td><code>int</code></td>
-        <td>Int</td>
+        <td>Property Name</td>
+        <td><p>The name of the property.</p></td>
       </tr>
       <tr>
-        <td><code>double</code></td>
-        <td>Double</td>
+        <td>Value</td>
+        <td><p>The value of the property.</p></td>
       </tr>
       <tr>
-        <td><code>float</code></td>
-        <td>Float</td>
-      </tr>
-      <tr>
-        <td><code>short</code></td>
-        <td>Short</td>
-      </tr>
-      <tr>
-        <td><code>byte</code></td>
-        <td>Byte</td>
-      </tr>
-      <tr>
-        <td><code>decimal</code></td>
-        <td>Big Decimal</td>
-      </tr>
-      <tr>
-        <td><code>integer</code></td>
-        <td>Big Integer</td>
-      </tr>
-      <tr>
-        <td><code>QName</code></td>
-        <td>Qualified name</td>
-      </tr>
-      <tr>
-        <td><code>anyURI</code></td>
-        <td>URI</td>
-      </tr>
-      <tr>
-        <td><code>date</code></td>
-        <td>Date (YYYY-MM-DD)</td>
-      </tr>
-      <tr>
-        <td><code>dateTime</code></td>
-        <td>Date + Time (YYYY-MM-DDTHH:MM:SS)</td>
-      </tr>
-      <tr>
-        <td><code>Geometry</code></td>
-        <td>WKT Geometry</td>
-      </tr>
-      <tr>
-        <td><code>Point</code></td>
-        <td>WKT Point</td>
-      </tr>
-      <tr>
-        <td><code>LineString</code></td>
-        <td>WKT LineString</td>
-      </tr>
-      <tr>
-        <td><code>Polygon</code></td>
-        <td>WKT Polygon</td>
-      </tr>
-      <tr>
-        <td><code>GeometryCollection</code></td>
-        <td>WKT Geometry Collection</td>
-      </tr>
-      <tr>
-        <td><code>MultiPoint</code></td>
-        <td>WKT Multi-Point</td>
-      </tr>
-      <tr>
-        <td><code>MultiLineString</code></td>
-        <td>WKT Multi-LineString</td>
-      </tr>
-      <tr>
-        <td><code>MultiPolygon</code></td>
-        <td>WKT Multi-Polygon</td>
+        <td>Value Type</td>
+        <td><p>The <a href="#dataType">data type</a> the value will be converted to.</p></td>
       </tr>
     </tbody>
   </table>
-</div>
-</section>
+  </div>
+  </section>
+  
+  <section>
+  <h3 id="environmentName">Environment Name</h3>
+  <p>The configuration properties support the concept of having different configuration properties
+  for different environments. Environment names are currently only used for workers.</p>
+  
+  <p>The special environment name 'default' is used as a default value if a config property is not
+  created for an environment. For most properties the value of 'default' should be used.</p>
+  
+  <p>For example the system could have two worker servers. The first has 2 CPUs and the second has 4.
+  The first can support 32 threads and the second 64 threads. Two environment names 2cpu and 4cpu
+  could be created. The first worker's environment name would be set to 2cpu and the second 4cpu.
+  A config property can be created for the property name cpfWorker.maximumPoolSize for each environment
+  with the values 32 and 64 respectively.</p>
+  </section>
+  
+  <section>
+  <h3 id="dataType">Data Types</h3>
+    <div class="simpleDataTable">
+    <table>
+      <thead>
+        <th>Type</th>
+        <th>Description</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>string</code></td>
+          <td>String</td>
+        </tr>
+        <tr>
+          <td><code>boolean</code></td>
+          <td>Boolean</td>
+        </tr>
+        <tr>
+          <td><code>long</code></td>
+          <td>Long</td>
+        </tr>
+        <tr>
+          <td><code>int</code></td>
+          <td>Int</td>
+        </tr>
+        <tr>
+          <td><code>double</code></td>
+          <td>Double</td>
+        </tr>
+        <tr>
+          <td><code>float</code></td>
+          <td>Float</td>
+        </tr>
+        <tr>
+          <td><code>short</code></td>
+          <td>Short</td>
+        </tr>
+        <tr>
+          <td><code>byte</code></td>
+          <td>Byte</td>
+        </tr>
+        <tr>
+          <td><code>decimal</code></td>
+          <td>Big Decimal</td>
+        </tr>
+        <tr>
+          <td><code>integer</code></td>
+          <td>Big Integer</td>
+        </tr>
+        <tr>
+          <td><code>QName</code></td>
+          <td>Qualified name</td>
+        </tr>
+        <tr>
+          <td><code>anyURI</code></td>
+          <td>URI</td>
+        </tr>
+        <tr>
+          <td><code>date</code></td>
+          <td>Date (YYYY-MM-DD)</td>
+        </tr>
+        <tr>
+          <td><code>dateTime</code></td>
+          <td>Date + Time (YYYY-MM-DDTHH:MM:SS)</td>
+        </tr>
+        <tr>
+          <td><code>Geometry</code></td>
+          <td>WKT Geometry</td>
+        </tr>
+        <tr>
+          <td><code>Point</code></td>
+          <td>WKT Point</td>
+        </tr>
+        <tr>
+          <td><code>LineString</code></td>
+          <td>WKT LineString</td>
+        </tr>
+        <tr>
+          <td><code>Polygon</code></td>
+          <td>WKT Polygon</td>
+        </tr>
+        <tr>
+          <td><code>GeometryCollection</code></td>
+          <td>WKT Geometry Collection</td>
+        </tr>
+        <tr>
+          <td><code>MultiPoint</code></td>
+          <td>WKT Multi-Point</td>
+        </tr>
+        <tr>
+          <td><code>MultiLineString</code></td>
+          <td>WKT Multi-LineString</td>
+        </tr>
+        <tr>
+          <td><code>MultiPolygon</code></td>
+          <td>WKT Multi-Polygon</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  </section>
+  </section>
+  <section>
+    <h2 id="overviewTuning">Tuning</h2>
+    <p>This section describes the parameters available for tuning the performance and resources
+    used by the system. This section does not include memory tuning as that depends on the
+    specific memory usage for each business application.</p>
+    
+    <ul>
+      <li><a href="#masterTuning">Master Tuning</a>
+      <li><a href="#workerTuning">Worker Tuning</a>
+      <li><a href="#applicationTuning">Application Tuning</a>
+    </ul>
+    
+    <section>
+      <h3 id="masterTuning">Master Tuning</h3>
+      <p>The tuning parameters for the master can be viewed using the <a href="../../admin/tuning/">Tuning</a>
+      page. The tuning page shows the number of active threads or connections, the current pool size
+      and the maximum pool size. The maximum pool sizes can be configured using the
+      <a href="../../admin/tuning/config/">Config</a> button. Changes to the pool sizes will be 
+      applied upon saving. If the current active count is greater than the new pool size then those
+      active threads or connections will still be used until they are returned to the pool.</p>
+      
+      <p>The table below shows the thread and database connection pools that can be configured
+      to tune the system.</p>
+      
+    <div class="simpleDataTable">
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Example Value</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pre Process Pool Size</td>
+          <td><p>The number of threads that can be used to pre-process new jobs. During pre-processing
+          a datbase connection will typically be held for the entire duration of the pre-processing.
+          Pre-processing is typically I/O bound.</p></td>
+          <td>8 = Num Hardware Threads * 10% * 5 (thread multiplier)</td>
+        </tr>
+        <tr>
+          <td>Scheduler Pool Size</td>
+          <td><p>The number of threads that can be used to schedule groups for jobs. The 
+          scheduler reads the structured data for the group from the database into memory.
+          The scheduling operation is typically very fast for groups with small amounts of data.
+          Scheduling is typically I/O bound.</p></td>
+          <td>16 = Num Hardware Threads * 20% * 5 (thread multiplier)</td>
+        </tr>
+        <tr>
+          <td>Group Result Pool Size</td>
+          <td><p>The number of threads that can be used to process the group results from the workers
+          via the internal web service. If the maximim pool size is reached the web service request
+          will be bocked until a thread is available. The group results operation is typically very fast
+          for groups with small amounts of data.
+          Processing group results is typically I/O bound.</p></td>
+          <td>16 = Num Hardware Threads * 20% * 5 (thread multiplier)</td>
+        </tr>
+          <td>Post Process Pool Size</td>
+          <td><p>The number of threads that can be used to post-process completed jobs. During post-processing
+          a datbase connection will typically be held for the entire duration of the post-processing.
+          Post-processing is typically I/O bound.</p></td>
+          <td>8 = Num Hardware Threads * 10% * 5 (thread multiplier)</td>
+        <tr>
+          <td>Database Connection Pool Size</td>
+          <td><p>The number of database connections available to all web service and threads on the
+          CPF master application. The minimum value for this is 10% greater than the sum of
+          (Pre Process + Scheduler + Group Result + Post Process) pool sizes.</p></td>
+          <td>60 = (Pre Process + Scheduler + Group Result + Post Process) * 125%</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+      
+      <p>The size of the thread pools will depend on the number of processor cores 
+      and hardware threads those cores support. The example values shown are for a 2 processor system, each
+      processor with 4 cores and 2 threads per core. This gives a total of 16 hardware threads (2 * 4 * 2).</p>
+     
+      <p>The number of threads configured for the CPF thread pools can exceed the number of hardware
+      threads available on the server. In this case the operating system will schedule the different
+      threads for execution. For processes that are I/O bound (network connections, database calls,
+      or file I/O) the thread will be paused when the I/O operation is blocked. This allows other threads
+      to execute. For I/O bound tasks the number of connections in the pool can be increased to take advantage
+      of the idle time during blocked I/O operations. In the examples this is indicated as the thread
+      multiplier.</p>
+     
+      <p class="note"><b>NOTE:</b> the other load on the server should also be considered when defining
+      the size of the pools. The first factor is the number of threads that the servlet container
+      is configured for serving HTTP requests. These connections will consume additional database
+      connections for the CPF web service and CPF admin requests. Also if the database is on the
+      same server then less threads will be available for the CPF.</p>
+      
+      <p class="note"><b>NOTE:</b> The exact values for a specific system will need to be defined
+      by experimenting with typical workloads for the business application and server hardware
+      configurations.</p>
+    </section>
+    
+    <section>
+      <h3 id="workerTuning">Worker Tuning</h3>
+      <p>The CPF worker has a single tuning property <a href="#workerPoolSize">cpfWorker.maximumPoolSize</a>. This 
+      defines the number of threads used to process groups of requests. The value for this
+      property should be about the same as the Group Result Pool Size on the CPF master. Although
+      if the groups take a lot longer to execute than it takes to save the results on the master then
+      this value can be greater (e.g. 2x or 5x) than the Group Result Pool Size.</p>
+      
+      <p>If the business applications are processor rather than I/O bound then the pool size can
+      be reduced to avoid processor thrashing when switching between threads.</p>
+      
+      <p class="note"><b>NOTE:</b> the worker pool size can only be configured in the properties
+      file. See <a href="#cpfWorkerProperties">Work Config Properties</a> to set the
+      <code>cpfWorker.maximumPoolSize</code>.</p>
+    </section>
+    
+    <section>
+      <h3 id="applicationTuning">Application Tuning</h3>
+      <p>The final part of tuning is the application tuning. See <a href="app.html#fields">Business Application Fields</a>
+      to see the full description of the application tuning parameters and how to edit them.</p>
+      
+      <p>The first parameter <a href="app.html#numRequestsPerWorker">numRequestsPerWorker</a> controls the
+      number of requests bundled into an execution group to send to the worker. The group size
+      should be configured for business applications that only take milliseconds to process each request.
+      In this case the value can be set to about 100 so that the group execution time takes 1-5 seconds.
+      This reduces the communications overhead per request due to bundling into a group. The value
+      should not be set to large as it will then result in more memory when the group is scheduled and
+      for storage in the database. This could slow down the scheduler.</p>
+      
+      <p class="note"><b>NOTE:</b> This value is applied
+      at the time a job is created and can't be changed for that job afterwards. New jobs get the new
+      group size.</p>
+      
+      <p>The second parameter <a href="app.html#maxConcurrentRequests">app.html#maxConcurrentRequests</a>
+      controls how many groups for the business application can be scheduled at one time. The actual
+      limit for the concurrent groups executing will depend on the number of threads specified in
+      <a href="#workerPoolSize">cpfWorker.maximumPoolSize</a>. For slow business applications this
+      can be used to limit the number of concurrent groups so that it does not prevent other apps
+      from being processed. For fast business applications this could be configured to be greater
+      than the pool of threads on the worker. This has the affect of pre-loading the scheduling queue
+      so that work is ready for the worker as soon as the previous group results are finished.</p>
+    </section>
+  </section>
 </section>
 
 <section>
@@ -429,14 +570,14 @@ the same machine they can share the same configuration file.</p>
   </thead>
   <tbody>
     <tr>
-      <td><code>ca.bc.gov.cpf.app.baseUrl</code></td>
+      <td><code>cpfConfig.baseUrl</code></td>
       <td><p>The HTTP URL to the OAuth/Digest secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URI</td>
       <td><p><a href="http://apps.gov.bc.ca/pub/cpf">http://apps.gov.bc.ca/pub/cpf</a></p></td>
     </tr>
     <tr>
-      <td><code>ca.bc.gov.cpf.app.secureBaseUrl</code></td>
+      <td><code>cpfConfig.secureBaseUrl</code></td>
       <td><p>The HTTPS URL to the Siteminder secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URI</td>
@@ -451,25 +592,18 @@ the same machine they can share the same configuration file.</p>
       <a href="https://logontest.gov.bc.ca/clp-cgi/logoff.cgi">https://logontest.gov.bc.ca/clp-cgi/logoff.cgi</a></p></td>
      </tr>
     <tr>
-      <td><code>ca.bc.gov.cpf.db.url</code></td>
+      <td><code>cpfDataSource.url</code></td>
       <td><p>The JDBC URL to the cpf database.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URI</td>
       <td><p><code>jdbc:oracle:thin:@localhost:1521:cpf</code> or <code>jdbc\:postgresql\://localhost\:5432/cpf</code></p></td>
     </tr>
     <tr>
-      <td><code>ca.bc.gov.cpf.db.password</code></td>
+      <td><code>cpfDataSource.password</code></td>
       <td><p>The password for the PROXY_CPF_WEB user account.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>String</td>
       <td><p>cpf_2009</p></td>
-    </tr>
-    <tr>
-      <td><code>ca.bc.gov.cpf.db.maxConnections</code></td>
-      <td><p>The maximum number of database connections.</p></td>
-      <td><img src="../../images/cross.png" alt="No" title="No" /></td>
-      <td>int</td>
-      <td><p>50</p></td>
     </tr>
     <tr>
       <td id="repositoryServer"><code>ca.bc.gov.cpf.repositoryServer</code></td>
@@ -541,7 +675,7 @@ the same machine they can share the same configuration file.</p>
   </thead>
   <tbody>
     <tr>
-      <td><code>ca.bc.gov.cpf.internal.webServiceUrl</code></td>
+      <td><code>cpfConfig.internalWebServiceUrl</code></td>
       <td><p>The HTTP URL to the CPF web services behind any reverse proxies. This is used to speed up
       access from the workers.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>

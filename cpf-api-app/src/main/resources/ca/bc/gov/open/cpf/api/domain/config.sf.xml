@@ -24,8 +24,7 @@
   <bean
     id="cpfConfig"
     class="ca.bc.gov.open.cpf.api.controller.CpfConfig"
-    p:preProcessPoolSize="10"
-    p:postProcessPoolSize="10"
-    p:schedulerPoolSize="10"
-    p:groupResultPoolSize="10" />
+    p:baseUrl="http://localhost"
+    p:secureBaseUrl="https://localhost"
+    p:internalWebServiceUrl="${cpfWorker.webServiceUrl}" />
 </beans>

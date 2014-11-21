@@ -15,13 +15,4 @@
     id="cpfDefaultProperties"
     class="com.revolsys.collection.AttributeMap"
     p:properties="${cpfDirectoryUrl}/config/cpf.properties" />
-
-  <util:map
-    id="cpfApiProperties"
-    map-class="com.revolsys.collection.AttributeMap"
-  >
-    <entry
-      key="serverRenameFilter.serverUrl"
-      value="${cpfApplicationBaseUrl}" />
-  </util:map>
 </beans>

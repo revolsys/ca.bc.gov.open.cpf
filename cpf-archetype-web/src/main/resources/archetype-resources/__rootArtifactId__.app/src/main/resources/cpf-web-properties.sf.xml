@@ -20,18 +20,12 @@
     id="cpfWebProperties"
     map-class="com.revolsys.collection.AttributeMap"
   >
+    <entry
+      key="businessApplicationRegistry.appLogDirectory"
+      value="${cpfLogDirectory}" />
 
     <entry
       key="mavenRepository.root"
       value="${mavenCacheDirectoryUrl}/" />
-
-    <entry
-      key="batchJobService.baseUrl"
-      value="${cpfApplicationBaseUrl}" />
-
-    <entry
-      key="cpfInternal.webServiceUrl"
-      value="${cpfInternalWebServiceUrl}" />
-
   </util:map>
 </beans>
