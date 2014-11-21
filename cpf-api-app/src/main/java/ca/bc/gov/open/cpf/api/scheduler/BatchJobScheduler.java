@@ -1,70 +1,97 @@
 package ca.bc.gov.open.cpf.api.scheduler;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.SetQueue;
+import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
-import com.revolsys.parallel.channel.ChannelValueStore;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.MultiInputSelector;
 import com.revolsys.parallel.channel.store.Buffer;
-import com.revolsys.parallel.process.AbstractInOutProcess;
 import com.revolsys.parallel.process.InvokeMethodRunnable;
-import com.revolsys.transaction.Propagation;
+import com.revolsys.parallel.process.Process;
+import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.transaction.SendToChannelAfterCommit;
-import com.revolsys.transaction.Transaction;
-import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.Property;
 
-public class BatchJobScheduler extends
-AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
+public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
+PropertyChangeListener {
   /** The batch job service used to interact with the database. */
   private BatchJobService batchJobService;
 
-  private final Map<String, Integer> scheduledGroupCountByBusinessApplication = new HashMap<String, Integer>();
+  private final Map<String, Set<Long>> queuedJobIdsByBusinessApplication = new HashMap<>();
 
-  private final Map<String, Set<Long>> queuedJobIdsByBusinessApplication = new HashMap<String, Set<Long>>();
+  private final Map<String, Set<Long>> scheduledJobIdsByBusinessApplication = new HashMap<>();
 
-  private final Map<Long, Set<BatchJobRequestExecutionGroup>> queuedFinishedGroupsByJobId = new LinkedHashMap<Long, Set<BatchJobRequestExecutionGroup>>();
+  private final long timeout = 60000;
 
-  private final Map<String, Set<Long>> scheduledJobIdsByBusinessApplication = new HashMap<String, Set<Long>>();
+  private Channel<String> groupFinished;
 
-  private final long timeout = 600000;
+  private int taskCount = 0;
 
-  private final Set<Long> updateCountsJobIds = new HashSet<>();
-
-  private long errorTime;
-
-  private Channel<BatchJobScheduleInfo> groupFinished;
+  private final Object monitor = new Object();
 
   private Channel<BatchJobScheduleInfo> scheduleFinished;
 
+  private long errorTime;
+
+  private final Map<String, Integer> scheduledGroupCountByBusinessApplication = new HashMap<String, Integer>();
+
+  private final Channel<BatchJobScheduleInfo> in = new Channel<>(new Buffer<>(
+      new SetQueue<BatchJobScheduleInfo>()));
+
+  private ProcessNetwork processNetwork;
+
+  private String beanName;
+
+  @Resource(name = "cpfConfig")
+  private CpfConfig config;
+
   public BatchJobScheduler() {
-    setOutBufferSize(100);
+    super(0, 1, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
+      new NamedThreadFactory());
+    setKeepAliveTime(60, TimeUnit.SECONDS);
   }
 
-  private int addScheduledGroupCount(final String businessApplicationName,
-    final int num) {
-    int count = getScheduledGroupCount(businessApplicationName);
-    count += num;
-    this.scheduledGroupCountByBusinessApplication.put(businessApplicationName,
-      count);
-    return count;
+  private synchronized int addScheduledGroupCount(
+    final String businessApplicationName, final int num) {
+    synchronized (this.scheduledGroupCountByBusinessApplication) {
+      int count = getScheduledGroupCount(businessApplicationName);
+      count += num;
+      this.scheduledGroupCountByBusinessApplication.put(
+        businessApplicationName, count);
+      return count;
+    }
+  }
+
+  @Override
+  protected void afterExecute(final Runnable r, final Throwable t) {
+    synchronized (this.monitor) {
+      this.taskCount--;
+      this.monitor.notifyAll();
+    }
   }
 
   public void createExecutionGroup(final String businessApplicationName,
@@ -89,9 +116,26 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
   }
 
   @Override
-  protected ChannelValueStore<BatchJobScheduleInfo> createInValueStore() {
-    return new Buffer<BatchJobScheduleInfo>(
-        new SetQueue<BatchJobScheduleInfo>());
+  public void execute(final Runnable command) {
+    if (command != null) {
+      synchronized (this.monitor) {
+        while (!isShutdown()) {
+          while (this.taskCount >= getMaximumPoolSize()) {
+            ThreadUtil.pause(this.monitor);
+          }
+          try {
+            super.execute(command);
+            this.taskCount++;
+            return;
+          } catch (final RejectedExecutionException e) {
+          } catch (final RuntimeException e) {
+            throw e;
+          } catch (final Error e) {
+            throw e;
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -101,6 +145,28 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
    */
   public BatchJobService getBatchJobService() {
     return this.batchJobService;
+  }
+
+  @Override
+  public String getBeanName() {
+    return this.beanName;
+  }
+
+  public CpfConfig getConfig() {
+    return this.config;
+  }
+
+  public Channel<BatchJobScheduleInfo> getIn() {
+    return this.in;
+  }
+
+  public Object getMonitor() {
+    return this.monitor;
+  }
+
+  @Override
+  public ProcessNetwork getProcessNetwork() {
+    return this.processNetwork;
   }
 
   private Set<Long> getQueuedJobIds(final String businessApplicationName) {
@@ -132,37 +198,33 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
     return jobIds;
   }
 
-  public void groupFinished(final String businessApplicationName,
-    final Long batchJobId, final BatchJobRequestExecutionGroup group) {
-    final BatchJobScheduleInfo batchJobInfo = new BatchJobScheduleInfo(
-      businessApplicationName, batchJobId);
-    batchJobInfo.setGroup(group);
-    SendToChannelAfterCommit.send(this.groupFinished, batchJobInfo);
+  public void groupFinished(final BatchJobRequestExecutionGroup group) {
+    SendToChannelAfterCommit.send(this.groupFinished,
+      group.getBusinessApplicationName());
+  }
+
+  private void init() {
+    this.in.readConnect();
+    this.groupFinished = new Channel<>(getBeanName() + ".groupFinished",
+        new Buffer<String>());
+    this.groupFinished.readConnect();
+    this.groupFinished.writeConnect();
+    this.scheduleFinished = new Channel<>(getBeanName() + ".scheduleFinished",
+        new Buffer<BatchJobScheduleInfo>());
+    this.scheduleFinished.readConnect();
+    this.scheduleFinished.writeConnect();
+    final CpfConfig config = getConfig();
+    Property.addListener(config, "preProcessPoolSize", this);
+    final int preProcessPoolSize = config.getPreProcessPoolSize();
+    setMaximumPoolSize(preProcessPoolSize);
   }
 
   @Override
-  protected void init() {
-    this.groupFinished = new Channel<BatchJobScheduleInfo>(getBeanName()
-        + ".groupFinished", new Buffer<BatchJobScheduleInfo>());
-    this.groupFinished.readConnect();
-    this.groupFinished.writeConnect();
-    this.scheduleFinished = new Channel<BatchJobScheduleInfo>(getBeanName()
-        + ".scheduleFinished", new Buffer<BatchJobScheduleInfo>());
-    this.scheduleFinished.readConnect();
-    this.scheduleFinished.writeConnect();
-    getIn();
-  }
-
-  private void queueGroup(final BatchJobRequestExecutionGroup group) {
-    final Long batchJobId = group.getBatchJobId();
-    Set<BatchJobRequestExecutionGroup> groups;
-    synchronized (this.queuedFinishedGroupsByJobId) {
-      groups = this.queuedFinishedGroupsByJobId.get(batchJobId);
-      if (groups == null) {
-        groups = new LinkedHashSet<BatchJobRequestExecutionGroup>();
-        this.queuedFinishedGroupsByJobId.put(batchJobId, groups);
-      }
-      groups.add(group);
+  public void propertyChange(final PropertyChangeEvent event) {
+    final String propertyName = event.getPropertyName();
+    if ("schedulerPoolSize".equals(propertyName)) {
+      final Integer poolSize = (Integer)event.getNewValue();
+      setMaximumPoolSize(poolSize);
     }
   }
 
@@ -173,53 +235,78 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
   }
 
   @Override
-  protected void run(final Channel<BatchJobScheduleInfo> in,
-    final Channel<Runnable> out) {
+  public final void run() {
+    boolean hasError = false;
+    final Logger log = LoggerFactory.getLogger(getClass());
+    try {
+      log.debug("Start");
+      run(this.in);
+    } catch (final ClosedException e) {
+      log.debug("Shutdown");
+    } catch (final ThreadDeath e) {
+      log.debug("Shutdown");
+    } catch (final Throwable e) {
+      log.error(e.getMessage(), e);
+      hasError = true;
+    } finally {
+      if (this.in != null) {
+        this.in.readDisconnect();
+      }
+    }
+    if (hasError) {
+      getProcessNetwork().stop();
+    }
+  }
+
+  protected void run(final Channel<BatchJobScheduleInfo> in) {
     final Logger log = LoggerFactory.getLogger(getClass());
     log.info("Started");
+    init();
     final long timeout = this.timeout;
     final LoadJobIdsToScheduleFromDatabase loadJobIds = new LoadJobIdsToScheduleFromDatabase(
       this.batchJobService);
     final MultiInputSelector selector = new MultiInputSelector();
-    final List<Channel<BatchJobScheduleInfo>> channels = Arrays.asList(
-      this.scheduleFinished, this.groupFinished, in);
+    final List<Channel<?>> channels = Arrays.asList(this.scheduleFinished,
+      this.groupFinished, in);
     while (true) {
       try {
         final int index = selector.select(timeout, channels);
         if (index == -1) {
           if (!loadJobIds.isRunning()) {
-            out.write(loadJobIds);
+            execute(loadJobIds);
           }
+        } else if (index == 1) {
+          final String businessApplicationName = this.groupFinished.read();
+          addScheduledGroupCount(businessApplicationName, -1);
+          scheduleQueuedJobs(businessApplicationName);
         } else {
           if (System.currentTimeMillis() - this.errorTime < 60000) {
             ThreadUtil.pause(60000);
           }
-          final BatchJobScheduleInfo jobInfo = channels.get(index).read();
+          Channel<BatchJobScheduleInfo> channel;
+          if (index == 0) {
+            channel = this.scheduleFinished;
+          } else {
+            channel = in;
+          }
+          final BatchJobScheduleInfo jobInfo = channel.read();
           final Long batchJobId = jobInfo.getBatchJobId();
           final String businessApplicationName = jobInfo.getBusinessApplicationName();
           final Set<Long> scheduledJobIds = getScheduledJobIds(businessApplicationName);
 
-          final BatchJobRequestExecutionGroup group = jobInfo.getGroup();
-          if (group == null) {
-            final List<String> actions = jobInfo.getActions();
-            if (actions.contains(BatchJobScheduleInfo.NO_GROUP_SCHEDULED)) {
-              addScheduledGroupCount(businessApplicationName, -1);
-            }
-            if (actions.contains(BatchJobScheduleInfo.SCHEDULE_FINISHED)) {
-              scheduledJobIds.remove(batchJobId);
-            }
-
-            if (actions.contains(BatchJobScheduleInfo.SCHEDULE)) {
-              queueJob(businessApplicationName, batchJobId);
-            }
-
-          } else {
+          final List<String> actions = jobInfo.getActions();
+          if (actions.contains(BatchJobScheduleInfo.NO_GROUP_SCHEDULED)) {
             addScheduledGroupCount(businessApplicationName, -1);
-            queueGroup(group);
           }
-          scheduleQueuedJobs(out, businessApplicationName);
+          if (actions.contains(BatchJobScheduleInfo.SCHEDULE_FINISHED)) {
+            scheduledJobIds.remove(batchJobId);
+          }
+
+          if (actions.contains(BatchJobScheduleInfo.SCHEDULE)) {
+            queueJob(businessApplicationName, batchJobId);
+          }
+          scheduleQueuedJobs(businessApplicationName);
         }
-        scheduleQueuedGroups(out);
       } catch (final ClosedException e) {
         log.info("Stopped");
         return;
@@ -230,33 +317,7 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
     }
   }
 
-  private void scheduleQueuedGroups(final Channel<Runnable> out) {
-    synchronized (this.queuedFinishedGroupsByJobId) {
-      for (final Entry<Long, Set<BatchJobRequestExecutionGroup>> entry : this.queuedFinishedGroupsByJobId.entrySet()) {
-        final Long batchJobId = entry.getKey();
-        final Set<BatchJobRequestExecutionGroup> groups = entry.getValue();
-
-        String businessApplicationName = null;
-        if (groups != null && !groups.isEmpty()) {
-          final BatchJobRequestExecutionGroup group = CollectionUtil.get(
-            groups, 0);
-          businessApplicationName = group.getBusinessApplicationName();
-        }
-
-        if (businessApplicationName != null) {
-          if (this.updateCountsJobIds.add(batchJobId)) {
-            final Runnable runnable = new InvokeMethodRunnable(this,
-              "updateBatchJobCounts", businessApplicationName, batchJobId);
-            out.write(runnable);
-          }
-        }
-      }
-    }
-
-  }
-
-  private void scheduleQueuedJobs(final Channel<Runnable> out,
-    final String businessApplicationName) {
+  private void scheduleQueuedJobs(final String businessApplicationName) {
     final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
     if (businessApplication != null
         && businessApplication.getModule().isStarted()) {
@@ -275,7 +336,7 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
           addScheduledGroupCount(businessApplicationName, 1);
           final Runnable runnable = new InvokeMethodRunnable(this,
             "createExecutionGroup", businessApplicationName, batchJobId);
-          out.write(runnable);
+          execute(runnable);
         }
       }
     } else {
@@ -289,62 +350,30 @@ AbstractInOutProcess<BatchJobScheduleInfo, Runnable> {
    * @param batchJobService The batch job service used to interact with the
    *          database.
    */
+  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
     batchJobService.setScheduler(this);
   }
 
-  public void updateBatchJobCounts(final String businessApplicationName,
-    final Long batchJobId) {
-    final AppLog log = this.batchJobService.getAppLog(businessApplicationName);
-    Set<BatchJobRequestExecutionGroup> groups;
-    synchronized (this.queuedFinishedGroupsByJobId) {
-      groups = this.queuedFinishedGroupsByJobId.remove(batchJobId);
+  @Override
+  public void setBeanName(final String beanName) {
+    this.beanName = beanName;
+    final ThreadFactory threadFactory = getThreadFactory();
+    if (threadFactory instanceof NamedThreadFactory) {
+      final NamedThreadFactory namedThreadFactory = (NamedThreadFactory)threadFactory;
+      namedThreadFactory.setNamePrefix(beanName + "-pool");
     }
-    try (
-        Transaction transaction = this.batchJobService.getDataAccessObject()
-        .createTransaction(Propagation.REQUIRES_NEW)) {
-      if (groups != null) {
-        try {
-          this.batchJobService.setBatchJobExecutingCounts(
-            businessApplicationName, batchJobId, groups);
-        } catch (final Throwable e) {
-          this.errorTime = System.currentTimeMillis();
-          synchronized (this.queuedFinishedGroupsByJobId) {
-            final Set<BatchJobRequestExecutionGroup> newGroups = this.queuedFinishedGroupsByJobId.remove(batchJobId);
-            if (newGroups == null) {
-              this.queuedFinishedGroupsByJobId.put(batchJobId, groups);
-            } else {
-              newGroups.addAll(groups);
-            }
-          }
-          transaction.setRollbackOnly();
-          log.error(
-            "Pausing 60 seconds: Unable to update group counts for job #"
-                + batchJobId, e);
-        }
-      }
-    } catch (final Throwable e) {
-      this.errorTime = System.currentTimeMillis();
-      synchronized (this.queuedFinishedGroupsByJobId) {
-        final Set<BatchJobRequestExecutionGroup> newGroups = this.queuedFinishedGroupsByJobId.remove(batchJobId);
-        if (newGroups == null) {
-          this.queuedFinishedGroupsByJobId.put(batchJobId, groups);
-        } else {
-          newGroups.addAll(groups);
-        }
-      }
-      log.error("Pausing 60 seconds: Unable to update group counts for job #"
-          + batchJobId, e);
-    } finally {
-      synchronized (this.queuedFinishedGroupsByJobId) {
-        this.updateCountsJobIds.remove(batchJobId);
-      }
-      final BatchJobScheduleInfo resultJobInfo = new BatchJobScheduleInfo(
-        businessApplicationName, batchJobId,
-        BatchJobScheduleInfo.SCHEDULE_FINISHED);
-      this.scheduleFinished.write(resultJobInfo);
-    }
+  }
+
+  @Override
+  public void setProcessNetwork(final ProcessNetwork processNetwork) {
+    this.processNetwork = processNetwork;
+  }
+
+  @Override
+  public String toString() {
+    return this.beanName;
   }
 
 }

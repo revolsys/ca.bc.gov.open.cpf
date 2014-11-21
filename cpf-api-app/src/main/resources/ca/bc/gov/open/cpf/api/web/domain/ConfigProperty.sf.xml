@@ -232,62 +232,45 @@
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="CONFIG_PROPERTY_ID"
           p:label="ID"
-          p:pageName="view"
-          p:width="5%"
-        />
+          p:pageName="view" />
 
         <bean
           p:name="CONFIG_PROPERTY_ID_MODULE_VIEW"
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="CONFIG_PROPERTY_ID"
           p:label="ID"
-          p:pageName="moduleView"
-          p:width="5%"
-        />
-        
+          p:pageName="moduleView" />
+
         <bean
           p:name="CONFIG_PROPERTY_ID_MODULE_APP_VIEW"
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="CONFIG_PROPERTY_ID"
           p:label="ID"
-          p:pageName="moduleAppView"
-          p:width="5%"
-        />
+          p:pageName="moduleAppView" />
         <bean
           p:name="ENVIRONMENT_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Environment Name"
-          p:width="10%"
-        />
+          p:label="Environment Name" />
         <bean
           p:name="MODULE_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Module Name"
-           p:width="10%"
-        />
+          p:label="Module Name" />
         <bean
           p:name="PROPERTY_NAME"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Property Name"
-           p:width="25%"
-        />
+          p:label="Property Name" />
         <bean
           p:name="PROPERTY_VALUE"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Value"
-          p:width="30%"
-        />
+          p:label="Value" />
         <bean
           p:name="PROPERTY_VALUE_TYPE"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Value Type"
-          p:width="10%"
-        />
+          p:label="Value Type" />
         <bean
           p:name="cpfActions"
           class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
           p:label="Actions"
-          p:width="6%"
         >
           <property name="serializers">
             <list>
@@ -307,12 +290,11 @@
             </list>
           </property>
         </bean>
-        
+
         <bean
           p:name="moduleActions"
           class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
           p:label="Actions"
-          p:width="6%"
         >
           <property name="serializers">
             <list>
@@ -332,12 +314,11 @@
             </list>
           </property>
         </bean>
-        
+
         <bean
           p:name="moduleAppActions"
           class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
           p:label="Actions"
-          p:width="6%"
         >
           <property name="serializers">
             <list>

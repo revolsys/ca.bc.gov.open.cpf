@@ -30,9 +30,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.http.HttpEntity;
@@ -52,6 +54,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StopWatch;
 
+import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
@@ -197,6 +200,11 @@ public class BatchJobService implements ModuleEventListener {
     }
     return false;
   }
+
+  @Resource(name = "cpfConfig")
+  private CpfConfig config;
+
+  private final AtomicInteger groupResultCount = new AtomicInteger(0);
 
   private int daysToKeepOldJobs = 7;
 
@@ -861,6 +869,10 @@ public class BatchJobService implements ModuleEventListener {
         "resultScaleFactorZ", geometryFactory.getScaleZ());
       return GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
     }
+  }
+
+  public int getGroupResultCount() {
+    return this.groupResultCount.get();
   }
 
   public JobController getjobController() {
@@ -2064,48 +2076,34 @@ public class BatchJobService implements ModuleEventListener {
     this.baseUrl = baseUrl;
   }
 
-  public void setBatchJobExecutingCounts(final String businessApplicationName,
-    final Long batchJobId, final Set<BatchJobRequestExecutionGroup> groups) {
-    synchronized (businessApplicationName.intern()) {
-      int numCompletedRequests = 0;
-      int numFailedRequests = 0;
-
-      int numGroups = 0;
-      for (final BatchJobRequestExecutionGroup group : groups) {
-        numCompletedRequests += group.getNumCompletedRequests();
-        numFailedRequests += group.getNumFailedRequests();
-        numGroups++;
+  @SuppressWarnings("unchecked")
+  public Map<String, Object> setBatchJobExecutionGroupResults(
+    final String workerId, final String groupId,
+    final Map<String, Object> results) {
+    synchronized (this.groupResultCount) {
+      while (this.groupResultCount.get() >= this.config.getGroupResultPoolSize()) {
+        ThreadUtil.pause(1000);
       }
-      this.dataAccessObject.updateBatchJobGroupCompleted(batchJobId,
-        numCompletedRequests, numFailedRequests, numGroups);
     }
-
-    if (this.dataAccessObject.isBatchJobCompleted(batchJobId)) {
-      this.dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.PROCESSING,
-        BatchJob.PROCESSED);
-      postProcess(batchJobId);
-    } else if (this.dataAccessObject.hasBatchJobUnexecutedJobs(batchJobId)) {
-      schedule(businessApplicationName, batchJobId);
-    }
-  }
-
-  public void setBatchJobExecutionGroupResults(final String workerId,
-    final String groupId, final Map<String, Object> results) {
-    final com.revolsys.io.Writer<Record> writer = this.recordStore.getWriter();
+    this.groupResultCount.incrementAndGet();
     try {
       final Worker worker = getWorker(workerId);
+      final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
+          "ExecutionGroupResultsConfirmation");
+      map.put("workerId", workerId);
+      map.put("groupId", groupId);
       if (worker != null) {
         final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
         if (group != null && !group.isCancelled()) {
-          try {
-            synchronized (group) {
-              final long batchJobId = group.getBatchJobId();
+          synchronized (group) {
+            final long batchJobId = group.getBatchJobId();
+            map.put("batchJobId", batchJobId);
+            try (
+                Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
               final BusinessApplication businessApplication = group.getBusinessApplication();
-              final String businessApplicationName = group.getBusinessApplicationName();
               final String moduleName = group.getModuleName();
 
-              final Object groupResultObject = results.get("results");
-
+              final List<Map<String, Object>> groupResults = (List<Map<String, Object>>)results.get("results");
               final long groupExecutedTime = CollectionUtil.getLong(results,
                   "groupExecutedTime");
               final long applicationExecutedTime = CollectionUtil.getLong(
@@ -2117,37 +2115,43 @@ public class BatchJobService implements ModuleEventListener {
 
               final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);
               if (batchJob != null) {
-                final long sequenceNumber = group.getSequenceNumber();
-                this.dataAccessObject.updateBatchJobExecutionGroupFromResponse(
-                  this.jobController, workerId, group, sequenceNumber,
-                  groupResultObject, successCount, errorCount);
+                if (groupResults != null && !groupResults.isEmpty()) {
+                  try {
+                    this.dataAccessObject.updateBatchJobExecutionGroupFromResponse(
+                      this, batchJobId, group, groupResults, successCount,
+                      errorCount);
+                  } catch (final Throwable e) {
+                    if (isDatabaseResourcesException(e)) {
+                      LoggerFactory.getLogger(getClass()).error(
+                        "Tablespace error saving group results: " + groupId);
+                    } else {
+                      LoggerFactory.getLogger(getClass()).error(
+                        "Error saving group results: " + groupId, e);
+                    }
+                    transaction.setRollbackOnly();
+                    cancelGroup(worker, groupId);
+                  }
+                }
               }
               final long executionTime = updateGroupStatistics(group,
                 businessApplication, moduleName, applicationExecutedTime,
                 groupExecutedTime, successCount, errorCount);
-              this.scheduler.groupFinished(businessApplicationName, batchJobId,
-                group);
               removeGroup(group);
               final AppLog appLog = businessApplication.getLog();
               AppLogUtil.infoAfterCommit(appLog,
                 "End\tGroup execution\tgroupId=" + groupId + "\tworkerId="
                     + workerId + "\ttime=" + executionTime / 1000.0);
+              this.scheduler.groupFinished(group);
             }
-          } catch (final Throwable e) {
-            if (isDatabaseResourcesException(e)) {
-              LoggerFactory.getLogger(getClass()).error(
-                "Tablespace error saving group results: " + groupId);
-            } else {
-              LoggerFactory.getLogger(getClass()).error(
-                "Error saving group results: " + groupId, e);
-            }
-            Transaction.setCurrentRollbackOnly();
-            cancelGroup(worker, groupId);
           }
         }
       }
+      return map;
     } finally {
-      writer.close();
+      synchronized (this.groupResultCount) {
+        this.groupResultCount.decrementAndGet();
+        this.groupResultCount.notifyAll();
+      }
     }
   }
 

@@ -77,7 +77,6 @@
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="name"
           p:pageName="moduleView"
-          p:width="250px"
         >
           <property name="parameterKeys">
             <map>
@@ -176,8 +175,7 @@
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="module.name"
               p:label="Module"
-              p:pageName="view"
-              p:width="250px" />
+              p:pageName="view" />
             <value>title</value>
           </list>
         </entry>
@@ -187,14 +185,12 @@
             <bean
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="name"
-              p:pageName="moduleView"
-              p:width="250px" />
+              p:pageName="moduleView" />
             <bean
               class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
               p:name="module.name"
               p:label="Module"
-              p:pageName="view"
-              p:width="250px" />
+              p:pageName="view" />
             <value>title</value>
           </list>
         </entry>
@@ -238,7 +234,6 @@
               p:name="title"
               p:pageName="clientView"
               p:label="Name"
-              p:width="200px"
             >
               <property name="parameterKeys">
                 <map>

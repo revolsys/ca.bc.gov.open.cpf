@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+  "
+>
+
+  <bean
+    id="ca.bc.gov.open.cpf.api.scheduler.Tuning-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.TuningUiBuilder"
+  >
+    <property name="pages">
+      <list>
+        <bean
+          p:name="list"
+          class="com.revolsys.ui.web.config.Page"
+          p:title="List"
+          p:path="/admin/tuning/" />
+      </list>
+    </property>
+
+    <property name="views">
+      <map>
+        <entry key="list">
+          <list>
+            <value>name</value>
+            <value>active</value>
+            <value>size</value>
+            <value>maxSize</value>
+          </list>
+        </entry>
+      </map>
+    </property>
+
+    <property name="listSortOrder">
+      <map>
+        <entry key="moduleAppList">
+          <list>
+            <list>
+              <value type="int">0</value>
+              <value>desc</value>
+            </list>
+          </list>
+        </entry>
+      </map>
+    </property>
+  </bean>
+</beans>

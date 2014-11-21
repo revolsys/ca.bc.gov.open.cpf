@@ -17,8 +17,6 @@ public class BatchJobScheduleInfo {
 
   private List<String> actions;
 
-  private BatchJobRequestExecutionGroup group;
-
   public BatchJobScheduleInfo(final String businessApplicationName,
     final Long batchJobId, final String... actions) {
     this.businessApplicationName = businessApplicationName;
@@ -30,37 +28,29 @@ public class BatchJobScheduleInfo {
   public boolean equals(final Object obj) {
     if (obj instanceof BatchJobScheduleInfo) {
       final BatchJobScheduleInfo jobInfo = (BatchJobScheduleInfo)obj;
-      return batchJobId.equals(jobInfo.batchJobId);
+      return this.batchJobId.equals(jobInfo.batchJobId);
     }
     return false;
   }
 
   public List<String> getActions() {
-    return actions;
+    return this.actions;
   }
 
   public Long getBatchJobId() {
-    return batchJobId;
+    return this.batchJobId;
   }
 
   public String getBusinessApplicationName() {
-    return businessApplicationName;
-  }
-
-  public BatchJobRequestExecutionGroup getGroup() {
-    return group;
+    return this.businessApplicationName;
   }
 
   @Override
   public int hashCode() {
-    return batchJobId.hashCode();
+    return this.batchJobId.hashCode();
   }
 
   public void setActions(final String... actions) {
     this.actions = Arrays.asList(actions);
-  }
-
-  public void setGroup(final BatchJobRequestExecutionGroup group) {
-    this.group = group;
   }
 }

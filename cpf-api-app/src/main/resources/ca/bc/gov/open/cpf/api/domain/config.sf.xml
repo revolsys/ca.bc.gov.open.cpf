@@ -19,5 +19,13 @@
     p:propertyColumnName="PROPERTY_NAME"
     p:valueColumnName="PROPERTY_VALUE"
     p:typeColumnName="PROPERTY_VALUE_TYPE"
-    p:whereClause="ENVIRONMENT_NAME = 'default' AND MODULE_NAME = 'CPF'"/>
+    p:whereClause="ENVIRONMENT_NAME = 'default' AND MODULE_NAME = 'CPF'" />
+
+  <bean
+    id="cpfConfig"
+    class="ca.bc.gov.open.cpf.api.controller.CpfConfig"
+    p:preProcessPoolSize="10"
+    p:postProcessPoolSize="10"
+    p:schedulerPoolSize="10"
+    p:groupResultPoolSize="10" />
 </beans>

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +65,7 @@ BaseInProcess<Map<String, ? extends Object>> {
     }
   }
 
+  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
     batchJobService.setStatisticsProcess(this);

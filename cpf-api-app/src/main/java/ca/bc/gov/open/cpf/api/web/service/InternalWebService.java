@@ -299,7 +299,7 @@ public class InternalWebService {
     } else {
       final List<URL> jarUrls = module.getJarUrls();
       final String url = this.webServiceUrl + "/worker/modules/" + moduleName
-        + "/" + moduleTime + "/urls/";
+          + "/" + moduleTime + "/urls/";
       final List<String> webServiceJarUrls = new ArrayList<String>();
       for (int i = 0; i < jarUrls.size(); i++) {
         webServiceJarUrls.add(url + i);
@@ -374,14 +374,8 @@ public class InternalWebService {
     @RequestBody final Map<String, Object> results)
         throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-        "ExecutionGroupResultsConfirmation");
-    this.batchJobService.setBatchJobExecutionGroupResults(workerId, groupId,
-      results);
-    map.put("workerId", workerId);
-    map.put("batchJobId", batchJobId);
-    map.put("groupId", groupId);
-    return map;
+    return this.batchJobService.setBatchJobExecutionGroupResults(workerId,
+      groupId, results);
   }
 
   @RequestMapping(value = "/worker/workers/{workerId}/jobs/groups/nextId",

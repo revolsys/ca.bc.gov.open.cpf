@@ -120,7 +120,6 @@
         <bean
           p:name="actions"
           class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-          p:label=""
         >
           <property name="serializers">
             <list>
@@ -235,7 +234,6 @@
             <bean
               p:name="groupActions"
               class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-              p:label=""
             >
               <property name="serializers">
                 <list>
@@ -264,7 +262,6 @@
             <bean
               p:name="moduleGroupActions"
               class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-              p:label=""
             >
               <property name="serializers">
                 <list>
@@ -293,7 +290,6 @@
             <bean
               p:name="moduleGroupAdminActions"
               class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-              p:label=""
             >
               <property name="serializers">
                 <list>

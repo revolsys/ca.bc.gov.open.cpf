@@ -8,23 +8,23 @@ import java.lang.annotation.Target;
 /**
  * <p>The <code>RequestParameter</code> method annotation indicates that a <code>setXXX</code> method is
  * a <a href="../../structuredData.html">structured input data</a> parameter on a {@link BusinessApplicationPlugin}
- * class that has {@link BusinessApplicationPlugin#perRequestInputData()}=false.</p>
- * 
+ * class that has perRequestInputData=false.</p>
+ *
  * <p>Request parameters are implemented as Java bean properties on the plug-in class.
  * The plug-in must implement a <code>setXXX</code> property method for each request parameter. The
  * request parameter name is the name of the Java bean property. The parameter type can
  * only use the supported <a href="../../dataTypes.html">data types</a>. The request parameters will be converted by
  * the CPF from the input data to the correct Java type.</p>
- * 
+ *
  * <p>Before execution of the plug-in the request methods will be invoked to set the request parameter values.</p>
- * 
+ *
  * <p>A <code>RequestParameter</code> method can also be marked as a {@link JobParameter} if the
  * parameter can be specified either at the job or request level.</p>
- * 
+ *
  * <p>The following example shows the use of the annotation.</p>
- * 
+ *
  * <figure><pre class="prettyprint language-java">private String algorithmName;
- 
+
 &#064;RequestParameter
 public void setAlgorithmName(final String algorithmName) {
   this.algorithmName = algorithmName;
@@ -41,7 +41,7 @@ public @interface RequestParameter {
 
   /**
    * The url to a page that describes the parameter in greater detail than is possible on the
-   * form. If specified the name of the parameter will be a hyper-link to this URL. 
+   * form. If specified the name of the parameter will be a hyper-link to this URL.
    */
   String descriptionUrl() default "";
 
@@ -55,7 +55,7 @@ public @interface RequestParameter {
    */
   int length() default -1;
 
-  /** 
+  /**
    * The maximum allowed value for numeric parameters. The string value will be converted to the
    * correct data type.
    */

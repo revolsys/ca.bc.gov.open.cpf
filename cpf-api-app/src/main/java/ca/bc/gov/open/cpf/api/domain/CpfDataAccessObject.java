@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
@@ -452,13 +453,14 @@ public class CpfDataAccessObject {
 
   public List<Long> getBatchJobIdsToSchedule(
     final String businessApplicationName) {
-    final Query query = Query.equal(this.batchJobRecordDefinition,
-      BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+    final Query query = new Query(this.batchJobRecordDefinition);
     query.setFieldNames(BatchJob.BATCH_JOB_ID);
     // TODO move to scheduling groups
-    query.setWhereCondition(Q.sql("JOB_STATUS IN ('requestsCreated', 'processing') AND "
-        + "NUM_SUBMITTED_GROUPS > 0 AND "
-        + "NUM_SCHEDULED_GROUPS + NUM_COMPLETED_GROUPS < NUM_SUBMITTED_GROUPS "));
+    query.setWhereCondition(Q.sql(
+      "JOB_STATUS IN ('requestsCreated', 'processing') AND "
+          + "NUM_SUBMITTED_GROUPS > 0 AND "
+          + "NUM_SCHEDULED_GROUPS + NUM_COMPLETED_GROUPS < NUM_SUBMITTED_GROUPS AND BUSINESS_APPLICATION_NAME = ?",
+          businessApplicationName));
     query.addOrderBy(BatchJob.NUM_SCHEDULED_GROUPS, true);
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, true);
@@ -621,8 +623,7 @@ public class CpfDataAccessObject {
     query.setFieldNames(BatchJob.BATCH_JOB_ID);
     final And and = new And(
       new In(BatchJob.JOB_STATUS, BatchJob.RESULTS_CREATED,
-        BatchJob.DOWNLOAD_INITIATED, BatchJob.CANCELLED),
-        Q.lessThan(
+        BatchJob.DOWNLOAD_INITIATED, BatchJob.CANCELLED), Q.lessThan(
         this.batchJobRecordDefinition.getField(BatchJob.WHEN_STATUS_CHANGED),
           keepUntilTimestamp));
     query.setWhereCondition(and);
@@ -770,8 +771,8 @@ public class CpfDataAccessObject {
     query.setFromClause("CPF.CPF_USER_GROUPS T"
         + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
-    query.setWhereCondition(Q.equal(new JdbcLongFieldDefinition("X.USER_ACCOUNT_ID"),
-      userAccount.getIdentifier()));
+    query.setWhereCondition(Q.equal(new JdbcLongFieldDefinition(
+        "X.USER_ACCOUNT_ID"), userAccount.getIdentifier()));
     final Reader<Record> reader = this.recordStore.query(query);
     try {
       final List<Record> groups = reader.read();
@@ -1136,59 +1137,66 @@ public class CpfDataAccessObject {
     "unchecked", "rawtypes"
   })
   public void updateBatchJobExecutionGroupFromResponse(
-    final JobController jobController, final String workerId,
-    final BatchJobRequestExecutionGroup group, final long sequenceNumber,
-    final Object groupResultObject, final int successCount, final int errorCount) {
+    final BatchJobService batchJobService, final long batchJobId,
+    final BatchJobRequestExecutionGroup group, final Object groupResultObject,
+    final int successCount, final int errorCount) {
     if (groupResultObject != null) {
-      final long batchJobId = group.getBatchJobId();
+      final long sequenceNumber = group.getSequenceNumber();
       final Record batchJobExecutionGroup = getBatchJobExecutionGroup(
         batchJobId, sequenceNumber);
-      if (0 == batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.COMPLETED_IND)) {
+      if (batchJobExecutionGroup != null) {
+        if (0 == batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.COMPLETED_IND)) {
 
-        final String resultData;
-        if (groupResultObject instanceof Map) {
-          final Map<String, Object> groupResults = (Map)groupResultObject;
-          resultData = JsonMapIoFactory.toString(groupResults);
-        } else {
-          resultData = groupResultObject.toString();
+          final String resultData;
+          if (groupResultObject instanceof Map) {
+            final Map<String, Object> groupResults = (Map)groupResultObject;
+            resultData = JsonMapIoFactory.toString(groupResults);
+          } else {
+            resultData = groupResultObject.toString();
+          }
+          batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND,
+            1);
+          batchJobService.getJobController(batchJobId).setStructuredResultData(
+            batchJobId, sequenceNumber, batchJobExecutionGroup, resultData);
+          final int numCompletedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS)
+              + successCount;
+          batchJobExecutionGroup.setValue(
+            BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, numCompletedRequests);
+          final int numFailedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_FAILED_REQUESTS)
+              + errorCount;
+          batchJobExecutionGroup.setValue(
+            BatchJobExecutionGroup.NUM_FAILED_REQUESTS, numFailedRequests);
+          write(batchJobExecutionGroup);
+          updateBatchJobGroupCompleted(batchJobId, numCompletedRequests,
+            numFailedRequests);
+          if (isBatchJobCompleted(batchJobId)) {
+            setBatchJobStatus(batchJobId, BatchJob.PROCESSING,
+              BatchJob.PROCESSED);
+            batchJobService.postProcess(batchJobId);
+          } else if (hasBatchJobUnexecutedJobs(batchJobId)) {
+            final String businessApplicationName = group.getBusinessApplicationName();
+            batchJobService.schedule(businessApplicationName, batchJobId);
+          }
         }
-        batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 1);
-        jobController.setStructuredResultData(batchJobId, sequenceNumber,
-          batchJobExecutionGroup, resultData);
-        final int numCompletedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS)
-            + successCount;
-        batchJobExecutionGroup.setValue(
-          BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, numCompletedRequests);
-        final int numFailedRequests = batchJobExecutionGroup.getInteger(BatchJobExecutionGroup.NUM_FAILED_REQUESTS)
-            + errorCount;
-        batchJobExecutionGroup.setValue(
-          BatchJobExecutionGroup.NUM_FAILED_REQUESTS, numFailedRequests);
-        write(batchJobExecutionGroup);
       }
     }
   }
 
   public int updateBatchJobGroupCompleted(final Long batchJobId,
-    final int numCompletedRequests, final int numFailedRequests,
-    final int numGroups) {
+    final int numCompletedRequests, final int numFailedRequests) {
     if (this.recordStore instanceof JdbcRecordStore) {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-          + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS - ?,"
-          + "NUM_COMPLETED_GROUPS = NUM_COMPLETED_GROUPS + ?,"
-          + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
-          + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
-          + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
-      try (
-          Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
-        try {
-          final int result = JdbcUtils.executeUpdate(jdbcRecordStore, sql,
-            numGroups, numGroups, numCompletedRequests, numFailedRequests,
-            batchJobId);
-          return result;
-        } catch (final Throwable e) {
-          throw transaction.setRollbackOnly(e);
-        }
+        + "NUM_SCHEDULED_GROUPS = NUM_SCHEDULED_GROUPS - 1,"
+        + "NUM_COMPLETED_GROUPS = NUM_COMPLETED_GROUPS + 1,"
+        + "NUM_COMPLETED_REQUESTS = NUM_COMPLETED_REQUESTS + ?, "
+        + "NUM_FAILED_REQUESTS = NUM_FAILED_REQUESTS + ? "
+        + "WHERE BATCH_JOB_ID = ? AND JOB_STATUS = 'processing'";
+      try {
+        return JdbcUtils.executeUpdate(jdbcRecordStore, sql,
+          numCompletedRequests, numFailedRequests, batchJobId);
+      } catch (final Throwable e) {
+        throw new RuntimeException("Unable to reset started status", e);
       }
     }
 

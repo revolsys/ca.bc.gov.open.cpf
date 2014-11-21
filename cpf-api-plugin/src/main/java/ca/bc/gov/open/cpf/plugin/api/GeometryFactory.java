@@ -24,7 +24,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 
 /**
- * <p>The CPF provides an extended version of the <a href=http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> GeometryFactory to create JTS geometries. The
+ * <p>The CPF provides an extended version of the <a href="http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> GeometryFactory to create JTS geometries. The
  * extended version includes support for coordinate system projection, precision model, and controls on the number of axis.</p>
  *
  * <p>The <code>GeometryFactory</code> does not provide a public constructor. <code>GeometryFactory</code> instances can
@@ -32,7 +32,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
  */
 @SuppressWarnings("serial")
 public class GeometryFactory extends
-  com.vividsolutions.jts.geom.GeometryFactory {
+com.vividsolutions.jts.geom.GeometryFactory {
 
   /**
    * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
@@ -216,7 +216,7 @@ public class GeometryFactory extends
 
   /**
    * <p>Create a {@link Geometry} from a <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> or
-   * <a href="EWKT">http://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT</a> encoded geometry.
+   * <a href="http://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT">EWKT</a> encoded geometry.
    * If the EWKT string includes a SRID the geometry will use read using that SRID and then
    * projected to the SRID of the geometry factory. If the SRID was not specified the geometry will
    * be assumed to be in the coordinate system of the geometry factory's SRID. The return type of
@@ -584,7 +584,7 @@ public class GeometryFactory extends
           } else {
             throw new IllegalArgumentException(
               "Too many coordinates, vertex must have " + axisCount
-                + " coordinates not " + (axisNum + 1));
+              + " coordinates not " + (axisNum + 1));
           }
           if (c == ')') {
             finished = true;
@@ -600,7 +600,7 @@ public class GeometryFactory extends
           } else {
             throw new IllegalArgumentException(
               "Too many coordinates, vertex must have " + axisCount
-                + " coordinates not " + (axisNum + 1));
+              + " coordinates not " + (axisNum + 1));
 
           }
         }
@@ -817,10 +817,10 @@ public class GeometryFactory extends
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-      break;
+        break;
       case ')':
         text.delete(0, 2);
-      break;
+        break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);
@@ -846,10 +846,10 @@ public class GeometryFactory extends
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-      break;
+        break;
       case ')':
         text.delete(0, 2);
-      break;
+        break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);

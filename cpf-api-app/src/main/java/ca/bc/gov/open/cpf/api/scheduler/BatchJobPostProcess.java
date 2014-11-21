@@ -1,11 +1,27 @@
 package ca.bc.gov.open.cpf.api.scheduler;
 
+import java.beans.PropertyChangeEvent;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+
+import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
+
+import com.revolsys.util.Property;
 
 public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
 
   public BatchJobPostProcess() {
     super(BatchJob.PROCESSED);
+  }
+
+  @PostConstruct
+  public void init() {
+    final CpfConfig config = getConfig();
+    Property.addListener(config, "postProcessPoolSize", this);
+    final int postProcessPoolSize = config.getPreProcessPoolSize();
+    setMaximumPoolSize(postProcessPoolSize);
   }
 
   @Override
@@ -23,6 +39,16 @@ public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
   }
 
   @Override
+  public void propertyChange(final PropertyChangeEvent event) {
+    final String propertyName = event.getPropertyName();
+    if ("postProcessPoolSize".equals(propertyName)) {
+      final Integer poolSize = (Integer)event.getNewValue();
+      setMaximumPoolSize(poolSize);
+    }
+  }
+
+  @Override
+  @Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     super.setBatchJobService(batchJobService);
     batchJobService.setPostProcess(this);

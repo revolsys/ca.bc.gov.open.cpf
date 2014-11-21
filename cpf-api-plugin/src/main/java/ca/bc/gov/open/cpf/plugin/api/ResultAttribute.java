@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * <p>The <code>ResultAttribute</code> method annotation indicates that a <code>getXXX</code> or <code>isXXX</code> method is a <a href="../../structuredData.html">structured
  * result data</a> attribute on a {@link BusinessApplicationPlugin} or {@link ResultList}
- * class that has {@link BusinessApplicationPlugin#perRequestResultData()}=false.</p>
+ * class that has perRequestResultData=false.</p>
  *
  * <p>Result attributes are implemented as Java bean properties on the plug-in class or {@link ResultList} class.
  * The plug-in must implement a <code>getXXX</code> or <code>isXXX</code> property method for each result attribute. The

@@ -53,8 +53,7 @@
   <util:list id="cpfJavaScriptUrls">
     <value>https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js</value>
     <value>https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js</value>
-    <value>https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js
-    </value>
+    <value>https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js</value>
     <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js</value>
     <value>/js/rs.js</value>
     <value>/js/admin.js</value>
@@ -62,10 +61,8 @@
     <value>/js/jquery-filestyle.min.js</value>
   </util:list>
   <util:list id="cpfCssUrls">
-    <value>https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css
-    </value>
-    <value>https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css
-    </value>
+    <value>https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css</value>
+    <value>https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css</value>
     <value>/css/rs.css</value>
     <value>/css/cpf.css</value>
     <value>/css/jquery-filestyle.min.css</value>
@@ -80,6 +77,10 @@
           class="com.revolsys.ui.model.Menu"
           p:title="Home"
           p:uri="/admin/" />
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="Tuning"
+          p:uri="/admin/tuning/" />
         <bean
           p:typeName="ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics"
           p:pageName="summary"
