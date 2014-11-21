@@ -12,11 +12,8 @@ pageId = 'dbInstall';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'dbInstall';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -196,33 +194,33 @@ cp sample-db.properties db.properties</pre>
     <tr>
       <th><code>DB_HOSTNAME</code></td>
       <td><code>localhost</code></td>
-      <td>The hostname of the PostgreSQL sever. Not used for Oracle.</td>
+      <td><p>The hostname of the PostgreSQL sever. Not used for Oracle.</p></td>
     </tr>
     <tr>
       <th><code>DB_PORT</code></th>
       <td><code>5432</code></td>
-      <td>The port of the PostgreSQL sever. Not used for Oracle.</td>
+      <td><p>The port of the PostgreSQL sever. Not used for Oracle.</p></td>
     </tr>
     <tr>
       <th><code>DB_NAME</code></th>
       <td><code>cpf</code></td>
-      <td>The PostgreSQL database name or Oracle TNSNAME, tnsnames.ora must be configured.</td>
+      <td><p>The PostgreSQL database name or Oracle TNSNAME, tnsnames.ora must be configured.</p></td>
     </tr>
     <tr>
       <th><code>OWNER_PASSWORD</code></th>
       <td><code>cpf_2009</code></td>
-      <td>The password to create the CPF database account with.</td>
+      <td><p>The password to create the CPF database account with.</p></td>
     </tr>
     <tr>
       <th><code>PROXY_WEB_PASSWORD</code></th>
       <td><code>cpf_2009</code></td>
-      <td>The password to create the PROXY_CPF_WEB database account with.</td>
+      <td><p>The password to create the PROXY_CPF_WEB database account with.</p></td>
     </tr>
     <tr>
       <th><code>TABLESPACE_DIR</code></th>
       <td><code>/data/postgres/cpf
 c:/data/postgres/cpf</code></td>
-      <td>The directory to create the database tablespace in. The directory must exist on the <b>server</b> and the PostgreSQL or Oracle process must have write   permissions on this directory</td>
+      <td><p>The directory to create the database tablespace in. The directory must exist on the <b>server</b> and the PostgreSQL or Oracle process must have write   permissions on this directory.</p></td>
     </tr>
   </tbody>
 </table>

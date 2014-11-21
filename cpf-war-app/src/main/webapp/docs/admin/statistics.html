@@ -12,11 +12,8 @@ pageId = 'statistics';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'statistics';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -134,67 +132,67 @@ and business application. Statistics are automatically rolled up for each day, m
   <tbody>
     <tr>
       <td>Duration Type</td>
-      <td>The type of duration (hour, day, month, year) that the statistics were calculated for.</td>
+      <td><p>The type of duration (hour, day, month, year) that the statistics were calculated for.</p></td>
     </tr>
     <tr>
       <td>Start Time</td>
-      <td>The start time of the time period the statistics were calculated for.</td>
+      <td><p>The start time of the time period the statistics were calculated for.</p></td>
     <tr>
       <td>End Time</td>
-      <td>The end time of the time period the statistics were calculated for.</td>
+      <td><p>The end time of the time period the statistics were calculated for.</p></td>
     </tr>
     <tr>
       <td>Jobs Completed</td>
       <td><p>Statistics calculated for jobs that were completed during the time period.
       Statistics are split by jobs and requests.
-      Statistics are calculated for the total execution average time, total of all times and a count.</td>
+      Statistics are calculated for the total execution average time, total of all times and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Submitted</td>
       <td><p>Statistics calculated for jobs that were submitted during the time period.
       Statistics are not calculated for requests as this is not known until the pre-processing stage.
-      Statistics are calculated for the average and total times to process the job submission and a count.</td>
+      Statistics are calculated for the average and total times to process the job submission and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Pre-Process Scheduled</td>
       <td><p>Statistics calculated for jobs that were scheduled for pre-processing during the time period.
-      Statistics are calculated for the pre-process schedule average time, total of all times and a count.</td>
+      Statistics are calculated for the pre-process schedule average time, total of all times and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Pre-Processed</td>
       <td><p>Statistics calculated for jobs that were pre-processed during the time period.
       Statistics are split by jobs and requests.
-      Statistics are calculated for the pre-process average time, total of all times and a count.</td>
+      Statistics are calculated for the pre-process average time, total of all times and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Request Groups Scheduled</td>
       <td><p>Statistics calculated for job groups that were scheduled for execution during the time period.
-      Statistics are calculated for the schedule average time, total of all times and a count.</td>
+      Statistics are calculated for the schedule average time, total of all times and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Request Groups Executed</td>
       <td><p>Statistics calculated for job groups that were executed during the time period. These
       times include master and worker time to execute the group including any wait times.
       Statistics are split by jobs and requests.
-      Statistics are calculated for the job group execution average time, total of all times and a count.</td>
+      Statistics are calculated for the job group execution average time, total of all times and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Request Groups Application Executed</td>
       <td><p>Statistics calculated for job groups that were executed during the time period. These
       times are the time the business application takes to execute the group without any overhead.
       Statistics are split by jobs and requests.
-      Statistics are calculated for the job group application execution average time, total of all times and a count.</td>
+      Statistics are calculated for the job group application execution average time, total of all times and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Post-Process Scheduled</td>
       <td><p>Statistics calculated for jobs that were scheduled for post-processing during the time period.
-      Statistics are calculated for the post-process schedule average time, total of all times and a count.</td>
+      Statistics are calculated for the post-process schedule average time, total of all times and a count.</p></td>
     </tr>
     <tr>
       <td>Jobs Post-Processed</td>
       <td><p>Statistics calculated for jobs that were post-processed during the time period.
       Statistics are split by jobs and requests.
-      Statistics are calculated for the post-process average time, total of all times and a count.</td>
+      Statistics are calculated for the post-process average time, total of all times and a count.</p></td>
     </tr>
   </tbody>
 </table>

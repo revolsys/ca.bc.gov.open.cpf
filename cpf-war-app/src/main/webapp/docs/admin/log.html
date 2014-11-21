@@ -201,45 +201,45 @@ be rolled over once they reach 10MB. The last 7 log files will be retained with 
     <tbody>
       <tr>
         <td><code>catalina.out</code></td>
-        <td>If running on tomcat the tomcat server log file. Exact file name and location will vary
+        <td><p>If running on tomcat the tomcat server log file. Exact file name and location will vary
         based on the servlet container used and it's configuration. If the CPF does not start check this
-        log file for any errors.</td>
+        log file for any errors.</p></td>
       </tr>
       <tr>
         <td><code>cpf-app.log</code></td>
-        <td>Log messages for components on the master not related to a module or a business application.
-        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
+        <td><p>Log messages for components on the master not related to a module or a business application.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</p></td>
       </tr>
       <tr>
         <td><code>worker_[environmentName]_[hostName]_[port]_[contextPath].log</code></td>
-        <td>Log messages for components on the worker not related to a module or a business application.
-        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
+        <td><p>Log messages for components on the worker not related to a module or a business application.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</p></td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [moduleName]_master.log</pre></td>
-        <td>Log messages for a module's components on the master not related to a business application.
-        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
+        <td><p>Log messages for a module's components on the master not related to a business application.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</p></td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [moduleName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</pre></td>
-        <td>Log messages for a module's components on the worker not related to a business application.
-        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
+        <td><p>Log messages for a module's components on the worker not related to a business application.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</p></td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [appName]/
     [moduleName]_[appName]_master.log</<pre></td>
-        <td>Log messages for a business application's components on the master.
-        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
+        <td><p>Log messages for a business application's components on the master.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</p></td>
       </tr>
       <tr>
         <td><pre>[moduleName]/
   [appName]/
     [moduleName]_[appName]_worker_[environmentName]_[hostName]_[port]_[contextPath].log</pre></td>
-        <td>Log messages for a business application's components on the worker.
-        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</td>
+        <td><p>Log messages for a business application's components on the worker.
+        New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .[1-7].log (e.g. .1.log).</p></td>
       </tr>
     </tbody>
   </table>

@@ -12,11 +12,8 @@ pageId = 'configProperty';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'configProperty';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -34,7 +32,7 @@ $(document).ready(function() {
   setPageId(pageId);
   createToc();
 });
-  </script>
+	</script>
 
 <!-- InstanceBeginEditable name="head" -->
     <style type="text/css">
@@ -138,29 +136,28 @@ properties.</p>
   <tbody>
     <tr>
       <td>Config Property Id</td>
-      <td>Unique sequence generated primary key for a config property.</td>
+      <td><p>Unique sequence generated primary key for a config property.</p></td>
     </tr>
     <tr>
       <td>Environment Name</td>
-      <td>The <a href="#environmentName">environment name</a> the config property will be used for.</td>
+      <td><p>The <a href="#environmentName">environment name</a> the config property will be used for.</p></td>
     </tr>
     <tr>
       <td>Module Name</td>
-      <td>The name of the module the config property applies to. The special module names CPF
-      and CPF_WORKER are used for CPF config properties.</td>
+      <td><p>The name of the module the config property applies to. The special module names CPF
+      and CPF_WORKER are used for CPF config properties.</p></td>
     </tr>
     <tr>
       <td>Property Name</td>
-      <td>The name of the property.</td>
+      <td><p>The name of the property.</p></td>
     </tr>
     <tr>
       <td>Value</td>
-      <td>The value of the property.</td>
+      <td><p>The value of the property.</p></td>
     </tr>
     <tr>
       <td>Value Type</td>
-      <td><p>The <a href="#dataType">data type</a> the value will be converted to.</p>
-   </td>
+      <td><p>The <a href="#dataType">data type</a> the value will be converted to.</p></td>
     </tr>
   </tbody>
 </table>
@@ -340,7 +337,7 @@ configuration properties.</p>
 configuration properties for a business application.</p>
 
 <ol>
-  <li>Open the <a href="businessApplication.html#view">Business Application View</a> page.</li>
+  <li>Open the <a href="app.html#view">Business Application View</a> page.</li>
   <li>Click the 'Config Properties' tab.</li>
 </ol>
 </section>
@@ -433,91 +430,91 @@ the same machine they can share the same configuration file.</p>
   <tbody>
     <tr>
       <td><code>ca.bc.gov.cpf.app.baseUrl</code></td>
-      <td>The HTTP URL to the OAuth/Digest secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</td>
+      <td><p>The HTTP URL to the OAuth/Digest secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URI</td>
-      <td><a href="http://apps.gov.bc.ca/pub/cpf">http://apps.gov.bc.ca/pub/cpf</a></td>
+      <td><p><a href="http://apps.gov.bc.ca/pub/cpf">http://apps.gov.bc.ca/pub/cpf</a></p></td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.app.secureBaseUrl</code></td>
-      <td>The HTTPS URL to the Siteminder secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</td>
+      <td><p>The HTTPS URL to the Siteminder secured CPF web services, including context path on the server cpf is deployed to. The trailing / must be omitted.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URI</td>
-      <td><a href="https://apps.gov.bc.ca/pub/cpf/secure">https://apps.gov.bc.ca/pub/cpf/secure</a></td>
+      <td><a href="https://apps.gov.bc.ca/pub/cpf/secure">https://apps.gov.bc.ca/pub/cpf/secure</a></p></td>
     </tr>
     <tr>
       <td><code>cpfSiteminderLogoutSuccess.logoutUrl</code></td>
-      <td>The URL to the siteminder logoff page.</td>
+      <td><p>The URL to the siteminder logoff page.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URI</td>
-      <td><a href="https://logon.gov.bc.ca/clp-cgi/logoff.cgi">https://logon.gov.bc.ca/clp-cgi/logoff.cgi</a> or
-      <a href="https://logontest.gov.bc.ca/clp-cgi/logoff.cgi">https://logontest.gov.bc.ca/clp-cgi/logoff.cgi</a></td>
+      <td><p><a href="https://logon.gov.bc.ca/clp-cgi/logoff.cgi">https://logon.gov.bc.ca/clp-cgi/logoff.cgi</a> or
+      <a href="https://logontest.gov.bc.ca/clp-cgi/logoff.cgi">https://logontest.gov.bc.ca/clp-cgi/logoff.cgi</a></p></td>
      </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.url</code></td>
-      <td>The JDBC URL to the cpf database.</td>
+      <td><p>The JDBC URL to the cpf database.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URI</td>
-      <td><code>jdbc:oracle:thin:@localhost:1521:cpf</code> or <code>jdbc\:postgresql\://localhost\:5432/cpf</code></td>
+      <td><p><code>jdbc:oracle:thin:@localhost:1521:cpf</code> or <code>jdbc\:postgresql\://localhost\:5432/cpf</code></p></td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.password</code></td>
-      <td>The password for the PROXY_CPF_WEB user account.</td>
+      <td><p>The password for the PROXY_CPF_WEB user account.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>String</td>
-      <td>cpf_2009</td>
+      <td><p>cpf_2009</p></td>
     </tr>
     <tr>
       <td><code>ca.bc.gov.cpf.db.maxConnections</code></td>
-      <td>The maximum number of database connections.</td>
+      <td><p>The maximum number of database connections.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>int</td>
-      <td>50</td>
+      <td><p>50</p></td>
     </tr>
     <tr>
       <td id="repositoryServer"><code>ca.bc.gov.cpf.repositoryServer</code></td>
-      <td>The maven repository to download plugins from.</td>
+      <td><p>The maven repository to download plugins from.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>int</td>
-      <td>https://developer.gov.bc.ca/artifactory/repo/</td>
+      <td><p>https://developer.gov.bc.ca/artifactory/repo/</p></td>
     </tr>
     <tr>
       <td id="repositoryDirectory"><code>ca.bc.gov.cpf.repositoryDirectory</code></td>
-      <td>The cache directory to store maven artifacts.</td>
+      <td><p>The cache directory to store maven artifacts.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>String</td>
-      <td>/apps/cpf/repository/</td>
+      <td><p>/apps/cpf/repository/</p></td>
     </tr>
     <tr>
       <td><code>batchJobService.maxWorkerWaitTime</code></td>
-      <td>The maximum time (in seconds) the worker will wait in a HTTP request for group to process before
+      <td><p>The maximum time (in seconds) the worker will wait in a HTTP request for group to process before
       trying a new HTTP request. This limits the number of polling requests to the server. Must
-      be less than any HTTP server inactivity timeouts.</td>
+      be less than any HTTP server inactivity timeouts.</p></td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>int</td>
-      <td>100</td>
+      <td><p>100</p></td>
     </tr>
     <tr>
       <td><code>batchJobService.fromEmail</code></td>
-      <td>The email address any emails will be sent from.</td>
+      <td><p>The email address any emails will be sent from.</p></td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>String</td>
-      <td>cpf@localhost</td>
+      <td><p>cpf@localhost</p></td>
     </tr>
     <tr>
       <td><code>mailSender.host</code></td>
-      <td>The mail server to send emails via./td>
+      <td><p>The mail server to send emails via.</p></td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>String</td>
-      <td>localhost</td>
+      <td><p>localhost</p></td>
     </tr>
     <tr>
       <td>removeOldBatchJobs.daysToKeepOldJobs</td>
-      <td>The number of days that jobs will be kept after the results have been created. After
-      that time the jobs will be removed in the next daily cleanup.</td>
+      <td><p>The number of days that jobs will be kept after the results have been created. After
+      that time the jobs will be removed in the next daily cleanup.</p></td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>int</td>
-      <td>7</td>
+      <td><p>7</p></td>
     </tr>
   </tbody>
 </table>
@@ -545,39 +542,39 @@ the same machine they can share the same configuration file.</p>
   <tbody>
     <tr>
       <td><code>ca.bc.gov.cpf.internal.webServiceUrl</code></td>
-      <td>The HTTP URL to the CPF web services behind any reverse proxies. This is used to speed up
-      access from the workers.</td>
+      <td><p>The HTTP URL to the CPF web services behind any reverse proxies. This is used to speed up
+      access from the workers.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>URL</td>
-      <td><a href="http://localhost/pub/cpf">http://localhost/pub/cpf</a></td>
+      <td><p><a href="http://localhost/pub/cpf">http://localhost/pub/cpf</a></p></td>
     </tr>
     <tr>
       <td><code>cpfWorker.password</code></td>
-      <td>The password for the cpf_worker user account.</td>
+      <td><p>The password for the cpf_worker user account.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>String</td>
-      <td>w0rk3r</td>
+      <td><p>w0rk3r</p></td>
     </tr>
     <tr>
       <td><code>cpfWorker.environmentName</code></td>
-      <td>The <a href="#environmentName">environment name</a> used for the worker.</td>
+      <td><p>The <a href="#environmentName">environment name</a> used for the worker.</p></td>
       <td><img src="../../images/cross.png" alt="No" title="No" /></td>
       <td>String</td>
-      <td>default</td>
+      <td><p>default</p></td>
     </tr>
     <tr>
       <td id="workerPoolSize"><code>cpfWorker.maximumPoolSize</code></td>
-      <td>The maximum number of threads on the worker used to execute requests.</td>
+      <td><p>The maximum number of threads on the worker used to execute requests.</p></td>
       <td><img src="../../images/tick.png" alt="Yes" title="Yes" /></td>
       <td>int</td>
-      <td>32</td>
+      <td><p>32</p></td>
     </tr>
   </tbody>
 </table>
 </div>
 </section>
 </section>
-                    <!-- InstanceEndEditable -->
+										<!-- InstanceEndEditable -->
                 </div>
               </div>
             </div>

@@ -12,11 +12,8 @@ pageId = 'webInstall';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'webInstall';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -147,13 +145,13 @@ $(document).ready(function() {
     <td><code>/apps/cpf/config</code></td>
     <td><code>rw</code></td>
     <td><code>r</code></td>
-    <td>The directory containing the CPF configuration file for the database URL, username and password.</td>
+    <td><p>The directory containing the CPF configuration file for the database URL, username and password.</p></td>
   </tr>
   <tr>
     <td><code>/apps/cpf/log</code></td>
     <td><code>r</code></td>
     <td><code>rw</code></td>
-    <td>The directory to store the CPF logs.</td>
+    <td><p>The directory to store the CPF logs.</p></td>
   </tr>
   <tr>
     <td><code>/apps/cpf/repository</code>
@@ -161,7 +159,7 @@ $(document).ready(function() {
     <code>/home/&lt;username&gt;/.m2/repository</code></td>
     <td><code>rw</code></td>
     <td><code>rw</code></td>
-    <td>The local Maven repository cache. If the J2EE server is on the developers workstation use the user's local maven repository cache </td>
+    <td><p>The local Maven repository cache. If the J2EE server is on the developers workstation use the user's local maven repository cache.</p></td>
   </tr>
   </tbody>
   </table>
@@ -252,43 +250,43 @@ paste the above text into a command window.</p>
     <tbody>
     <tr>
     <td><code>archetypeVersion</code></td>
-    <td>The most recent version of the CPF framework.</td>
+    <td><p>The most recent version of the CPF framework.</p></td>
     </tr>
     <tr>
     <td><code>groupId</code></td>
-    <td>The maven group identifier. This should be your company name if deploying within your development environment</td>
+    <td><p>The maven group identifier. This should be your company name if deploying within your development environment.</p></td>
     </tr>
     <tr>
     <td><code>artifactId</code></td>
-    <td>The base maven artifact identifier used for the maven modules created in the project.</td>
+    <td><p>The base maven artifact identifier used for the maven modules created in the project.</p></td>
     </tr>
     <tr>
     <td><code>verstion</code></td>
-    <td>The version identifier you’d like to give to your plug-in.</td>
+    <td><p>The version identifier you’d like to give to your plug-in.</p></td>
     </tr>
     <tr>
     <td><code>modulePrefix</code></td>
-    <td>The prefix to use on the web applications.</td>
+    <td><p>The prefix to use on the web applications.</p></td>
     </tr>
     <tr>
     <td><code>databaseVendor</code></td>
-    <td>The database type that the CPF uses for its data. Supported values include postgresql and oracle.</td>
+    <td><p>The database type that the CPF uses for its data. Supported values include postgresql and oracle.</p></td>
     </tr>
     <tr>
     <td><code>cpfDirectory</code></td>
-    <td>The root directory the CPF configuration file and log files will be stored in (e.g. <code>/apps/cpf</code> or <code>C:\apps\cpf</code>).</td>
+    <td><p>The root directory the CPF configuration file and log files will be stored in (e.g. <code>/apps/cpf</code> or <code>C:\apps\cpf</code>).</p></td>
     </tr>
     <tr>
     <td><code>cpfDirectoryUrl</code></td>
-    <td>The root directory the CPF configuration file and log files will be stored in (e.g. <code>/apps/cpf</code> or <code>C:\apps\cpf</code>).</td>
+    <td><p>The root directory the CPF configuration file and log files will be stored in (e.g. <code>/apps/cpf</code> or <code>C:\apps\cpf</code>).</p></td>
     </tr>
     <tr>
     <td><code>mavenCacheDirectoryURL</code></td>
-    <td>The file URL to local Maven repository cache. <b>NOTE: Must start with file:/// and use web
+    <td><p>The file URL to local Maven repository cache. <b>NOTE: Must start with file:/// and use web
     slashes / instead of windows slashes \</b>. If the J2EE server is on the developers workstation
     use the user's local maven repository cache. Otherwise use the repository directory below the
     <code>cpfDirectory</code> defined above (e.g. <code>file:///apps/cpf/repository</code> or
-    <code>file:///C:/apps/cpf/repository</code>).</td>
+    <code>file:///C:/apps/cpf/repository</code>).</p></td>
     </tr>
     </tbody>
   </table>
@@ -306,67 +304,67 @@ paste the above text into a command window.</p>
     </thead>
     <tr>
     <td><code>cpf</code></td>
-    <td>The root directory of the web project.</td>
+    <td><p>The root directory of the web project.</td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;cpf.app</code></td>
-    <td>The maven module for the web application containing the web services and scheduler.</td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;pom.xml</td>
-    <td>The maven build file for the web services and scheduler.</code></td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/resources</td>
-    <td>The resources to be included in the web application jar file.</code></td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpf-api-properties.sf.xml</code></td>
-    <td>The configuration file for the CPF API components.</td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpf-web-properties.sf.xml</code></td>
-    <td>The configuration file for the CPF web components.</td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log4j.xml</code></td>
-    <td>The log4j configuration.</td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/webapp/META-INF/context.xml</code></td>
-    <td>Tomcat context configuration</td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;cpf.worker</code></td>
-    <td>The maven module for the web application containing the worker.</td>
+    <td><p>The maven module for the web application containing the web services and scheduler.</p></td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;&nbsp;&nbsp;pom.xml</code></td>
-    <td>The maven build file for the worker.</td>
+    <td><p>The maven build file for the web services and scheduler.</p></td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/resources</code></td>
-    <td>The resources to be included in the web applications jar file.</td>
+    <td><p>The resources to be included in the web application jar file.</p></td>
     </tr>
     <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpf-worker-properties.sf.xml</code></td>
-    <td>The configuration file for the worker.</td>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpf-api-properties.sf.xml</code></td>
+    <td><p>The configuration file for the CPF API components.</p></td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpf-web-properties.sf.xml</code></td>
+    <td><p>The configuration file for the CPF web components.</p></td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log4j.xml</code></td>
-    <td>The log4j configuration.</td>
+    <td><p>The log4j configuration.</p></td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/webapp/META-INF/context.xml</code></td>
-    <td>Tomcat context configuration</td>
+    <td><p>Tomcat context configuration.</p></td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;cpf.worker</code></td>
+    <td><p>The maven module for the web application containing the worker.</p></td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;pom.xml</code></td>
+    <td><p>The maven build file for the worker.</p></td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/resources</code></td>
+    <td><p>The resources to be included in the web applications jar file.</p></td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpf-worker-properties.sf.xml</code></td>
+    <td><p>The configuration file for the worker.</p></td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log4j.xml</code></td>
+    <td><p>The log4j configuration.</p></td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/webapp/META-INF/context.xml</code></td>
+    <td><p>Tomcat context configuration.</p></td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;pom.xml</code></td>
-    <td>The parent maven build file that builds all modules</td>
+    <td><p>The parent maven build file that builds all modules.</p></td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;sample-config/cpf.properties</code></td>
-    <td>A sample config file to copy to <code>/apps/cpf/conf/</code></td>
+    <td><p>A sample config file to copy to <code>/apps/cpf/conf/</code>.</p></td>
     </tr>
   </table>
 </div>
@@ -411,23 +409,23 @@ paste the above text into a command window.</p>
     <tbody>
     <tr>
     <td><code>cpfApplicationBaseUrl</code></td>
-    <td>The base URL to the CPF apps web application (e.g. http://localhost:8080/cpf).</td>
+    <td><p>The base URL to the CPF apps web application (e.g. http://localhost:8080/cpf).</p></td>
     </tr>
     <tr>
     <td><code>cpfDataSource.url</code></td>
-    <td>The full JDBC URL to the CPF database server (e.g. jdbc:postgresql:cpf.).</td>
+    <td><p>The full JDBC URL to the CPF database server (e.g. jdbc:postgresql:cpf.).</p></td>
     </tr>
     <tr>
     <td><code>cpfDataSource.password</code></td>
-    <td>The password for the CPF database (e.g. cpf_2009).</td>
+    <td><p>The password for the CPF database (e.g. cpf_2009).</p></td>
     </tr>
     <tr>
     <td><code>cpfWorker.webServiceUrl</code></td>
-    <td>The base url to the internal web services (e.g. http://localhost/cpf).</td>
+    <td><p>The base url to the internal web services (e.g. http://localhost/cpf).</p></td>
     </tr>
     <tr>
     <td><code>cpfWorker.password</code></td>
-    <td>The password used in the internal web services (e.g. cpf_2009). Must be an http://open.gov.bc.ca/cpf/SystemUser user in the cpf.cpf_user_accounts table.</td>
+    <td><p>The password used in the internal web services (e.g. cpf_2009). Must be an http://open.gov.bc.ca/cpf/SystemUser user in the cpf.cpf_user_accounts table.</p></td>
     </tr>
     </tbody>
   </table>

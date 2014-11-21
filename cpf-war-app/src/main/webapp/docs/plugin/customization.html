@@ -12,11 +12,8 @@ pageId = 'pluginCustomization';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'pluginCustomization';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -307,37 +305,37 @@ forms and the default values for fields on the job submission forms.</p>
       <tr>
         <td><code>inputDataContentType</code> or <code>inputDataFileExtension</td>
         <td><code>String</code></td>
-        <td>The default value shown on forms for Input Data Content Type which is the MIME type or file extension of the input data specified by an inputData or inputDataUrl parameter.</td>
+        <td><p>The default value shown on forms for Input Data Content Type which is the MIME type or file extension of the input data specified by an inputData or inputDataUrl parameter.</p></td>
       </tr>
       <tr>
         <td><code>srid</code></td>
         <td><code>int</code></td>
-        <td>The default value shown on forms for Srid which is the EPSG coordinate system code of the source geometry.</td>
+        <td><p>The default value shown on forms for Srid which is the EPSG coordinate system code of the source geometry.</p></td>
       </tr>
       <tr>
         <td><code>resultDataContentType</code> or <code>resutDataFileExtension</td>
         <td><code>String</code></td>
-        <td>The default value shown on forms for Result Data Content Type which is the MIME type or file extension of the result data specified by an resutData or resutDataUrl parameter.</td>
+        <td><p>The default value shown on forms for Result Data Content Type which is the MIME type or file extension of the result data specified by an resutData or resutDataUrl parameter.</p></td>
       </tr>
       <tr>
         <td><code>resultSrid</code></td>
         <td><code>int</code></td>
-        <td>The default value shown on forms for Result Coordinate System which is the EPSG coordinate system code used for the result geometry.</td>
+        <td><p>The default value shown on forms for Result Coordinate System which is the EPSG coordinate system code used for the result geometry.</p></td>
       </tr>
       <tr>
         <td><code>resultNumAxis</code></td>
         <td><code>int</code></td>
-        <td>The default value shown on forms for Result Num Axis which is the number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).</td>
+        <td><p>The default value shown on forms for Result Num Axis which is the number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).</p></td>
       </tr>
       <tr>
         <td><code>resultScaleFactorXy</code></td>
         <td><code>double</code></td>
-        <td>The default value shown on forms for Result Scale Factor Xy which is the scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</td>
+        <td><p>The default value shown on forms for Result Scale Factor Xy which is the scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</p></td>
       </tr>
       <tr>
         <td><code>resultScaleFactorZ</code></td>
         <td><code>double</code></td>
-        <td>The default value shown on forms for Result Scale Factor Z which is the scale factor to apply the z coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</td>
+        <td><p>The default value shown on forms for Result Scale Factor Z which is the scale factor to apply the z coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</p></td>
       </tr>
     </tbody>
   </table>
@@ -360,62 +358,62 @@ forms and the default values for fields on the job submission forms.</p>
       <tr>
         <td><code>kmlDocumentName</code></td>
         <td><code>String</code></td>
-        <td>The text to use as the name of the KML Document. <b>NOTE: Don't use on a per result basis.</b></td>
+        <td><p>The text to use as the name of the KML Document. <b>NOTE: Don't use on a per result basis.</b></p></td>
       </tr>
       <tr>
         <td><code>kmlDocumentDescription</code></td>
         <td><code>String</code></td>
-        <td>The text to use as the description of the KML Document. <b>NOTE: Don't use on a per result basis.</b></td>
+        <td><p>The text to use as the description of the KML Document. <b>NOTE: Don't use on a per result basis.</b></p></td>
       </tr>
       <tr>
         <td><code>kmlStyle</code></td>
         <td><code>String</code></td>
-        <td>A list of one or more KML Style tags containing a custom style for the whole document. <b>NOTE: Don't use on a per result basis.</b> External styles should be preferred.</td>
+        <td><p>A list of one or more KML Style tags containing a custom style for the whole document. <b>NOTE: Don't use on a per result basis.</b> External styles should be preferred.</p></td>
       </tr>
       <tr>
         <td><code>kmlPlacemarkDescription</code></td>
         <td><code>String</code></td>
-        <td>The text to use as the description of the KML Placemark created for each result.</td>
+        <td><p>The text to use as the description of the KML Placemark created for each result.</p></td>
       </tr>
       <tr>
         <td><code>kmlPlaceMarkNameAttribute</code></td>
         <td><code>String</code></td>
-        <td>The name result attribute to use as the Name of the KML Placemark created for each result.</td>
+        <td><p>The name result attribute to use as the Name of the KML Placemark created for each result.</p></td>
       </tr>
       <tr>
         <td><code>kmlSnippet</code></td>
         <td><code>String</code></td>
-        <td>The text to use as the snippet of the KML Placemark created for each result.</td>
+        <td><p>The text to use as the snippet of the KML Placemark created for each result.</p></td>
       </tr>
       <tr>
         <td><code>kmlStyleUrl</code></td>
         <td><code>String</code></td>
-        <td>The text to use as the styleUrl of the KML Placemark created for each result.</td>
+        <td><p>The text to use as the styleUrl of the KML Placemark created for each result.</p></td>
       </tr>
       <tr>
         <td><code>kmlWriteNulls</code></td>
         <td><code>boolean</code></td>
-        <td>Flag indicating if attributes will null values are to be included in the KML document.
+        <td><p>Flag indicating if attributes will null values are to be included in the KML document.
         By default attributes with null values are NOT included in the extended data. If true then
-        the attribute will be included as a &;tlvalue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" /&gt; tag.</td>
+        the attribute will be included as a &;tlvalue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true" /&gt; tag.</p></td>
       </tr>
       <tr>
         <td><code>kmlLookAtRange</code></td>
         <td><code>double</code></td>
-        <td>The range to include in the look at element. If omitted then it will be calculated
-        from the geometry. The calculation for points always returns 1000.</td>
+        <td><p>The range to include in the look at element. If omitted then it will be calculated
+        from the geometry. The calculation for points always returns 1000.</p></td>
       </tr>
       <tr>
         <td><code>kmlLookAtMinRange</code></td>
         <td><code>double</code></td>
-        <td>The minimum value for the range to include in the look at element. This value is used
-        if the kmlLookAtRange or calculated range is less than this value.</td>
+        <td><p>The minimum value for the range to include in the look at element. This value is used
+        if the kmlLookAtRange or calculated range is less than this value.</p></td>
       </tr>
       <tr>
         <td><code>kmlLookAtMaxRange</code></td>
         <td><code>double</code></td>
-        <td>The maximum value for the range to include in the look at element. This value is used
-        if the kmlLookAtRange or calculated range is greater than this value.</td>
+        <td><p>The maximum value for the range to include in the look at element. This value is used
+        if the kmlLookAtRange or calculated range is greater than this value.</p></td>
       </tr>
     </tbody>
   </table>

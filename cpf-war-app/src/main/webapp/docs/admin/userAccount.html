@@ -12,11 +12,8 @@ pageId = 'userAccount';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'userAccount';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -143,35 +141,35 @@ correct permissions after a change.</p>
   <tbody>
     <tr>
       <td>User Account Id</td>
-      <td>Unique sequence generated primary key for a user account.</td>
+      <td><p>Unique sequence generated primary key for a user account.</p></td>
     </tr>
     <tr>
       <td>Consumer Key</td>
-      <td>The unique name for the user account. For CPF user accounts this is their login name.
+      <td><p>The unique name for the user account. For CPF user accounts this is their login name.
       For BCGOV the consumer key is the BC Government user type a colon followed by BC Government username (e.g. idir:jdoe).
       The BC Government user types are idir (IDIR internal account), ind (BCEID unverified individual account),
-      vin (BCEID verified individual account), and bceid (BCEID business account).</td>
+      vin (BCEID verified individual account), and bceid (BCEID business account).</p></td>
     </tr>
     <tr>
       <td>Consumer Secret</td>
-      <td>The password/signing key for the user. For CPF user accounts this can be modified in the admin application, end users can't change it.
-      For BCGOV this is not used and is set to a GUID value.</td>
+      <td><p>The password/signing key for the user. For CPF user accounts this can be modified in the admin application, end users can't change it.
+      For BCGOV this is not used and is set to a GUID value.</p></td>
     </tr>
     <tr>
       <td>User Account Class</td>
-      <td>The class of user account CPF or BCGOV.</td>
+      <td><p>The class of user account CPF or BCGOV.</p></td>
     </tr>
     <tr>
       <td>User Name</td>
       <td><ul><li>For CPF classes the user name will be kept in-sync with the consumer key.</li>
-      <li>For BCGOV the user name does not change. It is the GUID of the BC Government user account.
+      <li><p>For BCGOV the user name does not change. It is the GUID of the BC Government user account.
      The BC Government user id can change for a user (e.g. name change) so the GUID is the immutable unique identifier.</li>
       </ul></td>
     </tr>
     <tr>
       <td>Active</td>
-      <td>Boolean flag indicating if the user is active. Setting to false will prevent the user
-      from accessing the CPF.</td>
+      <td><p>Boolean flag indicating if the user is active. Setting to false will prevent the user
+      from accessing the CPF.</p></td>
     </tr>
   </tbody>
 </table>
@@ -196,8 +194,8 @@ can be used for end-users or developers.</p>
 These are used by the user when authenticating using one of the following two authentication mechanisms.</p>
 
 <ul>
-  <li><a href="http://tools.ietf.org/html/rfc2617">HTTP Digest Access Authentication</a> - Supported by most web browsers</li>
-  <li><a href="http://tools.ietf.org/html/rfc5849">OAuth 1.0</a> - Supported by the CPF Java API for direct application access to the CPF.</li>
+  <li><p><a href="http://tools.ietf.org/html/rfc2617">HTTP Digest Access Authentication</a> - Supported by most web browsers.</p></li>
+  <li><p><a href="http://tools.ietf.org/html/rfc5849">OAuth 1.0</a> - Supported by the CPF Java API for direct application access to the CPF.</p></li>
 </ul>
 
 <p>The CPF is installed with the following two accounts defined.</p>

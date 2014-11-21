@@ -12,11 +12,8 @@ pageId = 'pluginProject';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'pluginProject';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -147,31 +145,31 @@ mvn \
     <tbody>
       <tr>
         <td><code>archetypeVersion</code></td>
-        <td>The most recent version of the CPF framework.</td>
+        <td>The most recent version of the CPF framework.</p></td>
       </tr>
       <tr>
         <td><code>groupId</code></td>
-        <td>The maven group identifier also used as the java package name for the plug-in class. For BC Government plug-ins this should be ca.bc.gov.</td>
+        <td><p>The maven group identifier also used as the java package name for the plug-in class. For BC Government plug-ins this should be ca.bc.gov.</p></td>
       </tr>
       <tr>
         <td><code>artifactId</code></td>
-        <td>The base maven artifact identifier used for the maven modules created in the project. This should be the project acronym for BC Government projects.</td>
+        <td><p>The base maven artifact identifier used for the maven modules created in the project. This should be the project acronym for BC Government projects.</p></td>
       </tr>
       <tr>
         <td><code>version</code></td>
-        <td>The version identifier you’d like to give to your plug-in. Must include -SNAPSHOT the -SNAPSHOT is removed on migration to test and production.</td>
+        <td><p>The version identifier you’d like to give to your plug-in. Must include -SNAPSHOT the -SNAPSHOT is removed on migration to test and production.</p></td>
       </tr>
       <tr>
         <td><code>package</code></td>
-        <td>The Java package name for the generated code. Must be <code>ca.bc.gov.&lt;acronym&gt;</code> for BC Government projects.</td>
+        <td><p>The Java package name for the generated code. Must be <code>ca.bc.gov.&lt;acronym&gt;</code> for BC Government projects.</p></td>
       </tr>
       <tr>
         <td><code>pluginName</code></td>
-        <td>The name of the plug-in. This will be used to generate the plug-in class name and for descriptions in the   Maven build files.</td>
+        <td><p>The name of the plug-in. This will be used to generate the plug-in class name and for descriptions in the   Maven build files.</p></td>
       </tr>
       <tr>
         <td><code>pluginAcronym</code></td>
-        <td>The acronym of the plug-in. This will be used to generate the plug-in jar name.</td>
+        <td><p>The acronym of the plug-in. This will be used to generate the plug-in jar name.</p></td>
       </tr>
     </tbody>
   </table>
@@ -190,47 +188,47 @@ mvn \
     <tbody>
       <tr>
         <td><code>demo/</code></td>
-        <td>The root directory of the plug-in project.</td>
+        <td><p>The root directory of the plug-in project.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;scripts/</code></td>
-        <td>Any SQL scripts required to create the database or data required by the plug-in. Samples are included.</td>
+        <td><p>Any SQL scripts required to create the database or data required by the plug-in. Samples are included.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;README.txt</code></td>
-        <td>A sample readme file for deployment to the Ministry. Edit for your application.</td>
+        <td><p>A sample readme file for deployment to the Ministry. Edit for your application.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;pom.xml</code></td>
-        <td>The maven build file for the plug-in.</td>
+        <td><p>The maven build file for the plug-in.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;src/</code></td>
-        <td>The root folder containing the source code and resources.</td>
+        <td><p>The root folder containing the source code and resources.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;&nbsp;&nbsp;main/java/ca.bc.gov/demo/</code></td>
-        <td>The java package for the plug-in, add any support classes in here.</td>
+        <td><p>The java package for the plug-in, add any support classes in here.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DemoPlug-in.java</code></td>
-        <td>The java class for the plug-in.</td>
+        <td><p>The java class for the plug-in.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;&nbsp;&nbsp;main/resources/</code></td>
-        <td>The non-java resource files to include in the plug-in jar.</td>
+        <td><p>The non-java resource files to include in the plug-in jar.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;META-INF/</code></td>
-        <td>The META-INF directory for the plug-in jar.</td>
+        <td><p>The META-INF directory for the plug-in jar.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ca.bc.gov.open.cpf.plugin.sf.xml</code></td>
-        <td>The main CPF spring configuration file for the plug-ins in this module. </td>
+        <td><p>The main CPF spring configuration file for the plug-ins in this module.</p></td>
       </tr>
       <tr>
         <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ca/bc/gov/demo/Demo.sf.xml</code></td>
-        <td>The spring configuration file containing any beans used by the plug-ins.</td>
+        <td><p>The spring configuration file containing any beans used by the plug-ins.</p></td>
       </tr>
     </tbody>
   </table>

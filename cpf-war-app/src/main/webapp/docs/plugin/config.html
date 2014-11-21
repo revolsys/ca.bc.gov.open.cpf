@@ -12,11 +12,8 @@ pageId = 'pluginConfiguration';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'pluginConfiguration';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -154,15 +152,15 @@ td > ul {
     <tbody>
       <tr>
         <td><code>name</code></td>
-        <td>The name of the property (or sub property). The name can either be placeholders  in the spring configuration file or can override  bean properties from the spring configuration file. The recommendation is to reduce the number of placeholders and use overrides instead. Include default values in the spring bean files.</td>
+        <td><p>The name of the property (or sub property). The name can either be placeholders  in the spring configuration file or can override  bean properties from the spring configuration file. The recommendation is to reduce the number of placeholders and use overrides instead. Include default values in the spring bean files.</p></td>
       </tr>
       <tr>
         <td><code>type</code></td>
-        <td>The Java <a href="../dataTypes.html">data type</a> of the value. Must be the same type as the Java set property method.</td>
+        <td><p>The Java <a href="../dataTypes.html">data type</a> of the value. Must be the same type as the Java set property method.</p></td>
       </tr>
       <tr>
         <td><code>value</code></td>
-        <td>The string value of the property, it must be possible to convert this value to the Java data type specified in the type attribute.</td>
+        <td><p>The string value of the property, it must be possible to convert this value to the Java data type specified in the type attribute.</p></td>
       </tr>
     </tbody>
   </table>

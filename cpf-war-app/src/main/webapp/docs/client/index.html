@@ -12,11 +12,8 @@ pageId = 'client';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'client';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -118,7 +116,7 @@ td > ul {
       <div>
         <h1>Client Developer Guide</h1>
         <h2>Client Overview</h2>
-        <p>The Concurrent Processing Framework (CPF) provides a REST web service API that can be used to develop client applications in JavaScript, Java or another programming language to submit batch jobs to the CPF and to download the results of those batch jobs. The API can also
+        <p>The Concurrent Processing Framework (CPF) provides a REST web service API that can be used to develop client applications in Java, Python or another programming language to submit batch jobs to the CPF and to download the results of those batch jobs. The API can also
         be accessed directly in a web browser.</p>
 
        <h2>Accessing the Concurrent Processing Framework</h2>
@@ -128,8 +126,8 @@ td > ul {
         The web service can also be accessed using a programming language using
         the <a href="rest-api/">REST Web Service API</a>. Client API's that use
         the <a href="rest-api/">REST Web Service API</a> are provided for the
-        <a href="java-api/">Java</a> and <a href="javascript-api/">JavaScript</a>
-        programming languages. Other programming languages can also access the
+        <a href="java-api/">Java</a>
+        programming language. Other programming languages can also access the
         <a href="rest-api/">REST Web Service API</a> using custom code.<p>
          <h3>Security</h3>
          <p>Access to the REST web service API is limited to authorized users.</p>
@@ -154,11 +152,6 @@ td > ul {
                 <td>Client Java (6+)</td>
                 <td><a href="java-api/">API Docs</a></td>
                 <td><a href="../../lib/cpf-api-client-${project.version}.jar">Download</a></td>
-              </tr>
-              <tr>
-                <td>Client JavaScript</td>
-                <td><a href="javascript-api/">API Docs</a></td>
-                <td><a href="../../js/cpf_client.js">Download</a></td>
               </tr>
             </tbody>
           </table>

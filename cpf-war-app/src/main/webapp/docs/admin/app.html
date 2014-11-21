@@ -12,11 +12,8 @@ pageId = 'app';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'app';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -147,105 +145,105 @@ manage items related to a business application.</p>
     <tbody>
       <tr>
         <th id="name">Name</th>
-        <td>The name of the module. Used for links and to flag the app for a job.</td>
+        <td><p>The name of the module. Used for links and to flag the app for a job.</p></td>
       </tr>
       <tr>
         <th id="moduleName">Module</th>
-        <td>The name of the <a href="module.html">Module</a> the business application is loaded from.</td>
+        <td><p>The name of the <a href="module.html">Module</a> the business application is loaded from.</p></td>
       </tr>
       <tr>
         <th id="title">Title</th>
-        <td>The display title shown on the web app for the business application.</td>
+        <td><p>The display title shown on the web app for the business application.</p></td>
       </tr>
       <tr>
         <th id="descriptionUrl">Description Url</th>
-        <td>URL to an external page providing more documentation for the module.</td>
+        <td><p>URL to an external page providing more documentation for the module.</p></td>
       </tr>
       <tr>
         <th id="logLevel">Log Level</th>
-        <td>The level log logging ERROR, INFO, DEBUG. ERROR should be used unless
+        <td><p>The level log logging ERROR, INFO, DEBUG. ERROR should be used unless
         there is an issue to be diagnosed. INFO and DEBUG generate large log files and slow
-        down the application.</td>
+        down the application.</p></td>
       </tr>
       <tr>
         <th id="testModeEnabled">Test Mode Enabled</th>
-        <td>Flag indicating if the web services show the test mode fields when submitting a job.</td>
+        <td><p>Flag indicating if the web services show the test mode fields when submitting a job.</p></td>
       </tr>
       <tr>
         <th id="batchModePermission">Batch Mode Permission</th>
-        <td>The <a href="#permission">permission</a> to restrict access to submission of jobs.</td>
+        <td><p>The <a href="#permission">permission</a> to restrict access to submission of jobs.</p></td>
       </tr>
       <tr>
         <th id="instantModePermission">Instant Mode Permission</th>
-        <td>The <a href="#permission">permission</a> to restrict access to submission of instant mode requests.</td>
+        <td><p>The <a href="#permission">permission</a> to restrict access to submission of instant mode requests.</p></td>
       </tr>
-       <tr>
+      <tr>
         <th id="geometryFactory">Geometry Factory</th>
-        <td>The geometry factory that all geometries will be converted to before execution on the plug-in.</td>
+        <td><p>The geometry factory that all geometries will be converted to before execution on the plug-in.</p></td>
       </tr>
       <tr>
         <th id="validateGeometry">Validate Geometry</th>
-        <td>Flag indicating if the geometries should be validated and rejected if invalid before execution by the plug-in.</td>
+        <td><p>Flag indicating if the geometries should be validated and rejected if invalid before execution by the plug-in.</p></td>
       </tr>
       <tr>
         <th id="perRequestInputData">Per Request Input Data</th>
-        <td>Flag indicating if the plug-in accepts multiple files with each file being a separate
-        request or a single structured data file with each record being a separate request.</td>
+        <td><p>Flag indicating if the plug-in accepts multiple files with each file being a separate
+        request or a single structured data file with each record being a separate request.</p></td>
       </tr>
       <tr>
         <th id="inputDataContentTypes">Input Data Content Types</th>
-        <td>The list of MIME types of for the supported input data files.</td>
+        <td><p>The list of MIME types of for the supported input data files.</p></td>
       </tr>
       <tr>
         <th id="hasGeometryRequestAttribute">Has Geometry Request Attribute</th>
-        <td>Flag indicating if the business application accepts a geometry as one of the request parameters.</td>
+        <td><p>Flag indicating if the business application accepts a geometry as one of the request parameters.</p></td>
       </tr>
       <tr>
         <th id="perRequestResultData">Per Request Result Data</th>
-        <td>Flag indicating if the plug-in returns a separate file for each request or generates
-        a single structured data file with each record being a the result for each request.</td>
+        <td><p>Flag indicating if the plug-in returns a separate file for each request or generates
+        a single structured data file with each record being a the result for each request.</p></td>
       </tr>
       <tr>
         <th id="resultDataContentTypes">Result Data Content Types</th>
-        <td>The list of MIME types of for the supported result data file formats.</td>
+        <td><p>The list of MIME types of for the supported result data file formats.</p></td>
       </tr>
       <tr>
         <th id="hasCustomizationProperties">Has Customization Properties</th>
-        <td>Flag indicating if the plug-in customizes the form or result formats.</td>
+        <td><p>Flag indicating if the plug-in customizes the form or result formats.</p></td>
       </tr>
       <tr>
         <th id="resultListProperty">Result List Property</th>
-        <td>Flag indicating if the plug-in returns more than one result for a single request.</td>
+        <td><p>Flag indicating if the plug-in returns more than one result for a single request.</p></td>
       </tr>
       <tr>
         <th id="hasResultListCustomizationProperties">Has Result List Customization Properties</th>
-        <td>Flag indicating if the plug-in has customization properties on a result list property.</td>
+        <td><p>Flag indicating if the plug-in has customization properties on a result list property.</p></td>
       </tr>
       <tr>
         <th id="hasGeometryResultAttribute">Has Geometry Result Attribute</th>
-        <td>Flag indicating if the business application returns a geometry as one of the result parameters.</td>
+        <td><p>Flag indicating if the business application returns a geometry as one of the result parameters.</p></td>
       </tr>
       <tr>
         <th id="maxRequestsPerJob">Max Requests Per Job</th>
-        <td>The maximum number of requests that can be submitted in a job. Jobs with more requests
-        than the maximum will be rejected.</td>
+        <td><p>The maximum number of requests that can be submitted in a job. Jobs with more requests
+        than the maximum will be rejected.</p></td>
       </tr>
       <tr id="maxConcurrentRequests">
         <th>Max Concurrent Requests</th>
-        <td>The maximum number of execution groups that will be scheduled at a single time. This
+        <td><p>The maximum number of execution groups that will be scheduled at a single time. This
         should not be more than the total number of <a href="configProperty.html#workerPoolSize">cpfWorker.maximumPoolSize</a>
         across all workers. If plug-ins use database connections then it should not exceed the
-        maximum database connection pool size or connection limits.</td>
+        maximum database connection pool size or connection limits.</p></td>
       </tr>
       <tr>
         <th id="numRequestsPerWorker">Num Requests Per Worker</th>
-        <td>The maximum number of requests that will be set in an execution group to a worker for
+        <td><p>The maximum number of requests that will be set in an execution group to a worker for
         sequential execution. The CPF splits the request into this number of execution groups
         when the job is pre-processed. The goal should be to have execution groups take between
         1-10 seconds to execute on the worker. The balance should be between the size of data
         for an execution group and the execution time. This will help reduce the overhead of the system.
         For example if a request takes 10ms to run a value of 100 would take approximately 1 second
-        to run on the worker.</td>
+        to run on the worker.</p></td>
       </tr>
     </tbody>
   </table>
@@ -281,7 +279,6 @@ manage items related to a business application.</p>
   <p>The permission <code>permitAll</code> grants all users permission.</p>
   
   <p>The permission <code>denyAll</code> grants no users permission.</p>
-  
 </section>
 
 </section>

@@ -12,11 +12,8 @@ pageId = 'module';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'module';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -160,40 +158,40 @@ manage items related to a module.</p>
   <tbody>
     <tr>
       <td id="moduleName">Module Name</td>
-      <td>The upper case name (acronym) for the module (e.g. BGEO,DEMO).
-      Consult the plug-ins readme for the correct value to use.</td>
+      <td><p>The upper case name (acronym) for the module (e.g. BGEO,DEMO).
+      Consult the plug-ins readme for the correct value to use.</p></td>
     </tr>
     <tr>
       <td id="mavenModuleId">Maven Module ID</td>
-      <td>The maven module Id for a module plug-in in the format <code>[groupId]:[]artifactId]:[version]</code>
+      <td><p>The maven module Id for a module plug-in in the format <code>[groupId]:[]artifactId]:[version]</code>
       (e.g <code>com.myapplication:demo:1.0.0-SNAPSHOT</code>). Consult the plug-ins readme for the correct
-      value to use. <span class="note">When a new non-snapshot version is deployed the version part must be updated to the new version.</span></td>
+      value to use. <span class="note">When a new non-snapshot version is deployed the version part must be updated to the new version.</span></p></td>
     </tr>
     <tr>
       <td id="enabled">Enabled</td>
-      <td>Flag to control if the module is enabled. If not enabled the plug-in will be stopped 
+      <td><p>Flag to control if the module is enabled. If not enabled the plug-in will be stopped 
       on the master and worker and won't be available for clients to submit jobs. <span class="note">Disabled modules
-      may cause broken links from jobs to apps and modules.</span></td>
+      may cause broken links from jobs to apps and modules.</span></p></td>
     </tr>
     <tr>
       <td id="status">Status</td>
-      <td>The current status of the module. Disabled, Enabled, Stopped, Stop Requested, Started, Start Requested, Starting, Start Failed.</td>
+      <td><p>The current status of the module. Disabled, Enabled, Stopped, Stop Requested, Started, Start Requested, Starting, Start Failed.</p></td>
     </tr>
     <tr>
       <td id="started">Started</td>
-      <td>Flag indicating if the module has been started.</td>
+      <td><p>Flag indicating if the module has been started.</p></td>
     </tr>
     <tr>
       <td id="startTime">Start Time</td>
-      <td>The timestamp when the module was started or blank if it has not been started.</td>
+      <td><p>The timestamp when the module was started or blank if it has not been started.</p></td>
     </tr>
     <tr>
       <td id="moduleError">Module Error</td>
-      <td>Error message and stack trace if the module could not be started.</td>
+      <td><p>Error message and stack trace if the module could not be started.</p></td>
     </tr>
     <tr>
       <td id="actions">Actions</td>
-      <td>The actions field will display buttons  depending on the state of the module.
+      <td><p>The actions field will display buttons  depending on the state of the module.</p>
       <ul>
       <li>Delete for disabled modules.</li>
       <li>Restart, stop and delete for started modules.</li>

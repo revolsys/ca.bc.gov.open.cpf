@@ -12,11 +12,8 @@ pageId = 'userGroupPermission';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link
-      href="https://cdn.datatables.net/keytable/1.2.1/css/dataTables.css"
-      rel="stylesheet" type="text/css" />
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css"
-      rel="stylesheet" type="text/css" />
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
     <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
     <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
     <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
@@ -25,6 +22,7 @@ pageId = 'userGroupPermission';
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
     <script type="text/javascript" src="../../js/prettify.js"></script>
     <script type="text/javascript" src="../../js/rs.js"></script>
@@ -149,39 +147,39 @@ correct permissions after a change.</p>
   <tbody>
     <tr>
       <td>User Group Permission Id</td>
-      <td>Unique sequence generated primary key for a user group permission.</td>
+      <td><p>Unique sequence generated primary key for a user group permission.</p></td>
     </tr>
     <tr>
       <td>Module Name</td>
-      <td>The name of the CPF module the permission was created for.</td>
+      <td><p>The name of the CPF module the permission was created for.</p></td>
     </tr>
     <tr>
       <td>User Group Name</td>
-      <td>The name of the user group the permission applies to.</td>
+      <td><p>The name of the user group the permission applies to.</p></td>
     </tr>
     <tr>
       <td>Resource Class</td>
-      <td>The resource class is the categorization of the resource. For example databaseInstance,
+      <td><p>The resource class is the categorization of the resource. For example databaseInstance,
       schemaName, tableName, url, reportUrl.
       Modules are free to decide on their own resource classes, consult the module readme for more details.
-      The special resource class ALL grants the users permission for all resource classes.</td>
+      The special resource class ALL grants the users permission for all resource classes.</p></td>
     </tr>
     <tr>
       <td>Resource Id</td>
-      <td>The unique identifier of the resource within the resource class that the users in the group have
+      <td><p>The unique identifier of the resource within the resource class that the users in the group have
       permission to perform the action. For example a record primary key, resource URL, report name.
       Modules are free to decide on their own resource id schemes, consult the module readme for more details.
-      The special resource id ALL grants the users permission for all resources in the resource class.</td>
+      The special resource id ALL grants the users permission for all resources in the resource class.</p></td>
     </tr>
     <tr>
       <td>Action Name</td>
-      <td>The name of the action users in the group are able to perform on the resource. For example ALL, view, edit.
-      The special action name ALL grants the user permission for all actions on the resource.</td>
+      <td><p>The name of the action users in the group are able to perform on the resource. For example ALL, view, edit.
+      The special action name ALL grants the user permission for all actions on the resource.</p></td>
     </tr>
     <tr>
       <td>Active</td>
-      <td>Boolean flag indicating if the user is active. Setting to false will prevent the user
-      from accessing the CPF.</td>
+      <td><p>Boolean flag indicating if the user is active. Setting to false will prevent the user
+      from accessing the CPF.</p></td>
     </tr>
   </tbody>
 </table>
