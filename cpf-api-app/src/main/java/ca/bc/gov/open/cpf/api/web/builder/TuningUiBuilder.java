@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -70,14 +71,24 @@ public class TuningUiBuilder extends CpfUiBuilder {
   }
 
   private void addCounts(final List<Object> rows, final String name,
-    final int active, final int size, final int maxSize) {
+    final int active, final int size, final int largestPoolSize,
+    final int maxSize) {
     final Map<String, Object> row = new LinkedHashMap<>();
     row.put("name", name);
     row.put("active", active);
     row.put("size", size);
+    row.put("largestSize", largestPoolSize);
     row.put("maxSize", maxSize);
 
     rows.add(row);
+  }
+
+  private void addCounts(final List<Object> rows, final String title,
+    final ThreadPoolExecutor pool, final int maxSize) {
+    final int activeCount = pool.getActiveCount();
+    final int poolSize = pool.getPoolSize();
+    final int largestPoolSize = pool.getLargestPoolSize();
+    addCounts(rows, title, activeCount, poolSize, largestPoolSize, maxSize);
   }
 
   @Override
@@ -112,7 +123,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
       if (form.isValid()) {
         final RecordStore recordStore = getRecordStore();
         try (
-            Transaction transaction = recordStore.createTransaction(Propagation.REQUIRES_NEW)) {
+          Transaction transaction = recordStore.createTransaction(Propagation.REQUIRES_NEW)) {
           for (final String fieldName : fieldNames) {
             final Field field = form.getField(fieldName);
             final Object value = field.getValue();
@@ -167,7 +178,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
       + "').submit()"));
 
     final MenuElement actionMenuElement = new MenuElement(actionMenu,
-        "actionMenu");
+      "actionMenu");
     final ElementContainer view = new ElementContainer(form, actionMenuElement);
     view.setDecorator(new CollapsibleBox(title, true));
     return view;
@@ -182,38 +193,43 @@ public class TuningUiBuilder extends CpfUiBuilder {
     checkAdminOrAnyModuleAdmin();
     HttpServletUtils.setAttribute("title", "Tuning");
     final List<Object> rows = new ArrayList<>();
-    addCounts(rows, "Pre Process", this.cpfJobPreProcess.getActiveCount(),
-      this.cpfJobPreProcess.getPoolSize(),
-      this.cpfConfig.getPreProcessPoolSize());
-    addCounts(rows, "Scheduler", this.cpfJobScheduler.getActiveCount(),
-      this.cpfJobScheduler.getPoolSize(), this.cpfConfig.getSchedulerPoolSize());
-    addCounts(rows, "Group Results",
-      this.batchJobService.getGroupResultCount(),
-      this.batchJobService.getGroupResultCount(),
-      this.cpfConfig.getGroupResultPoolSize());
-    addCounts(rows, "Post Process", this.cpfJobPostProcess.getActiveCount(),
-      this.cpfJobPostProcess.getPoolSize(),
-      this.cpfConfig.getPostProcessPoolSize());
+
+    final int preProcessPoolSize = this.cpfConfig.getPreProcessPoolSize();
+    addCounts(rows, "Pre Process", this.cpfJobPreProcess, preProcessPoolSize);
+
+    final int schedulerPoolSize = this.cpfConfig.getSchedulerPoolSize();
+    addCounts(rows, "Scheduler", this.cpfJobScheduler, schedulerPoolSize);
+
+    final int groupResultCount = this.batchJobService.getGroupResultCount();
+    final int largestGroupResultCount = this.batchJobService.getLargestGroupResultCount();
+    final int groupResultPoolSize = this.cpfConfig.getGroupResultPoolSize();
+    addCounts(rows, "Group Results", groupResultCount, groupResultCount,
+      largestGroupResultCount, groupResultPoolSize);
+
+    final int postProcessPoolSize = this.cpfConfig.getPostProcessPoolSize();
+    addCounts(rows, "Post Process", this.cpfJobPostProcess, postProcessPoolSize);
+
     addCounts(rows, "Database Connections", this.cpfDataSource.getNumActive(),
       this.cpfDataSource.getNumActive() + this.cpfDataSource.getNumIdle(),
-      this.cpfDataSource.getMaxTotal());
+      this.cpfDataSource.getMaxTotal(), this.cpfDataSource.getMaxTotal());
+
     return createDataTableHandler(request, "list", rows);
   }
 
   @Override
   public boolean validateForm(final UiBuilderObjectForm form) {
     final int preProcessPoolSize = form.getField("preProcessPoolSize")
-        .getValue(Integer.class);
+      .getValue(Integer.class);
     final int postProcessPoolSize = form.getField("postProcessPoolSize")
-        .getValue(Integer.class);
+      .getValue(Integer.class);
     final int schedulerPoolSize = form.getField("schedulerPoolSize").getValue(
       Integer.class);
     final int groupResultPoolSize = form.getField("groupResultPoolSize")
-        .getValue(Integer.class);
+      .getValue(Integer.class);
     final Field databaseConnectionField = form.getField("databaseConnectionPoolSize");
     final int databaseConnectionPoolSize = databaseConnectionField.getValue(Integer.class);
     if (preProcessPoolSize + postProcessPoolSize + schedulerPoolSize
-        + groupResultPoolSize > 0.9 * databaseConnectionPoolSize) {
+      + groupResultPoolSize > 0.9 * databaseConnectionPoolSize) {
       databaseConnectionField.addValidationError("Not enough database connections, at least 10% must be available for handling web service requests. preProcessPoolSize + schedulerPoolSize + groupResultPoolSize + postProcessPoolSize > 90% * databaseConnectionPoolSize");
       return false;
     }

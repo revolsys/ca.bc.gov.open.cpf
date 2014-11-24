@@ -4,8 +4,8 @@ import java.beans.PropertyChangeListener;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -50,9 +50,8 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
   private int taskCount = 0;
 
   public AbstractBatchJobChannelProcess(final String jobStatusToProcess) {
-    super(0, 1, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
+    super(0, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
       new NamedThreadFactory());
-    setKeepAliveTime(60, TimeUnit.SECONDS);
     this.jobStatusToProcess = jobStatusToProcess;
     this.in.readConnect();
   }

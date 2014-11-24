@@ -201,6 +201,8 @@ public class BatchJobService implements ModuleEventListener {
     return false;
   }
 
+  private int largestGroupResultCount = 0;
+
   @Resource(name = "cpfConfig")
   private CpfConfig config;
 
@@ -910,6 +912,10 @@ public class BatchJobService implements ModuleEventListener {
     }
 
     return null;
+  }
+
+  public int getLargestGroupResultCount() {
+    return this.largestGroupResultCount;
   }
 
   /**
@@ -2078,8 +2084,9 @@ public class BatchJobService implements ModuleEventListener {
       while (this.groupResultCount.get() >= this.config.getGroupResultPoolSize()) {
         ThreadUtil.pause(1000);
       }
+      this.largestGroupResultCount = Math.max(this.largestGroupResultCount,
+        +this.groupResultCount.incrementAndGet());
     }
-    this.groupResultCount.incrementAndGet();
     try {
       final Worker worker = getWorker(workerId);
       final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(

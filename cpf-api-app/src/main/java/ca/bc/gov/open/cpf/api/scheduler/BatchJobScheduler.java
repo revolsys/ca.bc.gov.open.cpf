@@ -9,8 +9,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +37,7 @@ import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.util.Property;
 
 public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
-PropertyChangeListener {
+  PropertyChangeListener {
   /** The batch job service used to interact with the database. */
   private BatchJobService batchJobService;
 
@@ -60,7 +60,7 @@ PropertyChangeListener {
   private final Map<String, Integer> scheduledGroupCountByBusinessApplication = new HashMap<String, Integer>();
 
   private final Channel<BatchJobScheduleInfo> in = new Channel<>(new Buffer<>(
-      new SetQueue<BatchJobScheduleInfo>()));
+    new SetQueue<BatchJobScheduleInfo>()));
 
   private ProcessNetwork processNetwork;
 
@@ -70,9 +70,8 @@ PropertyChangeListener {
   private CpfConfig config;
 
   public BatchJobScheduler() {
-    super(0, 1, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
+    super(0, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
       new NamedThreadFactory());
-    setKeepAliveTime(60, TimeUnit.SECONDS);
   }
 
   private synchronized int addScheduledGroupCount(
@@ -206,11 +205,11 @@ PropertyChangeListener {
   private void init() {
     this.in.readConnect();
     this.groupFinished = new Channel<>(getBeanName() + ".groupFinished",
-        new Buffer<String>());
+      new Buffer<String>());
     this.groupFinished.readConnect();
     this.groupFinished.writeConnect();
     this.scheduleFinished = new Channel<>(getBeanName() + ".scheduleFinished",
-        new Buffer<BatchJobScheduleInfo>());
+      new Buffer<BatchJobScheduleInfo>());
     this.scheduleFinished.readConnect();
     this.scheduleFinished.writeConnect();
     final CpfConfig config = getConfig();
@@ -320,7 +319,7 @@ PropertyChangeListener {
   private void scheduleQueuedJobs(final String businessApplicationName) {
     final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
     if (businessApplication != null
-        && businessApplication.getModule().isStarted()) {
+      && businessApplication.getModule().isStarted()) {
       final int maxCount = businessApplication.getMaxConcurrentRequests();
 
       final Set<Long> queuedJobIds = getQueuedJobIds(businessApplicationName);
@@ -328,7 +327,7 @@ PropertyChangeListener {
 
       final Iterator<Long> queuedJobIter = queuedJobIds.iterator();
       while (queuedJobIter.hasNext()
-          && getScheduledGroupCount(businessApplicationName) < maxCount) {
+        && getScheduledGroupCount(businessApplicationName) < maxCount) {
         final Long batchJobId = queuedJobIter.next();
         if (!scheduledJobsIds.contains(batchJobId)) {
           queuedJobIter.remove();

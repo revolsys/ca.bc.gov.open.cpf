@@ -32,7 +32,7 @@ $(document).ready(function() {
   setPageId(pageId);
   createToc();
 });
-	</script>
+  </script>
 
 <!-- InstanceBeginEditable name="head" -->
     <style type="text/css">
@@ -175,10 +175,10 @@ td > ul {
   created for an environment. For most properties the value of 'default' should be used.</p>
   
   <p>For example the system could have two worker servers. The first has 2 CPUs and the second has 4.
-  The first can support 32 threads and the second 64 threads. Two environment names 2cpu and 4cpu
+  The first could support 16 threads and the second 32 threads. Two environment names 2cpu and 4cpu
   could be created. The first worker's environment name would be set to 2cpu and the second 4cpu.
   A config property can be created for the property name cpfWorker.maximumPoolSize for each environment
-  with the values 32 and 64 respectively.</p>
+  with the values 16 and 32 respectively.</p>
   </section>
   
   <section>
@@ -298,8 +298,8 @@ td > ul {
     <section>
       <h3 id="masterTuning">Master Tuning</h3>
       <p>The tuning parameters for the master can be viewed using the <a href="../../admin/tuning/">Tuning</a>
-      page. The tuning page shows the number of active threads or connections, the current pool size
-      and the maximum pool size. The maximum pool sizes can be configured using the
+      page. The tuning page shows the number of active threads or connections, the current pool size,
+      largest pool size reached, and the maximum pool size. The maximum pool sizes can be configured using the
       <a href="../../admin/tuning/config/">Config</a> button. Changes to the pool sizes will be 
       applied upon saving. If the current active count is greater than the new pool size then those
       active threads or connections will still be used until they are returned to the pool.</p>
@@ -320,7 +320,7 @@ td > ul {
           <td><p>The number of threads that can be used to pre-process new jobs. During pre-processing
           a datbase connection will typically be held for the entire duration of the pre-processing.
           Pre-processing is typically I/O bound.</p></td>
-          <td>8 = Num Hardware Threads * 10% * 5 (thread multiplier)</td>
+          <td>8 = Num Cores * 10% * 5 (thread multiplier)</td>
         </tr>
         <tr>
           <td>Scheduler Pool Size</td>
@@ -328,7 +328,7 @@ td > ul {
           scheduler reads the structured data for the group from the database into memory.
           The scheduling operation is typically very fast for groups with small amounts of data.
           Scheduling is typically I/O bound.</p></td>
-          <td>16 = Num Hardware Threads * 20% * 5 (thread multiplier)</td>
+          <td>16 = Num Cores * 20% * 5 (thread multiplier)</td>
         </tr>
         <tr>
           <td>Group Result Pool Size</td>
@@ -337,13 +337,13 @@ td > ul {
           will be bocked until a thread is available. The group results operation is typically very fast
           for groups with small amounts of data.
           Processing group results is typically I/O bound.</p></td>
-          <td>16 = Num Hardware Threads * 20% * 5 (thread multiplier)</td>
+          <td>16 = Num Cores * 20% * 5 (thread multiplier)</td>
         </tr>
           <td>Post Process Pool Size</td>
           <td><p>The number of threads that can be used to post-process completed jobs. During post-processing
           a datbase connection will typically be held for the entire duration of the post-processing.
           Post-processing is typically I/O bound.</p></td>
-          <td>8 = Num Hardware Threads * 10% * 5 (thread multiplier)</td>
+          <td>8 = Num Cores * 10% * 5 (thread multiplier)</td>
         <tr>
           <td>Database Connection Pool Size</td>
           <td><p>The number of database connections available to all web service and threads on the
@@ -355,12 +355,12 @@ td > ul {
     </table>
     </div>
       
-      <p>The size of the thread pools will depend on the number of processor cores 
-      and hardware threads those cores support. The example values shown are for a 2 processor system, each
-      processor with 4 cores and 2 threads per core. This gives a total of 16 hardware threads (2 * 4 * 2).</p>
+      <p>The size of the thread pools will depend on the number of processor cores. The example
+      values shown are for a 4 processor system, each processor with 4 cores. This gives a total
+      of 8 cores (2 * 4).</p>
      
-      <p>The number of threads configured for the CPF thread pools can exceed the number of hardware
-      threads available on the server. In this case the operating system will schedule the different
+      <p>The number of threads configured for the CPF thread pools can exceed the number of cores
+      available on the server. In this case the operating system will schedule the different
       threads for execution. For processes that are I/O bound (network connections, database calls,
       or file I/O) the thread will be paused when the I/O operation is blocked. This allows other threads
       to execute. For I/O bound tasks the number of connections in the pool can be increased to take advantage
@@ -708,7 +708,7 @@ the same machine they can share the same configuration file.</p>
 </div>
 </section>
 </section>
-										<!-- InstanceEndEditable -->
+                    <!-- InstanceEndEditable -->
                 </div>
               </div>
             </div>

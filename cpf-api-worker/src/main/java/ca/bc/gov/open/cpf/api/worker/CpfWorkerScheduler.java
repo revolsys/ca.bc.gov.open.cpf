@@ -21,8 +21,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -168,9 +168,8 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
   private final Map<Future<?>, String> groupIdByFutureTask = new HashMap<>();
 
   public CpfWorkerScheduler() {
-    super(0, 100, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(1),
+    super(0, 100, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
       new NamedThreadFactory());
-    setKeepAliveTime(60, TimeUnit.SECONDS);
     String hostName;
     try {
       hostName = InetAddress.getLocalHost().getCanonicalHostName();
