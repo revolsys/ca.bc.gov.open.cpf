@@ -1,6 +1,9 @@
 package ca.bc.gov.open.cpf.plugin.impl.module;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EventObject;
+import java.util.List;
 
 public class ModuleEvent extends EventObject {
   private static final long serialVersionUID = -3976150772050177003L;
@@ -15,21 +18,32 @@ public class ModuleEvent extends EventObject {
 
   private final String action;
 
+  private List<String> businessApplicationNames = Collections.emptyList();
+
   public ModuleEvent(final Object object, final String action) {
     super(object);
     this.action = action;
   }
 
   public String getAction() {
-    return action;
+    return this.action;
+  }
+
+  public List<String> getBusinessApplicationNames() {
+    return this.businessApplicationNames;
   }
 
   public Module getModule() {
     return (Module)getSource();
   }
 
+  public void setBusinessApplicationNames(
+    final List<String> businessApplicationNames) {
+    this.businessApplicationNames = new ArrayList<>(businessApplicationNames);
+  }
+
   @Override
   public String toString() {
-    return super.toString() + action;
+    return super.toString() + this.action;
   }
 }

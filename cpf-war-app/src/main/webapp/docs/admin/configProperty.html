@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
 <html xml:lang="en"><!-- InstanceBegin template="/Templates/DocTemplate.dwt" codeOutsideHTMLIsLocked="false" -->
@@ -12,27 +13,30 @@ pageId = 'configProperty';
     </script>
 <!-- InstanceEndEditable -->
 
-    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
-    <link href="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" type="text/css" />
-    <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
-    <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
-    <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
-    <link href="../../css/cpf.css" rel="stylesheet" type="text/css" />
+  <link href="https://code.jquery.com/ui/1.11.2/themes/cupertino/jquery-ui.css" rel="stylesheet" type="text/css" />
+  <link href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
+  <link href="https://cdn.datatables.net/scroller/1.2.2/css/dataTables.scroller.css" rel="stylesheet" type="text/css" />
+  <link href="/pub/cpf/css/jquery-filestyle.min.css" rel="stylesheet" type="text/css" />
+  <link href="../../css/prettify.css" rel="stylesheet" type="text/css" />
+  <link href="../../css/rs.css" rel="stylesheet" type="text/css" />
+  <link href="../../css/bcgov.css" rel="stylesheet" type="text/css" />
+  <link href="../../css/cpf.css" rel="stylesheet" type="text/css" />
 
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.js"></script>
-    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js"></script>
-    <script type="text/javascript" src="../../js/prettify.js"></script>
-    <script type="text/javascript" src="../../js/rs.js"></script>
-    <script type="text/javascript">
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+  <script type="text/javascript" src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+  <script type="text/javascript" src="/pub/cpf/js/jquery-filestyle.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/scroller/1.2.2/js/dataTables.scroller.min.js"></script>
+	<script type="text/javascript" src="../../js/prettify.js"></script>
+  <script type="text/javascript" src="../../js/rs.js"></script>
+  <script type="text/javascript">
 $(document).ready(function() {
   prettyPrint();
   setPageId(pageId);
   createToc();
 });
-  </script>
+	</script>
 
 <!-- InstanceBeginEditable name="head" -->
     <style type="text/css">
@@ -316,14 +320,15 @@ td > ul {
       </thead>
       <tbody>
         <tr>
-          <td>Pre Process Pool Size</td>
-          <td><p>The number of threads that can be used to pre-process new jobs. During pre-processing
+          <td>Pre Process Thread Pool Size</td>
+          <td><p>The number of threads that can be used to pre-process new jobs. The pre-processing
+          splits the structured input data requests into groups of requests for execution. During pre-processing
           a datbase connection will typically be held for the entire duration of the pre-processing.
           Pre-processing is typically I/O bound.</p></td>
           <td>8 = Num Cores * 10% * 5 (thread multiplier)</td>
         </tr>
         <tr>
-          <td>Scheduler Pool Size</td>
+          <td>Scheduler Thread Pool Size</td>
           <td><p>The number of threads that can be used to schedule groups for jobs. The 
           scheduler reads the structured data for the group from the database into memory.
           The scheduling operation is typically very fast for groups with small amounts of data.
@@ -331,16 +336,19 @@ td > ul {
           <td>16 = Num Cores * 20% * 5 (thread multiplier)</td>
         </tr>
         <tr>
-          <td>Group Result Pool Size</td>
+          <td>Group Result Thread Pool Size</td>
           <td><p>The number of threads that can be used to process the group results from the workers
-          via the internal web service. If the maximim pool size is reached the web service request
-          will be bocked until a thread is available. The group results operation is typically very fast
+          via the internal web service. This is not a separate pool of threads. Instead it is the number
+          of servlet container request handling threads that can be processing the group results. If
+          the maximim pool size is reached the web service request
+          will be bocked until a free slot is available. The group results operation is typically very fast
           for groups with small amounts of data.
           Processing group results is typically I/O bound.</p></td>
           <td>16 = Num Cores * 20% * 5 (thread multiplier)</td>
         </tr>
-          <td>Post Process Pool Size</td>
-          <td><p>The number of threads that can be used to post-process completed jobs. During post-processing
+          <td>Post Process Thread Pool Size</td>
+          <td><p>The number of threads that can be used to post-process completed jobs. The post-processing
+          creates the structured result file from the results from the execution groups. During post-processing
           a datbase connection will typically be held for the entire duration of the post-processing.
           Post-processing is typically I/O bound.</p></td>
           <td>8 = Num Cores * 10% * 5 (thread multiplier)</td>
@@ -708,7 +716,7 @@ the same machine they can share the same configuration file.</p>
 </div>
 </section>
 </section>
-                    <!-- InstanceEndEditable -->
+										<!-- InstanceEndEditable -->
                 </div>
               </div>
             </div>

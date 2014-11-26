@@ -36,7 +36,7 @@
           class="com.revolsys.ui.model.Menu"
           p:title="API (for developers)"
           p:uri="/docs/" />
-         <bean
+        <bean
           class="com.revolsys.ui.model.Menu"
           p:title="Logout"
           p:uri="/logout" />
@@ -50,23 +50,28 @@
   >
   </bean>
 
+
   <util:list id="cpfJavaScriptUrls">
-    <value>https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js</value>
-    <value>https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js</value>
+    <value>https://code.jquery.com/jquery-1.11.1.min.js</value>
+    <value>https://code.jquery.com/ui/1.11.2/jquery-ui.min.js</value>
+    <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js
+    </value>
+    <value>/js/jquery-filestyle.min.js</value>
     <value>https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js</value>
-    <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.12.0/jquery.validate.min.js</value>
+    <value>https://cdn.datatables.net/scroller/1.2.2/js/dataTables.scroller.min.js</value>
     <value>/js/rs.js</value>
     <value>/js/admin.js</value>
     <value>/js/ws.js</value>
-    <value>/js/jquery-filestyle.min.js</value>
   </util:list>
   <util:list id="cpfCssUrls">
-    <value>https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/cupertino/jquery-ui.css</value>
-    <value>https://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/jqueryui/dataTables.jqueryui.css</value>
+    <value>https://code.jquery.com/ui/1.11.2/themes/cupertino/jquery-ui.css</value>
+    <value>https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css</value>
+    <value>https://cdn.datatables.net/scroller/1.2.2/css/dataTables.scroller.css</value>
+    <value>/css/jquery-filestyle.min.css</value>
     <value>/css/rs.css</value>
     <value>/css/cpf.css</value>
-    <value>/css/jquery-filestyle.min.css</value>
   </util:list>
+
   <bean
     id="adminSideMenu"
     class="com.revolsys.ui.model.Menu"
@@ -115,9 +120,9 @@
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
           class="com.revolsys.ui.model.Menu"
-          p:title="Documentation"
+          p:title="Admin Documentation"
           p:uri="/docs/admin/" />
-         <bean
+        <bean
           class="com.revolsys.ui.model.Menu"
           p:title="Logout"
           p:uri="/logout" />

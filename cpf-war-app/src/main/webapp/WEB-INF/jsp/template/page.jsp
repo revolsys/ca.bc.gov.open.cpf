@@ -10,14 +10,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=8,IE=9,IE=10" />
 <title><c:out value="${title}" /></title>
 <c:forEach var="cssUrl" items="${cssUrls}">
-  <link href="<c:url value="${cssUrl}" />" rel="stylesheet" type="text/css" />
-</c:forEach>
+  <link href="<c:url value="${cssUrl}" />" rel="stylesheet" type="text/css" /></c:forEach>
 <link href="<c:url value="/css/bcgov.css" />" rel="stylesheet" type="text/css" />
 <c:forEach var="javascriptUrl" items="${javascriptUrls}">
   <script type="text/javascript" src="<c:url value="${javascriptUrl}" />">
-      
-    </script>
-</c:forEach>
+  </script></c:forEach>
 <c:forEach var="alternateLink" items="${alternateLinks}">
   <link rel="alternate" type="<c:out value="${alternateLink.type}" />"
     title="<c:out value="${alternateLink.title}" />" href="<c:out value="${alternateLink.href}" />" />

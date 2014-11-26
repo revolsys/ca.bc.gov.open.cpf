@@ -75,8 +75,8 @@ public class TuningUiBuilder extends CpfUiBuilder {
     final int maxSize) {
     final Map<String, Object> row = new LinkedHashMap<>();
     row.put("name", name);
-    row.put("active", active);
-    row.put("size", size);
+    row.put("activeCount", active);
+    row.put("currentSize", size);
     row.put("largestSize", largestPoolSize);
     row.put("maxSize", maxSize);
 
@@ -195,23 +195,27 @@ public class TuningUiBuilder extends CpfUiBuilder {
     final List<Object> rows = new ArrayList<>();
 
     final int preProcessPoolSize = this.cpfConfig.getPreProcessPoolSize();
-    addCounts(rows, "Pre Process", this.cpfJobPreProcess, preProcessPoolSize);
+    addCounts(rows, "Pre Process Thread Pool Size", this.cpfJobPreProcess,
+      preProcessPoolSize);
 
     final int schedulerPoolSize = this.cpfConfig.getSchedulerPoolSize();
-    addCounts(rows, "Scheduler", this.cpfJobScheduler, schedulerPoolSize);
+    addCounts(rows, "Scheduler Thread Pool Size", this.cpfJobScheduler,
+      schedulerPoolSize);
 
     final int groupResultCount = this.batchJobService.getGroupResultCount();
     final int largestGroupResultCount = this.batchJobService.getLargestGroupResultCount();
     final int groupResultPoolSize = this.cpfConfig.getGroupResultPoolSize();
-    addCounts(rows, "Group Results", groupResultCount, groupResultCount,
-      largestGroupResultCount, groupResultPoolSize);
+    addCounts(rows, "Group Result Thread Pool Size", groupResultCount,
+      groupResultCount, largestGroupResultCount, groupResultPoolSize);
 
     final int postProcessPoolSize = this.cpfConfig.getPostProcessPoolSize();
-    addCounts(rows, "Post Process", this.cpfJobPostProcess, postProcessPoolSize);
+    addCounts(rows, "Post Process Thread Pool Size", this.cpfJobPostProcess,
+      postProcessPoolSize);
 
-    addCounts(rows, "Database Connections", this.cpfDataSource.getNumActive(),
-      this.cpfDataSource.getNumActive() + this.cpfDataSource.getNumIdle(),
-      this.cpfDataSource.getMaxTotal(), this.cpfDataSource.getMaxTotal());
+    addCounts(rows, "Database Connection Pool Size",
+      this.cpfDataSource.getNumActive(), this.cpfDataSource.getNumActive()
+        + this.cpfDataSource.getNumIdle(), this.cpfDataSource.getMaxTotal(),
+      this.cpfDataSource.getMaxTotal());
 
     return createDataTableHandler(request, "list", rows);
   }

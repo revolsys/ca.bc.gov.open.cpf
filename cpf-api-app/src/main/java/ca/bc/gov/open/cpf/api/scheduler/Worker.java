@@ -2,14 +2,15 @@ package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
+import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Property;
 
 public class Worker {
@@ -17,9 +18,9 @@ public class Worker {
 
   private Timestamp lastConnectTime;
 
-  private final Map<String, BatchJobRequestExecutionGroup> executingGroupsById = new TreeMap<String, BatchJobRequestExecutionGroup>();
+  private final Map<String, BatchJobRequestExecutionGroup> executingGroupsById = new TreeMap<>();
 
-  private final Map<String, List<BatchJobRequestExecutionGroup>> executingGroupsIdByModule = new TreeMap<String, List<BatchJobRequestExecutionGroup>>();
+  private final Map<String, Set<BatchJobRequestExecutionGroup>> executingGroupsIdByModule = new TreeMap<>();
 
   private int maxMessageId = 1;
 
@@ -34,17 +35,15 @@ public class Worker {
     this.startTime = startTime;
   }
 
-  public void addExecutingGroup(final String moduleNameAndTime,
-    final BatchJobRequestExecutionGroup group) {
+  public void addExecutingGroup(final String moduleName,
+    final long moduleStartTime, final BatchJobRequestExecutionGroup group) {
     synchronized (this.executingGroupsById) {
-      final String groupId = group.getId();
+      final String groupId = group.getBaseId();
       this.executingGroupsById.put(groupId, group);
-      List<BatchJobRequestExecutionGroup> groups = this.executingGroupsIdByModule.get(moduleNameAndTime);
-      if (groups == null) {
-        groups = new ArrayList<BatchJobRequestExecutionGroup>();
-        this.executingGroupsIdByModule.put(moduleNameAndTime, groups);
-      }
-      groups.add(group);
+      group.setModuleStartTime(moduleStartTime);
+      final String moduleNameAndTime = moduleName + ":" + moduleStartTime;
+      CollectionUtil.addToSet(this.executingGroupsIdByModule,
+        moduleNameAndTime, group);
     }
   }
 
@@ -59,7 +58,7 @@ public class Worker {
     synchronized (this.executingGroupsById) {
       boolean found = false;
       for (final Iterator<Entry<String, BatchJobRequestExecutionGroup>> iterator = this.executingGroupsById.entrySet()
-          .iterator(); iterator.hasNext();) {
+        .iterator(); iterator.hasNext();) {
         final Entry<String, BatchJobRequestExecutionGroup> entry = iterator.next();
         final String groupId = entry.getKey();
         final BatchJobRequestExecutionGroup group = entry.getValue();
@@ -76,30 +75,30 @@ public class Worker {
     }
   }
 
-  public List<BatchJobRequestExecutionGroup> cancelExecutingGroups(
+  public Set<BatchJobRequestExecutionGroup> cancelExecutingGroups(
     final String moduleNameAndTime) {
     synchronized (this.executingGroupsById) {
-      final List<BatchJobRequestExecutionGroup> groups = this.executingGroupsIdByModule.remove(moduleNameAndTime);
-      if (groups == null) {
-        return Collections.emptyList();
-      } else {
+      final Set<BatchJobRequestExecutionGroup> groups = this.executingGroupsIdByModule.remove(moduleNameAndTime);
+      if (groups != null) {
         for (final BatchJobRequestExecutionGroup group : groups) {
-          final String groupId = group.getId();
+          final String groupId = group.getBaseId();
           this.executingGroupsById.remove(groupId);
         }
-        return groups;
       }
+      return groups;
     }
   }
 
   public BatchJobRequestExecutionGroup getExecutingGroup(final String groupId) {
-    return this.executingGroupsById.get(groupId);
+    final String[] ids = groupId.split("-");
+    final String baseId = ids[0] + "-" + ids[1];
+    return this.executingGroupsById.get(baseId);
   }
 
   public List<BatchJobRequestExecutionGroup> getExecutingGroups() {
     synchronized (this.executingGroupsById) {
       return new ArrayList<BatchJobRequestExecutionGroup>(
-          this.executingGroupsById.values());
+        this.executingGroupsById.values());
     }
   }
 
@@ -119,7 +118,7 @@ public class Worker {
     synchronized (this.messages) {
       final Map<String, Map<String, Object>> messages = new LinkedHashMap<>();
       for (final Iterator<Entry<Integer, Map<String, Object>>> iterator = this.messages.entrySet()
-          .iterator(); iterator.hasNext();) {
+        .iterator(); iterator.hasNext();) {
         final Entry<Integer, Map<String, Object>> entry = iterator.next();
         final Integer messageId = entry.getKey();
         if (messageId <= maxMessageId) {
@@ -158,7 +157,18 @@ public class Worker {
 
   public BatchJobRequestExecutionGroup removeExecutingGroup(final String groupId) {
     synchronized (this.executingGroupsById) {
-      return this.executingGroupsById.remove(groupId);
+      final String[] ids = groupId.split("-");
+      final String baseId = ids[0] + "-" + ids[1];
+      final BatchJobRequestExecutionGroup group = this.executingGroupsById.remove(baseId);
+      if (group != null) {
+        final String moduleName = group.getModuleName();
+        final long moduleStartTime = group.getModuleStartTime();
+        final String moduleNameAndTime = moduleName + ":" + moduleStartTime;
+
+        CollectionUtil.removeFromCollection(this.executingGroupsIdByModule,
+          moduleNameAndTime, group);
+      }
+      return group;
     }
   }
 

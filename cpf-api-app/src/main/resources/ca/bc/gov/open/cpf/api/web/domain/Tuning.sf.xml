@@ -33,13 +33,30 @@
       </list>
     </property>
 
+    <property name="labels">
+      <map>
+        <entry
+          key="preProcessPoolSize"
+          value="Pre-Process Thread Pool Size" />
+        <entry
+          key="postProcessPoolSize"
+          value="Post-Process Thread Pool Size" />
+        <entry
+          key="schedulerPoolSize"
+          value="Scheduler Thread Pool Size" />
+        <entry
+          key="groupResultPoolSize"
+          value="Group Result Thread Pool Size" />
+      </map>
+    </property>
+
     <property name="views">
       <map>
         <entry key="list">
           <list>
             <value>name</value>
-            <value>active</value>
-            <value>size</value>
+            <value>activeCount</value>
+            <value>currentSize</value>
             <value>largestSize</value>
             <value>maxSize</value>
           </list>

@@ -44,7 +44,7 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
 public final class BusinessApplicationRegistry implements
-  ApplicationListener<ContextRefreshedEvent> {
+ApplicationListener<ContextRefreshedEvent> {
 
   static {
     DataTypes.register("JtsGeometry", Geometry.class);
@@ -84,7 +84,7 @@ public final class BusinessApplicationRegistry implements
   private File appLogDirectory;
 
   private Channel<Map<String, Object>> moduleControlChannel = new Channel<Map<String, Object>>(
-    "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
+      "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
 
   private Thread moduleControlThread;
 
@@ -108,7 +108,7 @@ public final class BusinessApplicationRegistry implements
       final ModuleControlProcess moduleControlProcess = new ModuleControlProcess(
         this, this.moduleControlChannel);
       this.moduleControlThread = new Thread(moduleControlProcess,
-          "ModuleControl");
+        "ModuleControl");
       this.moduleControlThread.setDaemon(true);
       this.moduleControlThread.start();
     }
@@ -165,7 +165,7 @@ public final class BusinessApplicationRegistry implements
       if (this.moduleControlThread != null) {
         final long maxWait = System.currentTimeMillis() + 5000;
         while (this.moduleControlThread.isAlive()
-          && System.currentTimeMillis() < maxWait) {
+            && System.currentTimeMillis() < maxWait) {
           this.moduleControlThread.stop();
         }
       }
@@ -364,6 +364,20 @@ public final class BusinessApplicationRegistry implements
 
   public void moduleEvent(final Module module, final String action) {
     final ModuleEvent event = new ModuleEvent(module, action);
+    for (final ModuleEventListener listener : this.listeners) {
+      try {
+        listener.moduleChanged(event);
+      } catch (final Throwable t) {
+        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
+          "Error invoking listener", t);
+      }
+    }
+  }
+
+  public void moduleEvent(final Module module, final String action,
+    final List<String> businessApplicationNames) {
+    final ModuleEvent event = new ModuleEvent(module, action);
+    event.setBusinessApplicationNames(businessApplicationNames);
     for (final ModuleEventListener listener : this.listeners) {
       try {
         listener.moduleChanged(event);

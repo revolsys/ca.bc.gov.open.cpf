@@ -28,6 +28,8 @@ public class BatchJobRequestExecutionGroup {
 
   private final String moduleName;
 
+  private long moduleStartTime;
+
   private int numCompletedRequests;
 
   private int numFailedRequests;
@@ -35,6 +37,8 @@ public class BatchJobRequestExecutionGroup {
   private boolean cancelled = false;
 
   private final long sequenceNumber;
+
+  private final String baseId;
 
   public BatchJobRequestExecutionGroup(final String consumerKey,
     final long batchJobId, final BusinessApplication businessApplication,
@@ -49,98 +53,97 @@ public class BatchJobRequestExecutionGroup {
     this.resultDataContentType = resultDataContentType;
     this.scheduleTimestamp = scheduleTimestamp;
     this.sequenceNumber = sequenceNumber;
+    this.baseId = batchJobId + "-" + sequenceNumber;
     resetId();
   }
 
   public void cancel() {
-    cancelled = true;
+    this.cancelled = true;
   }
 
-  @Override
-  public boolean equals(final Object other) {
-    if (other instanceof BatchJobRequestExecutionGroup) {
-      final BatchJobRequestExecutionGroup group = (BatchJobRequestExecutionGroup)other;
-      return group.id.equals(id);
-    } else {
-      return false;
-    }
+  public String getBaseId() {
+    return this.baseId;
   }
 
   public long getBatchJobId() {
-    return batchJobId;
+    return this.batchJobId;
   }
 
   public BusinessApplication getBusinessApplication() {
-    return businessApplication;
+    return this.businessApplication;
   }
 
   public String getBusinessApplicationName() {
-    return businessApplication.getName();
+    return this.businessApplication.getName();
   }
 
   public Map<String, String> getBusinessApplicationParameterMap() {
-    return businessApplicationParameterMap;
+    return this.businessApplicationParameterMap;
   }
 
   public String getconsumerKey() {
-    return consumerKey;
+    return this.consumerKey;
   }
 
   public long getExecutionStartTime() {
-    return executionStartTime;
+    return this.executionStartTime;
   }
 
   public String getId() {
-    return id;
+    return this.id;
   }
 
   public Module getModule() {
-    return businessApplication.getModule();
+    return this.businessApplication.getModule();
   }
 
   public String getModuleName() {
-    return moduleName;
+    return this.moduleName;
+  }
+
+  public long getModuleStartTime() {
+    return this.moduleStartTime;
   }
 
   public int getNumCompletedRequests() {
-    return numCompletedRequests;
+    return this.numCompletedRequests;
   }
 
   public int getNumFailedRequests() {
-    return numFailedRequests;
+    return this.numFailedRequests;
   }
 
   public String getResultDataContentType() {
-    return resultDataContentType;
+    return this.resultDataContentType;
   }
 
   public Timestamp getScheduleTimestamp() {
-    return scheduleTimestamp;
+    return this.scheduleTimestamp;
   }
 
   public long getSequenceNumber() {
-    return sequenceNumber;
+    return this.sequenceNumber;
   }
 
   public Timestamp getStartedTimestamp() {
-    return scheduleTimestamp;
-  }
-
-  @Override
-  public int hashCode() {
-    return id.hashCode();
+    return this.scheduleTimestamp;
   }
 
   public boolean isCancelled() {
-    return cancelled;
+    return this.cancelled;
   }
 
   public void resetId() {
-    id = batchJobId + "-" + sequenceNumber + "-" + attempt.incrementAndGet();
+    this.id = this.batchJobId + "-" + this.sequenceNumber + "-"
+      + this.attempt.incrementAndGet();
   }
 
   public void setExecutionStartTime(final long executionStartTime) {
     this.executionStartTime = executionStartTime;
+  }
+
+  public void setModuleStartTime(final long moduleStartTime) {
+    this.moduleStartTime = moduleStartTime;
   }
 
   public void setNumCompletedRequests(final int numCompletedRequests) {
@@ -153,6 +156,6 @@ public class BatchJobRequestExecutionGroup {
 
   @Override
   public String toString() {
-    return id;
+    return this.id;
   }
 }

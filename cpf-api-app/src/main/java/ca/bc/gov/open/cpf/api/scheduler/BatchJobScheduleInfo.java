@@ -7,10 +7,6 @@ public class BatchJobScheduleInfo {
 
   public static final String SCHEDULE = "SCHEDULE";
 
-  public static final String NO_GROUP_SCHEDULED = "NO_GROUP_SCHEDULED";
-
-  public static final String SCHEDULE_FINISHED = "SCHEDULE_FINISHED";
-
   private final String businessApplicationName;
 
   private final Long batchJobId;

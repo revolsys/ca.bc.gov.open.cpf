@@ -73,6 +73,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private Module module;
 
+  private final Object baseId;
+
   public BatchJobRequestExecutionGroupRunnable(
     final CpfWorkerScheduler executor,
     final BusinessApplicationRegistry businessApplicationRegistry,
@@ -85,6 +87,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     this.workerId = workerId;
     this.groupIdMap = groupIdMap;
     this.groupId = (String)groupIdMap.get("groupId");
+    this.baseId = groupIdMap.get("baseId");
     this.moduleName = (String)groupIdMap.get("moduleName");
     this.businessApplicationName = (String)groupIdMap.get("businessApplicationName");
     this.batchJobId = (Number)groupIdMap.get("batchJobId");
@@ -154,8 +157,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         this.businessApplicationName, this.groupId, this.logLevel);
       if (plugin == null) {
         addError(requestResult, "Unable to create plugin "
-          + this.businessApplicationName + " ", "ERROR_PROCESSING_REQUEST",
-            null);
+            + this.businessApplicationName + " ", "ERROR_PROCESSING_REQUEST",
+          null);
       } else {
         final AppLog appLog = plugin.getAppLog();
         File resultFile = null;
@@ -170,7 +173,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         }
         if (this.businessApplication.isPerRequestResultData()) {
           resultFile = FileUtil.createTempFile(this.businessApplicationName,
-              ".bin");
+            ".bin");
           resultData = new FileOutputStream(resultFile);
           parameters.put("resultData", resultData);
         }
@@ -186,7 +189,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           pluginStopWatch.start();
           if (appLog.isDebugEnabled()) {
             appLog.debug("Request Execution Start " + this.groupId + " "
-              + requestSequenceNumber);
+                + requestSequenceNumber);
           }
           try {
             plugin.execute();
@@ -201,7 +204,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             requestResult.put("pluginExecutionTime", pluginTime);
             if (appLog.isDebugEnabled()) {
               appLog.debug("Request Execution End " + this.groupId + " "
-                + requestSequenceNumber);
+                  + requestSequenceNumber);
             }
           }
           final List<Map<String, Object>> results = plugin.getResults();
@@ -256,7 +259,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     final Map<String, Object> applicationParameters,
     final Map<String, Object> requestParameters) {
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>(
-      applicationParameters);
+        applicationParameters);
     parameters.putAll(requestParameters);
     if (!businessApplication.isPerRequestInputData()) {
 
@@ -271,7 +274,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
             if (!dataTypeClass.isAssignableFrom(value.getClass())) {
               entry.setValue(value);
               final StringConverter<Object> converter = StringConverterRegistry.getInstance()
-                .getConverter(dataTypeClass);
+                  .getConverter(dataTypeClass);
               if (converter != null) {
                 final Object convertedValue = converter.toObject(value);
                 entry.setValue(convertedValue);
@@ -311,8 +314,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         groupStopWatch.start();
 
         final Map<String, Object> groupResponse = new NamedLinkedHashMap<String, Object>(
-          "ExecutionGroupResults");
+            "ExecutionGroupResults");
         groupResponse.put("batchJobId", this.batchJobId);
+        groupResponse.put("baseId", this.baseId);
         groupResponse.put("groupId", this.groupId);
 
         final Long moduleTime = ((Number)this.groupIdMap.get("moduleTime")).longValue();
@@ -326,15 +330,15 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
           this.module = this.businessApplication.getModule();
           final String groupUrl = this.httpClient.getUrl("/worker/workers/"
-            + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
-              + this.groupId);
+              + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
+            + this.groupId);
           final Map<String, Object> group = this.httpClient.getJsonResource(groupUrl);
           if (!group.isEmpty()) {
             final Map<String, Object> globalError = new LinkedHashMap<String, Object>();
 
             final RecordDefinition requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
             final Map<String, Object> applicationParameters = new HashMap<String, Object>(
-              (Map<String, Object>)group.get("applicationParameters"));
+                (Map<String, Object>)group.get("applicationParameters"));
             for (final String name : requestRecordDefinition.getFieldNames()) {
               final Object value = applicationParameters.get(name);
               if (value != null) {
@@ -403,7 +407,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           groupResponse.put("successCount", this.successCount);
 
           final String path = "/worker/workers/" + this.workerId + "/jobs/"
-            + this.batchJobId + "/groups/" + this.groupId + "/results";
+              + this.batchJobId + "/groups/" + this.groupId + "/results";
           @SuppressWarnings("unused")
           final Map<String, Object> submitResponse = this.httpClient.postJsonResource(
             this.httpClient.getUrl(path), groupResponse);
@@ -429,8 +433,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         FileUtil.closeSilent(resultData);
         final String resultDataContentType = (String)parameters.get("resultDataContentType");
         final String resultDataUrl = this.httpClient.getUrl("/worker/workers/"
-          + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
-            + this.groupId + "/requests/" + requestSequenceNumber + "/resultData");
+            + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
+          + this.groupId + "/requests/" + requestSequenceNumber + "/resultData");
 
         final HttpResponse response = this.httpClient.postResource(
           resultDataUrl, resultDataContentType, resultFile);
@@ -440,8 +444,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           if (statusLine.getStatusCode() != HttpURLConnection.HTTP_OK) {
             throw new RecoverableException(
               "Result data not accepted by server "
-                + statusLine.getStatusCode() + " "
-                + statusLine.getReasonPhrase());
+                  + statusLine.getStatusCode() + " "
+                  + statusLine.getReasonPhrase());
           }
         } finally {
           FileUtil.closeSilent(response.getEntity().getContent());

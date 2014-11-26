@@ -72,7 +72,7 @@ import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
 public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
-BeanNameAware, ModuleEventListener, ServletContextAware {
+  BeanNameAware, ModuleEventListener, ServletContextAware {
 
   private static Integer getPortNumber() {
     try {
@@ -80,8 +80,8 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
       for (final String protocol : Arrays.asList("HTTP/1.1", "AJP/1.3")) {
 
         final Set<ObjectName> objs = mbs.queryNames(new ObjectName(
-            "*:type=Connector,*"), Query.match(Query.attr("protocol"),
-              Query.value(protocol)));
+          "*:type=Connector,*"), Query.match(Query.attr("protocol"),
+          Query.value(protocol)));
         int protocolPort = Integer.MAX_VALUE;
         for (final ObjectName obj : objs) {
           final int port = Integer.parseInt(obj.getKeyProperty("port"));
@@ -127,7 +127,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
   private int maxInMessageId = 0;
 
   private final Channel<Map<String, Object>> inMessageChannel = new Channel<>(
-      new Buffer<Map<String, Object>>(1000));
+    new Buffer<Map<String, Object>>(1000));
 
   private String messageUrl;
 
@@ -195,7 +195,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
   public void addFailedGroup(final String groupId) {
     final Map<String, Object> message = new LinkedHashMap<String, Object>();
     message.put("action", "failedGroupId");
-    message.put("batchJobGroupId", groupId);
+    message.put("groupId", groupId);
     addMessage(message);
   }
 
@@ -234,7 +234,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
     message.put("workerId", this.id);
     synchronized (this.executingGroupIds) {
       message.put("executingGroupIds", new ArrayList<String>(
-          this.executingGroupIds));
+        this.executingGroupIds));
     }
     this.lastPingTime = System.currentTimeMillis();
     return message;
@@ -385,9 +385,9 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
       this.httpClient, this.environmentName);
 
     this.messageUrl = this.webServiceUrl + "/worker/workers/" + this.id
-        + "/message?workerStartTime=" + this.startTime;
+      + "/message?workerStartTime=" + this.startTime;
     this.nextIdUrl = this.webServiceUrl + "/worker/workers/" + this.id
-        + "/jobs/groups/nextId?workerStartTime=" + this.startTime;
+      + "/jobs/groups/nextId?workerStartTime=" + this.startTime;
     this.inMessageChannel.readConnect();
   }
 
@@ -397,7 +397,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
     logger.removeAllAppenders();
     final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
     if (rootDirectory == null
-        || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
+      || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
       new ConsoleAppender().activateOptions();
       final ConsoleAppender appender = new ConsoleAppender();
       appender.activateOptions();
@@ -405,7 +405,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
       logger.addAppender(appender);
     } else {
       final String baseFileName = rootDirectory + "/" + "worker_"
-          + this.id.replaceAll(":", "_");
+        + this.id.replaceAll(":", "_");
       final String activeFileName = baseFileName + ".log";
       final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
       rollingPolicy.setActiveFileName(activeFileName);
@@ -451,7 +451,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
   @SuppressWarnings("unchecked")
   public boolean processNextTask() {
     if (System.currentTimeMillis() > this.lastPingTime
-        + this.maxTimeBetweenPings * 1000) {
+      + this.maxTimeBetweenPings * 1000) {
       addExecutingGroupsMessage();
     }
     while (!this.messages.isEmpty()) {
@@ -583,9 +583,9 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
           if (this.running && this.timeout != 0) {
             synchronized (this.monitor) {
               LoggerFactory.getLogger(getClass())
-              .debug(
-                "Waiting " + this.timeout
-                + " seconds before getting next task");
+                .debug(
+                  "Waiting " + this.timeout
+                    + " seconds before getting next task");
               this.monitor.wait(this.timeout * 1000);
             }
           }
@@ -625,7 +625,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
         if (t.getStatusCode() == 404) {
           LoggerFactory.getLogger(getClass()).error(
             "Unable to send message to " + this.messageUrl
-            + " 404 returned from server");
+              + " 404 returned from server");
         } else {
           LoggerFactory.getLogger(getClass()).error(
             "Unable to send message to " + this.messageUrl + "\n" + message, t);
@@ -727,11 +727,11 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
   @Override
   public void setServletContext(final ServletContext servletContext) {
     this.id += ":"
-        + servletContext.getContextPath()
+      + servletContext.getContextPath()
         .replaceFirst("^/", "")
         .replaceAll("/", "-");
     this.businessApplicationRegistry.setEnvironmentId("worker_"
-        + this.id.replaceAll(":", "_"));
+      + this.id.replaceAll(":", "_"));
   }
 
   public void setUsername(final String username) {
@@ -772,7 +772,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
     final String moduleName = (String)action.get("moduleName");
     final Long moduleTime = CollectionUtil.getLong(action, "moduleTime");
     if ((this.includedModuleNames.isEmpty() || this.includedModuleNames.contains(moduleName))
-        && !this.excludedModuleNames.contains(moduleName)) {
+      && !this.excludedModuleNames.contains(moduleName)) {
       final AppLog log = new AppLog(moduleName);
 
       ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
@@ -789,10 +789,10 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
       }
       try {
         final String modulesUrl = this.httpClient.getUrl("/worker/modules/"
-            + moduleName + "/" + moduleTime + "/urls.json");
+          + moduleName + "/" + moduleTime + "/urls.json");
         final Map<String, Object> response = this.httpClient.getJsonResource(modulesUrl);
         final File moduleDir = new File(this.tempDir, moduleName + "-"
-            + moduleTime);
+          + moduleTime);
         moduleDir.mkdir();
         moduleDir.deleteOnExit();
         final List<URL> urls = new ArrayList<URL>();
@@ -858,7 +858,7 @@ BeanNameAware, ModuleEventListener, ServletContextAware {
     final long time = module.getStartedTime();
     this.businessApplicationRegistry.unloadModule(module);
     final File lastModuleDir = new File(this.tempDir, module.getName() + "-"
-        + time);
+      + time);
     FileUtil.deleteDirectory(lastModuleDir, true);
   }
 }
