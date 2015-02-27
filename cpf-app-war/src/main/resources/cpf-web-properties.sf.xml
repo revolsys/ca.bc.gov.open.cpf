@@ -13,12 +13,12 @@
 >
   <bean
     id="cpfDefaultProperties"
-    class="com.revolsys.collection.AttributeMap"
+    class="com.revolsys.collection.map.AttributeMap"
     p:properties="file:///apps/config/cpf/cpf.properties" />
 
   <util:map
     id="cpfWebProperties"
-    map-class="com.revolsys.collection.AttributeMap"
+    map-class="com.revolsys.collection.map.AttributeMap"
   >
      
     <entry
