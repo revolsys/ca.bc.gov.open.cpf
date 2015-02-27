@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 
 public class Worker {
@@ -42,7 +42,7 @@ public class Worker {
       this.executingGroupsById.put(groupId, group);
       group.setModuleStartTime(moduleStartTime);
       final String moduleNameAndTime = moduleName + ":" + moduleStartTime;
-      CollectionUtil.addToSet(this.executingGroupsIdByModule,
+      Maps.addToSet(this.executingGroupsIdByModule,
         moduleNameAndTime, group);
     }
   }
@@ -165,7 +165,7 @@ public class Worker {
         final long moduleStartTime = group.getModuleStartTime();
         final String moduleNameAndTime = moduleName + ":" + moduleStartTime;
 
-        CollectionUtil.removeFromCollection(this.executingGroupsIdByModule,
+        Maps.removeFromCollection(this.executingGroupsIdByModule,
           moduleNameAndTime, group);
       }
       return group;

@@ -57,7 +57,7 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.collection.ArrayUtil;
-import com.revolsys.collection.AttributeMap;
+import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.property.FieldProperties;
@@ -76,9 +76,9 @@ import com.revolsys.io.Reader;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
-import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
@@ -218,7 +218,7 @@ public class ClassLoaderModule implements Module {
   private void addResourcePermissions(
     final Map<String, Set<ResourcePermission>> resourcePermissionsByGroupName,
     final String groupName, final Map<String, Object> pluginGroup) {
-    final List<Map<String, Object>> permissions = CollectionUtil.get(
+    final List<Map<String, Object>> permissions = Maps.get(
       pluginGroup, "permissions", null);
     final List<ResourcePermission> resourcePermissions = ResourcePermission.getPermissions(permissions);
     resourcePermissionsByGroupName.put(groupName,

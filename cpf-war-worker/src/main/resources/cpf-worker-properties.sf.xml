@@ -13,7 +13,7 @@
 >
   <util:map
     id="baseCpfWorkerProperties"
-    map-class="com.revolsys.collection.AttributeMap"
+    map-class="com.revolsys.collection.map.AttributeMap"
   >
     <entry
       key="processNetwork.name"

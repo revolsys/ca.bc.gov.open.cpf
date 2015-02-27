@@ -66,8 +66,8 @@ import com.revolsys.parallel.process.InvokeMethodRunnable;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
-import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
@@ -770,7 +770,7 @@ public class CpfWorkerScheduler extends ThreadPoolExecutor implements Process,
 
   protected void startModule(final Map<String, Object> action) {
     final String moduleName = (String)action.get("moduleName");
-    final Long moduleTime = CollectionUtil.getLong(action, "moduleTime");
+    final Long moduleTime = Maps.getLong(action, "moduleTime");
     if ((this.includedModuleNames.isEmpty() || this.includedModuleNames.contains(moduleName))
       && !this.excludedModuleNames.contains(moduleName)) {
       final AppLog log = new AppLog(moduleName);

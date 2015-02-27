@@ -112,10 +112,10 @@ import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.transaction.Transaction;
-import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Compress;
 import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
@@ -859,13 +859,13 @@ public class BatchJobService implements ModuleEventListener {
     if (geometryFactory == null) {
       return null;
     } else {
-      final int srid = CollectionUtil.getInteger(parameters, "resultSrid",
+      final int srid = Maps.getInteger(parameters, "resultSrid",
         geometryFactory.getSrid());
-      final int axisCount = CollectionUtil.getInteger(parameters,
+      final int axisCount = Maps.getInteger(parameters,
         "resultNumAxis", geometryFactory.getAxisCount());
-      final double scaleXY = CollectionUtil.getDouble(parameters,
+      final double scaleXY = Maps.getDouble(parameters,
         "resultScaleFactorXy", geometryFactory.getScaleXY());
-      final double scaleZ = CollectionUtil.getDouble(parameters,
+      final double scaleZ = Maps.getDouble(parameters,
         "resultScaleFactorZ", geometryFactory.getScaleZ());
       return GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
     }
@@ -1582,7 +1582,7 @@ public class BatchJobService implements ModuleEventListener {
           } else if ("moduleStarted".equals(action)) {
             moduleState.setEnabled(enabled);
             moduleState.setStatus("Started");
-            final long moduleTime = CollectionUtil.getLong(message,
+            final long moduleTime = Maps.getLong(message,
               "moduleTime");
             moduleState.setStartedTime(moduleTime);
           } else if ("moduleStartFailed".equals(action)) {
@@ -2116,13 +2116,13 @@ public class BatchJobService implements ModuleEventListener {
               final String moduleName = group.getModuleName();
 
               final List<Map<String, Object>> groupResults = (List<Map<String, Object>>)results.get("results");
-              final long groupExecutedTime = CollectionUtil.getLong(results,
+              final long groupExecutedTime = Maps.getLong(results,
                 "groupExecutedTime");
-              final long applicationExecutedTime = CollectionUtil.getLong(
+              final long applicationExecutedTime = Maps.getLong(
                 results, "applicationExecutedTime");
-              final int successCount = CollectionUtil.getInteger(results,
+              final int successCount = Maps.getInteger(results,
                 "successCount");
-              final int errorCount = CollectionUtil.getInteger(results,
+              final int errorCount = Maps.getInteger(results,
                 "errorCount");
 
               final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);

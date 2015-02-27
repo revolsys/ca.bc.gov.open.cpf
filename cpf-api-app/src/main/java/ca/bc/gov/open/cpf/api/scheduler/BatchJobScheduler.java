@@ -39,6 +39,7 @@ import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 
 public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
@@ -133,7 +134,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
       final BatchJobRequestExecutionGroup group = this.batchJobService.scheduleBatchJobExecutionGroups(batchJobId);
       if (group != null) {
         synchronized (this.scheduledGroupCountByBusinessApplication) {
-          CollectionUtil.addToSet(this.scheduledGroupsByBusinessApplication,
+          Maps.addToSet(this.scheduledGroupsByBusinessApplication,
             businessApplicationName, group);
         }
         resultJobInfo.setActions(BatchJobScheduleInfo.SCHEDULE);
@@ -204,7 +205,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
 
   private int getScheduledGroupCount(final String businessApplicationName) {
     synchronized (this.scheduledGroupCountByBusinessApplication) {
-      final int scheduleCount = CollectionUtil.getInteger(
+      final int scheduleCount = Maps.getInteger(
         this.scheduledGroupCountByBusinessApplication, businessApplicationName,
         0);
       final int groupCount = CollectionUtil.getCollectionSize(
@@ -228,7 +229,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
   public void groupFinished(final BatchJobRequestExecutionGroup group) {
     final String businessApplicationName = group.getBusinessApplicationName();
     synchronized (this.scheduledGroupCountByBusinessApplication) {
-      CollectionUtil.removeFromCollection(
+      Maps.removeFromCollection(
         this.scheduledGroupsByBusinessApplication, businessApplicationName,
         group);
     }
@@ -268,7 +269,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
   private void removeScheduledJobId(final String businessApplicationName,
     final Long batchJobId) {
     synchronized (this.scheduledJobIdsByBusinessApplication) {
-      CollectionUtil.removeFromCollection(
+      Maps.removeFromCollection(
         this.scheduledJobIdsByBusinessApplication, businessApplicationName,
         batchJobId);
     }

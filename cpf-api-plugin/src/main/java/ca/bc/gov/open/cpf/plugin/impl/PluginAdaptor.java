@@ -44,9 +44,9 @@ import com.revolsys.jts.geom.Point;
 import com.revolsys.jts.geom.Polygon;
 import com.revolsys.jts.geom.impl.BoundingBoxDoubleGf;
 import com.revolsys.parallel.ThreadUtil;
-import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Maps;
 import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
@@ -115,13 +115,13 @@ public class PluginAdaptor {
       && BooleanStringConverter.isTrue(this.testParameters.get("cpfPluginTest"));
     try {
       if (testMode) {
-        double minTime = CollectionUtil.getDouble(this.testParameters,
+        double minTime = Maps.getDouble(this.testParameters,
           "cpfMinExecutionTime", -1.0);
-        double maxTime = CollectionUtil.getDouble(this.testParameters,
+        double maxTime = Maps.getDouble(this.testParameters,
           "cpfMaxExecutionTime", -1.0);
-        final double meanTime = CollectionUtil.getDouble(this.testParameters,
+        final double meanTime = Maps.getDouble(this.testParameters,
           "cpfMeanExecutionTime", -1.0);
-        final double standardDeviation = CollectionUtil.getDouble(
+        final double standardDeviation = Maps.getDouble(
           this.testParameters, "cpfStandardDeviation", -1.0);
         double executionTime;
         if (standardDeviation <= 0) {
@@ -182,7 +182,7 @@ public class PluginAdaptor {
         resultListProperty);
       if (resultObjects == null || resultObjects.isEmpty()) {
         if (testMode) {
-          final double meanNumResults = CollectionUtil.getDouble(
+          final double meanNumResults = Maps.getDouble(
             this.testParameters, "cpfMeanNumResults", 3.0);
           final int numResults = (int)Math.round(MathUtil.randomGaussian(
             meanNumResults, meanNumResults / 5));
@@ -337,13 +337,13 @@ public class PluginAdaptor {
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }
-            final int srid = CollectionUtil.getInteger(this.parameters,
+            final int srid = Maps.getInteger(this.parameters,
               "resultSrid", geometryFactory.getSrid());
-            final int axisCount = CollectionUtil.getInteger(this.parameters,
+            final int axisCount = Maps.getInteger(this.parameters,
               "resultNumAxis", geometryFactory.getAxisCount());
-            final double scaleXY = CollectionUtil.getDouble(this.parameters,
+            final double scaleXY = Maps.getDouble(this.parameters,
               "resultScaleFactorXy", geometryFactory.getScaleXY());
-            final double scaleZ = CollectionUtil.getDouble(this.parameters,
+            final double scaleZ = Maps.getDouble(this.parameters,
               "resultScaleFactorZ", geometryFactory.getScaleZ());
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY,

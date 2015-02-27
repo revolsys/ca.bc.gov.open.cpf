@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.revolsys.data.record.Record;
-import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 
 public class ResourcePermission {
@@ -34,15 +34,15 @@ public class ResourcePermission {
   }
 
   public ResourcePermission(final Map<String, Object> permission) {
-    setResourceClass(CollectionUtil.get(permission, "resourceClass", ALL));
-    setResourceId(CollectionUtil.get(permission, "resourceId", ALL));
-    setActionName(CollectionUtil.get(permission, "action", ALL));
+    setResourceClass(Maps.get(permission, "resourceClass", ALL));
+    setResourceId(Maps.get(permission, "resourceId", ALL));
+    setActionName(Maps.get(permission, "action", ALL));
   }
 
   public ResourcePermission(final Record permission) {
-    setResourceClass(CollectionUtil.get(permission, "RESOURCE_CLASS", ALL));
-    setResourceId(CollectionUtil.get(permission, "RESOURCE_ID", ALL));
-    setActionName(CollectionUtil.get(permission, "ACTION_NAME", ALL));
+    setResourceClass(Maps.get(permission, "RESOURCE_CLASS", ALL));
+    setResourceId(Maps.get(permission, "RESOURCE_ID", ALL));
+    setActionName(Maps.get(permission, "ACTION_NAME", ALL));
   }
 
   public ResourcePermission(final ResourcePermission permission) {
