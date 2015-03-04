@@ -10,6 +10,26 @@
   <packaging>pom</packaging>
   <name>Concurrent Processing Framework</name>
   <version>5.0.0-SNAPSHOT</version>
+  <inceptionYear>2008</inceptionYear>
+
+  <organization>
+    <name>The Province of British Columbia</name>
+    <url>http://www.gov.bc.ca/</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:svn:http://apps.bcgov/svn/cpf/api-source/trunk</connection>
+    <developerConnection>scm:svn:https://apps.bcgov/svn/cpf/api-source/trunk</developerConnection>
+    <url>http://apps.bcgov/wsvn/TC7.cpf-api?/</url>
+  </scm>
 
   <developers>
     <developer>
@@ -69,17 +89,6 @@
       </properties>
     </contributor>
   </contributors>
-
-  <scm>
-    <connection>scm:svn:http://apps.bcgov/svn/cpf/api-source/trunk</connection>
-    <developerConnection>scm:svn:https://apps.bcgov/svn/cpf/api-source/trunk</developerConnection>
-    <url>http://apps.bcgov/wsvn/TC7.cpf-api?/</url>
-  </scm>
-
-  <organization>
-    <name>The Province of British Columbia</name>
-    <url>http://www.gov.bc.ca/</url>
-  </organization>
 
   <build>
     <plugins>
@@ -161,6 +170,50 @@
           <attachClasses>false</attachClasses>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>update-project-license</id>
+            <inherited>false</inherited>
+            <phase>validate</phase>
+            <configuration>
+              <licenseName>apache_v2</licenseName>
+            </configuration>
+            <goals>
+              <goal>update-project-license</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>aggregate-add-third-party</id>
+            <inherited>true</inherited>
+            <configuration>
+              <force>true</force>
+              <outputDirectory>src/license/</outputDirectory>
+              <useMissingFile>true</useMissingFile>
+              <licenseMerges>
+                <licenseMerge>apache_v2|The Apache Software License, Version 2.0</licenseMerge>
+                <licenseMerge>apache_v2|Apache License, Version 2.0</licenseMerge>
+                <licenseMerge>apache_v2|Apache License</licenseMerge>
+                <licenseMerge>apache_v2|Apache 2.0 License</licenseMerge>
+                <licenseMerge>apache_v2|Apache 2</licenseMerge>
+                <licenseMerge>apache_v2|ASF 2.0</licenseMerge>
+                <licenseMerge>mit|MIT License</licenseMerge>
+                <licenseMerge>cddl_v1|Common Development and Distribution License (CDDL) v1.0</licenseMerge>
+                <licenseMerge>cddl_v1|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
+                <licenseMerge>epl_v1|Eclipse Public License - v 1.0</licenseMerge>
+                <licenseMerge>bsd_2|The BSD License</licenseMerge>
+                <licenseMerge>bsd_2|BSD License</licenseMerge>
+              </licenseMerges>
+            </configuration>
+            <goals>
+              <goal>aggregate-add-third-party</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
 
     <extensions>
@@ -202,7 +255,6 @@
           <exclusion>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>2.5.0</version>
           </exclusion>
           <exclusion>
             <groupId>org.apache.pdfbox</groupId>
