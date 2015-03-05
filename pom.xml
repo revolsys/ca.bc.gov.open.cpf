@@ -171,21 +171,38 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <header>src/license/APACHE-2.txt</header>
+          <properties>
+            <owner>Province of British Columbia</owner>
+            <year>2015</year>
+          </properties>
+          <includes>
+            <exclude>src/test/java/**/*.java</exclude>
+            <exclude>src/main/java/**/*.java</exclude>
+          </includes>
+          <mapping>
+            <java>SLASHSTAR_STYLE</java>
+          </mapping>
+        </configuration>
+        <executions>
+          <execution>
+            <id>format-header</id>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>1.8</version>
         <executions>
-          <execution>
-            <id>update-project-license</id>
-            <inherited>false</inherited>
-            <phase>validate</phase>
-            <configuration>
-              <licenseName>apache_v2</licenseName>
-            </configuration>
-            <goals>
-              <goal>update-project-license</goal>
-            </goals>
-          </execution>
           <execution>
             <id>aggregate-add-third-party</id>
             <inherited>true</inherited>
@@ -334,6 +351,7 @@
     <org.springframework.security.version>3.0.7.RELEASE</org.springframework.security.version>
     <org.slf4j.version>1.6.4</org.slf4j.version>
     <skipWebDeploy>true</skipWebDeploy>
+    <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
   </properties>
 </project>
 
