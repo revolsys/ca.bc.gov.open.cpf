@@ -160,8 +160,6 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>${org.springframework.version}</version>
-      <type>pom</type>
       <scope>test</scope>
     </dependency>
     <dependency>

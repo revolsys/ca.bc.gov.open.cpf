@@ -174,6 +174,7 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>2.9</version>
+        <inherited>false</inherited>
         <configuration>
           <header>src/license/APACHE-2.txt</header>
           <properties>
@@ -181,8 +182,8 @@
             <year>2015</year>
           </properties>
           <includes>
-            <exclude>src/test/java/**/*.java</exclude>
-            <exclude>src/main/java/**/*.java</exclude>
+            <include>**/*.java</include>
+            <include>**/*.java</include>
           </includes>
           <mapping>
             <java>SLASHSTAR_STYLE</java>
@@ -263,6 +264,23 @@
         <groupId>org.springframework</groupId>
         <artifactId>spring-tx</artifactId>
         <version>${org.springframework.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>${org.springframework.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.revolsys.open</groupId>
@@ -277,7 +295,78 @@
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>xtiff-jai</groupId>
+            <artifactId>xtiff-jai</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.akiban</groupId>
+            <artifactId>akiban-sql-parser</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>java3d</groupId>
+            <artifactId>vecmath</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.media</groupId>
+            <artifactId>jai_core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.media</groupId>
+            <artifactId>jai_codec</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.xbean</groupId>
+            <artifactId>xbean-spring</artifactId>
+          </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpcore</artifactId>
+        <version>4.4</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.4</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpmime</artifactId>
+        <version>4.4</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>xalan</groupId>
+        <artifactId>xalan</artifactId>
+        <version>2.7.2</version>
+      </dependency>
+      <dependency>
+        <groupId>xml-apis</groupId>
+        <artifactId>xml-apis</artifactId>
+        <version>1.4.01</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -347,8 +436,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
-    <org.springframework.version>3.0.7.RELEASE</org.springframework.version>
-    <org.springframework.security.version>3.0.7.RELEASE</org.springframework.security.version>
+    <org.springframework.version>3.2.8.RELEASE</org.springframework.version>
+    <org.springframework.security.version>3.2.6.RELEASE</org.springframework.security.version>
     <org.slf4j.version>1.6.4</org.slf4j.version>
     <skipWebDeploy>true</skipWebDeploy>
     <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>

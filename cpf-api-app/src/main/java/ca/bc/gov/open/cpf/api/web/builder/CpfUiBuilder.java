@@ -58,8 +58,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   public static final String ADMIN = "ROLE_ADMIN";
 
   public static void checkAdminOrAnyModuleAdmin() {
-    final boolean permitted = hasAnyRole(ADMIN)
-      || hasRoleRegex("ROLE_ADMIN_MODULE_.*");
+    final boolean permitted = hasAnyRole(ADMIN) || hasRoleRegex("ROLE_ADMIN_MODULE_.*");
     if (!permitted) {
       throw new AccessDeniedException("Permission denied");
     }
@@ -74,16 +73,14 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public static void checkAdminOrAnyModuleAdminExceptSecurity() {
-    final boolean permitted = hasAnyRole(ADMIN)
-      || hasRoleRegex("ROLE_ADMIN_MODULE_.*_ADMIN");
+    final boolean permitted = hasAnyRole(ADMIN) || hasRoleRegex("ROLE_ADMIN_MODULE_.*_ADMIN");
     if (!permitted) {
       throw new AccessDeniedException("Permission denied");
     }
   }
 
   public static void checkAdminOrModuleAdmin(final String moduleName) {
-    final boolean permitted = hasAnyRole(ADMIN, "ROLE_ADMIN_MODULE_"
-      + moduleName + "_ADMIN");
+    final boolean permitted = hasAnyRole(ADMIN, "ROLE_ADMIN_MODULE_" + moduleName + "_ADMIN");
     if (!permitted) {
       throw new AccessDeniedException("Permission denied");
     }
@@ -103,8 +100,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     }
   }
 
-  public static void checkPermission(final Expression expression,
-    final String accessDeniedMessage) {
+  public static void checkPermission(final Expression expression, final String accessDeniedMessage) {
     final boolean permitted = hasPermission(expression);
     if (!permitted) {
       throw new AccessDeniedException(accessDeniedMessage);
@@ -118,17 +114,16 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   protected static Collection<GrantedAuthority> getGrantedAuthorities() {
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     final Authentication authentication = securityContext.getAuthentication();
-    final Collection<GrantedAuthority> grantedAuthorities = authentication.getAuthorities();
+    @SuppressWarnings("unchecked")
+    final Collection<GrantedAuthority> grantedAuthorities = (Collection<GrantedAuthority>)authentication.getAuthorities();
     return grantedAuthorities;
   }
 
   public static EvaluationContext getSecurityEvaluationContext() {
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     final Authentication authentication = securityContext.getAuthentication();
-    final MethodSecurityExpressionRoot root = new MethodSecurityExpressionRoot(
-      authentication);
-    final EvaluationContext evaluationContext = new StandardEvaluationContext(
-      root);
+    final MethodSecurityExpressionRoot root = new MethodSecurityExpressionRoot(authentication);
+    final EvaluationContext evaluationContext = new StandardEvaluationContext(root);
     return evaluationContext;
   }
 
@@ -149,8 +144,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public static boolean hasPermission(final Expression expression) {
     final EvaluationContext evaluationContext = getSecurityEvaluationContext();
-    final boolean permitted = ExpressionUtils.evaluateAsBoolean(expression,
-      evaluationContext);
+    final boolean permitted = ExpressionUtils.evaluateAsBoolean(expression, evaluationContext);
     return permitted;
   }
 
@@ -195,29 +189,27 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     super(typePath, title);
   }
 
-  public CpfUiBuilder(final String typePath, final String title,
-    final String pluralTitle) {
+  public CpfUiBuilder(final String typePath, final String title, final String pluralTitle) {
     super(typePath, title, pluralTitle);
   }
 
-  public CpfUiBuilder(final String typePath, final String tableName,
-    final String idPropertyName, final String title, final String pluralTitle) {
+  public CpfUiBuilder(final String typePath, final String tableName, final String idPropertyName,
+    final String title, final String pluralTitle) {
     super(typePath, tableName, idPropertyName, title, pluralTitle);
   }
 
   @PreDestroy
   public void close() {
-    batchJobService = null;
-    businessApplicationRegistry = null;
-    dataAccessObject = null;
+    this.batchJobService = null;
+    this.businessApplicationRegistry = null;
+    this.dataAccessObject = null;
   }
 
-  public Record getBatchJob(final String businessApplicationName,
-    final Object batchJobId) throws NoSuchRequestHandlingMethodException {
+  public Record getBatchJob(final String businessApplicationName, final Object batchJobId)
+    throws NoSuchRequestHandlingMethodException {
     final Record batchJob = loadObject(BatchJob.BATCH_JOB, batchJobId);
     if (batchJob != null) {
-      if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(
-        businessApplicationName)) {
+      if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(businessApplicationName)) {
         return batchJob;
 
       }
@@ -226,12 +218,11 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public BatchJobService getBatchJobService() {
-    return batchJobService;
+    return this.batchJobService;
   }
 
-  public BusinessApplication getBusinessApplication(
-    final String businessApplicationName) {
-    return businessApplicationRegistry.getBusinessApplication(businessApplicationName);
+  public BusinessApplication getBusinessApplication(final String businessApplicationName) {
+    return this.businessApplicationRegistry.getBusinessApplication(businessApplicationName);
   }
 
   public List<String> getBusinessApplicationNames() {
@@ -245,7 +236,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
-    return businessApplicationRegistry;
+    return this.businessApplicationRegistry;
   }
 
   public List<BusinessApplication> getBusinessApplications() {
@@ -266,16 +257,16 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public CpfDataAccessObject getDataAccessObject() {
-    return dataAccessObject;
+    return this.dataAccessObject;
   }
 
   public int getMinTimeUntilNextCheck() {
-    return minTimeUntilNextCheck;
+    return this.minTimeUntilNextCheck;
   }
 
-  protected Module getModule(final HttpServletRequest request,
-    final String moduleName) throws NoSuchRequestHandlingMethodException {
-    final Module module = businessApplicationRegistry.getModule(moduleName);
+  protected Module getModule(final HttpServletRequest request, final String moduleName)
+    throws NoSuchRequestHandlingMethodException {
+    final Module module = this.businessApplicationRegistry.getModule(moduleName);
     if (module != null) {
       HttpServletUtils.setPathVariable("MODULE_NAME", moduleName);
       return module;
@@ -284,10 +275,9 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   }
 
-  public BusinessApplication getModuleBusinessApplication(
-    final String moduleName, final String businessApplicationName)
-    throws NoSuchRequestHandlingMethodException {
-    final BusinessApplication businessApplication = businessApplicationRegistry.getModuleBusinessApplication(
+  public BusinessApplication getModuleBusinessApplication(final String moduleName,
+    final String businessApplicationName) throws NoSuchRequestHandlingMethodException {
+    final BusinessApplication businessApplication = this.businessApplicationRegistry.getModuleBusinessApplication(
       moduleName, businessApplicationName);
     if (businessApplication != null) {
       return businessApplication;
@@ -312,7 +302,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public List<Module> getPermittedModules() {
-    final List<Module> modules = businessApplicationRegistry.getModules();
+    final List<Module> modules = this.businessApplicationRegistry.getModules();
     if (!hasAnyRole(ADMIN)) {
       for (final Iterator<Module> iterator = modules.iterator(); iterator.hasNext();) {
         final Module module = iterator.next();
@@ -328,42 +318,38 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   /**
    * Get the time in milliseconds until the user should next check the status of
    * the job. If time is less than minValue then minValue will be returned.
-   * 
+   *
    * @return The time in milliseconds.
    */
   public long getTimeUntilNextCheck(final Record batchJob) {
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-    final BusinessApplication application = batchJobService.getBusinessApplication(businessApplicationName);
+    final BusinessApplication application = this.batchJobService.getBusinessApplication(businessApplicationName);
     long timeRemaining = 0;
     if (application != null) {
-      final List<BusinessApplicationStatistics> statistics = batchJobService.getStatisticsList(businessApplicationName);
+      final List<BusinessApplicationStatistics> statistics = this.batchJobService.getStatisticsList(businessApplicationName);
       if (!statistics.isEmpty()) {
         final BusinessApplicationStatistics stats = statistics.get(0);
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-        final int numRequests = RecordUtil.getInteger(batchJob,
-          BatchJob.NUM_SUBMITTED_REQUESTS);
+        final int numRequests = RecordUtil.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS);
         if (jobStatus.equals(BatchJob.DOWNLOAD_INITIATED)
-          || jobStatus.equals(BatchJob.RESULTS_CREATED)
-          || jobStatus.equals(BatchJob.CANCELLED)) {
+          || jobStatus.equals(BatchJob.RESULTS_CREATED) || jobStatus.equals(BatchJob.CANCELLED)) {
           return 0;
         } else if (jobStatus.equals(BatchJob.CREATING_RESULTS)) {
           return numRequests * stats.getPostProcessedRequestsAverageTime();
         } else {
           timeRemaining += stats.getPostProcessScheduledJobsAverageTime();
           if (!jobStatus.equals(BatchJob.PROCESSED)) {
-            final int numCompletedRequests = RecordUtil.getInteger(
-              batchJob, BatchJob.NUM_COMPLETED_REQUESTS);
+            final int numCompletedRequests = RecordUtil.getInteger(batchJob,
+              BatchJob.NUM_COMPLETED_REQUESTS);
             final int numFailedRequests = RecordUtil.getInteger(batchJob,
               BatchJob.NUM_FAILED_REQUESTS);
-            final int numRequestsRemaining = numRequests - numCompletedRequests
-              - numFailedRequests;
+            final int numRequestsRemaining = numRequests - numCompletedRequests - numFailedRequests;
             final long executedRequestsAverageTime = stats.getApplicationExecutedRequestsAverageTime();
             timeRemaining += numRequestsRemaining * executedRequestsAverageTime;
             if (!jobStatus.equals(BatchJob.PROCESSING)) {
               timeRemaining += stats.getExecuteScheduledGroupsAverageTime();
               if (!jobStatus.equals(BatchJob.REQUESTS_CREATED)) {
-                timeRemaining += numRequests
-                  * stats.getPreProcessedRequestsAverageTime();
+                timeRemaining += numRequests * stats.getPreProcessedRequestsAverageTime();
                 if (!jobStatus.equals(BatchJob.CREATING_REQUESTS)) {
                   timeRemaining += stats.getPreProcessScheduledJobsAverageTime();
                 }
@@ -373,7 +359,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
         }
       }
     }
-    return Math.max(timeRemaining / 1000, minTimeUntilNextCheck);
+    return Math.max(timeRemaining / 1000, this.minTimeUntilNextCheck);
   }
 
   public Record getUserAccount(final String consumerKey) {
@@ -388,9 +374,9 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     return userGroup;
   }
 
-  public boolean hasModule(final HttpServletRequest request,
-    final String moduleName) throws NoSuchRequestHandlingMethodException {
-    if (businessApplicationRegistry.hasModule(moduleName)) {
+  public boolean hasModule(final HttpServletRequest request, final String moduleName)
+    throws NoSuchRequestHandlingMethodException {
+    if (this.businessApplicationRegistry.hasModule(moduleName)) {
       return true;
     } else {
       throw new NoSuchRequestHandlingMethodException(request);
@@ -399,14 +385,14 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   @Override
   protected void insertObject(final Record object) {
-    dataAccessObject.write(object);
+    this.dataAccessObject.write(object);
   }
 
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
     this.dataAccessObject = batchJobService.getDataAccessObject();
     this.businessApplicationRegistry = batchJobService.getBusinessApplicationRegistry();
-    final RecordStore recordStore = dataAccessObject.getRecordStore();
+    final RecordStore recordStore = this.dataAccessObject.getRecordStore();
     setRecordStore(recordStore);
   }
 
@@ -416,7 +402,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   @Override
   protected void updateObject(final Record object) {
-    dataAccessObject.write(object);
+    this.dataAccessObject.write(object);
   }
 
 }

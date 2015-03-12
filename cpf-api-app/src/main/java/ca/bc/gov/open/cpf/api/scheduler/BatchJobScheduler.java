@@ -42,6 +42,7 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.SetQueue;
+import com.revolsys.collection.map.Maps;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
@@ -54,7 +55,6 @@ import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.util.CollectionUtil;
-import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 
 public class BatchJobScheduler extends ThreadPoolExecutor implements Process,

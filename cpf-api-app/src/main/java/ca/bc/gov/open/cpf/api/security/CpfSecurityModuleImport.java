@@ -37,41 +37,40 @@ public class CpfSecurityModuleImport extends ModuleImport {
 
   @SuppressWarnings("unchecked")
   @Override
-  protected void afterPostProcessBeanDefinitionRegistry(
-    final BeanDefinitionRegistry registry) {
+  protected void afterPostProcessBeanDefinitionRegistry(final BeanDefinitionRegistry registry) {
     final GenericApplicationContext beanFactory = getApplicationContext(registry);
 
     final BeanDefinition filterChainProxy = registry.getBeanDefinition(BeanIds.FILTER_CHAIN_PROXY);
     if (filterChainProxy == null) {
-      registerTargetBeanDefinition(registry, beanFactory,
-        BeanIds.FILTER_CHAIN_PROXY, BeanIds.FILTER_CHAIN_PROXY);
-      registerTargetBeanDefinition(registry, beanFactory,
-        BeanIds.SPRING_SECURITY_FILTER_CHAIN,
+      registerTargetBeanDefinition(registry, beanFactory, BeanIds.FILTER_CHAIN_PROXY,
+        BeanIds.FILTER_CHAIN_PROXY);
+      registerTargetBeanDefinition(registry, beanFactory, BeanIds.SPRING_SECURITY_FILTER_CHAIN,
         BeanIds.SPRING_SECURITY_FILTER_CHAIN);
     } else {
-      final Filter moduleFilterChainProxy = beanFactory.getBean(
-        BeanIds.FILTER_CHAIN_PROXY, Filter.class);
+      final Filter moduleFilterChainProxy = beanFactory.getBean(BeanIds.FILTER_CHAIN_PROXY,
+        Filter.class);
       if (moduleFilterChainProxy != null) {
         final Map<String, List<?>> mergedFilterMap = new ManagedMap<String, List<?>>();
 
         final MutablePropertyValues propertyValues = filterChainProxy.getPropertyValues();
         final PropertyValue filterChainMap = propertyValues.getPropertyValue("filterChainMap");
-        final Map<String, List<?>> filterMap = (Map<String, List<?>>)filterChainMap.getValue();
+        if (filterChainMap != null) {
+          final Map<String, List<?>> filterMap = (Map<String, List<?>>)filterChainMap.getValue();
 
-        for (final String path : paths) {
-          mergedFilterMap.put(path,
-            Collections.singletonList(moduleFilterChainProxy));
+          for (final String path : this.paths) {
+            mergedFilterMap.put(path, Collections.singletonList(moduleFilterChainProxy));
+          }
+          mergedFilterMap.putAll(filterMap);
+
+          propertyValues.removePropertyValue(filterChainMap);
+          propertyValues.add("filterChainMap", mergedFilterMap);
         }
-        mergedFilterMap.putAll(filterMap);
-
-        propertyValues.removePropertyValue(filterChainMap);
-        propertyValues.add("filterChainMap", mergedFilterMap);
       }
     }
   }
 
   public List<String> getPaths() {
-    return paths;
+    return this.paths;
   }
 
   public void setPaths(final List<String> paths) {

@@ -27,12 +27,12 @@
   <name>Concurrent Processing Framework OpenID Security</name>
 
   <dependencies>
-  <dependency>
-    <groupId>ca.bc.gov.open.cpf</groupId>
-    <artifactId>cpf-api-app</artifactId>
-    <version>${project.version}</version>
-  </dependency>
-  <dependency>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>cpf-api-app</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.openid4java</groupId>
       <artifactId>openid4java-xri</artifactId>
       <version>0.9.5</version>

@@ -22,14 +22,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.security.core.codec.Hex;
+import org.springframework.security.crypto.codec.Hex;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 final class DigestAuthUtils {
 
-  static String encodePasswordInA1Format(final String username,
-    final String realm, final String password) {
+  private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
+  static String encodePasswordInA1Format(final String username, final String realm,
+    final String password) {
     final String a1 = username + ":" + realm + ":" + password;
     final String a1Md5 = md5Hex(a1);
 
@@ -55,10 +57,9 @@ final class DigestAuthUtils {
    * @return the MD5 of the digest authentication response, encoded in hex
    * @throws IllegalArgumentException if the supplied qop value is unsupported.
    */
-  static String generateDigest(final boolean passwordAlreadyEncoded,
-    final String username, final String realm, final String password,
-    final String httpMethod, final String uri, final String qop,
-    final String nonce, final String nc, final String cnonce)
+  static String generateDigest(final boolean passwordAlreadyEncoded, final String username,
+    final String realm, final String password, final String httpMethod, final String uri,
+    final String qop, final String nonce, final String nc, final String cnonce)
     throws IllegalArgumentException {
     String a1Md5 = null;
     final String a2 = httpMethod + ":" + uri;
@@ -67,8 +68,7 @@ final class DigestAuthUtils {
     if (passwordAlreadyEncoded) {
       a1Md5 = password;
     } else {
-      a1Md5 = DigestAuthUtils.encodePasswordInA1Format(username, realm,
-        password);
+      a1Md5 = DigestAuthUtils.encodePasswordInA1Format(username, realm, password);
     }
 
     String digest;
@@ -78,11 +78,9 @@ final class DigestAuthUtils {
       digest = a1Md5 + ":" + nonce + ":" + a2Md5;
     } else if ("auth".equals(qop)) {
       // As per RFC 2617 compliant clients
-      digest = a1Md5 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":"
-        + a2Md5;
+      digest = a1Md5 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + a2Md5;
     } else {
-      throw new IllegalArgumentException(
-        "This method does not support a qop: '" + qop + "'");
+      throw new IllegalArgumentException("This method does not support a qop: '" + qop + "'");
     }
 
     final String digestMd5 = new String(md5Hex(digest));
@@ -113,12 +111,10 @@ final class DigestAuthUtils {
    */
   static String[] split(final String toSplit, final String delimiter) {
     Assert.hasLength(toSplit, "Cannot split a null or empty string");
-    Assert.hasLength(delimiter,
-      "Cannot use a null or empty delimiter to split a string");
+    Assert.hasLength(delimiter, "Cannot use a null or empty delimiter to split a string");
 
     if (delimiter.length() != 1) {
-      throw new IllegalArgumentException(
-        "Delimiter can only be one character in length");
+      throw new IllegalArgumentException("Delimiter can only be one character in length");
     }
 
     final int offset = toSplit.indexOf(delimiter);
@@ -148,8 +144,8 @@ final class DigestAuthUtils {
    * @return a <code>Map</code> representing the array contents, or <code>null</code> if the array to process was
    *         null or empty
    */
-  static Map<String, String> splitEachArrayElementAndCreateMap(
-    final String[] array, final String delimiter, final String removeCharacters) {
+  static Map<String, String> splitEachArrayElementAndCreateMap(final String[] array,
+    final String delimiter, final String removeCharacters) {
     if (array == null || array.length == 0) {
       return null;
     }
@@ -223,6 +219,4 @@ final class DigestAuthUtils {
 
     return list.toArray(new String[list.size()]);
   }
-
-  private static final String[] EMPTY_STRING_ARRAY = new String[0];
 }

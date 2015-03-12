@@ -90,6 +90,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
+import com.revolsys.collection.map.Maps;
 import com.revolsys.data.io.MapReaderRecordReader;
 import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.query.Query;
@@ -130,7 +131,6 @@ import com.revolsys.transaction.Transaction;
 import com.revolsys.util.Compress;
 import com.revolsys.util.DateUtil;
 import com.revolsys.util.ExceptionUtil;
-import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 

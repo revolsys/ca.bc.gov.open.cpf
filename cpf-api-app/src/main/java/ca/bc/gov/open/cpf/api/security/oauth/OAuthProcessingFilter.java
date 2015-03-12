@@ -20,7 +20,7 @@
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
 
-     http://www.apache.org/licenses/LICENSE-2.0
+ http://www.apache.org/licenses/LICENSE-2.0
 
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,8 +59,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.util.Assert;
 
-public class OAuthProcessingFilter extends
-  AbstractAuthenticationProcessingFilter implements InitializingBean {
+public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilter implements
+  InitializingBean {
   /**
    * Extract the parts of the given request that are relevant to OAuth.
    * Parameters include OAuth Authorization headers and the usual request
@@ -73,8 +73,7 @@ public class OAuthProcessingFilter extends
    *          parameter is null, this method will try to reconstruct the URL
    *          from the HTTP request; which may be wrong in some cases.
    */
-  public static OAuthMessage getMessage(final HttpServletRequest request,
-    String URL) {
+  public static OAuthMessage getMessage(final HttpServletRequest request, String URL) {
     if (URL == null) {
       URL = request.getRequestURL().toString();
     }
@@ -112,15 +111,14 @@ public class OAuthProcessingFilter extends
   @Override
   public void afterPropertiesSet() {
     if (!isIgnoreFailure()) {
-      Assert.notNull(this.authenticationEntryPoint,
-        "An AuthenticationEntryPoint is required");
+      Assert.notNull(this.authenticationEntryPoint, "An AuthenticationEntryPoint is required");
     }
   }
 
   @Override
   public Authentication attemptAuthentication(final HttpServletRequest request,
-    final HttpServletResponse response) throws AuthenticationException,
-    IOException, ServletException {
+    final HttpServletResponse response) throws AuthenticationException, IOException,
+    ServletException {
     final String requestUrl = getRequestURL(request);
     final OAuthMessage message = getMessage(request, requestUrl);
     final String consumerKey = message.getConsumerKey();
@@ -130,9 +128,9 @@ public class OAuthProcessingFilter extends
         final OAuthAccessor accessor = getOAuthAccessor(consumerDetails);
 
         this.oauthMessageValidator.validateMessage(message, accessor);
-        final Collection<GrantedAuthority> authorities = consumerDetails.getAuthorities();
-        final Authentication authentication = new OAuthAuthenticationToken(
-          consumerKey, authorities);
+        @SuppressWarnings("unchecked")
+        final Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>)consumerDetails.getAuthorities();
+        final Authentication authentication = new OAuthAuthenticationToken(consumerKey, authorities);
         authentication.setAuthenticated(true);
         return authentication;
       }
@@ -168,10 +166,9 @@ public class OAuthProcessingFilter extends
   private OAuthAccessor getOAuthAccessor(final UserDetails consumerDetails) {
     final String consumerKey = consumerDetails.getUsername();
     final String consumerSecret = consumerDetails.getPassword();
-    final OAuthServiceProvider serviceProvider = new OAuthServiceProvider("",
-      "", "");
-    final OAuthConsumer consumer = new OAuthConsumer("", consumerKey,
-      consumerSecret, serviceProvider);
+    final OAuthServiceProvider serviceProvider = new OAuthServiceProvider("", "", "");
+    final OAuthConsumer consumer = new OAuthConsumer("", consumerKey, consumerSecret,
+      serviceProvider);
     return new OAuthAccessor(consumer);
   }
 
@@ -179,13 +176,11 @@ public class OAuthProcessingFilter extends
     return this.ignoreFailure;
   }
 
-  public void setAuthenticationEntryPoint(
-    final AuthenticationEntryPoint authenticationEntryPoint) {
+  public void setAuthenticationEntryPoint(final AuthenticationEntryPoint authenticationEntryPoint) {
     this.authenticationEntryPoint = authenticationEntryPoint;
   }
 
-  public void setConsumerDetailsService(
-    final UserDetailsService consumerDetailsService) {
+  public void setConsumerDetailsService(final UserDetailsService consumerDetailsService) {
     this.consumerDetailsService = consumerDetailsService;
   }
 

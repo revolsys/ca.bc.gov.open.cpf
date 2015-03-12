@@ -73,6 +73,7 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
+import com.revolsys.collection.map.Maps;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.property.FieldProperties;
@@ -93,7 +94,6 @@ import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
-import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 

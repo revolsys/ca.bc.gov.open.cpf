@@ -73,6 +73,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
+import com.revolsys.collection.map.Maps;
 import com.revolsys.io.FileUtil;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.channel.Channel;
@@ -82,7 +83,6 @@ import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.ExceptionUtil;
-import com.revolsys.util.Maps;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 

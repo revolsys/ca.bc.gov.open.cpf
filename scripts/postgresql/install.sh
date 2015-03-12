@@ -66,7 +66,7 @@ if [ -e ${DIR}/db.properties ]; then
     fi
   fi
 
-  createdb -h ${DB_HOSTNAME} -p ${DB_PORT} --username postgres --template template_postgis --tablespace cpf --owner=cpf ${DB_NAME}
+  createdb -h ${DB_HOSTNAME} -p ${DB_PORT} --username postgres --template postgres --tablespace cpf --owner=cpf ${DB_NAME}
   
   if [ "$?" != "0" ]; then
     echo ERROR: CANNOT CREATE THE DATABASE

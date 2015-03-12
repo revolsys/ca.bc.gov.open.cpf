@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.revolsys.util.Maps;
+import com.revolsys.collection.map.Maps;
 import com.revolsys.util.Property;
 
 public class Worker {
