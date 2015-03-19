@@ -6,32 +6,10 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
     http://www.springframework.org/schema/security
     http://www.springframework.org/schema/security/spring-security-3.2.xsd
   "
 >
-  <bean
-    name="cpfOpenIdSecurityModule"
-    class="ca.bc.gov.open.cpf.api.security.CpfSecurityModuleImport"
-    p:resource="classpath:ca/bc/gov/open/cpf/openid/security.sf.xml"
-  >
-    <property
-      name="paths"
-    >
-      <list>
-        <value>/openid/**</value>
-        <value>/j_spring_openid_security_check</value>
-      </list>
-    </property>
-    <property
-      name="importBeanNames"
-    >
-      <list>
-        <value>ca.bc.gov.open.cpf.api.domain.UserAccount-dao</value>
-        <value>ca.bc.gov.open.cpf.api.domain.UserGroup-dao</value>
-        <value>userAccountSecurityService</value>
-      </list>
-    </property>
-  </bean>
+  <import resource="classpath:ca/bc/gov/open/cpf/openid/security.sf.xml" />
 </beans>

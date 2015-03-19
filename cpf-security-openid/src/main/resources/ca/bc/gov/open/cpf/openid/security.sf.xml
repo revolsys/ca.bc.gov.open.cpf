@@ -7,14 +7,16 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
     http://www.springframework.org/schema/tx
-    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
     http://www.springframework.org/schema/security
     http://www.springframework.org/schema/security/spring-security-3.2.xsd
   "
 >
   <security:http
+    pattern="(/openid/.*|/j_spring_openid_security_check)"
+    path-type="regex"
     realm="CPF OpenID"
     use-expressions="true"
     auto-config="false"
@@ -48,7 +50,7 @@
     <security:anonymous granted-authority="IS_AUTHENTICATED_ANONYMOUSLY" />
   </security:http>
 
-  <security:authentication-manager>
+  <security:authentication-manager id="cpfOpenIdAuthenticationManager">
     <security:authentication-provider
       user-service-ref="cpfOpenIdUserDetailsService"
     >
@@ -126,13 +128,13 @@
 
 
   <bean
-    id="accessDeniedHandler"
+    id="cpfOpenIdAccessDeniedHandler"
     class="org.springframework.security.web.access.AccessDeniedHandlerImpl" />
     
   <bean
-    id="exceptionTranslationFilter"
+    id="cpfOpenIdExceptionTranslationFilter"
     class="org.springframework.security.web.access.ExceptionTranslationFilter"
     p:authenticationEntryPoint-ref="cpfOpenIdFilterEntryPoint"
-    p:accessDeniedHandler-ref="accessDeniedHandler" />
+    p:accessDeniedHandler-ref="cpfOpenIdAccessDeniedHandler" />
 
 </beans>
