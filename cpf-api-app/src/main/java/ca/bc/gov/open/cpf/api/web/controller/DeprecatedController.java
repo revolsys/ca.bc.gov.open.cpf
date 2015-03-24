@@ -43,13 +43,13 @@ public class DeprecatedController {
 
   @RequestMapping("/ws/apps/{businessApplicationName}/{businessApplicationVersion}/instant")
   public Object getBusinessApplicationsInstant(
-    @PathVariable final String businessApplicationName) {
+    @PathVariable("businessApplicationName") final String businessApplicationName) {
     return this.businessApplicationUiBuilder.redirectPage("clientInstant");
   }
 
   @RequestMapping("/ws/apps/{businessApplicationName}/{businessApplicationVersion}/multiple")
   public Object getBusinessApplicationsMultiple(
-    @PathVariable final String businessApplicationName) {
+    @PathVariable("businessApplicationName") final String businessApplicationName) {
     return this.businessApplicationUiBuilder.redirectPage("clientMultiple");
   }
 
@@ -58,13 +58,13 @@ public class DeprecatedController {
     "/ws/users/{consumerKey}/apps/{businessApplicationName}"
   })
   public Object getBusinessApplicationsResources(
-    @PathVariable final String businessApplicationName) {
+    @PathVariable("businessApplicationName") final String businessApplicationName) {
     return this.businessApplicationUiBuilder.redirectPage("clientView");
   }
 
   @RequestMapping("/ws/apps/{businessApplicationName}/{businessApplicationVersion}/single")
   public Object getBusinessApplicationsSingle(
-    @PathVariable final String businessApplicationName) {
+    @PathVariable("businessApplicationName") final String businessApplicationName) {
     return this.businessApplicationUiBuilder.redirectPage("clientSingle");
   }
 
@@ -125,7 +125,7 @@ public class DeprecatedController {
   @RequestMapping(value = {
     "/ws/users/{consumerKey}/jobs/{batchJobId}/cancel"
   }, method = RequestMethod.POST)
-  public void postClientCancel(@PathVariable final long batchJobId) {
+  public void postClientCancel(@PathVariable("batchJobId") final Long batchJobId) {
     this.batchJobUiBuilder.postClientCancel(batchJobId);
   }
 

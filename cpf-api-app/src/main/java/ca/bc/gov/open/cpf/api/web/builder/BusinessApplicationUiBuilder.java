@@ -172,8 +172,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   })
   @ResponseBody
   public Element pageModuleEdit(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable String moduleName,
-    final @PathVariable String businessApplicationName) throws IOException,
+    final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
+    final @PathVariable("businessApplicationName") String businessApplicationName) throws IOException,
     ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
@@ -277,7 +277,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Object pageModuleList(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable String moduleName)
+    final HttpServletResponse response, final @PathVariable("moduleName") String moduleName)
     throws IOException, NoSuchRequestHandlingMethodException {
     final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
@@ -292,8 +292,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Element pageModuleView(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable String moduleName,
-    final @PathVariable String businessApplicationName) throws IOException,
+    final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
+    final @PathVariable("businessApplicationName") String businessApplicationName) throws IOException,
     ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(

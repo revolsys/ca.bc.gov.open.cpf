@@ -48,7 +48,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   protected UserGroupPermissionUiBuilder() {
     super("userGroupPermission", UserGroupPermission.USER_GROUP_PERMISSION,
       UserGroupPermission.USER_GROUP_PERMISSION_ID, "User Group Permission",
-        "User Group Permissions");
+      "User Group Permissions");
   }
 
   @RequestMapping(value = {
@@ -57,11 +57,9 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  public Element pageModuleUserGroupPermissionAdd(
-    final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable final String moduleName,
-    @PathVariable final String userGroupName) throws ServletException,
-    IOException {
+  public Element pageModuleUserGroupPermissionAdd(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("userGroupName") final String userGroupName) throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -77,27 +75,23 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     return null;
   }
 
-  @RequestMapping(
-    value = {
-      "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/delete"
-    }, method = RequestMethod.POST)
-  public void pageModuleUserGroupPermissionDelete(
-    final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable final String moduleName,
-    @PathVariable final String userGroupName,
-    @PathVariable final Long userGroupPermissionId,
-    @RequestParam final Boolean confirm) throws ServletException, IOException {
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/delete"
+  }, method = RequestMethod.POST)
+  public void pageModuleUserGroupPermissionDelete(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("userGroupName") final String userGroupName,
+    @PathVariable("userGroupPermissionId") final Long userGroupPermissionId,
+    @RequestParam("confirm") final Boolean confirm) throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
     if (group != null) {
       final Record permission = loadObject(userGroupPermissionId);
       if (permission != null) {
-        if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
-          moduleName)) {
+        if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(moduleName)) {
           final Identifier userGroupId = group.getIdentifier();
-          if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
-            userGroupId)) {
+          if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(userGroupId)) {
             final CpfDataAccessObject dataAccessObject = getDataAccessObject();
             dataAccessObject.delete(permission);
             redirectToTab(UserGroup.USER_GROUP, "moduleView", "moduleList");
@@ -109,30 +103,26 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     notFound(response, "User group " + userGroupName + " does not exist");
   }
 
-  @RequestMapping(
-    value = {
-      "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/edit"
-    }, method = {
-      RequestMethod.GET, RequestMethod.POST
-    })
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/edit"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
   @ResponseBody
-  public Element pageModuleUserGroupPermissionEdit(
-    final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable final String moduleName,
-    @PathVariable final String userGroupName,
-    @PathVariable final Long userGroupPermissionId) throws ServletException,
-    IOException {
+  public Element pageModuleUserGroupPermissionEdit(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("userGroupName") final String userGroupName,
+    @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
+    throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
     if (group != null) {
       final Record permission = loadObject(userGroupPermissionId);
       if (permission != null) {
-        if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
-          moduleName)) {
+        if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(moduleName)) {
           final Identifier userGroupId = group.getIdentifier();
-          if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
-            userGroupId)) {
+          if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(userGroupId)) {
             return createObjectEditPage(permission, "module");
           }
         }
@@ -146,11 +136,9 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object pageModuleUserGroupPermissionList(
-    final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable final String moduleName,
-    @PathVariable final String userGroupName) throws IOException,
-    ServletException {
+  public Object pageModuleUserGroupPermissionList(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("userGroupName") final String userGroupName) throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -170,28 +158,24 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     return null;
   }
 
-  @RequestMapping(
-    value = {
-      "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}"
-    }, method = RequestMethod.GET)
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}"
+  }, method = RequestMethod.GET)
   @ResponseBody
-  public Element pageModuleUserGroupPermissionView(
-    final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable final String moduleName,
-    @PathVariable final String userGroupName,
-    @PathVariable final Long userGroupPermissionId) throws ServletException,
-    IOException {
+  public Element pageModuleUserGroupPermissionView(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("userGroupName") final String userGroupName,
+    @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
+    throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
     if (group != null) {
       final Record permission = loadObject(userGroupPermissionId);
       if (permission != null) {
-        if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(
-          moduleName)) {
+        if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(moduleName)) {
           final Identifier userGroupId = group.getIdentifier();
-          if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(
-            userGroupId)) {
+          if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(userGroupId)) {
             final TabElementContainer tabs = new TabElementContainer();
             addObjectViewPage(tabs, permission, "module");
             return tabs;
@@ -214,8 +198,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     final Module module = businessApplicationRegistry.getModule(moduleName);
     if (module != null) {
-      businessApplicationRegistry.moduleEvent(module,
-        ModuleEvent.SECURITY_CHANGED);
+      businessApplicationRegistry.moduleEvent(module, ModuleEvent.SECURITY_CHANGED);
     }
   }
 

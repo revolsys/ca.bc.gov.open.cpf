@@ -22,14 +22,14 @@ import javax.annotation.Resource;
 
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 
 import com.revolsys.util.Property;
 
 public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
 
   public BatchJobPreProcess() {
-    super(BatchJob.SUBMITTED);
+    super(BatchJobStatus.SUBMITTED);
   }
 
   @PostConstruct
@@ -43,17 +43,16 @@ public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
   @Override
   public boolean processJob(final long batchJobId) {
     final BatchJobService batchJobService = getBatchJobService();
-    final long time = System.currentTimeMillis();
-
-    final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-    if (dataAccessObject.setBatchJobStatus(batchJobId, BatchJob.SUBMITTED,
-      BatchJob.CREATING_REQUESTS)) {
-      final long lastChangedTime = System.currentTimeMillis();
-      return batchJobService.preProcessBatchJob(batchJobId, time,
-        lastChangedTime);
-    } else {
-      return true;
+    final BatchJob batchJob = batchJobService.getBatchJob(batchJobId);
+    if (batchJob != null) {
+      final long time = System.currentTimeMillis();
+      if (batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED,
+        BatchJobStatus.CREATING_REQUESTS)) {
+        final long lastChangedTime = System.currentTimeMillis();
+        return batchJobService.preProcessBatchJob(batchJobId, time, lastChangedTime);
+      }
     }
+    return true;
   }
 
   @Override

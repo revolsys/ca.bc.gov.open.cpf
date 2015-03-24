@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.expression.EvaluationContext;
@@ -39,6 +40,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
@@ -52,6 +54,7 @@ import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
 import com.revolsys.ui.web.utils.HttpServletUtils;
+import com.revolsys.util.Numbers;
 
 public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
@@ -207,7 +210,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public Record getBatchJob(final String businessApplicationName, final Object batchJobId)
     throws NoSuchRequestHandlingMethodException {
-    final Record batchJob = loadObject(BatchJob.BATCH_JOB, batchJobId);
+    final Record batchJob = this.dataAccessObject.getBatchJob(Numbers.toLong(batchJobId));
     if (batchJob != null) {
       if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(businessApplicationName)) {
         return batchJob;
@@ -331,14 +334,14 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
         final BusinessApplicationStatistics stats = statistics.get(0);
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
         final int numRequests = RecordUtil.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS);
-        if (jobStatus.equals(BatchJob.DOWNLOAD_INITIATED)
-          || jobStatus.equals(BatchJob.RESULTS_CREATED) || jobStatus.equals(BatchJob.CANCELLED)) {
+        if (jobStatus.equals(BatchJobStatus.DOWNLOAD_INITIATED)
+          || jobStatus.equals(BatchJobStatus.RESULTS_CREATED) || jobStatus.equals(BatchJobStatus.CANCELLED)) {
           return 0;
-        } else if (jobStatus.equals(BatchJob.CREATING_RESULTS)) {
+        } else if (jobStatus.equals(BatchJobStatus.CREATING_RESULTS)) {
           return numRequests * stats.getPostProcessedRequestsAverageTime();
         } else {
           timeRemaining += stats.getPostProcessScheduledJobsAverageTime();
-          if (!jobStatus.equals(BatchJob.PROCESSED)) {
+          if (!jobStatus.equals(BatchJobStatus.PROCESSED)) {
             final int numCompletedRequests = RecordUtil.getInteger(batchJob,
               BatchJob.NUM_COMPLETED_REQUESTS);
             final int numFailedRequests = RecordUtil.getInteger(batchJob,
@@ -346,11 +349,11 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
             final int numRequestsRemaining = numRequests - numCompletedRequests - numFailedRequests;
             final long executedRequestsAverageTime = stats.getApplicationExecutedRequestsAverageTime();
             timeRemaining += numRequestsRemaining * executedRequestsAverageTime;
-            if (!jobStatus.equals(BatchJob.PROCESSING)) {
+            if (!jobStatus.equals(BatchJobStatus.PROCESSING)) {
               timeRemaining += stats.getExecuteScheduledGroupsAverageTime();
-              if (!jobStatus.equals(BatchJob.REQUESTS_CREATED)) {
+              if (!jobStatus.equals(BatchJobStatus.REQUESTS_CREATED)) {
                 timeRemaining += numRequests * stats.getPreProcessedRequestsAverageTime();
-                if (!jobStatus.equals(BatchJob.CREATING_REQUESTS)) {
+                if (!jobStatus.equals(BatchJobStatus.CREATING_REQUESTS)) {
                   timeRemaining += stats.getPreProcessScheduledJobsAverageTime();
                 }
               }
@@ -388,6 +391,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     this.dataAccessObject.write(object);
   }
 
+  @Resource
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
     this.dataAccessObject = batchJobService.getDataAccessObject();

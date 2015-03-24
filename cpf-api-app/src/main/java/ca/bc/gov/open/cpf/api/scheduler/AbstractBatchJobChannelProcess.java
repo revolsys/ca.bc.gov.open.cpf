@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
-import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
@@ -42,8 +41,8 @@ import com.revolsys.parallel.process.InvokeMethodRunnable;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 
-public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
-  implements Process, PropertyChangeListener {
+public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor implements Process,
+  PropertyChangeListener {
   private final String jobStatusToProcess;
 
   /** The batch job service used to interact with the database. */
@@ -65,8 +64,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
   private int taskCount = 0;
 
   public AbstractBatchJobChannelProcess(final String jobStatusToProcess) {
-    super(0, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
-      new NamedThreadFactory());
+    super(0, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory());
     this.jobStatusToProcess = jobStatusToProcess;
     this.in.readConnect();
   }
@@ -118,10 +116,6 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
 
   public CpfConfig getConfig() {
     return this.config;
-  }
-
-  protected CpfDataAccessObject getDataAccessObject() {
-    return this.batchJobService.getDataAccessObject();
   }
 
   public Channel<Long> getIn() {
@@ -203,8 +197,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     synchronized (this.scheduledIds) {
       if (!this.scheduledIds.contains(batchJobId)) {
         this.scheduledIds.add(batchJobId);
-        final Runnable runnable = new InvokeMethodRunnable(this,
-          "processJobWrapper", batchJobId);
+        final Runnable runnable = new InvokeMethodRunnable(this, "processJobWrapper", batchJobId);
         execute(runnable);
       }
     }
@@ -220,10 +213,9 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     }
   }
 
-  public void scheduleFromDatabase(final String moduleName,
-    final String businessApplicationName) {
-    this.batchJobService.scheduleFromDatabase(moduleName,
-      businessApplicationName, this.jobStatusToProcess);
+  public void scheduleFromDatabase(final String moduleName, final String businessApplicationName) {
+    this.batchJobService.scheduleFromDatabase(moduleName, businessApplicationName,
+      this.jobStatusToProcess);
   }
 
   /**

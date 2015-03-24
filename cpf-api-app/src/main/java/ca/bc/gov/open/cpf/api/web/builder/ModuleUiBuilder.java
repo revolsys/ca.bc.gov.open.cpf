@@ -182,7 +182,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   })
   @ResponseBody
   public Element createModulePageEdit(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName)
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
@@ -262,7 +262,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Element createModulePageView(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName)
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
@@ -303,7 +303,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/delete"
   }, method = RequestMethod.POST)
   public void postModuleDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName)
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Module module = getModule(request, moduleName);
@@ -315,7 +315,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/restart"
   }, method = RequestMethod.POST)
   public void postModuleRestart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName)
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
@@ -327,7 +327,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/start"
   }, method = RequestMethod.POST)
   public void postModuleStart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName)
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
@@ -339,7 +339,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/stop"
   }, method = RequestMethod.POST)
   public void postModuleStop(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName)
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);

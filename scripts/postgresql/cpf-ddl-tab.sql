@@ -1,138 +1,234 @@
-CREATE SCHEMA CPF;
- 
+CREATE TABLE cpf_application_statistics (
+    application_statistic_id bigint NOT NULL,
+    business_application_name character varying(255) NOT NULL,
+    start_timestamp timestamp without time zone NOT NULL,
+    duration_type character varying(10) NOT NULL,
+    statistic_values character varying(4000) NOT NULL
+);
 
+ALTER TABLE cpf_application_statistics
+    ADD CONSTRAINT application_statistics_pk PRIMARY KEY (application_statistic_id);
 
-CREATE TABLE CPF.CPF_USER_GROUP_PERMISSIONS
- (USER_GROUP_PERMISSION_ID NUMERIC(19,0) NOT NULL
- ,MODULE_NAME VARCHAR(255) NOT NULL
- ,USER_GROUP_ID NUMERIC(19) NOT NULL
- ,RESOURCE_CLASS VARCHAR(255) NOT NULL
- ,RESOURCE_ID VARCHAR(4000) NOT NULL
- ,ACTION_NAME VARCHAR(255) NOT NULL
- ,ACTIVE_IND NUMERIC(1,0) NOT NULL
- ,WHO_CREATED VARCHAR(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- );
+CREATE SEQUENCE cpf_as_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-CREATE TABLE CPF.CPF_BATCH_JOB_RESULTS
- (BATCH_JOB_RESULT_ID NUMERIC(19,0) NOT NULL
- ,BATCH_JOB_ID NUMERIC(19,0) NOT NULL
- ,BATCH_JOB_RESULT_TYPE VARCHAR(50) NOT NULL
- ,RESULT_DATA_CONTENT_TYPE VARCHAR(255) NOT NULL
- ,DOWNLOAD_TIMESTAMP TIMESTAMP
- ,SEQUENCE_NUMBER NUMERIC(19,0)
- ,RESULT_DATA OID
- ,RESULT_DATA_URL VARCHAR(2000)
- ,WHO_CREATED VARCHAR(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- );
+CREATE TABLE cpf_batch_jobs (
+    batch_job_id bigint NOT NULL,
+    user_id character varying(50) NOT NULL,
+    business_application_name character varying(255) NOT NULL,
+    business_application_params text,
+    properties text,
+    when_status_changed timestamp without time zone NOT NULL,
+    completed_timestamp timestamp without time zone,
+    input_data_content_type character varying(255),
+    structured_input_data_url character varying(2000),
+    job_status character varying(50) NOT NULL,
+    last_scheduled_timestamp timestamp without time zone,
+    notification_url character varying(2000),
+    num_completed_requests integer NOT NULL,
+    num_failed_requests integer NOT NULL,
+    num_submitted_requests integer NOT NULL,
+    result_data_content_type character varying(255) NOT NULL,
+    who_created character varying(36) NOT NULL,
+    when_created timestamp without time zone NOT NULL,
+    who_updated character varying(36) NOT NULL,
+    when_updated timestamp without time zone NOT NULL,
+    num_submitted_groups numeric(19,0) NOT NULL,
+    num_completed_groups numeric(19,0) NOT NULL,
+    group_size numeric(5,0) NOT NULL
+);
 
-CREATE TABLE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS
- (BATCH_JOB_ID NUMERIC(19,0) NOT NULL
- ,BATCH_JOB_RESULT_ID NUMERIC(19,0)
- ,SEQUENCE_NUMBER NUMERIC(19,0) NOT NULL
- ,COMPLETED_IND NUMERIC(1,0) NOT NULL
- ,STARTED_IND NUMERIC(1,0) NOT NULL
- ,NUM_SUBMITTED_REQUESTS NUMERIC(19,0) NOT NULL
- ,NUM_COMPLETED_REQUESTS NUMERIC(19,0) NOT NULL
- ,NUM_FAILED_REQUESTS NUMERIC(19,0) NOT NULL
- ,INPUT_DATA OID
- ,INPUT_DATA_URL VARCHAR(2000)
- ,INPUT_DATA_CONTENT_TYPE VARCHAR(255)
- ,RESULT_DATA OID
- ,RESULT_DATA_URL VARCHAR(2000)
- ,STRUCTURED_INPUT_DATA TEXT
- ,STRUCTURED_RESULT_DATA TEXT
- ,WHO_CREATED VARCHAR(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- );
+ALTER TABLE cpf_batch_jobs
+    ADD CONSTRAINT batch_jobs_pk PRIMARY KEY (batch_job_id);
 
-CREATE TABLE CPF.CPF_APPLICATION_STATISTICS
- (APPLICATION_STATISTIC_ID NUMERIC(19) NOT NULL
- ,BUSINESS_APPLICATION_NAME VARCHAR(255) NOT NULL
- ,START_TIMESTAMP DATE NOT NULL
- ,DURATION_TYPE VARCHAR(10) NOT NULL
- ,STATISTIC_VALUES VARCHAR(4000) NOT NULL
- );
+CREATE INDEX batch_jobs_status_app_idx ON cpf.cpf_batch_jobs (job_status, business_application_name);
 
-CREATE TABLE CPF.CPF_BATCH_JOBS
- (BATCH_JOB_ID NUMERIC(19,0) NOT NULL
- ,BUSINESS_APPLICATION_NAME VARCHAR(255) NOT NULL
- ,JOB_STATUS VARCHAR(50) NOT NULL
- ,GROUP_SIZE NUMERIC(5,0) NOT NULL
- ,NUM_SUBMITTED_GROUPS NUMERIC(19,0) NOT NULL
- ,NUM_COMPLETED_GROUPS NUMERIC(19,0) NOT NULL
- ,NUM_SCHEDULED_GROUPS NUMERIC(19,0) NOT NULL
- ,NUM_COMPLETED_REQUESTS NUMERIC(19,0) NOT NULL
- ,NUM_FAILED_REQUESTS NUMERIC(19,0) NOT NULL
- ,NUM_SUBMITTED_REQUESTS NUMERIC(19,0) NOT NULL
- ,RESULT_DATA_CONTENT_TYPE VARCHAR(255) NOT NULL
- ,USER_ID VARCHAR(50) NOT NULL
- ,WHEN_STATUS_CHANGED TIMESTAMP NOT NULL
- ,BUSINESS_APPLICATION_PARAMS VARCHAR(4000)
- ,COMPLETED_TIMESTAMP TIMESTAMP
- ,STRUCTURED_INPUT_DATA OID
- ,STRUCTURED_INPUT_DATA_URL VARCHAR(255)
- ,INPUT_DATA_CONTENT_TYPE VARCHAR(255)
- ,LAST_SCHEDULED_TIMESTAMP TIMESTAMP
- ,NOTIFICATION_URL VARCHAR(2000)
- ,PROPERTIES VARCHAR(4000)
- ,WHO_CREATED VARCHAR(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- );
-
-CREATE TABLE CPF.CPF_USER_GROUP_ACCOUNT_XREF
- (USER_GROUP_ID NUMERIC(19,0) NOT NULL
- ,USER_ACCOUNT_ID NUMERIC(19,0) NOT NULL
- );
-
-CREATE TABLE CPF.CPF_USER_ACCOUNTS
- (USER_ACCOUNT_ID NUMERIC(19,0) NOT NULL
- ,USER_ACCOUNT_CLASS VARCHAR(255) NOT NULL
- ,USER_NAME VARCHAR(4000) NOT NULL
- ,CONSUMER_KEY VARCHAR(36) NOT NULL
- ,CONSUMER_SECRET VARCHAR(36) NOT NULL
- ,ACTIVE_IND NUMERIC(1,0) NOT NULL
- ,WHO_CREATED VARCHAR(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- );
-
-CREATE TABLE CPF.CPF_CONFIG_PROPERTIES
- (CONFIG_PROPERTY_ID NUMERIC(19,0) NOT NULL
- ,ENVIRONMENT_NAME VARCHAR(255) NOT NULL
- ,MODULE_NAME VARCHAR(255) NOT NULL
- ,COMPONENT_NAME VARCHAR(255) NOT NULL
- ,PROPERTY_NAME VARCHAR(255) NOT NULL
- ,PROPERTY_VALUE_TYPE VARCHAR(255) NOT NULL
- ,PROPERTY_VALUE VARCHAR(4000)
- ,WHO_CREATED VARCHAR(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- );
-
-CREATE TABLE CPF.CPF_USER_GROUPS
- (USER_GROUP_ID NUMERIC(19,0) NOT NULL
- ,MODULE_NAME VARCHAR(255) NOT NULL
- ,USER_GROUP_NAME VARCHAR(255) NOT NULL
- ,DESCRIPTION VARCHAR(4000)
- ,ACTIVE_IND NUMERIC(1,0) NOT NULL
- ,WHO_CREATED VARCHAR(36) NOT NULL
- ,WHEN_CREATED TIMESTAMP NOT NULL
- ,WHO_UPDATED VARCHAR(36) NOT NULL
- ,WHEN_UPDATED TIMESTAMP NOT NULL
- );
-
---CREATE TRIGGER CPF_BATCH_JOB_RESULTS_RESULT_DATA BEFORE UPDATE OR DELETE ON CPF.CPF_BATCH_JOB_RESULTS
---    FOR EACH ROW EXECUTE PROCEDURE lo_manage(CPF_BATCH_JOB_RESULTS_RESULT_DATA);
+CREATE SEQUENCE cpf_bj_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
     
+CREATE TABLE cpf_batch_job_execution_groups (
+    completed_ind numeric(1,0),
+    input_data oid,
+    input_data_content_type character varying(255),
+    input_data_url character varying(2000),
+    sequence_number integer NOT NULL,
+    result_data oid,
+    result_data_url character varying(2000),
+    started_ind numeric(1,0),
+    structured_input_data text,
+    structured_result_data text,
+    who_created character varying(36) NOT NULL,
+    when_created timestamp without time zone NOT NULL,
+    who_updated character varying(36) NOT NULL,
+    when_updated timestamp without time zone NOT NULL,
+    batch_job_id bigint NOT NULL,
+    num_submitted_requests numeric(19,0) NOT NULL,
+    num_completed_requests numeric(19,0) NOT NULL,
+    num_failed_requests numeric(19,0) NOT NULL
+);
+
+ALTER TABLE cpf_batch_job_execution_groups
+    ADD CONSTRAINT batch_job_execution_groups_pk PRIMARY KEY (batch_job_id, sequence_number);
+
+ALTER TABLE cpf_batch_job_execution_groups
+    ADD CONSTRAINT execution_group_batch_job_fk FOREIGN KEY (batch_job_id) REFERENCES CPF.cpf_batch_jobs(batch_job_id) ON DELETE CASCADE;
+
+CREATE INDEX batch_jon_execution_idx ON cpf.cpf_batch_job_execution_groups (batch_job_id, started_ind);
+
+CREATE TABLE cpf_batch_job_files (
+    batch_job_id bigint NOT NULL,
+    path character varying(20) NOT NULL,
+    sequence_number bigint NOT NULL,
+    data oid,
+    content_type character varying(50)
+);
+
+ALTER TABLE cpf_batch_job_files
+    ADD CONSTRAINT batch_job_files_pk PRIMARY KEY (batch_job_id, path, sequence_number);
+
+ALTER TABLE cpf_batch_job_files
+    ADD CONSTRAINT batch_job_files_job_fk FOREIGN KEY (batch_job_id) REFERENCES CPF.cpf_batch_jobs(batch_job_id);
+
+CREATE INDEX bacth_job_files_job_idx ON cpf.cpf_batch_job_files (batch_job_id);
+
+CREATE TABLE cpf_batch_job_results (
+    batch_job_result_type character varying(50) NOT NULL,
+    download_timestamp timestamp without time zone,
+    sequence_number integer NOT NULL,
+    result_data oid,
+    result_data_content_type character varying(255) NOT NULL,
+    result_data_url character varying(2000),
+    who_created character varying(36) NOT NULL,
+    when_created timestamp without time zone NOT NULL,
+    who_updated character varying(36) NOT NULL,
+    when_updated timestamp without time zone NOT NULL,
+    batch_job_id bigint NOT NULL
+);
+
+ALTER TABLE cpf_batch_job_results
+    ADD CONSTRAINT batch_job_results_pk PRIMARY KEY (batch_job_id, sequence_number);
+
+ALTER TABLE cpf_batch_job_results
+    ADD CONSTRAINT batch_job_results_fk FOREIGN KEY (batch_job_id) REFERENCES CPF.cpf_batch_jobs(batch_job_id) ON DELETE CASCADE;
+
+CREATE TABLE cpf_config_properties (
+    config_property_id bigint NOT NULL,
+    environment_name character varying(255) NOT NULL,
+    module_name character varying(255) NOT NULL,
+    component_name character varying(255) NOT NULL,
+    property_name character varying(255) NOT NULL,
+    property_value character varying(4000),
+    property_value_type character varying(50) NOT NULL,
+    who_created character varying(255) NOT NULL,
+    when_created timestamp without time zone NOT NULL,
+    who_updated character varying(255) NOT NULL,
+    when_updated timestamp without time zone NOT NULL
+);
+
+ALTER TABLE cpf_config_properties
+    ADD CONSTRAINT config_properties_pk PRIMARY KEY (config_property_id);
+
+CREATE SEQUENCE cpf_cp_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE cpf_user_accounts (
+    user_account_id bigint NOT NULL,
+    user_account_class character varying(255) NOT NULL,
+    user_name character varying(255) NOT NULL,
+    consumer_key character varying(36) NOT NULL,
+    consumer_secret character varying(36) NOT NULL,
+    active_ind numeric(1,0) NOT NULL,
+    who_created character varying(255) NOT NULL,
+    when_created timestamp without time zone NOT NULL,
+    who_updated character varying(255) NOT NULL,
+    when_updated timestamp without time zone NOT NULL
+);
+
+ALTER TABLE cpf_user_accounts
+    ADD CONSTRAINT user_accounts_pk PRIMARY KEY (user_account_id);
+
+CREATE SEQUENCE cpf_ua_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE cpf_user_groups (
+    user_group_id bigint NOT NULL,
+    module_name character varying(255) NOT NULL,
+    user_group_name character varying(255) NOT NULL,
+    description character varying(4000),
+    active_ind numeric(1,0) NOT NULL,
+    who_created character varying(255) NOT NULL,
+    when_created timestamp without time zone NOT NULL,
+    who_updated character varying(255) NOT NULL,
+    when_updated timestamp without time zone NOT NULL
+);
+
+ALTER TABLE cpf_user_groups
+    ADD CONSTRAINT user_groups_pk PRIMARY KEY (user_group_id);
+
+ALTER TABLE cpf_user_groups
+    ADD CONSTRAINT user_groups_user_group_name_uk UNIQUE (user_group_name);
+
+CREATE SEQUENCE cpf_ug_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+CREATE TABLE cpf_user_group_account_xref (
+    user_account_id bigint NOT NULL,
+    user_group_id bigint NOT NULL
+);
+
+ALTER TABLE cpf_user_group_account_xref
+    ADD CONSTRAINT user_group_account_xref_pk PRIMARY KEY (user_group_id, user_account_id);
+
+ALTER TABLE cpf_user_group_account_xref
+    ADD CONSTRAINT user_group_xref_account_fk FOREIGN KEY (user_account_id) REFERENCES CPF.cpf_user_accounts(user_account_id);
+
+ALTER TABLE cpf_user_group_account_xref
+    ADD CONSTRAINT user_account_xref_group_fk FOREIGN KEY (user_group_id) REFERENCES CPF.cpf_user_groups(user_group_id);
+
+CREATE TABLE cpf_user_group_permissions (
+    user_group_permission_id bigint NOT NULL,
+    module_name character varying(255) NOT NULL,
+    resource_class character varying(255) NOT NULL,
+    resource_id character varying(255) NOT NULL,
+    action_name character varying(255) NOT NULL,
+    active_ind numeric(1,0) NOT NULL,
+    when_created timestamp without time zone NOT NULL,
+    who_created character varying(30) NOT NULL,
+    when_updated timestamp without time zone NOT NULL,
+    who_updated character varying(30) NOT NULL,
+    user_group_id bigint NOT NULL
+);
+
+ALTER TABLE cpf_user_group_permissions
+    ADD CONSTRAINT user_group_permissions_pk PRIMARY KEY (user_group_permission_id);
+
+
+ALTER TABLE cpf_user_group_permissions
+    ADD CONSTRAINT user_group_permissions_fk FOREIGN KEY (user_group_id) REFERENCES CPF.cpf_user_groups(user_group_id) ON DELETE CASCADE;
+
+CREATE SEQUENCE cpf_ugp_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;

@@ -67,7 +67,7 @@ public class WorkerUiBuilder extends CpfUiBuilder {
     "/admin/workers/{workerId}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public ElementContainer pageView(@PathVariable final String workerId) {
+  public ElementContainer pageView(@PathVariable("workerId") final String workerId) {
     checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);

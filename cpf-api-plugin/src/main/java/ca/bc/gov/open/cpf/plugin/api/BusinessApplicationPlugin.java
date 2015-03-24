@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
  * <p>The <code>BusinessApplicationPlugin</code> annotation marks a Java class as a CPF business
  * application plug-in. The plug-in class must have the <code>public</code> keyword, be defined in a separate
  * Java file, must not be in the default package (must have a package declaration) and must not
- * have the <code>final</code> keyword.<p>
+ * have the <code>final</code> keyword.</p>
  *
  * <p>The instance of the plug-in is executed within a single thread so does not need to be
  * synchronized. Any services that it uses must however be thread safe as they will be used by
@@ -73,6 +73,8 @@ public @interface BusinessApplicationPlugin {
   /**
    * <p>A <a href="http://static.springsource.org/spring-security/site/docs/3.0.x/reference/el-access.html">Spring security expression</a>
    * indicating if a user has permission to submit single or multiple requests for batch execution.</p>
+   *
+   * @return The batch mode permission
    */
   String batchModePermission() default "permitAll";
 
@@ -113,8 +115,9 @@ public @interface BusinessApplicationPlugin {
   /**
    * <p>The level of logging to include for requests processed by the plug-in.</p>
    *
-   * <div class="simpleDataTable">
-   *   <table>
+   * <div class="table-responsive">
+   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *     <caption>Log Levels</caption>
    *     <thead>
    *       <tr>
    *         <th>Level</th>

@@ -31,8 +31,6 @@ public interface BatchJobResult extends Common {
 
   public static final String BATCH_JOB_ID = "BATCH_JOB_ID";
 
-  public static final String RESULT_DATA = "RESULT_DATA";
-
   public static final String RESULT_DATA_URL = "RESULT_DATA_URL";
 
   public static final String RESULT_DATA_CONTENT_TYPE = "RESULT_DATA_CONTENT_TYPE";
@@ -64,9 +62,8 @@ public interface BatchJobResult extends Common {
 
   public static final String SEQUENCE_NUMBER = "SEQUENCE_NUMBER";
 
-  public static final List<String> ALL_EXCEPT_BLOB = Arrays.asList(
-    BATCH_JOB_RESULT_TYPE, DOWNLOAD_TIMESTAMP, SEQUENCE_NUMBER,
-    RESULT_DATA_CONTENT_TYPE, RESULT_DATA_URL, WHO_CREATED, WHEN_CREATED,
-    WHO_UPDATED, WHEN_UPDATED, BATCH_JOB_ID);
+  public static final List<String> ALL_EXCEPT_BLOB = Arrays.asList(BATCH_JOB_RESULT_TYPE,
+    DOWNLOAD_TIMESTAMP, SEQUENCE_NUMBER, RESULT_DATA_CONTENT_TYPE, RESULT_DATA_URL, WHO_CREATED,
+    WHEN_CREATED, WHO_UPDATED, WHEN_UPDATED, BATCH_JOB_ID);
 
 }

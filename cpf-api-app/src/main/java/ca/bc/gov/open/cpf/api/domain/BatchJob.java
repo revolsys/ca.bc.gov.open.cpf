@@ -1,127 +1,201 @@
-/*
- * Copyright © 2008-2015, Province of British Columbia
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package ca.bc.gov.open.cpf.api.domain;
 
-public interface BatchJob extends Common {
-  String BATCH_JOB = "/CPF/CPF_BATCH_JOBS";
+import java.sql.Timestamp;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 
-  String BATCH_JOB_ID = "BATCH_JOB_ID";
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-  String BUSINESS_APPLICATION_NAME = "BUSINESS_APPLICATION_NAME";
+import com.revolsys.collection.range.AbstractRange;
+import com.revolsys.collection.range.RangeSet;
+import com.revolsys.data.record.DelegatingRecord;
+import com.revolsys.data.record.Record;
 
-  String BUSINESS_APPLICATION_PARAMS = "BUSINESS_APPLICATION_PARAMS";
+public class BatchJob extends DelegatingRecord implements Common {
 
-  /**
-   * The cancelled BatchJobStatus indicates that request was cancelled and all requests and
-   * results have been removed.
-   */
-  String CANCELLED = "cancelled";
+  public static final String BATCH_JOB = "/CPF/CPF_BATCH_JOBS";
 
-  String COMPLETED_TIMESTAMP = "COMPLETED_TIMESTAMP";
+  public static final String BATCH_JOB_ID = "BATCH_JOB_ID";
 
-  /**
-   * The creatingRequests BatchJobStatus indicates the objects are being created
-   * by downloading the input data (if required), splitting the input data into
-   * BusinessApplicationRequests, and validating the data for each
-   * BusinessApplicationRequests.
-   */
-  String CREATING_REQUESTS = "creatingRequests";
+  public static final String BUSINESS_APPLICATION_NAME = "BUSINESS_APPLICATION_NAME";
 
-  /**
-   * The creatingResults BatchJobStatus indicates that the BatchJobResults are
-   * in the process of being created.
-   */
-  String CREATING_RESULTS = "creatingResults";
+  public static final String BUSINESS_APPLICATION_PARAMS = "BUSINESS_APPLICATION_PARAMS";
 
-  /**
-   * The downloadInitiated BatchJobStatus indicates that the user initiated the
-   * download of the BatchJobResults.
-   */
-  String DOWNLOAD_INITIATED = "downloadInitiated";
+  public static final String COMPLETED_TIMESTAMP = "COMPLETED_TIMESTAMP";
 
-  String GROUP_SIZE = "GROUP_SIZE";
+  public static final String COMPLETED_GROUP_RANGE = "COMPLETED_GROUP_RANGE";
 
-  String INPUT_DATA_CONTENT_TYPE = "INPUT_DATA_CONTENT_TYPE";
+  public static final String GROUP_SIZE = "GROUP_SIZE";
 
-  String JOB_STATUS = "JOB_STATUS";
+  public static final String INPUT_DATA_CONTENT_TYPE = "INPUT_DATA_CONTENT_TYPE";
 
-  String LAST_SCHEDULED_TIMESTAMP = "LAST_SCHEDULED_TIMESTAMP";
+  public static final String JOB_STATUS = "JOB_STATUS";
 
-  String NOTIFICATION_URL = "NOTIFICATION_URL";
+  public static final String LAST_SCHEDULED_TIMESTAMP = "LAST_SCHEDULED_TIMESTAMP";
 
-  String NUM_COMPLETED_REQUESTS = "NUM_COMPLETED_REQUESTS";
+  public static final String NOTIFICATION_URL = "NOTIFICATION_URL";
 
-  String NUM_FAILED_REQUESTS = "NUM_FAILED_REQUESTS";
+  public static final String NUM_COMPLETED_REQUESTS = "NUM_COMPLETED_REQUESTS";
 
-  String NUM_SCHEDULED_GROUPS = "NUM_SCHEDULED_GROUPS";
+  public static final String NUM_FAILED_REQUESTS = "NUM_FAILED_REQUESTS";
 
-  String NUM_SUBMITTED_GROUPS = "NUM_SUBMITTED_GROUPS";
+  public static final String NUM_SUBMITTED_GROUPS = "NUM_SUBMITTED_GROUPS";
 
-  String NUM_COMPLETED_GROUPS = "NUM_COMPLETED_GROUPS";
+  public static final String NUM_COMPLETED_GROUPS = "NUM_COMPLETED_GROUPS";
 
-  String NUM_SUBMITTED_REQUESTS = "NUM_SUBMITTED_REQUESTS";
+  public static final String NUM_SUBMITTED_REQUESTS = "NUM_SUBMITTED_REQUESTS";
 
-  /**
-   * The processed BatchJobStatus indicates that all the
-   * BusinessApplicationRequests of the BatchJob have been either successfully
-   * completed or permanently failed. The BatchJob is ready for the
-   * BatchJobResults to be created.
-   */
-  String PROCESSED = "processed";
+  public static final String PROPERTIES = "PROPERTIES";
 
-  /**
-   * The processing BatchJobStatus indicates that the BatchJob has been
-   * scheduled for execution by the BusinessApplication and some of the
-   * BusinessApplicationRequests may currently be executing.
-   */
-  String PROCESSING = "processing";
+  public static final String RESULT_DATA_CONTENT_TYPE = "RESULT_DATA_CONTENT_TYPE";
 
-  String PROPERTIES = "PROPERTIES";
+  public static final String STRUCTURED_INPUT_DATA_URL = "STRUCTURED_INPUT_DATA_URL";
 
-  /**
-   * The requestsCreated BatchJobStatus indicates the objects have been created
-   * by downloading the input data (if required), splitting the input data into
-   * BusinessApplicationRequests, and validating the data for each
-   * BusinessApplicationRequests.
-   */
-  String REQUESTS_CREATED = "requestsCreated";
+  public static final String USER_ID = "USER_ID";
 
-  String RESULT_DATA_CONTENT_TYPE = "RESULT_DATA_CONTENT_TYPE";
+  public static final String WHEN_STATUS_CHANGED = "WHEN_STATUS_CHANGED";
 
-  /**
-   * The resultsCreated BatchJobStatus indicates that the BatchJobResults have
-   * been created from the BusinessApplicationRequests for the BatchJob. The
-   * file is ready to be downloaded.
-   */
-  String RESULTS_CREATED = "resultsCreated";
+  private final RangeSet completedGroups;
 
-  String STRUCTURED_INPUT_DATA = "STRUCTURED_INPUT_DATA";
+  private final RangeSet scheduledGroups = new RangeSet();
 
-  String STRUCTURED_INPUT_DATA_URL = "STRUCTURED_INPUT_DATA_URL";
+  private RangeSet groupsToProcess;
 
-  /**
-   * The submitted BatchJobStatus indicates that job has been accepted by the
-   * application as is ready for the BusinessApplicationRequests be created by
-   * downloading the input data (if required), splitting the input data into
-   * tasks, and validating the data for each task.
-   */
-  String SUBMITTED = "submitted";
+  private final RangeSet failedRequests = new RangeSet();
 
-  String USER_ID = "USER_ID";
+  private final LinkedList<BatchJobRequestExecutionGroup> resheduledGroups = new LinkedList<>();
 
-  String WHEN_STATUS_CHANGED = "WHEN_STATUS_CHANGED";
+  private final Set<BatchJobRequestExecutionGroup> groups = new HashSet<>();
 
+  public BatchJob(final Record record) {
+    super(record);
+    final String completedRangeSpec = record.getString(BatchJob.COMPLETED_GROUP_RANGE);
+    this.completedGroups = RangeSet.create(completedRangeSpec);
+    final int groupCount = record.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
+    setGroupCount(groupCount);
+    this.groupsToProcess.remove(this.completedGroups);
+  }
+
+  public synchronized void addCompletedGroup(final long groupSequenceNumber) {
+    this.scheduledGroups.remove(groupSequenceNumber);
+    this.completedGroups.add(groupSequenceNumber);
+  }
+
+  public synchronized void addFailedRequest(final long sequenceNumber) {
+    this.failedRequests.add(sequenceNumber);
+  }
+
+  public String getCompletedGroups() {
+    return this.completedGroups.toString();
+  }
+
+  public Set<BatchJobRequestExecutionGroup> getGroups() {
+    return this.groups;
+  }
+
+  public String getGroupsToProcess() {
+    return this.groupsToProcess.toString();
+  }
+
+  public synchronized BatchJobRequestExecutionGroup getNextGroup(
+    final BusinessApplication businessApplication) {
+    if (!this.resheduledGroups.isEmpty()) {
+      return this.resheduledGroups.removeFirst();
+    } else if (this.groupsToProcess.size() == 0) {
+      return null;
+    } else {
+      final Object nextValue = this.groupsToProcess.removeFirst();
+      if (nextValue instanceof Number) {
+        final Integer sequenceNumber = ((Number)nextValue).intValue();
+        this.scheduledGroups.add(sequenceNumber);
+
+        final String userId = getValue(BatchJob.USER_ID);
+
+        final Map<String, String> businessApplicationParameterMap = BatchJobService.getBusinessApplicationParameters(this);
+        final String resultDataContentType = getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+        final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(userId, this,
+          businessApplication, businessApplicationParameterMap, resultDataContentType,
+          new Timestamp(System.currentTimeMillis()), sequenceNumber);
+        this.groups.add(group);
+        return group;
+      } else {
+        return null;
+      }
+    }
+  }
+
+  public synchronized Integer getNextGroupId() {
+    if (this.groupsToProcess.size() == 0) {
+      return null;
+    } else {
+      final Object nextValue = this.groupsToProcess.removeFirst();
+      if (nextValue instanceof Number) {
+        final Integer groupId = ((Number)nextValue).intValue();
+        this.scheduledGroups.add(groupId);
+        return groupId;
+      } else {
+        return null;
+      }
+    }
+  }
+
+  public String getScheduledGroups() {
+    return this.scheduledGroups.toString();
+  }
+
+  public synchronized boolean hasAvailableGroup() {
+    return this.groupsToProcess.size() > 0;
+  }
+
+  public synchronized boolean isCompleted() {
+    if (hasAvailableGroup()) {
+      return false;
+    } else if (this.scheduledGroups.size() > 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  public boolean isProcessing() {
+    final String status = getValue(JOB_STATUS);
+    if (status.equals(BatchJobStatus.REQUESTS_CREATED)) {
+      return true;
+    } else if (status.equals(BatchJobStatus.PROCESSING)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public synchronized void removeGroup(final BatchJobRequestExecutionGroup group) {
+    this.groups.remove(group);
+  }
+
+  public synchronized void reset() {
+    this.resheduledGroups.clear();
+    this.groups.clear();
+    for (final AbstractRange<?> range : this.scheduledGroups.getRanges()) {
+      this.groupsToProcess.addRange(range);
+    }
+    this.scheduledGroups.clear();
+  }
+
+  public void rescheduleGroup(final BatchJobRequestExecutionGroup group) {
+    this.resheduledGroups.add(group);
+  }
+
+  public synchronized void setGroupCount(final int groupCount) {
+    setValue(BatchJob.NUM_SUBMITTED_GROUPS, groupCount);
+    if (groupCount == 0) {
+      this.groupsToProcess = new RangeSet();
+    } else {
+      this.groupsToProcess = RangeSet.create(1, groupCount);
+    }
+  }
 }

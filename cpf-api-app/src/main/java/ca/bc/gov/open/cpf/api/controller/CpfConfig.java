@@ -23,10 +23,10 @@ import java.sql.ResultSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.slf4j.LoggerFactory;
 
 import com.revolsys.beans.PropertyChangeSupportProxy;
+import com.revolsys.jdbc.io.DataSourceImpl;
 import com.revolsys.util.Property;
 
 public class CpfConfig implements PropertyChangeSupportProxy {
@@ -38,7 +38,7 @@ public class CpfConfig implements PropertyChangeSupportProxy {
   private String internalWebServiceUrl = "https://localhost/pub/cpf";
 
   @Resource(name = "cpfDataSource")
-  private BasicDataSource dataSource;
+  private DataSourceImpl dataSource;
 
   private int preProcessPoolSize = 10;
 
@@ -48,8 +48,7 @@ public class CpfConfig implements PropertyChangeSupportProxy {
 
   private int groupResultPoolSize = 10;
 
-  private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(
-    this);
+  private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
   public String getBaseUrl() {
     return this.baseUrl;
@@ -101,8 +100,7 @@ public class CpfConfig implements PropertyChangeSupportProxy {
         Property.set(this, propertyName, propertyValue);
       }
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error("Unable to load configuration",
-        e);
+      LoggerFactory.getLogger(getClass()).error("Unable to load configuration", e);
     }
   }
 
@@ -121,8 +119,8 @@ public class CpfConfig implements PropertyChangeSupportProxy {
     }
     final int oldValue = this.groupResultPoolSize;
     this.groupResultPoolSize = groupResultPoolSize;
-    this.propertyChangeSupport.firePropertyChange("groupResultPoolSize",
-      oldValue, groupResultPoolSize);
+    this.propertyChangeSupport.firePropertyChange("groupResultPoolSize", oldValue,
+      groupResultPoolSize);
   }
 
   public void setInternalWebServiceUrl(final String internalWebServiceUrl) {
@@ -136,30 +134,27 @@ public class CpfConfig implements PropertyChangeSupportProxy {
     }
     final int oldValue = this.postProcessPoolSize;
     this.postProcessPoolSize = postProcessPoolSize;
-    this.propertyChangeSupport.firePropertyChange("postProcessPoolSize",
-      oldValue, postProcessPoolSize);
+    this.propertyChangeSupport.firePropertyChange("postProcessPoolSize", oldValue,
+      postProcessPoolSize);
   }
 
   public void setPreProcessPoolSize(final int preProcessPoolSize) {
     if (preProcessPoolSize < 1) {
-      throw new IllegalArgumentException("preProcessPoolSize must be > 1 not "
-        + preProcessPoolSize);
+      throw new IllegalArgumentException("preProcessPoolSize must be > 1 not " + preProcessPoolSize);
     }
     final int oldValue = this.preProcessPoolSize;
     this.preProcessPoolSize = preProcessPoolSize;
-    this.propertyChangeSupport.firePropertyChange("preProcessPoolSize",
-      oldValue, preProcessPoolSize);
+    this.propertyChangeSupport.firePropertyChange("preProcessPoolSize", oldValue,
+      preProcessPoolSize);
   }
 
   public void setSchedulerPoolSize(final int schedulerPoolSize) {
     if (schedulerPoolSize < 1) {
-      throw new IllegalArgumentException("schedulerPoolSize must be > 1 not "
-        + schedulerPoolSize);
+      throw new IllegalArgumentException("schedulerPoolSize must be > 1 not " + schedulerPoolSize);
     }
     final int oldValue = this.schedulerPoolSize;
     this.schedulerPoolSize = schedulerPoolSize;
-    this.propertyChangeSupport.firePropertyChange("schedulerPoolSize",
-      oldValue, schedulerPoolSize);
+    this.propertyChangeSupport.firePropertyChange("schedulerPoolSize", oldValue, schedulerPoolSize);
   }
 
   public void setSecureBaseUrl(final String secureBaseUrl) {

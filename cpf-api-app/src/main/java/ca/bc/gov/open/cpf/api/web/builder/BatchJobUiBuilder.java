@@ -51,8 +51,7 @@ import com.revolsys.util.Property;
 public class BatchJobUiBuilder extends CpfUiBuilder {
 
   public BatchJobUiBuilder() {
-    super("batchJob", BatchJob.BATCH_JOB, BatchJob.BATCH_JOB_ID, "Batch Job",
-        "Batch Jobs");
+    super("batchJob", BatchJob.BATCH_JOB, BatchJob.BATCH_JOB_ID, "Batch Job", "Batch Jobs");
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
@@ -63,14 +62,21 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final Map<String, String> parameterKeys = new HashMap<String, String>();
     parameterKeys.put("moduleName", "moduleName");
     parameterKeys.put("businessApplicationName", "name");
-    appBuilder.serializeLink(out, businessApplication, "name", "moduleView",
-      parameterKeys);
+    appBuilder.serializeLink(out, businessApplication, "name", "moduleView", parameterKeys);
   }
 
   @Override
   public Object getProperty(final Object object, final String keyName) {
-    if (keyName.startsWith("BUSINESS_APPLICATION_NAME")
-        && object instanceof Record) {
+    if (keyName.equals("groupsToProcess")) {
+      final BatchJob batchJob = (BatchJob)object;
+      return batchJob.getGroupsToProcess();
+    } else if (keyName.equals("scheduledGroups")) {
+      final BatchJob batchJob = (BatchJob)object;
+      return batchJob.getScheduledGroups();
+    } else if (keyName.equals("completedGroups")) {
+      final BatchJob batchJob = (BatchJob)object;
+      return batchJob.getCompletedGroups();
+    } else if (keyName.startsWith("BUSINESS_APPLICATION_NAME") && object instanceof Record) {
       final Record batchJob = (Record)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       BusinessApplication businessApplication = getBusinessApplicationRegistry().getBusinessApplication(
@@ -109,8 +115,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     "/admin/jobs"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object pageList(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException {
+  public Object pageList(final HttpServletRequest request, final HttpServletResponse response)
+    throws IOException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     HttpServletUtils.setAttribute("title", "Batch Jobs");
     return createDataTableHandler(request, "list");
@@ -121,9 +127,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Object pageModuleAppList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName,
-    @PathVariable final String businessApplicationName) throws IOException,
-    ServletException {
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("businessApplicationName") final String businessApplicationName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
 
@@ -142,10 +147,9 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public ElementContainer pageModuleAppView(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName,
-    @PathVariable final String businessApplicationName,
-    @PathVariable final Integer batchJobId) throws IOException,
-    ServletException {
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Integer batchJobId)
+    throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final Record batchJob = getBatchJob(businessApplicationName, batchJobId);
@@ -156,11 +160,10 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final Map<String, Object> parameters = new HashMap<String, Object>();
     parameters.put("serverSide", Boolean.TRUE);
 
-    addTabDataTable(tabs, BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP,
-      "moduleAppJobList", parameters);
-
-    addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList",
+    addTabDataTable(tabs, BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP, "moduleAppJobList",
       parameters);
+
+    addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList", parameters);
 
     return tabs;
   }
@@ -168,13 +171,11 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}/cancel"
   }, method = RequestMethod.POST)
-  public void postClientCancel(@PathVariable final long batchJobId) {
+  public void postClientCancel(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey,
-      batchJobId);
+    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, batchJobId);
     if (batchJob == null) {
-      throw new PageNotFoundException("The job " + batchJobId
-        + " does not exist");
+      throw new PageNotFoundException("The job " + batchJobId + " does not exist");
     } else {
       final BatchJobService batchJobService = getBatchJobService();
       batchJobService.cancelBatchJob(batchJobId);
@@ -185,13 +186,11 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}/delete"
   }, method = RequestMethod.POST)
-  public void postClientDelete(@PathVariable final long batchJobId) {
+  public void postClientDelete(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey,
-      batchJobId);
+    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, batchJobId);
     if (batchJob == null) {
-      throw new PageNotFoundException("The job " + batchJobId
-        + " does not exist");
+      throw new PageNotFoundException("The job " + batchJobId + " does not exist");
     } else {
       final BatchJobService batchJobService = getBatchJobService();
       batchJobService.deleteJob(batchJobId);
@@ -199,14 +198,13 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     }
   }
 
-  @RequestMapping(
-    value = {
-      "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel"
-    }, method = RequestMethod.POST)
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/cancel"
+  }, method = RequestMethod.POST)
   public void postModuleAppCancel(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName,
-    @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId)
+    throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
@@ -219,14 +217,13 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     }
   }
 
-  @RequestMapping(
-    value = {
-      "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/delete"
-    }, method = RequestMethod.POST)
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/delete"
+  }, method = RequestMethod.POST)
   public void postModuleAppDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName,
-    @PathVariable final String businessApplicationName,
-    @PathVariable final Long batchJobId) throws IOException, ServletException {
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId)
+    throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();

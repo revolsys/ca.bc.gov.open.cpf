@@ -74,6 +74,9 @@ public class PluginAdaptor {
     "inputDataUrl", "inputDataContentType"
   };
 
+  private static final List<String> INTERNAL_PROPERTY_NAMES = Arrays.asList("sequenceNumber",
+    "resultNumber");
+
   private final Object plugin;
 
   private final BusinessApplication application;
@@ -86,17 +89,14 @@ public class PluginAdaptor {
 
   private final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 
-  private static final List<String> INTERNAL_PROPERTY_NAMES = Arrays.asList(
-    "sequenceNumber", "resultNumber");
-
   private final Map<String, Object> parameters = new HashMap<String, Object>();
 
   private final AppLog appLog;
 
   private Map<String, Object> customizationProperties = Collections.emptyMap();
 
-  public PluginAdaptor(final BusinessApplication application,
-    final Object plugin, String executionId, final String logLevel) {
+  public PluginAdaptor(final BusinessApplication application, final Object plugin,
+    String executionId, final String logLevel) {
     this.application = application;
     this.plugin = plugin;
     if (!Property.hasValue(logLevel)) {
@@ -105,8 +105,7 @@ public class PluginAdaptor {
     this.appLog = new AppLog(application.getName(), executionId, logLevel);
     try {
       final Class<? extends Object> pluginClass = plugin.getClass();
-      final Method setAppLogMethod = pluginClass.getMethod("setAppLog",
-        AppLog.class);
+      final Method setAppLogMethod = pluginClass.getMethod("setAppLog", AppLog.class);
       try {
         setAppLogMethod.invoke(plugin, this.appLog);
       } catch (final IllegalAccessException e) {
@@ -130,14 +129,11 @@ public class PluginAdaptor {
       && BooleanStringConverter.isTrue(this.testParameters.get("cpfPluginTest"));
     try {
       if (testMode) {
-        double minTime = Maps.getDouble(this.testParameters,
-          "cpfMinExecutionTime", -1.0);
-        double maxTime = Maps.getDouble(this.testParameters,
-          "cpfMaxExecutionTime", -1.0);
-        final double meanTime = Maps.getDouble(this.testParameters,
-          "cpfMeanExecutionTime", -1.0);
-        final double standardDeviation = Maps.getDouble(
-          this.testParameters, "cpfStandardDeviation", -1.0);
+        double minTime = Maps.getDouble(this.testParameters, "cpfMinExecutionTime", -1.0);
+        double maxTime = Maps.getDouble(this.testParameters, "cpfMaxExecutionTime", -1.0);
+        final double meanTime = Maps.getDouble(this.testParameters, "cpfMeanExecutionTime", -1.0);
+        final double standardDeviation = Maps.getDouble(this.testParameters,
+          "cpfStandardDeviation", -1.0);
         double executionTime;
         if (standardDeviation <= 0) {
           if (minTime < 0) {
@@ -161,8 +157,7 @@ public class PluginAdaptor {
           ThreadUtil.pause(milliSeconds);
         }
         if (this.application.isHasTestExecuteMethod()) {
-          MethodUtils.invokeExactMethod(this.plugin, "testExecute",
-            new Object[0]);
+          MethodUtils.invokeExactMethod(this.plugin, "testExecute", new Object[0]);
         }
       } else {
         MethodUtils.invokeExactMethod(this.plugin, "execute", new Object[0]);
@@ -174,17 +169,16 @@ public class PluginAdaptor {
       } else if (cause instanceof Error) {
         throw (Error)cause;
       } else {
-        throw new RuntimeException("Unable to invoke execute on "
-          + this.application.getName(), cause);
+        throw new RuntimeException("Unable to invoke execute on " + this.application.getName(),
+          cause);
       }
     } catch (final Throwable t) {
-      throw new RuntimeException("Unable to invoke execute on "
-        + this.application.getName(), t);
+      throw new RuntimeException("Unable to invoke execute on " + this.application.getName(), t);
     }
     if (this.application.isHasCustomizationProperties()) {
       try {
-        this.customizationProperties = (Map<String, Object>)Property.get(
-          this.plugin, "customizationProperties");
+        this.customizationProperties = (Map<String, Object>)Property.get(this.plugin,
+          "customizationProperties");
       } catch (final Throwable e) {
         this.appLog.error("Unable to get customization properties", e);
       }
@@ -193,24 +187,21 @@ public class PluginAdaptor {
       this.responseFields = getResult(this.plugin, false, testMode);
       this.results.add(this.responseFields);
     } else {
-      final List<Object> resultObjects = JavaBeanUtil.getProperty(this.plugin,
-        resultListProperty);
+      final List<Object> resultObjects = JavaBeanUtil.getProperty(this.plugin, resultListProperty);
       if (resultObjects == null || resultObjects.isEmpty()) {
         if (testMode) {
-          final double meanNumResults = Maps.getDouble(
-            this.testParameters, "cpfMeanNumResults", 3.0);
-          final int numResults = (int)Math.round(MathUtil.randomGaussian(
-            meanNumResults, meanNumResults / 5));
+          final double meanNumResults = Maps.getDouble(this.testParameters, "cpfMeanNumResults",
+            3.0);
+          final int numResults = (int)Math.round(MathUtil.randomGaussian(meanNumResults,
+            meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
-            final Map<String, Object> result = getResult(this.plugin, true,
-              testMode);
+            final Map<String, Object> result = getResult(this.plugin, true, testMode);
             this.results.add(result);
           }
         }
       } else {
         for (final Object resultObject : resultObjects) {
-          final Map<String, Object> result = getResult(resultObject, true,
-            false);
+          final Map<String, Object> result = getResult(resultObject, true, false);
           this.results.add(result);
         }
       }
@@ -229,8 +220,8 @@ public class PluginAdaptor {
     return this.responseFields;
   }
 
-  private Map<String, Object> getResult(final Object resultObject,
-    final boolean resultList, final boolean test) {
+  private Map<String, Object> getResult(final Object resultObject, final boolean resultList,
+    final boolean test) {
     final RecordDefinition resultRecordDefinition = this.application.getResultRecordDefinition();
     final Map<String, Object> result = new HashMap<String, Object>();
     for (final FieldDefinition attribute : resultRecordDefinition.getFields()) {
@@ -270,19 +261,18 @@ public class PluginAdaptor {
               final Timestamp time = new Timestamp(System.currentTimeMillis());
               value = StringConverterRegistry.toObject(typeClass, time);
             } else if (LineString.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0,
-                -125.1, 53.0);
+              value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
             } else if (Polygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new BoundingBoxDoubleGf(
-                GeometryFactory.wgs84(), 2, -125.0, 53.0, -125.1, 53.0);
+              final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2,
+                -125.0, 53.0, -125.1, 53.0);
               value = boundingBox.toPolygon(10);
             } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-              final LineString line = GeometryFactory.wgs84().lineString(2,
-                -125.0, 53.0, -125.1, 53.0);
+              final LineString line = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1,
+                53.0);
               value = GeometryFactory.wgs84().multiLineString(line);
             } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new BoundingBoxDoubleGf(
-                GeometryFactory.wgs84(), 2, -125.0, 53.0, -125.1, 53.0);
+              final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2,
+                -125.0, 53.0, -125.1, 53.0);
               final Polygon polygon = boundingBox.toPolygon(10);
               value = GeometryFactory.wgs84().multiPolygon(polygon);
             } else if (GeometryCollection.class.isAssignableFrom(typeClass)
@@ -352,17 +342,16 @@ public class PluginAdaptor {
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }
-            final int srid = Maps.getInteger(this.parameters,
-              "resultSrid", geometryFactory.getSrid());
-            final int axisCount = Maps.getInteger(this.parameters,
-              "resultNumAxis", geometryFactory.getAxisCount());
-            final double scaleXY = Maps.getDouble(this.parameters,
-              "resultScaleFactorXy", geometryFactory.getScaleXY());
-            final double scaleZ = Maps.getDouble(this.parameters,
-              "resultScaleFactorZ", geometryFactory.getScaleZ());
+            final int srid = Maps.getInteger(this.parameters, "resultSrid",
+              geometryFactory.getSrid());
+            final int axisCount = Maps.getInteger(this.parameters, "resultNumAxis",
+              geometryFactory.getAxisCount());
+            final double scaleXY = Maps.getDouble(this.parameters, "resultScaleFactorXy",
+              geometryFactory.getScaleXY());
+            final double scaleZ = Maps.getDouble(this.parameters, "resultScaleFactorZ",
+              geometryFactory.getScaleZ());
 
-            geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY,
-              scaleZ);
+            geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
             if (geometry.getSrid() == 0) {
               throw new IllegalArgumentException(
@@ -386,13 +375,15 @@ public class PluginAdaptor {
     final Map<String, Object> customizationProperties = new LinkedHashMap<String, Object>(
       this.customizationProperties);
     if (resultList && this.application.isHasResultListCustomizationProperties()) {
-      final Map<String, Object> resultListProperties = Property.get(
-        resultObject, "customizationProperties");
+      final Map<String, Object> resultListProperties = Property.get(resultObject,
+        "customizationProperties");
       if (resultListProperties != null) {
         customizationProperties.putAll(resultListProperties);
       }
     }
-    result.put("customizationProperties", customizationProperties);
+    if (!customizationProperties.isEmpty()) {
+      result.put("customizationProperties", customizationProperties);
+    }
     return result;
   }
 
@@ -443,8 +434,7 @@ public class PluginAdaptor {
           }
         }
       } else {
-        resultData = new LazyHttpPostOutputStream(resultDataUrl,
-          resultDataContentType);
+        resultData = new LazyHttpPostOutputStream(resultDataUrl, resultDataContentType);
       }
       setPluginProperty("resultData", resultData);
       setPluginProperty("resultDataContentType", resultDataContentType);
@@ -464,20 +454,18 @@ public class PluginAdaptor {
     setPluginProperty(parameterName, parameterValue);
   }
 
-  public void setPluginProperty(final String parameterName,
-    Object parameterValue) {
+  public void setPluginProperty(final String parameterName, Object parameterValue) {
     try {
       final RecordDefinitionImpl requestRecordDefinition = this.application.getRequestRecordDefinition();
       final Class<?> attributeClass = requestRecordDefinition.getFieldClass(parameterName);
       if (attributeClass != null) {
-        parameterValue = StringConverterRegistry.toObject(attributeClass,
-          parameterValue);
+        parameterValue = StringConverterRegistry.toObject(attributeClass, parameterValue);
       }
       BeanUtils.setProperty(this.plugin, parameterName, parameterValue);
       this.parameters.put(parameterName, parameterValue);
     } catch (final Throwable t) {
-      throw new IllegalArgumentException(this.application.getName() + "."
-        + parameterName + " could not be set", t);
+      throw new IllegalArgumentException(this.application.getName() + "." + parameterName
+        + " could not be set", t);
     }
   }
 

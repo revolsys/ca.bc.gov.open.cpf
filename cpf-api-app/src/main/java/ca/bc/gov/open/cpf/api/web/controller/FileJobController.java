@@ -21,17 +21,13 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
-import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.json.JsonParser;
 
 public class FileJobController extends AbstractJobController {
 
@@ -65,17 +61,16 @@ public class FileJobController extends AbstractJobController {
 
   private final CpfDataAccessObject dataAccessObject;
 
-  public FileJobController(final BatchJobService batchJobService,
-    final File rootDirectory) {
+  public FileJobController(final BatchJobService batchJobService, final File rootDirectory) {
     this.dataAccessObject = batchJobService.getDataAccessObject();
     this.rootDirectory = rootDirectory;
   }
 
   @Override
   public boolean cancelJob(final long jobId) {
-    final boolean cancelled = dataAccessObject.cancelBatchJob(jobId);
-    for (final String directoryName : Arrays.asList(JOB_INPUTS, JOB_RESULTS,
-      GROUP_INPUTS, GROUP_RESULTS)) {
+    final boolean cancelled = this.dataAccessObject.cancelBatchJob(jobId);
+    for (final String directoryName : Arrays.asList(JOB_INPUTS, JOB_RESULTS, GROUP_INPUTS,
+      GROUP_RESULTS)) {
       final File directory = getJobDirectory(jobId, directoryName);
       deleteDirectory(jobId, directory);
     }
@@ -83,8 +78,8 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public void createJobFile(final long jobId, final String path,
-    final long sequenceNumber, final String contentType, final Object data) {
+  public void createJobFile(final long jobId, final String path, final long sequenceNumber,
+    final String contentType, final Object data) {
     final File file = getJobFile(jobId, path, sequenceNumber);
     file.getParentFile().mkdirs();
     if (data instanceof File) {
@@ -96,6 +91,9 @@ public class FileJobController extends AbstractJobController {
     } else if (data instanceof byte[]) {
       final byte[] bytes = (byte[])data;
       FileUtil.copy(new ByteArrayInputStream(bytes), file);
+    } else if (data instanceof String) {
+      final String string = (String)data;
+      FileUtil.copy(string, file);
     }
   }
 
@@ -108,14 +106,29 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public void deleteJob(final long jobId) {
-    dataAccessObject.deleteBatchJob(jobId);
+    this.dataAccessObject.deleteBatchJob(jobId);
     final File jobDirectory = getJobDirectory(jobId);
     deleteDirectory(jobId, jobDirectory);
   }
 
+  @Override
+  protected long getFileSize(final long jobId, final String path, final int sequenceNumber) {
+    final File resultFile = getJobFile(jobId, path, sequenceNumber);
+    return resultFile.length();
+  }
+
+  @Override
+  protected InputStream getFileStream(final long jobId, final String path, final int sequenceNumber) {
+    final File file = getJobFile(jobId, path, sequenceNumber);
+    if (file.exists()) {
+      return FileUtil.getInputStream(file);
+    } else {
+      return null;
+    }
+  }
+
   protected File getJobDirectory(final long jobId) {
-    final File jobDirectory = FileUtil.getFile(rootDirectory, "jobs/"
-      + toPath(jobId));
+    final File jobDirectory = FileUtil.getFile(this.rootDirectory, "jobs/" + toPath(jobId));
     return jobDirectory;
   }
 
@@ -125,92 +138,25 @@ public class FileJobController extends AbstractJobController {
     return groupsFile;
   }
 
-  protected File getJobFile(final long jobId, final String path,
-    final long recordId) {
+  protected File getJobFile(final long jobId, final String path, final long recordId) {
     final File groupsFile = getJobDirectory(jobId, path);
     final File file = FileUtil.getFile(groupsFile, toPath(recordId) + ".json");
     return file;
   }
 
   @Override
-  public InputStream getJobResultData(final long jobId,
-    final long sequenceNumber, final Record batchJobResult) {
+  public InputStream getJobInputStream(final long jobId) {
+    return getFileStream(jobId, JOB_INPUTS, 1);
+  }
+
+  @Override
+  public InputStream getJobResultStream(final long jobId, final int sequenceNumber) {
     final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
     return FileUtil.getInputStream(resultFile);
   }
 
   @Override
-  public long getJobResultSize(final long jobId, final long sequenceNumber,
-    final Record batchJobResult) {
-    final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
-    return resultFile.length();
-  }
-
-  @Override
   public String getKey() {
     return "file";
-  }
-
-  @Override
-  public Long getNonExecutingGroupSequenceNumber(final Long jobId) {
-    return dataAccessObject.getNonExecutingGroupSequenceNumber(jobId);
-  }
-
-  @Override
-  public String getStructuredInputData(final long jobId,
-    final long sequenceNumber) {
-    final File file = getJobFile(jobId, GROUP_INPUTS, sequenceNumber);
-    if (file.exists()) {
-      final String inputData = FileUtil.getString(file);
-      return inputData;
-    } else {
-      return "{}";
-    }
-  }
-
-  @Override
-  public Map<String, Object> getStructuredResultData(final long jobId,
-    final long sequenceNumber, final Record batchJobExecutionGroup) {
-    final File file = getJobFile(jobId, GROUP_RESULTS, sequenceNumber);
-    if (file.exists()) {
-      final Map<String, Object> resultData = JsonParser.read(file);
-      return resultData;
-    } else {
-      return null;
-    }
-  }
-
-  @Override
-  public void setJobResultData(final long jobId,
-    final Record batchJobResult, final Object resultData) {
-    final Long sequenceNumber = batchJobResult.getLong(BatchJobResult.SEQUENCE_NUMBER);
-    final String path = JOB_RESULTS;
-    final File resultFile = getJobFile(jobId, path, sequenceNumber);
-    resultFile.getParentFile().mkdirs();
-    if (resultData instanceof File) {
-      final File file = (File)resultData;
-      FileUtil.copy(file, resultFile);
-    } else if (resultData instanceof byte[]) {
-      final byte[] bytes = (byte[])resultData;
-      FileUtil.copy(new ByteArrayInputStream(bytes), resultFile);
-    }
-  }
-
-  @Override
-  public void setStructuredInputData(final long jobId,
-    final long sequenceNumber, final Record executionGroup,
-    final String structuredInputData) {
-    final File file = getJobFile(jobId, GROUP_INPUTS, sequenceNumber);
-    file.getParentFile().mkdirs();
-    FileUtil.copy(structuredInputData, file);
-  }
-
-  @Override
-  public void setStructuredResultData(final long jobId,
-    final long sequenceNumber, final Record executionGroup,
-    final String structuredResultData) {
-    final File file = getJobFile(jobId, GROUP_RESULTS, sequenceNumber);
-    file.getParentFile().mkdirs();
-    FileUtil.copy(structuredResultData, file);
   }
 }

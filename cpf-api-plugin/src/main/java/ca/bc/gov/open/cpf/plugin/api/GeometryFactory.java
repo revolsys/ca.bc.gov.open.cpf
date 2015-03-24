@@ -46,8 +46,10 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
  * be obtained using the <code>getFactory</code> static methods described below.
  */
 @SuppressWarnings("serial")
-public class GeometryFactory extends
-com.vividsolutions.jts.geom.GeometryFactory {
+public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory {
+
+  /** The cached geometry factories. */
+  private static Map<String, GeometryFactory> factories = new HashMap<String, GeometryFactory>();
 
   /**
    * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
@@ -59,7 +61,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
   }
 
   /**
-   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y & floating z precision models.</p>
+   * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a fixed x, y &anp; floating z precision models.</p>
    *
    * @param scaleXy The scale factor used to round the x, y coordinates. The precision is 1 / scaleXy.
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
@@ -127,8 +129,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
    * @return The geometry factory.
    */
-  public static GeometryFactory getFactory(final int srid,
-    final double scaleXy, final double scaleZ) {
+  public static GeometryFactory getFactory(final int srid, final double scaleXy, final double scaleZ) {
     return getFactory(srid, 3, scaleXy, scaleZ);
   }
 
@@ -183,9 +184,6 @@ com.vividsolutions.jts.geom.GeometryFactory {
     return JtsWktWriter.toString(geometry, writeSrid);
   }
 
-  /** The cached geometry factories. */
-  private static Map<String, GeometryFactory> factories = new HashMap<String, GeometryFactory>();
-
   private final int axisCount;
 
   private final double scaleXy;
@@ -203,11 +201,10 @@ com.vividsolutions.jts.geom.GeometryFactory {
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
    * @return The geometry factory.
    */
-  private GeometryFactory(final int crsId, final int axisCount,
-    final double scaleXY, final double scaleZ) {
-    super(getPrecisionModel(scaleXY), crsId,
-      new PackedCoordinateSequenceFactory(
-        PackedCoordinateSequenceFactory.DOUBLE, axisCount));
+  private GeometryFactory(final int crsId, final int axisCount, final double scaleXY,
+    final double scaleZ) {
+    super(getPrecisionModel(scaleXY), crsId, new PackedCoordinateSequenceFactory(
+      PackedCoordinateSequenceFactory.DOUBLE, axisCount));
     this.axisCount = axisCount;
     this.scaleXy = scaleXY;
     this.scaleZ = scaleZ;
@@ -223,6 +220,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
    *
    * @param geometry The geometry.
    * @return The copied geometry.
+   * @param G The class of geometry to cast the result to.
    */
   @SuppressWarnings("unchecked")
   public <G extends Geometry> G copy(final G geometry) {
@@ -265,8 +263,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
    * @return The created linear ring.
    */
   public LinearRing createLinearRing(final double... coordinates) {
-    return super.createLinearRing(new PackedCoordinateSequence.Double(
-      coordinates, getAxisCount()));
+    return super.createLinearRing(new PackedCoordinateSequence.Double(coordinates, getAxisCount()));
   }
 
   /**
@@ -278,8 +275,8 @@ com.vividsolutions.jts.geom.GeometryFactory {
    * @return The created linestring.
    */
   public LineString createLineString(final double... coordinates) {
-    final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
-      coordinates, getAxisCount());
+    final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(coordinates,
+      getAxisCount());
     return super.createLineString(points);
   }
 
@@ -337,8 +334,8 @@ com.vividsolutions.jts.geom.GeometryFactory {
    * @return The created point.
    */
   public Point createPoint(final double... coordinates) {
-    final CoordinateSequence points = new PackedCoordinateSequence.Double(
-      coordinates, getAxisCount());
+    final CoordinateSequence points = new PackedCoordinateSequence.Double(coordinates,
+      getAxisCount());
     return super.createPoint(points);
   }
 
@@ -351,8 +348,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
     } else if (object instanceof Point) {
       return copy((Point)object);
     } else if (object instanceof double[]) {
-      coordinates = new PackedCoordinateSequence.Double((double[])object,
-        getAxisCount());
+      coordinates = new PackedCoordinateSequence.Double((double[])object, getAxisCount());
     } else if (object instanceof CoordinateSequence) {
       final CoordinateSequence coordinatesList = (CoordinateSequence)object;
       coordinates = coordinatesList;
@@ -382,8 +378,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
    */
   public Polygon createPolygon(final List<?> rings) {
     if (rings.size() == 0) {
-      final CoordinateSequence nullPoints = getCoordinateSequenceFactory().create(
-        0, getAxisCount());
+      final CoordinateSequence nullPoints = getCoordinateSequenceFactory().create(0, getAxisCount());
       final LinearRing ring = createLinearRing(nullPoints);
       return createPolygon(ring, null);
     } else {
@@ -413,8 +408,8 @@ com.vividsolutions.jts.geom.GeometryFactory {
       return createLinearRing(points);
     } else if (ring instanceof double[]) {
       final double[] coordinates = (double[])ring;
-      final CoordinateSequence points = new PackedCoordinateSequence.Double(
-        coordinates, getAxisCount());
+      final CoordinateSequence points = new PackedCoordinateSequence.Double(coordinates,
+        getAxisCount());
       return createLinearRing(points);
     } else {
       return null;
@@ -466,8 +461,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
           return 3;
         }
       default:
-        throw new IllegalArgumentException(
-          "Expecting Z, M, ZM, (, or EMPTY not: " + text);
+        throw new IllegalArgumentException("Expecting Z, M, ZM, (, or EMPTY not: " + text);
     }
   }
 
@@ -536,8 +530,8 @@ com.vividsolutions.jts.geom.GeometryFactory {
     if (hasText(text, "EMPTY")) {
       skipWhitespace(text);
       if (text.length() > 0) {
-        throw new IllegalArgumentException(
-          "Unexpected text at the end of an empty geometry: " + text);
+        throw new IllegalArgumentException("Unexpected text at the end of an empty geometry: "
+          + text);
       }
       return true;
     } else {
@@ -565,9 +559,8 @@ com.vividsolutions.jts.geom.GeometryFactory {
     return createMultiPolygon(polygonArray);
   }
 
-  private CoordinateSequence parseCoordinates(
-    final GeometryFactory geometryFactory, final StringBuilder text,
-    final int axisCount) {
+  private CoordinateSequence parseCoordinates(final GeometryFactory geometryFactory,
+    final StringBuilder text, final int axisCount) {
     final int geometryFactoryNumAxis = getNumAxis();
     char c = text.charAt(0);
     if (c == '(') {
@@ -582,8 +575,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
           if (c == ')') {
             finished = true;
           } else {
-            throw new IllegalArgumentException(
-              "Expecting end of coordinates ')' not" + text);
+            throw new IllegalArgumentException("Expecting end of coordinates ')' not" + text);
           }
         } else if (c == ',' || c == ')') {
           if (axisNum < axisCount) {
@@ -597,9 +589,8 @@ com.vividsolutions.jts.geom.GeometryFactory {
             }
             axisNum = 0;
           } else {
-            throw new IllegalArgumentException(
-              "Too many coordinates, vertex must have " + axisCount
-              + " coordinates not " + (axisNum + 1));
+            throw new IllegalArgumentException("Too many coordinates, vertex must have "
+              + axisCount + " coordinates not " + (axisNum + 1));
           }
           if (c == ')') {
             finished = true;
@@ -613,9 +604,8 @@ com.vividsolutions.jts.geom.GeometryFactory {
             }
             axisNum++;
           } else {
-            throw new IllegalArgumentException(
-              "Too many coordinates, vertex must have " + axisCount
-              + " coordinates not " + (axisNum + 1));
+            throw new IllegalArgumentException("Too many coordinates, vertex must have "
+              + axisCount + " coordinates not " + (axisNum + 1));
 
           }
         }
@@ -627,8 +617,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
       }
       return new PackedCoordinateSequence.Double(coords, geometryFactoryNumAxis);
     } else {
-      throw new IllegalArgumentException(
-        "Expecting start of coordinates '(' not: " + text);
+      throw new IllegalArgumentException("Expecting start of coordinates '(' not: " + text);
     }
   }
 
@@ -669,31 +658,24 @@ com.vividsolutions.jts.geom.GeometryFactory {
         hasText(text, ";");
       }
       if (hasText(text, "POINT")) {
-        geometry = parsePoint(geometryFactory, useNumAxisFromGeometryFactory,
-          text);
+        geometry = parsePoint(geometryFactory, useNumAxisFromGeometryFactory, text);
       } else if (hasText(text, "LINESTRING")) {
-        geometry = parseLineString(geometryFactory,
-          useNumAxisFromGeometryFactory, text);
+        geometry = parseLineString(geometryFactory, useNumAxisFromGeometryFactory, text);
       } else if (hasText(text, "POLYGON")) {
-        geometry = parsePolygon(geometryFactory, useNumAxisFromGeometryFactory,
-          text);
+        geometry = parsePolygon(geometryFactory, useNumAxisFromGeometryFactory, text);
       } else if (hasText(text, "MULTIPOINT")) {
-        geometry = parseMultiPoint(geometryFactory,
-          useNumAxisFromGeometryFactory, text);
+        geometry = parseMultiPoint(geometryFactory, useNumAxisFromGeometryFactory, text);
       } else if (hasText(text, "MULTILINESTRING")) {
-        geometry = parseMultiLineString(geometryFactory,
-          useNumAxisFromGeometryFactory, text);
+        geometry = parseMultiLineString(geometryFactory, useNumAxisFromGeometryFactory, text);
       } else if (hasText(text, "MULTIPOLYGON")) {
-        geometry = parseMultiPolygon(geometryFactory,
-          useNumAxisFromGeometryFactory, text);
+        geometry = parseMultiPolygon(geometryFactory, useNumAxisFromGeometryFactory, text);
       } else {
         throw new IllegalArgumentException("Unknown geometry type " + text);
       }
       if (this.getSRID() == 0) {
         final int srid = geometry.getSRID();
         if (useNumAxisFromGeometryFactory) {
-          geometryFactory = GeometryFactory.getFactory(srid, axisCount,
-            scaleXY, scaleZ);
+          geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
           return (T)createGeometry(geometry);
         } else {
           return (T)geometry;
@@ -734,8 +716,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
         final int srid = getSRID();
         final double scaleXY = getScaleXY();
         final double scaleZ = getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
-          scaleZ);
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
       }
     } else {
       axisCount = getNumAxis();
@@ -743,8 +724,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
     if (isEmpty(text)) {
       return createLineString();
     } else {
-      final CoordinateSequence points = parseCoordinates(geometryFactory, text,
-        axisCount);
+      final CoordinateSequence points = parseCoordinates(geometryFactory, text, axisCount);
       return createLineString(points);
     }
   }
@@ -757,8 +737,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
         final int srid = getSRID();
         final double scaleXY = getScaleXY();
         final double scaleZ = getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
-          scaleZ);
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
       }
     }
     final List<CoordinateSequence> lines;
@@ -778,8 +757,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
         final int srid = getSRID();
         final double scaleXY = getScaleXY();
         final double scaleZ = getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
-          scaleZ);
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
       }
     }
 
@@ -800,8 +778,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
         final int srid = getSRID();
         final double scaleXY = getScaleXY();
         final double scaleZ = getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
-          scaleZ);
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
       }
     }
 
@@ -814,17 +791,15 @@ com.vividsolutions.jts.geom.GeometryFactory {
     return multiPolygon(polygons);
   }
 
-  private List<CoordinateSequence> parseParts(
-    final GeometryFactory geometryFactory, final StringBuilder text,
-    final int axisCount) {
+  private List<CoordinateSequence> parseParts(final GeometryFactory geometryFactory,
+    final StringBuilder text, final int axisCount) {
     final List<CoordinateSequence> parts = new ArrayList<CoordinateSequence>();
     final char firstChar = text.charAt(0);
     switch (firstChar) {
       case '(':
         do {
           text.delete(0, 1);
-          final CoordinateSequence coordinates = parseCoordinates(
-            geometryFactory, text, axisCount);
+          final CoordinateSequence coordinates = parseCoordinates(geometryFactory, text, axisCount);
           parts.add(coordinates);
         } while (text.charAt(0) == ',');
         if (text.charAt(0) == ')') {
@@ -832,10 +807,10 @@ com.vividsolutions.jts.geom.GeometryFactory {
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-        break;
+      break;
       case ')':
         text.delete(0, 2);
-        break;
+      break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);
@@ -843,17 +818,15 @@ com.vividsolutions.jts.geom.GeometryFactory {
     return parts;
   }
 
-  private List<List<CoordinateSequence>> parsePartsList(
-    final GeometryFactory geometryFactory, final StringBuilder text,
-    final int axisCount) {
+  private List<List<CoordinateSequence>> parsePartsList(final GeometryFactory geometryFactory,
+    final StringBuilder text, final int axisCount) {
     final List<List<CoordinateSequence>> partsList = new ArrayList<List<CoordinateSequence>>();
     final char firstChar = text.charAt(0);
     switch (firstChar) {
       case '(':
         do {
           text.delete(0, 1);
-          final List<CoordinateSequence> parts = parseParts(geometryFactory,
-            text, axisCount);
+          final List<CoordinateSequence> parts = parseParts(geometryFactory, text, axisCount);
           partsList.add(parts);
         } while (text.charAt(0) == ',');
         if (text.charAt(0) == ')') {
@@ -861,10 +834,10 @@ com.vividsolutions.jts.geom.GeometryFactory {
         } else {
           throw new IllegalArgumentException("Expecting ) not" + text);
         }
-        break;
+      break;
       case ')':
         text.delete(0, 2);
-        break;
+      break;
 
       default:
         throw new IllegalArgumentException("Expecting ( not" + text);
@@ -880,15 +853,13 @@ com.vividsolutions.jts.geom.GeometryFactory {
         final int srid = getSRID();
         final double scaleXY = getScaleXY();
         final double scaleZ = getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
-          scaleZ);
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
       }
     }
     if (isEmpty(text)) {
       return createPoint();
     } else {
-      final CoordinateSequence points = parseCoordinates(geometryFactory, text,
-        axisCount);
+      final CoordinateSequence points = parseCoordinates(geometryFactory, text, axisCount);
       if (points.size() > 1) {
         throw new IllegalArgumentException("Points may only have 1 vertex");
       }
@@ -904,8 +875,7 @@ com.vividsolutions.jts.geom.GeometryFactory {
         final int srid = getSRID();
         final double scaleXY = getScaleXY();
         final double scaleZ = getScaleZ();
-        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY,
-          scaleZ);
+        geometryFactory = GeometryFactory.getFactory(srid, axisCount, scaleXY, scaleZ);
       }
     } else {
       axisCount = getNumAxis();

@@ -51,7 +51,7 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Element createModulePageView(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String moduleName)
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
     throws ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
@@ -65,7 +65,7 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
     "/admin/workers/{workerId}/modules"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object pageWorkerList(@PathVariable final String workerId) {
+  public Object pageWorkerList(@PathVariable("workerId") final String workerId) {
     checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);

@@ -64,7 +64,7 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder {
     "/admin/workers/{workerId}/executingGroups"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object pageWorkerList(@PathVariable final String workerId) {
+  public Object pageWorkerList(@PathVariable("workerId") final String workerId) {
     checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
@@ -72,8 +72,7 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder {
       throw new PageNotFoundException("The worker " + workerId
         + " could not be found. It may no longer be connected.");
     } else {
-      return createDataTableHandler(getRequest(), "workerList",
-        workerGroupsCallable);
+      return createDataTableHandler(getRequest(), "workerList", this.workerGroupsCallable);
     }
   }
 
@@ -81,8 +80,8 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder {
     "/admin/workers/{workerId}/executingGroups/{executionGroupId}/restart"
   }, method = RequestMethod.POST)
   public void postWorkerRestart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable final String workerId,
-    @PathVariable final String executionGroupId) {
+    final HttpServletResponse response, @PathVariable("workerId") final String workerId,
+    @PathVariable("executionGroupId") final String executionGroupId) {
     checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);

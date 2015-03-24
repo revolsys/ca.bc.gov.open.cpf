@@ -30,13 +30,13 @@ import com.vividsolutions.jts.geom.Geometry;
  * to indicate the configuration of the required coordinate system,
  * precision model, number of coordinate axis and if the geometry should be
  * validated.</p>
- * 
+ *
  * <p>If the input or result geometry is different from the <code>GeometryConfiguration</code>, then
  * the CPF will convert the geometry to a new geometry using the <code>GeometryConfiguration</code>.</p>
- * 
+ *
  * <p>The following example shows a geometry result attribute in BC Albers (3005), with x,y,z (3D) coordinates
  * 1mm x,y precision model, 1m z precision model. The geometry will also be validated and the is the primary geometry.</p>
- * 
+ *
  * <figure><pre class="prettyprint language-java">&#064;ResultAttribute
 &#064;GeometryConfiguration(
   srid = 3005,
@@ -58,6 +58,8 @@ public @interface GeometryConfiguration {
    * <p>The number or axis used in the geometry. For example a 2D geometry has x, y
    * coordinates, so the number of axis is 2. A 3D geometry has x, y, z so the
    * number of axis is 3. Currently only axisCount of 2 and 3 are supported.</p>
+   *
+   * @return The axis count.
    */
   public int axisCount() default 2;
 
@@ -68,6 +70,8 @@ public @interface GeometryConfiguration {
    * field. Only one geometry set method and one geometry get method can be
    * marked as primary (the input primary geometry parameter can be different
    * from the result primary geometry attribute.</p>
+   *
+   * @return The primary geometry flag.
    */
   public boolean primaryGeometry() default true;
 
@@ -76,6 +80,8 @@ public @interface GeometryConfiguration {
    * minimum unit. For example if the minimum unit was 1mm (0.001) the scale
    * factor is 1000 (1 / 0.001). The default value 0 indicates a floating
    * precision model where the coordinates are not rounded.</p>
+   *
+   * @return the X,Y scale factor.
    */
   public double scaleFactorXy() default 0;
 
@@ -84,6 +90,8 @@ public @interface GeometryConfiguration {
    * minimum unit. For example if the minimum unit was 1mm (0.001) the scale
    * factor is 1000 (1 / 0.001). The default value 0 indicates a floating
    * precision model where the coordinates are not rounded.</p>
+   *
+   * @return the Z scale factor.
    */
   public double scaleFactorZ() default 0;
 
@@ -92,12 +100,16 @@ public @interface GeometryConfiguration {
    * this attribute is omitted or has the value 0 then the coordinate system of the source geometry
    * will not be changed. Otherwise it will be projected to the requested
    * coordinate system.</p>
+   *
+   * @return The SRID.
    */
   public int srid() default 0;
 
   /**
    * <p>Boolean flag indicating if the geometry should be validated using the OGC isValid
    * predicate.</p>
+   *
+   * @return The flag indicating that geometries should be validated.
    */
   public boolean validate() default false;
 }

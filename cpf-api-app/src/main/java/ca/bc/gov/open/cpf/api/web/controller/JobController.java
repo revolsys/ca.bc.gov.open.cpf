@@ -18,8 +18,6 @@ package ca.bc.gov.open.cpf.api.web.controller;
 import java.io.InputStream;
 import java.util.Map;
 
-import com.revolsys.data.record.Record;
-
 public interface JobController {
   String GROUP_RESULTS = "groupResults";
 
@@ -31,34 +29,27 @@ public interface JobController {
 
   boolean cancelJob(long jobId);
 
-  void createJobFile(long jobId, String path, long sequenceNumber,
-    String contentType, Object data);
+  void createJobFile(long jobId, String path, long sequenceNumber, String contentType, Object data);
 
   void createJobInputFile(long jobId, String contentType, Object data);
 
   void deleteJob(long jobId);
 
-  InputStream getJobResultData(long jobId, long sequenceNumber,
-    Record batchJobResult);
+  String getGroupInputString(long jobId, int sequenceNumber);
 
-  long getJobResultSize(long jobId, long sequenceNumber,
-    Record batchJobResult);
+  Map<String, Object> getGroupResultMap(long jobId, int sequenceNumber);
+
+  InputStream getJobInputStream(long jobId);
+
+  long getJobResultSize(long jobId, int sequenceNumber);
+
+  InputStream getJobResultStream(long jobId, int sequenceNumber);
 
   String getKey();
 
-  Long getNonExecutingGroupSequenceNumber(Long jobId);
+  void setGroupInput(long jobId, int sequenceNumber, String contentType, Object data);
 
-  String getStructuredInputData(long jobId, long executionGroupId);
+  void setGroupResult(long jobId, int sequenceNumber, String contentType, Object data);
 
-  Map<String, Object> getStructuredResultData(long jobId,
-    long executionGroupId, Record batchJobExecutionGroup);
-
-  void setJobResultData(final long jobId, final Record batchJobResult,
-    final Object resultData);
-
-  void setStructuredInputData(long jobId, long executionGroupId,
-    Record executionGroup, String structuredInputData);
-
-  void setStructuredResultData(long jobId, long executionGroupId,
-    Record executionGroup, String structuredInputData);
+  void setJobResult(long jobId, int sequenceNumber, String contentType, Object data);
 }

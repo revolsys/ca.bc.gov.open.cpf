@@ -19,11 +19,11 @@ import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 public class BatchJobRequestExecutionGroup {
-  private final long batchJobId;
 
   private final BusinessApplication businessApplication;
 
@@ -51,24 +51,25 @@ public class BatchJobRequestExecutionGroup {
 
   private boolean cancelled = false;
 
-  private final long sequenceNumber;
+  private final int sequenceNumber;
 
   private final String baseId;
 
-  public BatchJobRequestExecutionGroup(final String consumerKey,
-    final long batchJobId, final BusinessApplication businessApplication,
-    final Map<String, String> businessApplicationParameterMap,
-    final String resultDataContentType, final Timestamp scheduleTimestamp,
-    final long sequenceNumber) {
+  private final BatchJob batchJob;
+
+  public BatchJobRequestExecutionGroup(final String consumerKey, final BatchJob batchJob,
+    final BusinessApplication businessApplication,
+    final Map<String, String> businessApplicationParameterMap, final String resultDataContentType,
+    final Timestamp scheduleTimestamp, final int sequenceNumber) {
     this.consumerKey = consumerKey;
-    this.batchJobId = batchJobId;
+    this.batchJob = batchJob;
     this.businessApplication = businessApplication;
     this.moduleName = businessApplication.getModule().getName();
     this.businessApplicationParameterMap = businessApplicationParameterMap;
     this.resultDataContentType = resultDataContentType;
     this.scheduleTimestamp = scheduleTimestamp;
     this.sequenceNumber = sequenceNumber;
-    this.baseId = batchJobId + "-" + sequenceNumber;
+    this.baseId = getBatchJobId() + "-" + sequenceNumber;
     resetId();
   }
 
@@ -80,8 +81,12 @@ public class BatchJobRequestExecutionGroup {
     return this.baseId;
   }
 
+  public BatchJob getBatchJob() {
+    return this.batchJob;
+  }
+
   public long getBatchJobId() {
-    return this.batchJobId;
+    return this.batchJob.getIdValue();
   }
 
   public BusinessApplication getBusinessApplication() {
@@ -136,7 +141,7 @@ public class BatchJobRequestExecutionGroup {
     return this.scheduleTimestamp;
   }
 
-  public long getSequenceNumber() {
+  public int getSequenceNumber() {
     return this.sequenceNumber;
   }
 
@@ -149,8 +154,7 @@ public class BatchJobRequestExecutionGroup {
   }
 
   public void resetId() {
-    this.id = this.batchJobId + "-" + this.sequenceNumber + "-"
-      + this.attempt.incrementAndGet();
+    this.id = getBatchJobId() + "-" + this.sequenceNumber + "-" + this.attempt.incrementAndGet();
   }
 
   public void setExecutionStartTime(final long executionStartTime) {

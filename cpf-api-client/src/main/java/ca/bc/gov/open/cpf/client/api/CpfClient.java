@@ -115,11 +115,9 @@ public class CpfClient implements AutoCloseable {
    * @param consumerSecret The OAuth Consumer Secret (encryption key) used to
    * sign the requests for the Consumer Key.
    */
-  public CpfClient(String url, final String consumerKey,
-    final String consumerSecret) {
+  public CpfClient(String url, final String consumerKey, final String consumerSecret) {
     url = url.replaceAll("(/ws)?/*$", "");
-    this.httpClientPool = new OAuthHttpClientPool(url, consumerKey,
-      consumerSecret, 1);
+    this.httpClientPool = new OAuthHttpClientPool(url, consumerKey, consumerSecret, 1);
   }
 
   /**
@@ -261,14 +259,12 @@ public class CpfClient implements AutoCloseable {
    * @param requests The resource for the requests.
    * @return The job id (URL) of the created job.
    */
-  public String createJobWithOpaqueResourceRequests(
-    final String businessApplicationName,
+  public String createJobWithOpaqueResourceRequests(final String businessApplicationName,
     final Map<String, Object> jobParameters, final String inputDataContentType,
     final String resultContentType, final Collection<Resource> requests) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -330,13 +326,11 @@ public class CpfClient implements AutoCloseable {
    * @param requests The resource for the requests.
    * @return The job id (URL) of the created job.
    */
-  public String createJobWithOpaqueResourceRequests(
-    final String businessApplicationName,
+  public String createJobWithOpaqueResourceRequests(final String businessApplicationName,
     final Map<String, Object> jobParameters, final String inputDataContentType,
     final String resultContentType, final Resource... requests) {
-    return createJobWithOpaqueResourceRequests(businessApplicationName,
-      jobParameters, inputDataContentType, resultContentType,
-      Arrays.asList(requests));
+    return createJobWithOpaqueResourceRequests(businessApplicationName, jobParameters,
+      inputDataContentType, resultContentType, Arrays.asList(requests));
   }
 
   /**
@@ -377,15 +371,12 @@ public class CpfClient implements AutoCloseable {
    * using.
    * @return The job id (URL) of the created job.
    */
-  public String createJobWithOpaqueUrlRequests(
-    final String businessApplicationName,
-    final Map<String, ? extends Object> jobParameters,
-    final String inputDataContentType, final String resultContentType,
-    final Collection<String> inputDataUrls) {
+  public String createJobWithOpaqueUrlRequests(final String businessApplicationName,
+    final Map<String, ? extends Object> jobParameters, final String inputDataContentType,
+    final String resultContentType, final Collection<String> inputDataUrls) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -440,14 +431,11 @@ public class CpfClient implements AutoCloseable {
    * using.
    * @return The job id (URL) of the created job.
    */
-  public String createJobWithOpaqueUrlRequests(
-    final String businessApplicationName,
-    final Map<String, ? extends Object> jobParameters,
-    final String inputDataContentType, final String resultContentType,
-    final String... inputDataUrls) {
-    return createJobWithOpaqueUrlRequests(businessApplicationName,
-      jobParameters, inputDataContentType, resultContentType,
-      Arrays.asList(inputDataUrls));
+  public String createJobWithOpaqueUrlRequests(final String businessApplicationName,
+    final Map<String, ? extends Object> jobParameters, final String inputDataContentType,
+    final String resultContentType, final String... inputDataUrls) {
+    return createJobWithOpaqueUrlRequests(businessApplicationName, jobParameters,
+      inputDataContentType, resultContentType, Arrays.asList(inputDataUrls));
   }
 
   /**
@@ -499,16 +487,14 @@ public class CpfClient implements AutoCloseable {
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> of the result data.
    * @return The job id (URL) of the created job.
    */
-  public String createJobWithStructuredMultipleRequestsList(
-    final String businessApplicationName,
+  public String createJobWithStructuredMultipleRequestsList(final String businessApplicationName,
     final Map<String, ? extends Object> jobParameters,
-    final List<Map<String, ? extends Object>> requests,
-    final String resultContentType) {
+    final List<Map<String, ? extends Object>> requests, final String resultContentType) {
     final String inputDataType = "application/json";
     final int numRequests = requests.size();
 
-    final MapWriterFactory factory = IoFactoryRegistry.getInstance()
-      .getFactoryByMediaType(MapWriterFactory.class, inputDataType);
+    final MapWriterFactory factory = IoFactoryRegistry.getInstance().getFactoryByMediaType(
+      MapWriterFactory.class, inputDataType);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     final MapWriter mapWriter = factory.getMapWriter(out);
 
@@ -516,12 +502,10 @@ public class CpfClient implements AutoCloseable {
       mapWriter.write(requestRecord);
     }
     mapWriter.close();
-    final Resource inputData = new ByteArrayResource("data.json",
-      out.toByteArray());
+    final Resource inputData = new ByteArrayResource("data.json", out.toByteArray());
 
-    return createJobWithStructuredMultipleRequestsResource(
-      businessApplicationName, jobParameters, numRequests, inputData,
-      inputDataType, resultContentType);
+    return createJobWithStructuredMultipleRequestsResource(businessApplicationName, jobParameters,
+      numRequests, inputData, inputDataType, resultContentType);
   }
 
   /**
@@ -580,14 +564,12 @@ public class CpfClient implements AutoCloseable {
    * @return The job id (URL) of the created job.
    */
   public String createJobWithStructuredMultipleRequestsResource(
-    final String businessApplicationName,
-    final Map<String, ? extends Object> jobParameters, final int numRequests,
-    final Resource inputData, final String inputDataContentType,
+    final String businessApplicationName, final Map<String, ? extends Object> jobParameters,
+    final int numRequests, final Resource inputData, final String inputDataContentType,
     final String resultContentType) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -653,15 +635,12 @@ public class CpfClient implements AutoCloseable {
    * using.
    * @return The job id (URL) of the created job.
    */
-  public String createJobWithStructuredMultipleRequestsUrl(
-    final String businessApplicationName,
+  public String createJobWithStructuredMultipleRequestsUrl(final String businessApplicationName,
     final Map<String, ? extends Object> jobParameters, final int numRequests,
-    final String inputDataUrl, final String inputDataContentType,
-    final String resultContentType) {
+    final String inputDataUrl, final String inputDataContentType, final String resultContentType) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName + "/multiple/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, jobParameters);
@@ -715,14 +694,11 @@ public class CpfClient implements AutoCloseable {
    * @param resultContentType The <a href="../../fileFormats.html">media type</a> to return the result data using.
    * @return The job id (URL) of the created job.
    */
-  public String createJobWithStructuredSingleRequest(
-    final String businessApplicationName,
-    final Map<String, ? extends Object> parameters,
-    final String resultContentType) {
+  public String createJobWithStructuredSingleRequest(final String businessApplicationName,
+    final Map<String, ? extends Object> parameters, final String resultContentType) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/single/");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName + "/single/");
 
       final HttpMultipartPost request = new HttpMultipartPost(httpClient, url);
       addJobParameters(request, parameters);
@@ -760,8 +736,8 @@ public class CpfClient implements AutoCloseable {
     final String businessApplicationName) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/instant/?format=json&specification=true");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName
+        + "/instant/?format=json&specification=true");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -794,8 +770,7 @@ public class CpfClient implements AutoCloseable {
     final String businessApplicationName) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/multiple/");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName + "/multiple/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -872,8 +847,7 @@ public class CpfClient implements AutoCloseable {
     final String businessApplicationName) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/"
-        + businessApplicationName + "/single/");
+      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName + "/single/");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -888,8 +862,9 @@ public class CpfClient implements AutoCloseable {
    *
    * <p>Each error record is a map containing the following fields.</p>
    *
-   * <div class="simpleDataTable">
-   *   <table>
+   * <div class="table-responsive">
+   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *     <caption>Error Result Fields</caption>
    *     <thead>
    *       <tr>
    *         <th>Field Name</th>
@@ -946,17 +921,14 @@ public class CpfClient implements AutoCloseable {
    * completed.
    * @return The reader maps containing the result fields.
    */
-  public List<Map<String, Object>> getJobErrorResults(final String jobIdUrl,
-    final long maxWait) {
+  public List<Map<String, Object>> getJobErrorResults(final String jobIdUrl, final long maxWait) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      for (final Map<String, Object> resultFile : getJobResultFileList(
-        jobIdUrl, maxWait)) {
+      for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("errorResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          final Reader<Map<String, Object>> reader = httpClient.getMapReader(
-            "error", resultUrl);
+          final Reader<Map<String, Object>> reader = httpClient.getMapReader("error", resultUrl);
           try {
             return reader.read();
           } finally {
@@ -1005,8 +977,9 @@ public class CpfClient implements AutoCloseable {
    *
    * <p>Each result file description contains the following fields.</p>
    *
-   * <div class="simpleDataTable">
-   *   <table>
+   * <div class="table-responsive">
+   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *     <caption>Result Fields</caption>
    *     <thead>
    *       <tr>
    *         <th>Field Name</th>
@@ -1063,8 +1036,7 @@ public class CpfClient implements AutoCloseable {
    * @return The list of maps that describe each of the result files.
    */
   @SuppressWarnings("unchecked")
-  public List<Map<String, Object>> getJobResultFileList(final String jobIdUrl,
-    final long maxWait) {
+  public List<Map<String, Object>> getJobResultFileList(final String jobIdUrl, final long maxWait) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       if (isJobCompleted(jobIdUrl, maxWait)) {
@@ -1126,8 +1098,9 @@ public class CpfClient implements AutoCloseable {
    *
    * <p>Each structured data record is a map containing the following fields.</p>
    *
-   * <div class="simpleDataTable">
-   *   <table>
+   * <div class="table-responsive">
+   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *     <caption>Result Fields</caption>
    *     <thead>
    *       <tr>
    *         <th>Field Name</th>
@@ -1183,12 +1156,10 @@ public class CpfClient implements AutoCloseable {
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
    * @return The list of results.
    */
-  public List<Map<String, Object>> getJobStructuredResults(
-    final String jobIdUrl, final long maxWait) {
+  public List<Map<String, Object>> getJobStructuredResults(final String jobIdUrl, final long maxWait) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      for (final Map<String, Object> resultFile : getJobResultFileList(
-        jobIdUrl, maxWait)) {
+      for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("structuredResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
@@ -1200,8 +1171,7 @@ public class CpfClient implements AutoCloseable {
           }
         }
       }
-      throw new IllegalStateException("Cannot find structured result file for "
-        + jobIdUrl);
+      throw new IllegalStateException("Cannot find structured result file for " + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
@@ -1361,8 +1331,9 @@ public class CpfClient implements AutoCloseable {
    *
    * <p>Each error record is a map containing the following fields.</p>
    *
-   * <div class="simpleDataTable">
-   *   <table>
+   * <div class="table-responsive">
+   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *     <caption>Error Result Fields</caption>
    *     <thead>
    *       <tr>
    *         <th>Field Name</th>
@@ -1424,8 +1395,7 @@ public class CpfClient implements AutoCloseable {
     int i = 0;
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      for (final Map<String, Object> resultFile : getJobResultFileList(
-        jobIdUrl, maxWait)) {
+      for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("errorResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
@@ -1441,8 +1411,7 @@ public class CpfClient implements AutoCloseable {
         }
         return i;
       }
-      throw new IllegalStateException("Cannot find error result file for "
-        + jobIdUrl);
+      throw new IllegalStateException("Cannot find error result file for " + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
@@ -1491,13 +1460,12 @@ public class CpfClient implements AutoCloseable {
    * @param callback The call back in the client application that will be called for each result record.
    * @return The number of results processed.
    */
-  public int processJobStructuredResults(final String jobIdUrl,
-    final long maxWait, final Callback<Map<String, Object>> callback) {
+  public int processJobStructuredResults(final String jobIdUrl, final long maxWait,
+    final Callback<Map<String, Object>> callback) {
     int i = 0;
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      for (final Map<String, Object> resultFile : getJobResultFileList(
-        jobIdUrl, maxWait)) {
+      for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("structuredResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
@@ -1513,8 +1481,7 @@ public class CpfClient implements AutoCloseable {
         }
         return i;
       }
-      throw new IllegalStateException("Cannot find structured result file for "
-        + jobIdUrl);
+      throw new IllegalStateException("Cannot find structured result file for " + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
