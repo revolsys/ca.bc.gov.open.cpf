@@ -54,13 +54,16 @@ import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.collection.range.RangeSet;
 import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
@@ -312,13 +315,31 @@ public class InternalWebService {
     return this.cpfConfig.getInternalWebServiceUrl();
   }
 
-  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{requestSequenceNumber}/resultData")
+  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/error")
+  public void postBatchJobExecutionGroupError(@PathVariable("workerId") final String workerId,
+    @PathVariable("batchJobId") final Long batchJobId,
+    @PathVariable("groupId") final String groupId, final InputStream in) {
+    checkRunning();
+    final BatchJobRequestExecutionGroup group = this.batchJobService.getBatchJobRequestExecutionGroup(
+      workerId, groupId);
+
+    if (group != null) {
+      synchronized (group) {
+        if (!group.isCancelled()) {
+          final int sequenceNumber = group.getSequenceNumber();
+          this.jobController.setGroupError(batchJobId, sequenceNumber, in);
+        }
+      }
+    }
+  }
+
+  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{sequenceNumber}/resultData")
   @ResponseBody
   public Map<String, ? extends Object> postBatchJobExecutionGroupOpaqueOutputData(
     @PathVariable("workerId") final String workerId,
     @PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("groupId") final String groupId,
-    @PathVariable("requestSequenceNumber") final int requestSequenceNumber, final InputStream in)
+    @PathVariable("sequenceNumber") final int sequenceNumber, final InputStream in)
     throws NoSuchRequestHandlingMethodException {
     checkRunning();
     final BatchJobRequestExecutionGroup group = this.batchJobService.getBatchJobRequestExecutionGroup(
@@ -332,20 +353,18 @@ public class InternalWebService {
             final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
             final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
             if (businessApplication != null && businessApplication.isPerRequestResultData()) {
-              synchronized (group) {
-                final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-                final File file = FileUtil.createTempFile("result", ".bin");
+              final String resultDataContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+              final File file = FileUtil.createTempFile("result", ".bin");
 
-                try {
-                  FileUtil.copy(in, file);
-                  if (!group.isCancelled()) {
-                    this.batchJobService.createBatchJobResultOpaque(batchJobId,
-                      requestSequenceNumber, resultDataContentType, file);
-                  }
-                } finally {
-                  FileUtil.closeSilent(in);
-                  FileUtil.deleteDirectory(file);
+              try {
+                FileUtil.copy(in, file);
+                if (!group.isCancelled()) {
+                  this.batchJobService.createBatchJobResultOpaque(batchJobId, sequenceNumber,
+                    resultDataContentType, file);
                 }
+              } finally {
+                FileUtil.closeSilent(in);
+                FileUtil.deleteDirectory(file);
               }
             }
           }
@@ -354,24 +373,47 @@ public class InternalWebService {
     }
     final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
       "OpaqueOutputDataResults");
-    map.put("workerId", workerId);
-    map.put("batchJobId", batchJobId);
-    map.put("groupId", groupId);
-    map.put("requestSequenceNumber", requestSequenceNumber);
     return map;
-
   }
 
   @RequestMapping(value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/results",
       method = RequestMethod.POST)
-  @ResponseBody
-  public Map<String, ? extends Object> postBatchJobRequestExecutionGroupResults(
-    @PathVariable("workerId") final String workerId,
-    @PathVariable("batchJobId") final String batchJobId,
+  public void postBatchJobRequestExecutionGroupResults(
+    @PathVariable("workerId") final String workerId,//
+    @PathVariable("batchJobId") final String batchJobId,//
     @PathVariable("groupId") final String groupId, //
-    @RequestBody final Map<String, Object> results) throws NoSuchRequestHandlingMethodException {
+    @RequestParam(value = "completedRequestRange", defaultValue = "") final String completedRequestRange, //
+    @RequestParam(value = "failedRequestRange", defaultValue = "") final String failedRequestRange, //
+    @RequestParam(value = "groupExecutedTime", defaultValue = "0") final Long groupExecutedTime, //
+    @RequestParam(value = "applicationExecutedTime", defaultValue = "0") final Long applicationExecutedTime, //
+    final InputStream in) throws NoSuchRequestHandlingMethodException {
     checkRunning();
-    return this.batchJobService.setBatchJobExecutionGroupResults(workerId, groupId, results);
+    final Worker worker = this.batchJobService.getWorker(workerId);
+    if (worker != null) {
+      final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
+      if (group != null && !group.isCancelled()) {
+        synchronized (group) {
+          final BatchJob batchJob = group.getBatchJob();
+          if (!batchJob.isCompleted()) {
+            final RangeSet completedRequests = batchJob.addCompletedRequests(completedRequestRange);
+            final RangeSet failedRequests = batchJob.addFailedRequests(failedRequestRange);
+            if (in != null) {
+              this.batchJobService.updateBatchJobExecutionGroupFromResponse(worker, batchJob,
+                group, in);
+            }
+            batchJob.removeGroup(group);
+            final BusinessApplication businessApplication = group.getBusinessApplication();
+            final String moduleName = businessApplication.getModuleName();
+            final long executionTime = this.batchJobService.updateGroupStatistics(group,
+              businessApplication, moduleName, applicationExecutedTime, groupExecutedTime,
+              completedRequests.size(), failedRequests.size());
+            final AppLog appLog = businessApplication.getLog();
+            appLog.info("End\tGroup execution\tgroupId=" + groupId + "\tworkerId=" + workerId
+              + "\ttime=" + executionTime / 1000.0);
+          }
+        }
+      }
+    }
   }
 
   @RequestMapping(value = "/worker/workers/{workerId}/jobs/groups/nextId",

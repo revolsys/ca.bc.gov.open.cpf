@@ -28,9 +28,8 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 
 public interface Module {
 
-  Set<String> RESERVED_MODULE_NAMES = new LinkedHashSet<String>(Arrays.asList(
-    "CPF", "VIEW", "EDIT", "ADD", "DELETE", "APP", "ADMIN", "DEFAULT", "COPY",
-    "CLONE", "MODULE", "GROUP"));
+  Set<String> RESERVED_MODULE_NAMES = new LinkedHashSet<String>(Arrays.asList("CPF", "VIEW",
+    "EDIT", "ADD", "DELETE", "APP", "ADMIN", "DEFAULT", "COPY", "CLONE", "MODULE", "GROUP"));
 
   void addModuleError(String error);
 
@@ -46,10 +45,16 @@ public interface Module {
 
   List<String> getBusinessApplicationNames();
 
-  PluginAdaptor getBusinessApplicationPlugin(BusinessApplication application,
+  Object getBusinessApplicationPlugin(BusinessApplication application, String executionId,
+    String logLevel);
+
+  Object getBusinessApplicationPlugin(String businessApplicationName, String executionId,
+    String logLevel);
+
+  PluginAdaptor getBusinessApplicationPluginAdaptor(BusinessApplication application,
     String executionId, String logLevel);
 
-  PluginAdaptor getBusinessApplicationPlugin(String businessApplicationName,
+  PluginAdaptor getBusinessApplicationPluginAdaptor(String businessApplicationName,
     String executionId, String logLevel);
 
   List<BusinessApplication> getBusinessApplications();

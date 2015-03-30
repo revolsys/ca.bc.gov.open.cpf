@@ -29,8 +29,8 @@ CREATE TABLE cpf_batch_jobs (
     job_status character varying(50) NOT NULL,
     last_scheduled_timestamp timestamp without time zone,
     notification_url character varying(2000),
-    num_completed_requests integer NOT NULL,
-    num_failed_requests integer NOT NULL,
+    COMPLETED_REQUEST_RANGE integer NOT NULL,
+    FAILED_REQUEST_RANGE integer NOT NULL,
     num_submitted_requests integer NOT NULL,
     result_data_content_type character varying(255) NOT NULL,
     who_created character varying(36) NOT NULL,
@@ -71,8 +71,8 @@ CREATE TABLE cpf_batch_job_execution_groups (
     when_updated timestamp without time zone NOT NULL,
     batch_job_id bigint NOT NULL,
     num_submitted_requests numeric(19,0) NOT NULL,
-    num_completed_requests numeric(19,0) NOT NULL,
-    num_failed_requests numeric(19,0) NOT NULL
+    COMPLETED_REQUEST_RANGE numeric(19,0) NOT NULL,
+    FAILED_REQUEST_RANGE numeric(19,0) NOT NULL
 );
 
 ALTER TABLE cpf_batch_job_execution_groups

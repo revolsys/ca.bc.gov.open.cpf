@@ -48,21 +48,15 @@ public class BusinessApplicationStatistics {
 
   public static final String YEAR = "year";
 
-  public static final List<String> DURATION_TYPES = Arrays.asList(HOUR, DAY,
-    MONTH, YEAR);
+  public static final List<String> DURATION_TYPES = Arrays.asList(HOUR, DAY, MONTH, YEAR);
 
   public static final List<String> STATISTIC_NAMES = Arrays.asList(
     "applicationExecutedFailedRequestsCount", "applicationExecutedGroupsCount",
-    "applicationExecutedRequestsCount", "applicationExecutedTime",
-    "completedFailedRequestsCount", "completedJobsCount",
-    "completedRequestsCount", "completedTime", "executedGroupsCount",
-    "executedRequestsCount", "executedTime", "executeScheduledGroupsCount",
-    "executeScheduledTime", "postProcessedJobsCount",
-    "postProcessedRequestsCount", "postProcessedTime",
-    "postProcessScheduledJobsCount", "postProcessScheduledJobsTime",
-    "preProcessedJobsCount", "preProcessedRequestsCount", "preProcessedTime",
-    "preProcessScheduledJobsCount", "preProcessScheduledJobsTime",
-    "submittedJobsCount", "submittedJobsTime");
+    "applicationExecutedRequestsCount", "applicationExecutedTime", "completedFailedRequestsCount",
+    "completedJobsCount", "completedRequestsCount", "completedTime", "executedGroupsCount",
+    "executedRequestsCount", "executedTime", "postProcessedJobsCount",
+    "postProcessedRequestsCount", "postProcessedTime", "preProcessedJobsCount",
+    "preProcessedRequestsCount", "preProcessedTime", "submittedJobsCount", "submittedJobsTime");
 
   public static final String APPLICATION_STATISTIC_ID = "APPLICATION_STATISTIC_ID";
 
@@ -91,8 +85,7 @@ public class BusinessApplicationStatistics {
           if (durationType.equals(YEAR)) {
             pattern = "yyyy";
           } else {
-            throw new IllegalArgumentException("Invalid duration type : "
-              + durationType);
+            throw new IllegalArgumentException("Invalid duration type : " + durationType);
           }
         }
       }
@@ -130,10 +123,6 @@ public class BusinessApplicationStatistics {
 
   private long executedTime;
 
-  private long executeScheduledGroupsCount;
-
-  private long executeScheduledTime;
-
   private String id;
 
   private long postProcessedJobsCount;
@@ -142,19 +131,11 @@ public class BusinessApplicationStatistics {
 
   private long postProcessedTime;
 
-  private long postProcessScheduledJobsCount;
-
-  private long postProcessScheduledJobsTime;
-
   private long preProcessedJobsCount;
 
   private long preProcessedRequestsCount;
 
   private long preProcessedTime;
-
-  private long preProcessScheduledJobsCount;
-
-  private long preProcessScheduledJobsTime;
 
   private Date startTime;
 
@@ -166,8 +147,7 @@ public class BusinessApplicationStatistics {
 
   private boolean modified;
 
-  public BusinessApplicationStatistics(final String businessApplicationName,
-    final String id) {
+  public BusinessApplicationStatistics(final String businessApplicationName, final String id) {
     String durationType;
     final String dateString = id;
     String pattern;
@@ -221,8 +201,7 @@ public class BusinessApplicationStatistics {
             incrementField = Calendar.YEAR;
             pattern = "yyyy";
           } else {
-            throw new IllegalArgumentException("Invalid duration type : "
-              + durationType);
+            throw new IllegalArgumentException("Invalid duration type : " + durationType);
           }
         }
       }
@@ -241,7 +220,7 @@ public class BusinessApplicationStatistics {
       if (value > 0) {
         totalValue += value;
         JavaBeanUtil.setProperty(this, statisticName, totalValue);
-        modified = true;
+        this.modified = true;
       }
       return totalValue;
     } else {
@@ -287,13 +266,13 @@ public class BusinessApplicationStatistics {
   }
 
   public boolean containsPeriod(final BusinessApplicationStatistics statistics) {
-    return statistics.dateString.startsWith(dateString);
+    return statistics.dateString.startsWith(this.dateString);
   }
 
   private String formatTime(final long time) {
     final long milliseconds = time % 1000;
-    final long seconds = (time / 1000) % 60;
-    final long minutes = (time / (60 * 1000)) % 60;
+    final long seconds = time / 1000 % 60;
+    final long minutes = time / (60 * 1000) % 60;
     final long hours = time / (60 * 60 * 1000);
     final StringBuilder s = new StringBuilder();
     if (hours < 10) {
@@ -322,14 +301,14 @@ public class BusinessApplicationStatistics {
   }
 
   public long getApplicationExecutedFailedRequestsCount() {
-    return applicationExecutedFailedRequestsCount;
+    return this.applicationExecutedFailedRequestsCount;
   }
 
   public long getApplicationExecutedGroupsAverageTime() {
-    if (applicationExecutedGroupsCount == 0) {
+    if (this.applicationExecutedGroupsCount == 0) {
       return 0;
     } else {
-      return applicationExecutedTime / applicationExecutedGroupsCount;
+      return this.applicationExecutedTime / this.applicationExecutedGroupsCount;
     }
   }
 
@@ -338,14 +317,14 @@ public class BusinessApplicationStatistics {
   }
 
   public long getApplicationExecutedGroupsCount() {
-    return applicationExecutedGroupsCount;
+    return this.applicationExecutedGroupsCount;
   }
 
   public long getApplicationExecutedRequestsAverageTime() {
-    if (applicationExecutedRequestsCount == 0) {
+    if (this.applicationExecutedRequestsCount == 0) {
       return 0;
     } else {
-      return applicationExecutedTime / applicationExecutedRequestsCount;
+      return this.applicationExecutedTime / this.applicationExecutedRequestsCount;
     }
   }
 
@@ -354,11 +333,11 @@ public class BusinessApplicationStatistics {
   }
 
   public long getApplicationExecutedRequestsCount() {
-    return applicationExecutedRequestsCount;
+    return this.applicationExecutedRequestsCount;
   }
 
   public long getApplicationExecutedTime() {
-    return applicationExecutedTime;
+    return this.applicationExecutedTime;
   }
 
   public String getApplicationExecutedTimeFormatted() {
@@ -366,18 +345,18 @@ public class BusinessApplicationStatistics {
   }
 
   public String getBusinessApplicationName() {
-    return businessApplicationName;
+    return this.businessApplicationName;
   }
 
   public long getCompletedFailedRequestsCount() {
-    return completedFailedRequestsCount;
+    return this.completedFailedRequestsCount;
   }
 
   public long getCompletedJobsAverageTime() {
-    if (completedJobsCount == 0) {
+    if (this.completedJobsCount == 0) {
       return 0;
     } else {
-      return completedTime / completedJobsCount;
+      return this.completedTime / this.completedJobsCount;
     }
   }
 
@@ -386,14 +365,14 @@ public class BusinessApplicationStatistics {
   }
 
   public long getCompletedJobsCount() {
-    return completedJobsCount;
+    return this.completedJobsCount;
   }
 
   public long getCompletedRequestsAverageTime() {
-    if (completedRequestsCount == 0) {
+    if (this.completedRequestsCount == 0) {
       return 0;
     } else {
-      return completedTime / completedRequestsCount;
+      return this.completedTime / this.completedRequestsCount;
     }
   }
 
@@ -402,11 +381,11 @@ public class BusinessApplicationStatistics {
   }
 
   public long getCompletedRequestsCount() {
-    return completedRequestsCount;
+    return this.completedRequestsCount;
   }
 
   public long getCompletedTime() {
-    return completedTime;
+    return this.completedTime;
   }
 
   public String getCompletedTimeFormatted() {
@@ -414,22 +393,22 @@ public class BusinessApplicationStatistics {
   }
 
   public Integer getDatabaseId() {
-    return databaseId;
+    return this.databaseId;
   }
 
   public String getDurationType() {
-    return durationType;
+    return this.durationType;
   }
 
   public Date getEndTime() {
-    return endTime;
+    return this.endTime;
   }
 
   public long getExecutedGroupsAverageTime() {
-    if (executedGroupsCount == 0) {
+    if (this.executedGroupsCount == 0) {
       return 0;
     } else {
-      return executedTime / executedGroupsCount;
+      return this.executedTime / this.executedGroupsCount;
     }
   }
 
@@ -438,14 +417,14 @@ public class BusinessApplicationStatistics {
   }
 
   public long getExecutedGroupsCount() {
-    return executedGroupsCount;
+    return this.executedGroupsCount;
   }
 
   public long getExecutedRequestsAverageTime() {
-    if (executedRequestsCount == 0) {
+    if (this.executedRequestsCount == 0) {
       return 0;
     } else {
-      return executedTime / executedRequestsCount;
+      return this.executedTime / this.executedRequestsCount;
     }
   }
 
@@ -454,51 +433,27 @@ public class BusinessApplicationStatistics {
   }
 
   public long getExecutedRequestsCount() {
-    return executedRequestsCount;
+    return this.executedRequestsCount;
   }
 
   public long getExecutedTime() {
-    return executedTime;
+    return this.executedTime;
   }
 
   public String getExecutedTimeFormatted() {
     return formatTime(getExecutedTime());
   }
 
-  public long getExecuteScheduledGroupsAverageTime() {
-    if (executeScheduledGroupsCount == 0) {
-      return 0;
-    } else {
-      return executeScheduledTime / executeScheduledGroupsCount;
-    }
-  }
-
-  public String getExecuteScheduledGroupsAverageTimeFormatted() {
-    return formatTime(getExecuteScheduledGroupsAverageTime());
-  }
-
-  public long getExecuteScheduledGroupsCount() {
-    return executeScheduledGroupsCount;
-  }
-
-  public long getExecuteScheduledTime() {
-    return executeScheduledTime;
-  }
-
-  public String getExecuteScheduledTimeFormatted() {
-    return formatTime(getExecuteScheduledTime());
-  }
-
   public String getId() {
-    return id;
+    return this.id;
   }
 
   public String getParentDurationType() {
-    if (durationType.equals(HOUR)) {
+    if (this.durationType.equals(HOUR)) {
       return DAY;
-    } else if (durationType.equals(DAY)) {
+    } else if (this.durationType.equals(DAY)) {
       return MONTH;
-    } else if (durationType.equals(MONTH)) {
+    } else if (this.durationType.equals(MONTH)) {
       return YEAR;
     } else {
       return null;
@@ -506,19 +461,19 @@ public class BusinessApplicationStatistics {
   }
 
   public String getParentId() {
-    final int dashIndex = id.lastIndexOf('-');
+    final int dashIndex = this.id.lastIndexOf('-');
     if (dashIndex == -1) {
       return null;
     } else {
-      return id.substring(0, dashIndex);
+      return this.id.substring(0, dashIndex);
     }
   }
 
   public long getPostProcessedJobsAverageTime() {
-    if (postProcessedJobsCount == 0) {
+    if (this.postProcessedJobsCount == 0) {
       return 0;
     } else {
-      return postProcessedTime / postProcessedJobsCount;
+      return this.postProcessedTime / this.postProcessedJobsCount;
     }
   }
 
@@ -527,14 +482,14 @@ public class BusinessApplicationStatistics {
   }
 
   public long getPostProcessedJobsCount() {
-    return postProcessedJobsCount;
+    return this.postProcessedJobsCount;
   }
 
   public long getPostProcessedRequestsAverageTime() {
-    if (postProcessedRequestsCount == 0) {
+    if (this.postProcessedRequestsCount == 0) {
       return 0;
     } else {
-      return postProcessedTime / postProcessedRequestsCount;
+      return this.postProcessedTime / this.postProcessedRequestsCount;
     }
   }
 
@@ -543,46 +498,22 @@ public class BusinessApplicationStatistics {
   }
 
   public long getPostProcessedRequestsCount() {
-    return postProcessedRequestsCount;
+    return this.postProcessedRequestsCount;
   }
 
   public long getPostProcessedTime() {
-    return postProcessedTime;
+    return this.postProcessedTime;
   }
 
   public String getPostProcessedTimeFormatted() {
     return formatTime(getPostProcessedTime());
   }
 
-  public long getPostProcessScheduledJobsAverageTime() {
-    if (postProcessScheduledJobsCount == 0) {
-      return 0;
-    } else {
-      return postProcessScheduledJobsTime / postProcessScheduledJobsCount;
-    }
-  }
-
-  public String getPostProcessScheduledJobsAverageTimeFormatted() {
-    return formatTime(getPostProcessScheduledJobsAverageTime());
-  }
-
-  public long getPostProcessScheduledJobsCount() {
-    return postProcessScheduledJobsCount;
-  }
-
-  public long getPostProcessScheduledJobsTime() {
-    return postProcessScheduledJobsTime;
-  }
-
-  public String getPostProcessScheduledJobsTimeFormatted() {
-    return formatTime(getPostProcessScheduledJobsTime());
-  }
-
   public long getPreProcessedJobsAverageTime() {
-    if (preProcessedJobsCount == 0) {
+    if (this.preProcessedJobsCount == 0) {
       return 0;
     } else {
-      return preProcessedTime / preProcessedJobsCount;
+      return this.preProcessedTime / this.preProcessedJobsCount;
     }
   }
 
@@ -591,14 +522,14 @@ public class BusinessApplicationStatistics {
   }
 
   public long getPreProcessedJobsCount() {
-    return preProcessedJobsCount;
+    return this.preProcessedJobsCount;
   }
 
   public long getPreProcessedRequestsAverageTime() {
-    if (preProcessedRequestsCount == 0) {
+    if (this.preProcessedRequestsCount == 0) {
       return 0;
     } else {
-      return preProcessedTime / preProcessedRequestsCount;
+      return this.preProcessedTime / this.preProcessedRequestsCount;
     }
   }
 
@@ -607,50 +538,26 @@ public class BusinessApplicationStatistics {
   }
 
   public long getPreProcessedRequestsCount() {
-    return preProcessedRequestsCount;
+    return this.preProcessedRequestsCount;
   }
 
   public long getPreProcessedTime() {
-    return preProcessedTime;
+    return this.preProcessedTime;
   }
 
   public String getPreProcessedTimeFormatted() {
     return formatTime(getPreProcessedTime());
   }
 
-  public long getPreProcessScheduledJobsAverageTime() {
-    if (preProcessScheduledJobsCount == 0) {
-      return 0;
-    } else {
-      return preProcessScheduledJobsTime / preProcessScheduledJobsCount;
-    }
-  }
-
-  public String getPreProcessScheduledJobsAverageTimeFormatted() {
-    return formatTime(getPreProcessScheduledJobsAverageTime());
-  }
-
-  public long getPreProcessScheduledJobsCount() {
-    return preProcessScheduledJobsCount;
-  }
-
-  public long getPreProcessScheduledJobsTime() {
-    return preProcessScheduledJobsTime;
-  }
-
-  public String getPreProcessScheduledJobsTimeFormatted() {
-    return formatTime(getPreProcessScheduledJobsTime());
-  }
-
   public Date getStartTime() {
-    return startTime;
+    return this.startTime;
   }
 
   public long getSubmittedJobsAverageTime() {
-    if (submittedJobsCount == 0) {
+    if (this.submittedJobsCount == 0) {
       return 0;
     } else {
-      return submittedJobsTime / submittedJobsCount;
+      return this.submittedJobsTime / this.submittedJobsCount;
     }
   }
 
@@ -659,11 +566,11 @@ public class BusinessApplicationStatistics {
   }
 
   public long getSubmittedJobsCount() {
-    return submittedJobsCount;
+    return this.submittedJobsCount;
   }
 
   public long getSubmittedJobsTime() {
-    return submittedJobsTime;
+    return this.submittedJobsTime;
   }
 
   public String getSubmittedJobsTimeFormatted() {
@@ -671,7 +578,7 @@ public class BusinessApplicationStatistics {
   }
 
   public boolean isModified() {
-    return modified;
+    return this.modified;
   }
 
   public void setApplicationExecutedFailedRequestsCount(
@@ -679,13 +586,11 @@ public class BusinessApplicationStatistics {
     this.applicationExecutedFailedRequestsCount = applicationExecutedFailedRequestsCount;
   }
 
-  public void setApplicationExecutedGroupsCount(
-    final long applicationExecutedGroupsCount) {
+  public void setApplicationExecutedGroupsCount(final long applicationExecutedGroupsCount) {
     this.applicationExecutedGroupsCount = applicationExecutedGroupsCount;
   }
 
-  public void setApplicationExecutedRequestsCount(
-    final long applicationExecutedRequestsCount) {
+  public void setApplicationExecutedRequestsCount(final long applicationExecutedRequestsCount) {
     this.applicationExecutedRequestsCount = applicationExecutedRequestsCount;
   }
 
@@ -693,8 +598,7 @@ public class BusinessApplicationStatistics {
     this.applicationExecutedTime = applicationExecutedTime;
   }
 
-  public void setCompletedFailedRequestsCount(
-    final long completedFailedRequestsCount) {
+  public void setCompletedFailedRequestsCount(final long completedFailedRequestsCount) {
     this.completedFailedRequestsCount = completedFailedRequestsCount;
   }
 
@@ -734,15 +638,6 @@ public class BusinessApplicationStatistics {
     this.executedTime = executedTime;
   }
 
-  public void setExecuteScheduledGroupsCount(
-    final long executeScheduledGroupsCount) {
-    this.executeScheduledGroupsCount = executeScheduledGroupsCount;
-  }
-
-  public void setExecuteScheduledTime(final long executeScheduledTime) {
-    this.executeScheduledTime = executeScheduledTime;
-  }
-
   public void setId(final String id) {
     this.id = id;
   }
@@ -755,23 +650,12 @@ public class BusinessApplicationStatistics {
     this.postProcessedJobsCount = postProcessedJobsCount;
   }
 
-  public void setPostProcessedRequestsCount(
-    final long postProcessedRequestsCount) {
+  public void setPostProcessedRequestsCount(final long postProcessedRequestsCount) {
     this.postProcessedRequestsCount = postProcessedRequestsCount;
   }
 
   public void setPostProcessedTime(final long postProcessedTime) {
     this.postProcessedTime = postProcessedTime;
-  }
-
-  public void setPostProcessScheduledJobsCount(
-    final long postProcessScheduledJobsCount) {
-    this.postProcessScheduledJobsCount = postProcessScheduledJobsCount;
-  }
-
-  public void setPostProcessScheduledJobsTime(
-    final long postProcessScheduledJobsTime) {
-    this.postProcessScheduledJobsTime = postProcessScheduledJobsTime;
   }
 
   public void setPreProcessedJobsCount(final long preProcessedJobsCount) {
@@ -784,16 +668,6 @@ public class BusinessApplicationStatistics {
 
   public void setPreProcessedTime(final long preProcessedTime) {
     this.preProcessedTime = preProcessedTime;
-  }
-
-  public void setPreProcessScheduledJobsCount(
-    final long preProcessScheduledJobsCount) {
-    this.preProcessScheduledJobsCount = preProcessScheduledJobsCount;
-  }
-
-  public void setPreProcessScheduledJobsTime(
-    final long preProcessScheduledJobsTime) {
-    this.preProcessScheduledJobsTime = preProcessScheduledJobsTime;
   }
 
   public void setStartTime(final Date startTime) {
@@ -821,7 +695,7 @@ public class BusinessApplicationStatistics {
 
   @Override
   public String toString() {
-    return id + ": " + toMap();
+    return this.id + ": " + toMap();
   }
 
 }

@@ -37,7 +37,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.utils.URIUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -62,8 +64,7 @@ public class DigestHttpClient {
     if (requestURI.isAbsolute()) {
       target = URIUtils.extractHost(requestURI);
       if (target == null) {
-        throw new IllegalArgumentException(
-          "URI does not specify a valid host name: " + requestURI);
+        throw new IllegalArgumentException("URI does not specify a valid host name: " + requestURI);
       }
     }
     return target;
@@ -76,15 +77,15 @@ public class DigestHttpClient {
 
   private final DefaultHttpClient httpClient;
 
-  public DigestHttpClient(final String webServiceUrl, final String username,
-    final String password, final int poolSize) {
+  public DigestHttpClient(final String webServiceUrl, final String username, final String password,
+    final int poolSize) {
     this.webServiceUrl = webServiceUrl;
 
     final ThreadSafeClientConnManager connectionManager = new ThreadSafeClientConnManager();
     connectionManager.setDefaultMaxPerRoute(poolSize);
     connectionManager.setMaxTotal(poolSize);
-    httpClient = new DefaultHttpClient(connectionManager);
-    final HttpParams params = httpClient.getParams();
+    this.httpClient = new DefaultHttpClient(connectionManager);
+    final HttpParams params = this.httpClient.getParams();
 
     final List<String> authPrefs = Collections.singletonList(AuthPolicy.DIGEST);
     params.setParameter(AuthPNames.TARGET_AUTH_PREF, authPrefs);
@@ -95,12 +96,22 @@ public class DigestHttpClient {
     final int port = host.getPort();
 
     final AuthScope authScope = new AuthScope(hostName, port);
-    final UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
-      username, password);
+    final UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username,
+      password);
 
-    final CredentialsProvider credentialsProvider = httpClient.getCredentialsProvider();
+    final CredentialsProvider credentialsProvider = this.httpClient.getCredentialsProvider();
     credentialsProvider.setCredentials(authScope, credentials);
 
+  }
+
+  public void closeResponse(final HttpResponse response) {
+    try {
+      final HttpEntity entity = response.getEntity();
+      try (
+        final InputStream content = entity.getContent()) {
+      }
+    } catch (final Throwable e) {
+    }
   }
 
   protected HttpStatusCodeException createException(final HttpEntity entity,
@@ -109,25 +120,21 @@ public class DigestHttpClient {
     if (log.isDebugEnabled()) {
       try {
         final String errorBody = EntityUtils.toString(entity);
-        log.debug("Unable to get message from server: " + statusLine + "\n"
-          + errorBody);
+        log.debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
       } catch (final Throwable e) {
         log.error("Unable to get error message server: " + statusLine + "\n");
       }
     }
-    return new HttpStatusCodeException(statusLine.getStatusCode(),
-      statusLine.getReasonPhrase());
+    return new HttpStatusCodeException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
   }
 
-  protected <V> V execute(final HttpUriRequest request,
-    final ResponseHandler<V> responseHandler) {
+  protected <V> V execute(final HttpUriRequest request, final ResponseHandler<V> responseHandler) {
     final BasicHttpContext context = new BasicHttpContext();
 
     final HttpHost host = determineTarget(request);
 
     try {
-      final V response = httpClient.execute(host, request, responseHandler,
-        context);
+      final V response = this.httpClient.execute(host, request, responseHandler, context);
       return response;
     } catch (final Throwable e) {
       if (ThreadUtil.isInterrupted()) {
@@ -163,7 +170,7 @@ public class DigestHttpClient {
   public Map<String, Object> getJsonResource(final HttpUriRequest request) {
     request.addHeader("Accept", "application/json");
 
-    final Map<String, Object> response = execute(request, jsonResponseHandler);
+    final Map<String, Object> response = execute(request, this.jsonResponseHandler);
 
     return response;
   }
@@ -207,7 +214,7 @@ public class DigestHttpClient {
   }
 
   public String getUrl(final String path) {
-    return webServiceUrl + path;
+    return this.webServiceUrl + path;
   }
 
   public Map<String, Object> postJsonResource(final String url) {
@@ -229,8 +236,7 @@ public class DigestHttpClient {
     }
   }
 
-  public HttpResponse postResource(final String url, final String contentType,
-    final File file) {
+  public HttpResponse postResource(final String url, final String contentType, final File file) {
     try {
       final HttpPost request = new HttpPost(url);
       final FileEntity entity = new FileEntity(file, contentType);
@@ -238,7 +244,22 @@ public class DigestHttpClient {
 
       final BasicHttpContext context = new BasicHttpContext();
 
-      final HttpResponse response = httpClient.execute(request, context);
+      final HttpResponse response = this.httpClient.execute(request, context);
+      return response;
+    } catch (final Throwable e) {
+      return ExceptionUtil.throwUncheckedException(e);
+    }
+  }
+
+  public HttpResponse postResource(final String url, final String contentType, final InputStream in) {
+    try {
+      final HttpPost request = new HttpPost(url);
+      final InputStreamEntity entity = new InputStreamEntity(in, ContentType.create(contentType));
+      request.setEntity(entity);
+
+      final BasicHttpContext context = new BasicHttpContext();
+
+      final HttpResponse response = this.httpClient.execute(request, context);
       return response;
     } catch (final Throwable e) {
       return ExceptionUtil.throwUncheckedException(e);

@@ -324,7 +324,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
    *
    * @return The time in milliseconds.
    */
-  public long getTimeUntilNextCheck(final Record batchJob) {
+  public long getTimeUntilNextCheck(final BatchJob batchJob) {
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
     final BusinessApplication application = this.batchJobService.getBusinessApplication(businessApplicationName);
     long timeRemaining = 0;
@@ -335,27 +335,21 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
         final int numRequests = RecordUtil.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS);
         if (jobStatus.equals(BatchJobStatus.DOWNLOAD_INITIATED)
-          || jobStatus.equals(BatchJobStatus.RESULTS_CREATED) || jobStatus.equals(BatchJobStatus.CANCELLED)) {
+          || jobStatus.equals(BatchJobStatus.RESULTS_CREATED)
+          || jobStatus.equals(BatchJobStatus.CANCELLED)) {
           return 0;
         } else if (jobStatus.equals(BatchJobStatus.CREATING_RESULTS)) {
           return numRequests * stats.getPostProcessedRequestsAverageTime();
         } else {
-          timeRemaining += stats.getPostProcessScheduledJobsAverageTime();
           if (!jobStatus.equals(BatchJobStatus.PROCESSED)) {
-            final int numCompletedRequests = RecordUtil.getInteger(batchJob,
-              BatchJob.NUM_COMPLETED_REQUESTS);
-            final int numFailedRequests = RecordUtil.getInteger(batchJob,
-              BatchJob.NUM_FAILED_REQUESTS);
+            final int numCompletedRequests = batchJob.getNumCompletedRequests();
+            final int numFailedRequests = batchJob.getNumFailedRequests();
             final int numRequestsRemaining = numRequests - numCompletedRequests - numFailedRequests;
             final long executedRequestsAverageTime = stats.getApplicationExecutedRequestsAverageTime();
             timeRemaining += numRequestsRemaining * executedRequestsAverageTime;
             if (!jobStatus.equals(BatchJobStatus.PROCESSING)) {
-              timeRemaining += stats.getExecuteScheduledGroupsAverageTime();
               if (!jobStatus.equals(BatchJobStatus.REQUESTS_CREATED)) {
                 timeRemaining += numRequests * stats.getPreProcessedRequestsAverageTime();
-                if (!jobStatus.equals(BatchJobStatus.CREATING_REQUESTS)) {
-                  timeRemaining += stats.getPreProcessScheduledJobsAverageTime();
-                }
               }
             }
           }

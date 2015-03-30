@@ -18,8 +18,12 @@ package ca.bc.gov.open.cpf.api.web.controller;
 import java.io.InputStream;
 import java.util.Map;
 
+import com.revolsys.io.Reader;
+
 public interface JobController {
   String GROUP_RESULTS = "groupResults";
+
+  String GROUP_ERRORS = "groupErrors";
 
   String GROUP_INPUTS = "groupInputs";
 
@@ -37,7 +41,9 @@ public interface JobController {
 
   String getGroupInputString(long jobId, int sequenceNumber);
 
-  Map<String, Object> getGroupResultMap(long jobId, int sequenceNumber);
+  Reader<Map<String, Object>> getGroupResultReader(long jobId, int sequenceNumber);
+
+  InputStream getGroupResultStream(long jobId, int sequenceNumber);
 
   InputStream getJobInputStream(long jobId);
 
@@ -47,9 +53,11 @@ public interface JobController {
 
   String getKey();
 
+  void setGroupError(long jobId, int sequenceNumber, Object data);
+
   void setGroupInput(long jobId, int sequenceNumber, String contentType, Object data);
 
-  void setGroupResult(long jobId, int sequenceNumber, String contentType, Object data);
+  void setGroupResult(long jobId, int sequenceNumber, InputStream in);
 
   void setJobResult(long jobId, int sequenceNumber, String contentType, Object data);
 }

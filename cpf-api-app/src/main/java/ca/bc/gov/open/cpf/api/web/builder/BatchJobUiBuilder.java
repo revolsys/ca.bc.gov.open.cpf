@@ -66,6 +66,11 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }
 
   @Override
+  protected Record convertRecord(final Record batchJob) {
+    return getBatchJobService().getBatchJob(batchJob);
+  }
+
+  @Override
   public Object getProperty(final Object object, final String keyName) {
     if (keyName.equals("groupsToProcess")) {
       final BatchJob batchJob = (BatchJob)object;
@@ -76,6 +81,12 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     } else if (keyName.equals("completedGroups")) {
       final BatchJob batchJob = (BatchJob)object;
       return batchJob.getCompletedGroups();
+    } else if (keyName.equals("completedRequests")) {
+      final BatchJob batchJob = (BatchJob)object;
+      return batchJob.getCompletedRequests();
+    } else if (keyName.equals("failedRequests")) {
+      final BatchJob batchJob = (BatchJob)object;
+      return batchJob.getFailedRequests();
     } else if (keyName.startsWith("BUSINESS_APPLICATION_NAME") && object instanceof Record) {
       final Record batchJob = (Record)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
@@ -128,7 +139,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleAppList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName) throws IOException, ServletException {
+    @PathVariable("businessApplicationName") final String businessApplicationName)
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
 
@@ -148,8 +160,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public ElementContainer pageModuleAppView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Integer batchJobId)
-    throws IOException, ServletException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Integer batchJobId) throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final Record batchJob = getBatchJob(businessApplicationName, batchJobId);
@@ -203,8 +215,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void postModuleAppCancel(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId)
-    throws IOException, ServletException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
@@ -222,8 +234,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void postModuleAppDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId)
-    throws IOException, ServletException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();

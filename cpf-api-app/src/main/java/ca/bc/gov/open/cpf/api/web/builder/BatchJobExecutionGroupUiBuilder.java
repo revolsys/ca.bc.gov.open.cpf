@@ -17,6 +17,7 @@ package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -46,7 +47,6 @@ import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.Record;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.io.xml.XmlWriter;
 import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
 import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
@@ -97,9 +97,10 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public void getModuleAppJobRequestInputDataDownload(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws NoSuchRequestHandlingMethodException,
-    IOException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Long batchJobId,
+    @PathVariable("sequenceNumber") final Integer sequenceNumber)
+    throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
       businessApplicationName);
@@ -138,9 +139,10 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public void getModuleAppJobRequestResultDataDownload(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws NoSuchRequestHandlingMethodException,
-    IOException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Long batchJobId,
+    @PathVariable("sequenceNumber") final Integer sequenceNumber)
+    throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
       businessApplicationName);
@@ -164,9 +166,11 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
         }
       }
     } else {
-      final Map<String, Object> resultData = getBatchJobService().getJobController()
-        .getGroupResultMap(batchJobId, sequenceNumber);
-      writeJson(response, baseName, resultData);
+      try (
+        final InputStream resultDataIn = getBatchJobService().getJobController()
+          .getGroupResultStream(batchJobId, sequenceNumber)) {
+        writeJson(response, baseName, resultDataIn);
+      }
     }
   }
 
@@ -176,8 +180,9 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId)
-    throws IOException, NoSuchRequestHandlingMethodException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException,
+    NoSuchRequestHandlingMethodException {
     checkAdminOrModuleAdmin(moduleName);
 
     getModuleBusinessApplication(moduleName, businessApplicationName);
@@ -194,15 +199,16 @@ public class BatchJobExecutionGroupUiBuilder extends CpfUiBuilder {
   }
 
   private void writeJson(final HttpServletResponse response, final String filename,
-    final Map<String, Object> map) throws IOException {
+    final InputStream in) throws IOException {
     response.setContentType("application/json");
     response.setHeader("Content-disposition", "attachment; filename=" + filename + ".json");
     try (
-      java.io.Writer out = response.getWriter()) {
-      if (map != null) {
-        out.write(JsonMapIoFactory.toString(map));
+      OutputStream out = response.getOutputStream()) {
+      if (in == null) {
+        out.write('{');
+        out.write('}');
       } else {
-        out.write("{}");
+        FileUtil.copy(in, out);
       }
     }
   }

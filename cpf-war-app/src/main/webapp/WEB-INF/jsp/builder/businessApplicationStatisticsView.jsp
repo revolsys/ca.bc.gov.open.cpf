@@ -88,31 +88,6 @@
                 </table></td>
           </tr>
           <tr>
-            <th>Jobs Pre-Process Scheduled</th>
-            <td><div class="simpleDataTable">
-                <table class="data">
-                  <thead>
-                    <tr>
-                      <th style="width: 100px">&nbsp;</th>
-                      <th style="width: 100px">Avg Time (HH:MM:SS.SSS)</th>
-                      <th style="width: 100px">Total Time (HH:MM:SS.SSS)</th>
-                      <th style="width: 100px">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>Jobs</th>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.preProcessScheduledJobsAverageTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.preProcessScheduledJobsTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.preProcessScheduledJobsCount}" /></td>
-                    </tr>
-                  </tbody>
-                </table></td>
-          </tr>
-          <tr>
             <th>Jobs Pre-Processed</th>
             <td><div class="simpleDataTable">
                 <table class="data">
@@ -142,31 +117,6 @@
                           value="${statisitcs.preProcessedTimeFormatted}" /></td>
                       <td style="text-align: right"><c:out
                           value="${statisitcs.preProcessedRequestsCount}" /></td>
-                    </tr>
-                  </tbody>
-                </table></td>
-          </tr>
-          <tr>
-            <th>Job Request Groups Scheduled</th>
-            <td><div class="simpleDataTable">
-                <table class="data">
-                  <thead>
-                    <tr>
-                      <th style="width: 100px">&nbsp;</th>
-                      <th style="width: 100px">Avg Time (HH:MM:SS.SSS)</th>
-                      <th style="width: 100px">Total Time (HH:MM:SS.SSS)</th>
-                      <th style="width: 100px">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>Groups</th>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.executeScheduledGroupsAverageTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.executeScheduledTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.executeScheduledGroupsCount}" /></td>
                     </tr>
                   </tbody>
                 </table></td>
@@ -240,31 +190,6 @@
                               value="${statisitcs.applicationExecutedFailedRequestsCount}" />)
                           </span>
                         </c:if></td>
-                    </tr>
-                  </tbody>
-                </table></td>
-          </tr>
-          <tr>
-            <th>Jobs Post-Process Scheduled</th>
-            <td><div class="simpleDataTable">
-                <table class="data">
-                  <thead>
-                    <tr>
-                      <th style="width: 100px">&nbsp;</th>
-                      <th style="width: 100px">Avg Time (HH:MM:SS.SSS)</th>
-                      <th style="width: 100px">Total Time (HH:MM:SS.SSS)</th>
-                      <th style="width: 100px">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <th>Jobs</th>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.postProcessScheduledJobsAverageTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.postProcessScheduledJobsTimeFormatted}" /></td>
-                      <td style="text-align: right"><c:out
-                          value="${statisitcs.postProcessScheduledJobsCount}" /></td>
                     </tr>
                   </tbody>
                 </table></td>

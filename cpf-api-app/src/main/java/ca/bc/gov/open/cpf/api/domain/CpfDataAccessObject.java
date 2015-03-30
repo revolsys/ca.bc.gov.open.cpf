@@ -115,8 +115,8 @@ public class CpfDataAccessObject {
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " //
           + "COMPLETED_GROUP_RANGE = null, "//
-          + "NUM_COMPLETED_REQUESTS = 0, "//
-          + "NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS,"
+          + "COMPLETED_REQUEST_RANGE = null, "//
+          + "FAILED_REQUEST_RANGE = NUM_SUBMITTED_REQUESTS,"
           + "WHEN_STATUS_CHANGED = ?, " //
           + "JOB_STATUS = 'cancelled',"
           + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
@@ -178,8 +178,6 @@ public class CpfDataAccessObject {
     record.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 0);
     record.setValue(BatchJob.NUM_COMPLETED_GROUPS, 0);
     record.setValue(BatchJob.GROUP_SIZE, 1);
-    record.setValue(BatchJob.NUM_COMPLETED_REQUESTS, 0);
-    record.setValue(BatchJob.NUM_FAILED_REQUESTS, 0);
 
     final BatchJob batchJob = new BatchJob(record);
     this.batchJobById.put(batchJobId, batchJob);
@@ -190,7 +188,7 @@ public class CpfDataAccessObject {
     final long batchJobId, final int groupSequenceNumber, final String errorCode,
     final String errorMessage, final String errorDebugMessage) {
     final Map<String, Object> error = new HashMap<String, Object>();
-    error.put("requestSequenceNumber", 1);
+    error.put("i", 1);
     error.put("errorCode", errorCode);
     error.put("errorMessage", errorMessage);
     error.put("errorDebugMessage", errorDebugMessage);
@@ -218,8 +216,6 @@ public class CpfDataAccessObject {
     batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 0);
     batchJobExecutionGroup.setValue(BatchJobExecutionGroup.STARTED_IND, 0);
     batchJobExecutionGroup.setValue(BatchJobExecutionGroup.NUM_SUBMITTED_REQUESTS, requestCount);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.NUM_COMPLETED_REQUESTS, 0);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.NUM_FAILED_REQUESTS, 0);
     batchJobExecutionGroup.setValue(BatchJobExecutionGroup.SEQUENCE_NUMBER, groupSequenceNumber);
     return batchJobExecutionGroup;
   }
@@ -405,16 +401,44 @@ public class CpfDataAccessObject {
   }
 
   public synchronized BatchJob getBatchJob(final Long batchJobId) {
-    BatchJob batchJob = this.batchJobById.get(batchJobId);
-    if (batchJob == null) {
-      final Record record = this.recordStore.load(BatchJob.BATCH_JOB, batchJobId);
-      if (record != null) {
-        batchJob = new BatchJob(record);
-        this.batchJobById.put(batchJobId, batchJob);
+    if (batchJobId == null) {
+      return null;
+    } else {
+      synchronized (this.batchJobById) {
+        BatchJob batchJob = this.batchJobById.get(batchJobId);
+        if (batchJob == null) {
+          final Record record = this.recordStore.load(BatchJob.BATCH_JOB, batchJobId);
+          if (record != null) {
+            batchJob = new BatchJob(record);
+            this.batchJobById.put(batchJobId, batchJob);
+          }
+        }
+        return batchJob;
       }
     }
-    return batchJob;
+  }
 
+  public BatchJob getBatchJob(final Record record) {
+    if (record == null) {
+      return null;
+    } else if (record instanceof BatchJob) {
+      return (BatchJob)record;
+
+    } else {
+      synchronized (this.batchJobById) {
+        final Long batchJobId = record.getLong(BatchJob.BATCH_JOB_ID);
+        if (batchJobId == null) {
+          return null;
+        } else {
+          BatchJob batchJob = this.batchJobById.get(batchJobId);
+          if (batchJob == null) {
+            batchJob = new BatchJob(record);
+            this.batchJobById.put(batchJobId, batchJob);
+          }
+          return batchJob;
+        }
+      }
+    }
   }
 
   public Record getBatchJob(final String consumerKey, final long batchJobId) {
@@ -873,7 +897,9 @@ public class CpfDataAccessObject {
     final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "NUM_COMPLETED_REQUESTS = 0, NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS, JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
+      + "COMPLETED_REQUEST_RANGE = null, "//
+      + "FAILED_REQUEST_RANGE = concat('1~', NUM_SUBMITTED_REQUESTS), "//
+      + "JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
       + "WHERE JOB_STATUS = 'creatingRequests' AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -892,7 +918,7 @@ public class CpfDataAccessObject {
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " //
           + "NUM_SUBMITTED_REQUESTS = ?, "//
-          + "NUM_FAILED_REQUESTS = ?, "//
+          + "FAILED_REQUEST_RANGE = ?, "//
           + "GROUP_SIZE = ?, "//
           + "NUM_SUBMITTED_GROUPS = ?, "//
           + "JOB_STATUS = 'processed', "//
@@ -984,7 +1010,7 @@ public class CpfDataAccessObject {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
         + "JOB_STATUS = 'processed', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-        + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ? AND NUM_COMPLETED_REQUESTS + NUM_FAILED_REQUESTS = NUM_SUBMITTED_REQUESTS";
+        + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ? AND COMPLETED_REQUEST_RANGE + FAILED_REQUEST_RANGE = NUM_SUBMITTED_REQUESTS";
       try {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, businessApplicationName);
@@ -1037,8 +1063,8 @@ public class CpfDataAccessObject {
     if (this.recordStore instanceof JdbcRecordStore) {
       final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
       final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + " NUM_COMPLETED_REQUESTS = COALESCE((SELECT SUM(NUM_COMPLETED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
-        + " NUM_FAILED_REQUESTS = COALESCE((SELECT SUM(NUM_FAILED_REQUESTS) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " COMPLETED_REQUEST_RANGE = COALESCE((SELECT SUM(COMPLETED_REQUEST_RANGE) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
+        + " FAILED_REQUEST_RANGE = COALESCE((SELECT SUM(FAILED_REQUEST_RANGE) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
         + " NUM_COMPLETED_GROUPS = COALESCE((SELECT COUNT(SEQUENCE_NUMBER) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
         + " WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
         + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ?";

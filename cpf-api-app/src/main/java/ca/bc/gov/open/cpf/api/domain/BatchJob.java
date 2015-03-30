@@ -14,6 +14,8 @@ import com.revolsys.collection.range.AbstractRange;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.data.record.DelegatingRecord;
 import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordState;
+import com.revolsys.io.json.JsonMapIoFactory;
 
 public class BatchJob extends DelegatingRecord implements Common {
 
@@ -25,9 +27,11 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public static final String BUSINESS_APPLICATION_PARAMS = "BUSINESS_APPLICATION_PARAMS";
 
-  public static final String COMPLETED_TIMESTAMP = "COMPLETED_TIMESTAMP";
-
   public static final String COMPLETED_GROUP_RANGE = "COMPLETED_GROUP_RANGE";
+
+  public static final String COMPLETED_REQUEST_RANGE = "COMPLETED_REQUEST_RANGE";
+
+  public static final String COMPLETED_TIMESTAMP = "COMPLETED_TIMESTAMP";
 
   public static final String GROUP_SIZE = "GROUP_SIZE";
 
@@ -39,13 +43,11 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public static final String NOTIFICATION_URL = "NOTIFICATION_URL";
 
-  public static final String NUM_COMPLETED_REQUESTS = "NUM_COMPLETED_REQUESTS";
+  public static final String NUM_COMPLETED_GROUPS = "NUM_COMPLETED_GROUPS";
 
-  public static final String NUM_FAILED_REQUESTS = "NUM_FAILED_REQUESTS";
+  public static final String FAILED_REQUEST_RANGE = "FAILED_REQUEST_RANGE";
 
   public static final String NUM_SUBMITTED_GROUPS = "NUM_SUBMITTED_GROUPS";
-
-  public static final String NUM_COMPLETED_GROUPS = "NUM_COMPLETED_GROUPS";
 
   public static final String NUM_SUBMITTED_REQUESTS = "NUM_SUBMITTED_REQUESTS";
 
@@ -61,36 +63,72 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   private final RangeSet completedGroups;
 
-  private final RangeSet scheduledGroups = new RangeSet();
+  private final RangeSet completedRequests;
 
-  private RangeSet groupsToProcess;
-
-  private final RangeSet failedRequests = new RangeSet();
-
-  private final LinkedList<BatchJobRequestExecutionGroup> resheduledGroups = new LinkedList<>();
+  private final RangeSet failedRequests;
 
   private final Set<BatchJobRequestExecutionGroup> groups = new HashSet<>();
 
+  private final RangeSet groupsToProcess = new RangeSet();
+
+  private final LinkedList<BatchJobRequestExecutionGroup> resheduledGroups = new LinkedList<>();
+
+  private final RangeSet scheduledGroups = new RangeSet();
+
   public BatchJob(final Record record) {
     super(record);
-    final String completedRangeSpec = record.getString(BatchJob.COMPLETED_GROUP_RANGE);
-    this.completedGroups = RangeSet.create(completedRangeSpec);
+    final String completedGroupRange = record.getString(BatchJob.COMPLETED_GROUP_RANGE);
+    this.completedGroups = RangeSet.create(completedGroupRange);
+    final String completedRequestsRange = record.getString(BatchJob.COMPLETED_REQUEST_RANGE);
+    this.completedRequests = RangeSet.create(completedRequestsRange);
+    final String failedRequestsRange = record.getString(BatchJob.FAILED_REQUEST_RANGE);
+    this.failedRequests = RangeSet.create(failedRequestsRange);
     final int groupCount = record.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
     setGroupCount(groupCount);
     this.groupsToProcess.remove(this.completedGroups);
   }
 
-  public synchronized void addCompletedGroup(final long groupSequenceNumber) {
-    this.scheduledGroups.remove(groupSequenceNumber);
-    this.completedGroups.add(groupSequenceNumber);
+  public void addCompletedGroup(final long groupSequenceNumber) {
+    synchronized (this.scheduledGroups) {
+      this.scheduledGroups.remove(groupSequenceNumber);
+    }
+    synchronized (this.completedGroups) {
+      this.completedGroups.add(groupSequenceNumber);
+    }
   }
 
-  public synchronized void addFailedRequest(final long sequenceNumber) {
-    this.failedRequests.add(sequenceNumber);
+  public RangeSet addCompletedRequests(final String range) {
+    final RangeSet rangeSet = RangeSet.create(range);
+    synchronized (this.completedRequests) {
+      this.completedRequests.addRanges(rangeSet);
+    }
+    return rangeSet;
+  }
+
+  public RangeSet addFailedRequests(final String range) {
+    final RangeSet rangeSet = RangeSet.create(range);
+    synchronized (this.failedRequests) {
+      this.failedRequests.addRanges(rangeSet);
+    }
+    return rangeSet;
+  }
+
+  public Map<String, String> getBusinessApplicationParameters() {
+    final String jobParameters = getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
+    final Map<String, String> parameters = JsonMapIoFactory.toMap(jobParameters);
+    return parameters;
   }
 
   public String getCompletedGroups() {
     return this.completedGroups.toString();
+  }
+
+  public String getCompletedRequests() {
+    return this.completedRequests.toString();
+  }
+
+  public String getFailedRequests() {
+    return this.failedRequests.toString();
   }
 
   public Set<BatchJobRequestExecutionGroup> getGroups() {
@@ -101,46 +139,52 @@ public class BatchJob extends DelegatingRecord implements Common {
     return this.groupsToProcess.toString();
   }
 
-  public synchronized BatchJobRequestExecutionGroup getNextGroup(
-    final BusinessApplication businessApplication) {
-    if (!this.resheduledGroups.isEmpty()) {
-      return this.resheduledGroups.removeFirst();
-    } else if (this.groupsToProcess.size() == 0) {
-      return null;
-    } else {
-      final Object nextValue = this.groupsToProcess.removeFirst();
-      if (nextValue instanceof Number) {
-        final Integer sequenceNumber = ((Number)nextValue).intValue();
-        this.scheduledGroups.add(sequenceNumber);
-
-        final String userId = getValue(BatchJob.USER_ID);
-
-        final Map<String, String> businessApplicationParameterMap = BatchJobService.getBusinessApplicationParameters(this);
-        final String resultDataContentType = getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-
-        final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(userId, this,
-          businessApplication, businessApplicationParameterMap, resultDataContentType,
-          new Timestamp(System.currentTimeMillis()), sequenceNumber);
-        this.groups.add(group);
-        return group;
-      } else {
-        return null;
+  public BatchJobRequestExecutionGroup getNextGroup(final BusinessApplication businessApplication) {
+    synchronized (this.resheduledGroups) {
+      if (!this.resheduledGroups.isEmpty()) {
+        return this.resheduledGroups.removeFirst();
       }
+    }
+    final Object nextValue;
+    synchronized (this.groupsToProcess) {
+      if (this.groupsToProcess.size() == 0) {
+        nextValue = null;
+      } else {
+        nextValue = this.groupsToProcess.removeFirst();
+      }
+    }
+    if (nextValue instanceof Number) {
+      final Integer sequenceNumber = ((Number)nextValue).intValue();
+      synchronized (this.scheduledGroups) {
+        this.scheduledGroups.add(sequenceNumber);
+      }
+
+      final String userId = getValue(BatchJob.USER_ID);
+
+      final Map<String, String> businessApplicationParameterMap = BatchJobService.getBusinessApplicationParameters(this);
+      final String resultDataContentType = getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+      final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(userId, this,
+        businessApplication, businessApplicationParameterMap, resultDataContentType, new Timestamp(
+          System.currentTimeMillis()), sequenceNumber);
+      synchronized (this.groups) {
+        this.groups.add(group);
+      }
+      return group;
+    } else {
+      return null;
     }
   }
 
-  public synchronized Integer getNextGroupId() {
-    if (this.groupsToProcess.size() == 0) {
-      return null;
-    } else {
-      final Object nextValue = this.groupsToProcess.removeFirst();
-      if (nextValue instanceof Number) {
-        final Integer groupId = ((Number)nextValue).intValue();
-        this.scheduledGroups.add(groupId);
-        return groupId;
-      } else {
-        return null;
-      }
+  public int getNumCompletedRequests() {
+    synchronized (this.completedRequests) {
+      return this.completedRequests.size();
+    }
+  }
+
+  public int getNumFailedRequests() {
+    synchronized (this.failedRequests) {
+      return this.failedRequests.size();
     }
   }
 
@@ -148,11 +192,11 @@ public class BatchJob extends DelegatingRecord implements Common {
     return this.scheduledGroups.toString();
   }
 
-  public synchronized boolean hasAvailableGroup() {
+  public boolean hasAvailableGroup() {
     return this.groupsToProcess.size() > 0;
   }
 
-  public synchronized boolean isCompleted() {
+  public boolean isCompleted() {
     if (hasAvailableGroup()) {
       return false;
     } else if (this.scheduledGroups.size() > 0) {
@@ -173,29 +217,62 @@ public class BatchJob extends DelegatingRecord implements Common {
     }
   }
 
-  public synchronized void removeGroup(final BatchJobRequestExecutionGroup group) {
-    this.groups.remove(group);
-  }
-
-  public synchronized void reset() {
-    this.resheduledGroups.clear();
-    this.groups.clear();
-    for (final AbstractRange<?> range : this.scheduledGroups.getRanges()) {
-      this.groupsToProcess.addRange(range);
+  public void removeGroup(final BatchJobRequestExecutionGroup group) {
+    synchronized (this.groups) {
+      this.groups.remove(group);
     }
-    this.scheduledGroups.clear();
   }
 
   public void rescheduleGroup(final BatchJobRequestExecutionGroup group) {
     this.resheduledGroups.add(group);
   }
 
-  public synchronized void setGroupCount(final int groupCount) {
-    setValue(BatchJob.NUM_SUBMITTED_GROUPS, groupCount);
-    if (groupCount == 0) {
-      this.groupsToProcess = new RangeSet();
-    } else {
-      this.groupsToProcess = RangeSet.create(1, groupCount);
+  public void reset() {
+    synchronized (this.resheduledGroups) {
+      this.resheduledGroups.clear();
     }
+    synchronized (this.groups) {
+      this.groups.clear();
+    }
+    synchronized (this.groupsToProcess) {
+      synchronized (this.scheduledGroups) {
+        for (final AbstractRange<?> range : this.scheduledGroups.getRanges()) {
+          this.groupsToProcess.addRange(range);
+        }
+        this.scheduledGroups.clear();
+      }
+    }
+  }
+
+  public void setGroupCount(final int groupCount) {
+    setValue(BatchJob.NUM_SUBMITTED_GROUPS, groupCount);
+    synchronized (this.groupsToProcess) {
+      this.groupsToProcess.clear();
+      if (groupCount != 0) {
+        this.groupsToProcess.addRange(1, groupCount);
+      }
+    }
+  }
+
+  @Override
+  public String toString() {
+    return getIdValue().toString();
+  }
+
+  public synchronized void update() {
+    synchronized (this.completedGroups) {
+      setValue(COMPLETED_GROUP_RANGE, this.completedGroups.toString());
+      setValue(NUM_COMPLETED_GROUPS, this.completedGroups.size());
+    }
+    synchronized (this.failedRequests) {
+      setValue(FAILED_REQUEST_RANGE, this.failedRequests.toString());
+    }
+    synchronized (this.completedRequests) {
+      setValue(COMPLETED_REQUEST_RANGE, this.completedRequests.toString());
+    }
+    if (getState() == RecordState.Modified) {
+      getRecordDefinition().getRecordStore().update(this);
+    }
+
   }
 }

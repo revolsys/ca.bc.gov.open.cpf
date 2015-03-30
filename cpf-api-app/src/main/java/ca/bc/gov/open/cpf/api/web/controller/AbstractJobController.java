@@ -19,7 +19,8 @@ import java.io.InputStream;
 import java.util.Map;
 
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.json.JsonParser;
+import com.revolsys.io.Reader;
+import com.revolsys.io.csv.Csv;
 
 public abstract class AbstractJobController implements JobController {
   @Override
@@ -43,14 +44,18 @@ public abstract class AbstractJobController implements JobController {
   }
 
   @Override
-  public Map<String, Object> getGroupResultMap(final long jobId, final int sequenceNumber) {
-    final InputStream in = getFileStream(jobId, GROUP_RESULTS, sequenceNumber);
+  public Reader<Map<String, Object>> getGroupResultReader(final long jobId, final int sequenceNumber) {
+    final InputStream in = getGroupResultStream(jobId, sequenceNumber);
     if (in == null) {
       return null;
     } else {
-      final Map<String, Object> resultData = JsonParser.read(in);
-      return resultData;
+      return Csv.mapReader(in);
     }
+  }
+
+  @Override
+  public InputStream getGroupResultStream(final long jobId, final int sequenceNumber) {
+    return getFileStream(jobId, GROUP_RESULTS, sequenceNumber);
   }
 
   @Override
@@ -69,15 +74,19 @@ public abstract class AbstractJobController implements JobController {
   }
 
   @Override
+  public void setGroupError(final long jobId, final int sequenceNumber, final Object data) {
+    createJobFile(jobId, GROUP_ERRORS, sequenceNumber, "text/csv", data);
+  }
+
+  @Override
   public void setGroupInput(final long jobId, final int sequenceNumber, final String contentType,
     final Object data) {
     createJobFile(jobId, GROUP_INPUTS, sequenceNumber, contentType, data);
   }
 
   @Override
-  public void setGroupResult(final long jobId, final int sequenceNumber, final String contentType,
-    final Object data) {
-    createJobFile(jobId, GROUP_RESULTS, sequenceNumber, contentType, data);
+  public void setGroupResult(final long jobId, final int sequenceNumber, final InputStream in) {
+    createJobFile(jobId, GROUP_RESULTS, sequenceNumber, "text/csv", in);
   }
 
   @Override

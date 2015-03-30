@@ -71,12 +71,12 @@
           p:label="Submitted" />
 
         <bean
-          p:name="NUM_COMPLETED_REQUESTS"
+          p:name="COMPLETED_REQUEST_RANGE"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Completed" />
 
         <bean
-          p:name="NUM_FAILED_REQUESTS"
+          p:name="FAILED_REQUEST_RANGE"
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Failed" />
 
@@ -99,8 +99,8 @@
             <value>STARTED_IND</value>
             <value>inputData</value>
             <value>COMPLETED_IND</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
+            <value>COMPLETED_REQUEST_RANGE</value>
+            <value>FAILED_REQUEST_RANGE</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
             <value>WHEN_CREATED</value>
             <value>WHEN_UPDATED</value>

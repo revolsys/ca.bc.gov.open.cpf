@@ -51,7 +51,6 @@ import com.revolsys.parallel.channel.store.Buffer;
 import com.revolsys.parallel.channel.store.Overwrite;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
-import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Property;
 
@@ -197,7 +196,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
       Maps.removeFromCollection(this.scheduledGroupsByBusinessApplication, businessApplicationName,
         group);
     }
-    SendToChannelAfterCommit.send(this.awakeChannel, Integer.MAX_VALUE);
+    schedule(group.getBatchJob());
   }
 
   private void init() {
@@ -298,8 +297,8 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
           if (scheduledCount < maxCount) {
             iterator.remove();
             createExecutionGroup(businessApplication, batchJob);
+            schedule(batchJob);
           }
-          schedule(batchJob);
         } else {
           iterator.remove();
         }

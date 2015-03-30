@@ -54,11 +54,6 @@
 
   <filter-mapping>
     <filter-name>transactionFilter</filter-name>
-    <url-pattern>/worker/*</url-pattern>
-  </filter-mapping>
-
-  <filter-mapping>
-    <filter-name>transactionFilter</filter-name>
     <url-pattern>/ws/*</url-pattern>
   </filter-mapping>
 

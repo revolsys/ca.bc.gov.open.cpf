@@ -1,5 +1,5 @@
 
-Lists of 90 third-party dependencies.
+Lists of 91 third-party dependencies.
      (Public Domain) AOP alliance (aopalliance:aopalliance:1.0 - http://aopalliance.sourceforge.net)
      (apache_v2) Concurrent Processing Framework Application Java API (ca.bc.gov.open.cpf:cpf-api-app:5.0.0-SNAPSHOT - no url defined)
      (apache_v2) Concurrent Processing Framework Client Java API (ca.bc.gov.open.cpf:cpf-api-client:5.0.0-SNAPSHOT - no url defined)
@@ -34,6 +34,7 @@ Lists of 90 third-party dependencies.
      (Unknown license) jai_codec (javax.media:jai_codec:1.1.3 - no url defined)
      (JDL (Java Distribution License)) Java Advanced Imaging (javax.media:jai_core:1.1.3 - https://jai.dev.java.net/)
      (Unknown license) servlet-api (javax.servlet:servlet-api:2.5 - no url defined)
+     (Dual license consisting of the CDDL v1.1 and GPL v2) WebSocket server API (javax.websocket:javax.websocket-api:1.1 - http://websocket-spec.java.net)
      (Unknown license) Java Uuid Generator (jug:jug:1.1.2 - no url defined)
      (apache_v2) Apache Extras Companion™ for Apache log4j™. (log4j:apache-log4j-extras:1.1 - http://logging.apache.org:80/log4j/companions/extras)
      (apache_v2) Apache Log4j (log4j:log4j:1.2.17 - http://logging.apache.org/log4j/1.2/)

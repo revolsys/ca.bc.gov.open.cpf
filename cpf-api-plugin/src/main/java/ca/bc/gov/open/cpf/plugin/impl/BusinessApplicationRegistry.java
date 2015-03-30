@@ -250,7 +250,7 @@ ApplicationListener<ContextRefreshedEvent> {
       if (module == null) {
         return null;
       } else {
-        return module.getBusinessApplicationPlugin(businessApplication, null,
+        return module.getBusinessApplicationPluginAdaptor(businessApplication, null,
           null);
       }
     }
@@ -276,7 +276,7 @@ ApplicationListener<ContextRefreshedEvent> {
     if (module == null) {
       return null;
     } else {
-      return module.getBusinessApplicationPlugin(businessApplicationName, null,
+      return module.getBusinessApplicationPluginAdaptor(businessApplicationName, null,
         null);
     }
   }

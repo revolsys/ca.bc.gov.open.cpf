@@ -17,6 +17,7 @@ package ca.bc.gov.open.cpf.api.worker;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -28,8 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.log4j.Logger;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
@@ -42,16 +45,27 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
+import com.revolsys.collection.map.Maps;
+import com.revolsys.collection.range.RangeSet;
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.data.record.property.FieldProperties;
 import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
+import com.revolsys.io.FileBackedCache;
 import com.revolsys.io.FileUtil;
+import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.NamedLinkedHashMap;
+import com.revolsys.io.csv.CsvWriter;
 import com.revolsys.io.json.JsonMapIoFactory;
+import com.revolsys.jts.geom.Geometry;
+import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.parallel.ThreadUtil;
-import com.revolsys.util.Compress;
+import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.MathUtil;
+import com.revolsys.util.Property;
 
 public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   private final Map<String, Object> groupIdMap;
@@ -78,9 +92,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private final AppLog log;
 
-  private int errorCount = 0;
+  private final RangeSet errorRequests = new RangeSet();
 
-  private int successCount = 0;
+  private final RangeSet successRequests = new RangeSet();
 
   private long applicationExecutionTime = 0;
 
@@ -88,7 +102,11 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private Module module;
 
-  private final Object baseId;
+  private SecurityService securityService;
+
+  private CsvWriter errorWriter;
+
+  private File errorFile;
 
   public BatchJobRequestExecutionGroupRunnable(final CpfWorkerScheduler executor,
     final BusinessApplicationRegistry businessApplicationRegistry,
@@ -100,7 +118,6 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     this.workerId = workerId;
     this.groupIdMap = groupIdMap;
     this.groupId = (String)groupIdMap.get("groupId");
-    this.baseId = groupIdMap.get("baseId");
     this.moduleName = (String)groupIdMap.get("moduleName");
     this.businessApplicationName = (String)groupIdMap.get("businessApplicationName");
     this.batchJobId = (Number)groupIdMap.get("batchJobId");
@@ -109,18 +126,96 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
     this.log = new AppLog(this.businessApplicationName, this.groupId, this.logLevel);
   }
 
-  public void addError(final Map<String, Object> result, final String logPrefix,
+  public void addError(final Integer sequenceNumber, final String logPrefix,
     final String errorCode, final Throwable e) {
     this.log.error(logPrefix + errorCode, e);
-    if (result.get("errorCode") == null) {
-      result.put("errorCode", errorCode);
-      if (e == null) {
-        result.put("errorMessage", logPrefix);
+    if (this.errorWriter == null) {
+      this.errorFile = FileUtil.createTempFile(this.groupId, "csv");
+      this.errorWriter = new CsvWriter(FileUtil.createUtf8Writer(this.errorFile));
+      this.errorWriter.write("sequenceNumber", "errorCode", "message", "trace");
+    }
+    String message;
+    String trace = null;
+    if (e == null) {
+      message = logPrefix;
+    } else {
+      message = e.getMessage();
+      final StringWriter errorOut = new StringWriter();
+      e.printStackTrace(new PrintWriter(errorOut));
+      trace = errorOut.toString();
+    }
+    this.errorWriter.write(sequenceNumber, errorCode, message, trace);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void execute(final CsvWriter resultWriter, final AppLog appLog,
+    final Integer requestSequenceNumber, final Object plugin, final Map<String, Object> parameters) {
+    final String resultListProperty = this.businessApplication.getResultListProperty();
+
+    final boolean testMode = this.businessApplication.isTestModeEnabled();
+    final Map<String, Object> testParameters = null;
+    if (testMode && Maps.getBool(parameters, "cpfPluginTest")) {
+      double testMinTime = Maps.getDouble(parameters, "cpfMinExecutionTime", -1.0);
+      double testMaxTime = Maps.getDouble(parameters, "cpfMaxExecutionTime", -1.0);
+      final double testMeanTime = Maps.getDouble(parameters, "cpfMeanExecutionTime", -1.0);
+      final double testStandardDeviation = Maps.getDouble(parameters, "cpfStandardDeviation", -1.0);
+      double executionTime;
+      if (testStandardDeviation <= 0) {
+        if (testMinTime < 0) {
+          testMinTime = 0.0;
+        }
+        if (testMaxTime < testMinTime) {
+          testMaxTime = testMinTime + 10;
+        }
+        executionTime = MathUtil.randomRange(testMinTime, testMaxTime);
       } else {
-        final StringWriter errorOut = new StringWriter();
-        e.printStackTrace(new PrintWriter(errorOut));
-        result.put("errorMessage", e.getMessage());
-        result.put("errorTrace", errorOut);
+        executionTime = MathUtil.randomGaussian(testMeanTime, testStandardDeviation);
+      }
+      if (testMinTime >= 0 && executionTime < testMinTime) {
+        executionTime = testMinTime;
+      }
+      if (testMaxTime > 0 && testMaxTime > testMinTime && executionTime > testMaxTime) {
+        executionTime = testMaxTime;
+      }
+      final long milliSeconds = (long)(executionTime * 1000);
+      if (milliSeconds > 1) {
+        ThreadUtil.pause(milliSeconds);
+      }
+      this.businessApplication.pluginTestExecute(plugin);
+    } else {
+      this.businessApplication.pluginExecute(plugin);
+    }
+    Map<String, Object> customizationProperties = null;
+    if (this.businessApplication.isHasCustomizationProperties()) {
+      try {
+        customizationProperties = (Map<String, Object>)Property.get(plugin,
+          "customizationProperties");
+      } catch (final Throwable e) {
+        appLog.error("Unable to get customization properties", e);
+      }
+    }
+    if (resultListProperty == null) {
+      writeResult(resultWriter, plugin, parameters, customizationProperties, requestSequenceNumber,
+        0, testMode);
+    } else {
+      final List<Object> resultObjects = JavaBeanUtil.getProperty(plugin, resultListProperty);
+      if (resultObjects == null || resultObjects.isEmpty()) {
+        if (testMode) {
+          final double meanNumResults = Maps.getDouble(testParameters, "cpfMeanNumResults", 3.0);
+          final int numResults = (int)Math.round(MathUtil.randomGaussian(meanNumResults,
+            meanNumResults / 5));
+          for (int i = 0; i < numResults; i++) {
+            writeResult(resultWriter, plugin, parameters, customizationProperties,
+              requestSequenceNumber, i, testMode);
+
+          }
+        }
+      } else {
+        int i = 1;
+        for (final Object resultObject : resultObjects) {
+          writeResult(resultWriter, resultObject, parameters, customizationProperties,
+            requestSequenceNumber, i++, false);
+        }
       }
     }
   }
@@ -139,36 +234,32 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
    * pluginExecutionTime long
    * results List<Map<String, Object>>
    * logRecords List<Map<String,Object>>
+   * @param resultWriter
    *
    * @param requestRecordDefinition
    * @param applicationParameters
    * @param requestParameters
    * @return The request map
    */
-  protected Map<String, Object> executeRequest(final RecordDefinition requestRecordDefinition,
+  protected void executeRequest(final CsvWriter resultWriter,
+    final RecordDefinition requestRecordDefinition,
     final Map<String, Object> applicationParameters, final Map<String, Object> requestParameters) {
     final StopWatch requestStopWatch = new StopWatch("Request");
     requestStopWatch.start();
 
-    final Number requestSequenceNumber = (Number)requestParameters.remove("requestSequenceNumber");
-    final boolean perRequestResultData = this.businessApplication.isPerRequestResultData();
-
-    final Map<String, Object> requestResult = new LinkedHashMap<String, Object>();
-    requestResult.put("groupId", this.groupId);
-    requestResult.put("sequenceNumber", requestSequenceNumber);
-    requestResult.put("perRequestResultData", perRequestResultData);
+    final Integer requestSequenceNumber = Maps.getInteger(requestParameters, "i");
 
     boolean hasError = true;
     try {
       final Map<String, Object> parameters = getParameters(this.businessApplication,
         requestRecordDefinition, applicationParameters, requestParameters);
-      final PluginAdaptor plugin = this.module.getBusinessApplicationPlugin(
-        this.businessApplicationName, this.groupId, this.logLevel);
+      final Object plugin = this.module.getBusinessApplicationPlugin(this.businessApplicationName,
+        this.groupId, this.logLevel);
       if (plugin == null) {
-        addError(requestResult, "Unable to create plugin " + this.businessApplicationName + " ",
-          "ERROR_PROCESSING_REQUEST", null);
+        addError(requestSequenceNumber, "Unable to create plugin " + this.businessApplicationName
+          + " ", "ERROR_PROCESSING_REQUEST", null);
       } else {
-        final AppLog appLog = plugin.getAppLog();
+        final AppLog appLog = new AppLog(this.businessApplicationName, this.groupId, this.logLevel);
         File resultFile = null;
         OutputStream resultData = null;
         if (this.businessApplication.isPerRequestInputData()) {
@@ -185,42 +276,27 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           parameters.put("resultData", resultData);
         }
         try {
-          if (this.businessApplication.isSecurityServiceRequired()) {
-            final SecurityService securityService = this.securityServiceFactory.getSecurityService(
-              this.module, this.userId);
-            plugin.setSecurityService(securityService);
-          }
-          plugin.setParameters(parameters);
+          setParameters(plugin, parameters);
 
-          final StopWatch pluginStopWatch = new StopWatch("Plugin execute");
-          pluginStopWatch.start();
           if (appLog.isDebugEnabled()) {
             appLog.debug("Request Execution Start " + this.groupId + " " + requestSequenceNumber);
           }
           try {
-            plugin.execute();
+            execute(resultWriter, appLog, requestSequenceNumber, plugin, parameters);
           } finally {
-            try {
-              if (pluginStopWatch.isRunning()) {
-                pluginStopWatch.stop();
-              }
-            } catch (final IllegalStateException e) {
-            }
-            final long pluginTime = pluginStopWatch.getTotalTimeMillis();
-            requestResult.put("pluginExecutionTime", pluginTime);
             if (appLog.isDebugEnabled()) {
               appLog.debug("Request Execution End " + this.groupId + " " + requestSequenceNumber);
             }
           }
-          final List<Map<String, Object>> results = plugin.getResults();
-          requestResult.put("results", results);
-          sendResultData(requestSequenceNumber, requestResult, parameters, resultFile, resultData);
+          // TODO sendResultData(requestSequenceNumber, requestResult,
+          // parameters, resultFile, resultData);
 
         } catch (final IllegalArgumentException e) {
-          addError(requestResult, "Error processing request ", "BAD_INPUT_DATA_VALUE", e);
+          addError(requestSequenceNumber, "Error processing request ", "BAD_INPUT_DATA_VALUE", e);
         } catch (final RecoverableException e) {
           this.log.error("Error processing request " + requestSequenceNumber, e);
-          addError(requestResult, "Error processing request ", "RECOVERABLE_EXCEPTION", null);
+          addError(requestSequenceNumber, "Error processing request ", "RECOVERABLE_EXCEPTION",
+            null);
         } finally {
           if (resultFile != null) {
             FileUtil.closeSilent(resultData);
@@ -237,16 +313,15 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
       hasError = false;
     } catch (final Throwable e) {
       this.log.error("Error processing request " + requestSequenceNumber, e);
-      addError(requestResult, "Error processing request ", "ERROR_PROCESSING_REQUEST", null);
+      addError(requestSequenceNumber, "Error processing request ", "ERROR_PROCESSING_REQUEST", null);
     }
 
     if (hasError) {
-      this.errorCount++;
+      this.errorRequests.add(requestSequenceNumber);
     } else {
-      this.successCount++;
+      this.successRequests.add(requestSequenceNumber);
     }
     this.applicationExecutionTime = requestStopWatch.getTotalTimeMillis();
-    return requestResult;
   }
 
   public String getGroupId() {
@@ -304,33 +379,42 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
   @Override
   @SuppressWarnings("unchecked")
   public void run() {
-    try {
+    long getTime = 0;
+    long putTime = 0;
+    long runTime = 0;
+    long time = System.currentTimeMillis();
+    this.log.info("Start\tGroup Execution\tgroupId=" + this.groupId);
+    try (
+      FileBackedCache resultCache = new FileBackedCache()) {
+      final StopWatch groupStopWatch = new StopWatch("Group");
+      groupStopWatch.start();
 
-      this.log.info("Start\tGroup Execution\tgroupId=" + this.groupId);
-      try {
-        final StopWatch groupStopWatch = new StopWatch("Group");
-        groupStopWatch.start();
+      final Map<String, Object> groupResponse = new NamedLinkedHashMap<String, Object>(
+        "ExecutionGroupResults");
 
-        final Map<String, Object> groupResponse = new NamedLinkedHashMap<String, Object>(
-          "ExecutionGroupResults");
-        groupResponse.put("batchJobId", this.batchJobId);
-        groupResponse.put("baseId", this.baseId);
-        groupResponse.put("groupId", this.groupId);
-
-        final Long moduleTime = ((Number)this.groupIdMap.get("moduleTime")).longValue();
-        this.businessApplication = this.executor.getBusinessApplication(this.log, this.moduleName,
-          moduleTime, this.businessApplicationName);
-        if (this.businessApplication == null) {
-          this.executor.addFailedGroup(this.groupId);
-          return;
-        } else {
+      final Long moduleTime = ((Number)this.groupIdMap.get("moduleTime")).longValue();
+      this.businessApplication = this.executor.getBusinessApplication(this.log, this.moduleName,
+        moduleTime, this.businessApplicationName);
+      if (this.businessApplication == null) {
+        this.executor.addFailedGroup(this.groupId);
+        return;
+      } else {
+        try (
+          final CsvWriter resultWriter = new CsvWriter(resultCache.getWriter())) {
+          resultWriter.write(this.businessApplication.getResultFieldNames());
           this.businessApplication.setLogLevel(this.logLevel);
+          if (this.businessApplication.isSecurityServiceRequired()) {
+            this.securityService = this.securityServiceFactory.getSecurityService(this.module,
+              this.userId);
+          }
 
           this.module = this.businessApplication.getModule();
           final String groupUrl = this.httpClient.getUrl("/worker/workers/" + this.workerId
             + "/jobs/" + this.batchJobId + "/groups/" + this.groupId);
           final Map<String, Object> group = this.httpClient.getJsonResource(groupUrl);
           if (!group.isEmpty()) {
+            getTime = System.currentTimeMillis() - time;
+            time = System.currentTimeMillis();
             final Map<String, Object> globalError = new LinkedHashMap<String, Object>();
 
             final RecordDefinition requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
@@ -345,7 +429,8 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
                   applicationParameters.put(name, convertedValue);
                 } catch (final Throwable e) {
                   this.log.error("Error processing group", e);
-                  addError(globalError, "Error processing group ", "BAD_INPUT_DATA_VALUE", null);
+                  // TODO addError("Error processing group ",
+                  // "BAD_INPUT_DATA_VALUE", null);
                 }
               }
             }
@@ -355,68 +440,70 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
               if (requestsValue instanceof Map) {
                 requestWrapper = (Map<String, Object>)requestsValue;
               } else {
-                String requestsString = requestsValue.toString();
-                if (requestsString.charAt(0) != '{') {
-                  requestsString = Compress.inflateBase64(requestsString);
-                }
+                final String requestsString = requestsValue.toString();
                 requestWrapper = JsonMapIoFactory.toObjectMap(requestsString);
               }
 
               final List<Map<String, Object>> requests = (List<Map<String, Object>>)requestWrapper.get("items");
-
-              final List<Map<String, Object>> groupResults = new ArrayList<Map<String, Object>>();
 
               for (final Map<String, Object> requestParameters : requests) {
                 if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
                   this.executor.addFailedGroup(this.groupId);
                   return;
                 }
-                final Map<String, Object> requestResult = executeRequest(requestRecordDefinition,
-                  applicationParameters, requestParameters);
-                groupResults.add(requestResult);
+                executeRequest(resultWriter, requestRecordDefinition, applicationParameters,
+                  requestParameters);
               }
-              final String groupResultsString = JsonMapIoFactory.toString(groupResults);
-              // groupResultsString =
-              // Compress.deflateBase64(groupResultsString);
-              groupResponse.put("results", groupResults);
             } else {
               groupResponse.putAll(globalError);
             }
           }
-          if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
-            this.executor.addFailedGroup(this.groupId);
-            return;
-          }
-          try {
-            if (groupStopWatch.isRunning()) {
-              groupStopWatch.stop();
-            }
-          } catch (final IllegalStateException e) {
-          }
-          final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
-          groupResponse.put("groupExecutedTime", groupExecutionTime);
-          groupResponse.put("applicationExecutedTime", this.applicationExecutionTime);
-          groupResponse.put("errorCount", this.errorCount);
-          groupResponse.put("successCount", this.successCount);
-
-          final String path = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-            + "/groups/" + this.groupId + "/results";
-          @SuppressWarnings("unused")
-          final Map<String, Object> submitResponse = this.httpClient.postJsonResource(
-            this.httpClient.getUrl(path), groupResponse);
         }
-      } catch (final Throwable e) {
-        this.log.error("Unable to process group " + this.groupId, e);
-        this.executor.addFailedGroup(this.groupId);
-      } finally {
-        this.log.info("End\tGroup execution\tgroupId=" + this.groupId);
+        if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
+          this.executor.addFailedGroup(this.groupId);
+          return;
+        }
+        try {
+          if (groupStopWatch.isRunning()) {
+            groupStopWatch.stop();
+          }
+        } catch (final IllegalStateException e) {
+        }
+        final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
+        runTime = System.currentTimeMillis() - time;
+        time = System.currentTimeMillis();
+
+        final String path = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+          + "/groups/" + this.groupId + "/results?groupExecutedTime=" + groupExecutionTime
+          + "&applicationExecutedTime=" + this.applicationExecutionTime + //
+          "&completedRequestRange=" + this.successRequests + //
+          "&failedRequestRange=" + this.errorRequests;
+        final HttpResponse response = this.httpClient.postResource(this.httpClient.getUrl(path),
+          "text/csv", resultCache.getInputStream());
+        this.httpClient.closeResponse(response);
+        putTime = System.currentTimeMillis() - time;
+        time = System.currentTimeMillis();
+        if (this.errorWriter != null) {
+          final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+            + "/groups/" + this.groupId + "/error";
+          final HttpResponse errorResponse = this.httpClient.postResource(
+            this.httpClient.getUrl(errorPath), "text/csv", this.errorFile);
+          this.httpClient.closeResponse(errorResponse);
+        }
       }
+    } catch (final Throwable e) {
+      this.log.error("Unable to process group " + this.groupId, e);
+      this.executor.addFailedGroup(this.groupId);
     } finally {
       this.executor.removeExecutingGroupId(this.groupId);
+      this.log.info("End\tGroup execution\tgroupId=" + this.groupId);
+      FileUtil.delete(this.errorFile);
     }
+    System.out.println(getTime + "\t" + runTime + "\t" + putTime + "\t"
+      + (System.currentTimeMillis() - time));
   }
 
-  protected void sendResultData(final Number requestSequenceNumber,
+  protected void sendResultData(final Integer requestSequenceNumber,
     final Map<String, Object> requestResult, final Map<String, Object> parameters,
     final File resultFile, final OutputStream resultData) {
     if (resultData != null) {
@@ -442,8 +529,127 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
         }
       } catch (final Throwable e) {
         this.log.error("Error sending result data", e);
-        addError(requestResult, "Error processing request", "RECOVERABLE_EXCEPTION", null);
+        addError(requestSequenceNumber, "Error processing request", "RECOVERABLE_EXCEPTION", null);
       }
     }
+  }
+
+  @SuppressWarnings("resource")
+  public void setParameters(final Object plugin, final Map<String, ? extends Object> parameters) {
+
+    this.businessApplication.pluginSetParameters(plugin, parameters);
+    if (this.businessApplication.isPerRequestInputData()) {
+      for (final String parameterName : PluginAdaptor.INPUT_DATA_PARAMETER_NAMES) {
+        final Object parameterValue = parameters.get(parameterName);
+        setPluginProperty(plugin, parameterName, parameterValue);
+      }
+    }
+    if (this.businessApplication.isPerRequestResultData()) {
+      final String resultDataContentType = (String)parameters.get("resultDataContentType");
+      final String resultDataUrl = (String)parameters.get("resultDataUrl");
+      OutputStream resultData;
+      if (resultDataUrl == null) {
+        resultData = (OutputStream)parameters.get("resultData");
+        if (resultData == null) {
+          try {
+            final File file = File.createTempFile("cpf", ".out");
+            resultData = new FileOutputStream(file);
+            Logger.getLogger(getClass()).info("Writing result to " + file);
+          } catch (final IOException e) {
+            resultData = System.out;
+          }
+        }
+      } else {
+        resultData = new LazyHttpPostOutputStream(resultDataUrl, resultDataContentType);
+      }
+      setPluginProperty(plugin, "resultData", resultData);
+      setPluginProperty(plugin, "resultDataContentType", resultDataContentType);
+    }
+    if (this.businessApplication.isSecurityServiceRequired()) {
+      if (this.securityService == null) {
+        throw new IllegalArgumentException("Security service is required");
+      } else {
+        setPluginProperty(plugin, "securityService", this.securityService);
+      }
+    }
+  }
+
+  public void setPluginProperty(final Object plugin, final String parameterName,
+    Object parameterValue) {
+    try {
+      final RecordDefinitionImpl requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
+      final Class<?> attributeClass = requestRecordDefinition.getFieldClass(parameterName);
+      if (attributeClass != null) {
+        parameterValue = StringConverterRegistry.toObject(attributeClass, parameterValue);
+      }
+      BeanUtils.setProperty(plugin, parameterName, parameterValue);
+    } catch (final Throwable t) {
+      throw new IllegalArgumentException(this.businessApplication.getName() + "." + parameterName
+        + " could not be set", t);
+    }
+  }
+
+  private void writeResult(final CsvWriter resultWriter, final Object plugin,
+    final Map<String, Object> parameters, Map<String, Object> customizationProperties,
+    final Integer requestSequenceNumber, final int resultIndex, final boolean test) {
+    final RecordDefinition resultRecordDefinition = this.businessApplication.getResultRecordDefinition();
+    final List<Object> result = new ArrayList<>();
+    result.add(requestSequenceNumber);
+    if (resultIndex != 0) {
+      result.add(resultIndex);
+    }
+    for (final FieldDefinition field : resultRecordDefinition.getFields()) {
+      final String fieldName = field.getName();
+      Object value = null;
+      if (!PluginAdaptor.INTERNAL_PROPERTY_NAMES.contains(fieldName)) {
+        value = this.businessApplication.pluginGetResultFieldValue(plugin, fieldName);
+        if (value == null && test) {
+          value = PluginAdaptor.getTestValue(field);
+        } else {
+          if (value instanceof Geometry) {
+            Geometry geometry = (Geometry)value;
+            GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
+            if (geometryFactory == GeometryFactory.floating3()) {
+              geometryFactory = geometry.getGeometryFactory();
+            }
+            final int srid = Maps.getInteger(parameters, "resultSrid", geometryFactory.getSrid());
+            final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
+              geometryFactory.getAxisCount());
+            final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
+              geometryFactory.getScaleXY());
+            final double scaleZ = Maps.getDouble(parameters, "resultScaleFactorZ",
+              geometryFactory.getScaleZ());
+
+            geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
+            geometry = geometryFactory.geometry(geometry);
+            if (geometry.getSrid() == 0) {
+              throw new IllegalArgumentException(
+                "Geometry does not have a coordinate system (SRID) specified");
+            }
+            final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
+            if (validateGeometry == true) {
+              if (!geometry.isValid()) {
+                throw new IllegalArgumentException("Geometry is not valid for"
+                  + this.businessApplication.getName() + "." + fieldName);
+              }
+            }
+            value = geometry;
+          }
+        }
+        result.add(value);
+      }
+    }
+    if (resultIndex != 0 && this.businessApplication.isHasResultListCustomizationProperties()) {
+      final Map<String, Object> resultListProperties = Property.get(plugin,
+        "customizationProperties");
+      if (resultListProperties != null) {
+        customizationProperties = Maps.createLinkedHashMap(customizationProperties);
+        customizationProperties.putAll(resultListProperties);
+      }
+    }
+    if (Property.hasValue(customizationProperties)) {
+      result.add(JsonMapIoFactory.toString(customizationProperties));
+    }
+    resultWriter.write(result);
   }
 }

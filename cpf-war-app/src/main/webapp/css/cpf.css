@@ -1,6 +1,6 @@
 div.dataTables_wrapper td.NUM_SUBMITTED_REQUESTS,
-div.dataTables_wrapper td.NUM_COMPLETED_REQUESTS,
-div.dataTables_wrapper td.NUM_FAILED_REQUESTS,
+div.dataTables_wrapper td.COMPLETED_REQUEST_RANGE,
+div.dataTables_wrapper td.FAILED_REQUEST_RANGE,
 div.dataTables_wrapper td.NUM_EXECUTING_REQUESTS,
 div.dataTables_wrapper td.submittedJobsCount,
 div.dataTables_wrapper td.completedJobsCount,

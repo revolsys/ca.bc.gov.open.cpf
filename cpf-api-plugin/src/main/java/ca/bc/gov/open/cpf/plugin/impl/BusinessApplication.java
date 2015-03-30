@@ -15,7 +15,11 @@
  */
 package ca.bc.gov.open.cpf.plugin.impl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -42,6 +46,7 @@ import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
+import com.revolsys.gis.util.Debug;
 import com.revolsys.io.AbstractObjectWithProperties;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
@@ -60,8 +65,17 @@ import com.revolsys.util.Property;
 public class BusinessApplication extends AbstractObjectWithProperties implements
   Comparable<BusinessApplication> {
 
-  public static String getDefaultFileExtension(
-    final Map<String, ?> fileExtensionMap) {
+  public static final String CORE_PARAMETER = BusinessApplication.class.getName()
+    + "/CORE_PARAMETER";
+
+  public static final String JOB_PARAMETER = BusinessApplication.class.getName() + "/JOB_PARAMETER";
+
+  public static final String REQUEST_PARAMETER = BusinessApplication.class.getName()
+    + "/REQUEST_PARAMETER";
+
+  private static final Object[] NO_ARGS = new Object[0];
+
+  public static String getDefaultFileExtension(final Map<String, ?> fileExtensionMap) {
     final Collection<String> fileExtensions = fileExtensionMap.keySet();
     String defaultValue = "csv";
     if (!fileExtensions.contains(defaultValue)) {
@@ -86,14 +100,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return defaultValue;
   }
 
-  public static final String CORE_PARAMETER = BusinessApplication.class.getName()
-    + "/CORE_PARAMETER";
-
-  public static final String JOB_PARAMETER = BusinessApplication.class.getName()
-    + "/JOB_PARAMETER";
-
-  public static final String REQUEST_PARAMETER = BusinessApplication.class.getName()
-    + "/REQUEST_PARAMETER";
+  private final List<String> resultFieldNames = new ArrayList<>();
 
   private String packageName;
 
@@ -124,8 +131,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   private boolean hasNonGeometryRequestAttribute;
 
   private boolean hasResultListCustomizationProperties;
-
-  private boolean hasTestExecuteMethod = false;
 
   /**
    * The id field is the unique identifier for the BusinessApplication.
@@ -181,13 +186,13 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private BusinessApplicationPlugin pluginAnnotation;
 
-  private final Map<String, FieldDefinition> requestAttributeByNameMap = new TreeMap<>();
+  private final Map<String, FieldDefinition> requestFieldByNameMap = new TreeMap<>();
 
-  private final Map<Integer, FieldDefinition> requestAttributeMap = new TreeMap<>();
+  private final Map<Integer, FieldDefinition> requestFieldMap = new TreeMap<>();
 
   private RecordDefinitionImpl requestRecordDefinition;
 
-  private final Map<Integer, FieldDefinition> resultAttributeMap = new TreeMap<>();
+  private final Map<Integer, FieldDefinition> resultFieldMap = new TreeMap<>();
 
   /**
    * The resultDataContentTypes is the list of supported MIME content types the
@@ -220,8 +225,16 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private String defaultResultDataFileExtension;
 
-  public BusinessApplication(final BusinessApplicationPlugin pluginAnnotation,
-    final Module module, final String name) {
+  private Method executeMethod;
+
+  private Method testExecuteMethod;
+
+  private final Map<String, Method> requestFieldMethodMap = new HashMap<>();
+
+  private final Map<String, Method> resultFieldMethodMap = new HashMap<>();
+
+  public BusinessApplication(final BusinessApplicationPlugin pluginAnnotation, final Module module,
+    final String name) {
     this.name = name;
     this.title = name;
     this.pluginAnnotation = pluginAnnotation;
@@ -264,10 +277,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   private void addFieldResultDataContentType() {
-    final FieldDefinition resultDataContentType = new FieldDefinition(
-      "resultDataContentType",
-      DataTypes.STRING,
-      false,
+    final FieldDefinition resultDataContentType = new FieldDefinition("resultDataContentType",
+      DataTypes.STRING, false,
       "The MIME type of the result data specified to be returned after running the request.");
     resultDataContentType.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
@@ -281,11 +292,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   private void addFieldResultNumAxis() {
-    final FieldDefinition resultNumAxis = new FieldDefinition(
-      "resultNumAxis",
-      DataTypes.INT,
-      false,
-      "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
+    final FieldDefinition resultNumAxis = new FieldDefinition("resultNumAxis", DataTypes.INT,
+      false, "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
     resultNumAxis.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
     resultNumAxis.addAllowedValue(2, "2D");
@@ -303,8 +311,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   private void addFieldResultSrid() {
-    final FieldDefinition resultSrid = new FieldDefinition("resultSrid",
-      DataTypes.INT, false,
+    final FieldDefinition resultSrid = new FieldDefinition("resultSrid", DataTypes.INT, false,
       "The coordinate system code of the projection for the result geometry.");
     resultSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
@@ -360,16 +367,12 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.requestRecordDefinition.addField(resultScaleFactorZ);
   }
 
-  public void addInputDataContentType(final String contentType,
-    final String description, final String fileExtension) {
-    final String inputDataContentType = Property.getString(this,
-      "inputDataContentType");
-    final String inputDataFileExtension = Property.getString(this,
-      "inputDataFileExtension");
-    if (isContentTypeOrFileExtensionEqual(inputDataContentType, contentType,
-      fileExtension)
-      || isContentTypeOrFileExtensionEqual(inputDataFileExtension, contentType,
-        fileExtension)) {
+  public void addInputDataContentType(final String contentType, final String description,
+    final String fileExtension) {
+    final String inputDataContentType = Property.getString(this, "inputDataContentType");
+    final String inputDataFileExtension = Property.getString(this, "inputDataFileExtension");
+    if (isContentTypeOrFileExtensionEqual(inputDataContentType, contentType, fileExtension)
+      || isContentTypeOrFileExtensionEqual(inputDataFileExtension, contentType, fileExtension)) {
       this.defaultInputDataContentType = contentType;
       this.defaultInputDataFileExtension = fileExtension;
     }
@@ -381,54 +384,35 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.inputFileExtensionToContentType.put(fileExtension, contentType);
   }
 
-  public void addRequestAttribute(int index, final FieldDefinition attribute) {
-    if (attribute == null) {
-      throw new RuntimeException("Unknwon attribute");
+  public void addRequestField(int index, final FieldDefinition field, final Method method) {
+    if (field == null) {
+      throw new RuntimeException("Unknown field");
     }
     if (index == -1) {
-      index = 200000 + this.requestAttributeMap.size();
+      index = 200000 + this.requestFieldMap.size();
     }
-    if (this.requestAttributeMap.containsKey(index)) {
+    final String fieldName = field.getName();
+    if (this.requestFieldMap.containsKey(index)) {
       throw new IllegalArgumentException("Business Application " + getName()
-        + " Duplicate index for " + RequestParameter.class + " on "
-        + attribute.getName());
+        + " Duplicate index for " + RequestParameter.class + " on " + fieldName);
     } else {
-      if (Geometry.class.isAssignableFrom(attribute.getType().getJavaClass())) {
+      if (Geometry.class.isAssignableFrom(field.getType().getJavaClass())) {
         this.hasGeometryRequestAttribute = true;
       } else {
         this.hasNonGeometryRequestAttribute = true;
       }
-      this.requestAttributeMap.put(index, attribute);
+      this.requestFieldMap.put(index, field);
     }
-    this.requestAttributeByNameMap.put(attribute.getName(), attribute);
+    this.requestFieldByNameMap.put(fieldName, field);
+    this.requestFieldMethodMap.put(fieldName, method);
   }
 
-  public void addResultAttribute(int index, final FieldDefinition attribute) {
-    if (index == -1) {
-      index = 100000 + this.resultAttributeMap.size();
-    }
-    if (this.resultAttributeMap.containsKey(index)) {
-      throw new IllegalArgumentException("Business Application " + getName()
-        + " Duplicate index for " + ResultAttribute.class + " on "
-        + attribute.getName());
-    } else {
-      if (Geometry.class.isAssignableFrom(attribute.getType().getJavaClass())) {
-        this.hasGeometryResultAttribute = true;
-      }
-      this.resultAttributeMap.put(index, attribute);
-    }
-  }
-
-  public void addResultDataContentType(final String contentType,
-    final String fileExtension, final String description) {
-    final String resultDataContentType = Property.getString(this,
-      "resultDataContentType");
-    final String resultDataFileExtension = Property.getString(this,
-      "resultDataFileExtension");
-    if (isContentTypeOrFileExtensionEqual(resultDataContentType, contentType,
-      fileExtension)
-      || isContentTypeOrFileExtensionEqual(resultDataFileExtension,
-        contentType, fileExtension)) {
+  public void addResultDataContentType(final String contentType, final String fileExtension,
+    final String description) {
+    final String resultDataContentType = Property.getString(this, "resultDataContentType");
+    final String resultDataFileExtension = Property.getString(this, "resultDataFileExtension");
+    if (isContentTypeOrFileExtensionEqual(resultDataContentType, contentType, fileExtension)
+      || isContentTypeOrFileExtensionEqual(resultDataFileExtension, contentType, fileExtension)) {
       this.defaultResultDataContentType = contentType;
       this.defaultResultDataFileExtension = fileExtension;
     }
@@ -436,6 +420,23 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.resultDataContentTypes.add(contentType);
     this.resultDataFileExtensions.put(fileExtension, description);
     this.resultFileExtensionToContentType.put(fileExtension, contentType);
+  }
+
+  public void addResultField(int index, final FieldDefinition field, final Method method) {
+    if (index == -1) {
+      index = 100000 + this.resultFieldMap.size();
+    }
+    final String fieldName = field.getName();
+    if (this.resultFieldMap.containsKey(index)) {
+      throw new IllegalArgumentException("Business Application " + getName()
+        + " Duplicate index for " + ResultAttribute.class + " on " + fieldName);
+    } else {
+      if (Geometry.class.isAssignableFrom(field.getType().getJavaClass())) {
+        this.hasGeometryResultAttribute = true;
+      }
+      this.resultFieldMap.put(index, field);
+      this.resultFieldMethodMap.put(fieldName, method);
+    }
   }
 
   /**
@@ -449,8 +450,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     if (businessApplication == this) {
       return 0;
     } else {
-      final int nameCompare = getName().compareToIgnoreCase(
-        businessApplication.getName());
+      final int nameCompare = getName().compareToIgnoreCase(businessApplication.getName());
       if (nameCompare == 0) {
         return getId().compareTo(getId());
       } else {
@@ -577,11 +577,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public synchronized RecordDefinitionImpl getRequestRecordDefinition() {
     if (this.requestRecordDefinition.getFieldCount() == 0) {
-      if (this.requestAttributeMap.size() > 0) {
-        final FieldDefinition requestSequenceNumber = this.requestRecordDefinition.addField(
-          "requestSequenceNumber", DataTypes.INT);
-        requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER,
-          true);
+      if (this.requestFieldMap.size() > 0) {
+        final FieldDefinition requestSequenceNumber = this.requestRecordDefinition.addField("i",
+          DataTypes.INT);
+        requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER, true);
         requestSequenceNumber.setMinValue(1);
 
         if (this.defaultInputDataContentType == null) {
@@ -601,7 +600,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
           addFieldScaleFactorXy();
           addFieldScaleFactorZ();
         }
-        for (final FieldDefinition attribute : this.requestAttributeMap.values()) {
+        for (final FieldDefinition attribute : this.requestFieldMap.values()) {
           this.requestRecordDefinition.addField(attribute);
         }
       }
@@ -626,24 +625,26 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.resultDataFileExtensions;
   }
 
+  public List<String> getResultFieldNames() {
+    return this.resultFieldNames;
+  }
+
   public String getResultListProperty() {
     return this.resultListProperty;
   }
 
   public synchronized RecordDefinition getResultRecordDefinition() {
     if (this.resultRecordDefinition.getFieldCount() == 0) {
-      if (this.resultAttributeMap.size() > 0) {
-        this.resultRecordDefinition.addField(new FieldDefinition(
-          "sequenceNumber", DataTypes.INT, true,
-          "The index of the request record that this result relates to."));
+      if (this.resultFieldMap.size() > 0) {
+        this.resultRecordDefinition.addField(new FieldDefinition("sequenceNumber", DataTypes.INT,
+          true, "The index of the request record that this result relates to."));
         if (this.resultListProperty != null) {
-          this.resultRecordDefinition.addField(new FieldDefinition(
-            "resultNumber", DataTypes.INT, true,
-            "The index of the result record within the result for a request."));
+          this.resultRecordDefinition.addField(new FieldDefinition("resultNumber", DataTypes.INT,
+            true, "The index of the result record within the result for a request."));
         }
-        for (final FieldDefinition attribute : this.resultAttributeMap.values()) {
+        for (final FieldDefinition attribute : this.resultFieldMap.values()) {
           final String name = attribute.getName();
-          final FieldDefinition requestAttribute = this.requestAttributeByNameMap.get(name);
+          final FieldDefinition requestAttribute = this.requestFieldByNameMap.get(name);
           if (requestAttribute != null) {
             String description = attribute.getDescription();
             if (!Property.hasValue(description)) {
@@ -659,6 +660,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
           this.resultRecordDefinition.addField(attribute);
         }
+        this.resultFieldNames.addAll(this.resultRecordDefinition.getFieldNames());
+        if (isHasCustomizationProperties() || isHasResultListCustomizationProperties()) {
+          this.resultFieldNames.add("c");
+        }
       }
     }
     return this.resultRecordDefinition;
@@ -671,11 +676,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.title;
   }
 
-  private boolean isContentTypeOrFileExtensionEqual(final String match,
-    final String contentType, final String fileExtension) {
+  private boolean isContentTypeOrFileExtensionEqual(final String match, final String contentType,
+    final String fileExtension) {
     if (Property.hasValue(match)) {
-      return EqualsRegistry.equal(match, contentType)
-        || EqualsRegistry.equal(match, fileExtension);
+      return EqualsRegistry.equal(match, contentType) || EqualsRegistry.equal(match, fileExtension);
     } else {
       return false;
     }
@@ -716,10 +720,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   public boolean isHasResultListProperty() {
     return getResultListProperty() != null;
-  }
-
-  public boolean isHasTestExecuteMethod() {
-    return this.hasTestExecuteMethod;
   }
 
   public boolean isInfoLogEnabled() {
@@ -772,6 +772,95 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.validateGeometry;
   }
 
+  public void pluginExecute(final Object plugin) {
+    try {
+      this.executeMethod.invoke(plugin, NO_ARGS);
+    } catch (final InvocationTargetException e) {
+      final Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException)cause;
+      } else if (cause instanceof Error) {
+        throw (Error)cause;
+      } else {
+        throw new RuntimeException("Unable to invoke execute on " + this.name, cause);
+      }
+    } catch (final Throwable t) {
+      throw new RuntimeException("Unable to invoke execute on " + this.name, t);
+    }
+  }
+
+  public Object pluginGetResultFieldValue(final Object plugin, final String fieldName) {
+    final Method method = this.resultFieldMethodMap.get(fieldName);
+    if (method == null) {
+      Debug.noOp();
+      return null;
+    } else {
+      try {
+        return method.invoke(plugin, NO_ARGS);
+      } catch (final InvocationTargetException e) {
+        final Throwable cause = e.getCause();
+        if (cause instanceof RuntimeException) {
+          throw (RuntimeException)cause;
+        } else if (cause instanceof Error) {
+          throw (Error)cause;
+        } else {
+          throw new RuntimeException("Cannot get " + this.name + "." + fieldName, cause);
+        }
+      } catch (final Throwable t) {
+        throw new RuntimeException("Cannot get " + this.name + "." + fieldName, t);
+      }
+    }
+  }
+
+  public void pluginSetParameters(final Object plugin,
+    final Map<String, ? extends Object> parameters) {
+    final RecordDefinitionImpl requestRecordDefinition = getRequestRecordDefinition();
+    for (final FieldDefinition field : requestRecordDefinition.getFields()) {
+      final String parameterName = field.getName();
+      Object parameterValue = parameters.get(parameterName);
+      parameterValue = field.validate(parameterValue);
+      try {
+        final Method method = this.requestFieldMethodMap.get(parameterName);
+        if (method == null) {
+          Debug.noOp();
+        } else {
+          method.invoke(plugin, parameterValue);
+        }
+      } catch (final InvocationTargetException e) {
+        final Throwable cause = e.getCause();
+        if (cause instanceof RuntimeException) {
+          throw (RuntimeException)cause;
+        } else if (cause instanceof Error) {
+          throw (Error)cause;
+        } else {
+          throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set",
+            cause);
+        }
+      } catch (final Throwable t) {
+        throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set", t);
+      }
+    }
+  }
+
+  public void pluginTestExecute(final Object plugin) {
+    if (this.testExecuteMethod != null) {
+      try {
+        this.testExecuteMethod.invoke(plugin, NO_ARGS);
+      } catch (final InvocationTargetException e) {
+        final Throwable cause = e.getCause();
+        if (cause instanceof RuntimeException) {
+          throw (RuntimeException)cause;
+        } else if (cause instanceof Error) {
+          throw (Error)cause;
+        } else {
+          throw new RuntimeException("Unable to invoke testExecute on " + this.name, cause);
+        }
+      } catch (final Throwable t) {
+        throw new RuntimeException("Unable to invoke testExecute on " + this.name, t);
+      }
+    }
+  }
+
   public void setBatchModePermission(final String batchModePermission) {
     if (Property.hasValue(batchModePermission)) {
       this.batchModePermission = batchModePermission;
@@ -781,8 +870,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.batchModeExpression = new SpelExpressionParser().parseExpression(this.batchModePermission);
   }
 
-  public void setCoordinateSystems(
-    final List<CoordinateSystem> coordinateSystems) {
+  public void setCoordinateSystems(final List<CoordinateSystem> coordinateSystems) {
     this.coordinateSystems = coordinateSystems;
   }
 
@@ -794,22 +882,21 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.descriptionUrl = descriptionUrl;
   }
 
+  public void setExecuteMethod(final Method method) {
+    this.executeMethod = method;
+  }
+
   public void setGeometryFactory(final GeometryFactory geometryFactory) {
     this.geometryFactory = geometryFactory;
   }
 
-  public void setHasCustomizationProperties(
-    final boolean hasCustomizationProperties) {
+  public void setHasCustomizationProperties(final boolean hasCustomizationProperties) {
     this.hasCustomizationProperties = hasCustomizationProperties;
   }
 
   public void setHasResultListCustomizationProperties(
     final boolean hasResultListCustomizationProperties) {
     this.hasResultListCustomizationProperties = hasResultListCustomizationProperties;
-  }
-
-  public void setHasTestExecuteMethod(final boolean hasTestExecuteMethod) {
-    this.hasTestExecuteMethod = hasTestExecuteMethod;
   }
 
   public void setId(final String id) {
@@ -871,6 +958,10 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.securityServiceRequired = securityServiceRequired;
   }
 
+  public void setTestExecuteMethod(final Method testExecuteMethod) {
+    this.testExecuteMethod = testExecuteMethod;
+  }
+
   public void setTestModeEnabled(final boolean testModeEnabled) {
     this.testModeEnabled = testModeEnabled;
   }
@@ -887,5 +978,4 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public String toString() {
     return this.name;
   }
-
 }

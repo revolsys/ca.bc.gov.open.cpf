@@ -208,16 +208,6 @@
           class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
           p:label="Submitted Requests" />
 
-        <bean
-          p:name="NUM_COMPLETED_REQUESTS"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Completed Requests" />
-
-        <bean
-          p:name="NUM_FAILED_REQUESTS"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer"
-          p:label="Failed Requests" />
-
 
         <bean
           p:name="adminActions"
@@ -349,8 +339,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
+            <value>completedRequests</value>
+            <value>failedRequests</value>
             <value>USER_ID</value>
             <value>adminActions</value>
           </list>
@@ -364,8 +354,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
+            <value>completedRequests</value>
+            <value>failedRequests</value>
             <value>clientActions</value>
           </list>
         </entry>
@@ -376,8 +366,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
+            <value>completedRequests</value>
+            <value>failedRequests</value>
             <value>clientActions</value>
           </list>
         </entry>
@@ -399,8 +389,8 @@
             <value>expiryDate</value>
             <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
+            <value>completedRequests</value>
+            <value>failedRequests</value>
             <value>GROUP_SIZE</value>
             <value>NUM_SUBMITTED_GROUPS</value>
             <value>NUM_COMPLETED_GROUPS</value>
@@ -437,8 +427,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
+            <value>completedRequests</value>
+            <value>failedRequests</value>
             <value>USER_ID</value>
             <value>adminActions</value>
           </list>
@@ -461,8 +451,8 @@
             <value>expiryDate</value>
             <value>NOTIFICATION_URL</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>NUM_COMPLETED_REQUESTS</value>
-            <value>NUM_FAILED_REQUESTS</value>
+            <value>completedRequests</value>
+            <value>failedRequests</value>
             <value>GROUP_SIZE</value>
             <value>groupsToProcess</value>
             <value>scheduledGroups</value>

@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.MethodUtils;
 import org.apache.log4j.Logger;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -70,12 +69,113 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 public class PluginAdaptor {
 
-  private static final String[] INPUT_DATA_PARAMETER_NAMES = new String[] {
+  public static final String[] INPUT_DATA_PARAMETER_NAMES = new String[] {
     "inputDataUrl", "inputDataContentType"
   };
 
-  private static final List<String> INTERNAL_PROPERTY_NAMES = Arrays.asList("sequenceNumber",
+  public static final List<String> INTERNAL_PROPERTY_NAMES = Arrays.asList("sequenceNumber",
     "resultNumber");
+
+  public static Object getTestValue(final FieldDefinition field) {
+    Object value;
+    value = field.getDefaultValue();
+    if (value == null) {
+      final Class<?> typeClass = field.getTypeClass();
+      if (Boolean.class.isAssignableFrom(typeClass)) {
+        value = true;
+      } else if (Number.class.isAssignableFrom(typeClass)) {
+        value = 123;
+      } else if (URL.class.isAssignableFrom(typeClass)) {
+        String urlString = "http://www.test.com/";
+        final int length = field.getLength();
+        if (length > 0 && length < 4) {
+          urlString = urlString.substring(0, length);
+        }
+        value = UrlUtil.getUrl(urlString);
+      } else if (String.class.isAssignableFrom(typeClass)) {
+        value = "test";
+        final int length = field.getLength();
+        if (length > 0 && length < 4) {
+          value = ((String)value).substring(0, length);
+        }
+      } else if (Date.class.isAssignableFrom(typeClass)) {
+        final Timestamp time = new Timestamp(System.currentTimeMillis());
+        value = StringConverterRegistry.toObject(typeClass, time);
+      } else if (LineString.class.isAssignableFrom(typeClass)) {
+        value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
+      } else if (Polygon.class.isAssignableFrom(typeClass)) {
+        final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.0,
+          53.0, -125.1, 53.0);
+        value = boundingBox.toPolygon(10);
+      } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
+        final LineString line = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
+        value = GeometryFactory.wgs84().multiLineString(line);
+      } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
+        final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.0,
+          53.0, -125.1, 53.0);
+        final Polygon polygon = boundingBox.toPolygon(10);
+        value = GeometryFactory.wgs84().multiPolygon(polygon);
+      } else if (GeometryCollection.class.isAssignableFrom(typeClass)
+        || MultiPoint.class.isAssignableFrom(typeClass)) {
+        final Point point = GeometryFactory.wgs84().point(-125, 53);
+        value = GeometryFactory.wgs84().multiPoint(point);
+      } else if (Geometry.class.isAssignableFrom(typeClass)
+        || Point.class.isAssignableFrom(typeClass)) {
+        value = GeometryFactory.wgs84().point(-125, 53);
+      } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
+        // JTS
+        final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
+          new com.vividsolutions.jts.geom.PrecisionModel(
+            com.vividsolutions.jts.geom.PrecisionModel.FLOATING), 4326);
+        if (com.vividsolutions.jts.geom.LineString.class.isAssignableFrom(typeClass)) {
+          final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+            new double[] {
+              -125, 53, -125.1, 53
+            }, 2);
+          final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
+          value = line;
+        } else if (Polygon.class.isAssignableFrom(typeClass)) {
+          final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+            new double[] {
+              -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
+            }, 2);
+          final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
+          value = polygon;
+        } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
+          final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+            new double[] {
+              -125, 53, -125.1, 53
+            }, 2);
+          final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
+          value = jtsGeometryFactory.createMultiLineString(new com.vividsolutions.jts.geom.LineString[] {
+            line
+          });
+        } else if (com.vividsolutions.jts.geom.MultiPolygon.class.isAssignableFrom(typeClass)) {
+          final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
+            new double[] {
+              -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
+            }, 2);
+          final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
+          value = jtsGeometryFactory.createMultiPolygon(new com.vividsolutions.jts.geom.Polygon[] {
+            polygon
+          });
+        } else if (com.vividsolutions.jts.geom.GeometryCollection.class.isAssignableFrom(typeClass)
+          || com.vividsolutions.jts.geom.MultiPoint.class.isAssignableFrom(typeClass)) {
+          final Coordinate[] coordinates = new Coordinate[] {
+            new Coordinate(-125, 53)
+          };
+          value = jtsGeometryFactory.createMultiPoint(coordinates);
+        } else {
+          final com.vividsolutions.jts.geom.Point point = jtsGeometryFactory.createPoint(new Coordinate(
+            -125, 53));
+          value = point;
+        }
+      } else {
+        value = "Unknown";
+      }
+    }
+    return value;
+  }
 
   private final Object plugin;
 
@@ -127,53 +227,37 @@ public class PluginAdaptor {
 
     final boolean testMode = this.application.isTestModeEnabled()
       && BooleanStringConverter.isTrue(this.testParameters.get("cpfPluginTest"));
-    try {
-      if (testMode) {
-        double minTime = Maps.getDouble(this.testParameters, "cpfMinExecutionTime", -1.0);
-        double maxTime = Maps.getDouble(this.testParameters, "cpfMaxExecutionTime", -1.0);
-        final double meanTime = Maps.getDouble(this.testParameters, "cpfMeanExecutionTime", -1.0);
-        final double standardDeviation = Maps.getDouble(this.testParameters,
-          "cpfStandardDeviation", -1.0);
-        double executionTime;
-        if (standardDeviation <= 0) {
-          if (minTime < 0) {
-            minTime = 0.0;
-          }
-          if (maxTime < minTime) {
-            maxTime = minTime + 10;
-          }
-          executionTime = MathUtil.randomRange(minTime, maxTime);
-        } else {
-          executionTime = MathUtil.randomGaussian(meanTime, standardDeviation);
+    if (testMode) {
+      double minTime = Maps.getDouble(this.testParameters, "cpfMinExecutionTime", -1.0);
+      double maxTime = Maps.getDouble(this.testParameters, "cpfMaxExecutionTime", -1.0);
+      final double meanTime = Maps.getDouble(this.testParameters, "cpfMeanExecutionTime", -1.0);
+      final double standardDeviation = Maps.getDouble(this.testParameters, "cpfStandardDeviation",
+        -1.0);
+      double executionTime;
+      if (standardDeviation <= 0) {
+        if (minTime < 0) {
+          minTime = 0.0;
         }
-        if (minTime >= 0 && executionTime < minTime) {
-          executionTime = minTime;
+        if (maxTime < minTime) {
+          maxTime = minTime + 10;
         }
-        if (maxTime > 0 && maxTime > minTime && executionTime > maxTime) {
-          executionTime = maxTime;
-        }
-        final long milliSeconds = (long)(executionTime * 1000);
-        if (milliSeconds > 0) {
-          ThreadUtil.pause(milliSeconds);
-        }
-        if (this.application.isHasTestExecuteMethod()) {
-          MethodUtils.invokeExactMethod(this.plugin, "testExecute", new Object[0]);
-        }
+        executionTime = MathUtil.randomRange(minTime, maxTime);
       } else {
-        MethodUtils.invokeExactMethod(this.plugin, "execute", new Object[0]);
+        executionTime = MathUtil.randomGaussian(meanTime, standardDeviation);
       }
-    } catch (final InvocationTargetException e) {
-      final Throwable cause = e.getCause();
-      if (cause instanceof RuntimeException) {
-        throw (RuntimeException)cause;
-      } else if (cause instanceof Error) {
-        throw (Error)cause;
-      } else {
-        throw new RuntimeException("Unable to invoke execute on " + this.application.getName(),
-          cause);
+      if (minTime >= 0 && executionTime < minTime) {
+        executionTime = minTime;
       }
-    } catch (final Throwable t) {
-      throw new RuntimeException("Unable to invoke execute on " + this.application.getName(), t);
+      if (maxTime > 0 && maxTime > minTime && executionTime > maxTime) {
+        executionTime = maxTime;
+      }
+      final long milliSeconds = (long)(executionTime * 1000);
+      if (milliSeconds > 0) {
+        ThreadUtil.pause(milliSeconds);
+      }
+      this.application.pluginTestExecute(this.plugin);
+    } else {
+      this.application.pluginExecute(this.plugin);
     }
     if (this.application.isHasCustomizationProperties()) {
       try {
@@ -224,8 +308,8 @@ public class PluginAdaptor {
     final boolean test) {
     final RecordDefinition resultRecordDefinition = this.application.getResultRecordDefinition();
     final Map<String, Object> result = new HashMap<String, Object>();
-    for (final FieldDefinition attribute : resultRecordDefinition.getFields()) {
-      final String fieldName = attribute.getName();
+    for (final FieldDefinition field : resultRecordDefinition.getFields()) {
+      final String fieldName = field.getName();
       if (!INTERNAL_PROPERTY_NAMES.contains(fieldName)) {
         Object value = null;
         try {
@@ -237,108 +321,12 @@ public class PluginAdaptor {
           }
         }
         if (value == null && test) {
-          value = attribute.getDefaultValue();
-          if (value == null) {
-            final Class<?> typeClass = attribute.getTypeClass();
-            if (Boolean.class.isAssignableFrom(typeClass)) {
-              value = true;
-            } else if (Number.class.isAssignableFrom(typeClass)) {
-              value = 123;
-            } else if (URL.class.isAssignableFrom(typeClass)) {
-              String urlString = "http://www.test.com/";
-              final int length = attribute.getLength();
-              if (length > 0 && length < 4) {
-                urlString = urlString.substring(0, length);
-              }
-              value = UrlUtil.getUrl(urlString);
-            } else if (String.class.isAssignableFrom(typeClass)) {
-              value = "test";
-              final int length = attribute.getLength();
-              if (length > 0 && length < 4) {
-                value = ((String)value).substring(0, length);
-              }
-            } else if (Date.class.isAssignableFrom(typeClass)) {
-              final Timestamp time = new Timestamp(System.currentTimeMillis());
-              value = StringConverterRegistry.toObject(typeClass, time);
-            } else if (LineString.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
-            } else if (Polygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2,
-                -125.0, 53.0, -125.1, 53.0);
-              value = boundingBox.toPolygon(10);
-            } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-              final LineString line = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1,
-                53.0);
-              value = GeometryFactory.wgs84().multiLineString(line);
-            } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
-              final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2,
-                -125.0, 53.0, -125.1, 53.0);
-              final Polygon polygon = boundingBox.toPolygon(10);
-              value = GeometryFactory.wgs84().multiPolygon(polygon);
-            } else if (GeometryCollection.class.isAssignableFrom(typeClass)
-              || MultiPoint.class.isAssignableFrom(typeClass)) {
-              final Point point = GeometryFactory.wgs84().point(-125, 53);
-              value = GeometryFactory.wgs84().multiPoint(point);
-            } else if (Geometry.class.isAssignableFrom(typeClass)
-              || Point.class.isAssignableFrom(typeClass)) {
-              value = GeometryFactory.wgs84().point(-125, 53);
-            } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
-              // JTS
-              final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
-                new com.vividsolutions.jts.geom.PrecisionModel(
-                  com.vividsolutions.jts.geom.PrecisionModel.FLOATING), 4326);
-              if (com.vividsolutions.jts.geom.LineString.class.isAssignableFrom(typeClass)) {
-                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
-                  new double[] {
-                    -125, 53, -125.1, 53
-                  }, 2);
-                final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
-                value = line;
-              } else if (Polygon.class.isAssignableFrom(typeClass)) {
-                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
-                  new double[] {
-                    -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
-                  }, 2);
-                final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
-                value = polygon;
-              } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
-                  new double[] {
-                    -125, 53, -125.1, 53
-                  }, 2);
-                final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
-                value = jtsGeometryFactory.createMultiLineString(new com.vividsolutions.jts.geom.LineString[] {
-                  line
-                });
-              } else if (com.vividsolutions.jts.geom.MultiPolygon.class.isAssignableFrom(typeClass)) {
-                final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
-                  new double[] {
-                    -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
-                  }, 2);
-                final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
-                value = jtsGeometryFactory.createMultiPolygon(new com.vividsolutions.jts.geom.Polygon[] {
-                  polygon
-                });
-              } else if (com.vividsolutions.jts.geom.GeometryCollection.class.isAssignableFrom(typeClass)
-                || com.vividsolutions.jts.geom.MultiPoint.class.isAssignableFrom(typeClass)) {
-                final Coordinate[] coordinates = new Coordinate[] {
-                  new Coordinate(-125, 53)
-                };
-                value = jtsGeometryFactory.createMultiPoint(coordinates);
-              } else {
-                final com.vividsolutions.jts.geom.Point point = jtsGeometryFactory.createPoint(new Coordinate(
-                  -125, 53));
-                value = point;
-              }
-            } else {
-              value = "Unknown";
-            }
-          }
+          value = getTestValue(field);
           result.put(fieldName, value);
         } else {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
-            GeometryFactory geometryFactory = attribute.getProperty(FieldProperties.GEOMETRY_FACTORY);
+            GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }
@@ -357,7 +345,7 @@ public class PluginAdaptor {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }
-            final Boolean validateGeometry = attribute.getProperty(FieldProperties.VALIDATE_GEOMETRY);
+            final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
             if (validateGeometry == true) {
               if (!geometry.isValid()) {
                 throw new IllegalArgumentException("Geometry is not valid for"
@@ -405,13 +393,7 @@ public class PluginAdaptor {
       }
     }
 
-    final RecordDefinitionImpl requestRecordDefinition = this.application.getRequestRecordDefinition();
-    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
-      final String parameterName = attribute.getName();
-      final Object parameterValue = parameters.get(parameterName);
-      attribute.validate(parameterValue);
-      setPluginProperty(parameterName, parameterValue);
-    }
+    this.application.pluginSetParameters(this.plugin, parameters);
     if (this.application.isPerRequestInputData()) {
       for (final String parameterName : INPUT_DATA_PARAMETER_NAMES) {
         final Object parameterValue = parameters.get(parameterName);

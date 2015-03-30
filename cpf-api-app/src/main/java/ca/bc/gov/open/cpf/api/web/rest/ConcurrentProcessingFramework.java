@@ -458,6 +458,7 @@ public class ConcurrentProcessingFramework {
     final BusinessApplication businessApplication) {
     if (businessApplication.isTestModeEnabled()) {
       final CheckBoxField cpfPluginTest = new CheckBoxField("cpfPluginTest");
+
       addField(fieldSectionMap, sectionContainers, "cpfPluginTest", cpfPluginTest, null,
         "Test Mode", "Enable test mode for the request.");
 
@@ -495,7 +496,10 @@ public class ConcurrentProcessingFramework {
       for (final Enumeration<String> parameterNames = request.getParameterNames(); parameterNames.hasMoreElements();) {
         final String name = parameterNames.nextElement();
         if (name.startsWith("cpf")) {
-          final Object value = request.getParameter(name);
+          Object value = request.getParameter(name);
+          if ("on".equals(value)) {
+            value = true;
+          }
           parameters.put(name, value);
         }
       }
@@ -975,8 +979,6 @@ public class ConcurrentProcessingFramework {
       }
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultDataContentType);
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
-      batchJob.setValue(BatchJob.NUM_COMPLETED_REQUESTS, 0);
-      batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS, 0);
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
       batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.REQUESTS_CREATED);
@@ -990,7 +992,7 @@ public class ConcurrentProcessingFramework {
         }
       } else {
 
-        inputData.put("requestSequenceNumber", 1);
+        inputData.put("i", 1);
         final String inputDataString = JsonRecordIoFactory.toString(requestRecordDefinition,
           Collections.singletonList(inputData));
         this.jobController.setGroupInput(batchJobId, 1, "application/json", inputDataString);
@@ -1138,7 +1140,7 @@ public class ConcurrentProcessingFramework {
     return businessApplications;
   }
 
-  protected Record getBatchJob(final long batchJobId, final String consumerKey) {
+  protected BatchJob getBatchJob(final long batchJobId, final String consumerKey) {
     final BatchJob batchJob = this.batchJobService.getBatchJob(batchJobId);
     if (batchJob == null) {
       return null;
@@ -2605,7 +2607,7 @@ public class ConcurrentProcessingFramework {
   @ResponseBody
   public Object getJobsInfo(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final Record batchJob = getBatchJob(batchJobId, consumerKey);
+    final BatchJob batchJob = getBatchJob(batchJobId, consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobId + " does not exist.");
     } else {

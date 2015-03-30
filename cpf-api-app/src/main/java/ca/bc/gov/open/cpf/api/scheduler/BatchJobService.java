@@ -53,9 +53,9 @@ import javax.mail.internet.MimeMessage;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -139,10 +139,8 @@ public class BatchJobService implements ModuleEventListener {
 
   private static long capacityErrorTime;
 
-  public static Map<String, String> getBusinessApplicationParameters(final Record batchJob) {
-    final String jobParameters = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
-    final Map<String, String> parameters = JsonMapIoFactory.toMap(jobParameters);
-    return parameters;
+  public static Map<String, String> getBusinessApplicationParameters(final BatchJob batchJob) {
+    return batchJob.getBusinessApplicationParameters();
   }
 
   public static Map<String, Object> getGroupLogData(final BatchJobRequestExecutionGroup group) {
@@ -217,7 +215,7 @@ public class BatchJobService implements ModuleEventListener {
     return false;
   }
 
-  private int largestGroupResultCount = 0;
+  private final int largestGroupResultCount = 0;
 
   @Resource(name = "cpfConfig")
   private CpfConfig config;
@@ -563,6 +561,19 @@ public class BatchJobService implements ModuleEventListener {
     this.dataAccessObject.write(result);
   }
 
+  protected com.revolsys.io.Writer<Record> createStructuredResultWriter(final BatchJob batchJob,
+    final long batchJobId, final BusinessApplication application, final File structuredResultFile,
+    final RecordDefinition resultRecordDefinition, final String resultFormat) {
+    final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(batchJob);
+    final GeometryFactory geometryFactory = getGeometryFactory(
+      resultRecordDefinition.getGeometryFactory(), businessApplicationParameters);
+    final String title = "Job " + batchJobId + " Result";
+
+    final FileSystemResource resource = new FileSystemResource(structuredResultFile);
+    return createStructuredResultWriter(resource, application, resultRecordDefinition,
+      resultFormat, title, geometryFactory);
+  }
+
   public com.revolsys.io.Writer<Record> createStructuredResultWriter(
     final org.springframework.core.io.Resource resource, final BusinessApplication application,
     final RecordDefinition resultRecordDefinition, final String resultFormat, final String title,
@@ -584,19 +595,6 @@ public class BatchJobService implements ModuleEventListener {
       recordWriter.setProperties(application.getProperties());
       return recordWriter;
     }
-  }
-
-  protected com.revolsys.io.Writer<Record> createStructuredResultWriter(final Record batchJob,
-    final long batchJobId, final BusinessApplication application, final File structuredResultFile,
-    final RecordDefinition resultRecordDefinition, final String resultFormat) {
-    final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(batchJob);
-    final GeometryFactory geometryFactory = getGeometryFactory(
-      resultRecordDefinition.getGeometryFactory(), businessApplicationParameters);
-    final String title = "Job " + batchJobId + " Result";
-
-    final FileSystemResource resource = new FileSystemResource(structuredResultFile);
-    return createStructuredResultWriter(resource, application, resultRecordDefinition,
-      resultFormat, title, geometryFactory);
   }
 
   public void deleteJob(final long batchJobId) {
@@ -668,6 +666,10 @@ public class BatchJobService implements ModuleEventListener {
 
   public synchronized BatchJob getBatchJob(final Long batchJobId) {
     return this.dataAccessObject.getBatchJob(batchJobId);
+  }
+
+  public BatchJob getBatchJob(final Record batchJob) {
+    return this.dataAccessObject.getBatchJob(batchJob);
   }
 
   public BatchJobRequestExecutionGroup getBatchJobRequestExecutionGroup(final String workerId,
@@ -835,7 +837,6 @@ public class BatchJobService implements ModuleEventListener {
         }
       } catch (final ClosedException e) {
       }
-
       if (this.running && group != null && !group.isCancelled()) {
         final BusinessApplication businessApplication = group.getBusinessApplication();
         if (businessApplication == null) {
@@ -1088,7 +1089,12 @@ public class BatchJobService implements ModuleEventListener {
           postProcessScheduledStatistics.put("postProcessScheduledJobsCount", 1);
           addStatistics(businessApplication, postProcessScheduledStatistics);
 
-          postProcessCreateResults(log, batchJob, batchJobId);
+          if (businessApplication.isPerRequestResultData()) {
+
+          } else {
+            postProcessCreateStructuredResults(businessApplication, log, batchJob, batchJobId);
+          }
+          // TODO errors postProcessCreateResults(log, batchJob, batchJobId);
 
           if (setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS,
             BatchJobStatus.RESULTS_CREATED)
@@ -1105,11 +1111,11 @@ public class BatchJobService implements ModuleEventListener {
 
             batchJob.setValueByPath(BatchJob.NUM_COMPLETED_GROUPS, batchJob,
               BatchJob.NUM_SUBMITTED_GROUPS);
-            update(batchJob);
+            batchJob.update();
             sendNotification(batchJobId, batchJob);
           }
-          final long numCompletedRequests = batchJob.getInteger(BatchJob.NUM_COMPLETED_REQUESTS);
-          final long numFailedRequests = batchJob.getInteger(BatchJob.NUM_FAILED_REQUESTS);
+          final int numCompletedRequests = batchJob.getNumCompletedRequests();
+          final int numFailedRequests = batchJob.getNumFailedRequests();
           if (log.isInfoEnabled()) {
             AppLogUtil.infoAfterCommit(log, "End\tJob post-process\tbatchJobId=" + batchJobId,
               stopWatch);
@@ -1189,14 +1195,11 @@ public class BatchJobService implements ModuleEventListener {
           final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
           if (numSubmittedGroups > 0) {
             for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
-              try {
-                final Map<String, Object> resultDataMap = this.jobController.getGroupResultMap(
-                  batchJobId, sequenceNumber);
-
-                if (resultDataMap != null) {
-                  @SuppressWarnings("unchecked")
-                  final List<Map<String, Object>> resultDataList = (List<Map<String, Object>>)resultDataMap.get("items");
-                  for (final Map<String, Object> resultData : resultDataList) {
+              try (
+                final Reader<Map<String, Object>> resultDataReader = this.jobController.getGroupResultReader(
+                  batchJobId, sequenceNumber);) {
+                if (resultDataReader != null) {
+                  for (final Map<String, Object> resultData : resultDataReader) {
                     final Map<String, Object> resultMap = resultData;
                     if (resultMap.containsKey("errorCode")) {
                       postProcessWriteError(errorResultWriter, resultMap);
@@ -1250,11 +1253,69 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  /**
+   * Create the structured result files for a BatchJob.
+   *
+   * @param log The log to record any errors
+   * @param batchJob The batch job.
+   * @param batchJobId The batch job identifier.
+   */
+  protected void postProcessCreateStructuredResults(final BusinessApplication businessApplication,
+    final AppLog log, final BatchJob batchJob, final long batchJobId) {
+    synchronized (batchJob) {
+      final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+      final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+
+      final String fileExtension = IoFactoryRegistry.getFileExtension(resultFormat);
+      final File structuredResultFile = FileUtil.createTempFile("result", "." + fileExtension);
+
+      boolean hasResults = false;
+      try {
+        try (
+          com.revolsys.io.Writer<Record> structuredResultWriter = createStructuredResultWriter(
+            batchJob, batchJobId, businessApplication, structuredResultFile,
+            resultRecordDefinition, resultFormat)) {
+          structuredResultWriter.open();
+          final Map<String, Object> defaultProperties = new HashMap<String, Object>(
+            structuredResultWriter.getProperties());
+          final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
+          if (numSubmittedGroups > 0) {
+            for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
+              try (
+                final Reader<Map<String, Object>> resultDataReader = this.jobController.getGroupResultReader(
+                  batchJobId, sequenceNumber);) {
+                if (resultDataReader != null) {
+                  for (final Map<String, Object> resultData : resultDataReader) {
+                    postProcessWriteStructuredResult(structuredResultWriter,
+                      resultRecordDefinition, defaultProperties, resultData);
+                    hasResults = true;
+                  }
+                }
+              } catch (final Throwable e) {
+                throw new RuntimeException("Unable to read results. batchJobId=" + batchJobId
+                  + "\t" + " <= SEQUENCE_NUMBER = " + sequenceNumber, e);
+              }
+            }
+          }
+        }
+        if (hasResults) {
+          createBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
+            structuredResultFile, 1);
+        }
+      } catch (final Throwable e) {
+        throw new RuntimeException("Unable to save results", e);
+      } finally {
+        FileUtil.delete(structuredResultFile);
+      }
+    }
+  }
+
   protected boolean postProcessWriteError(final MapWriter errorMapWriter,
     final Map<String, Object> resultMap) {
     boolean written;
     final String errorCode = (String)resultMap.get("errorCode");
-    final Number requestSequenceNumber = (Number)resultMap.get("requestSequenceNumber");
+    final Number requestSequenceNumber = (Number)resultMap.get("i");
     final String errorMessage = (String)resultMap.get("errorMessage");
     final Map<String, String> errorMap = new LinkedHashMap<String, String>();
     errorMap.put("sequenceNumber", StringConverterRegistry.toString(requestSequenceNumber));
@@ -1265,32 +1326,23 @@ public class BatchJobService implements ModuleEventListener {
     return written;
   }
 
-  @SuppressWarnings("unchecked")
   protected void postProcessWriteStructuredResult(
     final com.revolsys.io.Writer<Record> structuredDataWriter,
     final RecordDefinition resultRecordDefinition, final Map<String, Object> defaultProperties,
     final Map<String, Object> resultData) {
-    final List<Map<String, Object>> results = (List<Map<String, Object>>)resultData.get("results");
-    final Number sequenceNumber = (Number)resultData.get("sequenceNumber");
-    int i = 1;
-    for (final Map<String, Object> structuredResultMap : results) {
-      final Record structuredResult = RecordUtil.getObject(resultRecordDefinition,
-        structuredResultMap);
+    final Record structuredResult = RecordUtil.getObject(resultRecordDefinition, resultData);
 
-      final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
-      if (Property.hasValue(properties)) {
-        structuredDataWriter.setProperties(properties);
-      }
+    final String propertiesString = (String)resultData.get("customizationProperties");
+    final boolean hasProperties = Property.hasValue(propertiesString);
+    if (hasProperties) {
+      final Map<String, Object> properties = JsonMapIoFactory.toObjectMap(propertiesString);
+      structuredDataWriter.setProperties(properties);
+    }
 
-      structuredResult.put("sequenceNumber", sequenceNumber);
-      structuredResult.put("resultNumber", i);
-      structuredDataWriter.write(structuredResult);
-      if (properties != null && !properties.isEmpty()) {
-
-        structuredDataWriter.clearProperties();
-        structuredDataWriter.setProperties(defaultProperties);
-      }
-      i++;
+    structuredDataWriter.write(structuredResult);
+    if (hasProperties) {
+      structuredDataWriter.clearProperties();
+      structuredDataWriter.setProperties(defaultProperties);
     }
   }
 
@@ -1340,7 +1392,7 @@ public class BatchJobService implements ModuleEventListener {
             addStatistics(businessApplication, preProcessScheduledStatistics);
 
             final InputStream inputDataStream = getJobInputDataStream(batchJobId, batchJob);
-            int numFailedRequests = batchJob.getInteger(BatchJob.NUM_FAILED_REQUESTS);
+            int numFailedRequests = batchJob.getNumFailedRequests();
             try {
               final Map<String, String> jobParameters = getBusinessApplicationParameters(batchJob);
 
@@ -1402,7 +1454,7 @@ public class BatchJobService implements ModuleEventListener {
                               if (requestParemeters == null) {
                                 numFailedRequests++;
                               } else {
-                                requestParemeters.put("requestSequenceNumber", numSubmittedRequests);
+                                requestParemeters.put("i", numSubmittedRequests);
                                 group.add(requestParemeters);
                               }
 
@@ -1468,10 +1520,11 @@ public class BatchJobService implements ModuleEventListener {
               final Timestamp now = batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP);
               batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
               batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, numSubmittedRequests);
-              batchJob.setValue(BatchJob.NUM_FAILED_REQUESTS, numFailedRequests);
+              batchJob.setValue(BatchJob.FAILED_REQUEST_RANGE, numFailedRequests);
               batchJob.setValue(BatchJob.GROUP_SIZE, maxGroupSize);
               batchJob.setGroupCount(numGroups);
-              update(batchJob);
+              final BatchJob batchJob1 = batchJob;
+              batchJob1.update();
               scheduleJob(batchJob);
             }
             final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
@@ -1808,15 +1861,6 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void scheduleJob(final BatchJob batchJob) {
-    if (this.running) {
-      final BatchJobScheduler scheduler = this.scheduler;
-      if (scheduler != null) {
-        scheduler.schedule(batchJob);
-      }
-    }
-  }
-
   public void scheduleFromDatabase() {
     try (
       Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
@@ -1899,6 +1943,15 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public void scheduleJob(final BatchJob batchJob) {
+    if (this.running) {
+      final BatchJobScheduler scheduler = this.scheduler;
+      if (scheduler != null) {
+        scheduler.schedule(batchJob);
+      }
+    }
+  }
+
   public void scheduleSaveStatistics(final List<String> businessApplicationNames) {
     final Map<String, Object> values = new HashMap<String, Object>();
     values.put(StatisticsProcess.SAVE, Boolean.TRUE);
@@ -1910,7 +1963,7 @@ public class BatchJobService implements ModuleEventListener {
    * @param batchJobId The Record identifier.
    * @param batchJob The BatchJob.
    */
-  public void sendNotification(final Long batchJobId, final Record batchJob) {
+  public void sendNotification(final Long batchJobId, final BatchJob batchJob) {
     String notificationUrl = batchJob.getValue(BatchJob.NOTIFICATION_URL);
     if (Property.hasValue(notificationUrl)) {
       try {
@@ -1973,22 +2026,24 @@ public class BatchJobService implements ModuleEventListener {
               writer.write(jobMap);
               writer.close();
               final HttpEntity body = new StringEntity(bodyOut.toString());
-              final HttpClient client = new DefaultHttpClient();
-              final HttpPost request = new HttpPost(notificationUri);
-              request.setHeader("Content-type", contentType);
-              request.setEntity(body);
-              final HttpResponse response = client.execute(request);
-              final HttpEntity entity = response.getEntity();
-              try {
-                final StatusLine statusLine = response.getStatusLine();
-                if (statusLine.getStatusCode() >= 400) {
-                  LoggerFactory.getLogger(BatchJobService.class).error(
-                    "Unable to send notification for Record #" + batchJobId + " to "
-                      + notificationUrl + " response=" + statusLine);
+              try (
+                final CloseableHttpClient client = new DefaultHttpClient()) {
+                final HttpPost request = new HttpPost(notificationUri);
+                request.setHeader("Content-type", contentType);
+                request.setEntity(body);
+                final HttpResponse response = client.execute(request);
+                final HttpEntity entity = response.getEntity();
+                try {
+                  final StatusLine statusLine = response.getStatusLine();
+                  if (statusLine.getStatusCode() >= 400) {
+                    LoggerFactory.getLogger(BatchJobService.class).error(
+                      "Unable to send notification for Record #" + batchJobId + " to "
+                        + notificationUrl + " response=" + statusLine);
+                  }
+                } finally {
+                  final InputStream content = entity.getContent();
+                  FileUtil.closeSilent(content);
                 }
-              } finally {
-                final InputStream content = entity.getContent();
-                FileUtil.closeSilent(content);
               }
             }
           }
@@ -2013,79 +2068,6 @@ public class BatchJobService implements ModuleEventListener {
     this.authorizationService = authorizationService;
   }
 
-  @SuppressWarnings("unchecked")
-  public Map<String, Object> setBatchJobExecutionGroupResults(final String workerId,
-    final String groupId, final Map<String, Object> results) {
-    synchronized (this.groupResultCount) {
-      while (this.groupResultCount.get() >= this.config.getGroupResultPoolSize()) {
-        ThreadUtil.pause(1000);
-      }
-      this.largestGroupResultCount = Math.max(this.largestGroupResultCount,
-        +this.groupResultCount.incrementAndGet());
-    }
-    try {
-      final Worker worker = getWorker(workerId);
-      final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-        "ExecutionGroupResultsConfirmation");
-      map.put("workerId", workerId);
-      map.put("groupId", groupId);
-      if (worker != null) {
-        final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
-        if (group != null && !group.isCancelled()) {
-          synchronized (group) {
-            final long batchJobId = group.getBatchJobId();
-            map.put("batchJobId", batchJobId);
-            try (
-              final Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW);
-              com.revolsys.io.Writer<Record> writer = this.recordStore.createWriter()) {
-              final BusinessApplication businessApplication = group.getBusinessApplication();
-              final String moduleName = group.getModuleName();
-
-              final List<Map<String, Object>> groupResults = (List<Map<String, Object>>)results.get("results");
-              final long groupExecutedTime = Maps.getLong(results, "groupExecutedTime");
-              final long applicationExecutedTime = Maps.getLong(results, "applicationExecutedTime");
-              final int successCount = Maps.getInteger(results, "successCount");
-              final int errorCount = Maps.getInteger(results, "errorCount");
-
-              final BatchJob batchJob = getBatchJob(batchJobId);
-              if (batchJob != null) {
-                if (groupResults != null && !groupResults.isEmpty()) {
-                  try {
-                    updateBatchJobExecutionGroupFromResponse(batchJob, group, groupResults,
-                      successCount, errorCount);
-                  } catch (final Throwable e) {
-                    if (isDatabaseResourcesException(e)) {
-                      LoggerFactory.getLogger(getClass()).error(
-                        "Tablespace error saving group results: " + groupId);
-                    } else {
-                      LoggerFactory.getLogger(getClass()).error(
-                        "Error saving group results: " + groupId, e);
-                    }
-                    transaction.setRollbackOnly();
-                    cancelGroup(worker, groupId);
-                  }
-                }
-              }
-              final long executionTime = updateGroupStatistics(group, businessApplication,
-                moduleName, applicationExecutedTime, groupExecutedTime, successCount, errorCount);
-              batchJob.removeGroup(group);
-              final AppLog appLog = businessApplication.getLog();
-              AppLogUtil.infoAfterCommit(appLog, "End\tGroup execution\tgroupId=" + groupId
-                + "\tworkerId=" + workerId + "\ttime=" + executionTime / 1000.0);
-              this.scheduler.groupFinished(group);
-            }
-          }
-        }
-      }
-      return map;
-    } finally {
-      synchronized (this.groupResultCount) {
-        this.groupResultCount.decrementAndGet();
-        this.groupResultCount.notifyAll();
-      }
-    }
-  }
-
   public boolean setBatchJobStatus(final BatchJob batchJob, final String oldJobStatus,
     final String newJobStatus) {
     boolean updated = false;
@@ -2102,7 +2084,7 @@ public class BatchJobService implements ModuleEventListener {
       }
     }
     if (updated) {
-      update(batchJob);
+      batchJob.update();
 
     }
     return updated;
@@ -2292,7 +2274,7 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public Map<String, Object> toMap(final Record batchJob, final String jobUrl,
+  public Map<String, Object> toMap(final BatchJob batchJob, final String jobUrl,
     final long timeUntilNextCheck) {
     try {
       final Map<String, Object> jobMap = new NamedLinkedHashMap<String, Object>("BatchJob");
@@ -2323,8 +2305,8 @@ public class BatchJobService implements ModuleEventListener {
       jobMap.put("secondsToWaitForStatusCheck", timeUntilNextCheck);
 
       jobMap.put("numSubmittedRequests", batchJob.getValue(BatchJob.NUM_SUBMITTED_REQUESTS));
-      jobMap.put("numCompletedRequests", batchJob.getValue(BatchJob.NUM_COMPLETED_REQUESTS));
-      jobMap.put("numFailedRequests", batchJob.getValue(BatchJob.NUM_FAILED_REQUESTS));
+      jobMap.put("numCompletedRequests", batchJob.getNumCompletedRequests());
+      jobMap.put("numFailedRequests", batchJob.getNumFailedRequests());
       jobMap.put("resultDataContentType", batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE));
       if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null) {
         String path;
@@ -2342,35 +2324,15 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void update(final BatchJob batchJob) {
-    // TODO persist changes to DB
-  }
-
-  @SuppressWarnings({
-    "unchecked", "rawtypes"
-  })
-  public void updateBatchJobExecutionGroupFromResponse(final BatchJob batchJob,
-    final BatchJobRequestExecutionGroup group, final Object groupResultObject,
-    final int successCount, final int errorCount) {
-    if (groupResultObject != null) {
+  public void updateBatchJobExecutionGroupFromResponse(final Worker worker,
+    final BatchJob batchJob, final BatchJobRequestExecutionGroup group, final InputStream in) {
+    final String groupId = group.getId();
+    try {
       final int sequenceNumber = group.getSequenceNumber();
-
-      final String resultData;
-      if (groupResultObject instanceof Map) {
-        final Map<String, Object> groupResults = (Map)groupResultObject;
-
-        resultData = JsonMapIoFactory.toString(groupResults);
-      } else if (groupResultObject instanceof List) {
-        final List<Map<String, Object>> groupResults = (List)groupResultObject;
-        resultData = JsonMapIoFactory.toString(groupResults);
-      } else {
-        resultData = groupResultObject.toString();
-      }
       final long batchJobId = batchJob.getIdValue();
       final BusinessApplication businessApplication = group.getBusinessApplication();
       if (!businessApplication.isPerRequestResultData()) {
-        this.jobController.setGroupResult(batchJobId, sequenceNumber, "application/json",
-          resultData);
+        this.jobController.setGroupResult(batchJobId, sequenceNumber, in);
         batchJob.addCompletedGroup(sequenceNumber);
       }
       if (batchJob.isCompleted()) {
@@ -2379,10 +2341,19 @@ public class BatchJobService implements ModuleEventListener {
       } else if (batchJob.hasAvailableGroup()) {
         scheduleJob(batchJob);
       }
+      this.scheduler.groupFinished(group);
+    } catch (final Throwable e) {
+      if (isDatabaseResourcesException(e)) {
+        LoggerFactory.getLogger(getClass()).error(
+          "Tablespace error saving group results: " + groupId);
+      } else {
+        LoggerFactory.getLogger(getClass()).error("Error saving group results: " + groupId, e);
+      }
+      cancelGroup(worker, groupId);
     }
   }
 
-  protected long updateGroupStatistics(final BatchJobRequestExecutionGroup group,
+  public long updateGroupStatistics(final BatchJobRequestExecutionGroup group,
     final BusinessApplication businessApplication, final String moduleName,
     final long applicationExecutedTime, final long groupExecutedTime, final int successCount,
     final int errorCount) {
