@@ -86,8 +86,6 @@ public class CpfDataAccessObject {
 
   private RecordDefinition batchJobRecordDefinition;
 
-  private RecordDefinition batchJobExecutionGroupRecordDefinition;
-
   private RecordDefinition batchJobResultRecordDefinition;
 
   private RecordDefinition businessApplicationStatisticsRecordDefinition;
@@ -122,11 +120,7 @@ public class CpfDataAccessObject {
           + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         if (JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username, jobId) == 1) {
-          try {
-            deleteBatchJobResults(jobId);
-          } finally {
-            deleteBatchJobExecutionGroups(jobId);
-          }
+          deleteBatchJobResults(jobId);
           return true;
         } else {
           return false;
@@ -148,7 +142,6 @@ public class CpfDataAccessObject {
   public void close() {
     this.batchJobById = null;
     this.batchJobRecordDefinition = null;
-    this.batchJobExecutionGroupRecordDefinition = null;
     this.batchJobResultRecordDefinition = null;
     this.businessApplicationStatisticsRecordDefinition = null;
     this.configPropertyRecordDefinition = null;
@@ -176,7 +169,6 @@ public class CpfDataAccessObject {
     record.setValue(BatchJob.JOB_STATUS, BatchJobStatus.SUBMITTED);
     record.setValue(BatchJob.WHEN_STATUS_CHANGED, new Timestamp(System.currentTimeMillis()));
     record.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 0);
-    record.setValue(BatchJob.NUM_COMPLETED_GROUPS, 0);
     record.setValue(BatchJob.GROUP_SIZE, 1);
 
     final BatchJob batchJob = new BatchJob(record);
@@ -184,7 +176,7 @@ public class CpfDataAccessObject {
     return batchJob;
   }
 
-  public Record createBatchJobExecutionGroup(final JobController jobController,
+  public void createBatchJobExecutionGroup(final JobController jobController,
     final long batchJobId, final int groupSequenceNumber, final String errorCode,
     final String errorMessage, final String errorDebugMessage) {
     final Map<String, Object> error = new HashMap<String, Object>();
@@ -196,28 +188,11 @@ public class CpfDataAccessObject {
 
     final Map<String, Object> resultData = Collections.<String, Object> singletonMap("items",
       resultDataItems);
-    final Record batchJobExecutionGroup = createBatchJobExecutionGroup(batchJobId, 1, 1);
     final String resultDataString = JsonMapIoFactory.toString(resultData);
 
     // TODO errors jobController.setStructuredResultData(batchJobId,
     // groupSequenceNumber, batchJobExecutionGroup,
     // resultDataString);
-
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.STARTED_IND, 1);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 1);
-    write(batchJobExecutionGroup);
-    return batchJobExecutionGroup;
-  }
-
-  protected Record createBatchJobExecutionGroup(final long batchJobId,
-    final int groupSequenceNumber, final int requestCount) {
-    final Record batchJobExecutionGroup = create(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.COMPLETED_IND, 0);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.STARTED_IND, 0);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.NUM_SUBMITTED_REQUESTS, requestCount);
-    batchJobExecutionGroup.setValue(BatchJobExecutionGroup.SEQUENCE_NUMBER, groupSequenceNumber);
-    return batchJobExecutionGroup;
   }
 
   public Record createConfigProperty(final String environmentName, final String moduleName,
@@ -313,16 +288,9 @@ public class CpfDataAccessObject {
 
   public int deleteBatchJob(final Long batchJobId) {
     deleteBatchJobResults(batchJobId);
-    deleteBatchJobExecutionGroups(batchJobId);
 
     final Query query = Query.equal(this.batchJobRecordDefinition, BatchJob.BATCH_JOB_ID,
       batchJobId);
-    return this.recordStore.delete(query);
-  }
-
-  public int deleteBatchJobExecutionGroups(final Long batchJobId) {
-    final Query query = Query.equal(this.batchJobExecutionGroupRecordDefinition,
-      BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
     return this.recordStore.delete(query);
   }
 
@@ -450,13 +418,6 @@ public class CpfDataAccessObject {
     return this.recordStore.queryFirst(query);
   }
 
-  public Record getBatchJobExecutionGroup(final long batchJobId, final long groupSequenceNumber) {
-    final Query query = new Query(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
-    query.and(Q.equal(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId));
-    query.and(Q.equal(BatchJobExecutionGroup.SEQUENCE_NUMBER, groupSequenceNumber));
-    return this.recordStore.queryFirst(query);
-  }
-
   public long getBatchJobFileSize(final long jobId, final String path, final int sequenceNumber) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
@@ -516,7 +477,7 @@ public class CpfDataAccessObject {
     query.setFieldNames(BatchJob.BATCH_JOB_ID);
     // TODO move to scheduling groups
     query.setWhereCondition(Q.sql(
-      "JOB_STATUS IN ('requestsCreated', 'processing') AND "
+      "JOB_STATUS IN ( 'processing') AND "
         + "NUM_SUBMITTED_GROUPS > 0 AND "
         + "COMPLETED_GROUP_RANGE <> concat('1~', NUM_SUBMITTED_GROUPS) AND BUSINESS_APPLICATION_NAME = ?",
       businessApplicationName));
@@ -640,26 +601,6 @@ public class CpfDataAccessObject {
     filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
     final Query query = Query.and(this.configPropertyRecordDefinition, filter);
     return this.recordStore.queryFirst(query);
-  }
-
-  public Long getNonExecutingGroupSequenceNumber(final Long batchJobId) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
-    filter.put(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
-    filter.put(BatchJobExecutionGroup.STARTED_IND, 0);
-    filter.put(BatchJobExecutionGroup.COMPLETED_IND, 0);
-    filter.put(BatchJobExecutionGroup.BATCH_JOB_ID, batchJobId);
-    filter.put(BatchJobExecutionGroup.STARTED_IND, 0);
-    filter.put(BatchJobExecutionGroup.COMPLETED_IND, 0);
-    final Query query = Query.and(this.batchJobExecutionGroupRecordDefinition, filter);
-    query.setFieldNames(BatchJobExecutionGroup.SEQUENCE_NUMBER);
-    query.addOrderBy(BatchJobExecutionGroup.SEQUENCE_NUMBER, true);
-    query.setLimit(1);
-    final Record batchJobExecutionGroup = this.recordStore.queryFirst(query);
-    if (batchJobExecutionGroup == null) {
-      return null;
-    } else {
-      return batchJobExecutionGroup.getLong(BatchJobExecutionGroup.SEQUENCE_NUMBER);
-    }
   }
 
   /**
@@ -986,7 +927,6 @@ public class CpfDataAccessObject {
   public void setRecordStore(final RecordStore recordStore) {
     this.recordStore = recordStore;
     this.batchJobRecordDefinition = recordStore.getRecordDefinition(BatchJob.BATCH_JOB);
-    this.batchJobExecutionGroupRecordDefinition = recordStore.getRecordDefinition(BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP);
     this.batchJobResultRecordDefinition = recordStore.getRecordDefinition(BatchJobResult.BATCH_JOB_RESULT);
     this.businessApplicationStatisticsRecordDefinition = recordStore.getRecordDefinition(BusinessApplicationStatistics.APPLICATION_STATISTICS);
     this.configPropertyRecordDefinition = recordStore.getRecordDefinition(ConfigProperty.CONFIG_PROPERTY);
@@ -1057,26 +997,6 @@ public class CpfDataAccessObject {
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to change jobs for user rename", e);
     }
-  }
-
-  public int updateResetBatchJobExecutingGroups(final String businessApplicationName) {
-    if (this.recordStore instanceof JdbcRecordStore) {
-      final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + " COMPLETED_REQUEST_RANGE = COALESCE((SELECT SUM(COMPLETED_REQUEST_RANGE) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
-        + " FAILED_REQUEST_RANGE = COALESCE((SELECT SUM(FAILED_REQUEST_RANGE) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
-        + " NUM_COMPLETED_GROUPS = COALESCE((SELECT COUNT(SEQUENCE_NUMBER) FROM CPF.CPF_BATCH_JOB_EXECUTION_GROUPS G WHERE BJ.BATCH_JOB_ID = G.BATCH_JOB_ID AND COMPLETED_IND = 1), 0),"
-        + " WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-        + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ?";
-      try {
-        final Timestamp now = new Timestamp(System.currentTimeMillis());
-        return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, businessApplicationName);
-      } catch (final Throwable e) {
-        throw new RuntimeException("Unable to update batch job executing groups count: " + sql, e);
-      }
-    }
-
-    return 0;
   }
 
   public int updateResetGroupsForRestart(final String businessApplicationName) {

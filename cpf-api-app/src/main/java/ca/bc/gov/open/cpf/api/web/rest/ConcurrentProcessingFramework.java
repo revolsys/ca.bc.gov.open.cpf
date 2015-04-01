@@ -42,6 +42,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.http.MediaType;
@@ -83,6 +84,7 @@ import com.revolsys.data.identifier.Identifier;
 import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.ArrayRecord;
 import com.revolsys.data.record.Record;
+import com.revolsys.data.record.RecordState;
 import com.revolsys.data.record.RecordUtil;
 import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
@@ -740,7 +742,7 @@ public class ConcurrentProcessingFramework {
         } else if (businessApplication.isPerRequestInputData()) {
           batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
             inputDataFiles.size() + inputDataUrls.size());
-          batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.REQUESTS_CREATED);
+          batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.PROCESSING);
           this.dataAccessObject.write(batchJob.getRecord());
           int requestSequenceNumber = 0;
           if (inputDataUrls.isEmpty()) {
@@ -765,7 +767,13 @@ public class ConcurrentProcessingFramework {
             inputDataContentType);
         }
       } catch (final IOException e) {
-        this.dataAccessObject.delete(batchJob);
+        try {
+          if (batchJob.getState() == RecordState.Persisted) {
+            this.dataAccessObject.delete(batchJob);
+          }
+        } catch (final Throwable e2) {
+          LoggerFactory.getLogger(getClass()).error("Unable to delete job: " + batchJobId, e2);
+        }
         throw new HttpMessageNotReadableException(e.getMessage(), e);
       } catch (final Throwable e) {
         this.dataAccessObject.delete(batchJob);
@@ -980,8 +988,7 @@ public class ConcurrentProcessingFramework {
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultDataContentType);
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
       final Timestamp now = new Timestamp(System.currentTimeMillis());
-      batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
-      batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.REQUESTS_CREATED);
+      batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.PROCESSING);
       batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
       this.dataAccessObject.write(batchJob.getRecord());
       if (perRequestInputData) {
@@ -2064,6 +2071,7 @@ public class ConcurrentProcessingFramework {
       }
       final RecordDefinition requestRecordDefinition = businessApplication.getRequestRecordDefinition();
       final List<FieldDefinition> requestAttributes = requestRecordDefinition.getFields();
+      requestAttributes.remove(0);
       final List<KeySerializer> serializers = new ArrayList<KeySerializer>();
       serializers.add(new StringKeySerializer("name"));
       serializers.add(new BooleanImageKeySerializer("properties."

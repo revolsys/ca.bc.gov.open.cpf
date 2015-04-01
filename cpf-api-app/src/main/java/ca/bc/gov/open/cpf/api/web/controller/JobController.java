@@ -15,9 +15,15 @@
  */
 package ca.bc.gov.open.cpf.api.web.controller;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.io.Reader;
 
 public interface JobController {
@@ -55,9 +61,18 @@ public interface JobController {
 
   void setGroupError(long jobId, int sequenceNumber, Object data);
 
+  void setGroupInput(long jobId, int sequenceNumber, RecordDefinition recordDefinition,
+    List<Record> requests);
+
   void setGroupInput(long jobId, int sequenceNumber, String contentType, Object data);
 
   void setGroupResult(long jobId, int sequenceNumber, InputStream in);
 
   void setJobResult(long jobId, int sequenceNumber, String contentType, Object data);
+
+  void writeGroupInput(HttpServletResponse response, long jobId, int sequenceNumber)
+    throws IOException;
+
+  void writeGroupResult(HttpServletResponse response, long jobId, int sequenceNumber)
+    throws IOException;
 }

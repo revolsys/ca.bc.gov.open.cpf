@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.SetQueue;
@@ -114,9 +113,6 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
     try {
       final BatchJobRequestExecutionGroup group = batchJob.getNextGroup(businessApplication);
       if (group != null) {
-        this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.REQUESTS_CREATED,
-          BatchJobStatus.PROCESSING);
-
         final String businessApplicationName = group.getBusinessApplicationName();
         synchronized (this.scheduledGroupsByBusinessApplication) {
           Maps.addToSet(this.scheduledGroupsByBusinessApplication, businessApplicationName, group);

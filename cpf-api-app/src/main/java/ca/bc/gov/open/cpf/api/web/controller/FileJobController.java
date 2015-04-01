@@ -21,13 +21,17 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
+import com.revolsys.data.record.Record;
+import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.io.FileUtil;
+import com.revolsys.io.csv.CsvRecordWriter;
 
 public class FileJobController extends AbstractJobController {
 
@@ -75,6 +79,19 @@ public class FileJobController extends AbstractJobController {
       deleteDirectory(jobId, directory);
     }
     return cancelled;
+  }
+
+  @Override
+  public void setGroupInput(final long jobId, final int sequenceNumber, RecordDefinition recordDefinition,final List<Record> requests) {
+    if (!requests.isEmpty()) {
+      final File file = getJobFile(jobId, GROUP_INPUTS, sequenceNumber);
+      file.getParentFile().mkdirs();
+       try (CsvRecordWriter writer = new CsvRecordWriter(recordDefinition, FileUtil.createUtf8Writer(file), false)) {
+         for (Record record : requests) {
+          writer.write(record);
+        }
+       }
+    }
   }
 
   @Override

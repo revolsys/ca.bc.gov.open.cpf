@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ca.bc.gov.open.cpf.api.worker.security;
+package ca.bc.gov.open.cpf.api.worker;
 
-import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.AbstractCachingSecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.security.AbstractSecurityServiceFactory;
 
-public class WebSecurityServiceFactory extends AbstractSecurityServiceFactory {
+public class WorkerSecurityServiceFactory extends AbstractSecurityServiceFactory {
 
-  private final DigestHttpClient httpClient;
+  private final WorkerScheduler workerScheduler;
 
-  public WebSecurityServiceFactory(final DigestHttpClient httpClient) {
-    this.httpClient = httpClient;
+  public WorkerSecurityServiceFactory(final WorkerScheduler workerScheduler) {
+    this.workerScheduler = workerScheduler;
   }
 
   @Override
@@ -33,10 +32,9 @@ public class WebSecurityServiceFactory extends AbstractSecurityServiceFactory {
   }
 
   @Override
-  protected AbstractCachingSecurityService createSecurityService(
-    final Module module,
+  protected AbstractCachingSecurityService createSecurityService(final Module module,
     final String consumerKey) {
-    return new WebSecurityService(httpClient, module, consumerKey);
+    return new WorkerSecurityService(this.workerScheduler, module, consumerKey);
   }
 
 }

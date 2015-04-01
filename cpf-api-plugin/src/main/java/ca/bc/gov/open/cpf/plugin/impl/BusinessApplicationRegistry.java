@@ -59,7 +59,7 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
 public final class BusinessApplicationRegistry implements
-ApplicationListener<ContextRefreshedEvent> {
+  ApplicationListener<ContextRefreshedEvent> {
 
   static {
     DataTypes.register("JtsGeometry", Geometry.class);
@@ -99,7 +99,7 @@ ApplicationListener<ContextRefreshedEvent> {
   private File appLogDirectory;
 
   private Channel<Map<String, Object>> moduleControlChannel = new Channel<Map<String, Object>>(
-      "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
+    "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
 
   private Thread moduleControlThread;
 
@@ -120,10 +120,9 @@ ApplicationListener<ContextRefreshedEvent> {
     this.useModuleControlThread = useModuleControlThread;
     if (useModuleControlThread) {
       this.moduleControlChannel.writeConnect();
-      final ModuleControlProcess moduleControlProcess = new ModuleControlProcess(
-        this, this.moduleControlChannel);
-      this.moduleControlThread = new Thread(moduleControlProcess,
-        "ModuleControl");
+      final ModuleControlProcess moduleControlProcess = new ModuleControlProcess(this,
+        this.moduleControlChannel);
+      this.moduleControlThread = new Thread(moduleControlProcess, "ModuleControl");
       this.moduleControlThread.setDaemon(true);
       this.moduleControlThread.start();
     }
@@ -179,8 +178,7 @@ ApplicationListener<ContextRefreshedEvent> {
     } finally {
       if (this.moduleControlThread != null) {
         final long maxWait = System.currentTimeMillis() + 5000;
-        while (this.moduleControlThread.isAlive()
-            && System.currentTimeMillis() < maxWait) {
+        while (this.moduleControlThread.isAlive() && System.currentTimeMillis() < maxWait) {
           this.moduleControlThread.stop();
         }
       }
@@ -197,15 +195,13 @@ ApplicationListener<ContextRefreshedEvent> {
     return this.appLogDirectory;
   }
 
-  public BusinessApplication getBusinessApplication(
-    String businessApplicationName) {
+  public BusinessApplication getBusinessApplication(String businessApplicationName) {
     if (businessApplicationName == null) {
       return null;
     } else {
       final int colonIndex = businessApplicationName.lastIndexOf(':');
       if (colonIndex != -1) {
-        businessApplicationName = businessApplicationName.substring(0,
-          colonIndex - 1);
+        businessApplicationName = businessApplicationName.substring(0, colonIndex - 1);
       }
       final Module module = getModuleForBusinessApplication(businessApplicationName);
       if (module == null) {
@@ -216,8 +212,7 @@ ApplicationListener<ContextRefreshedEvent> {
     }
   }
 
-  public BusinessApplication getBusinessApplication(
-    final String businessApplicationName,
+  public BusinessApplication getBusinessApplication(final String businessApplicationName,
     final String businessApplicationVersion) {
     final Module module = getModuleForBusinessApplication(businessApplicationName);
     if (module == null) {
@@ -241,8 +236,7 @@ ApplicationListener<ContextRefreshedEvent> {
     return names;
   }
 
-  public PluginAdaptor getBusinessApplicationPlugin(
-    final BusinessApplication businessApplication) {
+  public PluginAdaptor getBusinessApplicationPlugin(final BusinessApplication businessApplication) {
     if (businessApplication == null) {
       return null;
     } else {
@@ -250,34 +244,28 @@ ApplicationListener<ContextRefreshedEvent> {
       if (module == null) {
         return null;
       } else {
-        return module.getBusinessApplicationPluginAdaptor(businessApplication, null,
-          null);
+        return module.getBusinessApplicationPluginAdaptor(businessApplication, null, null);
       }
     }
   }
 
-  public PluginAdaptor getBusinessApplicationPlugin(
-    String businessApplicationName) {
+  public PluginAdaptor getBusinessApplicationPlugin(String businessApplicationName) {
     String businessApplicationVersion = "CURRENT";
     final int colonIndex = businessApplicationName.lastIndexOf(':');
     if (colonIndex != -1) {
-      businessApplicationName = businessApplicationName.substring(0,
-        colonIndex - 1);
+      businessApplicationName = businessApplicationName.substring(0, colonIndex - 1);
       businessApplicationVersion = businessApplicationName.substring(colonIndex + 1);
     }
-    return getBusinessApplicationPlugin(businessApplicationName,
-      businessApplicationVersion);
+    return getBusinessApplicationPlugin(businessApplicationName, businessApplicationVersion);
   }
 
-  public PluginAdaptor getBusinessApplicationPlugin(
-    final String businessApplicationName,
+  public PluginAdaptor getBusinessApplicationPlugin(final String businessApplicationName,
     final String businessApplicationVersion) {
     final Module module = getModuleForBusinessApplication(businessApplicationName);
     if (module == null) {
       return null;
     } else {
-      return module.getBusinessApplicationPluginAdaptor(businessApplicationName, null,
-        null);
+      return module.getBusinessApplicationPluginAdaptor(businessApplicationName, null, null);
     }
   }
 
@@ -314,8 +302,8 @@ ApplicationListener<ContextRefreshedEvent> {
     }
   }
 
-  public BusinessApplication getModuleBusinessApplication(
-    final String moduleName, final String businessApplicationName) {
+  public BusinessApplication getModuleBusinessApplication(final String moduleName,
+    final String businessApplicationName) {
     final Module module = getModule(moduleName);
     if (module != null) {
       return module.getBusinessApplication(businessApplicationName);
@@ -323,8 +311,7 @@ ApplicationListener<ContextRefreshedEvent> {
     return null;
   }
 
-  private synchronized Module getModuleForBusinessApplication(
-    final String businessApplicationName) {
+  private synchronized Module getModuleForBusinessApplication(final String businessApplicationName) {
     if (this.moduleNamesByBusinessApplicationName == null) {
       this.moduleNamesByBusinessApplicationName = new HashMap<String, String>();
       final Map<BusinessApplication, Module> businessApplicationModuleMap = new TreeMap<BusinessApplication, Module>();
@@ -383,8 +370,8 @@ ApplicationListener<ContextRefreshedEvent> {
       try {
         listener.moduleChanged(event);
       } catch (final Throwable t) {
-        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
-          "Error invoking listener", t);
+        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error("Error invoking listener",
+          t);
       }
     }
   }
@@ -397,8 +384,8 @@ ApplicationListener<ContextRefreshedEvent> {
       try {
         listener.moduleChanged(event);
       } catch (final Throwable t) {
-        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error(
-          "Error invoking listener", t);
+        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error("Error invoking listener",
+          t);
       }
     }
   }
@@ -437,8 +424,7 @@ ApplicationListener<ContextRefreshedEvent> {
     this.appLogDirectory = appLogDirectory;
   }
 
-  public void setConfigPropertyLoader(
-    final ConfigPropertyLoader configPropertyLoader) {
+  public void setConfigPropertyLoader(final ConfigPropertyLoader configPropertyLoader) {
     this.configPropertyLoader = configPropertyLoader;
   }
 

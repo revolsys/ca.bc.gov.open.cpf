@@ -44,6 +44,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
+import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -208,9 +209,9 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     this.dataAccessObject = null;
   }
 
-  public Record getBatchJob(final String businessApplicationName, final Object batchJobId)
+  public BatchJob getBatchJob(final String businessApplicationName, final Object batchJobId)
     throws NoSuchRequestHandlingMethodException {
-    final Record batchJob = this.dataAccessObject.getBatchJob(Numbers.toLong(batchJobId));
+    final BatchJob batchJob = this.dataAccessObject.getBatchJob(Numbers.toLong(batchJobId));
     if (batchJob != null) {
       if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(businessApplicationName)) {
         return batchJob;
@@ -261,6 +262,10 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public CpfDataAccessObject getDataAccessObject() {
     return this.dataAccessObject;
+  }
+
+  protected JobController getJobController() {
+    return this.batchJobService.getJobController();
   }
 
   public int getMinTimeUntilNextCheck() {
@@ -348,9 +353,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
             final long executedRequestsAverageTime = stats.getApplicationExecutedRequestsAverageTime();
             timeRemaining += numRequestsRemaining * executedRequestsAverageTime;
             if (!jobStatus.equals(BatchJobStatus.PROCESSING)) {
-              if (!jobStatus.equals(BatchJobStatus.REQUESTS_CREATED)) {
-                timeRemaining += numRequests * stats.getPreProcessedRequestsAverageTime();
-              }
+              timeRemaining += numRequests * stats.getPreProcessedRequestsAverageTime();
             }
           }
         }

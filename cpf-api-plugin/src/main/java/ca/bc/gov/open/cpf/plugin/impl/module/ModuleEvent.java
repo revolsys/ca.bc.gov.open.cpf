@@ -23,20 +23,27 @@ import java.util.List;
 public class ModuleEvent extends EventObject {
   private static final long serialVersionUID = -3976150772050177003L;
 
-  public static final String STOP = "STOP";
+  public static final String STOP = "moduleStop";
 
-  public static final String START_FAILED = "START_FAILED";
+  public static final String START_FAILED = "moduleStartFailed";
 
-  public static final String START = "START";
+  public static final String START = "moduleStart";
 
-  public static final String SECURITY_CHANGED = "SECURITY_CHANGED";
+  public static final String SECURITY_CHANGED = "moduleSecurityChanged";
 
   private final String action;
 
+  private final long moduleTime;
+
   private List<String> businessApplicationNames = Collections.emptyList();
 
-  public ModuleEvent(final Object object, final String action) {
-    super(object);
+  public ModuleEvent(final Module module, final String action) {
+    super(module);
+    if (module.isStarted()) {
+      this.moduleTime = module.getStartedTime();
+    } else {
+      this.moduleTime = module.getLastStartTime();
+    }
     this.action = action;
   }
 
@@ -52,8 +59,15 @@ public class ModuleEvent extends EventObject {
     return (Module)getSource();
   }
 
-  public void setBusinessApplicationNames(
-    final List<String> businessApplicationNames) {
+  public String getModuleName() {
+    return getModule().getName();
+  }
+
+  public long getModuleTime() {
+    return this.moduleTime;
+  }
+
+  public void setBusinessApplicationNames(final List<String> businessApplicationNames) {
     this.businessApplicationNames = new ArrayList<>(businessApplicationNames);
   }
 

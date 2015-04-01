@@ -59,14 +59,6 @@ public interface BatchJobStatus {
   String PROCESSING = "processing";
 
   /**
-   * The requestsCreated BatchJobStatus indicates the objects have been created
-   * by downloading the input data (if required), splitting the input data into
-   * BusinessApplicationRequests, and validating the data for each
-   * BusinessApplicationRequests.
-   */
-  String REQUESTS_CREATED = "requestsCreated";
-
-  /**
    * The resultsCreated BatchJobStatus indicates that the BatchJobResults have
    * been created from the BusinessApplicationRequests for the BatchJob. The
    * file is ready to be downloaded.

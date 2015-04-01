@@ -44,6 +44,7 @@ import ca.bc.gov.open.cpf.api.domain.UserGroupAccountXref;
 import com.revolsys.collection.ArrayListOfMap;
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.data.equals.EqualsRegistry;
+import com.revolsys.data.identifier.Identifier;
 import com.revolsys.data.query.Condition;
 import com.revolsys.data.query.Q;
 import com.revolsys.data.query.Query;
@@ -185,7 +186,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       if (userGroup != null
         && (moduleName == null || userGroup.getValue(UserGroup.MODULE_NAME).equals(groupModuleName))) {
 
-        final Condition equal = Q.equal(UserGroupAccountXref.USER_GROUP_ID, userGroup.getIdValue());
+        final Identifier userGroupId = userGroup.getIdentifier();
+        final Condition equal = Q.equal(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
         final Query query = new Query(UserAccount.USER_ACCOUNT, equal);
         query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
           + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");

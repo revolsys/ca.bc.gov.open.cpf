@@ -192,6 +192,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
 
   private RecordDefinitionImpl requestRecordDefinition;
 
+  private RecordDefinitionImpl internalRequestRecordDefinition;
+
   private final Map<Integer, FieldDefinition> resultFieldMap = new TreeMap<>();
 
   /**
@@ -243,6 +245,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     this.log = new AppLog(module.getName() + "." + name);
     this.requestRecordDefinition = new RecordDefinitionImpl("/" + name);
     this.resultRecordDefinition = new RecordDefinitionImpl("/" + name);
+    this.internalRequestRecordDefinition = new RecordDefinitionImpl("/" + name);
   }
 
   public BusinessApplication(final String name) {
@@ -535,6 +538,25 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     return this.instantModePermission;
   }
 
+  public synchronized RecordDefinitionImpl getInternalRequestRecordDefinition() {
+    if (this.internalRequestRecordDefinition.getFieldCount() == 0) {
+      if (this.requestFieldMap.size() > 0) {
+        final FieldDefinition requestSequenceNumber = this.internalRequestRecordDefinition.addField(
+          "i", DataTypes.INT);
+        requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER, true);
+        requestSequenceNumber.setMinValue(1);
+
+        for (final FieldDefinition field : this.requestFieldMap.values()) {
+          if (BooleanStringConverter.getBoolean(field.getProperty(BusinessApplication.REQUEST_PARAMETER))) {
+            this.internalRequestRecordDefinition.addField(field);
+          }
+        }
+      }
+    }
+
+    return this.internalRequestRecordDefinition;
+  }
+
   public AppLog getLog() {
     return this.log;
   }
@@ -605,7 +627,6 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
         }
       }
     }
-
     return this.requestRecordDefinition;
   }
 

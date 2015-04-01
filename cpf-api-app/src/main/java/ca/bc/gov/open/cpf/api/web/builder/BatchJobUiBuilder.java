@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobExecutionGroup;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
@@ -163,18 +162,25 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Integer batchJobId) throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
-    getModuleBusinessApplication(moduleName, businessApplicationName);
+    final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
+      businessApplicationName);
     final Record batchJob = getBatchJob(businessApplicationName, batchJobId);
 
     final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, batchJob, "moduleApp");
 
+    if (businessApplication.isPerRequestInputData()) {
+
+    } else {
+      final Map<String, Object> parameters = new HashMap<String, Object>();
+      parameters.put("serverSide", Boolean.TRUE);
+      parameters.put("dom", "rtiS");
+      parameters.put("ordering", false);
+      addTabDataTable(tabs, "ExecutionGroup", "moduleAppJobList", parameters);
+    }
+
     final Map<String, Object> parameters = new HashMap<String, Object>();
     parameters.put("serverSide", Boolean.TRUE);
-
-    addTabDataTable(tabs, BatchJobExecutionGroup.BATCH_JOB_EXECUTION_GROUP, "moduleAppJobList",
-      parameters);
-
     addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList", parameters);
 
     return tabs;

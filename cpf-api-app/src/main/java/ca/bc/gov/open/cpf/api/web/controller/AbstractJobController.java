@@ -15,12 +15,17 @@
  */
 package ca.bc.gov.open.cpf.api.web.controller;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
 
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.Reader;
 import com.revolsys.io.csv.Csv;
+import com.revolsys.util.ExceptionUtil;
 
 public abstract class AbstractJobController implements JobController {
   @Override
@@ -93,5 +98,36 @@ public abstract class AbstractJobController implements JobController {
   public void setJobResult(final long jobId, final int sequenceNumber, final String contentType,
     final Object data) {
     createJobFile(jobId, JOB_RESULTS, sequenceNumber, contentType, data);
+  }
+
+  protected void writeFile(final HttpServletResponse response, final long jobId, final String path,
+    final int sequenceNumber) throws IOException {
+    final String baseName = "job-" + jobId + "-" + sequenceNumber + "-" + path;
+
+    response.setContentType("application/csv");
+    response.setHeader("Content-disposition", "attachment; filename=" + baseName + ".csv");
+    try (
+      OutputStream out = response.getOutputStream()) {
+      try (
+        final InputStream in = getFileStream(jobId, path, sequenceNumber)) {
+        if (in != null) {
+          FileUtil.copy(in, out);
+        }
+      } catch (final Throwable e) {
+        ExceptionUtil.throwUncheckedException(e);
+      }
+    }
+  }
+
+  @Override
+  public void writeGroupInput(final HttpServletResponse response, final long jobId,
+    final int sequenceNumber) throws IOException {
+    writeFile(response, jobId, GROUP_INPUTS, sequenceNumber);
+  }
+
+  @Override
+  public void writeGroupResult(final HttpServletResponse response, final long jobId,
+    final int sequenceNumber) throws IOException {
+    writeFile(response, jobId, GROUP_RESULTS, sequenceNumber);
   }
 }

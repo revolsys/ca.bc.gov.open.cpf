@@ -38,7 +38,6 @@ CREATE TABLE cpf_batch_jobs (
     who_updated character varying(36) NOT NULL,
     when_updated timestamp without time zone NOT NULL,
     num_submitted_groups numeric(19,0) NOT NULL,
-    num_completed_groups numeric(19,0) NOT NULL,
     group_size numeric(5,0) NOT NULL
 );
 
@@ -53,36 +52,7 @@ CREATE SEQUENCE cpf_bj_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-    
-CREATE TABLE cpf_batch_job_execution_groups (
-    completed_ind numeric(1,0),
-    input_data oid,
-    input_data_content_type character varying(255),
-    input_data_url character varying(2000),
-    sequence_number integer NOT NULL,
-    result_data oid,
-    result_data_url character varying(2000),
-    started_ind numeric(1,0),
-    structured_input_data text,
-    structured_result_data text,
-    who_created character varying(36) NOT NULL,
-    when_created timestamp without time zone NOT NULL,
-    who_updated character varying(36) NOT NULL,
-    when_updated timestamp without time zone NOT NULL,
-    batch_job_id bigint NOT NULL,
-    num_submitted_requests numeric(19,0) NOT NULL,
-    COMPLETED_REQUEST_RANGE numeric(19,0) NOT NULL,
-    FAILED_REQUEST_RANGE numeric(19,0) NOT NULL
-);
-
-ALTER TABLE cpf_batch_job_execution_groups
-    ADD CONSTRAINT batch_job_execution_groups_pk PRIMARY KEY (batch_job_id, sequence_number);
-
-ALTER TABLE cpf_batch_job_execution_groups
-    ADD CONSTRAINT execution_group_batch_job_fk FOREIGN KEY (batch_job_id) REFERENCES CPF.cpf_batch_jobs(batch_job_id) ON DELETE CASCADE;
-
-CREATE INDEX batch_jon_execution_idx ON cpf.cpf_batch_job_execution_groups (batch_job_id, started_ind);
-
+   
 CREATE TABLE cpf_batch_job_files (
     batch_job_id bigint NOT NULL,
     path character varying(20) NOT NULL,

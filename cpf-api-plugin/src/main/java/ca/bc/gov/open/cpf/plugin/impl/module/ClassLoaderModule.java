@@ -728,6 +728,8 @@ public class ClassLoaderModule implements Module {
         }
       }
 
+      // TODO move these fields out of the request record definition as they are
+      // job only parameters
       final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
       final FieldDefinition resultDataContentType = requestRecordDefinition.getField("resultDataContentType");
       final Set<String> resultDataContentTypeSet = businessApplication.getResultDataContentTypes();

@@ -43,8 +43,6 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public static final String NOTIFICATION_URL = "NOTIFICATION_URL";
 
-  public static final String NUM_COMPLETED_GROUPS = "NUM_COMPLETED_GROUPS";
-
   public static final String FAILED_REQUEST_RANGE = "FAILED_REQUEST_RANGE";
 
   public static final String NUM_SUBMITTED_GROUPS = "NUM_SUBMITTED_GROUPS";
@@ -164,9 +162,11 @@ public class BatchJob extends DelegatingRecord implements Common {
       final Map<String, String> businessApplicationParameterMap = BatchJobService.getBusinessApplicationParameters(this);
       final String resultDataContentType = getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
+      final Timestamp now = new Timestamp(System.currentTimeMillis());
+      setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
       final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(userId, this,
-        businessApplication, businessApplicationParameterMap, resultDataContentType, new Timestamp(
-          System.currentTimeMillis()), sequenceNumber);
+        businessApplication, businessApplicationParameterMap, resultDataContentType, now,
+        sequenceNumber);
       synchronized (this.groups) {
         this.groups.add(group);
       }
@@ -188,6 +188,10 @@ public class BatchJob extends DelegatingRecord implements Common {
     }
   }
 
+  public int getNumSubmittedGroups() {
+    return getValue(NUM_SUBMITTED_GROUPS);
+  }
+
   public String getScheduledGroups() {
     return this.scheduledGroups.toString();
   }
@@ -206,11 +210,13 @@ public class BatchJob extends DelegatingRecord implements Common {
     }
   }
 
+  public boolean isCompleted(final int sequenceNumber) {
+    return this.completedGroups.contains(sequenceNumber);
+  }
+
   public boolean isProcessing() {
     final String status = getValue(JOB_STATUS);
-    if (status.equals(BatchJobStatus.REQUESTS_CREATED)) {
-      return true;
-    } else if (status.equals(BatchJobStatus.PROCESSING)) {
+    if (status.equals(BatchJobStatus.PROCESSING)) {
       return true;
     } else {
       return false;
@@ -256,13 +262,12 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   @Override
   public String toString() {
-    return getIdValue().toString();
+    return getIdentifier().toString();
   }
 
   public synchronized void update() {
     synchronized (this.completedGroups) {
       setValue(COMPLETED_GROUP_RANGE, this.completedGroups.toString());
-      setValue(NUM_COMPLETED_GROUPS, this.completedGroups.size());
     }
     synchronized (this.failedRequests) {
       setValue(FAILED_REQUEST_RANGE, this.failedRequests.toString());

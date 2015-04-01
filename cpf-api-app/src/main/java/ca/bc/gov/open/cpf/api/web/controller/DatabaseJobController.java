@@ -15,12 +15,17 @@
  */
 package ca.bc.gov.open.cpf.api.web.controller;
 
+import java.io.File;
 import java.io.InputStream;
+import java.util.List;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
 import com.revolsys.data.record.Record;
+import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.io.FileUtil;
+import com.revolsys.io.csv.CsvRecordWriter;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
@@ -71,6 +76,26 @@ public class DatabaseJobController extends AbstractJobController {
   @Override
   public String getKey() {
     return "database";
+  }
+
+  @Override
+  public void setGroupInput(final long jobId, final int sequenceNumber,
+    final RecordDefinition recordDefinition, final List<Record> requests) {
+    if (!requests.isEmpty()) {
+      final File file = FileUtil.createTempFile("job", ".csv");
+      try {
+        try (
+          CsvRecordWriter writer = new CsvRecordWriter(recordDefinition,
+            FileUtil.createUtf8Writer(file), false)) {
+          for (final Record record : requests) {
+            writer.write(record);
+          }
+        }
+        createJobFile(jobId, GROUP_INPUTS, sequenceNumber, "text/csv", file);
+      } finally {
+        FileUtil.delete(file);
+      }
+    }
   }
 
 }

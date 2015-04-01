@@ -86,7 +86,7 @@ public class BatchJobRequestExecutionGroup {
   }
 
   public long getBatchJobId() {
-    return this.batchJob.getIdValue();
+    return this.batchJob.getIdentifier().getLong(0);
   }
 
   public BusinessApplication getBusinessApplication() {

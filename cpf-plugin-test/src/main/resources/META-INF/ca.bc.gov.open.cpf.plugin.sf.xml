@@ -21,6 +21,11 @@
     class="ca.bc.gov.open.cpf.test.plugin.TestAllDataTypes"
     scope="prototype" />
 
+  <bean
+    id="securityTest"
+    class="ca.bc.gov.open.cpf.test.plugin.SecurityTest"
+    scope="prototype" />
+
 
   <util:map id="properties">
     <entry key="default">

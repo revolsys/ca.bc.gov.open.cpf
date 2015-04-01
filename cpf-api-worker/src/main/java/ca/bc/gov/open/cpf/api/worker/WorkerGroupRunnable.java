@@ -58,6 +58,7 @@ import com.revolsys.io.FileBackedCache;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.NamedLinkedHashMap;
+import com.revolsys.io.csv.Csv;
 import com.revolsys.io.csv.CsvWriter;
 import com.revolsys.io.json.JsonMapIoFactory;
 import com.revolsys.jts.geom.Geometry;
@@ -67,7 +68,7 @@ import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 
-public class BatchJobRequestExecutionGroupRunnable implements Runnable {
+public class WorkerGroupRunnable implements Runnable {
   private final Map<String, Object> groupIdMap;
 
   private final DigestHttpClient httpClient;
@@ -76,7 +77,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private final String workerId;
 
-  private final CpfWorkerScheduler executor;
+  private final WorkerScheduler executor;
 
   private final String groupId;
 
@@ -108,7 +109,7 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
 
   private File errorFile;
 
-  public BatchJobRequestExecutionGroupRunnable(final CpfWorkerScheduler executor,
+  public WorkerGroupRunnable(final WorkerScheduler executor,
     final BusinessApplicationRegistry businessApplicationRegistry,
     final DigestHttpClient httpClient, final SecurityServiceFactory securityServiceFactory,
     final String workerId, final Map<String, Object> groupIdMap) {
@@ -403,12 +404,12 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
           final CsvWriter resultWriter = new CsvWriter(resultCache.getWriter())) {
           resultWriter.write(this.businessApplication.getResultFieldNames());
           this.businessApplication.setLogLevel(this.logLevel);
+          this.module = this.businessApplication.getModule();
           if (this.businessApplication.isSecurityServiceRequired()) {
             this.securityService = this.securityServiceFactory.getSecurityService(this.module,
               this.userId);
           }
 
-          this.module = this.businessApplication.getModule();
           final String groupUrl = this.httpClient.getUrl("/worker/workers/" + this.workerId
             + "/jobs/" + this.batchJobId + "/groups/" + this.groupId);
           final Map<String, Object> group = this.httpClient.getJsonResource(groupUrl);
@@ -435,18 +436,9 @@ public class BatchJobRequestExecutionGroupRunnable implements Runnable {
               }
             }
             if (globalError.isEmpty()) {
-              final Object requestsValue = group.get("requests");
-              final Map<String, Object> requestWrapper;
-              if (requestsValue instanceof Map) {
-                requestWrapper = (Map<String, Object>)requestsValue;
-              } else {
-                final String requestsString = requestsValue.toString();
-                requestWrapper = JsonMapIoFactory.toObjectMap(requestsString);
-              }
+              final String requestsCsv = Maps.getString(group, "requests");
 
-              final List<Map<String, Object>> requests = (List<Map<String, Object>>)requestWrapper.get("items");
-
-              for (final Map<String, Object> requestParameters : requests) {
+              for (final Map<String, Object> requestParameters : Csv.mapReader(requestsCsv)) {
                 if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
                   this.executor.addFailedGroup(this.groupId);
                   return;

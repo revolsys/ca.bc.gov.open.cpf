@@ -28,30 +28,28 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 public abstract class AbstractCachingSecurityService implements SecurityService {
 
-  private Map<String, Boolean> authorizedActions = new HashMap<String, Boolean>();
+  private final Map<String, Boolean> authorizedActions = new HashMap<>();
 
   private String consumerKey;
 
-  private Map<String, Boolean> groupNames = new HashMap<String, Boolean>();
+  private Map<String, Boolean> groupNames = new HashMap<>();
 
   private Module module;
 
-  private Map<String, Map<String, Map<String, Boolean>>> resourceActions = new HashMap<String, Map<String, Map<String, Boolean>>>();
+  private final Map<String, Map<String, Map<String, Boolean>>> resourceActions = new HashMap<>();
 
-  private Map<String, Object> userAttributes;
+  private Map<String, Object> userAttributes = new HashMap<>();
 
   private String userClass;
 
   private String username;
 
-  public AbstractCachingSecurityService(final Module module,
-    final String username) {
-    this(module, UUID.randomUUID().toString(), "http://open.gov.bc.ca/cpf",
-      username);
+  public AbstractCachingSecurityService(final Module module, final String username) {
+    this(module, UUID.randomUUID().toString(), "http://open.gov.bc.ca/cpf", username);
   }
 
-  public AbstractCachingSecurityService(final Module module,
-    final String consumerKey, final String userClass, final String username) {
+  public AbstractCachingSecurityService(final Module module, final String consumerKey,
+    final String userClass, final String username) {
     this.module = module;
     this.consumerKey = consumerKey;
     this.userClass = userClass;
@@ -59,19 +57,18 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
   }
 
   @Override
-  public boolean canAccessResource(final String resourceClass,
-    final String resourceId) {
+  public boolean canAccessResource(final String resourceClass, final String resourceId) {
     return canAccessResource(resourceClass, resourceId, ResourcePermission.ALL);
   }
 
   @Override
-  public boolean canAccessResource(final String resourceClass,
-    final String resourceId, final String actionName) {
-    synchronized (resourceActions) {
-      Map<String, Map<String, Boolean>> actionsForClass = resourceActions.get(resourceClass);
+  public boolean canAccessResource(final String resourceClass, final String resourceId,
+    final String actionName) {
+    synchronized (this.resourceActions) {
+      Map<String, Map<String, Boolean>> actionsForClass = this.resourceActions.get(resourceClass);
       if (actionsForClass == null) {
         actionsForClass = new HashMap<String, Map<String, Boolean>>();
-        resourceActions.put(resourceClass, actionsForClass);
+        this.resourceActions.put(resourceClass, actionsForClass);
       }
 
       Map<String, Boolean> actionsForResource = actionsForClass.get(resourceId);
@@ -81,8 +78,7 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
       }
       Boolean actionPermission = actionsForResource.get(actionName);
       if (actionPermission == null) {
-        actionPermission = loadResourceAccessPermission(resourceClass,
-          resourceId, actionName);
+        actionPermission = loadResourceAccessPermission(resourceClass, resourceId, actionName);
         actionsForResource.put(actionName, actionPermission);
       }
       return actionPermission;
@@ -91,8 +87,8 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
 
   @Override
   public boolean canPerformAction(final String actionName) {
-    synchronized (authorizedActions) {
-      Boolean actionPermission = authorizedActions.get(actionName);
+    synchronized (this.authorizedActions) {
+      Boolean actionPermission = this.authorizedActions.get(actionName);
       if (actionPermission == null) {
         actionPermission = loadActionPermission(actionName);
         setActionPermission(actionName, actionPermission);
@@ -102,49 +98,52 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
   }
 
   public void close() {
-    authorizedActions = null;
-    consumerKey = null;
-    groupNames = null;
-    module = null;
-    resourceActions = null;
-    userAttributes = null;
-    userClass = null;
-    username = null;
+    this.authorizedActions.clear();
+    ;
+    this.consumerKey = null;
+    this.groupNames = null;
+    this.module = null;
+    this.resourceActions.clear();
+    ;
+    this.userAttributes.clear();
+    ;
+    this.userClass = null;
+    this.username = null;
   }
 
   @Override
   public String getConsumerKey() {
-    return consumerKey;
+    return this.consumerKey;
   }
 
   public String getModuleName() {
-    return module.getName();
+    return this.module.getName();
   }
 
   @Override
   public Map<String, Object> getUserAttributes() {
-    synchronized (userAttributes) {
-      if (userAttributes == null) {
+    synchronized (this.userAttributes) {
+      if (this.userAttributes == null) {
         setUserAttributes(loadUserAttributes());
       }
-      return Collections.unmodifiableMap(userAttributes);
+      return Collections.unmodifiableMap(this.userAttributes);
     }
   }
 
   @Override
   public String getUserClass() {
-    return userClass;
+    return this.userClass;
   }
 
   @Override
   public String getUsername() {
-    return username;
+    return this.username;
   }
 
   @Override
   public boolean isInGroup(final String groupName) {
-    synchronized (groupNames) {
-      Boolean groupPermission = groupNames.get(groupName);
+    synchronized (this.groupNames) {
+      Boolean groupPermission = this.groupNames.get(groupName);
       if (groupPermission == null) {
         groupPermission = loadGroupPermission(groupName);
         setGroupPermission(groupName, groupPermission);
@@ -154,20 +153,19 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
   }
 
   protected Boolean loadActionPermission(final String actionName) {
-    return loadResourceAccessPermission(ResourcePermission.ALL,
-      ResourcePermission.ALL, actionName);
+    return loadResourceAccessPermission(ResourcePermission.ALL, ResourcePermission.ALL, actionName);
   }
 
   protected Boolean loadGroupPermission(final String groupName) {
-    final Map<String, Set<ResourcePermission>> permissionsByGroupName = module.getPermissionsByGroupName();
+    final Map<String, Set<ResourcePermission>> permissionsByGroupName = this.module.getPermissionsByGroupName();
     return permissionsByGroupName.containsKey(groupName);
   }
 
   protected Boolean loadResourceAccessPermission(final String resourceClass,
     final String resourceId, final String actionName) {
-    final Map<String, Set<ResourcePermission>> permissionsByGroupName = module.getPermissionsByGroupName();
-    final ResourcePermission resource = new ResourcePermission(resourceClass,
-      resourceId, actionName);
+    final Map<String, Set<ResourcePermission>> permissionsByGroupName = this.module.getPermissionsByGroupName();
+    final ResourcePermission resource = new ResourcePermission(resourceClass, resourceId,
+      actionName);
     for (final Entry<String, Set<ResourcePermission>> entry : permissionsByGroupName.entrySet()) {
       final String groupName = entry.getKey();
       if (isInGroup(groupName)) {
@@ -186,29 +184,26 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
     return Collections.emptyMap();
   }
 
-  protected void setActionPermission(final String actionName,
-    final Boolean actionPermission) {
-    authorizedActions.put(actionName, actionPermission);
+  protected void setActionPermission(final String actionName, final Boolean actionPermission) {
+    this.authorizedActions.put(actionName, actionPermission);
   }
 
   protected void setConsumerKey(final String userId) {
     this.consumerKey = userId;
   }
 
-  protected void setGroupPermission(final String groupName,
-    final Boolean groupPermission) {
-    groupNames.put(groupName, groupPermission);
+  protected void setGroupPermission(final String groupName, final Boolean groupPermission) {
+    this.groupNames.put(groupName, groupPermission);
   }
 
-  protected void setResourceAccessPermission(final String resourceClass,
-    final String resourceId, final String actionName,
-    final Boolean accessPermission) {
-    synchronized (resourceActions) {
+  protected void setResourceAccessPermission(final String resourceClass, final String resourceId,
+    final String actionName, final Boolean accessPermission) {
+    synchronized (this.resourceActions) {
 
-      Map<String, Map<String, Boolean>> actionsForClass = resourceActions.get(resourceClass);
+      Map<String, Map<String, Boolean>> actionsForClass = this.resourceActions.get(resourceClass);
       if (actionsForClass == null) {
         actionsForClass = new HashMap<String, Map<String, Boolean>>();
-        resourceActions.put(resourceClass, actionsForClass);
+        this.resourceActions.put(resourceClass, actionsForClass);
       }
 
       Map<String, Boolean> actionsForResource = actionsForClass.get(resourceId);
@@ -234,7 +229,7 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
 
   @Override
   public String toString() {
-    return "SecurityService for " + username;
+    return "SecurityService for " + this.username;
   }
 
 }
