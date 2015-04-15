@@ -22,7 +22,7 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -400,7 +400,7 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
       config.put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
       final Credentials credentials = new Credentials(this.username,
-        this.password.getBytes(Charset.forName("iso-8859-1")));
+        this.password.getBytes(StandardCharsets.ISO_8859_1));
       config.put(ClientProperties.CREDENTIALS, credentials);
 
       final URI webSocketUri = new URI(this.webServiceUrl.replaceFirst("http", "ws")

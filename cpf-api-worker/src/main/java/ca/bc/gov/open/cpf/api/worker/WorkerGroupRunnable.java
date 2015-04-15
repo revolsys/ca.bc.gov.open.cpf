@@ -574,7 +574,9 @@ public class WorkerGroupRunnable implements Runnable {
       if (attributeClass != null) {
         parameterValue = StringConverterRegistry.toObject(attributeClass, parameterValue);
       }
-      BeanUtils.setProperty(plugin, parameterName, parameterValue);
+      if (parameterValue != null) {
+        BeanUtils.setProperty(plugin, parameterName, parameterValue);
+      }
     } catch (final Throwable t) {
       throw new IllegalArgumentException(this.businessApplication.getName() + "." + parameterName
         + " could not be set", t);

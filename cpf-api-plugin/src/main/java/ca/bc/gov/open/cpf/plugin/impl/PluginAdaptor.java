@@ -443,7 +443,9 @@ public class PluginAdaptor {
       if (attributeClass != null) {
         parameterValue = StringConverterRegistry.toObject(attributeClass, parameterValue);
       }
-      BeanUtils.setProperty(this.plugin, parameterName, parameterValue);
+      if (parameterValue != null) {
+        BeanUtils.setProperty(this.plugin, parameterName, parameterValue);
+      }
       this.parameters.put(parameterName, parameterValue);
     } catch (final Throwable t) {
       throw new IllegalArgumentException(this.application.getName() + "." + parameterName

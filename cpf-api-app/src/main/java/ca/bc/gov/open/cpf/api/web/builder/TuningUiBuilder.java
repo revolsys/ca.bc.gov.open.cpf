@@ -52,8 +52,8 @@ import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.fields.NumberField;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.form.UiBuilderObjectForm;
+import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.ElementContainer;
-import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -181,7 +181,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
     final String name = form.getName();
     actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-    final MenuElement actionMenuElement = new MenuElement(actionMenu, "actionMenu");
+    final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
     final ElementContainer view = new ElementContainer(form, actionMenuElement);
     view.setDecorator(new CollapsibleBox(title, true));
     return view;

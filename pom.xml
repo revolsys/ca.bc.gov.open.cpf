@@ -448,8 +448,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
-    <org.springframework.version>3.2.8.RELEASE</org.springframework.version>
-    <org.springframework.security.version>3.2.6.RELEASE</org.springframework.security.version>
+    <org.springframework.version>4.1.6.RELEASE</org.springframework.version>
+    <org.springframework.security.version>4.0.0.RELEASE</org.springframework.security.version>
     <org.slf4j.version>1.6.4</org.slf4j.version>
     <skipWebDeploy>true</skipWebDeploy>
     <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>

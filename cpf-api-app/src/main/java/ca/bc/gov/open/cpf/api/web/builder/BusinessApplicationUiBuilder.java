@@ -58,9 +58,9 @@ import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.ui.html.form.Form;
+import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
-import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.config.Page;
@@ -72,8 +72,7 @@ import com.revolsys.util.Property;
 public class BusinessApplicationUiBuilder extends CpfUiBuilder {
 
   public BusinessApplicationUiBuilder() {
-    super("businessApplication", "Business Application",
-      "Business Applications");
+    super("businessApplication", "Business Application", "Business Applications");
     setIdParameterName("businessApplicationName");
     setIdPropertyName("name");
   }
@@ -81,8 +80,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping("/ws/sample/input")
   @ResponseBody
   public RecordReader getSampleInputData() {
-    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
-      "/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addField("title", DataTypes.STRING);
@@ -103,16 +101,14 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object2.setGeometryValue(factory.point(1207714.288, 480508.637));
     objects.add(object2);
 
-    final ListRecordReader reader = new ListRecordReader(recordDefinition,
-      objects);
+    final ListRecordReader reader = new ListRecordReader(recordDefinition, objects);
     return reader;
   }
 
   @RequestMapping("/ws/sample/result")
   @ResponseBody
   public RecordReader getSampleResultData() {
-    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
-      "/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addField("sequenceNumber", DataTypes.INTEGER);
@@ -128,8 +124,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object1.setValue("resultNumber", 1);
     object1.setValue("title", "Buffered centroid of BC");
     object1.setValue("buffer", 10000);
-    object1.setGeometryValue(factory.point(921100.281, 1076394.357).buffer(
-      10000));
+    object1.setGeometryValue(factory.point(921100.281, 1076394.357).buffer(10000));
     objects.add(object1);
 
     final Record object2 = new ArrayRecord(recordDefinition);
@@ -137,12 +132,10 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     object2.setValue("resultNumber", 1);
     object2.setValue("title", "Stanley Park");
     object2.setValue("buffer", 1000);
-    object2.setGeometryValue(factory.point(1207714.288, 480508.637)
-      .buffer(1000));
+    object2.setGeometryValue(factory.point(1207714.288, 480508.637).buffer(1000));
     objects.add(object2);
 
-    final ListRecordReader reader = new ListRecordReader(recordDefinition,
-      objects);
+    final ListRecordReader reader = new ListRecordReader(recordDefinition, objects);
     return reader;
   }
 
@@ -150,8 +143,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     "/admin/apps"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object pageList(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException {
+  public Object pageList(final HttpServletRequest request, final HttpServletResponse response)
+    throws IOException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     HttpServletUtils.setAttribute("title", "Business Applications");
     final List<BusinessApplication> businessApplications = getBusinessApplications();
@@ -173,8 +166,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
-    final @PathVariable("businessApplicationName") String businessApplicationName) throws IOException,
-    ServletException {
+    final @PathVariable("businessApplicationName") String businessApplicationName)
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     final BusinessApplication businessApplication = businessApplicationRegistry.getModuleBusinessApplication(
@@ -203,24 +196,21 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
           final CpfDataAccessObject dataAccessObject = getDataAccessObject();
           final BusinessApplicationPlugin pluginAnnotation = businessApplication.getPluginAnnotation();
           for (final String propertyName : propertyNames) {
-            final Object defaultValue = Property.get(pluginAnnotation,
-              propertyName);
+            final Object defaultValue = Property.get(pluginAnnotation, propertyName);
             final Object newValue = form.getValue(propertyName);
-            final boolean equal = EqualsInstance.INSTANCE.equals(defaultValue,
-              newValue);
+            final boolean equal = EqualsInstance.INSTANCE.equals(defaultValue, newValue);
 
-            Record configProperty = dataAccessObject.getConfigProperty(
-              ConfigProperty.DEFAULT, moduleName, componentName, propertyName);
+            Record configProperty = dataAccessObject.getConfigProperty(ConfigProperty.DEFAULT,
+              moduleName, componentName, propertyName);
             if (configProperty == null) {
               if (!equal) {
                 try {
-                  final Class<?> propertyClass = PropertyUtils.getPropertyType(
-                    businessApplication, propertyName);
+                  final Class<?> propertyClass = PropertyUtils.getPropertyType(businessApplication,
+                    propertyName);
                   final DataType valueType = DataTypes.getType(propertyClass);
 
-                  configProperty = dataAccessObject.createConfigProperty(
-                    ConfigProperty.DEFAULT, moduleName, componentName,
-                    propertyName, newValue, valueType);
+                  configProperty = dataAccessObject.createConfigProperty(ConfigProperty.DEFAULT,
+                    moduleName, componentName, propertyName, newValue, valueType);
                 } catch (final Throwable e) {
                   LoggerFactory.getLogger(getClass()).error(
                     "Unable to set property " + propertyName, e);
@@ -230,13 +220,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
               if (equal) {
                 dataAccessObject.delete(configProperty);
               } else {
-                dataAccessObject.setConfigPropertyValue(configProperty,
-                  newValue);
+                dataAccessObject.setConfigPropertyValue(configProperty, newValue);
                 dataAccessObject.write(configProperty);
               }
             }
-            JavaBeanUtil.setProperty(businessApplication, propertyName,
-              newValue);
+            JavaBeanUtil.setProperty(businessApplication, propertyName, newValue);
           }
 
           final Map<String, Object> parameters = new HashMap<String, Object>();
@@ -256,13 +244,10 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       addMenuItem(actionMenu, null, viewName, "Cancel", "_top");
       addMenuItem(actionMenu, null, pageName, "Revert to Saved", "_top");
       final String name = form.getName();
-      actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name
-        + "').submit()"));
+      actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-      final MenuElement actionMenuElement = new MenuElement(actionMenu,
-        "actionMenu");
-      final ElementContainer view = new ElementContainer(form,
-        actionMenuElement);
+      final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
+      final ElementContainer view = new ElementContainer(form, actionMenuElement);
       final TabElementContainer tabs = new TabElementContainer();
       tabs.add(title, view);
       return tabs;
@@ -283,8 +268,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
       module, "getBusinessApplications");
-    return createDataTableHandlerOrRedirect(request, response, "moduleList",
-      rowsCallable, Module.class, "view");
+    return createDataTableHandlerOrRedirect(request, response, "moduleList", rowsCallable,
+      Module.class, "view");
   }
 
   @RequestMapping(value = {
@@ -293,8 +278,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
-    final @PathVariable("businessApplicationName") String businessApplicationName) throws IOException,
-    ServletException {
+    final @PathVariable("businessApplicationName") String businessApplicationName)
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
       moduleName, businessApplicationName);
@@ -305,12 +290,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       final Map<String, Object> parameters = new HashMap<String, Object>();
       parameters.put("serverSide", Boolean.FALSE);
 
-      addTabDataTable(tabs, BusinessApplicationStatistics.class.getName(),
-        "moduleAppList", parameters);
+      addTabDataTable(tabs, BusinessApplicationStatistics.class.getName(), "moduleAppList",
+        parameters);
 
       parameters.put("serverSide", Boolean.TRUE);
-      addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleAppList",
-        parameters);
+      addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleAppList", parameters);
       addTabDataTable(tabs, BatchJob.BATCH_JOB, "moduleAppList", parameters);
 
       return tabs;

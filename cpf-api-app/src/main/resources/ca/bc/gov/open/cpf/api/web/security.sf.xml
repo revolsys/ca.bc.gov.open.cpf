@@ -6,9 +6,9 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
     http://www.springframework.org/schema/security
-    http://www.springframework.org/schema/security/spring-security-3.2.xsd
+    http://www.springframework.org/schema/security/spring-security-4.0.xsd
   "
 >
   <import resource="classpath:ca/bc/gov/open/cpf/api/domain/api-import.sf.xml" />
@@ -96,7 +96,7 @@
     id="accessDecisionManager"
     class="org.springframework.security.access.vote.UnanimousBased"
   >
-    <property name="decisionVoters">
+    <constructor-arg>
       <list>
         <bean class="org.springframework.security.web.access.expression.WebExpressionVoter">
           <property name="expressionHandler">
@@ -104,6 +104,6 @@
           </property>
         </bean>
       </list>
-    </property>
+    </constructor-arg>
   </bean>
 </beans>

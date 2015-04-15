@@ -7,35 +7,46 @@
   xmlns:util="http://www.springframework.org/schema/util"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans 
-    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
     http://www.springframework.org/schema/context 
-    http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    http://www.springframework.org/schema/context/spring-context-4.1.xsd
     http://www.springframework.org/schema/util 
-    http://www.springframework.org/schema/util/spring-util-3.2.xsd
+    http://www.springframework.org/schema/util/spring-util-4.1.xsd
   "
 >
   <bean
-    id="sideMenu"
+    id="mainMenu"
     class="com.revolsys.ui.model.Menu"
+    p:title="CPF"
+    p:uri="/ws/"
   >
     <property name="menus">
       <list>
-        <bean
-          class="com.revolsys.ui.model.Menu"
-          p:title="Home"
-          p:uri="/ws/" />
-        <bean
-          class="com.revolsys.ui.model.Menu"
-          p:title="Business Applications"
-          p:uri="/ws/apps/" />
         <bean
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu"
           p:typeName="/CPF/CPF_BATCH_JOBS"
           p:pageName="clientList" />
         <bean
           class="com.revolsys.ui.model.Menu"
-          p:title="API (for developers)"
-          p:uri="/docs/" />
+          p:title="Business Applications"
+          p:uri="/ws/apps/" />
+        <bean
+          class="com.revolsys.ui.model.Menu"
+          p:title="Links"
+        >
+          <property name="menus">
+            <list>
+              <bean
+                class="com.revolsys.ui.model.Menu"
+                p:title="BC Government"
+                p:uri="http://www.gov.bc.ca/" />
+              <bean
+                class="com.revolsys.ui.model.Menu"
+                p:title="Developer Documentation"
+                p:uri="http://pauldaustin.github.io/cpf/" />
+            </list>
+          </property>
+        </bean>
         <bean
           class="com.revolsys.ui.model.Menu"
           p:title="Logout"
@@ -47,83 +58,103 @@
   <bean
     id="footerMenu"
     class="com.revolsys.ui.model.Menu"
+    p:title=""
+    p:uri=""
   >
   </bean>
 
+  <util:list id="cpfCssUrls">
+    <value>https://code.jquery.com/ui/1.11.2/themes/cupertino/jquery-ui.css</value>
+    <value>https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css</value>
+    <value>https://maxcdn.bootstrapcdn.com/bootswatch/3.3.4/flatly/bootstrap.min.css</value>
+    <value>https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css</value>
+    <value>https://cdn.datatables.net/scroller/1.2.2/css/dataTables.scroller.css</value>
+    <value>https://cdn.datatables.net/plug-ins/1.10.6/integration/bootstrap/3/dataTables.bootstrap.css</value>
+    <value>/css/jquery-filestyle.min.css</value>
+    <value>/css/rs.css</value>
+    <value>/css/cpf.css</value>
+  </util:list>
 
   <util:list id="cpfJavaScriptUrls">
     <value>https://code.jquery.com/jquery-1.11.1.min.js</value>
     <value>https://code.jquery.com/ui/1.11.2/jquery-ui.min.js</value>
     <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js
     </value>
+    <value>https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js</value>
     <value>/js/jquery-filestyle.min.js</value>
-    <value>https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js</value>
+    <value>https://cdn.datatables.net/1.10.6/js/jquery.dataTables.min.js</value>
     <value>https://cdn.datatables.net/scroller/1.2.2/js/dataTables.scroller.min.js</value>
+    <value>https://cdn.datatables.net/plug-ins/1.10.6/integration/bootstrap/3/dataTables.bootstrap.js
+    </value>
     <value>/js/rs.js</value>
     <value>/js/admin.js</value>
     <value>/js/ws.js</value>
   </util:list>
-  <util:list id="cpfCssUrls">
-    <value>https://code.jquery.com/ui/1.11.2/themes/cupertino/jquery-ui.css</value>
-    <value>https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css</value>
-    <value>https://cdn.datatables.net/scroller/1.2.2/css/dataTables.scroller.css</value>
-    <value>/css/jquery-filestyle.min.css</value>
-    <value>/css/rs.css</value>
-    <value>/css/cpf.css</value>
-  </util:list>
 
   <bean
-    id="adminSideMenu"
+    id="adminMainMenu"
     class="com.revolsys.ui.model.Menu"
+    p:title="CPF"
+    p:uri="/admin/"
   >
     <property name="menus">
       <list>
         <bean
-          class="com.revolsys.ui.model.Menu"
-          p:title="Home"
-          p:uri="/admin/" />
-        <bean
-          class="com.revolsys.ui.model.Menu"
-          p:title="Tuning"
-          p:uri="/admin/tuning/" />
-        <bean
+          p:title="Dashboard"
+          p:iconName="fa fa-tachometer fa-lg"
           p:typeName="ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics"
           p:pageName="summary"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
+          p:title="Jobs"
+          p:iconName="fa fa-tasks fa-lg"
           p:typeName="/CPF/CPF_BATCH_JOBS"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
+          p:title="Modules"
+          p:iconName="fa fa-puzzle-piece fa-lg"
           p:typeName="ca.bc.gov.open.cpf.plugin.impl.module.Module"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
+          p:title="Apps"
+          p:iconName="fa fa-plug fa-lg"
           p:typeName="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
-          p:typeName="/CPF/CPF_CONFIG_PROPERTIES"
-          p:pageName="list"
-          class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
-        <bean
+          p:title="Users"
+          p:iconName="fa fa-user fa-lg"
           p:typeName="/CPF/CPF_USER_ACCOUNTS"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
+          p:title="Groups"
+          p:iconName="fa fa-users fa-lg"
           p:typeName="/CPF/CPF_USER_GROUPS"
           p:pageName="groupList"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
+          p:title="Workers"
+          p:iconName="fa fa-cloud fa-lg"
           p:typeName="ca.bc.gov.open.cpf.api.scheduler.Worker"
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
+          p:title="Tuning"
+          p:iconName="fa fa-sliders fa-lg"
           class="com.revolsys.ui.model.Menu"
-          p:title="Admin Documentation"
-          p:uri="/docs/admin/" />
+          p:uri="/admin/tuning/" />
+        <bean
+          p:title="Config"
+          p:iconName="fa fa-cog fa-lg"
+          p:typeName="/CPF/CPF_CONFIG_PROPERTIES"
+          p:pageName="list"
+          class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
           class="com.revolsys.ui.model.Menu"
+          p:iconName="fa fa-sign-out fa-lg"
           p:title="Logout"
           p:uri="/logout" />
       </list>
@@ -142,15 +173,15 @@
         <entry key="/admin/**">
           <map>
             <entry
-              key="sideMenu"
-              value-ref="adminSideMenu" />
+              key="mainMenu"
+              value-ref="adminMainMenu" />
           </map>
         </entry>
         <entry key="/secure/admin/**">
           <map>
             <entry
-              key="sideMenu"
-              value-ref="adminSideMenu" />
+              key="mainMenu"
+              value-ref="adminMainMenu" />
           </map>
         </entry>
         <entry key="/**">
@@ -188,8 +219,8 @@
               key="javascriptUrls"
               value-ref="cpfJavaScriptUrls" />
             <entry
-              key="sideMenu"
-              value-ref="sideMenu" />
+              key="mainMenu"
+              value-ref="mainMenu" />
             <entry
               key="footerMenu"
               value-ref="footerMenu" />

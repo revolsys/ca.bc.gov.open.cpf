@@ -48,9 +48,9 @@ import com.revolsys.ui.html.decorator.TableHeadingDecorator;
 import com.revolsys.ui.html.fields.CheckBoxField;
 import com.revolsys.ui.html.fields.TextField;
 import com.revolsys.ui.html.form.Form;
+import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
-import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -68,8 +68,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     this, "getModules");
 
   public ModuleUiBuilder() {
-    super("module", "Business Application Module",
-      "Business Application Modules");
+    super("module", "Business Application Module", "Business Application Modules");
     setIdParameterName("moduleName");
     setIdPropertyName("name");
   }
@@ -78,8 +77,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @PreDestroy
   public void close() {
     super.close();
-    mavenRepository = null;
-    moduleLoader = null;
+    this.mavenRepository = null;
+    this.moduleLoader = null;
   }
 
   @RequestMapping(value = {
@@ -93,17 +92,15 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     checkHasAnyRole(ADMIN);
     final Map<String, Object> parameters = new HashMap<String, Object>();
 
-    final Form form = new Form(typeName);
+    final Form form = new Form(this.typeName);
 
     final ElementContainer fields = new ElementContainer(new TableBody());
 
     final TextField moduleNameField = new TextField("moduleName", 30, true);
     TableHeadingDecorator.addRow(fields, moduleNameField, "Module Name", null);
 
-    final TextField mavenModuleIdField = new TextField("mavenModuleId", 70,
-      true);
-    TableHeadingDecorator.addRow(fields, mavenModuleIdField, "Maven Module ID",
-      null);
+    final TextField mavenModuleIdField = new TextField("mavenModuleId", 70, true);
+    TableHeadingDecorator.addRow(fields, mavenModuleIdField, "Maven Module ID", null);
 
     final CheckBoxField enabledField = new CheckBoxField("enabled");
     enabledField.setInitialValue(true);
@@ -114,7 +111,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
     if (form.isPosted() && form.isMainFormTask()) {
       if (form.isValid()) {
-        synchronized (MODULE_ADD_SYNC) {
+        synchronized (this.MODULE_ADD_SYNC) {
           final String moduleName = ((String)moduleNameField.getValue()).toUpperCase();
           final String mavenModuleId = mavenModuleIdField.getValue();
 
@@ -142,9 +139,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
             }
             if (valid) {
               final boolean enabled = enabledField.isSelected();
-              moduleLoader.setMavenModuleConfigProperties(moduleName,
-                mavenModuleId, enabled);
-              moduleLoader.refreshModules();
+              this.moduleLoader.setMavenModuleConfigProperties(moduleName, mavenModuleId, enabled);
+              this.moduleLoader.refreshModules();
 
               parameters.put("moduleName", moduleName);
               final String url = getPageUrl("view", parameters);
@@ -164,11 +160,9 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     actionMenu.addMenuItem(new Menu("Cancel", getPageUrl("list", parameters)));
     actionMenu.addMenuItem(new Menu("Refresh", getPageUrl("add", parameters)));
     final String name = form.getName();
-    actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name
-      + "').submit()"));
+    actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-    final MenuElement actionMenuElement = new MenuElement(actionMenu,
-      "actionMenu");
+    final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
     final ElementContainer view = new ElementContainer(form, actionMenuElement);
     final TabElementContainer tabs = new TabElementContainer();
     tabs.add(title, view);
@@ -187,15 +181,13 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
-      final Form form = new Form(typeName);
+      final Form form = new Form(this.typeName);
 
       final ElementContainer fields = new ElementContainer(new TableBody());
 
-      final TextField mavenModuleIdField = new TextField("mavenModuleId", 70,
-        true);
+      final TextField mavenModuleIdField = new TextField("mavenModuleId", 70, true);
       mavenModuleIdField.setInitialValue(module.getModuleDescriptor());
-      TableHeadingDecorator.addRow(fields, mavenModuleIdField,
-        "Maven Module ID", null);
+      TableHeadingDecorator.addRow(fields, mavenModuleIdField, "Maven Module ID", null);
 
       final CheckBoxField enabledField = new CheckBoxField("enabled");
       enabledField.setInitialValue(module.isEnabled());
@@ -206,18 +198,16 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
       if (form.isPosted() && form.isMainFormTask()) {
         if (form.isValid()) {
-          synchronized (MODULE_ADD_SYNC) {
+          synchronized (this.MODULE_ADD_SYNC) {
 
             final String mavenModuleId = mavenModuleIdField.getValue();
             final boolean enabled = enabledField.isSelected();
-            moduleLoader.setMavenModuleConfigProperties(moduleName,
-              mavenModuleId, enabled);
-            moduleLoader.refreshModules();
+            this.moduleLoader.setMavenModuleConfigProperties(moduleName, mavenModuleId, enabled);
+            this.moduleLoader.refreshModules();
 
             HttpServletUtils.setPathVariable("moduleName", moduleName);
 
-            final String url = getPageUrl("view",
-              Collections.<String, Object> emptyMap());
+            final String url = getPageUrl("view", Collections.<String, Object> emptyMap());
             response.sendRedirect(url);
             return null;
           }
@@ -231,13 +221,10 @@ public class ModuleUiBuilder extends CpfUiBuilder {
       addMenuItem(actionMenu, null, "view", "Cancel", "_top");
       addMenuItem(actionMenu, null, "edit", "Revert to Saved", "_top");
       final String name = form.getName();
-      actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name
-        + "').submit()"));
+      actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-      final MenuElement actionMenuElement = new MenuElement(actionMenu,
-        "actionMenu");
-      final ElementContainer view = new ElementContainer(form,
-        actionMenuElement);
+      final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
+      final ElementContainer view = new ElementContainer(form, actionMenuElement);
       final TabElementContainer tabs = new TabElementContainer();
       tabs.add(title, view);
       return tabs;
@@ -254,7 +241,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response) throws IOException {
     HttpServletUtils.setAttribute("title", "Modules");
     checkAdminOrAnyModuleAdmin();
-    return createDataTableHandler(request, "list", modulesCallable);
+    return createDataTableHandler(request, "list", this.modulesCallable);
   }
 
   @RequestMapping(value = {
@@ -276,13 +263,11 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
     parameters.put("serverSide", Boolean.FALSE);
 
-    addTabDataTable(tabs, BusinessApplication.class.getName(), "moduleList",
-      parameters);
+    addTabDataTable(tabs, BusinessApplication.class.getName(), "moduleList", parameters);
 
     parameters.put("serverSide", Boolean.TRUE);
 
-    addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleList",
-      parameters);
+    addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleList", parameters);
 
     addTabDataTable(tabs, UserGroup.USER_GROUP, "moduleList", parameters);
 
@@ -292,11 +277,11 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   }
 
   public MavenRepository getMavenRepository() {
-    return mavenRepository;
+    return this.mavenRepository;
   }
 
   public ConfigPropertyModuleLoader getModuleLoader() {
-    return moduleLoader;
+    return this.moduleLoader;
   }
 
   @RequestMapping(value = {
@@ -307,7 +292,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Module module = getModule(request, moduleName);
-    moduleLoader.deleteModule(module);
+    this.moduleLoader.deleteModule(module);
     redirectPage("list");
   }
 
@@ -326,9 +311,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/start"
   }, method = RequestMethod.POST)
-  public void postModuleStart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+  public void postModuleStart(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     module.start();
@@ -338,9 +322,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/stop"
   }, method = RequestMethod.POST)
-  public void postModuleStop(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+  public void postModuleStop(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     module.stop();
