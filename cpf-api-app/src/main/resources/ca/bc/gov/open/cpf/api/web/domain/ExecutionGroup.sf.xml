@@ -46,23 +46,20 @@
           class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
           p:name="inputData"
           p:label="Input"
-          p:cssClass="ui-auto-button-disk"
-          p:target="_top"
-        />
+          p:iconName="fa fa-download"
+          p:target="_top" />
         <bean
           class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
           p:name="resultData"
           p:label="Result"
-          p:cssClass="ui-auto-button-disk"
-          p:target="_top"
-        />
+          p:iconName="fa fa-download"
+          p:target="_top" />
         <bean
           class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
           p:name="errorData"
           p:label="Error"
-          p:cssClass="ui-auto-button-disk"
-          p:target="_top"
-        />
+          p:iconName="fa fa-download"
+          p:target="_top" />
         <bean
           p:name="completed"
           class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer" />

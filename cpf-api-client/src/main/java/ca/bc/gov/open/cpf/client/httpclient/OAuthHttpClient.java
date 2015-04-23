@@ -61,11 +61,11 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 
+import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.JsonParser;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.MapReaderFactory;
 import com.revolsys.io.Reader;
-import com.revolsys.io.json.JsonMapIoFactory;
-import com.revolsys.io.json.JsonParser;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;

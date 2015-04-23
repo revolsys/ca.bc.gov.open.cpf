@@ -24,6 +24,7 @@
     security-context-repository-ref="cpfOpenIdSpringSecurityContext"
     access-decision-manager-ref="cpfOpenIdAccessDecisionManager"
   >
+    <security:csrf disabled="true" />
     <security:custom-filter
       after="PRE_AUTH_FILTER"
       ref="cpfOpenIdFilter" />

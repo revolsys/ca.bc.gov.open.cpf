@@ -43,6 +43,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.maven.MavenRepository;
+import com.revolsys.ui.html.decorator.FormHorizontalDecorator;
 import com.revolsys.ui.html.decorator.TableBody;
 import com.revolsys.ui.html.decorator.TableHeadingDecorator;
 import com.revolsys.ui.html.fields.CheckBoxField;
@@ -94,19 +95,16 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
     final Form form = new Form(this.typeName);
 
-    final ElementContainer fields = new ElementContainer(new TableBody());
-
     final TextField moduleNameField = new TextField("moduleName", 30, true);
-    TableHeadingDecorator.addRow(fields, moduleNameField, "Module Name", null);
+    FormHorizontalDecorator.add(form, moduleNameField, "Module Name", null);
 
     final TextField mavenModuleIdField = new TextField("mavenModuleId", 70, true);
-    TableHeadingDecorator.addRow(fields, mavenModuleIdField, "Maven Module ID", null);
+    FormHorizontalDecorator.add(form, mavenModuleIdField, "Maven Module ID", null);
 
     final CheckBoxField enabledField = new CheckBoxField("enabled");
     enabledField.setInitialValue(true);
-    TableHeadingDecorator.addRow(fields, enabledField, "Enabled", null);
+    FormHorizontalDecorator.add(form, enabledField, "Enabled", null);
 
-    form.add(fields);
     form.initialize(request);
 
     if (form.isPosted() && form.isMainFormTask()) {

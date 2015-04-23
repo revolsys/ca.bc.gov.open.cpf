@@ -56,6 +56,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="workerRestart"
                 p:label="Restart"
+                p:iconName="fa fa-repeat"
               >
                 <property name="parameterNameMap">
                   <map>

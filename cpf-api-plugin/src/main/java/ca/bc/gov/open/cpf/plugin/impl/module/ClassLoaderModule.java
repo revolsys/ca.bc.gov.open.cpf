@@ -1129,6 +1129,7 @@ public class ClassLoaderModule implements Module {
       final XmlBeanDefinitionReader beanReader = new XmlBeanDefinitionReader(applicationContext);
       beanReader.setBeanClassLoader(classLoader);
       beanReader.loadBeanDefinitions(new UrlResource(this.configUrl));
+      applicationContext.refresh();
 
       Map<String, Map<String, Object>> propertiesByName;
       if (applicationContext.containsBean("properties")) {

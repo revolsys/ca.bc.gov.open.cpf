@@ -44,13 +44,13 @@
       <c:import url="${body}" charEncoding="UTF-8" />
     </c:if>
   </div>
-  <div class="container"><small>
+  <footer class="footer">
+    <c:import url="/view/footer/footerMenu" charEncoding="UTF-8" />
+  <div class="version"><small>
     (v <c:out value="${applicationVersion}" /> )
     <c:set var="now" value="<%=new java.util.Date()%>" />
     [<fmt:formatDate value="${now}" pattern="yyyy-MM-dd HH:mm:ss" />]
   </small></div>
-  <footer class="footer">
-    <c:import url="/view/footer/footerMenu" charEncoding="UTF-8" />
   </footer>
     </c:otherwise>
   </c:choose>

@@ -13,9 +13,15 @@
 >
   <import resource="classpath:ca/bc/gov/open/cpf/api/domain/api-import.sf.xml" />
 
-  <security:http pattern="/css/**" security="none" />
-  <security:http pattern="/images/**" security="none" />
-  <security:http pattern="/js/**" security="none" />
+  <security:http
+    pattern="/css/**"
+    security="none" />
+  <security:http
+    pattern="/images/**"
+    security="none" />
+  <security:http
+    pattern="/js/**"
+    security="none" />
 
   <import resource="classpath*:META-INF/ca/bc/gov/open/cpf/security-module.sf.xml" />
 
@@ -25,15 +31,17 @@
     auto-config="false"
     entry-point-ref="processingFilterEntryPoint"
     access-decision-manager-ref="accessDecisionManager"
+
   >
+    <security:csrf disabled="true" />
     <security:custom-filter
       after="LOGOUT_FILTER"
       ref="oAuthProcessingFilter" />
-      
+
     <security:custom-filter
       before="BASIC_AUTH_FILTER"
       ref="digestProcessingFilter" />
- 
+
     <security:intercept-url
       pattern="/admin/**"
       access="hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />

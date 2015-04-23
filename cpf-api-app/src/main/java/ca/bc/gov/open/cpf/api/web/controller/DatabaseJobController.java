@@ -24,8 +24,8 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.format.csv.CsvRecordWriter;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.csv.CsvRecordWriter;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 

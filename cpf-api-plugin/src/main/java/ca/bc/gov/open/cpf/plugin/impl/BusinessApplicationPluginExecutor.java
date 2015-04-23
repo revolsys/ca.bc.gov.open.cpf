@@ -35,7 +35,7 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.schema.RecordDefinition;
-import com.revolsys.io.json.JsonRecordIoFactory;
+import com.revolsys.format.json.JsonRecordIoFactory;
 
 /**
  * The BusinessApplicationPluginExecutor can be used to simulate running a

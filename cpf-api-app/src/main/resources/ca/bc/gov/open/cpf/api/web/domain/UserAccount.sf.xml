@@ -26,25 +26,29 @@
           p:name="view"
           class="com.revolsys.ui.web.config.Page"
           p:title="User Account {consumerKey}"
-          p:path="/admin/userAccounts/{consumerKey}/" p:permission="hasRole('ROLE_ADMIN')" />
+          p:path="/admin/userAccounts/{consumerKey}/"
+          p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="edit"
           class="com.revolsys.ui.web.config.Page"
           p:title="Edit User Account {consumerKey}"
-          p:path="/admin/userAccounts/{consumerKey}/edit/" p:permission="hasRole('ROLE_ADMIN')" />
+          p:path="/admin/userAccounts/{consumerKey}/edit/"
+          p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="delete"
           class="com.revolsys.ui.web.config.Page"
           p:title="Delete User Account {consumerKey}"
-          p:path="/admin/userAccounts/{consumerKey}/delete/" p:permission="hasRole('ROLE_ADMIN')" />
+          p:path="/admin/userAccounts/{consumerKey}/delete/"
+          p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="add"
           class="com.revolsys.ui.web.config.Page"
           p:title="Add User Account"
-          p:path="/admin/userAccounts/add/" p:permission="hasRole('ROLE_ADMIN')" />
+          p:path="/admin/userAccounts/add/"
+          p:permission="hasRole('ROLE_ADMIN')" />
 
         <bean
           p:name="searchLikeName"
@@ -127,6 +131,7 @@
                 p:name="delete"
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:label="Delete"
+                p:iconName="fa fa-trash"
               >
                 <property name="parameterNameMap">
                   <map>
@@ -241,6 +246,7 @@
                     p:name="groupMemberDelete"
                     class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                     p:label="Delete"
+                    p:iconName="fa fa-trash"
                   >
                     <property name="parameterNames">
                       <list>
@@ -269,6 +275,7 @@
                     p:name="moduleGroupMemberDelete"
                     class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                     p:label="Delete"
+                    p:iconName="fa fa-trash"
                   >
                     <property name="parameterNames">
                       <list>
@@ -297,6 +304,7 @@
                     p:name="moduleAdminGroupMemberDelete"
                     class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                     p:label="Delete"
+                    p:iconName="fa fa-trash"
                   >
                     <property name="parameterNames">
                       <list>

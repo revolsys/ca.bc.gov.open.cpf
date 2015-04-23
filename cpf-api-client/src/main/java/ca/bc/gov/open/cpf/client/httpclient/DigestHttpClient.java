@@ -49,9 +49,9 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.JsonParser;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.json.JsonMapIoFactory;
-import com.revolsys.io.json.JsonParser;
 import com.revolsys.parallel.ThreadInterruptedException;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.util.ExceptionUtil;

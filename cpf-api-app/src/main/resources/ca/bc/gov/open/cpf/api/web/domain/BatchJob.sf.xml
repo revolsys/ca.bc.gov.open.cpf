@@ -221,6 +221,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="moduleAppCancel"
                 p:label="Cancel"
+                p:iconName="fa fa-stop"
                 p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
               >
                 <property name="parameterNameMap">
@@ -241,6 +242,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="moduleAppDelete"
                 p:label="Delete"
+                p:iconName="fa fa-trash"
                 p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled'"
               >
                 <property name="parameterNameMap">
@@ -272,6 +274,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="clientCancel"
                 p:label="Cancel"
+                p:iconName="fa fa-stop"
                 p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
               >
                 <property name="parameterNameMap">
@@ -286,6 +289,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="clientDelete"
                 p:label="Delete"
+                p:iconName="fa fa-trash"
                 p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled'"
               >
                 <property name="parameterNameMap">

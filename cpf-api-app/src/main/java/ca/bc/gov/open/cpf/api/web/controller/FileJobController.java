@@ -30,8 +30,8 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.schema.RecordDefinition;
+import com.revolsys.format.csv.CsvRecordWriter;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.csv.CsvRecordWriter;
 
 public class FileJobController extends AbstractJobController {
 

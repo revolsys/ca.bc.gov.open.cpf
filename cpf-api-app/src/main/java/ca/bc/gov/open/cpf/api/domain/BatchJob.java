@@ -15,7 +15,7 @@ import com.revolsys.collection.range.RangeSet;
 import com.revolsys.data.record.DelegatingRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordState;
-import com.revolsys.io.json.JsonMapIoFactory;
+import com.revolsys.format.json.JsonMapIoFactory;
 
 public class BatchJob extends DelegatingRecord implements Common {
 

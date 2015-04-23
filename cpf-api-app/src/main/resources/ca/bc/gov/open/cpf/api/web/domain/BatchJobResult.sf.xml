@@ -60,6 +60,7 @@
           p:name="download"
           class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
           p:label="Download"
+          p:iconName="fa fa-download"
           p:cssClass="ui-auto-button-disk"
           p:target="_top" />
         <bean
@@ -91,6 +92,7 @@
               p:name="clientView"
               class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
               p:label="Download"
+              p:iconName="fa fa-download"
               p:cssClass="ui-auto-button-disk"
               p:target="_top" />
           </list>

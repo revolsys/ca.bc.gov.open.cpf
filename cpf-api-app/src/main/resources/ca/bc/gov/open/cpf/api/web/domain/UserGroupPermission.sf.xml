@@ -91,6 +91,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="moduleDelete"
                 p:label="Delete"
+                p:iconName="fa fa-trash"
               >
                 <property name="parameterNameMap">
                   <map>

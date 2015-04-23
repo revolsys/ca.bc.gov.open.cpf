@@ -22,9 +22,9 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.revolsys.format.csv.Csv;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.Reader;
-import com.revolsys.io.csv.Csv;
 import com.revolsys.util.ExceptionUtil;
 
 public abstract class AbstractJobController implements JobController {

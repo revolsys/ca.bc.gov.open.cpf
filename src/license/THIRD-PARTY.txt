@@ -1,5 +1,5 @@
 
-Lists of 96 third-party dependencies.
+Lists of 95 third-party dependencies.
      (Public Domain) AOP alliance (aopalliance:aopalliance:1.0 - http://aopalliance.sourceforge.net)
      (apache_v2) Concurrent Processing Framework Application Java API (ca.bc.gov.open.cpf:cpf-api-app:5.0.0-SNAPSHOT - no url defined)
      (apache_v2) Concurrent Processing Framework Client Java API (ca.bc.gov.open.cpf:cpf-api-client:5.0.0-SNAPSHOT - no url defined)
@@ -67,7 +67,7 @@ Lists of 96 third-party dependencies.
      (apache_v2) OpenID4Java XRI (org.openid4java:openid4java-xri:0.9.5 - http://code.sxip.com/openid4java/openid4java-xri)
      (apache_v2) openxri-client (org.openxri:openxri-client:1.2.0 - http://maven.apache.org)
      (apache_v2) openxri-syntax (org.openxri:openxri-syntax:1.2.0 - http://maven.apache.org)
-     (GNU Lesser General Public License) Postgis JDBC Driver (org.postgis:postgis-jdbc:1.3.3 - http://www.postgis.org)
+     (The PostgreSQL License) PostgreSQL JDBC Driver (org.postgresql:postgresql:9.4-1201-jdbc41 - http://jdbc.postgresql.org)
      (mit) JCL 1.1.1 implemented over SLF4J (org.slf4j:jcl-over-slf4j:1.7.7 - http://www.slf4j.org)
      (mit) SLF4J API Module (org.slf4j:slf4j-api:1.7.7 - http://www.slf4j.org)
      (mit) SLF4J LOG4J-12 Binding (org.slf4j:slf4j-log4j12:1.7.7 - http://www.slf4j.org)
@@ -87,7 +87,6 @@ Lists of 96 third-party dependencies.
      (apache_v2) spring-security-core (org.springframework.security:spring-security-core:4.0.0.RELEASE - http://spring.io/spring-security)
      (apache_v2) spring-security-openid (org.springframework.security:spring-security-openid:4.0.0.RELEASE - http://spring.io/spring-security)
      (apache_v2) spring-security-web (org.springframework.security:spring-security-web:4.0.0.RELEASE - http://spring.io/spring-security)
-     (bsd_2) PostgreSQL JDBC Driver (postgresql:postgresql:9.1-901.jdbc4 - http://jdbc.postgresql.org)
      (apache_v2) StAX API (stax:stax-api:1.0.1 - http://stax.codehaus.org/)
      (apache_v2) Xalan Java Serializer (xalan:serializer:2.7.2 - http://xml.apache.org/xalan-j/)
      (apache_v2) Xalan Java (xalan:xalan:2.7.2 - http://xml.apache.org/xalan-j/)

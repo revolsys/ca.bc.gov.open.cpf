@@ -108,6 +108,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="start"
                 p:label="Start"
+                p:iconName="fa fa-play"
                 p:enabledExpression="enabled and !started"
               >
                 <property name="parameterNameMap">
@@ -122,6 +123,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="restart"
                 p:label="Restart"
+                p:iconName="fa fa-repeat"
                 p:enabledExpression="enabled and started"
               >
                 <property name="parameterNameMap">
@@ -136,6 +138,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="stop"
                 p:label="Stop"
+                p:iconName="fa fa-stop"
                 p:enabledExpression="enabled and started"
               >
                 <property name="parameterNameMap">
@@ -150,6 +153,7 @@
                 class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
                 p:name="delete"
                 p:label="Delete"
+                p:iconName="fa fa-trash"
               >
                 <property name="parameterNameMap">
                   <map>
