@@ -23,7 +23,7 @@
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.gis.${databaseVendor}</artifactId>
+      <artifactId>com.revolsys.open.${databaseVendor}</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
   </dependencies>

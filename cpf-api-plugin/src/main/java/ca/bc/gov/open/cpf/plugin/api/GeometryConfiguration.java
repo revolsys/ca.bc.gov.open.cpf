@@ -61,7 +61,7 @@ public @interface GeometryConfiguration {
    *
    * @return The axis count.
    */
-  public int axisCount() default 2;
+  public int numAxis() default 2;
 
   /**
    * <p>The flag indicating that this bean property is the primary geometry. This

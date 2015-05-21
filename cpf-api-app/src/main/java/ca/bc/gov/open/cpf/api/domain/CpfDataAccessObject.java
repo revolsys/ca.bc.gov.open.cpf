@@ -59,7 +59,7 @@ import com.revolsys.format.json.JsonMapIoFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
 import com.revolsys.jdbc.JdbcUtils;
-import com.revolsys.jdbc.attribute.JdbcLongFieldDefinition;
+import com.revolsys.jdbc.field.JdbcLongFieldDefinition;
 import com.revolsys.jdbc.io.JdbcRecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;

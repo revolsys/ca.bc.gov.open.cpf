@@ -799,7 +799,7 @@ public class ClassLoaderModule implements Module {
     } else if (srid == 0) {
       srid = geometryFactory.getSrid();
     }
-    int axisCount = geometryConfiguration.axisCount();
+    int axisCount = geometryConfiguration.numAxis();
     if (axisCount == 0) {
       axisCount = geometryFactory.getAxisCount();
     } else if (axisCount < 2) {

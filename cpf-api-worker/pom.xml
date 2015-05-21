@@ -63,12 +63,12 @@
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.gis.oracle</artifactId>
+      <artifactId>com.revolsys.open.oracle</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.gis.postgresql</artifactId>
+      <artifactId>com.revolsys.open.postgresql</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
     <dependency>
