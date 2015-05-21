@@ -40,8 +40,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
         </configuration>
       </plugin>
       <plugin>
@@ -201,6 +201,12 @@
         <artifactId>cpf-war-worker</artifactId>
         <version>${ca.bc.gov.open.cpf.version}</version>
         <type>war</type>
+      </dependency>
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

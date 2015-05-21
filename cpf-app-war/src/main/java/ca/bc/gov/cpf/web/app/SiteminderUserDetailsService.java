@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -31,8 +31,7 @@ import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
-public class SiteminderUserDetailsService implements UserDetailsService,
-  GroupNameService {
+public class SiteminderUserDetailsService implements UserDetailsService, GroupNameService {
 
   private static final String BCGOV_ALL = "BCGOV_ALL";
 
@@ -57,16 +56,15 @@ public class SiteminderUserDetailsService implements UserDetailsService,
 
   @PreDestroy
   public void close() {
-    userAccountSecurityService = null;
-    userDetailsChecker = null;
-    dataAccessObject = null;
+    this.userAccountSecurityService = null;
+    this.userDetailsChecker = null;
+    this.dataAccessObject = null;
   }
 
   @Override
   public List<String> getGroupNames(final Record userAccount) {
     final List<String> groupNames = new ArrayList<String>();
-    if (userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS).equals(
-      USER_ACCOUNT_CLASS)) {
+    if (userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS).equals(USER_ACCOUNT_CLASS)) {
       final String username = userAccount.getValue(UserAccount.CONSUMER_KEY);
       if (username.startsWith("idir:")) {
         groupNames.add(BCGOV_ALL);
@@ -89,32 +87,30 @@ public class SiteminderUserDetailsService implements UserDetailsService,
   }
 
   public UserAccountSecurityService getUserAccountSecurityService() {
-    return userAccountSecurityService;
+    return this.userAccountSecurityService;
   }
 
   public UserDetailsChecker getUserDetailsChecker() {
-    return userDetailsChecker;
+    return this.userDetailsChecker;
   }
 
   @PostConstruct
   public void init() {
     try (
-      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_ALL",
-          "BC Government All Users");
-        dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INTERNAL",
+        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_ALL", "BC Government All Users");
+        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INTERNAL",
           "BC Government Internal Users");
-        dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_EXTERNAL",
+        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_EXTERNAL",
           "BC Government External Users");
-        dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_BUSINESS",
+        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_BUSINESS",
           "BC Government External Business Users");
-        dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INDIVIDUAL",
+        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INDIVIDUAL",
           "BC Government External Individual Users");
-        dataAccessObject.createUserGroup("USER_TYPE",
-          "BCGOV_VERIFIED_INDIVIDUAL",
+        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_VERIFIED_INDIVIDUAL",
           "BC Government External Verified Individual Users");
-        userAccountSecurityService.addGrantedAuthorityService(this);
+        this.userAccountSecurityService.addGrantedAuthorityService(this);
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);
       }
@@ -124,10 +120,9 @@ public class SiteminderUserDetailsService implements UserDetailsService,
   @Override
   public UserDetails loadUserByUsername(final String userGuid) {
     try (
-      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        Record user = dataAccessObject.getUserAccount(USER_ACCOUNT_CLASS,
-          userGuid);
+        Record user = this.dataAccessObject.getUserAccount(USER_ACCOUNT_CLASS, userGuid);
 
         String username;
         if (user == null) {
@@ -149,35 +144,32 @@ public class SiteminderUserDetailsService implements UserDetailsService,
             }
           }
 
-          final String consumerSecret = UUID.randomUUID()
-            .toString()
-            .replaceAll("-", "");
+          final String consumerSecret = UUID.randomUUID().toString().replaceAll("-", "");
           final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
             username, consumerSecret);
           context.setAuthentication(authentication);
 
-          user = dataAccessObject.createUserAccount(USER_ACCOUNT_CLASS,
-            userGuid, username, consumerSecret);
+          user = this.dataAccessObject.createUserAccount(USER_ACCOUNT_CLASS, userGuid, username,
+            consumerSecret);
         } else {
           username = user.getValue(UserAccount.CONSUMER_KEY);
 
         }
 
         final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-        final boolean active = RecordUtil.getBoolean(user,
-          UserAccount.ACTIVE_IND);
-        final List<String> groupNames = userAccountSecurityService.getGroupNames(user);
+        final boolean active = RecordUtil.getBoolean(user, UserAccount.ACTIVE_IND);
+        final List<String> groupNames = this.userAccountSecurityService.getGroupNames(user);
         final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         for (final String groupName : groupNames) {
-          authorities.add(new GrantedAuthorityImpl(groupName));
-          authorities.add(new GrantedAuthorityImpl("ROLE_" + groupName));
+          authorities.add(new SimpleGrantedAuthority(groupName));
+          authorities.add(new SimpleGrantedAuthority("ROLE_" + groupName));
         }
 
-        final User userDetails = new User(username, userPassword, active, true,
-          true, true, authorities);
+        final User userDetails = new User(username, userPassword, active, true, true, true,
+          authorities);
 
-        if (userDetailsChecker != null) {
-          userDetailsChecker.check(userDetails);
+        if (this.userDetailsChecker != null) {
+          this.userDetailsChecker.check(userDetails);
         }
         return userDetails;
       } catch (final Throwable e) {
@@ -190,7 +182,7 @@ public class SiteminderUserDetailsService implements UserDetailsService,
   public void setUserAccountSecurityService(
     final UserAccountSecurityService userAccountSecurityService) {
     this.userAccountSecurityService = userAccountSecurityService;
-    dataAccessObject = userAccountSecurityService.getDataAccessObject();
+    this.dataAccessObject = userAccountSecurityService.getDataAccessObject();
   }
 
   public void setUserDetailsChecker(final UserDetailsChecker userDetailsChecker) {
