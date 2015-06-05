@@ -75,7 +75,7 @@ import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.data.io.RecordWriterFactory;
+import com.revolsys.data.record.io.RecordWriterFactory;
 import com.revolsys.data.record.property.FieldProperties;
 import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;

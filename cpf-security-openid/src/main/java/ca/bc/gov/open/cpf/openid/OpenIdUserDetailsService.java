@@ -39,7 +39,7 @@ import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
 import com.revolsys.data.record.Record;
-import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.Records;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
@@ -128,7 +128,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
         }
         final String userName = user.getValue(UserAccount.CONSUMER_KEY);
         final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-        final boolean active = RecordUtil.getBoolean(user, UserAccount.ACTIVE_IND);
+        final boolean active = Records.getBoolean(user, UserAccount.ACTIVE_IND);
         final List<String> groupNames = this.userAccountSecurityService.getGroupNames(user);
         final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         for (final String groupName : groupNames) {

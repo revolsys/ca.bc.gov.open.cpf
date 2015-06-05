@@ -26,7 +26,7 @@ import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
 
 import com.revolsys.data.record.Record;
-import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.Records;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
@@ -35,34 +35,32 @@ public class UserAccountSecurityService {
 
   private CpfDataAccessObject dataAccessObject;
 
-  public void addGrantedAuthorityService(
-    final GroupNameService grantedAuthorityService) {
-    grantedAuthorityServices.add(grantedAuthorityService);
+  public void addGrantedAuthorityService(final GroupNameService grantedAuthorityService) {
+    this.grantedAuthorityServices.add(grantedAuthorityService);
   }
 
   public CpfDataAccessObject getDataAccessObject() {
-    return dataAccessObject;
+    return this.dataAccessObject;
   }
 
   public List<String> getGroupNames(final Record userAccount) {
     try (
-      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final List<String> groupNames = new ArrayList<String>();
         try {
-          if (userAccount != null
-            && RecordUtil.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
+          if (userAccount != null && Records.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
             final String userType = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
             groupNames.add("USER");
             groupNames.add(userType);
-            final Set<Record> groups = dataAccessObject.getUserGroupsForUserAccount(userAccount);
+            final Set<Record> groups = this.dataAccessObject.getUserGroupsForUserAccount(userAccount);
             if (groups != null) {
               for (final Record userGroup : groups) {
                 final String groupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
                 groupNames.add(groupName);
               }
             }
-            for (final GroupNameService authorityService : grantedAuthorityServices) {
+            for (final GroupNameService authorityService : this.grantedAuthorityServices) {
               final List<String> names = authorityService.getGroupNames(userAccount);
               if (names != null) {
                 groupNames.addAll(names);
@@ -70,9 +68,10 @@ public class UserAccountSecurityService {
             }
           }
         } catch (final Throwable t) {
-          LoggerFactory.getLogger(UserAccountSecurityService.class).error(
-            "Unable to load authorities for user "
-              + userAccount.getValue(UserAccount.CONSUMER_KEY), t);
+          LoggerFactory.getLogger(UserAccountSecurityService.class)
+            .error(
+              "Unable to load authorities for user "
+                + userAccount.getValue(UserAccount.CONSUMER_KEY), t);
         }
         return groupNames;
       } catch (final Throwable e) {

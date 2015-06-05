@@ -94,11 +94,11 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.data.equals.EqualsRegistry;
-import com.revolsys.data.io.MapReaderRecordReader;
-import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.query.Query;
 import com.revolsys.data.record.Record;
-import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.Records;
+import com.revolsys.data.record.io.MapReaderRecordReader;
+import com.revolsys.data.record.io.RecordWriterFactory;
 import com.revolsys.data.record.property.FieldProperties;
 import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
@@ -1062,7 +1062,7 @@ public class BatchJobService implements ModuleEventListener {
           final StopWatch stopWatch = new StopWatch();
           stopWatch.start();
 
-          final long numRequests = RecordUtil.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS);
+          final long numRequests = Records.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS);
           final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
           final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
           if (businessApplication == null) {
@@ -1317,7 +1317,7 @@ public class BatchJobService implements ModuleEventListener {
     final com.revolsys.io.Writer<Record> structuredDataWriter,
     final RecordDefinition resultRecordDefinition, final Map<String, Object> defaultProperties,
     final Map<String, Object> resultData) {
-    final Record structuredResult = RecordUtil.getObject(resultRecordDefinition, resultData);
+    final Record structuredResult = Records.getObject(resultRecordDefinition, resultData);
 
     final String propertiesString = (String)resultData.get("customizationProperties");
     final boolean hasProperties = Property.hasValue(propertiesString);
@@ -1610,7 +1610,7 @@ public class BatchJobService implements ModuleEventListener {
   private Record preProcessParameters(final Record batchJob,
     final BusinessApplication businessApplication, final int requestSequenceNumber,
     final Map<String, String> jobParameters, final Record requestRecord) {
-    final long batchJobId = RecordUtil.getInteger(batchJob, BatchJob.BATCH_JOB_ID);
+    final long batchJobId = Records.getInteger(batchJob, BatchJob.BATCH_JOB_ID);
     requestRecord.put("i", requestSequenceNumber);
     final RecordDefinition recordDefinition = requestRecord.getRecordDefinition();
     for (final FieldDefinition field : recordDefinition.getFields()) {

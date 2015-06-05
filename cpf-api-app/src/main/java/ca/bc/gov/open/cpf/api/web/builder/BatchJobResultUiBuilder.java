@@ -36,11 +36,11 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.query.And;
 import com.revolsys.data.query.Q;
 import com.revolsys.data.query.Query;
 import com.revolsys.data.record.Record;
+import com.revolsys.data.record.io.RecordWriterFactory;
 import com.revolsys.format.xml.XmlWriter;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;

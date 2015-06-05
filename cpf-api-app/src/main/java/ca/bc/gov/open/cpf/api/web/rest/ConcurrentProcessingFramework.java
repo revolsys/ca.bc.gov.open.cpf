@@ -81,11 +81,11 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.data.equals.EqualsInstance;
 import com.revolsys.data.identifier.Identifier;
-import com.revolsys.data.io.RecordWriterFactory;
 import com.revolsys.data.record.ArrayRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordState;
-import com.revolsys.data.record.RecordUtil;
+import com.revolsys.data.record.Records;
+import com.revolsys.data.record.io.RecordWriterFactory;
 import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
@@ -1510,7 +1510,7 @@ public class ConcurrentProcessingFramework {
                 writer.getProperties());
 
               for (final Map<String, Object> structuredResultMap : list) {
-                final Record structuredResult = RecordUtil.getObject(resultRecordDefinition,
+                final Record structuredResult = Records.getObject(resultRecordDefinition,
                   structuredResultMap);
 
                 @SuppressWarnings("unchecked")

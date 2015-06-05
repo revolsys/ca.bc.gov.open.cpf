@@ -40,7 +40,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.data.io.RecordWriterFactory;
+import com.revolsys.data.record.io.RecordWriterFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.ui.html.serializer.key.KeySerializer;

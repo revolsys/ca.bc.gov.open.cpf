@@ -49,10 +49,10 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.data.equals.EqualsInstance;
-import com.revolsys.data.io.ListRecordReader;
-import com.revolsys.data.io.RecordReader;
 import com.revolsys.data.record.ArrayRecord;
 import com.revolsys.data.record.Record;
+import com.revolsys.data.record.io.ListRecordReader;
+import com.revolsys.data.record.io.RecordReader;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
