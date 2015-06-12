@@ -55,11 +55,10 @@ import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
-import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.Json;
 import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
 import com.revolsys.jdbc.JdbcUtils;
-import com.revolsys.jdbc.field.JdbcLongFieldDefinition;
 import com.revolsys.jdbc.io.JdbcRecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
@@ -164,7 +163,7 @@ public class CpfDataAccessObject {
     if (prefix != null) {
       final Map<String, String> properties = new HashMap<String, String>();
       properties.put("webServicePrefix", prefix);
-      record.setValue(BatchJob.PROPERTIES, JsonMapIoFactory.toString(properties));
+      record.setValue(BatchJob.PROPERTIES, Json.toString(properties));
     }
     record.setValue(BatchJob.JOB_STATUS, BatchJobStatus.SUBMITTED);
     record.setValue(BatchJob.WHEN_STATUS_CHANGED, new Timestamp(System.currentTimeMillis()));
@@ -188,7 +187,7 @@ public class CpfDataAccessObject {
 
     final Map<String, Object> resultData = Collections.<String, Object> singletonMap("items",
       resultDataItems);
-    final String resultDataString = JsonMapIoFactory.toString(resultData);
+    final String resultDataString = Json.toString(resultData);
 
     // TODO errors jobController.setStructuredResultData(batchJobId,
     // groupSequenceNumber, batchJobExecutionGroup,
@@ -747,8 +746,7 @@ public class CpfDataAccessObject {
     query.setFromClause("CPF.CPF_USER_GROUPS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
-    query.setWhereCondition(Q.equal(new JdbcLongFieldDefinition("X.USER_ACCOUNT_ID"),
-      userAccount.getIdentifier()));
+    query.setWhereCondition(Q.equal("X.USER_ACCOUNT_ID", userAccount.getIdentifier().getLong(0)));
     final Reader<Record> reader = this.recordStore.query(query);
     try {
       final List<Record> groups = reader.read();
@@ -797,7 +795,7 @@ public class CpfDataAccessObject {
         deleteBusinessApplicationStatistics(databaseId);
       }
     } else {
-      final String valuesString = JsonMapIoFactory.toString(values);
+      final String valuesString = Json.toString(values);
 
       final Record applicationStatistics;
       if (databaseId == null) {

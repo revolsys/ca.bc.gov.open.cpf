@@ -56,7 +56,7 @@ import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
 import com.revolsys.format.csv.Csv;
 import com.revolsys.format.csv.CsvWriter;
-import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.Json;
 import com.revolsys.io.FileBackedCache;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
@@ -642,7 +642,7 @@ public class WorkerGroupRunnable implements Runnable {
       }
     }
     if (Property.hasValue(customizationProperties)) {
-      result.add(JsonMapIoFactory.toString(customizationProperties));
+      result.add(Json.toString(customizationProperties));
     }
     resultWriter.write(result);
   }

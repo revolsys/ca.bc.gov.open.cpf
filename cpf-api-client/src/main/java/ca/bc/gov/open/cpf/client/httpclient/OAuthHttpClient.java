@@ -61,7 +61,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 
-import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.Json;
 import com.revolsys.format.json.JsonParser;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.MapReaderFactory;
@@ -292,7 +292,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
         throws ClientProtocolException, IOException {
     final HttpPost request = new HttpPost(url);
     request.addHeader("Content-type", "application/json");
-    final String bodyString = JsonMapIoFactory.toString(message);
+    final String bodyString = Json.toString(message);
     final StringEntity bodyEntity = new StringEntity(bodyString, "UTF-8");
     request.setEntity(bodyEntity);
     return getJsonResource(request);

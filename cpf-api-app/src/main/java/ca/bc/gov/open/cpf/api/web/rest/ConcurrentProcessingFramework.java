@@ -92,7 +92,7 @@ import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.data.types.SimpleDataType;
-import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.Json;
 import com.revolsys.format.json.JsonRecordIoFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
@@ -694,7 +694,7 @@ public class ConcurrentProcessingFramework {
         }
       }
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
-        JsonMapIoFactory.toString(businessApplicationParameters));
+        Json.toString(businessApplicationParameters));
 
       try {
 
@@ -963,7 +963,7 @@ public class ConcurrentProcessingFramework {
       batchJob.setValue(BatchJob.USER_ID, consumerKey);
 
       batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
-        JsonMapIoFactory.toString(businessApplicationParameters));
+        Json.toString(businessApplicationParameters));
 
       if (Property.hasValue(notificationUrl)) {
         batchJob.setValue(BatchJob.NOTIFICATION_URL, notificationUrl);

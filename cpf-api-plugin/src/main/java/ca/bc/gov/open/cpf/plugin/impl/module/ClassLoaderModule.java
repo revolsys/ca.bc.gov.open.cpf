@@ -656,7 +656,7 @@ public class ClassLoaderModule implements Module {
           final Set<MapReaderFactory> factories = ioFactoryRegistry.getFactories(MapReaderFactory.class);
           for (final MapReaderFactory factory : factories) {
             if (factory.isSingleFile()) {
-              if (factory.isCustomAttributionSupported()) {
+              if (factory.isCustomFieldsSupported()) {
                 for (final String contentType : factory.getMediaTypes()) {
                   final String fileExtension = factory.getFileExtension(contentType);
                   final String typeDescription = factory.getName() + " (" + fileExtension + ")";
@@ -671,7 +671,7 @@ public class ClassLoaderModule implements Module {
             final MapReaderFactory factory = ioFactoryRegistry.getFactoryByMediaType(
               MapReaderFactory.class, contentType);
             if (factory.isSingleFile()) {
-              if (factory.isCustomAttributionSupported()) {
+              if (factory.isCustomFieldsSupported()) {
                 final String fileExtension = factory.getFileExtension(contentType);
                 final String typeDescription = factory.getName() + " (" + fileExtension + ")";
                 businessApplication.addInputDataContentType(contentType, typeDescription,
@@ -698,7 +698,7 @@ public class ClassLoaderModule implements Module {
           for (final RecordWriterFactory factory : writerFactories) {
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
-                if (factory.isCustomAttributionSupported()) {
+                if (factory.isCustomFieldsSupported()) {
                   for (final String contentType : factory.getMediaTypes()) {
                     final String fileNameExtension = factory.getFileExtension(contentType);
                     final String typeDescription = factory.getName() + " (" + fileNameExtension
@@ -716,7 +716,7 @@ public class ClassLoaderModule implements Module {
               RecordWriterFactory.class, contentType);
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
-                if (factory.isCustomAttributionSupported()) {
+                if (factory.isCustomFieldsSupported()) {
                   final String fileNameExtension = factory.getFileExtension(contentType);
                   final String typeDescription = factory.getName() + " (" + fileNameExtension + ")";
                   businessApplication.addResultDataContentType(contentType, fileNameExtension,

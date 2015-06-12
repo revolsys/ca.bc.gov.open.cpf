@@ -15,7 +15,7 @@ import com.revolsys.collection.range.RangeSet;
 import com.revolsys.data.record.DelegatingRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordState;
-import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.Json;
 
 public class BatchJob extends DelegatingRecord implements Common {
 
@@ -113,7 +113,7 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public Map<String, String> getBusinessApplicationParameters() {
     final String jobParameters = getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
-    final Map<String, String> parameters = JsonMapIoFactory.toMap(jobParameters);
+    final Map<String, String> parameters = Json.toMap(jobParameters);
     return parameters;
   }
 

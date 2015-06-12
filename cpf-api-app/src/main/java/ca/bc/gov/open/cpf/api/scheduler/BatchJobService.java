@@ -106,7 +106,7 @@ import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.data.types.DataType;
 import com.revolsys.format.csv.CsvMapWriter;
 import com.revolsys.format.html.XhtmlMapWriter;
-import com.revolsys.format.json.JsonMapIoFactory;
+import com.revolsys.format.json.Json;
 import com.revolsys.format.kml.Kml22Constants;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
@@ -442,7 +442,7 @@ public class BatchJobService implements ModuleEventListener {
           final String statisticsId = BusinessApplicationStatistics.getId(durationType, startTime);
           final String valuesString = dbStatistics.getValue(BusinessApplicationStatistics.STATISTIC_VALUES);
           if (Property.hasValue(valuesString)) {
-            final Map<String, Object> values = JsonMapIoFactory.toObjectMap(valuesString);
+            final Map<String, Object> values = Json.toObjectMap(valuesString);
             if (values.isEmpty()) {
               delete = true;
             } else {
@@ -1322,7 +1322,7 @@ public class BatchJobService implements ModuleEventListener {
     final String propertiesString = (String)resultData.get("customizationProperties");
     final boolean hasProperties = Property.hasValue(propertiesString);
     if (hasProperties) {
-      final Map<String, Object> properties = JsonMapIoFactory.toObjectMap(propertiesString);
+      final Map<String, Object> properties = Json.toObjectMap(propertiesString);
       structuredDataWriter.setProperties(properties);
     }
 
@@ -1908,7 +1908,7 @@ public class BatchJobService implements ModuleEventListener {
         final String propertiesText = batchJob.getValue(BatchJob.PROPERTIES);
         String batchJobUrl = baseUrl;
         if (Property.hasValue(propertiesText)) {
-          final String webServicePrefix = JsonMapIoFactory.toMap(propertiesText).get(
+          final String webServicePrefix = Json.toMap(propertiesText).get(
             "webServicePrefix");
           if (Property.hasValue(webServicePrefix)) {
             batchJobUrl += webServicePrefix;
