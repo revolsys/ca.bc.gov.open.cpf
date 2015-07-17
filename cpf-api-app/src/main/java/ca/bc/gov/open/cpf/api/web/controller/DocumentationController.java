@@ -33,14 +33,14 @@ import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.servlet.HandlerMapping;
 
+import com.revolsys.spring.SpringUtil;
 import com.revolsys.util.Property;
 
 @Controller
 public class DocumentationController extends WebApplicationObjectSupport {
 
   protected MediaType getMediaType(final Resource resource) {
-    final String mimeType = getServletContext().getMimeType(
-      resource.getFilename());
+    final String mimeType = getServletContext().getMimeType(SpringUtil.getFileName(resource));
     if (Property.hasValue(mimeType)) {
       return MediaType.parseMediaType(mimeType);
     } else {
@@ -51,9 +51,10 @@ public class DocumentationController extends WebApplicationObjectSupport {
   @RequestMapping(value = {
     "/docs/**", "/secure/docs/**"
   })
-  public void handleRequest(final HttpServletRequest request,
-    final HttpServletResponse response) throws ServletException, IOException {
-    String path = (String)request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+  public void handleRequest(final HttpServletRequest request, final HttpServletResponse response)
+    throws ServletException, IOException {
+    String path = (String)request
+      .getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
     if (path == null) {
       throw new IllegalStateException("Required request attribute '"
         + HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE + "' is not set");
@@ -63,8 +64,8 @@ public class DocumentationController extends WebApplicationObjectSupport {
         path = "index.html";
       }
       if (!isInvalidPath(path)) {
-        final ServletContextResource docsResource = new ServletContextResource(
-          getServletContext(), "/docs/");
+        final ServletContextResource docsResource = new ServletContextResource(getServletContext(),
+          "/docs/");
         Resource resource = docsResource.createRelative(path);
         if (resource.exists() && resource.isReadable()) {
           MediaType mediaType = getMediaType(resource);
@@ -89,16 +90,14 @@ public class DocumentationController extends WebApplicationObjectSupport {
   }
 
   protected boolean isInvalidPath(final String path) {
-    return path.contains("WEB-INF") || path.contains("META-INF")
-        || path.startsWith("..");
+    return path.contains("WEB-INF") || path.contains("META-INF") || path.startsWith("..");
   }
 
-  protected void setHeaders(final HttpServletResponse response,
-    final Resource resource, final MediaType mediaType) throws IOException {
+  protected void setHeaders(final HttpServletResponse response, final Resource resource,
+    final MediaType mediaType) throws IOException {
     final long length = resource.contentLength();
     if (length > Integer.MAX_VALUE) {
-      throw new IOException(
-        "Resource content too long (beyond Integer.MAX_VALUE): " + resource);
+      throw new IOException("Resource content too long (beyond Integer.MAX_VALUE): " + resource);
     }
     response.setContentLength((int)length);
 

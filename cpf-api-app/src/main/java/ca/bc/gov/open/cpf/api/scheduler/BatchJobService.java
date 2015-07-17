@@ -111,11 +111,11 @@ import com.revolsys.format.kml.Kml22Constants;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.io.MapReaderFactory;
-import com.revolsys.io.MapWriter;
-import com.revolsys.io.MapWriterFactory;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.io.map.MapWriter;
+import com.revolsys.io.map.MapWriterFactory;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.jts.operation.valid.IsValidOp;
@@ -1950,7 +1950,7 @@ public class BatchJobService implements ModuleEventListener {
               LoggerFactory.getLogger(BatchJobService.class).error(
                 "Media type not supported for Record #" + batchJobId + " to " + contentType);
             } else {
-              final MapWriter writer = writerFactory.getMapWriter(bodyOut);
+              final MapWriter writer = writerFactory.createMapWriter(bodyOut);
               writer.setProperty("title", subject);
               writer.write(jobMap);
               writer.close();

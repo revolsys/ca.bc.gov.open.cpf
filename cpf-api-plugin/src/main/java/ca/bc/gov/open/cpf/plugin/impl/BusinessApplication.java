@@ -33,12 +33,6 @@ import org.apache.log4j.Logger;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
-
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.data.equals.EqualsRegistry;
 import com.revolsys.data.record.schema.FieldDefinition;
@@ -47,12 +41,18 @@ import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.util.Debug;
-import com.revolsys.io.AbstractObjectWithProperties;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
+import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Property;
+
+import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
+import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 /**
  * The BusinessApplication describes a business application which can be invoked
@@ -62,8 +62,8 @@ import com.revolsys.util.Property;
  * @author paustin
  * @version 1.0
  */
-public class BusinessApplication extends AbstractObjectWithProperties implements
-  Comparable<BusinessApplication> {
+public class BusinessApplication extends BaseObjectWithProperties
+  implements Comparable<BusinessApplication> {
 
   public static final String CORE_PARAMETER = BusinessApplication.class.getName()
     + "/CORE_PARAMETER";
@@ -254,10 +254,7 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   private void addFieldRequestSrid() {
-    final FieldDefinition requestSrid = new FieldDefinition(
-      "srid",
-      DataTypes.INT,
-      false,
+    final FieldDefinition requestSrid = new FieldDefinition("srid", DataTypes.INT, false,
       "The coordinate system code of the source geometry. This value is used if the input data file does not specify a coordinate system.");
     requestSrid.setProperty(BusinessApplication.CORE_PARAMETER, true);
     requestSrid.setProperty(BusinessApplication.JOB_PARAMETER, true);
@@ -287,7 +284,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     resultDataContentType.setProperty(BusinessApplication.JOB_PARAMETER, true);
 
     if (this.defaultResultDataContentType == null) {
-      this.defaultResultDataFileExtension = getDefaultFileExtension(this.resultFileExtensionToContentType);
+      this.defaultResultDataFileExtension = getDefaultFileExtension(
+        this.resultFileExtensionToContentType);
       this.defaultResultDataContentType = getDefaultMimeType(this.resultDataContentTypes);
     }
     resultDataContentType.setDefaultValue(this.defaultResultDataFileExtension);
@@ -295,8 +293,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   private void addFieldResultNumAxis() {
-    final FieldDefinition resultNumAxis = new FieldDefinition("resultNumAxis", DataTypes.INT,
-      false, "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
+    final FieldDefinition resultNumAxis = new FieldDefinition("resultNumAxis", DataTypes.INT, false,
+      "The number of coordinate axis in the result geometry (e.g. 2 for 2D or 3 for 3D).");
     resultNumAxis.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
     resultNumAxis.addAllowedValue(2, "2D");
@@ -337,10 +335,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   private void addFieldScaleFactorXy() {
-    final FieldDefinition resultScaleFactorXy = new FieldDefinition(
-      "resultScaleFactorXy",
-      DataTypes.DOUBLE,
-      false,
+    final FieldDefinition resultScaleFactorXy = new FieldDefinition("resultScaleFactorXy",
+      DataTypes.DOUBLE, false,
       "The scale factor to apply the x, y coordinates. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
     resultScaleFactorXy.setProperty(BusinessApplication.CORE_PARAMETER, true);
     resultScaleFactorXy.setProperty(BusinessApplication.JOB_PARAMETER, true);
@@ -355,10 +351,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   }
 
   private void addFieldScaleFactorZ() {
-    final FieldDefinition resultScaleFactorZ = new FieldDefinition(
-      "resultScaleFactorZ",
-      DataTypes.DOUBLE,
-      false,
+    final FieldDefinition resultScaleFactorZ = new FieldDefinition("resultScaleFactorZ",
+      DataTypes.DOUBLE, false,
       "The scale factor to apply the z coordinate. The scale factor is 1 / minimum unit. For example if the minimum unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).");
     resultScaleFactorZ.setProperty(BusinessApplication.CORE_PARAMETER, true);
     double defaultValue = Property.getDouble(this, "resultScaleFactorZ", 1000);
@@ -541,13 +535,14 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
   public synchronized RecordDefinitionImpl getInternalRequestRecordDefinition() {
     if (this.internalRequestRecordDefinition.getFieldCount() == 0) {
       if (this.requestFieldMap.size() > 0) {
-        final FieldDefinition requestSequenceNumber = this.internalRequestRecordDefinition.addField(
-          "i", DataTypes.INT);
+        final FieldDefinition requestSequenceNumber = this.internalRequestRecordDefinition
+          .addField("i", DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER, true);
         requestSequenceNumber.setMinValue(1);
 
         for (final FieldDefinition field : this.requestFieldMap.values()) {
-          if (BooleanStringConverter.getBoolean(field.getProperty(BusinessApplication.REQUEST_PARAMETER))) {
+          if (BooleanStringConverter
+            .getBoolean(field.getProperty(BusinessApplication.REQUEST_PARAMETER))) {
             this.internalRequestRecordDefinition.addField(field);
           }
         }
@@ -606,7 +601,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
         requestSequenceNumber.setMinValue(1);
 
         if (this.defaultInputDataContentType == null) {
-          this.defaultInputDataFileExtension = getDefaultFileExtension(this.inputFileExtensionToContentType);
+          this.defaultInputDataFileExtension = getDefaultFileExtension(
+            this.inputFileExtensionToContentType);
           this.defaultInputDataContentType = getDefaultMimeType(this.inputDataContentTypes);
         }
 
@@ -858,7 +854,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
             cause);
         }
       } catch (final Throwable t) {
-        throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set", t);
+        throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set",
+          t);
       }
     }
   }
@@ -930,7 +927,8 @@ public class BusinessApplication extends AbstractObjectWithProperties implements
     } else {
       this.instantModePermission = "permitAll";
     }
-    this.instantModeExpression = new SpelExpressionParser().parseExpression(this.instantModePermission);
+    this.instantModeExpression = new SpelExpressionParser()
+      .parseExpression(this.instantModePermission);
   }
 
   public void setLogLevel(final String logLevel) {

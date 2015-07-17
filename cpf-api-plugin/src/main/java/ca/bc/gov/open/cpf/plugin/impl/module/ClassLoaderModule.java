@@ -84,11 +84,11 @@ import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
-import com.revolsys.io.AbstractMapReaderFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.io.MapReaderFactory;
 import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
+import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
@@ -914,7 +914,7 @@ public class ClassLoaderModule implements Module {
           final URL userGroups = urls.nextElement();
           if (userGroups.toString().startsWith(parentUrl)) {
             final Resource resource = new UrlResource(userGroups);
-            final Reader<Map<String, Object>> reader = AbstractMapReaderFactory.mapReader(resource);
+            final Reader<Map<String, Object>> reader = MapReader.create(resource);
             return reader.read();
           }
         }

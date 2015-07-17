@@ -25,7 +25,7 @@ import org.springframework.core.io.Resource;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 
-import com.revolsys.io.AbstractMapReaderFactory;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
 
@@ -79,7 +79,7 @@ public class ThreadTest {
 
   public void run() {
     if (inputDataResource.exists()) {
-      testData = AbstractMapReaderFactory.mapReader(inputDataResource).read();
+      testData = MapReader.create(inputDataResource).read();
     } else {
       testData.add(Collections.<String, Object> emptyMap());
     }

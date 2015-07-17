@@ -23,6 +23,8 @@ import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.springframework.core.io.Resource;
 
+import com.revolsys.spring.SpringUtil;
+
 @SuppressWarnings("javadoc")
 public class ResourceBody extends AbstractContentBody {
 
@@ -41,7 +43,7 @@ public class ResourceBody extends AbstractContentBody {
   @Override
   public long getContentLength() {
     try {
-      return resource.contentLength();
+      return this.resource.contentLength();
     } catch (final IOException e) {
       return Long.MAX_VALUE;
     }
@@ -50,14 +52,14 @@ public class ResourceBody extends AbstractContentBody {
   @Override
   public String getFilename() {
     try {
-      return resource.getFilename();
+      return SpringUtil.getFileName(this.resource);
     } catch (final IllegalStateException e) {
       return "unnamed";
     }
   }
 
   public InputStream getInputStream() throws IOException {
-    return resource.getInputStream();
+    return this.resource.getInputStream();
   }
 
   @Override

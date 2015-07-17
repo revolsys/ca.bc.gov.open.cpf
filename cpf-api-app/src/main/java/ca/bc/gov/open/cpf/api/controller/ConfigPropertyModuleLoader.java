@@ -40,8 +40,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.data.record.Record;
 import com.revolsys.data.types.DataTypes;
-import com.revolsys.io.AbstractMapReaderFactory;
 import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.maven.MavenRepository;
 import com.revolsys.spring.InputStreamResource;
 import com.revolsys.transaction.Propagation;
@@ -209,7 +209,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       if (in != null) {
         final InputStreamResource resource = new InputStreamResource(
           "properties.json", in);
-        final Reader<Map<String, Object>> reader = AbstractMapReaderFactory.mapReader(resource);
+        final Reader<Map<String, Object>> reader = MapReader.create(resource);
         final List<Map<String, Object>> pluginProperties = reader.read();
 
         final Map<String, Map<String, Record>> propertiesByEnvironment = getPropertiesByEnvironment(

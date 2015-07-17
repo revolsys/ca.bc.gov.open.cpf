@@ -39,9 +39,9 @@ import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
 
 import com.revolsys.io.IoFactoryRegistry;
-import com.revolsys.io.MapWriter;
-import com.revolsys.io.MapWriterFactory;
 import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapWriter;
+import com.revolsys.io.map.MapWriterFactory;
 import com.revolsys.spring.ByteArrayResource;
 import com.revolsys.util.Property;
 
@@ -496,7 +496,7 @@ public class CpfClient implements AutoCloseable {
     final MapWriterFactory factory = IoFactoryRegistry.getInstance().getFactoryByMediaType(
       MapWriterFactory.class, inputDataType);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    final MapWriter mapWriter = factory.getMapWriter(out);
+    final MapWriter mapWriter = factory.createMapWriter(out);
 
     for (final Map<String, ? extends Object> requestRecord : requests) {
       mapWriter.write(requestRecord);

@@ -69,7 +69,8 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  protected InputStream getFileStream(final long jobId, final String path, final int sequenceNumber) {
+  protected InputStream getFileStream(final long jobId, final String path,
+    final int sequenceNumber) {
     return this.dataAccessObject.getBatchJobFileStream(jobId, JOB_INPUTS, 1);
   }
 
@@ -86,7 +87,7 @@ public class DatabaseJobController extends AbstractJobController {
       try {
         try (
           CsvRecordWriter writer = new CsvRecordWriter(recordDefinition,
-            FileUtil.createUtf8Writer(file), false)) {
+            FileUtil.createUtf8Writer(file), ',', true, false)) {
           for (final Record record : requests) {
             writer.write(record);
           }
