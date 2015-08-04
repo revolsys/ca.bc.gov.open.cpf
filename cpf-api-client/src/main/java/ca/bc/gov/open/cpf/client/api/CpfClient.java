@@ -147,7 +147,7 @@ public class CpfClient implements AutoCloseable {
    * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
   String consumerKey = "cpftest";
   String consumerSecret = "cpftest";
-
+  
   try (CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
     // Use the client
   }</pre>
@@ -237,11 +237,11 @@ public class CpfClient implements AutoCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(new FileSystemResource(pathToFile));
-
+  
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -304,11 +304,11 @@ public class CpfClient implements AutoCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(Resource resource = new FileSystemResource(pathToFile));
-
+  
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -350,10 +350,10 @@ public class CpfClient implements AutoCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     &lt;Resource&gt; inputDataUrls = new Array&lt;Resource&gt;();
     inputDataUrls.add("https://apps.gov.bc.ca/pub/cpf/css/cpf.css");
-
+  
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrls);
     // Download the results of the job
@@ -411,9 +411,9 @@ public class CpfClient implements AutoCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/css/cpf.css";
-
+  
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrl);
     // Download the results of the job
@@ -459,11 +459,11 @@ public class CpfClient implements AutoCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "BCGS 1:20 000");
-
+  
     List&lt;Map&lt;String,?extends Object&gt;&gt; requests = new ArrayList&lt;Map&lt;String,?extends Object&gt;&gt;();
     requests.add(Collections.singletonMap("mapTileId", "92j025"));
     requests.add(Collections.singletonMap("mapTileId", "92j016"));
-
+  
     String jobId = client.createJobWithStructuredMultipleRequestsList(
       "MapTileByTileId", jobParameters, requests,"application/json");
     try {
@@ -493,8 +493,8 @@ public class CpfClient implements AutoCloseable {
     final String inputDataType = "application/json";
     final int numRequests = requests.size();
 
-    final MapWriterFactory factory = IoFactoryRegistry.getInstance().getFactoryByMediaType(
-      MapWriterFactory.class, inputDataType);
+    final MapWriterFactory factory = IoFactoryRegistry.getInstance()
+      .getFactoryByMediaType(MapWriterFactory.class, inputDataType);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     final MapWriter mapWriter = factory.createMapWriter(out);
 
@@ -532,11 +532,11 @@ public class CpfClient implements AutoCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-
+  
     int numRequests = 48;
     Resource inputData = new FileSystemResource(
       "../cpf-war-app/src/main/webapp/docs/sample/NTS-500000-by-name.csv");
-
+  
     String jobId = client.createJobWithStructuredMultipleRequestsResource(
       "MapTileByTileId", jobParameters, numRequests, inputData,
       "text/csv", "application/json");
@@ -605,9 +605,9 @@ public class CpfClient implements AutoCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-
+  
     int numRequests = 48;
-
+  
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/docs/sample/NTS-500000-by-name.csv";
     String jobId = client.createJobWithStructuredMultipleRequestsUrl(
       "MapTileByTileId", jobParameters, numRequests, inputDataUrl,
@@ -736,8 +736,8 @@ public class CpfClient implements AutoCloseable {
     final String businessApplicationName) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final String url = httpClient.getUrl("/ws/apps/" + businessApplicationName
-        + "/instant/?format=json&specification=true");
+      final String url = httpClient
+        .getUrl("/ws/apps/" + businessApplicationName + "/instant/?format=json&specification=true");
       final Map<String, Object> result = httpClient.getJsonResource(url);
       return result;
     } finally {
@@ -1156,7 +1156,8 @@ public class CpfClient implements AutoCloseable {
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
    * @return The list of results.
    */
-  public List<Map<String, Object>> getJobStructuredResults(final String jobIdUrl, final long maxWait) {
+  public List<Map<String, Object>> getJobStructuredResults(final String jobIdUrl,
+    final long maxWait) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
       for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
@@ -1302,7 +1303,8 @@ public class CpfClient implements AutoCloseable {
         if ("resultsCreated".equals(jobStatus)) {
           return true;
         }
-        long sleepTime = ((Number)jobStatusMap.get("secondsToWaitForStatusCheck")).intValue() * 1000L;
+        long sleepTime = ((Number)jobStatusMap.get("secondsToWaitForStatusCheck")).intValue()
+          * 1000L;
         if (sleepTime == 0) {
           sleepTime = 1000;
         }

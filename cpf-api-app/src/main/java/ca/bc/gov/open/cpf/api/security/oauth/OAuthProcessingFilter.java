@@ -42,12 +42,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthMessage;
-import net.oauth.OAuthServiceProvider;
-import net.oauth.SimpleOAuthValidator;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -58,6 +52,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.util.Assert;
+
+import net.oauth.OAuthAccessor;
+import net.oauth.OAuthConsumer;
+import net.oauth.OAuthMessage;
+import net.oauth.OAuthServiceProvider;
+import net.oauth.SimpleOAuthValidator;
 
 public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilter implements
   InitializingBean {

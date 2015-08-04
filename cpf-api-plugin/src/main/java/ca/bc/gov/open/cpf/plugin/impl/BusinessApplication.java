@@ -33,8 +33,14 @@ import org.apache.log4j.Logger;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
+import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
+import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.data.equals.EqualsRegistry;
+import com.revolsys.data.equals.Equals;
 import com.revolsys.data.record.schema.FieldDefinition;
 import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
@@ -47,12 +53,6 @@ import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Property;
-
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 /**
  * The BusinessApplication describes a business application which can be invoked
@@ -696,7 +696,7 @@ public class BusinessApplication extends BaseObjectWithProperties
   private boolean isContentTypeOrFileExtensionEqual(final String match, final String contentType,
     final String fileExtension) {
     if (Property.hasValue(match)) {
-      return EqualsRegistry.equal(match, contentType) || EqualsRegistry.equal(match, fileExtension);
+      return Equals.equal(match, contentType) || Equals.equal(match, fileExtension);
     } else {
       return false;
     }

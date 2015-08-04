@@ -189,8 +189,8 @@ public class ConcurrentProcessingFramework {
   private static void checkPermission(final BusinessApplication businessApplication) {
     final EvaluationContext evaluationContext = CpfUiBuilder.getSecurityEvaluationContext();
     if (!hasPermission(businessApplication, evaluationContext)) {
-      throw new AccessDeniedException("No permission for business application "
-        + businessApplication.getName());
+      throw new AccessDeniedException(
+        "No permission for business application " + businessApplication.getName());
     }
   }
 
@@ -285,7 +285,8 @@ public class ConcurrentProcessingFramework {
 
   private void addGeometryFields(final Map<String, String> fieldSectionMap,
     final PanelGroup panelGroup, final BusinessApplication businessApplication) {
-    final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+    final RecordDefinitionImpl requestRecordDefinition = businessApplication
+      .getRequestRecordDefinition();
     addFieldRow(fieldSectionMap, panelGroup, requestRecordDefinition, "srid");
     if (requestRecordDefinition.hasField("resultSrid")) {
       for (final String name : Arrays.asList("resultSrid", "resultNumAxis", "resultScaleFactorXy",
@@ -298,7 +299,8 @@ public class ConcurrentProcessingFramework {
 
   private void addInputDataFields(final Map<String, String> fieldSectionMap,
     final PanelGroup panelGroup, final BusinessApplication businessApplication) {
-    final Map<String, String> inputDataFileExtensions = businessApplication.getInputDataFileExetensions();
+    final Map<String, String> inputDataFileExtensions = businessApplication
+      .getInputDataFileExetensions();
     final String defaultInputType = businessApplication.getDefaultInputDataFileExtension();
     final SelectField inputDataContentType = new SelectField("inputDataContentType",
       defaultInputType, true, inputDataFileExtensions);
@@ -308,30 +310,20 @@ public class ConcurrentProcessingFramework {
       "The MIME type of the input data specified by an inputData or inputDataUrl parameter.");
 
     final UrlField inputDataUrl = new UrlField("inputDataUrl", false);
-    addField(
-      fieldSectionMap,
-      panelGroup,
-      "inputDataUrl",
-      inputDataUrl,
-      null,
-      "Input Data URL",
+    addField(fieldSectionMap, panelGroup, "inputDataUrl", inputDataUrl, null, "Input Data URL",
       "The http: URL to the file or resource containing input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
 
     final FileField inputData = new FileField("inputData", false);
-    addField(
-      fieldSectionMap,
-      panelGroup,
-      "inputData",
-      inputData,
-      null,
-      "Input Data File",
+    addField(fieldSectionMap, panelGroup, "inputData", inputData, null, "Input Data File",
       "The multi-part file containing the input data. The CPF requires UTF-8 encoding for text files. Shapefiles may use a different encoding if a cpg file is provided.");
   }
 
   private void addMultiInputDataFields(final Map<String, String> fieldSectionMap,
     final PanelGroup panelGroup, final BusinessApplication businessApplication) {
-    final Map<String, String> inputDataContentTypes = businessApplication.getInputDataFileExetensions();
-    final String defaultInputType = BusinessApplication.getDefaultFileExtension(inputDataContentTypes);
+    final Map<String, String> inputDataContentTypes = businessApplication
+      .getInputDataFileExetensions();
+    final String defaultInputType = BusinessApplication
+      .getDefaultFileExtension(inputDataContentTypes);
     final SelectField inputDataContentType = new SelectField("inputDataContentType",
       defaultInputType, true, inputDataContentTypes);
 
@@ -340,13 +332,7 @@ public class ConcurrentProcessingFramework {
       addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/multiInputDataPre.html");
       container.add(inputDataContentType);
       addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/multiInputDataPost.html");
-      addField(
-        fieldSectionMap,
-        panelGroup,
-        "inputData",
-        container,
-        null,
-        "Input Data File",
+      addField(fieldSectionMap, panelGroup, "inputData", container, null, "Input Data File",
         "Use the 'Add File' or 'Add URL' buttons to add one or more input data files, then select the MIME type for each file and enter the URL or select the file.");
 
     } else {
@@ -362,13 +348,7 @@ public class ConcurrentProcessingFramework {
       "The email address to send the job status to when the job is completed.");
 
     final UrlField urlField = new UrlField("notificationUrl", false);
-    addField(
-      fieldSectionMap,
-      panelGroup,
-      "notificationUrl",
-      urlField,
-      null,
-      "Notification URL",
+    addField(fieldSectionMap, panelGroup, "notificationUrl", urlField, null, "Notification URL",
       "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.");
   }
 
@@ -377,8 +357,10 @@ public class ConcurrentProcessingFramework {
     final String name = attribute.getName();
     final String typeDescription = attribute.getTypeDescription();
     final String description = attribute.getDescription();
-    final boolean jobParameter = BooleanStringConverter.getBoolean(attribute.getProperty(BusinessApplication.JOB_PARAMETER));
-    final boolean requestParameter = BooleanStringConverter.getBoolean(attribute.getProperty(BusinessApplication.REQUEST_PARAMETER));
+    final boolean jobParameter = BooleanStringConverter
+      .getBoolean(attribute.getProperty(BusinessApplication.JOB_PARAMETER));
+    final boolean requestParameter = BooleanStringConverter
+      .getBoolean(attribute.getProperty(BusinessApplication.REQUEST_PARAMETER));
     if (jobParameter || requestParameter) {
       final Collection<Object> allowedValues = attribute.getAllowedValues().keySet();
       final String descriptionUrl = attribute.getProperty("descriptionUrl");
@@ -420,7 +402,8 @@ public class ConcurrentProcessingFramework {
   private void addResultDataFields(final Map<String, String> fieldSectionMap,
     final PanelGroup panelGroup, final BusinessApplication businessApplication,
     final String fieldName) {
-    final Map<String, String> resultDataFileExtensions = businessApplication.getResultDataFileExtensions();
+    final Map<String, String> resultDataFileExtensions = businessApplication
+      .getResultDataFileExtensions();
     final String defaultValue = businessApplication.getDefaultResultDataFileExtension();
 
     final SelectField resultDataContentType = new SelectField(fieldName, defaultValue, true,
@@ -439,8 +422,8 @@ public class ConcurrentProcessingFramework {
     container.add(panelGroup);
   }
 
-  private void addTestFields(final Map<String, String> fieldSectionMap,
-    final PanelGroup panelGroup, final BusinessApplication businessApplication) {
+  private void addTestFields(final Map<String, String> fieldSectionMap, final PanelGroup panelGroup,
+    final BusinessApplication businessApplication) {
     if (businessApplication.isTestModeEnabled()) {
       final CheckBoxField cpfPluginTest = new CheckBoxField("cpfPluginTest");
 
@@ -475,10 +458,12 @@ public class ConcurrentProcessingFramework {
   @SuppressWarnings({
     "unchecked", "rawtypes"
   })
-  public void addTestParameters(final BusinessApplication businessApplication, final Map parameters) {
+  public void addTestParameters(final BusinessApplication businessApplication,
+    final Map parameters) {
     if (businessApplication.isTestModeEnabled()) {
       final HttpServletRequest request = HttpServletUtils.getRequest();
-      for (final Enumeration<String> parameterNames = request.getParameterNames(); parameterNames.hasMoreElements();) {
+      for (final Enumeration<String> parameterNames = request.getParameterNames(); parameterNames
+        .hasMoreElements();) {
         final String name = parameterNames.nextElement();
         if (name.startsWith("cpf")) {
           Object value = request.getParameter(name);
@@ -575,15 +560,21 @@ public class ConcurrentProcessingFramework {
   @ResponseBody
   public Object createJobWithMultipleRequests(
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @RequestParam(value = "inputDataContentType", required = false) final String[] inputDataContentTypes,
+    @RequestParam(value = "inputDataContentType",
+        required = false) final String[] inputDataContentTypes,
     @RequestParam(value = "inputData", required = false) List<MultipartFile> inputDataFiles,
     @RequestParam(value = "inputDataUrl", required = false) List<String> inputDataUrls,
     @RequestParam(value = "srid", required = false) final String srid, //
-    @RequestParam(value = "resultDataContentType", required = false) final String resultDataContentType,
-    @RequestParam(value = "resultSrid", required = false, defaultValue = "3005") final int resultSrid, //
-    @RequestParam(value = "resultNumAxis", required = false, defaultValue = "2") final int resultNumAxis, //
-    @RequestParam(value = "resultScaleFactorXy", required = false, defaultValue = "-1") final int resultScaleFactorXy, //
-    @RequestParam(value = "resultScaleFactorZ", required = false, defaultValue = "-1") final int resultScaleFactorZ, //
+    @RequestParam(value = "resultDataContentType",
+        required = false) final String resultDataContentType,
+    @RequestParam(value = "resultSrid", required = false,
+        defaultValue = "3005") final int resultSrid, //
+    @RequestParam(value = "resultNumAxis", required = false,
+        defaultValue = "2") final int resultNumAxis, //
+    @RequestParam(value = "resultScaleFactorXy", required = false,
+        defaultValue = "-1") final int resultScaleFactorXy, //
+    @RequestParam(value = "resultScaleFactorZ", required = false,
+        defaultValue = "-1") final int resultScaleFactorZ, //
     @RequestParam(value = "notificationUrl", required = false) String notificationUrl,
     @RequestParam(value = "notificationEmail", required = false) final String notificationEmail) {
     final StopWatch stopWatch = new StopWatch();
@@ -595,8 +586,10 @@ public class ConcurrentProcessingFramework {
         "No batch mode permission for " + businessApplication.getName());
       final String consumerKey = getConsumerKey();
 
-      final String defaultInputDataContentType = businessApplication.getDefaultInputDataContentType();
-      final String defaultResultDataContentType = businessApplication.getDefaultResultDataContentType();
+      final String defaultInputDataContentType = businessApplication
+        .getDefaultInputDataContentType();
+      final String defaultResultDataContentType = businessApplication
+        .getDefaultResultDataContentType();
 
       final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
       addTestParameters(businessApplication, businessApplicationParameters);
@@ -617,12 +610,13 @@ public class ConcurrentProcessingFramework {
       if (inputDataContentTypes == null) {
       } else {
         inputContentTypes.addAll(Arrays.asList(inputDataContentTypes));
-        for (final ListIterator<String> iterator = inputContentTypes.listIterator(); iterator.hasNext();) {
+        for (final ListIterator<String> iterator = inputContentTypes.listIterator(); iterator
+          .hasNext();) {
           final String inputContentType = iterator.next();
           final String contentType = getInputMediaType(businessApplication, inputContentType);
           if (contentType == null) {
-            throw new HttpMessageNotReadableException("inputDataContentType="
-              + inputDataContentType + " is not supported.");
+            throw new HttpMessageNotReadableException(
+              "inputDataContentType=" + inputDataContentType + " is not supported.");
           } else {
             iterator.set(contentType);
           }
@@ -641,8 +635,8 @@ public class ConcurrentProcessingFramework {
       if (resultDataContentType != null) {
         final String resultType = businessApplication.getResultContentType(resultDataContentType);
         if (resultType == null) {
-          throw new HttpMessageNotReadableException("resultDataContentType="
-            + resultDataContentType + " is not supported.");
+          throw new HttpMessageNotReadableException(
+            "resultDataContentType=" + resultDataContentType + " is not supported.");
         } else {
           batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultType);
         }
@@ -660,7 +654,8 @@ public class ConcurrentProcessingFramework {
         batchJob.setValue(BatchJob.NOTIFICATION_URL, notificationUrl);
       }
 
-      final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+      final RecordDefinitionImpl requestRecordDefinition = businessApplication
+        .getRequestRecordDefinition();
       for (final FieldDefinition parameter : requestRecordDefinition.getFields()) {
         final String parameterName = parameter.getName();
         String value = HttpServletUtils.getParameter(parameterName);
@@ -681,15 +676,14 @@ public class ConcurrentProcessingFramework {
           } else if (requestParameter) {
             if (parameter.getType() != DataTypes.BOOLEAN
               || Property.hasValue(HttpServletUtils.getParameter(parameterName))) {
-              throw new HttpMessageNotReadableException(
-                "Parameter "
-                  + parameterName
-                  + " cannot be specified on a job. It can only be specified as a field in the input data.");
+              throw new HttpMessageNotReadableException("Parameter " + parameterName
+                + " cannot be specified on a job. It can only be specified as a field in the input data.");
             }
           }
         } else {
           if (jobParameter && !requestParameter && parameter.isRequired()) {
-            throw new HttpMessageNotReadableException("Parameter " + parameterName + " is required");
+            throw new HttpMessageNotReadableException(
+              "Parameter " + parameterName + " is required");
           }
         }
       }
@@ -711,7 +705,8 @@ public class ConcurrentProcessingFramework {
         if (inputDataFiles == null) {
           inputDataFiles = new ArrayList<MultipartFile>();
         } else {
-          for (final Iterator<MultipartFile> iterator = inputDataFiles.iterator(); iterator.hasNext();) {
+          for (final Iterator<MultipartFile> iterator = inputDataFiles.iterator(); iterator
+            .hasNext();) {
             final MultipartFile multipartFile = iterator.next();
             if (multipartFile.getSize() == 0) {
               iterator.remove();
@@ -856,13 +851,17 @@ public class ConcurrentProcessingFramework {
     @RequestParam(value = "inputDataUrl", required = false) final String inputDataUrl,
     @RequestParam(value = "srid", required = false) final String srid,
     @RequestParam(value = "resultDataContentType", required = false) String resultDataContentType, //
-    @RequestParam(value = "resultSrid", required = false, defaultValue = "3005") final int resultSrid, //
-    @RequestParam(value = "resultNumAxis", required = false, defaultValue = "2") final int resultNumAxis, //
-    @RequestParam(value = "resultScaleFactorXy", required = false, defaultValue = "-1") final int resultScaleFactorXy, //
-    @RequestParam(value = "resultScaleFactorZ", required = false, defaultValue = "-1") final int resultScaleFactorZ,
+    @RequestParam(value = "resultSrid", required = false,
+        defaultValue = "3005") final int resultSrid, //
+    @RequestParam(value = "resultNumAxis", required = false,
+        defaultValue = "2") final int resultNumAxis, //
+    @RequestParam(value = "resultScaleFactorXy", required = false,
+        defaultValue = "-1") final int resultScaleFactorXy, //
+    @RequestParam(value = "resultScaleFactorZ", required = false,
+        defaultValue = "-1") final int resultScaleFactorZ,
     @RequestParam(value = "notificationUrl", required = false) String notificationUrl,
     @RequestParam(value = "notificationEmail", required = false) final String notificationEmail)
-    throws IOException {
+      throws IOException {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName,
@@ -878,8 +877,10 @@ public class ConcurrentProcessingFramework {
       log.info("Start\tJob submit single\tbatchJobId=" + batchJobId);
       final String consumerKey = getConsumerKey();
 
-      final String defaultInputDataContentType = businessApplication.getDefaultInputDataContentType();
-      final String defaultResultDataContentType = businessApplication.getDefaultResultDataContentType();
+      final String defaultInputDataContentType = businessApplication
+        .getDefaultInputDataContentType();
+      final String defaultResultDataContentType = businessApplication
+        .getDefaultResultDataContentType();
 
       final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
       addTestParameters(businessApplication, businessApplicationParameters);
@@ -892,8 +893,8 @@ public class ConcurrentProcessingFramework {
       if (perRequestInputData) {
         if (!businessApplication.isInputContentTypeSupported(inputDataContentType)
           && !businessApplication.isInputContentTypeSupported("*/*")) {
-          throw new HttpMessageNotReadableException("inputDataContentType=" + inputDataContentType
-            + " is not supported.");
+          throw new HttpMessageNotReadableException(
+            "inputDataContentType=" + inputDataContentType + " is not supported.");
         }
         inputDataIn = getResource("inputData");
         final boolean hasInputDataIn = inputDataIn != null;
@@ -906,10 +907,11 @@ public class ConcurrentProcessingFramework {
       if (!Property.hasValue(resultDataContentType)) {
         resultDataContentType = defaultResultDataContentType;
       }
-      final String resultContentType = businessApplication.getResultContentType(resultDataContentType);
+      final String resultContentType = businessApplication
+        .getResultContentType(resultDataContentType);
       if (resultContentType == null) {
-        throw new HttpMessageNotReadableException("resultDataContentType=" + resultDataContentType
-          + " is not supported.");
+        throw new HttpMessageNotReadableException(
+          "resultDataContentType=" + resultDataContentType + " is not supported.");
       } else {
         resultDataContentType = resultContentType;
       }
@@ -921,7 +923,8 @@ public class ConcurrentProcessingFramework {
           notificationUrl = "mailto:" + notificationEmail;
         }
       }
-      final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+      final RecordDefinitionImpl requestRecordDefinition = businessApplication
+        .getRequestRecordDefinition();
       final Record inputData = new ArrayRecord(requestRecordDefinition);
       for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
         final String parameterName = attribute.getName();
@@ -946,13 +949,13 @@ public class ConcurrentProcessingFramework {
                 this.batchJobService.setStructuredInputDataValue(srid, inputData, attribute, value,
                   true);
               } catch (final IllegalArgumentException e) {
-                throw new HttpMessageNotReadableException("Parameter " + parameterName
-                  + " cannot be set", e);
+                throw new HttpMessageNotReadableException(
+                  "Parameter " + parameterName + " cannot be set", e);
               }
             }
           } catch (final IllegalArgumentException e) {
-            throw new HttpMessageNotReadableException("Parameter " + parameterName
-              + " cannot be set", e);
+            throw new HttpMessageNotReadableException(
+              "Parameter " + parameterName + " cannot be set", e);
           }
         } else if (required) {
           throw new HttpMessageNotReadableException("Parameter " + parameterName + " is required");
@@ -992,7 +995,8 @@ public class ConcurrentProcessingFramework {
 
       HttpServletUtils.setPathVariable("batchJobId", batchJobId);
 
-      AppLogUtil.infoAfterCommit(log, "End\tJob submit single\tbatchJobId=" + batchJobId, stopWatch);
+      AppLogUtil.infoAfterCommit(log, "End\tJob submit single\tbatchJobId=" + batchJobId,
+        stopWatch);
       final Map<String, Object> statistics = new HashMap<String, Object>();
       statistics.put("submittedJobsTime", stopWatch);
       statistics.put("submittedJobsCount", 1);
@@ -1120,8 +1124,10 @@ public class ConcurrentProcessingFramework {
   private List<BusinessApplication> getAuthorizedBusinessApplications() {
     final EvaluationContext evaluationContext = CpfUiBuilder.getSecurityEvaluationContext();
 
-    final List<BusinessApplication> businessApplications = this.batchJobService.getBusinessApplications();
-    for (final Iterator<BusinessApplication> iterator = businessApplications.iterator(); iterator.hasNext();) {
+    final List<BusinessApplication> businessApplications = this.batchJobService
+      .getBusinessApplications();
+    for (final Iterator<BusinessApplication> iterator = businessApplications.iterator(); iterator
+      .hasNext();) {
       final BusinessApplication businessApplication = iterator.next();
       if (!hasPermission(businessApplication, evaluationContext)) {
         iterator.remove();
@@ -1146,10 +1152,11 @@ public class ConcurrentProcessingFramework {
 
   private BusinessApplication getBusinessApplication(final String businessApplicationName,
     final String pageName) {
-    final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
+    final BusinessApplication businessApplication = this.batchJobService
+      .getBusinessApplication(businessApplicationName);
     if (businessApplication == null || !businessApplication.isEnabled()) {
-      throw new PageNotFoundException("Business application " + businessApplicationName
-        + " does not exist.");
+      throw new PageNotFoundException(
+        "Business application " + businessApplicationName + " does not exist.");
     } else {
       checkPermission(businessApplication);
       return businessApplication;
@@ -1375,7 +1382,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -1407,18 +1414,23 @@ public class ConcurrentProcessingFramework {
   public Object getBusinessApplicationsInstant(
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @RequestParam(value = "specification", defaultValue = "false") final boolean specification, //
-    @RequestParam(value = "srid", required = false) final String srid,//
+    @RequestParam(value = "srid", required = false) final String srid, //
     @RequestParam(value = "format", required = false) final String format, //
-    @RequestParam(value = "resultSrid", required = false, defaultValue = "3005") final int resultSrid, //
-    @RequestParam(value = "resultNumAxis", required = false, defaultValue = "2") final int resultNumAxis,//
-    @RequestParam(value = "resultScaleFactorXy", required = false, defaultValue = "-1") final int resultScaleFactorXy, //
-    @RequestParam(value = "resultScaleFactorZ", required = false, defaultValue = "-1") final int resultScaleFactorZ) {
+    @RequestParam(value = "resultSrid", required = false,
+        defaultValue = "3005") final int resultSrid, //
+    @RequestParam(value = "resultNumAxis", required = false,
+        defaultValue = "2") final int resultNumAxis, //
+    @RequestParam(value = "resultScaleFactorXy", required = false,
+        defaultValue = "-1") final int resultScaleFactorXy, //
+    @RequestParam(value = "resultScaleFactorZ", required = false,
+        defaultValue = "-1") final int resultScaleFactorZ) {
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName,
       "clientInstant");
     if (businessApplication == null) {
       return null;
     } else {
-      final PluginAdaptor plugin = this.batchJobService.getBusinessApplicationPlugin(businessApplication);
+      final PluginAdaptor plugin = this.batchJobService
+        .getBusinessApplicationPlugin(businessApplication);
       CpfUiBuilder.checkPermission(businessApplication.getInstantModeExpression(),
         "No instant mode permission for " + businessApplication.getName());
 
@@ -1433,7 +1445,8 @@ public class ConcurrentProcessingFramework {
         if (Property.hasValue(format)) {
           final boolean valid = form.isValid();
           if (valid) {
-            final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+            final RecordDefinitionImpl requestRecordDefinition = businessApplication
+              .getRequestRecordDefinition();
             final Record requestParameters = new ArrayRecord(requestRecordDefinition);
             for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
               final String name = attribute.getName();
@@ -1458,8 +1471,8 @@ public class ConcurrentProcessingFramework {
                     this.batchJobService.setStructuredInputDataValue(srid, requestParameters,
                       attribute, value, true);
                   } catch (final IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Parameter value is not valid " + name + " "
-                      + value, e);
+                    throw new IllegalArgumentException(
+                      "Parameter value is not valid " + name + " " + value, e);
                   }
                 }
               }
@@ -1470,8 +1483,10 @@ public class ConcurrentProcessingFramework {
             plugin.execute();
             final List<Map<String, Object>> list = plugin.getResults();
             HttpServletUtils.setAttribute("contentDispositionFileName", businessApplicationName);
-            final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
-            for (final Entry<String, Object> entry : businessApplication.getProperties().entrySet()) {
+            final RecordDefinition resultRecordDefinition = businessApplication
+              .getResultRecordDefinition();
+            for (final Entry<String, Object> entry : businessApplication.getProperties()
+              .entrySet()) {
               final String name = entry.getKey();
               final Object value = entry.getValue();
               HttpServletUtils.setAttribute(name, value);
@@ -1499,7 +1514,8 @@ public class ConcurrentProcessingFramework {
               final Writer<Record> writer = this.batchJobService.createStructuredResultWriter(
                 resource, businessApplication, resultRecordDefinition, format, "Result",
                 geometryFactory);
-              final boolean hasMultipleResults = businessApplication.getResultListProperty() != null;
+              final boolean hasMultipleResults = businessApplication
+                .getResultListProperty() != null;
               if (!hasMultipleResults) {
                 writer.setProperty(IoConstants.SINGLE_OBJECT_PROPERTY, true);
               }
@@ -1514,7 +1530,8 @@ public class ConcurrentProcessingFramework {
                   structuredResultMap);
 
                 @SuppressWarnings("unchecked")
-                final Map<String, Object> properties = (Map<String, Object>)structuredResultMap.get("customizationProperties");
+                final Map<String, Object> properties = (Map<String, Object>)structuredResultMap
+                  .get("customizationProperties");
                 if (Property.hasValue(properties)) {
                   writer.setProperties(properties);
                 }
@@ -1605,10 +1622,11 @@ public class ConcurrentProcessingFramework {
   @ResponseBody
   public Object getBusinessApplicationsJobs(
     @PathVariable("businessApplicationName") final String businessApplicationName) {
-    final BusinessApplication businessApplication = this.batchJobUiBuilder.getBusinessApplication(businessApplicationName);
+    final BusinessApplication businessApplication = this.batchJobUiBuilder
+      .getBusinessApplication(businessApplicationName);
     if (businessApplication == null || !businessApplication.isEnabled()) {
-      throw new PageNotFoundException("Business application " + businessApplicationName
-        + " does not exist.");
+      throw new PageNotFoundException(
+        "Business application " + businessApplicationName + " does not exist.");
     } else {
       final String consumerKey = getConsumerKey();
       ConcurrentProcessingFramework.checkPermission(businessApplication);
@@ -1628,8 +1646,8 @@ public class ConcurrentProcessingFramework {
       } else {
         final String title = businessApplication.getTitle();
         final PageInfo page = createRootPageInfo(title + " Batch Jobs");
-        final List<Record> batchJobs = this.dataAccessObject.getBatchJobsForUserAndApplication(
-          consumerKey, businessApplicationName);
+        final List<Record> batchJobs = this.dataAccessObject
+          .getBatchJobsForUserAndApplication(consumerKey, businessApplicationName);
         for (final Record job : batchJobs) {
           addBatchJobStatusLink(page, job);
         }
@@ -1808,10 +1826,11 @@ public class ConcurrentProcessingFramework {
   @ResponseBody
   public Object getBusinessApplicationsResources(
     @PathVariable("businessApplicationName") final String businessApplicationName) {
-    final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
+    final BusinessApplication businessApplication = this.batchJobService
+      .getBusinessApplication(businessApplicationName);
     if (businessApplication == null || !businessApplication.isEnabled()) {
-      throw new PageNotFoundException("Business application " + businessApplicationName
-        + " does not exist.");
+      throw new PageNotFoundException(
+        "Business application " + businessApplicationName + " does not exist.");
     } else {
       checkPermission(businessApplication);
       final Map<String, Object> titleParameters = new HashMap<String, Object>();
@@ -2020,8 +2039,8 @@ public class ConcurrentProcessingFramework {
     ElementContainer container = businessApplication.getProperty("specificationElement");
     if (container == null) {
       container = new ElementContainer();
-      container.add(new XmlTagElement(HtmlUtil.H1, businessApplication.getTitle() + " ("
-        + businessApplication.getName() + ")"));
+      container.add(new XmlTagElement(HtmlUtil.H1,
+        businessApplication.getTitle() + " (" + businessApplication.getName() + ")"));
 
       final String description = businessApplication.getDescription();
       if (Property.hasValue(description)) {
@@ -2033,15 +2052,15 @@ public class ConcurrentProcessingFramework {
           + "\">here</a> for a more detailed description of the service.</p>"));
       }
 
-      container.add(new RawContent(new ClassPathResource(
-        "ca/bc/gov/open/cpf/api/web/service/services.html")));
+      container.add(
+        new RawContent(new ClassPathResource("ca/bc/gov/open/cpf/api/web/service/services.html")));
       if (CpfUiBuilder.hasPermission(businessApplication.getInstantModeExpression())) {
-        container.add(new RawContent(new ClassPathResource(
-          "ca/bc/gov/open/cpf/api/web/service/instantMode.html")));
+        container.add(new RawContent(
+          new ClassPathResource("ca/bc/gov/open/cpf/api/web/service/instantMode.html")));
       }
       if (CpfUiBuilder.hasPermission(businessApplication.getBatchModeExpression())) {
-        container.add(new RawContent(new ClassPathResource(
-          "ca/bc/gov/open/cpf/api/web/service/batchMode.html")));
+        container.add(new RawContent(
+          new ClassPathResource("ca/bc/gov/open/cpf/api/web/service/batchMode.html")));
       }
 
       addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/inputData.html");
@@ -2053,16 +2072,17 @@ public class ConcurrentProcessingFramework {
       } else {
         addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/structuredInputData.html");
       }
-      final RecordDefinition requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+      final RecordDefinition requestRecordDefinition = businessApplication
+        .getRequestRecordDefinition();
       final List<FieldDefinition> requestAttributes = requestRecordDefinition.getFields();
       requestAttributes.remove(0);
       final List<KeySerializer> serializers = new ArrayList<KeySerializer>();
       serializers.add(new StringKeySerializer("name"));
-      serializers.add(new BooleanImageKeySerializer("properties."
-        + BusinessApplication.JOB_PARAMETER, "Job Parameter"));
+      serializers.add(new BooleanImageKeySerializer(
+        "properties." + BusinessApplication.JOB_PARAMETER, "Job Parameter"));
       if (!businessApplication.isPerRequestInputData()) {
-        serializers.add(new BooleanImageKeySerializer("properties."
-          + BusinessApplication.REQUEST_PARAMETER, "Request Parameter"));
+        serializers.add(new BooleanImageKeySerializer(
+          "properties." + BusinessApplication.REQUEST_PARAMETER, "Request Parameter"));
       }
       serializers.add(new StringKeySerializer("typeDescription", "Type"));
       serializers.add(new StringKeySerializer("minValue", "Min"));
@@ -2077,8 +2097,9 @@ public class ConcurrentProcessingFramework {
       inputDataContentType.setDefaultValue(businessApplication.getDefaultInputDataContentType());
       requestAttributes.add(0, inputDataContentType);
 
-      final FieldDefinition inputData = new FieldDefinition("inputData", new SimpleDataType("File",
-        File.class), false, "The multi-part file containing the input data.");
+      final FieldDefinition inputData = new FieldDefinition("inputData",
+        new SimpleDataType("File", File.class), false,
+        "The multi-part file containing the input data.");
       inputData.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(1, inputData);
 
@@ -2093,10 +2114,8 @@ public class ConcurrentProcessingFramework {
       notificationEmail.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(notificationEmail);
 
-      final FieldDefinition notificationUrl = new FieldDefinition(
-        "notificationUrl",
-        DataTypes.STRING,
-        false,
+      final FieldDefinition notificationUrl = new FieldDefinition("notificationUrl",
+        DataTypes.STRING, false,
         "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.");
       notificationUrl.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(notificationUrl);
@@ -2114,7 +2133,8 @@ public class ConcurrentProcessingFramework {
         addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/opaqueResults.html");
       } else {
         container.add(new XmlTagElement(HtmlUtil.H2, "Result Fields"));
-        final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+        final RecordDefinition resultRecordDefinition = businessApplication
+          .getResultRecordDefinition();
         final List<FieldDefinition> resultAttributes = resultRecordDefinition.getFields();
         final List<KeySerializer> resultSerializers = new ArrayList<KeySerializer>();
         resultSerializers.add(new StringKeySerializer("name"));
@@ -2182,8 +2202,8 @@ public class ConcurrentProcessingFramework {
         }
         field = new TextField(name, length, defaultValue, required);
       } else {
-        throw new IllegalArgumentException("Values with class " + typeClass.getName()
-          + " are not supported");
+        throw new IllegalArgumentException(
+          "Values with class " + typeClass.getName() + " are not supported");
       }
     } else {
       field = new SelectField(name, defaultValue, required, allowedValues);
@@ -2216,7 +2236,8 @@ public class ConcurrentProcessingFramework {
 
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
-    final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+    final RecordDefinitionImpl requestRecordDefinition = businessApplication
+      .getRequestRecordDefinition();
     for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       final String name = attribute.getName();
       if (!businessApplication.isCoreParameter(name)) {
@@ -2239,7 +2260,8 @@ public class ConcurrentProcessingFramework {
   }
 
   private Element getFormMultiple(final BusinessApplication businessApplication) {
-    final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+    final RecordDefinitionImpl requestRecordDefinition = businessApplication
+      .getRequestRecordDefinition();
 
     final Map<String, String> fieldSectionMap = getFormSectionsFieldMap(businessApplication,
       "Multiple");
@@ -2270,7 +2292,8 @@ public class ConcurrentProcessingFramework {
     addTestFields(fieldSectionMap, panelGroup, businessApplication);
 
     addSections("Multiple", businessApplication, form, panelGroup);
-    form.add(new DivElementContainer("actionMenu", new SubmitField("clientMultiple", "Create Job")));
+    form
+      .add(new DivElementContainer("actionMenu", new SubmitField("clientMultiple", "Create Job")));
 
     container.add(form);
     return container;
@@ -2286,11 +2309,11 @@ public class ConcurrentProcessingFramework {
     return panelGroup;
   }
 
-  private Map<String, String> getFormSectionsFieldMap(
-    final BusinessApplication businessApplication, final String formName) {
+  private Map<String, String> getFormSectionsFieldMap(final BusinessApplication businessApplication,
+    final String formName) {
 
-    Map<String, String> formSectionsFieldMap = businessApplication.getProperty("formSectionsFieldMap"
-      + formName);
+    Map<String, String> formSectionsFieldMap = businessApplication
+      .getProperty("formSectionsFieldMap" + formName);
     if (formSectionsFieldMap == null) {
       // Add defaults
       formSectionsFieldMap = new LinkedHashMap<>();
@@ -2334,8 +2357,8 @@ public class ConcurrentProcessingFramework {
 
   private Map<String, List<String>> getFormSectionsMap(
     final BusinessApplication businessApplication, final String formName) {
-    Map<String, List<String>> formSectionsMap = businessApplication.getProperty("formSectionsMap"
-      + formName);
+    Map<String, List<String>> formSectionsMap = businessApplication
+      .getProperty("formSectionsMap" + formName);
     if (formSectionsMap == null) {
       formSectionsMap = businessApplication.getProperty("formSectionsMap");
       if (formSectionsMap == null) {
@@ -2371,8 +2394,8 @@ public class ConcurrentProcessingFramework {
     if (openSections == null) {
       openSections = businessApplication.getProperty("formSectionsOpen");
       if (openSections == null) {
-        openSections = new HashSet<>(Arrays.asList("applicationParameters", "inputData",
-          "resultFormat"));
+        openSections = new HashSet<>(
+          Arrays.asList("applicationParameters", "inputData", "resultFormat"));
       }
       businessApplication.setProperty("formSectionsOpen" + formName, openSections);
     }
@@ -2380,7 +2403,8 @@ public class ConcurrentProcessingFramework {
   }
 
   private Element getFormSingle(final BusinessApplication businessApplication) {
-    final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+    final RecordDefinitionImpl requestRecordDefinition = businessApplication
+      .getRequestRecordDefinition();
     final Map<String, String> fieldSectionMap = getFormSectionsFieldMap(businessApplication,
       "Single");
     final PanelGroup panelGroup = getFormPanelGroup(businessApplication, "Single");
@@ -2642,9 +2666,8 @@ public class ConcurrentProcessingFramework {
 
     if (batchJob != null) {
       final Record batchJobResult = this.dataAccessObject.getBatchJobResult(batchJobId, resultId);
-      if (batchJobResult != null
-        && EqualsInstance.INSTANCE.equals(batchJobId,
-          batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
+      if (batchJobResult != null && EqualsInstance.INSTANCE.equals(batchJobId,
+        batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
         this.dataAccessObject.setBatchJobDownloaded(batchJobId);
         final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
         final HttpServletResponse response = HttpServletUtils.getResponse();
@@ -2654,7 +2677,8 @@ public class ConcurrentProcessingFramework {
         } else {
           final InputStream in = this.batchJobService.getBatchJobResultData(batchJobId, resultId,
             batchJobResult);
-          final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+          final String resultDataContentType = batchJobResult
+            .getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
           response.setContentType(resultDataContentType);
 
           long size = this.batchJobService.getBatchJobResultSize(batchJobId, resultId);
@@ -2671,8 +2695,8 @@ public class ConcurrentProcessingFramework {
             final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
             final String fileName = "job-" + batchJobId + "-result-" + resultId + "."
               + fileExtension;
-            response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ";size="
-              + size);
+            response.setHeader("Content-Disposition",
+              "attachment; filename=" + fileName + ";size=" + size);
           }
           final ServletOutputStream out = response.getOutputStream();
           if (Property.hasValue(jsonCallback)) {
@@ -2761,15 +2785,15 @@ public class ConcurrentProcessingFramework {
           for (final Record batchJobResult : results) {
             final Number sequenceNumber = batchJobResult.getInteger(BatchJobResult.SEQUENCE_NUMBER);
             parameters.put("sequenceNumber", sequenceNumber);
-            final PageInfo resultPage = addPage(page, sequenceNumber, "Batch Job " + batchJobId
-              + " result " + sequenceNumber);
-            final String batchJobResultType = batchJobResult.getValue(BatchJobResult.BATCH_JOB_RESULT_TYPE);
+            final PageInfo resultPage = addPage(page, sequenceNumber,
+              "Batch Job " + batchJobId + " result " + sequenceNumber);
+            final String batchJobResultType = batchJobResult
+              .getValue(BatchJobResult.BATCH_JOB_RESULT_TYPE);
             resultPage.setAttribute("batchJobResultType", batchJobResultType);
             resultPage.setAttribute("batchJobResultContentType",
               batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
-            resultPage.setAttribute(
-              "expiryDate",
-              this.batchJobService.getExpiryDate((java.util.Date)batchJobResult.getValue(BatchJobResult.WHEN_CREATED)));
+            resultPage.setAttribute("expiryDate", this.batchJobService
+              .getExpiryDate((java.util.Date)batchJobResult.getValue(BatchJobResult.WHEN_CREATED)));
             if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
               resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
                 batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));
@@ -2798,7 +2822,8 @@ public class ConcurrentProcessingFramework {
       "The http: URL to the file or resource containing input data.", true, false,
       perRequestInputData, Collections.emptyList());
 
-    final RecordDefinition requestRecordDefinition = businessApplication.getRequestRecordDefinition();
+    final RecordDefinition requestRecordDefinition = businessApplication
+      .getRequestRecordDefinition();
     for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
       addParameter(parameters, attribute, perRequestInputData);
     }
@@ -2807,11 +2832,7 @@ public class ConcurrentProcessingFramework {
       "The email address to send the job status to when the job is completed.", true, false,
       perRequestInputData, Collections.emptyList());
 
-    addParameter(
-      parameters,
-      "notificationUrl",
-      "string",
-      null,
+    addParameter(parameters, "notificationUrl", "string", null,
       "The http: URL to be notified when the job is completed. A copy of the Job status will be posted to process running at this URL.",
       true, false, perRequestInputData, Collections.emptyList());
 

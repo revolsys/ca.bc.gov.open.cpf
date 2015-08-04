@@ -26,13 +26,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthCredentials;
-import net.oauth.OAuthServiceProvider;
-import net.oauth.client.httpclient4.OAuthSchemeFactory;
-import net.oauth.client.httpclient4.PreemptiveAuthorizer;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -70,10 +63,17 @@ import com.revolsys.spring.InputStreamResource;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 
+import net.oauth.OAuthAccessor;
+import net.oauth.OAuthConsumer;
+import net.oauth.OAuthCredentials;
+import net.oauth.OAuthServiceProvider;
+import net.oauth.client.httpclient4.OAuthSchemeFactory;
+import net.oauth.client.httpclient4.PreemptiveAuthorizer;
+
 @SuppressWarnings("javadoc")
 public class OAuthHttpClient extends DefaultHttpClient {
   public static HttpHost determineTarget(final HttpUriRequest request)
-      throws ClientProtocolException {
+    throws ClientProtocolException {
     // A null target may be acceptable if there is a default target.
     // Otherwise, the null target is detected in the director.
     HttpHost target = null;
@@ -82,8 +82,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     if (requestURI.isAbsolute()) {
       target = URIUtils.extractHost(requestURI);
       if (target == null) {
-        throw new ClientProtocolException(
-          "URI does not specify a valid host name: " + requestURI);
+        throw new ClientProtocolException("URI does not specify a valid host name: " + requestURI);
       }
     }
     return target;
@@ -100,9 +99,8 @@ public class OAuthHttpClient extends DefaultHttpClient {
   private final OAuthHttpClientPool pool;
 
   @SuppressWarnings("deprecation")
-  public OAuthHttpClient(final OAuthHttpClientPool pool,
-    final String webServiceUrl, final String consumerKey,
-    final String consumerSecret) {
+  public OAuthHttpClient(final OAuthHttpClientPool pool, final String webServiceUrl,
+    final String consumerKey, final String consumerSecret) {
     this.pool = pool;
     this.consumerKey = consumerKey;
     this.consumerSecret = consumerSecret;
@@ -116,8 +114,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
       if (webServicePort == -1) {
         this.webServiceUrl = protocol + "://" + webServiceHost + wsPath;
       } else {
-        this.webServiceUrl = protocol + "://" + webServiceHost + ":"
-            + webServicePort + wsPath;
+        this.webServiceUrl = protocol + "://" + webServiceHost + ":" + webServicePort + wsPath;
       }
       this.context = new BasicHttpContext();
       this.context.setAttribute(ClientContext.AUTH_SCHEME_PREF,
@@ -132,10 +129,9 @@ public class OAuthHttpClient extends DefaultHttpClient {
       final OAuthSchemeFactory oauthSchemeFactory = new OAuthSchemeFactory();
       authSchemes.register("oauth", oauthSchemeFactory);
       final AuthScope authscope = new AuthScope(webServiceHost, webServicePort);
-      final OAuthServiceProvider serviceProvider = new OAuthServiceProvider(
-        null, null, null);
-      final OAuthConsumer consumer = new OAuthConsumer(null, consumerKey,
-        consumerSecret, serviceProvider);
+      final OAuthServiceProvider serviceProvider = new OAuthServiceProvider(null, null, null);
+      final OAuthConsumer consumer = new OAuthConsumer(null, consumerKey, consumerSecret,
+        serviceProvider);
       final OAuthAccessor accessor = new OAuthAccessor(consumer);
       final OAuthCredentials credentials = new OAuthCredentials(accessor);
       final CredentialsProvider credentialsProvider = getCredentialsProvider();
@@ -149,49 +145,45 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   public String appendOAuthToUrl(final String method, final String url) {
-    final String oauthUrl = OAuthUrlUtil.addAuthenticationToUrl(method, url,
-      this.consumerKey, this.consumerSecret);
+    final String oauthUrl = OAuthUrlUtil.addAuthenticationToUrl(method, url, this.consumerKey,
+      this.consumerSecret);
     return oauthUrl;
   }
 
+  @Override
   public void close() {
     this.pool.releaseClient(this);
   }
 
-  protected IOException createException(final HttpEntity entity,
-    final StatusLine statusLine) {
+  protected IOException createException(final HttpEntity entity, final StatusLine statusLine) {
     if (LoggerFactory.getLogger(OAuthHttpClient.class).isDebugEnabled()) {
       try {
         final String errorBody = EntityUtils.toString(entity);
         LoggerFactory.getLogger(OAuthHttpClient.class)
-        .debug(
-          "Unable to get message from server: " + statusLine + "\n"
-              + errorBody);
+          .debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(OAuthHttpClient.class).error(
-          "Unable to get error message server: " + statusLine + "\n");
+        LoggerFactory.getLogger(OAuthHttpClient.class)
+          .error("Unable to get error message server: " + statusLine + "\n");
       }
     }
     return new IOException("Unable to get message from server: " + statusLine);
   }
 
-  public void deleteUrl(final String url) throws IOException,
-  ClientProtocolException {
+  public void deleteUrl(final String url) throws IOException, ClientProtocolException {
     final HttpDelete httpDelete = new HttpDelete(url);
     final HttpResponse response = execute(httpDelete, this.context);
     final HttpEntity entity = response.getEntity();
     EntityUtils.consume(entity);
   }
 
-  public Map<String, Object> getJsonResource(final HttpResponse response)
-      throws IOException {
+  public Map<String, Object> getJsonResource(final HttpResponse response) throws IOException {
     final StatusLine statusLine = response.getStatusLine();
     final int httpStatusCode = statusLine.getStatusCode();
     final HttpEntity entity = response.getEntity();
 
     if (httpStatusCode == HttpStatus.SC_OK) {
       try (
-          final InputStream in = entity.getContent()) {
+        final InputStream in = entity.getContent()) {
         final Map<String, Object> map = JsonParser.read(in);
         return map;
       }
@@ -201,15 +193,14 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   public Map<String, Object> getJsonResource(final HttpUriRequest request)
-      throws IOException, ClientProtocolException {
+    throws IOException, ClientProtocolException {
     request.addHeader("Accept", "application/json");
 
     final InvokeMethodResponseHandler<Map<String, Object>> responseHandler = new InvokeMethodResponseHandler<Map<String, Object>>(
-        this, "getJsonResource");
+      this, "getJsonResource");
 
     final HttpHost target = determineTarget(request);
-    final Map<String, Object> response = execute(target, request,
-      responseHandler, this.context);
+    final Map<String, Object> response = execute(target, request, responseHandler, this.context);
 
     return response;
   }
@@ -229,8 +220,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     return getMapReader(fileName, url);
   }
 
-  public Reader<Map<String, Object>> getMapReader(final String fileName,
-    final String url) {
+  public Reader<Map<String, Object>> getMapReader(final String fileName, final String url) {
     try {
       final HttpGet request = new HttpGet(url);
       final HttpResponse response = execute(request, this.context);
@@ -244,13 +234,12 @@ public class OAuthHttpClient extends DefaultHttpClient {
 
         final String contentType = contentTypeHeader.getValue();
         final MapReaderFactory factory = IoFactoryRegistry.getInstance()
-            .getFactoryByMediaType(MapReaderFactory.class, contentType);
+          .getFactoryByMediaType(MapReaderFactory.class, contentType);
         if (factory == null) {
           throw new RuntimeException("Unable to read " + contentType);
         }
 
-        final InputStreamResource resource = new InputStreamResource(fileName,
-          in);
+        final InputStreamResource resource = new InputStreamResource(fileName, in);
         return factory.createMapReader(resource);
       } else {
         throw createException(entity, statusLine);
@@ -262,8 +251,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
 
   public String getOAuthUrl(final String method, final String path) {
     String url = getUrl(path);
-    url = OAuthUrlUtil.addAuthenticationToUrl(method, url, this.consumerKey,
-      this.consumerSecret);
+    url = OAuthUrlUtil.addAuthenticationToUrl(method, url, this.consumerKey, this.consumerSecret);
     return url;
   }
 
@@ -282,14 +270,13 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   public Map<String, Object> postJsonResource(final String url)
-      throws ClientProtocolException, IOException {
+    throws ClientProtocolException, IOException {
     final HttpPost request = new HttpPost(url);
     return getJsonResource(request);
   }
 
   public Map<String, Object> postJsonResource(final String url,
-    final Map<String, ? extends Object> message)
-        throws ClientProtocolException, IOException {
+    final Map<String, ? extends Object> message) throws ClientProtocolException, IOException {
     final HttpPost request = new HttpPost(url);
     request.addHeader("Content-type", "application/json");
     final String bodyString = Json.toString(message);
@@ -302,8 +289,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     return post.postRequest(this.context);
   }
 
-  public HttpResponse postResource(final String url) throws IOException,
-  ClientProtocolException {
+  public HttpResponse postResource(final String url) throws IOException, ClientProtocolException {
     try {
       final HttpPost httpPost = new HttpPost(url);
       final List<NameValuePair> parameters = Collections.emptyList();
@@ -316,8 +302,8 @@ public class OAuthHttpClient extends DefaultHttpClient {
     }
   }
 
-  public HttpResponse postResource(final String url, final String contentType,
-    final File file) throws IOException, ClientProtocolException {
+  public HttpResponse postResource(final String url, final String contentType, final File file)
+    throws IOException, ClientProtocolException {
     try {
       final HttpPost httpPost = new HttpPost(url);
       final FileEntity entity = new FileEntity(file, contentType);
@@ -341,7 +327,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
         } else if (statusCode == HttpStatus.SC_OK) {
           final HttpEntity entity = response.getEntity();
           try (
-              final InputStream in = entity.getContent()) {
+            final InputStream in = entity.getContent()) {
 
             final Map<String, Object> map = JsonParser.read(in);
             return (String)map.get("id");
@@ -352,16 +338,14 @@ public class OAuthHttpClient extends DefaultHttpClient {
             final String jobIdUrl = header[0].getValue();
             return jobIdUrl;
           } else {
-            throw new RuntimeException("Unable to get location header for "
-                + request.getUrl());
+            throw new RuntimeException("Unable to get location header for " + request.getUrl());
           }
         }
       } finally {
         request.close();
       }
     } catch (final IOException e) {
-      throw new RuntimeException("Unable to send POST request "
-          + request.getUrl(), e);
+      throw new RuntimeException("Unable to send POST request " + request.getUrl(), e);
     }
   }
 
@@ -379,7 +363,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
         } else if (statusCode == HttpStatus.SC_OK) {
           final HttpEntity entity = response.getEntity();
           try (
-              final InputStream in = entity.getContent()) {
+            final InputStream in = entity.getContent()) {
 
             final Map<String, Object> map = JsonParser.read(in);
             return (String)map.get("id");
@@ -390,8 +374,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
             final String jobIdUrl = header[0].getValue();
             return jobIdUrl;
           } else {
-            throw new RuntimeException("Unable to get location header for "
-              + url);
+            throw new RuntimeException("Unable to get location header for " + url);
           }
         }
       } finally {
