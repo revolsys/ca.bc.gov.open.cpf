@@ -15,6 +15,8 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
+import com.revolsys.io.PathName;
+
 public interface UserGroupPermission extends Common {
   String RESOURCE_CLASS = "RESOURCE_CLASS";
 
@@ -30,6 +32,6 @@ public interface UserGroupPermission extends Common {
 
   String MODULE_NAME = "MODULE_NAME";
 
-  String USER_GROUP_PERMISSION = "/CPF/CPF_USER_GROUP_PERMISSIONS";
+  PathName USER_GROUP_PERMISSION = PathName.create("/CPF/CPF_USER_GROUP_PERMISSIONS");
 
 }

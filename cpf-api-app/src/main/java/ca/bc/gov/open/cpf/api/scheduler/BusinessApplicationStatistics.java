@@ -26,11 +26,13 @@ import java.util.TreeMap;
 
 import org.springframework.util.StopWatch;
 
+import com.revolsys.io.PathName;
 import com.revolsys.util.DateUtil;
 import com.revolsys.util.JavaBeanUtil;
 
 public class BusinessApplicationStatistics {
-  public static final String APPLICATION_STATISTICS = "/CPF/CPF_APPLICATION_STATISTICS";
+  public static final PathName APPLICATION_STATISTICS = PathName
+    .create("/CPF/CPF_APPLICATION_STATISTICS");
 
   public static final String BUSINESS_APPLICATION_NAME = "BUSINESS_APPLICATION_NAME";
 
@@ -54,14 +56,14 @@ public class BusinessApplicationStatistics {
     "applicationExecutedFailedRequestsCount", "applicationExecutedGroupsCount",
     "applicationExecutedRequestsCount", "applicationExecutedTime", "completedFailedRequestsCount",
     "completedJobsCount", "completedRequestsCount", "completedTime", "executedGroupsCount",
-    "executedRequestsCount", "executedTime", "postProcessedJobsCount",
-    "postProcessedRequestsCount", "postProcessedTime", "preProcessedJobsCount",
-    "preProcessedRequestsCount", "preProcessedTime", "submittedJobsCount", "submittedJobsTime");
+    "executedRequestsCount", "executedTime", "postProcessedJobsCount", "postProcessedRequestsCount",
+    "postProcessedTime", "preProcessedJobsCount", "preProcessedRequestsCount", "preProcessedTime",
+    "submittedJobsCount", "submittedJobsTime");
 
   public static final String APPLICATION_STATISTIC_ID = "APPLICATION_STATISTIC_ID";
 
-  public static BusinessApplicationStatistics createStatistics(
-    final String businessApplicationName, final String durationType) {
+  public static BusinessApplicationStatistics createStatistics(final String businessApplicationName,
+    final String durationType) {
     final String id = getId(durationType);
     return new BusinessApplicationStatistics(businessApplicationName, id);
   }

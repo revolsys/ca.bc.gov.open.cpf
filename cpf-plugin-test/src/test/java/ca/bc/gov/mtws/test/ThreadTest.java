@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.core.io.FileSystemResource;
+import com.revolsys.spring.resource.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;

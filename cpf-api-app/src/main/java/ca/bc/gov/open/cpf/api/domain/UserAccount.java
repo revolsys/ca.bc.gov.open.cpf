@@ -15,6 +15,8 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
+import com.revolsys.io.PathName;
+
 public interface UserAccount extends Common {
   String ACTIVE_IND = "ACTIVE_IND";
 
@@ -22,7 +24,7 @@ public interface UserAccount extends Common {
 
   String CONSUMER_SECRET = "CONSUMER_SECRET";
 
-  String USER_ACCOUNT = "/CPF/CPF_USER_ACCOUNTS";
+  PathName USER_ACCOUNT = PathName.create("/CPF/CPF_USER_ACCOUNTS");
 
   String USER_ACCOUNT_CLASS = "USER_ACCOUNT_CLASS";
 

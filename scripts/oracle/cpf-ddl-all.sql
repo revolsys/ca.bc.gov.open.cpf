@@ -1,6 +1,6 @@
 SPOOL cpf-ddl.log
 
-@cpf-ddl.tab
+@cpf-ddl-tab.sql
 @cpf-ddl.ind
 @cpf-ddl.con
 @cpf-ddl.sqs

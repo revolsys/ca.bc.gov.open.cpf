@@ -119,43 +119,49 @@ public class PluginAdaptor {
         || MultiPoint.class.isAssignableFrom(typeClass)) {
         final Point point = GeometryFactory.wgs84().point(-125, 53);
         value = GeometryFactory.wgs84().multiPoint(point);
-      } else if (Geometry.class.isAssignableFrom(typeClass)
-        || Point.class.isAssignableFrom(typeClass)) {
+      } else
+        if (Geometry.class.isAssignableFrom(typeClass) || Point.class.isAssignableFrom(typeClass)) {
         value = GeometryFactory.wgs84().point(-125, 53);
       } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
         // JTS
         final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
           new com.vividsolutions.jts.geom.PrecisionModel(
-            com.vividsolutions.jts.geom.PrecisionModel.FLOATING), 4326);
+            com.vividsolutions.jts.geom.PrecisionModel.FLOATING),
+          4326);
         if (com.vividsolutions.jts.geom.LineString.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125.1, 53
-            }, 2);
-          final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
+          }, 2);
+          final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory
+            .createLineString(points);
           value = line;
         } else if (Polygon.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
-            }, 2);
-          final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
+          }, 2);
+          final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory
+            .createPolygon(points);
           value = polygon;
         } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125.1, 53
-            }, 2);
-          final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory.createLineString(points);
-          value = jtsGeometryFactory.createMultiLineString(new com.vividsolutions.jts.geom.LineString[] {
-            line
+          }, 2);
+          final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory
+            .createLineString(points);
+          value = jtsGeometryFactory
+            .createMultiLineString(new com.vividsolutions.jts.geom.LineString[] {
+              line
           });
         } else if (com.vividsolutions.jts.geom.MultiPolygon.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
-            }, 2);
-          final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory.createPolygon(points);
+          }, 2);
+          final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory
+            .createPolygon(points);
           value = jtsGeometryFactory.createMultiPolygon(new com.vividsolutions.jts.geom.Polygon[] {
             polygon
           });
@@ -166,8 +172,8 @@ public class PluginAdaptor {
           };
           value = jtsGeometryFactory.createMultiPoint(coordinates);
         } else {
-          final com.vividsolutions.jts.geom.Point point = jtsGeometryFactory.createPoint(new Coordinate(
-            -125, 53));
+          final com.vividsolutions.jts.geom.Point point = jtsGeometryFactory
+            .createPoint(new Coordinate(-125, 53));
           value = point;
         }
       } else {
@@ -276,8 +282,8 @@ public class PluginAdaptor {
         if (testMode) {
           final double meanNumResults = Maps.getDouble(this.testParameters, "cpfMeanNumResults",
             3.0);
-          final int numResults = (int)Math.round(MathUtil.randomGaussian(meanNumResults,
-            meanNumResults / 5));
+          final int numResults = (int)Math
+            .round(MathUtil.randomGaussian(meanNumResults, meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
             final Map<String, Object> result = getResult(this.plugin, true, testMode);
             this.results.add(result);
@@ -316,8 +322,8 @@ public class PluginAdaptor {
           value = Property.getSimple(resultObject, fieldName);
         } catch (final Throwable t) {
           if (!test) {
-            throw new IllegalArgumentException("Could not read property "
-              + this.application.getName() + "." + fieldName, t);
+            throw new IllegalArgumentException(
+              "Could not read property " + this.application.getName() + "." + fieldName, t);
           }
         }
         if (value == null && test) {
@@ -348,8 +354,8 @@ public class PluginAdaptor {
             final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
             if (validateGeometry == true) {
               if (!geometry.isValid()) {
-                throw new IllegalArgumentException("Geometry is not valid for"
-                  + this.application.getName() + "." + fieldName);
+                throw new IllegalArgumentException(
+                  "Geometry is not valid for" + this.application.getName() + "." + fieldName);
               }
             }
             result.put(fieldName, geometry);
@@ -383,7 +389,6 @@ public class PluginAdaptor {
     return this.securityService;
   }
 
-  @SuppressWarnings("resource")
   public void setParameters(final Map<String, ? extends Object> parameters) {
     for (final Entry<String, ? extends Object> entry : parameters.entrySet()) {
       final String parameterName = entry.getKey();
@@ -438,7 +443,8 @@ public class PluginAdaptor {
 
   public void setPluginProperty(final String parameterName, Object parameterValue) {
     try {
-      final RecordDefinitionImpl requestRecordDefinition = this.application.getRequestRecordDefinition();
+      final RecordDefinitionImpl requestRecordDefinition = this.application
+        .getRequestRecordDefinition();
       final Class<?> attributeClass = requestRecordDefinition.getFieldClass(parameterName);
       if (attributeClass != null) {
         parameterValue = StringConverterRegistry.toObject(attributeClass, parameterValue);
@@ -448,8 +454,8 @@ public class PluginAdaptor {
       }
       this.parameters.put(parameterName, parameterValue);
     } catch (final Throwable t) {
-      throw new IllegalArgumentException(this.application.getName() + "." + parameterName
-        + " could not be set", t);
+      throw new IllegalArgumentException(
+        this.application.getName() + "." + parameterName + " could not be set", t);
     }
   }
 

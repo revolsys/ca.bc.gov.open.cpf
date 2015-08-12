@@ -52,6 +52,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.Records;
 import com.revolsys.data.record.schema.RecordStore;
+import com.revolsys.io.PathName;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -104,7 +105,8 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     }
   }
 
-  public static void checkPermission(final Expression expression, final String accessDeniedMessage) {
+  public static void checkPermission(final Expression expression,
+    final String accessDeniedMessage) {
     final boolean permitted = hasPermission(expression);
     if (!permitted) {
       throw new AccessDeniedException(accessDeniedMessage);
@@ -119,7 +121,8 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     final Authentication authentication = securityContext.getAuthentication();
     @SuppressWarnings("unchecked")
-    final Collection<GrantedAuthority> grantedAuthorities = (Collection<GrantedAuthority>)authentication.getAuthorities();
+    final Collection<GrantedAuthority> grantedAuthorities = (Collection<GrantedAuthority>)authentication
+      .getAuthorities();
     return grantedAuthorities;
   }
 
@@ -189,17 +192,17 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   public CpfUiBuilder() {
   }
 
+  public CpfUiBuilder(final String typePath, final PathName tableName, final String idPropertyName,
+    final String title, final String pluralTitle) {
+    super(typePath, tableName, idPropertyName, title, pluralTitle);
+  }
+
   public CpfUiBuilder(final String typePath, final String title) {
     super(typePath, title);
   }
 
   public CpfUiBuilder(final String typePath, final String title, final String pluralTitle) {
     super(typePath, title, pluralTitle);
-  }
-
-  public CpfUiBuilder(final String typePath, final String tableName, final String idPropertyName,
-    final String title, final String pluralTitle) {
-    super(typePath, tableName, idPropertyName, title, pluralTitle);
   }
 
   @PreDestroy
@@ -285,8 +288,8 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public BusinessApplication getModuleBusinessApplication(final String moduleName,
     final String businessApplicationName) throws NoSuchRequestHandlingMethodException {
-    final BusinessApplication businessApplication = this.businessApplicationRegistry.getModuleBusinessApplication(
-      moduleName, businessApplicationName);
+    final BusinessApplication businessApplication = this.businessApplicationRegistry
+      .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
       return businessApplication;
     }
@@ -331,10 +334,12 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
    */
   public long getTimeUntilNextCheck(final BatchJob batchJob) {
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-    final BusinessApplication application = this.batchJobService.getBusinessApplication(businessApplicationName);
+    final BusinessApplication application = this.batchJobService
+      .getBusinessApplication(businessApplicationName);
     long timeRemaining = 0;
     if (application != null) {
-      final List<BusinessApplicationStatistics> statistics = this.batchJobService.getStatisticsList(businessApplicationName);
+      final List<BusinessApplicationStatistics> statistics = this.batchJobService
+        .getStatisticsList(businessApplicationName);
       if (!statistics.isEmpty()) {
         final BusinessApplicationStatistics stats = statistics.get(0);
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
@@ -350,7 +355,8 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
             final int numCompletedRequests = batchJob.getNumCompletedRequests();
             final int numFailedRequests = batchJob.getNumFailedRequests();
             final int numRequestsRemaining = numRequests - numCompletedRequests - numFailedRequests;
-            final long executedRequestsAverageTime = stats.getApplicationExecutedRequestsAverageTime();
+            final long executedRequestsAverageTime = stats
+              .getApplicationExecutedRequestsAverageTime();
             timeRemaining += numRequestsRemaining * executedRequestsAverageTime;
             if (!jobStatus.equals(BatchJobStatus.PROCESSING)) {
               timeRemaining += numRequests * stats.getPreProcessedRequestsAverageTime();

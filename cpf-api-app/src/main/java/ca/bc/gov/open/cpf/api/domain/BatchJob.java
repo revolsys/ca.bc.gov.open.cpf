@@ -16,10 +16,11 @@ import com.revolsys.data.record.DelegatingRecord;
 import com.revolsys.data.record.Record;
 import com.revolsys.data.record.RecordState;
 import com.revolsys.format.json.Json;
+import com.revolsys.io.PathName;
 
 public class BatchJob extends DelegatingRecord implements Common {
 
-  public static final String BATCH_JOB = "/CPF/CPF_BATCH_JOBS";
+  public static final PathName BATCH_JOB = PathName.create("/CPF/CPF_BATCH_JOBS");
 
   public static final String BATCH_JOB_ID = "BATCH_JOB_ID";
 
@@ -159,7 +160,8 @@ public class BatchJob extends DelegatingRecord implements Common {
 
       final String userId = getValue(BatchJob.USER_ID);
 
-      final Map<String, String> businessApplicationParameterMap = BatchJobService.getBusinessApplicationParameters(this);
+      final Map<String, String> businessApplicationParameterMap = BatchJobService
+        .getBusinessApplicationParameters(this);
       final String resultDataContentType = getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
       final Timestamp now = new Timestamp(System.currentTimeMillis());

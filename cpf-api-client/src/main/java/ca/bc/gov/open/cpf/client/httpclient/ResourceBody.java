@@ -23,7 +23,7 @@ import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.springframework.core.io.Resource;
 
-import com.revolsys.spring.SpringUtil;
+import com.revolsys.spring.resource.SpringUtil;
 
 @SuppressWarnings("javadoc")
 public class ResourceBody extends AbstractContentBody {

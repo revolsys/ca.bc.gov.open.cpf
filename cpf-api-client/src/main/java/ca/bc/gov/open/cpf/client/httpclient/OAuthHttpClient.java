@@ -59,7 +59,7 @@ import com.revolsys.format.json.JsonParser;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReaderFactory;
-import com.revolsys.spring.InputStreamResource;
+import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
 

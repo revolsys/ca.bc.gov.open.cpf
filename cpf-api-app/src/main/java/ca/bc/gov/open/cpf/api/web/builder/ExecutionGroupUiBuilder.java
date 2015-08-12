@@ -43,6 +43,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import com.revolsys.data.record.io.RecordWriterFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.PathName;
 import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
@@ -51,24 +52,23 @@ import com.revolsys.util.Property;
 public class ExecutionGroupUiBuilder extends CpfUiBuilder {
 
   public ExecutionGroupUiBuilder() {
-    super("executionGroup", "ExecutionGroup", "sequenceNumber", "Execution Group",
+    super("executionGroup", PathName.create("ExecutionGroup"), "sequenceNumber", "Execution Group",
       "Execution Groups");
     setIdParameterName("sequenceNumber");
   }
 
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/inputData"
-      }, method = {
-        RequestMethod.GET, RequestMethod.POST
-      })
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/inputData"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
   @ResponseBody
   public void downloadInputData(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("sequenceNumber") final Integer sequenceNumber)
-    throws NoSuchRequestHandlingMethodException, IOException {
+      throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
       businessApplicationName);
@@ -100,19 +100,18 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
     }
   }
 
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/resultData"
-      }, method = {
-        RequestMethod.GET, RequestMethod.POST
-      })
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/resultData"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
   @ResponseBody
   public void downloadResultData(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("sequenceNumber") final Integer sequenceNumber)
-    throws NoSuchRequestHandlingMethodException, IOException {
+      throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
       businessApplicationName);
@@ -152,8 +151,8 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
   public Object pageModuleAppJobList(final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId) throws IOException,
-    NoSuchRequestHandlingMethodException {
+    @PathVariable("batchJobId") final Long batchJobId)
+      throws IOException, NoSuchRequestHandlingMethodException {
 
     if (isDataTableCallback(request)) {
       checkAdminOrModuleAdmin(moduleName);
@@ -243,8 +242,8 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
         if (writerFactory != null) {
           final String fileExtension = writerFactory.getFileExtension(contentType);
           final String fileName = baseName + "." + fileExtension;
-          response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ";size="
-            + size);
+          response.setHeader("Content-Disposition",
+            "attachment; filename=" + fileName + ";size=" + size);
         }
         final ServletOutputStream out = response.getOutputStream();
         try {

@@ -42,7 +42,7 @@ import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.io.map.MapWriterFactory;
-import com.revolsys.spring.ByteArrayResource;
+import com.revolsys.spring.resource.ByteArrayResource;
 import com.revolsys.util.Property;
 
 /**

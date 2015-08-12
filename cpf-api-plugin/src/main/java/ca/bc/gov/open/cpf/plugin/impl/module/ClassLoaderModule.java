@@ -51,7 +51,6 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
@@ -92,6 +91,7 @@ import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
+import com.revolsys.spring.resource.UrlResource;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
@@ -100,8 +100,8 @@ import com.revolsys.util.UrlUtil;
 public class ClassLoaderModule implements Module {
 
   @SuppressWarnings("unchecked")
-  private static final Class<? extends Annotation>[] STANDARD_METHOD_EXCLUDE_ANNOTATIONS = ArrayUtil.create(
-    JobParameter.class, RequestParameter.class, Required.class);
+  private static final Class<? extends Annotation>[] STANDARD_METHOD_EXCLUDE_ANNOTATIONS = ArrayUtil
+    .create(JobParameter.class, RequestParameter.class, Required.class);
 
   private static final Map<String, Class<?>[]> STANDARD_METHODS = new HashMap<String, Class<?>[]>();
 
@@ -127,8 +127,8 @@ public class ClassLoaderModule implements Module {
 
   private final AppLog log;
 
-  private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems.getCoordinateSystems(Arrays.asList(
-    4326, 4269, 3005, 26907, 26908, 26909, 26910, 26911));
+  private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems
+    .getCoordinateSystems(Arrays.asList(4326, 4269, 3005, 26907, 26908, 26909, 26910, 26911));
 
   private boolean enabled = false;
 
@@ -230,10 +230,11 @@ public class ClassLoaderModule implements Module {
   private void addResourcePermissions(
     final Map<String, Set<ResourcePermission>> resourcePermissionsByGroupName,
     final String groupName, final Map<String, Object> pluginGroup) {
-    final List<Map<String, Object>> permissions = Maps.get(pluginGroup, "permissions", null);
-    final List<ResourcePermission> resourcePermissions = ResourcePermission.getPermissions(permissions);
-    resourcePermissionsByGroupName.put(groupName, new HashSet<ResourcePermission>(
-      resourcePermissions));
+    final List<Map<String, Object>> permissions = Maps.get(pluginGroup, "permissions");
+    final List<ResourcePermission> resourcePermissions = ResourcePermission
+      .getPermissions(permissions);
+    resourcePermissionsByGroupName.put(groupName,
+      new HashSet<ResourcePermission>(resourcePermissions));
   }
 
   private void checkStandardMethod(final Method method, final Class<?>[] standardMethodParameters) {
@@ -425,16 +426,16 @@ public class ClassLoaderModule implements Module {
       Object plugin;
       final GenericApplicationContext applicationContext = getApplicationContext();
       if (applicationContext == null) {
-        throw new IllegalArgumentException("Unable to instantiate plugin "
-          + businessApplicationName + ": unable to get application context");
+        throw new IllegalArgumentException("Unable to instantiate plugin " + businessApplicationName
+          + ": unable to get application context");
       } else {
         try {
           final String beanName = this.businessApplicationsToBeanNames.get(application);
           plugin = applicationContext.getBean(beanName);
           return plugin;
         } catch (final Throwable t) {
-          throw new IllegalArgumentException("Unable to instantiate plugin "
-            + businessApplicationName, t);
+          throw new IllegalArgumentException(
+            "Unable to instantiate plugin " + businessApplicationName, t);
         }
       }
     }
@@ -464,8 +465,8 @@ public class ClassLoaderModule implements Module {
       Object plugin;
       final GenericApplicationContext applicationContext = getApplicationContext();
       if (applicationContext == null) {
-        throw new IllegalArgumentException("Unable to instantiate plugin "
-          + businessApplicationName + ": unable to get application context");
+        throw new IllegalArgumentException("Unable to instantiate plugin " + businessApplicationName
+          + ": unable to get application context");
       } else {
         try {
           final String beanName = this.businessApplicationsToBeanNames.get(application);
@@ -474,8 +475,8 @@ public class ClassLoaderModule implements Module {
             logLevel);
           return pluginAdaptor;
         } catch (final Throwable t) {
-          throw new IllegalArgumentException("Unable to instantiate plugin "
-            + businessApplicationName, t);
+          throw new IllegalArgumentException(
+            "Unable to instantiate plugin " + businessApplicationName, t);
         }
       }
     }
@@ -500,7 +501,8 @@ public class ClassLoaderModule implements Module {
   public List<BusinessApplication> getBusinessApplications() {
     final List<BusinessApplication> businessApplications = new ArrayList<BusinessApplication>();
     for (final String businessApplicationName : getBusinessApplicationNames()) {
-      final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+      final BusinessApplication businessApplication = getBusinessApplication(
+        businessApplicationName);
       if (businessApplication != null) {
         businessApplications.add(businessApplication);
       }
@@ -511,15 +513,16 @@ public class ClassLoaderModule implements Module {
   private BusinessApplication getBusinessApplicaton(final String moduleName,
     final Class<?> pluginClass, final Map<String, Map<String, Object>> propertiesByName) {
     final String className = pluginClass.getName();
-    final BusinessApplicationPlugin pluginAnnotation = pluginClass.getAnnotation(BusinessApplicationPlugin.class);
+    final BusinessApplicationPlugin pluginAnnotation = pluginClass
+      .getAnnotation(BusinessApplicationPlugin.class);
     if (pluginAnnotation == null) {
-      throw new IllegalArgumentException(className + " does not have the annotation "
-        + BusinessApplicationPlugin.class);
+      throw new IllegalArgumentException(
+        className + " does not have the annotation " + BusinessApplicationPlugin.class);
     } else {
       String businessApplicationName = pluginAnnotation.name();
       if (businessApplicationName == null || businessApplicationName.trim().length() == 0) {
-        businessApplicationName = className.substring(className.lastIndexOf('.') + 1).replaceAll(
-          "Plugin$", "");
+        businessApplicationName = className.substring(className.lastIndexOf('.') + 1)
+          .replaceAll("Plugin$", "");
       }
 
       final BusinessApplication businessApplication = new BusinessApplication(pluginAnnotation,
@@ -573,7 +576,8 @@ public class ClassLoaderModule implements Module {
       final String logLevel = pluginAnnotation.logLevel();
       businessApplication.setLogLevel(logLevel);
 
-      final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
+      final GeometryConfiguration geometryConfiguration = pluginClass
+        .getAnnotation(GeometryConfiguration.class);
       if (geometryConfiguration != null) {
         final GeometryFactory geometryFactory = getGeometryFactory(GeometryFactory.floating3(),
           className, geometryConfiguration);
@@ -605,7 +609,8 @@ public class ClassLoaderModule implements Module {
         }
       }
       if (perRequestResultData) {
-        final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+        final RecordDefinition resultRecordDefinition = businessApplication
+          .getResultRecordDefinition();
         try {
           pluginClass.getMethod("setResultData", OutputStream.class);
         } catch (final Throwable e) {
@@ -615,8 +620,9 @@ public class ClassLoaderModule implements Module {
         try {
           pluginClass.getMethod("setResultDataContentType", String.class);
         } catch (final Throwable e) {
-          throw new IllegalArgumentException("Business Application " + businessApplicationName
-            + " must have a public voud setResultDataContentType(String resultContentType) method",
+          throw new IllegalArgumentException(
+            "Business Application " + businessApplicationName
+              + " must have a public voud setResultDataContentType(String resultContentType) method",
             e);
         }
         businessApplication.setPerRequestResultData(true);
@@ -631,10 +637,11 @@ public class ClassLoaderModule implements Module {
 
       } else {
         if (resultListMethod == null) {
-          final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
+          final RecordDefinition resultRecordDefinition = businessApplication
+            .getResultRecordDefinition();
           if (resultRecordDefinition.getFieldCount() == 0) {
-            throw new IllegalArgumentException("Business Application " + businessApplicationName
-              + " must have result fields");
+            throw new IllegalArgumentException(
+              "Business Application " + businessApplicationName + " must have result fields");
           }
         } else {
           processResultListMethod(businessApplication, resultListMethod);
@@ -653,7 +660,8 @@ public class ClassLoaderModule implements Module {
         }
       } else {
         if (inputDataContentTypes.length == 0) {
-          final Set<MapReaderFactory> factories = ioFactoryRegistry.getFactories(MapReaderFactory.class);
+          final Set<MapReaderFactory> factories = ioFactoryRegistry
+            .getFactories(MapReaderFactory.class);
           for (final MapReaderFactory factory : factories) {
             if (factory.isSingleFile()) {
               if (factory.isCustomFieldsSupported()) {
@@ -668,8 +676,8 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           for (final String contentType : inputDataContentTypes) {
-            final MapReaderFactory factory = ioFactoryRegistry.getFactoryByMediaType(
-              MapReaderFactory.class, contentType);
+            final MapReaderFactory factory = ioFactoryRegistry
+              .getFactoryByMediaType(MapReaderFactory.class, contentType);
             if (factory.isSingleFile()) {
               if (factory.isCustomFieldsSupported()) {
                 final String fileExtension = factory.getFileExtension(contentType);
@@ -694,7 +702,8 @@ public class ClassLoaderModule implements Module {
       } else {
         final boolean hasResultGeometry = businessApplication.isHasGeometryResultAttribute();
         if (resultDataContentTypes.length == 0) {
-          final Set<RecordWriterFactory> writerFactories = ioFactoryRegistry.getFactories(RecordWriterFactory.class);
+          final Set<RecordWriterFactory> writerFactories = ioFactoryRegistry
+            .getFactories(RecordWriterFactory.class);
           for (final RecordWriterFactory factory : writerFactories) {
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
@@ -712,8 +721,8 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           for (final String contentType : resultDataContentTypes) {
-            final RecordWriterFactory factory = ioFactoryRegistry.getFactoryByMediaType(
-              RecordWriterFactory.class, contentType);
+            final RecordWriterFactory factory = ioFactoryRegistry
+              .getFactoryByMediaType(RecordWriterFactory.class, contentType);
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomFieldsSupported()) {
@@ -730,12 +739,15 @@ public class ClassLoaderModule implements Module {
 
       // TODO move these fields out of the request record definition as they are
       // job only parameters
-      final RecordDefinitionImpl requestRecordDefinition = businessApplication.getRequestRecordDefinition();
-      final FieldDefinition resultDataContentType = requestRecordDefinition.getField("resultDataContentType");
+      final RecordDefinitionImpl requestRecordDefinition = businessApplication
+        .getRequestRecordDefinition();
+      final FieldDefinition resultDataContentType = requestRecordDefinition
+        .getField("resultDataContentType");
       final Set<String> resultDataContentTypeSet = businessApplication.getResultDataContentTypes();
       resultDataContentType.setAllowedValues(businessApplication.getResultDataFileExtensions());
 
-      final String defaultResultDataContentType = BusinessApplication.getDefaultMimeType(resultDataContentTypeSet);
+      final String defaultResultDataContentType = BusinessApplication
+        .getDefaultMimeType(resultDataContentTypeSet);
       resultDataContentType.setDefaultValue(defaultResultDataContentType);
 
       try {
@@ -744,14 +756,13 @@ public class ClassLoaderModule implements Module {
       } catch (final NoSuchMethodException e) {
       } catch (final Throwable e) {
         throw new IllegalArgumentException(
-          "Business Application "
-            + businessApplicationName
+          "Business Application " + businessApplicationName
             + " has a setSecurityService(SecurityService) method but there was an error accessing it",
           e);
       }
 
-      final Map<String, Object> configProperties = getConfigProperties(moduleName, "APP_"
-        + businessApplicationName.toUpperCase());
+      final Map<String, Object> configProperties = getConfigProperties(moduleName,
+        "APP_" + businessApplicationName.toUpperCase());
       Property.set(businessApplication, configProperties);
       return businessApplication;
     }
@@ -767,8 +778,8 @@ public class ClassLoaderModule implements Module {
     if (this.configPropertyLoader == null) {
       return new HashMap<String, Object>();
     } else {
-      final Map<String, Object> configProperties = this.configPropertyLoader.getConfigProperties(
-        moduleName, componentName);
+      final Map<String, Object> configProperties = this.configPropertyLoader
+        .getConfigProperties(moduleName, componentName);
       return configProperties;
     }
   }
@@ -909,7 +920,8 @@ public class ClassLoaderModule implements Module {
       final ClassLoader classLoader = getClassLoader();
       if (!isHasError()) {
         final String parentUrl = UrlUtil.getParentString(this.configUrl);
-        final Enumeration<URL> urls = classLoader.getResources("META-INF/ca.bc.gov.open.cpf.plugin.UserGroups.json");
+        final Enumeration<URL> urls = classLoader
+          .getResources("META-INF/ca.bc.gov.open.cpf.plugin.UserGroups.json");
         while (urls.hasMoreElements()) {
           final URL userGroups = urls.nextElement();
           if (userGroups.toString().startsWith(parentUrl)) {
@@ -990,8 +1002,8 @@ public class ClassLoaderModule implements Module {
           if (groupsByName.containsKey(groupName)) {
             addModuleError("A UserGroup must have a unique name: " + pluginGroup);
           } else if (groupNamesToDelete.contains(groupName)) {
-            addModuleError("A UserGroup cannot be deleted and created in the same file: "
-              + pluginGroup);
+            addModuleError(
+              "A UserGroup cannot be deleted and created in the same file: " + pluginGroup);
           } else if (groupName.startsWith("ROLE_" + this.name.toUpperCase())
             && "delete".equalsIgnoreCase(action)) {
             groupNamesToDelete.add(groupName);
@@ -1067,7 +1079,8 @@ public class ClassLoaderModule implements Module {
         beanReader.loadBeanDefinitions(new UrlResource(this.configUrl));
         if (this.applicationContext.containsBeanDefinition("beanImports")) {
           @SuppressWarnings("unchecked")
-          final List<String> beanImports = (List<String>)this.applicationContext.getBean("beanImports");
+          final List<String> beanImports = (List<String>)this.applicationContext
+            .getBean("beanImports");
           for (final String beanImport : beanImports) {
             try {
               final Resource[] resources = this.applicationContext.getResources(beanImport);
@@ -1103,8 +1116,8 @@ public class ClassLoaderModule implements Module {
           pluginClass, propertiesByName);
         final String pluginName = businessApplication.getName();
         businessApplicationsByName.put(pluginName, businessApplication);
-        this.log.info("End\tLoading plugin\tclass=" + pluginClassName
-          + "\tbusinessApplicationName=" + pluginName);
+        this.log.info("End\tLoading plugin\tclass=" + pluginClassName + "\tbusinessApplicationName="
+          + pluginName);
         return businessApplication;
       }
     } catch (final Throwable e) {
@@ -1133,7 +1146,8 @@ public class ClassLoaderModule implements Module {
 
       Map<String, Map<String, Object>> propertiesByName;
       if (applicationContext.containsBean("properties")) {
-        propertiesByName = (Map<String, Map<String, Object>>)applicationContext.getBean("properties");
+        propertiesByName = (Map<String, Map<String, Object>>)applicationContext
+          .getBean("properties");
       } else {
         propertiesByName = Collections.emptyMap();
       }
@@ -1141,7 +1155,8 @@ public class ClassLoaderModule implements Module {
         try {
           final BeanDefinition beanDefinition = applicationContext.getBeanDefinition(beanName);
           final String pluginClassName = beanDefinition.getBeanClassName();
-          if (applicationContext.findAnnotationOnBean(beanName, BusinessApplicationPlugin.class) != null) {
+          if (applicationContext.findAnnotationOnBean(beanName,
+            BusinessApplicationPlugin.class) != null) {
             final String scope = beanDefinition.getScope();
             if (BeanDefinition.SCOPE_PROTOTYPE.equals(scope)) {
 
@@ -1156,8 +1171,8 @@ public class ClassLoaderModule implements Module {
                 final ConfigPropertyLoader propertyLoader = getConfigPropertyLoader();
                 final String moduleName = getName();
                 if (propertyLoader != null) {
-                  final Map<String, Object> configProperties = propertyLoader.getConfigProperties(
-                    moduleName, componentName);
+                  final Map<String, Object> configProperties = propertyLoader
+                    .getConfigProperties(moduleName, componentName);
                   if (configProperties != null) {
                     businessApplication.setProperties(configProperties);
                     for (final Entry<String, Object> entry : configProperties.entrySet()) {
@@ -1239,7 +1254,8 @@ public class ClassLoaderModule implements Module {
         descriptionUrl = jobDescriptionUrl;
       }
     }
-    final RequestParameter requestParameterAnnotation = method.getAnnotation(RequestParameter.class);
+    final RequestParameter requestParameterAnnotation = method
+      .getAnnotation(RequestParameter.class);
     if (requestParameterAnnotation != null) {
       final String requestDescriptionUrl = requestParameterAnnotation.descriptionUrl();
       if (Property.hasValue(requestDescriptionUrl)) {
@@ -1287,11 +1303,8 @@ public class ClassLoaderModule implements Module {
           final Class<?> parameterType = parameterTypes[0];
           if (perRequestInputData) {
             if (requestParameter) {
-              throw new IllegalArgumentException(
-                pluginClass.getName()
-                  + "."
-                  + method
-                  + " cannot be a RequestParameter, only setInputDataUrl(Url url) or setInputDataContentType(Url url) can be specified for per request input data plug-ins");
+              throw new IllegalArgumentException(pluginClass.getName() + "." + method
+                + " cannot be a RequestParameter, only setInputDataUrl(Url url) or setInputDataContentType(Url url) can be specified for per request input data plug-ins");
             }
           }
 
@@ -1340,13 +1353,14 @@ public class ClassLoaderModule implements Module {
             if (requestParameter) {
               field.setProperty(BusinessApplication.REQUEST_PARAMETER, true);
             }
-            final GeometryConfiguration geometryConfiguration = pluginClass.getAnnotation(GeometryConfiguration.class);
+            final GeometryConfiguration geometryConfiguration = pluginClass
+              .getAnnotation(GeometryConfiguration.class);
             if (Geometry.class.isAssignableFrom(parameterType)) {
               GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {
-                geometryFactory = getGeometryFactory(geometryFactory, businessApplication.getName()
-                  + "." + methodName, geometryConfiguration);
+                geometryFactory = getGeometryFactory(geometryFactory,
+                  businessApplication.getName() + "." + methodName, geometryConfiguration);
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
@@ -1363,8 +1377,8 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
-            + " has the " + RequestParameter.class.getName() + " or "
-            + JobParameter.class.getName() + " annotation but is not a setXXX(value) method");
+            + " has the " + RequestParameter.class.getName() + " or " + JobParameter.class.getName()
+            + " annotation but is not a setXXX(value) method");
         }
       } else {
         checkStandardMethod(method, standardMethodParameters);
@@ -1392,8 +1406,8 @@ public class ClassLoaderModule implements Module {
       }
 
     } else if (fieldMetadata != null) {
-      if (methodName.startsWith("get") && methodName.length() > 3 || methodName.startsWith("is")
-        && methodName.length() > 2) {
+      if (methodName.startsWith("get") && methodName.length() > 3
+        || methodName.startsWith("is") && methodName.length() > 2) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length == 0) {
           final String fieldName = JavaBeanUtil.getPropertyName(methodName);
@@ -1410,13 +1424,14 @@ public class ClassLoaderModule implements Module {
             final boolean required = method.getAnnotation(Required.class) != null;
             final FieldDefinition field = new FieldDefinition(fieldName, dataType, length, scale,
               required, description);
-            final GeometryConfiguration geometryConfiguration = method.getAnnotation(GeometryConfiguration.class);
+            final GeometryConfiguration geometryConfiguration = method
+              .getAnnotation(GeometryConfiguration.class);
             if (Geometry.class.isAssignableFrom(returnType)) {
               GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {
-                geometryFactory = getGeometryFactory(geometryFactory, businessApplication.getName()
-                  + "." + methodName, geometryConfiguration);
+                geometryFactory = getGeometryFactory(geometryFactory,
+                  businessApplication.getName() + "." + methodName, geometryConfiguration);
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
@@ -1459,12 +1474,13 @@ public class ClassLoaderModule implements Module {
           + " result class " + resultClass.getName() + " must have result fields");
       }
     } catch (final IllegalArgumentException e) {
-      throw new IllegalArgumentException("Business Application " + businessApplicationName
-        + " method ", e);
+      throw new IllegalArgumentException(
+        "Business Application " + businessApplicationName + " method ", e);
     }
   }
 
-  private void processTestExecute(final BusinessApplication businessApplication, final Method method) {
+  private void processTestExecute(final BusinessApplication businessApplication,
+    final Method method) {
     boolean hasError = false;
     if (method.getReturnType().equals(Void.TYPE)) {
       if (method.getParameterTypes().length > 0) {

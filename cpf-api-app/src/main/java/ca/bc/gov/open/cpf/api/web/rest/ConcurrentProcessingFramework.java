@@ -100,10 +100,10 @@ import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Writer;
 import com.revolsys.jts.geom.GeometryFactory;
-import com.revolsys.spring.ByteArrayResource;
-import com.revolsys.spring.InputStreamResource;
 import com.revolsys.spring.InvokeMethodAfterCommit;
-import com.revolsys.spring.OutputStreamResource;
+import com.revolsys.spring.resource.ByteArrayResource;
+import com.revolsys.spring.resource.InputStreamResource;
+import com.revolsys.spring.resource.OutputStreamResource;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.decorator.FormHorizontalDecorator;
 import com.revolsys.ui.html.fields.BigDecimalField;
@@ -2074,7 +2074,8 @@ public class ConcurrentProcessingFramework {
       }
       final RecordDefinition requestRecordDefinition = businessApplication
         .getRequestRecordDefinition();
-      final List<FieldDefinition> requestAttributes = requestRecordDefinition.getFields();
+      final List<FieldDefinition> requestAttributes = new ArrayList<>(
+        requestRecordDefinition.getFields());
       requestAttributes.remove(0);
       final List<KeySerializer> serializers = new ArrayList<KeySerializer>();
       serializers.add(new StringKeySerializer("name"));

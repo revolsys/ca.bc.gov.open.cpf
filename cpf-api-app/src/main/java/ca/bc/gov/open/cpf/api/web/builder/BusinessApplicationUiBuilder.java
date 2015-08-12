@@ -56,6 +56,7 @@ import com.revolsys.data.record.io.RecordReader;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
+import com.revolsys.io.PathName;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.ButtonsToolbarElement;
@@ -80,7 +81,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping("/ws/sample/input")
   @ResponseBody
   public RecordReader getSampleInputData() {
-    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
+      PathName.create("/Buffer"));
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addField("title", DataTypes.STRING);
@@ -108,7 +110,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @RequestMapping("/ws/sample/result")
   @ResponseBody
   public RecordReader getSampleResultData() {
-    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl("/Buffer");
+    final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
+      PathName.create("/Buffer"));
     final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addField("sequenceNumber", DataTypes.INTEGER);
@@ -167,16 +170,17 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
-    final BusinessApplication businessApplication = businessApplicationRegistry.getModuleBusinessApplication(
-      moduleName, businessApplicationName);
+    final BusinessApplication businessApplication = businessApplicationRegistry
+      .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
-      final ConfigPropertyLoader configPropertyLoader = businessApplicationRegistry.getConfigPropertyLoader();
+      final ConfigPropertyLoader configPropertyLoader = businessApplicationRegistry
+        .getConfigPropertyLoader();
       final String componentName = "APP_" + businessApplicationName;
-      final Map<String, Object> configProperties = configPropertyLoader.getConfigProperties(
-        moduleName, componentName);
+      final Map<String, Object> configProperties = configPropertyLoader
+        .getConfigProperties(moduleName, componentName);
       final String pageName = "moduleEdit";
       final String viewName = "moduleView";
 
@@ -194,7 +198,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       if (form.isPosted() && form.isMainFormTask()) {
         if (form.isValid()) {
           final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-          final BusinessApplicationPlugin pluginAnnotation = businessApplication.getPluginAnnotation();
+          final BusinessApplicationPlugin pluginAnnotation = businessApplication
+            .getPluginAnnotation();
           for (final String propertyName : propertyNames) {
             final Object defaultValue = Property.get(pluginAnnotation, propertyName);
             final Object newValue = form.getValue(propertyName);
@@ -212,8 +217,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
                   configProperty = dataAccessObject.createConfigProperty(ConfigProperty.DEFAULT,
                     moduleName, componentName, propertyName, newValue, valueType);
                 } catch (final Throwable e) {
-                  LoggerFactory.getLogger(getClass()).error(
-                    "Unable to set property " + propertyName, e);
+                  LoggerFactory.getLogger(getClass())
+                    .error("Unable to set property " + propertyName, e);
                 }
               }
             } else {
@@ -261,9 +266,9 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/apps"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object pageModuleList(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("moduleName") String moduleName)
-    throws IOException, NoSuchRequestHandlingMethodException {
+  public Object pageModuleList(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("moduleName") String moduleName)
+      throws IOException, NoSuchRequestHandlingMethodException {
     final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
     final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
@@ -279,10 +284,10 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
-    final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
-      moduleName, businessApplicationName);
+    final BusinessApplication businessApplication = getBusinessApplicationRegistry()
+      .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, businessApplication, "module");

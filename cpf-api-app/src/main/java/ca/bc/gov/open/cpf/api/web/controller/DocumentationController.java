@@ -33,7 +33,7 @@ import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.servlet.HandlerMapping;
 
-import com.revolsys.spring.SpringUtil;
+import com.revolsys.spring.resource.SpringUtil;
 import com.revolsys.util.Property;
 
 @Controller

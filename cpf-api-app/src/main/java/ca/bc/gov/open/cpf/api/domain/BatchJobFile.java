@@ -15,8 +15,10 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
+import com.revolsys.io.PathName;
+
 public interface BatchJobFile {
-  String BATCH_JOB_FILE = "/CPF/CPF_BATCH_JOB_FILES";
+  PathName BATCH_JOB_FILE = PathName.create("/CPF/CPF_BATCH_JOB_FILES");
 
   String BATCH_JOB_ID = "BATCH_JOB_ID";
 

@@ -47,6 +47,7 @@ import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.util.Debug;
+import com.revolsys.io.PathName;
 import com.revolsys.jts.geom.Geometry;
 import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.properties.BaseObjectWithProperties;
@@ -243,9 +244,9 @@ public class BusinessApplication extends BaseObjectWithProperties
     this.module = module;
     this.name = name;
     this.log = new AppLog(module.getName() + "." + name);
-    this.requestRecordDefinition = new RecordDefinitionImpl("/" + name);
-    this.resultRecordDefinition = new RecordDefinitionImpl("/" + name);
-    this.internalRequestRecordDefinition = new RecordDefinitionImpl("/" + name);
+    this.requestRecordDefinition = new RecordDefinitionImpl(PathName.create("/" + name));
+    this.resultRecordDefinition = new RecordDefinitionImpl(PathName.create("/" + name));
+    this.internalRequestRecordDefinition = new RecordDefinitionImpl(PathName.create("/" + name));
   }
 
   public BusinessApplication(final String name) {

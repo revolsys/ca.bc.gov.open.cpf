@@ -18,6 +18,8 @@ package ca.bc.gov.open.cpf.api.domain;
 import java.util.Arrays;
 import java.util.List;
 
+import com.revolsys.io.PathName;
+
 /**
  * The BatchJobResult is a result file generated after the execution of a
  * BatchJob. For structured output data one file will be generated containing
@@ -27,7 +29,7 @@ import java.util.List;
  */
 public interface BatchJobResult extends Common {
 
-  public static final String BATCH_JOB_RESULT = "/CPF/CPF_BATCH_JOB_RESULTS";
+  public static final PathName BATCH_JOB_RESULT = PathName.create("/CPF/CPF_BATCH_JOB_RESULTS");
 
   public static final String BATCH_JOB_ID = "BATCH_JOB_ID";
 

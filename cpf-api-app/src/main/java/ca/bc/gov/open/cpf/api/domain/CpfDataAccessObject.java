@@ -56,6 +56,7 @@ import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
 import com.revolsys.format.json.Json;
+import com.revolsys.io.PathName;
 import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
 import com.revolsys.jdbc.JdbcUtils;
@@ -113,8 +114,7 @@ public class CpfDataAccessObject {
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " //
           + "COMPLETED_GROUP_RANGE = null, "//
           + "COMPLETED_REQUEST_RANGE = null, "//
-          + "FAILED_REQUEST_RANGE = NUM_SUBMITTED_REQUESTS,"
-          + "WHEN_STATUS_CHANGED = ?, " //
+          + "FAILED_REQUEST_RANGE = NUM_SUBMITTED_REQUESTS," + "WHEN_STATUS_CHANGED = ?, " //
           + "JOB_STATUS = 'cancelled',"
           + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
         final Timestamp now = new Timestamp(System.currentTimeMillis());
@@ -151,13 +151,14 @@ public class CpfDataAccessObject {
     this.userGroupPermissionRecordDefinition = null;
   }
 
-  public Record create(final String typeName) {
+  public Record create(final PathName typeName) {
     return this.recordStore.create(typeName);
   }
 
   public BatchJob createBatchJob() {
     final Record record = create(BatchJob.BATCH_JOB);
-    final long batchJobId = ((Number)this.recordStore.createPrimaryIdValue(BatchJob.BATCH_JOB)).intValue();
+    final long batchJobId = ((Number)this.recordStore.createPrimaryIdValue(BatchJob.BATCH_JOB))
+      .intValue();
     record.setIdValue(batchJobId);
     final String prefix = PathAliasController.getAlias();
     if (prefix != null) {
@@ -175,9 +176,9 @@ public class CpfDataAccessObject {
     return batchJob;
   }
 
-  public void createBatchJobExecutionGroup(final JobController jobController,
-    final long batchJobId, final int groupSequenceNumber, final String errorCode,
-    final String errorMessage, final String errorDebugMessage) {
+  public void createBatchJobExecutionGroup(final JobController jobController, final long batchJobId,
+    final int groupSequenceNumber, final String errorCode, final String errorMessage,
+    final String errorDebugMessage) {
     final Map<String, Object> error = new HashMap<String, Object>();
     error.put("i", 1);
     error.put("errorCode", errorCode);
@@ -207,11 +208,6 @@ public class CpfDataAccessObject {
     setConfigPropertyValue(configProperty, propertyValue);
     write(configProperty);
     return configProperty;
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T> T createId(final String typeName) {
-    return (T)this.recordStore.createPrimaryIdValue(typeName);
   }
 
   public Transaction createTransaction(final Propagation propagation) {
@@ -306,8 +302,8 @@ public class CpfDataAccessObject {
   }
 
   public int deleteConfigPropertiesForModule(final String moduleName) {
-    final Query query = Query.equal(this.configPropertyRecordDefinition,
-      ConfigProperty.MODULE_NAME, moduleName);
+    final Query query = Query.equal(this.configPropertyRecordDefinition, ConfigProperty.MODULE_NAME,
+      moduleName);
     return this.recordStore.delete(query);
   }
 
@@ -476,8 +472,7 @@ public class CpfDataAccessObject {
     query.setFieldNames(BatchJob.BATCH_JOB_ID);
     // TODO move to scheduling groups
     query.setWhereCondition(Q.sql(
-      "JOB_STATUS IN ( 'processing') AND "
-        + "NUM_SUBMITTED_GROUPS > 0 AND "
+      "JOB_STATUS IN ( 'processing') AND " + "NUM_SUBMITTED_GROUPS > 0 AND "
         + "COMPLETED_GROUP_RANGE <> concat('1~', NUM_SUBMITTED_GROUPS) AND BUSINESS_APPLICATION_NAME = ?",
       businessApplicationName));
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
@@ -613,9 +608,11 @@ public class CpfDataAccessObject {
   public List<Long> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
     final Query query = new Query(this.batchJobRecordDefinition);
     query.setFieldNames(BatchJob.BATCH_JOB_ID);
-    final And and = new And(new In(BatchJob.JOB_STATUS, BatchJobStatus.RESULTS_CREATED,
-      BatchJobStatus.DOWNLOAD_INITIATED, BatchJobStatus.CANCELLED), Q.lessThan(
-      this.batchJobRecordDefinition.getField(BatchJob.WHEN_STATUS_CHANGED), keepUntilTimestamp));
+    final And and = new And(
+      new In(BatchJob.JOB_STATUS, BatchJobStatus.RESULTS_CREATED, BatchJobStatus.DOWNLOAD_INITIATED,
+        BatchJobStatus.CANCELLED),
+      Q.lessThan(this.batchJobRecordDefinition.getField(BatchJob.WHEN_STATUS_CHANGED),
+        keepUntilTimestamp));
     query.setWhereCondition(and);
     final Reader<Record> batchJobs = this.recordStore.query(query);
     try {
@@ -770,8 +767,10 @@ public class CpfDataAccessObject {
     final String valuesString) {
     Integer databaseId;
     final Record applicationStatistics;
-    databaseId = ((Number)this.recordStore.createPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
-    applicationStatistics = this.recordStore.create(BusinessApplicationStatistics.APPLICATION_STATISTICS);
+    databaseId = ((Number)this.recordStore
+      .createPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
+    applicationStatistics = this.recordStore
+      .create(BusinessApplicationStatistics.APPLICATION_STATISTICS);
     applicationStatistics.setValue(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
       databaseId);
     applicationStatistics.setValue(BusinessApplicationStatistics.BUSINESS_APPLICATION_NAME,
@@ -799,10 +798,11 @@ public class CpfDataAccessObject {
 
       final Record applicationStatistics;
       if (databaseId == null) {
-        insertStatistics(statistics, businessApplicationName, durationType, startTime, valuesString);
+        insertStatistics(statistics, businessApplicationName, durationType, startTime,
+          valuesString);
       } else if (statistics.isModified()) {
-        applicationStatistics = this.recordStore.load(
-          BusinessApplicationStatistics.APPLICATION_STATISTICS, databaseId);
+        applicationStatistics = this.recordStore
+          .load(BusinessApplicationStatistics.APPLICATION_STATISTICS, databaseId);
         if (applicationStatistics == null) {
           insertStatistics(statistics, businessApplicationName, durationType, startTime,
             valuesString);
@@ -835,15 +835,15 @@ public class CpfDataAccessObject {
   public boolean setBatchJobFailed(final long batchJobId) {
     final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
 
-    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "COMPLETED_REQUEST_RANGE = null, "//
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " + "COMPLETED_REQUEST_RANGE = null, "//
       + "FAILED_REQUEST_RANGE = concat('1~', NUM_SUBMITTED_REQUESTS), "//
       + "JOB_STATUS = 'resultsCreated', COMPLETED_TIMESTAMP = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
       + "WHERE JOB_STATUS = 'creatingRequests' AND BATCH_JOB_ID = ?";
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
-      return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, now, username, batchJobId) == 1;
+      return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, now, username,
+        batchJobId) == 1;
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
     }
@@ -925,13 +925,18 @@ public class CpfDataAccessObject {
   public void setRecordStore(final RecordStore recordStore) {
     this.recordStore = recordStore;
     this.batchJobRecordDefinition = recordStore.getRecordDefinition(BatchJob.BATCH_JOB);
-    this.batchJobResultRecordDefinition = recordStore.getRecordDefinition(BatchJobResult.BATCH_JOB_RESULT);
-    this.businessApplicationStatisticsRecordDefinition = recordStore.getRecordDefinition(BusinessApplicationStatistics.APPLICATION_STATISTICS);
-    this.configPropertyRecordDefinition = recordStore.getRecordDefinition(ConfigProperty.CONFIG_PROPERTY);
+    this.batchJobResultRecordDefinition = recordStore
+      .getRecordDefinition(BatchJobResult.BATCH_JOB_RESULT);
+    this.businessApplicationStatisticsRecordDefinition = recordStore
+      .getRecordDefinition(BusinessApplicationStatistics.APPLICATION_STATISTICS);
+    this.configPropertyRecordDefinition = recordStore
+      .getRecordDefinition(ConfigProperty.CONFIG_PROPERTY);
     this.userAccountRecordDefinition = recordStore.getRecordDefinition(UserAccount.USER_ACCOUNT);
     this.userGroupRecordDefinition = recordStore.getRecordDefinition(UserGroup.USER_GROUP);
-    this.userGroupPermissionRecordDefinition = recordStore.getRecordDefinition(UserGroupPermission.USER_GROUP_PERMISSION);
-    this.userGroupAccountXrefRecordDefinition = recordStore.getRecordDefinition(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
+    this.userGroupPermissionRecordDefinition = recordStore
+      .getRecordDefinition(UserGroupPermission.USER_GROUP_PERMISSION);
+    this.userGroupAccountXrefRecordDefinition = recordStore
+      .getRecordDefinition(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
   }
 
   /**
@@ -1026,7 +1031,7 @@ public class CpfDataAccessObject {
         final RecordDefinition recordDefinition = record.getRecordDefinition();
 
         if (recordDefinition.getIdFieldIndex() != -1 && record.getIdentifier() == null) {
-          final Object id = this.recordStore.createPrimaryIdValue(recordDefinition.getPath());
+          final Object id = this.recordStore.createPrimaryIdValue(recordDefinition.getPathName());
           record.setIdValue(id);
         }
         record.setValue(Common.WHO_CREATED, username);
