@@ -20,7 +20,7 @@ import java.util.Map;
 
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 
-import com.revolsys.jts.geom.Geometry;
+import com.revolsys.geometry.model.Geometry;
 
 public class GeometryResult {
 

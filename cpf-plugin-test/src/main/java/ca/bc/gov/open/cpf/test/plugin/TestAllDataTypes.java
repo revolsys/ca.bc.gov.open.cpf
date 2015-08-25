@@ -26,7 +26,7 @@ import ca.bc.gov.open.cpf.plugin.api.DefaultValue;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 
-import com.revolsys.jts.geom.Geometry;
+import com.revolsys.geometry.model.Geometry;
 
 @BusinessApplicationPlugin(
     numRequestsPerWorker = 100,

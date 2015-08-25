@@ -108,6 +108,9 @@ import com.revolsys.format.csv.CsvMapWriter;
 import com.revolsys.format.html.XhtmlMapWriter;
 import com.revolsys.format.json.Json;
 import com.revolsys.format.kml.Kml22Constants;
+import com.revolsys.geometry.model.Geometry;
+import com.revolsys.geometry.model.GeometryFactory;
+import com.revolsys.geometry.operation.valid.IsValidOp;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
@@ -116,9 +119,6 @@ import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.io.map.MapWriterFactory;
-import com.revolsys.jts.geom.Geometry;
-import com.revolsys.jts.geom.GeometryFactory;
-import com.revolsys.jts.operation.valid.IsValidOp;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ClosedException;
@@ -570,7 +570,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public com.revolsys.io.Writer<Record> createStructuredResultWriter(
-    final org.springframework.core.io.Resource resource, final BusinessApplication application,
+    final com.revolsys.spring.resource.Resource resource, final BusinessApplication application,
     final RecordDefinition resultRecordDefinition, final String resultFormat, final String title,
     final GeometryFactory geometryFactory) {
     final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();

@@ -23,16 +23,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.servlet.HandlerMapping;
 
+import com.revolsys.spring.resource.Resource;
+import com.revolsys.spring.resource.ServletContextResource;
 import com.revolsys.spring.resource.SpringUtil;
 import com.revolsys.util.Property;
 
@@ -40,7 +40,7 @@ import com.revolsys.util.Property;
 public class DocumentationController extends WebApplicationObjectSupport {
 
   protected MediaType getMediaType(final Resource resource) {
-    final String mimeType = getServletContext().getMimeType(SpringUtil.getFileName(resource));
+    final String mimeType = getServletContext().getMimeType(resource.getFilename());
     if (Property.hasValue(mimeType)) {
       return MediaType.parseMediaType(mimeType);
     } else {

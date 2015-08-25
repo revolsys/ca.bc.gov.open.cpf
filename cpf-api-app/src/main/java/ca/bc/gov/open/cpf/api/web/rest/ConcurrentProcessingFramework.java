@@ -43,7 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
+import com.revolsys.spring.resource.ClassPathResource;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -94,12 +94,12 @@ import com.revolsys.data.types.DataTypes;
 import com.revolsys.data.types.SimpleDataType;
 import com.revolsys.format.json.Json;
 import com.revolsys.format.json.JsonRecordIoFactory;
+import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Writer;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.spring.resource.ByteArrayResource;
 import com.revolsys.spring.resource.InputStreamResource;
@@ -727,7 +727,7 @@ public class ConcurrentProcessingFramework {
             for (final MultipartFile file : inputDataFiles) {
               try (
                 final InputStream in = file.getInputStream()) {
-                final org.springframework.core.io.Resource resource = new InputStreamResource("in",
+                final com.revolsys.spring.resource.Resource resource = new InputStreamResource("in",
                   in, file.getSize());
                 this.jobController.setGroupInput(batchJobId, ++requestSequenceNumber,
                   inputDataContentType, resource);
@@ -889,7 +889,7 @@ public class ConcurrentProcessingFramework {
         inputDataContentType = defaultInputDataContentType;
       }
       final boolean perRequestInputData = businessApplication.isPerRequestInputData();
-      org.springframework.core.io.Resource inputDataIn = null;
+      com.revolsys.spring.resource.Resource inputDataIn = null;
       if (perRequestInputData) {
         if (!businessApplication.isInputContentTypeSupported(inputDataContentType)
           && !businessApplication.isInputContentTypeSupported("*/*")) {
@@ -2192,7 +2192,7 @@ public class ConcurrentProcessingFramework {
         field = new DateTimeField(name, required, defaultValue);
       } else if (Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
-      } else if (com.revolsys.jts.geom.Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
+      } else if (com.revolsys.geometry.model.Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
       } else if (URL.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new UrlField(name, required, defaultValue);
@@ -2840,7 +2840,7 @@ public class ConcurrentProcessingFramework {
     return parameters;
   }
 
-  private org.springframework.core.io.Resource getResource(final String fieldName) {
+  private com.revolsys.spring.resource.Resource getResource(final String fieldName) {
     final HttpServletRequest request = HttpServletUtils.getRequest();
     if (request instanceof MultipartHttpServletRequest) {
       final MultipartHttpServletRequest multiPartRequest = (MultipartHttpServletRequest)request;

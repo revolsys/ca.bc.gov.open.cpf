@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.revolsys.spring.resource.FileSystemResource;
-import org.springframework.core.io.Resource;
+import com.revolsys.spring.resource.Resource;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 

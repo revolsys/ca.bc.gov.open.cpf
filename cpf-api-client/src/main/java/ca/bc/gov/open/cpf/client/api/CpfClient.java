@@ -32,7 +32,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
-import org.springframework.core.io.Resource;
+import com.revolsys.spring.resource.Resource;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpMultipartPost;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;

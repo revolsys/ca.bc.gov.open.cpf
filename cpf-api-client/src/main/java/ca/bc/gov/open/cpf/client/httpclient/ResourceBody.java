@@ -21,7 +21,7 @@ import java.io.OutputStream;
 
 import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.content.AbstractContentBody;
-import org.springframework.core.io.Resource;
+import com.revolsys.spring.resource.Resource;
 
 import com.revolsys.spring.resource.SpringUtil;
 
@@ -52,7 +52,7 @@ public class ResourceBody extends AbstractContentBody {
   @Override
   public String getFilename() {
     try {
-      return SpringUtil.getFileName(this.resource);
+      return this.resource.getFilename();
     } catch (final IllegalStateException e) {
       return "unnamed";
     }

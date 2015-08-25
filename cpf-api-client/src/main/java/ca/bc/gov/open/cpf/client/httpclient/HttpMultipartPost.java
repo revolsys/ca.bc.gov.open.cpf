@@ -33,7 +33,7 @@ import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
-import org.springframework.core.io.Resource;
+import com.revolsys.spring.resource.Resource;
 
 @SuppressWarnings("javadoc")
 public class HttpMultipartPost {

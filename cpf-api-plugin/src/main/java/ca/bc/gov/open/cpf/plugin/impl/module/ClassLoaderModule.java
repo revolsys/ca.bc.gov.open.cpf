@@ -50,7 +50,6 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.io.Resource;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
@@ -81,6 +80,8 @@ import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.data.record.schema.RecordDefinitionImpl;
 import com.revolsys.data.types.DataType;
 import com.revolsys.data.types.DataTypes;
+import com.revolsys.geometry.model.Geometry;
+import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.gis.cs.CoordinateSystem;
 import com.revolsys.gis.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.io.FileUtil;
@@ -88,9 +89,8 @@ import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
-import com.revolsys.jts.geom.Geometry;
-import com.revolsys.jts.geom.GeometryFactory;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
+import com.revolsys.spring.resource.Resource;
 import com.revolsys.spring.resource.UrlResource;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.JavaBeanUtil;
@@ -1083,8 +1083,9 @@ public class ClassLoaderModule implements Module {
             .getBean("beanImports");
           for (final String beanImport : beanImports) {
             try {
-              final Resource[] resources = this.applicationContext.getResources(beanImport);
-              for (final Resource resource : resources) {
+              final org.springframework.core.io.Resource[] resources = this.applicationContext
+                .getResources(beanImport);
+              for (final org.springframework.core.io.Resource resource : resources) {
                 beanReader.loadBeanDefinitions(resource);
               }
             } catch (final Throwable e) {
