@@ -31,7 +31,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
 import com.revolsys.collection.map.Maps;
-import com.revolsys.data.record.Record;
+import com.revolsys.record.Record;
 import com.revolsys.util.Property;
 import com.revolsys.websocket.json.JsonDecoder;
 import com.revolsys.websocket.json.JsonEncoder;

@@ -44,7 +44,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 
 import com.revolsys.comparator.IgnoreCaseStringComparator;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.data.types.DataTypes;
+import com.revolsys.datatype.DataTypes;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
 import com.revolsys.util.ExceptionUtil;

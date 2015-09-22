@@ -37,8 +37,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 
-import com.revolsys.data.identifier.Identifier;
-import com.revolsys.data.record.Record;
+import com.revolsys.identifier.Identifier;
+import com.revolsys.record.Record;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
 

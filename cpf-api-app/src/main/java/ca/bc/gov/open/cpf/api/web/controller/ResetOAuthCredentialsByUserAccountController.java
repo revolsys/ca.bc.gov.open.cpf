@@ -25,7 +25,7 @@ import org.springframework.web.servlet.mvc.Controller;
 
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 
-import com.revolsys.data.record.Record;
+import com.revolsys.record.Record;
 
 public class ResetOAuthCredentialsByUserAccountController implements Controller {
   /** The user type to use when finding the user by their external name. */

@@ -46,56 +46,56 @@
             <entry key="/CPF/CPF_BATCH_JOBS">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_BJ" />
               </list>
             </entry>
             <entry key="/CPF/CPF_BATCH_JOB_EXECUTION_GROUPS">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_BJEG" />
               </list>
             </entry>
             <entry key="/CPF/CPF_BATCH_JOB_RESULTS">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_BJRS" />
               </list>
             </entry>
             <entry key="/CPF/CPF_CONFIG_PROPERTIES">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_CP" />
               </list>
             </entry>
             <entry key="/CPF/CPF_USER_ACCOUNTS">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_UA" />
               </list>
             </entry>
             <entry key="/CPF/CPF_USER_GROUPS">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_UG" />
               </list>
             </entry>
             <entry key="/CPF/CPF_USER_GROUP_PERMISSIONS">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_UGP" />
               </list>
             </entry>
             <entry key="/CPF/CPF_APPLICATION_STATISTICS">
               <list>
                 <bean
-                  class="com.revolsys.data.record.property.ShortNameProperty"
+                  class="com.revolsys.record.property.ShortNameProperty"
                   p:shortName="CPF_AS" />
               </list>
             </entry>

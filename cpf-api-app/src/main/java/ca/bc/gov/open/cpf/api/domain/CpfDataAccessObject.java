@@ -43,24 +43,24 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.data.identifier.Identifier;
-import com.revolsys.data.query.And;
-import com.revolsys.data.query.Condition;
-import com.revolsys.data.query.In;
-import com.revolsys.data.query.Or;
-import com.revolsys.data.query.Q;
-import com.revolsys.data.query.Query;
-import com.revolsys.data.record.Record;
-import com.revolsys.data.record.schema.RecordDefinition;
-import com.revolsys.data.record.schema.RecordStore;
-import com.revolsys.data.types.DataType;
-import com.revolsys.data.types.DataTypes;
+import com.revolsys.datatype.DataType;
+import com.revolsys.datatype.DataTypes;
 import com.revolsys.format.json.Json;
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
 import com.revolsys.jdbc.JdbcUtils;
 import com.revolsys.jdbc.io.JdbcRecordStore;
+import com.revolsys.record.Record;
+import com.revolsys.record.query.And;
+import com.revolsys.record.query.Condition;
+import com.revolsys.record.query.In;
+import com.revolsys.record.query.Or;
+import com.revolsys.record.query.Q;
+import com.revolsys.record.query.Query;
+import com.revolsys.record.schema.RecordDefinition;
+import com.revolsys.record.schema.RecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.controller.PathAliasController;
@@ -152,7 +152,7 @@ public class CpfDataAccessObject {
   }
 
   public Record create(final PathName typeName) {
-    return this.recordStore.create(typeName);
+    return this.recordStore.newRecord(typeName);
   }
 
   public BatchJob createBatchJob() {
@@ -770,7 +770,7 @@ public class CpfDataAccessObject {
     databaseId = ((Number)this.recordStore
       .createPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
     applicationStatistics = this.recordStore
-      .create(BusinessApplicationStatistics.APPLICATION_STATISTICS);
+      .newRecord(BusinessApplicationStatistics.APPLICATION_STATISTICS);
     applicationStatistics.setValue(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
       databaseId);
     applicationStatistics.setValue(BusinessApplicationStatistics.BUSINESS_APPLICATION_NAME,

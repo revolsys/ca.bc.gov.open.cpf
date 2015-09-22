@@ -46,7 +46,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 
-import com.revolsys.data.record.Record;
+import com.revolsys.record.Record;
 
 /**
  * The LoadUserByConsumerKeyInterceptor intercepts HTTP requests and adds the

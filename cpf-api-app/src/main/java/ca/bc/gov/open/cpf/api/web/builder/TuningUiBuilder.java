@@ -39,12 +39,12 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobScheduler;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.data.query.And;
-import com.revolsys.data.query.Q;
-import com.revolsys.data.query.Query;
-import com.revolsys.data.record.Record;
-import com.revolsys.data.record.schema.RecordStore;
 import com.revolsys.jdbc.io.DataSourceImpl;
+import com.revolsys.record.Record;
+import com.revolsys.record.query.And;
+import com.revolsys.record.query.Q;
+import com.revolsys.record.query.Query;
+import com.revolsys.record.schema.RecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.html.decorator.CollapsibleBox;

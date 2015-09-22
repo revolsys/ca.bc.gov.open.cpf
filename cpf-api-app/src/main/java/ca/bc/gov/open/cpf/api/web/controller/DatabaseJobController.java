@@ -22,10 +22,10 @@ import java.util.List;
 import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
-import com.revolsys.data.record.Record;
-import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.format.csv.CsvRecordWriter;
 import com.revolsys.io.FileUtil;
+import com.revolsys.record.Record;
+import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 

@@ -22,9 +22,9 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
-import com.revolsys.data.record.Record;
-import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.io.Reader;
+import com.revolsys.record.Record;
+import com.revolsys.record.schema.RecordDefinition;
 
 public interface JobController {
   String GROUP_RESULTS = "groupResults";

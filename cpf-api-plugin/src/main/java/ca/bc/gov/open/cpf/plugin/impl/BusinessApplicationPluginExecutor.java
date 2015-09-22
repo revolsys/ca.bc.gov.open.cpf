@@ -33,9 +33,9 @@ import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityServiceFactory;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
-import com.revolsys.data.record.Record;
-import com.revolsys.data.record.schema.RecordDefinition;
 import com.revolsys.format.json.JsonRecordIoFactory;
+import com.revolsys.record.Record;
+import com.revolsys.record.schema.RecordDefinition;
 
 /**
  * The BusinessApplicationPluginExecutor can be used to simulate running a

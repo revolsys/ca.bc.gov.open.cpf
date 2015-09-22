@@ -28,8 +28,8 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
-import com.revolsys.data.record.Record;
-import com.revolsys.data.record.Records;
+import com.revolsys.record.Record;
+import com.revolsys.record.Records;
 
 public class BaseAuthorizationService implements AuthorizationService {
 

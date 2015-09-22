@@ -27,9 +27,9 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.data.record.Record;
-import com.revolsys.data.types.DataType;
-import com.revolsys.data.types.DataTypes;
+import com.revolsys.datatype.DataType;
+import com.revolsys.datatype.DataTypes;
+import com.revolsys.record.Record;
 
 public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
 

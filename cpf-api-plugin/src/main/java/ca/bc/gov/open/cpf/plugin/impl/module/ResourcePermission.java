@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.revolsys.collection.map.Maps;
-import com.revolsys.data.record.Record;
+import com.revolsys.record.Record;
 import com.revolsys.util.Property;
 
 public class ResourcePermission {

@@ -38,11 +38,11 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
-import com.revolsys.data.record.Record;
-import com.revolsys.data.types.DataTypes;
+import com.revolsys.datatype.DataTypes;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.maven.MavenRepository;
+import com.revolsys.record.Record;
 import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
