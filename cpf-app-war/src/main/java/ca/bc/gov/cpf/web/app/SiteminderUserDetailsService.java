@@ -25,8 +25,8 @@ import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.GroupNameService;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
-import com.revolsys.data.record.Record;
-import com.revolsys.data.record.Records;
+import com.revolsys.record.Record;
+import com.revolsys.record.Records;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.utils.HttpServletUtils;
