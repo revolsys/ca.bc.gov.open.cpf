@@ -45,7 +45,6 @@ import com.revolsys.equals.Equals;
 import com.revolsys.geometry.cs.CoordinateSystem;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.gis.util.Debug;
 import com.revolsys.io.PathName;
 import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.record.schema.FieldDefinition;
@@ -53,6 +52,7 @@ import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.CollectionUtil;
+import com.revolsys.util.Debug;
 import com.revolsys.util.Property;
 
 /**

@@ -28,9 +28,9 @@ import org.slf4j.LoggerFactory;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.format.csv.CsvRecordWriter;
 import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
+import com.revolsys.record.io.format.csv.CsvRecordWriter;
 import com.revolsys.record.schema.RecordDefinition;
 
 public class FileJobController extends AbstractJobController {

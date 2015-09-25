@@ -41,8 +41,8 @@ import ca.bc.gov.open.cpf.api.domain.UserGroupPermission;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.format.xml.XmlWriter;
 import com.revolsys.record.Record;
+import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;

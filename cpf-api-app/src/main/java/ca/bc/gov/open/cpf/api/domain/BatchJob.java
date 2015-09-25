@@ -12,11 +12,11 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.range.AbstractRange;
 import com.revolsys.collection.range.RangeSet;
-import com.revolsys.format.json.Json;
 import com.revolsys.io.PathName;
 import com.revolsys.record.DelegatingRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.RecordState;
+import com.revolsys.record.io.format.json.Json;
 
 public class BatchJob extends DelegatingRecord implements Common {
 

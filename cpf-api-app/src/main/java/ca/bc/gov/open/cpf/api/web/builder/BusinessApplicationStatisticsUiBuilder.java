@@ -42,8 +42,8 @@ import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.beans.InvokeMethodCallable;
-import com.revolsys.format.xml.XmlWriter;
 import com.revolsys.record.Record;
+import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.view.TabElementContainer;
 
 @Controller

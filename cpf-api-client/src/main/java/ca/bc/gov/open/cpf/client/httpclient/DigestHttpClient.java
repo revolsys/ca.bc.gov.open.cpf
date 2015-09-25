@@ -49,11 +49,11 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.revolsys.format.json.Json;
-import com.revolsys.format.json.JsonParser;
 import com.revolsys.io.FileUtil;
 import com.revolsys.parallel.ThreadInterruptedException;
 import com.revolsys.parallel.ThreadUtil;
+import com.revolsys.record.io.format.json.Json;
+import com.revolsys.record.io.format.json.JsonParser;
 import com.revolsys.util.ExceptionUtil;
 
 public class DigestHttpClient {
