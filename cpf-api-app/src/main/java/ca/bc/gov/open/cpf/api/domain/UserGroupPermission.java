@@ -32,6 +32,6 @@ public interface UserGroupPermission extends Common {
 
   String MODULE_NAME = "MODULE_NAME";
 
-  PathName USER_GROUP_PERMISSION = PathName.create("/CPF/CPF_USER_GROUP_PERMISSIONS");
+  PathName USER_GROUP_PERMISSION = PathName.newPathName("/CPF/CPF_USER_GROUP_PERMISSIONS");
 
 }

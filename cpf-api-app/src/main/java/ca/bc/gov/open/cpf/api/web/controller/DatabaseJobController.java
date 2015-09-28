@@ -45,7 +45,7 @@ public class DatabaseJobController extends AbstractJobController {
   public void createJobFile(final long jobId, final String path, final long sequenceNumber,
     final String contentType, final Object data) {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       final Record result = this.dataAccessObject.create(BatchJobFile.BATCH_JOB_FILE);
       result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
       result.setValue(BatchJobFile.PATH, path);

@@ -446,7 +446,7 @@ CpfClient.prototype.getJobStatus = function(
 };
 
 /**
- * <p>Submit a form to create a new job on the CPF server for a business application that
+ * <p>Submit a form to Construct a new new job on the CPF server for a business application that
  * accepts <a href="../../structuredData.html">structured input data</a>
  * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> REST API.</p>
  * 

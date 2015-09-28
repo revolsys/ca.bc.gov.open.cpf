@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * <p>The list of allowed values is returned with the parameter descriptions in the
  * business application specifications web services.</p>
  * 
- * <p>The list of allowed values is used to create a select list field on the job submission form. If the parameter
+ * <p>The list of allowed values is used to Construct a new select list field on the job submission form. If the parameter
  * is not required the select field will include "-" to indicate the null (not selected) value.</p>
  * 
  * <p>The following code fragment shows an example of using the API.</p>

@@ -65,7 +65,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
     if (isEnabled()) {
       if (!isStarted()) {
         try (
-          Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+          Transaction transaction = dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
           try {
             try {
               clearModuleError();
@@ -109,7 +109,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   public void doStop() {
     if (isStarted()) {
       try (
-        Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
         try {
           final List<String> businessApplicationNames = getBusinessApplicationNames();
           setStartedDate(null);
@@ -175,7 +175,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   @Override
   protected void preLoadApplications() {
     try (
-      Transaction transaction = dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         moduleLoader.refreshConfigProperties(this);
         moduleLoader.refreshUserGroup(this, "_ADMIN",

@@ -20,7 +20,7 @@ import com.revolsys.io.PathName;
 public interface ConfigProperty extends Common {
   String COMPONENT_NAME = "COMPONENT_NAME";
 
-  PathName CONFIG_PROPERTY = PathName.create("/CPF/CPF_CONFIG_PROPERTIES");
+  PathName CONFIG_PROPERTY = PathName.newPathName("/CPF/CPF_CONFIG_PROPERTIES");
 
   Object CPF_TUNING = "CPF_TUNING";
 

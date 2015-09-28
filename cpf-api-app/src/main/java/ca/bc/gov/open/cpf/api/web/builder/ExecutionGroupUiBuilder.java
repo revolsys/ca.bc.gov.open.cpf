@@ -52,7 +52,7 @@ import com.revolsys.util.Property;
 public class ExecutionGroupUiBuilder extends CpfUiBuilder {
 
   public ExecutionGroupUiBuilder() {
-    super("executionGroup", PathName.create("ExecutionGroup"), "sequenceNumber", "Execution Group",
+    super("executionGroup", PathName.newPathName("ExecutionGroup"), "sequenceNumber", "Execution Group",
       "Execution Groups");
     setIdParameterName("sequenceNumber");
   }

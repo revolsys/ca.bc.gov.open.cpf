@@ -24,7 +24,7 @@ public interface UserAccount extends Common {
 
   String CONSUMER_SECRET = "CONSUMER_SECRET";
 
-  PathName USER_ACCOUNT = PathName.create("/CPF/CPF_USER_ACCOUNTS");
+  PathName USER_ACCOUNT = PathName.newPathName("/CPF/CPF_USER_ACCOUNTS");
 
   String USER_ACCOUNT_CLASS = "USER_ACCOUNT_CLASS";
 

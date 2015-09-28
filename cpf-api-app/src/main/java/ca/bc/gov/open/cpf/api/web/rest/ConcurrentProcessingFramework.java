@@ -488,7 +488,7 @@ public class ConcurrentProcessingFramework {
   }
 
   /**
-   * <p>Create a new job containing multiple requests to be processed by the
+   * <p>Construct a new new job containing multiple requests to be processed by the
    * business application.</p>
    *
    * <p>The service parameters must be passed
@@ -783,7 +783,7 @@ public class ConcurrentProcessingFramework {
   }
 
   /**
-   * <p>Create a new job containing multiple requests to be processed by the
+   * <p>Construct a new new job containing multiple requests to be processed by the
    * business application.</p>
    *
    * <p>The job and request parameters for the business application must be passed

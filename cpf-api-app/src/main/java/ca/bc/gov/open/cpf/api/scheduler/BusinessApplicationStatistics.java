@@ -32,7 +32,7 @@ import com.revolsys.util.JavaBeanUtil;
 
 public class BusinessApplicationStatistics {
   public static final PathName APPLICATION_STATISTICS = PathName
-    .create("/CPF/CPF_APPLICATION_STATISTICS");
+    .newPathName("/CPF/CPF_APPLICATION_STATISTICS");
 
   public static final String BUSINESS_APPLICATION_NAME = "BUSINESS_APPLICATION_NAME";
 

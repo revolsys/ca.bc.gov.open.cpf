@@ -37,7 +37,7 @@ Integration System, use the Ministry Standards below as a Guide.
 
 http://apps.bcgov/standards/index.php/Migration_Task_with_CIS
 
-Create a new maven 2/3 job with the following parameters.
+Construct a new new maven 2/3 job with the following parameters.
 
 Project name:                       revolys-${pluginAcronym}-deploy
 Description:                        Build the ${pluginName} and deploy to artifactory.

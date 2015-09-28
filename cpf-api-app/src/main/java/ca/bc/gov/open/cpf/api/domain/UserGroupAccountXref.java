@@ -18,7 +18,7 @@ package ca.bc.gov.open.cpf.api.domain;
 import com.revolsys.io.PathName;
 
 public interface UserGroupAccountXref extends Common {
-  PathName USER_GROUP_ACCOUNT_XREF = PathName.create("/CPF/CPF_USER_GROUP_ACCOUNT_XREF");
+  PathName USER_GROUP_ACCOUNT_XREF = PathName.newPathName("/CPF/CPF_USER_GROUP_ACCOUNT_XREF");
 
   String USER_ACCOUNT_ID = "USER_ACCOUNT_ID";
 

@@ -20,7 +20,7 @@ import com.revolsys.record.io.format.json.Json;
 
 public class BatchJob extends DelegatingRecord implements Common {
 
-  public static final PathName BATCH_JOB = PathName.create("/CPF/CPF_BATCH_JOBS");
+  public static final PathName BATCH_JOB = PathName.newPathName("/CPF/CPF_BATCH_JOBS");
 
   public static final String BATCH_JOB_ID = "BATCH_JOB_ID";
 
@@ -77,11 +77,11 @@ public class BatchJob extends DelegatingRecord implements Common {
   public BatchJob(final Record record) {
     super(record);
     final String completedGroupRange = record.getString(BatchJob.COMPLETED_GROUP_RANGE);
-    this.completedGroups = RangeSet.create(completedGroupRange);
+    this.completedGroups = RangeSet.newRangeSet(completedGroupRange);
     final String completedRequestsRange = record.getString(BatchJob.COMPLETED_REQUEST_RANGE);
-    this.completedRequests = RangeSet.create(completedRequestsRange);
+    this.completedRequests = RangeSet.newRangeSet(completedRequestsRange);
     final String failedRequestsRange = record.getString(BatchJob.FAILED_REQUEST_RANGE);
-    this.failedRequests = RangeSet.create(failedRequestsRange);
+    this.failedRequests = RangeSet.newRangeSet(failedRequestsRange);
     final int groupCount = record.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
     setGroupCount(groupCount);
     this.groupsToProcess.remove(this.completedGroups);
@@ -97,7 +97,7 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public RangeSet addCompletedRequests(final String range) {
-    final RangeSet rangeSet = RangeSet.create(range);
+    final RangeSet rangeSet = RangeSet.newRangeSet(range);
     synchronized (this.completedRequests) {
       this.completedRequests.addRanges(rangeSet);
     }
@@ -105,7 +105,7 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public RangeSet addFailedRequests(final String range) {
-    final RangeSet rangeSet = RangeSet.create(range);
+    final RangeSet rangeSet = RangeSet.newRangeSet(range);
     synchronized (this.failedRequests) {
       this.failedRequests.addRanges(rangeSet);
     }

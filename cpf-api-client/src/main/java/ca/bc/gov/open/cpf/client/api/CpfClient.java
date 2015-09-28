@@ -218,7 +218,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
@@ -285,7 +285,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
@@ -335,7 +335,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
@@ -396,7 +396,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../opaqueData.html">opaque input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
@@ -440,7 +440,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
@@ -497,7 +497,7 @@ public class CpfClient implements Closeable {
     final MapWriterFactory factory = IoFactoryRegistry.getInstance()
       .getFactoryByMediaType(MapWriterFactory.class, inputDataType);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
-    final MapWriter mapWriter = factory.createMapWriter(out);
+    final MapWriter mapWriter = factory.newMapWriter(out);
 
     for (final Map<String, ? extends Object> requestRecord : requests) {
       mapWriter.write(requestRecord);
@@ -510,7 +510,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
@@ -587,7 +587,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *
@@ -658,7 +658,7 @@ public class CpfClient implements Closeable {
   }
 
   /**
-   * <p>Create a new job on the CPF server for a business application that
+   * <p>Construct a new new job on the CPF server for a business application that
    * accepts <a href="../../structuredData.html">structured input data</a>
    * using the <a href="../rest-api/#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithMultipleRequests">Create Job With Multiple Requests</a> REST API.</p>
    *

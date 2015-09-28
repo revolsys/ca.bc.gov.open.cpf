@@ -211,7 +211,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a copy of an existing {@link Geometry}. If the geometry is in a different coordinate system
+   * <p>Construct a new copy of an existing {@link Geometry}. If the geometry is in a different coordinate system
    * or precision model project the geometry to the coordinate system from this geometry factory
    * and apply the precision model.</p>
    *
@@ -228,7 +228,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a {@link Geometry} from a <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> or
+   * <p>Construct a new {@link Geometry} from a <a href="http://en.wikipedia.org/wiki/Well-known_text">WKT</a> or
    * <a href="http://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT">EWKT</a> encoded geometry.
    * If the EWKT string includes a SRID the geometry will use read using that SRID and then
    * projected to the SRID of the geometry factory. If the SRID was not specified the geometry will
@@ -254,7 +254,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a {@link LinearRing} using the array of coordinates. The ring must form a closed loop.
+   * <p>Construct a new {@link LinearRing} using the array of coordinates. The ring must form a closed loop.
    * The size of the array should be a multiple
    * of the number of axis. For example a 2D geometry will have x1,y1...,xN,yN values and a 3D x1,y1,z1...,xN,yN,zN.
    * Geographic coordinates are always longitude, latitude and projected easting, northing.</p>
@@ -267,7 +267,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a {@link LineString} using the array of coordinates. The size of the array should be a multiple
+   * <p>Construct a new {@link LineString} using the array of coordinates. The size of the array should be a multiple
    * of the number of axis. For example a 2D geometry will have x1,y1...,xN,yN values and a 3D x1,y1,z1...,xN,yN,zN.
    * Geographic coordinates are always longitude, latitude and projected easting, northing.</p>
    *
@@ -281,7 +281,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a {@link MultiLineString} using the list of lines. The first ring in the list is the exterior ring and
+   * <p>Construct a new {@link MultiLineString} using the list of lines. The first ring in the list is the exterior ring and
    * the other rings are the interior rings. The rings in the list can be any of the following types.</p>
    *
    * <ul>
@@ -303,7 +303,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a {@link MultiPoint} using the list of points. The points in the list can be any of the following types.</p>
+   * <p>Construct a new {@link MultiPoint} using the list of points. The points in the list can be any of the following types.</p>
    *
    * <ul>
    *   <li><code>double[]</code></li>
@@ -325,7 +325,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a point using the array of coordinates. The size of the array should be the same as the
+   * <p>Construct a new point using the array of coordinates. The size of the array should be the same as the
    * number of axis used on this geometry factory. If the size is less then additional axis will be
    * set to 0. If greater then those values will be ignored. For example a 2D geometry will have x,y values and a 3D x,y,z.
    * Geographic coordinates are always longitude, latitude and projected easting, northing.</p>
@@ -359,7 +359,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a polygon using the list of rings. The first ring in the list is the exterior ring and
+   * <p>Construct a new polygon using the list of rings. The first ring in the list is the exterior ring and
    * the other rings are the interior rings. The rings in the list can be any of the following types.</p>
    *
    * <ul>
@@ -540,7 +540,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   /**
-   * <p>Create a {@link MultiPolygon} using the list of points. The points in the list can be any of the following types.</p>
+   * <p>Construct a new {@link MultiPolygon} using the list of points. The points in the list can be any of the following types.</p>
    *
    * <ul>
    *   <li>{@link Polygon}</li>

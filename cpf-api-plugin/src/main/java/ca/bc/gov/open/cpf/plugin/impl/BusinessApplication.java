@@ -39,6 +39,8 @@ import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.collection.CollectionUtil;
+import com.revolsys.collection.map.Maps;
 import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.equals.Equals;
@@ -51,7 +53,6 @@ import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.CaseConverter;
-import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Debug;
 import com.revolsys.util.Property;
 
@@ -244,9 +245,9 @@ public class BusinessApplication extends BaseObjectWithProperties
     this.module = module;
     this.name = name;
     this.log = new AppLog(module.getName() + "." + name);
-    this.requestRecordDefinition = new RecordDefinitionImpl(PathName.create("/" + name));
-    this.resultRecordDefinition = new RecordDefinitionImpl(PathName.create("/" + name));
-    this.internalRequestRecordDefinition = new RecordDefinitionImpl(PathName.create("/" + name));
+    this.requestRecordDefinition = new RecordDefinitionImpl(PathName.newPathName("/" + name));
+    this.resultRecordDefinition = new RecordDefinitionImpl(PathName.newPathName("/" + name));
+    this.internalRequestRecordDefinition = new RecordDefinitionImpl(PathName.newPathName("/" + name));
   }
 
   public BusinessApplication(final String name) {
@@ -378,7 +379,7 @@ public class BusinessApplication extends BaseObjectWithProperties
     this.inputDataContentTypes.add(contentType);
 
     this.inputDataFileExtensions.put(fileExtension, description);
-    this.inputDataFileExtensions = CollectionUtil.sortByValues(this.inputDataFileExtensions);
+    this.inputDataFileExtensions = Maps.sortByValues(this.inputDataFileExtensions);
     this.inputFileExtensionToContentType.put(fileExtension, contentType);
   }
 

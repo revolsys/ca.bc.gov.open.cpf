@@ -18,7 +18,7 @@ package ca.bc.gov.open.cpf.api.domain;
 import com.revolsys.io.PathName;
 
 public interface UserGroup extends Common {
-  PathName USER_GROUP = PathName.create("/CPF/CPF_USER_GROUPS");
+  PathName USER_GROUP = PathName.newPathName("/CPF/CPF_USER_GROUPS");
 
   String USER_GROUP_NAME = "USER_GROUP_NAME";
 

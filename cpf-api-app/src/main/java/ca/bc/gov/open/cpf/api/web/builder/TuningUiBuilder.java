@@ -134,7 +134,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
       if (form.isValid()) {
         final RecordStore recordStore = getRecordStore();
         try (
-          Transaction transaction = recordStore.createTransaction(Propagation.REQUIRES_NEW)) {
+          Transaction transaction = recordStore.newTransaction(Propagation.REQUIRES_NEW)) {
           for (final String fieldName : fieldNames) {
             final Field field = form.getField(fieldName);
             final Object value = field.getValue();

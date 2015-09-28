@@ -102,7 +102,7 @@ class DerParser {
   protected InputStream in;
 
   /**
-   * Create a new DER decoder from a byte array.
+   * Construct a new new DER decoder from a byte array.
    * 
    * @param The encoded bytes
    * @throws IOException
@@ -112,7 +112,7 @@ class DerParser {
   }
 
   /**
-   * Create a new DER decoder from an input stream.
+   * Construct a new new DER decoder from an input stream.
    * 
    * @param in The DER encoded stream
    */

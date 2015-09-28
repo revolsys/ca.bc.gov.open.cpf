@@ -82,7 +82,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
   @PostConstruct
   public void init() {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         this.dataAccessObject.createUserGroup("USER_TYPE", "OPENID", "OpenID All Users");
       } catch (final Throwable e) {
@@ -102,7 +102,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
 
   /**
    * Load the external user which has the {@link #userAccountClass} and external
-   * user name. If the user does not exist in the database create a new external
+   * user name. If the user does not exist in the database Construct a new new external
    * user record with a generated consumer key and consumer secret.
    *
    * @param userAccountName The external user name to login as.
@@ -111,7 +111,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(final String userAccountName) {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         Record user = this.dataAccessObject.getUserAccount(this.userAccountClass, userAccountName);
         if (user == null) {

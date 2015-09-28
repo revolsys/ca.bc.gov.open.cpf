@@ -205,7 +205,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         .getResourceAsStream("META-INF/ca.bc.gov.open.cpf.plugin.ConfigProperties.json");
       if (in != null) {
         final InputStreamResource resource = new InputStreamResource("properties.json", in);
-        final Reader<Map<String, Object>> reader = MapReader.create(resource);
+        final Reader<Map<String, Object>> reader = MapReader.newMapReader(resource);
         final List<Map<String, Object>> pluginProperties = reader.read();
 
         final Map<String, Map<String, Record>> propertiesByEnvironment = getPropertiesByEnvironment(
@@ -279,7 +279,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     synchronized (this.modulesByName) {
       try (
         Transaction transaction = this.dataAccessObject
-          .createTransaction(Propagation.REQUIRES_NEW)) {
+          .newTransaction(Propagation.REQUIRES_NEW)) {
         try {
           final Map<String, Module> modulesToDelete = new HashMap<String, Module>(
             this.modulesByName);
@@ -403,7 +403,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   public void setMavenModuleConfigProperties(final String moduleName, final String mavenModuleId,
     final boolean enabled) {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String environmentName = ConfigProperty.DEFAULT;
         final String componentName = ConfigProperty.MODULE_CONFIG;

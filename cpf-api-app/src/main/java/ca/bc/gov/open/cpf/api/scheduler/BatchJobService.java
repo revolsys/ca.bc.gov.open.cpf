@@ -410,7 +410,7 @@ public class BatchJobService implements ModuleEventListener {
 
   protected void collateAllStatistics() {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
 
@@ -580,7 +580,7 @@ public class BatchJobService implements ModuleEventListener {
       throw new IllegalArgumentException("Unsupported result content type: " + resultFormat);
     } else {
       final com.revolsys.io.Writer<Record> recordWriter = writerFactory
-        .createRecordWriter(resultRecordDefinition, resource);
+        .newRecordWriter(resultRecordDefinition, resource);
       recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
         this.getBaseUrl() + "/kml/defaultStyle.kml#default");
       recordWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
@@ -981,7 +981,7 @@ public class BatchJobService implements ModuleEventListener {
   @Override
   public void moduleChanged(final ModuleEvent event) {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String action = event.getAction();
         final Module module = event.getModule();
@@ -1064,7 +1064,7 @@ public class BatchJobService implements ModuleEventListener {
     final long lastChangedTime) {
     AppLog log = null;
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try (
         com.revolsys.io.Writer<Record> writer = this.recordStore.getWriter();) {
         final BatchJob batchJob = getBatchJob(batchJobId);
@@ -1361,7 +1361,7 @@ public class BatchJobService implements ModuleEventListener {
     AppLog log = null;
     BatchJob batchJob = null;
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         int numSubmittedRequests = 0;
         final StopWatch stopWatch = new StopWatch();
@@ -1421,7 +1421,7 @@ public class BatchJobService implements ModuleEventListener {
                       inputDataStream);
                     try (
                       final Reader<Map<String, Object>> mapReader = factory
-                        .createMapReader(resource)) {
+                        .newMapreader(resource)) {
                       if (mapReader == null) {
                         valid = addJobValidationError(batchJobId, ErrorCode.INPUT_DATA_UNREADABLE,
                           inputContentType, "Media type not supported");
@@ -1818,7 +1818,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void scheduleFromDatabase() {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         for (final Module module : this.businessApplicationRegistry.getModules()) {
           if (module.isStarted()) {
@@ -1836,7 +1836,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void scheduleFromDatabase(final String jobStatus) {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         for (final Module module : this.businessApplicationRegistry.getModules()) {
           if (module.isEnabled()) {
@@ -1868,7 +1868,7 @@ public class BatchJobService implements ModuleEventListener {
     final String jobStatus) {
     final AppLog log = getAppLog(businessApplicationName);
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final List<Long> batchJobIds = this.dataAccessObject.getBatchJobIds(businessApplicationName,
           jobStatus);
@@ -1976,7 +1976,7 @@ public class BatchJobService implements ModuleEventListener {
               LoggerFactory.getLogger(BatchJobService.class)
                 .error("Media type not supported for Record #" + batchJobId + " to " + contentType);
             } else {
-              final MapWriter writer = writerFactory.createMapWriter(bodyOut);
+              final MapWriter writer = writerFactory.newMapWriter(bodyOut);
               writer.setProperty("title", subject);
               writer.write(jobMap);
               writer.close();

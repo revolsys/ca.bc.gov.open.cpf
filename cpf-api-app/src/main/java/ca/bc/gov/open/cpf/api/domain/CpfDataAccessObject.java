@@ -41,6 +41,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
+import com.revolsys.collection.list.Lists;
 import com.revolsys.converter.string.StringConverter;
 import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.datatype.DataType;
@@ -63,12 +64,12 @@ import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
+import com.revolsys.transaction.Transactionable;
 import com.revolsys.ui.web.controller.PathAliasController;
-import com.revolsys.util.CollectionUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.WrappedException;
 
-public class CpfDataAccessObject {
+public class CpfDataAccessObject implements Transactionable {
   public static String getUsername() {
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     final Authentication authentication = securityContext.getAuthentication();
@@ -107,7 +108,7 @@ public class CpfDataAccessObject {
 
   public boolean cancelBatchJob(final long jobId) {
     try (
-      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String username = getUsername();
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
@@ -157,7 +158,7 @@ public class CpfDataAccessObject {
 
   public BatchJob createBatchJob() {
     final Record record = create(BatchJob.BATCH_JOB);
-    final long batchJobId = ((Number)this.recordStore.createPrimaryIdValue(BatchJob.BATCH_JOB))
+    final long batchJobId = ((Number)this.recordStore.newPrimaryIdValue(BatchJob.BATCH_JOB))
       .intValue();
     record.setIdValue(batchJobId);
     final String prefix = PathAliasController.getAlias();
@@ -208,11 +209,6 @@ public class CpfDataAccessObject {
     setConfigPropertyValue(configProperty, propertyValue);
     write(configProperty);
     return configProperty;
-  }
-
-  public Transaction createTransaction(final Propagation propagation) {
-    final PlatformTransactionManager transactionManager = getTransactionManager();
-    return new Transaction(transactionManager, propagation);
   }
 
   public Record createUserAccount(final String userAccountClass, final String userAccountName,
@@ -631,6 +627,7 @@ public class CpfDataAccessObject {
     return this.recordStore;
   }
 
+  @Override
   public PlatformTransactionManager getTransactionManager() {
     return this.recordStore.getTransactionManager();
   }
@@ -673,7 +670,7 @@ public class CpfDataAccessObject {
       final Query query = new Query(UserAccount.USER_ACCOUNT, or);
       final Reader<Record> reader = this.recordStore.query(query);
       try {
-        return CollectionUtil.subList(reader, 20);
+        return Lists.array(reader, 20);
       } finally {
         reader.close();
       }
@@ -768,7 +765,7 @@ public class CpfDataAccessObject {
     Integer databaseId;
     final Record applicationStatistics;
     databaseId = ((Number)this.recordStore
-      .createPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
+      .newPrimaryIdValue(BusinessApplicationStatistics.APPLICATION_STATISTICS)).intValue();
     applicationStatistics = this.recordStore
       .newRecord(BusinessApplicationStatistics.APPLICATION_STATISTICS);
     applicationStatistics.setValue(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID,
@@ -852,7 +849,7 @@ public class CpfDataAccessObject {
   public boolean setBatchJobRequestsFailed(final long batchJobId, final int numSubmittedRequests,
     final int numFailedRequests, final int groupSize, final int numGroups) {
     try (
-      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " //
@@ -879,7 +876,7 @@ public class CpfDataAccessObject {
   public boolean setBatchJobStatus(final long batchJobId, final String oldJobStatus,
     final String newJobStatus) {
     try (
-      Transaction transaction = createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
         final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ?, JOB_STATUS = ? WHERE JOB_STATUS = ? AND BATCH_JOB_ID = ?";
@@ -1031,7 +1028,7 @@ public class CpfDataAccessObject {
         final RecordDefinition recordDefinition = record.getRecordDefinition();
 
         if (recordDefinition.getIdFieldIndex() != -1 && record.getIdentifier() == null) {
-          final Object id = this.recordStore.createPrimaryIdValue(recordDefinition.getPathName());
+          final Object id = this.recordStore.newPrimaryIdValue(recordDefinition.getPathName());
           record.setIdValue(id);
         }
         record.setValue(Common.WHO_CREATED, username);

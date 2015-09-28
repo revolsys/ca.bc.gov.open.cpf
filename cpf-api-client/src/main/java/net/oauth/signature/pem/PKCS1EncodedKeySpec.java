@@ -35,7 +35,7 @@ public class PKCS1EncodedKeySpec {
   private RSAPrivateCrtKeySpec keySpec;
 
   /**
-   * Create a PKCS#1 keyspec from DER encoded buffer
+   * Construct a new PKCS#1 keyspec from DER encoded buffer
    * 
    * @param keyBytes DER encoded octet stream
    * @throws IOException

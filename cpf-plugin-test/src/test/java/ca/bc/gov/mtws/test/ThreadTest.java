@@ -79,7 +79,7 @@ public class ThreadTest {
 
   public void run() {
     if (inputDataResource.exists()) {
-      testData = MapReader.create(inputDataResource).read();
+      testData = MapReader.newMapReader(inputDataResource).read();
     } else {
       testData.add(Collections.<String, Object> emptyMap());
     }

@@ -29,7 +29,7 @@ import com.revolsys.io.PathName;
  */
 public interface BatchJobResult extends Common {
 
-  public static final PathName BATCH_JOB_RESULT = PathName.create("/CPF/CPF_BATCH_JOB_RESULTS");
+  public static final PathName BATCH_JOB_RESULT = PathName.newPathName("/CPF/CPF_BATCH_JOB_RESULTS");
 
   public static final String BATCH_JOB_ID = "BATCH_JOB_ID";
 

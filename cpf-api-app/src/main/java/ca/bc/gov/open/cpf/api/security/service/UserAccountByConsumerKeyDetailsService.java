@@ -58,7 +58,7 @@ public class UserAccountByConsumerKeyDetailsService implements UserDetailsServic
   public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException,
     DataAccessException {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final String name = username.toLowerCase();
         final Record user = this.dataAccessObject.getUserAccount(name);
