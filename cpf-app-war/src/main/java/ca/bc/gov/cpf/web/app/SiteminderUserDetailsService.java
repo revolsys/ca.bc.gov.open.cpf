@@ -97,7 +97,7 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
   @PostConstruct
   public void init() {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_ALL", "BC Government All Users");
         this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INTERNAL",
@@ -120,7 +120,7 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
   @Override
   public UserDetails loadUserByUsername(final String userGuid) {
     try (
-      Transaction transaction = this.dataAccessObject.createTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         Record user = this.dataAccessObject.getUserAccount(USER_ACCOUNT_CLASS, userGuid);
 
