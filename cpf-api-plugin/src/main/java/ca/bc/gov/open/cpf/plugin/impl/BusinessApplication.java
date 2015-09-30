@@ -263,11 +263,11 @@ public class BusinessApplication extends BaseObjectWithProperties
     Integer firstSrid = null;
     Integer defaultValue = Property.getInteger(this, "srid");
     for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
-      final int srid = coordinateSystem.getId();
+      final int srid = coordinateSystem.getCoordinateSystemId();
       if (firstSrid == null || srid == 3005) {
         firstSrid = srid;
       }
-      final String name = coordinateSystem.getName();
+      final String name = coordinateSystem.getCoordinateSystemName();
       requestSrid.addAllowedValue(srid, srid + " - " + name);
     }
     if (defaultValue == null) {
@@ -321,11 +321,11 @@ public class BusinessApplication extends BaseObjectWithProperties
     Integer firstSrid = null;
     Integer defaultValue = Property.getInteger(this, "resultSrid");
     for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
-      final int srid = coordinateSystem.getId();
+      final int srid = coordinateSystem.getCoordinateSystemId();
       if (firstSrid == null || srid == 3005) {
         firstSrid = 3005;
       }
-      final String name = coordinateSystem.getName();
+      final String name = coordinateSystem.getCoordinateSystemName();
       resultSrid.addAllowedValue(srid, srid + " - " + name);
     }
     if (defaultValue == null) {

@@ -165,7 +165,7 @@ public class InternalWebService {
       return Collections.emptyMap();
     } else {
       final Long batchJobId = group.getBatchJobId();
-      final Map<String, Object> groupSpecification = new LinkedHashMap<String, Object>();
+      final Map<String, Object> groupSpecification = new LinkedHashMap<>();
       final BusinessApplication businessApplication = group.getBusinessApplication();
       groupSpecification.put("workerId", workerId);
       groupSpecification.put("groupId", groupId);
@@ -190,7 +190,7 @@ public class InternalWebService {
         if (businessApplication.isPerRequestInputData()) {
           final List<Map<String, Object>> requestParameterList = new ArrayList<Map<String, Object>>();
           groupSpecification.put("requests", requestParameterList);
-          final Map<String, Object> requestParameters = new HashMap<String, Object>();
+          final Map<String, Object> requestParameters = new HashMap<>();
           requestParameters.put("sequenceNumber", groupSequenceNumber);
           // TODO requestParameters.put("inputDataContentType",
           // executionGroup.getValue(BatchJobExecutionGroup.INPUT_DATA_CONTENT_TYPE));

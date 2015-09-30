@@ -75,7 +75,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
   public void addMembersDataTable(final TabElementContainer container, final String prefix)
     throws NoSuchRequestHandlingMethodException {
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
     parameters.put("serverSide", Boolean.TRUE);
     parameters.put("deferLoading", 0);
     parameters.put("tabbed", true);
@@ -165,7 +165,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       final String accountName = userAccount.getValue(USER_NAME);
       final String username = userAccount.getValue(CONSUMER_KEY);
       final String label = username + " (" + accountName + " - " + accountClass + ")";
-      final Map<String, Object> autoComplete = new LinkedHashMap<String, Object>();
+      final Map<String, Object> autoComplete = new LinkedHashMap<>();
       autoComplete.put("label", label);
       autoComplete.put("value", username);
       results.add(autoComplete);
@@ -287,7 +287,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public Element pageUserAccountAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
-    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    final Map<String, Object> defaultValues = new HashMap<>();
     defaultValues.put(USER_ACCOUNT_CLASS, USER_ACCOUNT_CLASS_CPF);
     defaultValues.put(CONSUMER_SECRET, UUID.randomUUID().toString().replaceAll("-", ""));
     defaultValues.put(ACTIVE_IND, "1");
@@ -366,7 +366,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, userAccount, null);
 
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("serverSide", Boolean.TRUE);
       addTabDataTable(tabs, UserGroup.USER_GROUP, "userAccountList", parameters);
       return tabs;

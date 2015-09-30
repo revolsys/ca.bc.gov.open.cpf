@@ -17,7 +17,6 @@ package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +40,6 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.view.TabElementContainer;
@@ -83,12 +81,14 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
       if (keyName.equals("businessApplication")) {
         final String businessApplicationName = statistics.getBusinessApplicationName();
 
-        final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+        final BusinessApplication businessApplication = getBusinessApplication(
+          businessApplicationName);
         return businessApplication;
       } else if (keyName.equals("module")) {
         final String businessApplicationName = statistics.getBusinessApplicationName();
 
-        final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+        final BusinessApplication businessApplication = getBusinessApplication(
+          businessApplicationName);
         if (businessApplication == null) {
           return null;
         } else {
@@ -97,7 +97,8 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
       } else if (keyName.equals("moduleName")) {
         final String businessApplicationName = statistics.getBusinessApplicationName();
 
-        final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+        final BusinessApplication businessApplication = getBusinessApplication(
+          businessApplicationName);
         if (businessApplication == null) {
           return null;
         } else {
@@ -112,7 +113,8 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     final BusinessApplication businessApplication) {
     final String businessApplicationName = businessApplication.getName();
     final BatchJobService batchJobService = getBatchJobService();
-    final List<BusinessApplicationStatistics> statistics = batchJobService.getStatisticsList(businessApplicationName);
+    final List<BusinessApplicationStatistics> statistics = batchJobService
+      .getStatisticsList(businessApplicationName);
     Collections.reverse(statistics);
     return statistics;
   }
@@ -124,8 +126,8 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     final List<BusinessApplicationStatistics> statistics = new ArrayList<BusinessApplicationStatistics>();
     for (final BusinessApplication businessApplication : apps) {
       final String businessApplicationName = businessApplication.getName();
-      final BusinessApplicationStatistics statistic = batchJobService.getStatistics(
-        businessApplicationName, statisticId);
+      final BusinessApplicationStatistics statistic = batchJobService
+        .getStatistics(businessApplicationName, statisticId);
       statistics.add(statistic);
     }
     return statistics;
@@ -138,15 +140,14 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   public Object pageBusinessApplicationList(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
-    throws IOException, NoSuchRequestHandlingMethodException {
+      throws IOException, NoSuchRequestHandlingMethodException {
     checkAdminOrModuleAdmin(moduleName);
-    final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
-      moduleName, businessApplicationName);
+    final BusinessApplication businessApplication = getBusinessApplicationRegistry()
+      .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
-      final InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
-        this, "getStatistics", businessApplication);
-      return createDataTableHandlerOrRedirect(request, response, "moduleAppList", rowCallback,
-        BusinessApplication.class, "moduleView");
+      return createDataTableHandlerOrRedirect(request, response, "moduleAppList", () -> {
+        return getStatistics(businessApplication);
+      } , BusinessApplication.class, "moduleView");
     }
     throw new NoSuchRequestHandlingMethodException(request);
   }
@@ -160,12 +161,12 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     final @PathVariable("statisticId") String statisticId) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     try {
-      final BusinessApplication businessApplication = getBusinessApplicationRegistry().getModuleBusinessApplication(
-        moduleName, businessApplicationName);
+      final BusinessApplication businessApplication = getBusinessApplicationRegistry()
+        .getModuleBusinessApplication(moduleName, businessApplicationName);
       if (businessApplication != null) {
         final BatchJobService batchJobService = getBatchJobService();
-        final BusinessApplicationStatistics statistics = batchJobService.getStatistics(
-          businessApplicationName, statisticId);
+        final BusinessApplicationStatistics statistics = batchJobService
+          .getStatistics(businessApplicationName, statisticId);
 
         if (statistics != null) {
           final ModelAndView viewPage = createStatsViewPage(businessApplicationName, statistics);
@@ -188,7 +189,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
 
     final TabElementContainer tabs = new TabElementContainer();
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
     parameters.put("serverSide", Boolean.FALSE);
 
     addTabDataTable(tabs, this, "hourList", parameters);
@@ -208,12 +209,11 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageSummaryList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("durationType") final String durationType)
-    throws IOException, NoSuchRequestHandlingMethodException {
+      throws IOException, NoSuchRequestHandlingMethodException {
     checkAdminOrAnyModuleAdminExceptSecurity();
-    final InvokeMethodCallable<Collection<? extends Object>> rowCallback = new InvokeMethodCallable<Collection<? extends Object>>(
-      this, "getSummaryStatistics", durationType);
-    return createDataTableHandlerOrRedirect(request, response, durationType + "List", rowCallback,
-      this, "summary");
+    return createDataTableHandlerOrRedirect(request, response, durationType + "List", () -> {
+      return getSummaryStatistics(durationType);
+    } , this, "summary");
   }
 
 }

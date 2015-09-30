@@ -78,7 +78,7 @@ public class CpfClientTest {
     System.out.println("Close Batch Job");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92g025");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -110,7 +110,7 @@ public class CpfClientTest {
     System.out.println("Opaque Input Resource");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("algorithmName", "MD5");
 
       final Resource resource = new ByteArrayResource("Test string".getBytes());
@@ -129,7 +129,7 @@ public class CpfClientTest {
     System.out.println("Opaque Input Resource Collection");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("algorithmName", "MD5");
 
       final List<Resource> requests = new ArrayList<Resource>();
@@ -149,7 +149,7 @@ public class CpfClientTest {
     System.out.println("Opaque URL Resource");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("algorithmName", "MD5");
 
       final String inputDataUrl = "http://localhost/pub/cpf/css/cpf.css";
@@ -167,7 +167,7 @@ public class CpfClientTest {
     System.out.println("Opaque Input URL Collection");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("algorithmName", "MD5");
 
       final List<String> inputDataUrls = new ArrayList<String>();
@@ -186,7 +186,7 @@ public class CpfClientTest {
     System.out.println("Create Batch Job Structured Multiple List");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> jobParameters = new HashMap<String, Object>();
+      final Map<String, Object> jobParameters = new HashMap<>();
       jobParameters.put("mapGridName", "BCGS 1:20 000");
 
       final List<Map<String, ? extends Object>> requests = new ArrayList<Map<String, ? extends Object>>();
@@ -212,7 +212,7 @@ public class CpfClientTest {
     System.out.println("Create Batch Job Structured Multiple Resource");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> jobParameters = new HashMap<String, Object>();
+      final Map<String, Object> jobParameters = new HashMap<>();
       jobParameters.put("mapGridName", "NTS 1:500 000");
 
       final int numRequests = 48;
@@ -238,7 +238,7 @@ public class CpfClientTest {
     System.out.println("Create Batch Job Structured Multiple URL");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> jobParameters = new HashMap<String, Object>();
+      final Map<String, Object> jobParameters = new HashMap<>();
       jobParameters.put("mapGridName", "NTS 1:500 000");
 
       final int numRequests = 48;
@@ -263,7 +263,7 @@ public class CpfClientTest {
     System.out.println("Create Batch Job Structured Single");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j025");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -285,7 +285,7 @@ public class CpfClientTest {
     System.out.println("Get Batch Job Results Error");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -307,7 +307,7 @@ public class CpfClientTest {
     System.out.println("Get Batch Job Results File List");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -332,7 +332,7 @@ public class CpfClientTest {
     final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -355,7 +355,7 @@ public class CpfClientTest {
     final String consumerSecret = "cpftest";
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j025");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -429,7 +429,7 @@ public class CpfClientTest {
     System.out.println("Is Batch Job Completed");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -451,7 +451,7 @@ public class CpfClientTest {
     System.out.println("Process Batch Job Results File");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j016");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -487,7 +487,7 @@ public class CpfClientTest {
     System.out.println("Process Batch Job Results Error");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -513,7 +513,7 @@ public class CpfClientTest {
     System.out.println("Process Batch Job Structured Results");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j025");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -539,7 +539,7 @@ public class CpfClientTest {
     System.out.println("User Get App Batch Job Ids");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",
@@ -564,7 +564,7 @@ public class CpfClientTest {
     System.out.println("User Get Batch Job Ids");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
     try {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
       final String batchJobId = client.createJobWithStructuredSingleRequest("MapTileByTileId",

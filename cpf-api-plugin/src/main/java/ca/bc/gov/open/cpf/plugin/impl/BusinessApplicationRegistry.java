@@ -410,7 +410,7 @@ public final class BusinessApplicationRegistry implements
 
   public void restartModule(final String moduleName) {
     if (this.useModuleControlThread) {
-      final HashMap<String, Object> parameters = new HashMap<String, Object>();
+      final HashMap<String, Object> parameters = new HashMap<>();
       parameters.put("moduleName", moduleName);
       parameters.put("action", "restart");
       this.moduleControlChannel.write(parameters);
@@ -438,7 +438,7 @@ public final class BusinessApplicationRegistry implements
 
   public void startModule(final String moduleName) {
     if (this.useModuleControlThread) {
-      final HashMap<String, Object> parameters = new HashMap<String, Object>();
+      final HashMap<String, Object> parameters = new HashMap<>();
       parameters.put("moduleName", moduleName);
       parameters.put("action", "start");
       this.moduleControlChannel.write(parameters);
@@ -452,7 +452,7 @@ public final class BusinessApplicationRegistry implements
 
   public void stopModule(final String moduleName) {
     if (this.useModuleControlThread) {
-      final HashMap<String, Object> parameters = new HashMap<String, Object>();
+      final HashMap<String, Object> parameters = new HashMap<>();
       parameters.put("moduleName", moduleName);
       parameters.put("action", "stop");
       this.moduleControlChannel.write(parameters);

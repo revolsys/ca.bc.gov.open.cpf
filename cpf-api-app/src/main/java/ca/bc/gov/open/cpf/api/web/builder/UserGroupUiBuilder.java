@@ -66,7 +66,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final Map<String, String> parameterNames = new HashMap<String, String>();
     parameterNames.put("userGroupName", "userGroupName");
 
-    final Map<String, Object> linkObject = new HashMap<String, Object>();
+    final Map<String, Object> linkObject = new HashMap<>();
     final Object userGroupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
     linkObject.put(UserGroup.USER_GROUP_NAME, userGroupName);
     linkObject.put("userGroupName", userGroupName);
@@ -102,7 +102,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, userGroup, prefix);
 
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("serverSide", Boolean.TRUE);
 
       if (!userGroup.getValue(UserGroup.MODULE_NAME).equals("USER_TYPE")) {
@@ -131,9 +131,9 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
 
-    final Map<String, Object> filter = new HashMap<String, Object>();
+    final Map<String, Object> filter = new HashMap<>();
     filter.put(UserGroup.MODULE_NAME, "ADMIN_MODULE_" + moduleName);
 
     parameters.put("filter", filter);
@@ -168,7 +168,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
     parameters.put(UserGroup.ACTIVE_IND, 1);
     parameters.put(UserGroup.MODULE_NAME, moduleName);
     parameters.put(UserGroup.USER_GROUP_NAME, moduleName + "_");
@@ -204,7 +204,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
     parameters.put("moduleName", moduleName);
 
     final Record userGroup = getUserGroup(userGroupName);
@@ -224,9 +224,9 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
 
-    final Map<String, Object> filter = new HashMap<String, Object>();
+    final Map<String, Object> filter = new HashMap<>();
     final List<String> moduleNames = getUserGroupModuleNames(moduleName);
     filter.put("MODULE_NAME", moduleNames);
 
@@ -259,7 +259,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final Record userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
 
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
 
       parameters.put("fromClause", "CPF.CPF_USER_GROUPS T"
         + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
@@ -284,7 +284,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageUserGroupAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
-    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    final Map<String, Object> defaultValues = new HashMap<>();
     defaultValues.put(UserGroup.ACTIVE_IND, 1);
     defaultValues.put(UserGroup.MODULE_NAME, "GLOBAL");
     defaultValues.put(UserGroup.USER_GROUP_NAME, "GLOBAL_");

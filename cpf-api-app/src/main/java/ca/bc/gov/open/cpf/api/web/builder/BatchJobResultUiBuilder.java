@@ -136,9 +136,9 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
 
-    final Map<String, Object> filter = new HashMap<String, Object>();
+    final Map<String, Object> filter = new HashMap<>();
     filter.put("BATCH_JOB_ID", batchJobId);
     parameters.put("filter", filter);
 

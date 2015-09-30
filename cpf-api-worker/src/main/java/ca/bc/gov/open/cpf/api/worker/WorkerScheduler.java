@@ -83,7 +83,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.io.FileUtil;
 import com.revolsys.parallel.NamedThreadFactory;
-import com.revolsys.parallel.process.InvokeMethodRunnable;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
@@ -95,8 +94,8 @@ import com.revolsys.websocket.json.JsonDecoder;
 import com.revolsys.websocket.json.JsonEncoder;
 
 @ClientEndpoint(encoders = JsonEncoder.class, decoders = JsonDecoder.class)
-public class WorkerScheduler extends ThreadPoolExecutor implements Process, BeanNameAware,
-  ModuleEventListener, ServletContextAware {
+public class WorkerScheduler extends ThreadPoolExecutor
+  implements Process, BeanNameAware, ModuleEventListener, ServletContextAware {
 
   private static Integer getPortNumber() {
     try {
@@ -211,7 +210,7 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
   }
 
   public void addFailedGroup(final String groupId) {
-    final Map<String, Object> message = new LinkedHashMap<String, Object>();
+    final Map<String, Object> message = new LinkedHashMap<>();
     message.put("type", "failedGroupId");
     message.put("groupId", groupId);
     sendMessage(message);
@@ -241,7 +240,7 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
   }
 
   protected Map<String, Object> createExecutingGroupsMessage() {
-    final Map<String, Object> message = new LinkedHashMap<String, Object>();
+    final Map<String, Object> message = new LinkedHashMap<>();
     message.put("type", "executingGroupIds");
     message.put("workerId", this.id);
     synchronized (this.executingGroupIds) {
@@ -259,7 +258,7 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
 
   protected Map<String, Object> createModuleMessage(final String moduleName, final long moduleTime,
     final String action) {
-    final Map<String, Object> message = new LinkedHashMap<String, Object>();
+    final Map<String, Object> message = new LinkedHashMap<>();
     message.put("type", action);
     message.put("moduleName", moduleName);
     message.put("moduleTime", moduleTime);
@@ -323,7 +322,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
     final Long moduleTime, final String businessApplicationName) {
     final BusinessApplication businessApplication;
     if (Property.hasValue(moduleName)) {
-      final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
+      final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
+        .getModule(moduleName);
       if (module == null) {
         return null;
       } else if (module.isStarted()) {
@@ -332,7 +332,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
         businessApplication = null;
       }
     } else {
-      businessApplication = this.businessApplicationRegistry.getBusinessApplication(businessApplicationName);
+      businessApplication = this.businessApplicationRegistry
+        .getBusinessApplication(businessApplicationName);
     }
     return businessApplication;
   }
@@ -467,7 +468,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
 
   private void moduleSecurityChanged(final Map<String, Object> message) {
     final String moduleName = Maps.getString(message, "moduleName");
-    final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
+    final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
+      .getModule(moduleName);
     if (module != null) {
       final ModuleEvent moduleEvent = new ModuleEvent(module, ModuleEvent.SECURITY_CHANGED);
       this.securityServiceFactory.moduleChanged(moduleEvent);
@@ -481,7 +483,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
       && !this.excludedModuleNames.contains(moduleName)) {
       final AppLog log = new AppLog(moduleName);
 
-      ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
+      ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
+        .getModule(moduleName);
       if (module != null) {
         final long lastStartedTime = module.getStartedTime();
         if (lastStartedTime < moduleTime) {
@@ -494,8 +497,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
         }
       }
       try {
-        final String modulesUrl = this.httpClient.getUrl("/worker/modules/" + moduleName + "/"
-          + moduleTime + "/urls.json");
+        final String modulesUrl = this.httpClient
+          .getUrl("/worker/modules/" + moduleName + "/" + moduleTime + "/urls.json");
         final Map<String, Object> response = this.httpClient.getJsonResource(modulesUrl);
         final File moduleDir = new File(this.tempDir, moduleName + "-" + moduleTime);
         moduleDir.mkdir();
@@ -524,10 +527,11 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
         this.businessApplicationRegistry.addModule(module);
         module.setStartedDate(new Date(moduleTime));
         module.enable();
-        execute(new InvokeMethodRunnable(this, "startApplications", module));
+        final Module startModule = module;
+        execute(() -> startApplications(startModule));
       } catch (final Throwable e) {
         log.error("Unable to load module " + moduleName, e);
-        final Map<String, Object> responseMessage = new LinkedHashMap<String, Object>();
+        final Map<String, Object> responseMessage = new LinkedHashMap<>();
         responseMessage.put("type", "moduleStartFailed");
         responseMessage.put("moduleName", moduleName);
         responseMessage.put("moduleTime", moduleTime);
@@ -546,7 +550,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
 
   protected void moduleStop(final Map<String, Object> message) {
     final String moduleName = Maps.getString(message, "moduleName");
-    final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry.getModule(moduleName);
+    final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
+      .getModule(moduleName);
     if (module != null) {
       unloadModule(module);
     }
@@ -595,7 +600,7 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
       return false;
     } else {
       try {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
+        final Map<String, Object> parameters = new HashMap<>();
         Map<String, Object> response = null;
         parameters.put("moduleName", this.loadedModuleNames);
 
@@ -626,8 +631,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
                 this.groupIdByFutureTask.put(future, groupId);
               } catch (final Throwable e) {
                 if (this.running) {
-                  LoggerFactory.getLogger(getClass()).error(
-                    "Unable to get execute group " + groupId, e);
+                  LoggerFactory.getLogger(getClass())
+                    .error("Unable to get execute group " + groupId, e);
                 }
                 removeExecutingGroupId(groupId);
                 addExecutingGroupsMessage();
@@ -691,8 +696,8 @@ public class WorkerScheduler extends ThreadPoolExecutor implements Process, Bean
           }
           if (this.running && this.timeout != 0) {
             synchronized (this.monitor) {
-              LoggerFactory.getLogger(getClass()).debug(
-                "Waiting " + this.timeout + " seconds before getting next task");
+              LoggerFactory.getLogger(getClass())
+                .debug("Waiting " + this.timeout + " seconds before getting next task");
               this.monitor.wait(this.timeout * 1000);
             }
           }

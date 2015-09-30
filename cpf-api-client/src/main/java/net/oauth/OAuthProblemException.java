@@ -52,7 +52,7 @@ public class OAuthProblemException extends OAuthException {
   /** The name of a parameter whose value is the request URL. */
   public static final String URL = "URL";
 
-  private final Map<String, Object> parameters = new HashMap<String, Object>();
+  private final Map<String, Object> parameters = new HashMap<>();
 
   private static final long serialVersionUID = 1L;
 

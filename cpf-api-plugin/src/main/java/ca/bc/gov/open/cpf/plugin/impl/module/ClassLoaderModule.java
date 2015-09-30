@@ -776,7 +776,7 @@ public class ClassLoaderModule implements Module {
   private Map<String, Object> getConfigProperties(final String moduleName,
     final String componentName) {
     if (this.configPropertyLoader == null) {
-      return new HashMap<String, Object>();
+      return new HashMap<>();
     } else {
       final Map<String, Object> configProperties = this.configPropertyLoader
         .getConfigProperties(moduleName, componentName);
@@ -806,9 +806,9 @@ public class ClassLoaderModule implements Module {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       this.log.warn(message + " srid must be >= 0");
-      srid = geometryFactory.getSrid();
+      srid = geometryFactory.getCoordinateSystemId();
     } else if (srid == 0) {
-      srid = geometryFactory.getSrid();
+      srid = geometryFactory.getCoordinateSystemId();
     }
     int axisCount = geometryConfiguration.numAxis();
     if (axisCount == 0) {

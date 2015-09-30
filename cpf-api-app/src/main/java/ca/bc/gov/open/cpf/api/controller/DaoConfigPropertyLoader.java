@@ -66,7 +66,7 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
   @Override
   public Map<String, Object> getConfigProperties(final String moduleName,
     final String componentName) {
-    final Map<String, Object> configProperties = new HashMap<String, Object>();
+    final Map<String, Object> configProperties = new HashMap<>();
     addConfigProperties(configProperties, ConfigProperty.DEFAULT, moduleName,
       componentName);
     return configProperties;

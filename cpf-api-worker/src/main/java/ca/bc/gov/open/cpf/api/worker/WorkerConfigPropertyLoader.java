@@ -72,7 +72,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
         return messageSender.sendAndWait(message, new AsyncResult<Map<String, Object>>() {
           @Override
           public <V> V getResult(final Map<String, Object> result) {
-            final Map<String, Object> configProperties = new HashMap<String, Object>();
+            final Map<String, Object> configProperties = new HashMap<>();
             final List<Map<String, Object>> configPropertyList = (List<Map<String, Object>>)result.get("properties");
             for (final Map<String, Object> configProperty : configPropertyList) {
               final String name = (String)configProperty.get("PROPERTY_NAME");

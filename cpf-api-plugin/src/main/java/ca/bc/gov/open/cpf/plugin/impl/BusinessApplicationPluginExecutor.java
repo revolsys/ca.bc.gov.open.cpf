@@ -147,7 +147,7 @@ public class BusinessApplicationPluginExecutor {
 
     final Record requestRecord = getRequestRecord(businessApplicationName,
       inputParameters);
-    final Map<String, Object> parameters = new HashMap<String, Object>(
+    final Map<String, Object> parameters = new HashMap<>(
         requestRecord);
 
     if (businessApplication.isPerRequestResultData()) {
@@ -190,7 +190,7 @@ public class BusinessApplicationPluginExecutor {
     final Record requestRecord = getRequestRecord(businessApplicationName,
       jobParameters);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>(
+    final Map<String, Object> parameters = new HashMap<>(
         requestRecord);
 
     if (businessApplication.getResultListProperty() == null) {
@@ -244,7 +244,7 @@ public class BusinessApplicationPluginExecutor {
     final Record requestRecord = getRequestRecord(businessApplicationName,
       jobParameters);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>(
+    final Map<String, Object> parameters = new HashMap<>(
         requestRecord);
 
     if (businessApplication.isPerRequestInputData()) {

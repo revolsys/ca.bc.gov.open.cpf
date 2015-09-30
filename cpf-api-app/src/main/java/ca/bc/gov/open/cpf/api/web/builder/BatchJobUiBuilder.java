@@ -143,9 +143,9 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
 
-    final Map<String, Object> filter = new HashMap<String, Object>();
+    final Map<String, Object> filter = new HashMap<>();
     filter.put("BUSINESS_APPLICATION_NAME", businessApplicationName);
     parameters.put("filter", filter);
 
@@ -172,14 +172,14 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     if (businessApplication.isPerRequestInputData()) {
 
     } else {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("serverSide", Boolean.TRUE);
       parameters.put("dom", "rtiS");
       parameters.put("ordering", false);
       addTabDataTable(tabs, "ExecutionGroup", "moduleAppJobList", parameters);
     }
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
     parameters.put("serverSide", Boolean.TRUE);
     addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList", parameters);
 

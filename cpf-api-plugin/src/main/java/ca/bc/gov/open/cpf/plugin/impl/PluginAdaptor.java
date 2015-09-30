@@ -195,7 +195,7 @@ public class PluginAdaptor {
 
   private final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 
-  private final Map<String, Object> parameters = new HashMap<String, Object>();
+  private final Map<String, Object> parameters = new HashMap<>();
 
   private final AppLog appLog;
 
@@ -313,7 +313,7 @@ public class PluginAdaptor {
   private Map<String, Object> getResult(final Object resultObject, final boolean resultList,
     final boolean test) {
     final RecordDefinition resultRecordDefinition = this.application.getResultRecordDefinition();
-    final Map<String, Object> result = new HashMap<String, Object>();
+    final Map<String, Object> result = new HashMap<>();
     for (final FieldDefinition field : resultRecordDefinition.getFields()) {
       final String fieldName = field.getName();
       if (!INTERNAL_PROPERTY_NAMES.contains(fieldName)) {
@@ -337,7 +337,7 @@ public class PluginAdaptor {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = Maps.getInteger(this.parameters, "resultSrid",
-              geometryFactory.getSrid());
+              geometryFactory.getCoordinateSystemId());
             final int axisCount = Maps.getInteger(this.parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(this.parameters, "resultScaleFactorXy",
@@ -347,7 +347,7 @@ public class PluginAdaptor {
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
-            if (geometry.getSrid() == 0) {
+            if (geometry.getCoordinateSystemId() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }

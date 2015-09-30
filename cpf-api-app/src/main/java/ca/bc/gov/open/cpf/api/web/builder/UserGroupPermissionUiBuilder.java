@@ -65,7 +65,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     final Record group = getUserGroup(userGroupName);
     if (group != null) {
       final Long groupId = group.getLong(UserGroup.USER_GROUP_ID);
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put(UserGroupPermission.MODULE_NAME, moduleName);
       parameters.put(UserGroupPermission.USER_GROUP_ID, groupId);
       parameters.put(UserGroupPermission.ACTIVE_IND, 1);
@@ -143,9 +143,9 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
     if (group != null) {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
 
-      final Map<String, Object> filter = new HashMap<String, Object>();
+      final Map<String, Object> filter = new HashMap<>();
       filter.put(UserGroupPermission.MODULE_NAME, moduleName);
       final Identifier userGroupId = group.getIdentifier();
       filter.put(UserGroupPermission.USER_GROUP_ID, userGroupId);

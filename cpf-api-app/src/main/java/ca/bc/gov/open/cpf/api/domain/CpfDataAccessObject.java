@@ -180,7 +180,7 @@ public class CpfDataAccessObject implements Transactionable {
   public void createBatchJobExecutionGroup(final JobController jobController, final long batchJobId,
     final int groupSequenceNumber, final String errorCode, final String errorMessage,
     final String errorDebugMessage) {
-    final Map<String, Object> error = new HashMap<String, Object>();
+    final Map<String, Object> error = new HashMap<>();
     error.put("i", 1);
     error.put("errorCode", errorCode);
     error.put("errorMessage", errorMessage);
@@ -243,7 +243,7 @@ public class CpfDataAccessObject implements Transactionable {
     final Identifier userGroupId = userGroup.getIdentifier();
     final Identifier userAccountId = userAccount.getIdentifier();
 
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
     filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
 
@@ -335,7 +335,7 @@ public class CpfDataAccessObject implements Transactionable {
     final Identifier userGroupId = userGroup.getIdentifier();
     final Identifier userAccountId = userAccount.getIdentifier();
 
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
     filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
 
@@ -401,7 +401,7 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   public Record getBatchJob(final String consumerKey, final long batchJobId) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(BatchJob.USER_ID, consumerKey);
     filter.put(BatchJob.BATCH_JOB_ID, batchJobId);
 
@@ -445,7 +445,7 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   public List<Long> getBatchJobIds(final String businessApplicationName, final String jobStatus) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     filter.put(BatchJob.JOB_STATUS, jobStatus);
     final Query query = Query.and(this.batchJobRecordDefinition, filter);
@@ -523,7 +523,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   public List<Record> getBatchJobsForUserAndApplication(final String consumerKey,
     final String businessApplicationName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(BatchJob.USER_ID, consumerKey);
     filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
     final Query query = Query.and(this.batchJobRecordDefinition, filter);
@@ -539,7 +539,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   public List<Record> getConfigPropertiesForAllModules(final String environmentName,
     final String componentName, final String propertyName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
@@ -555,7 +555,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   public List<Record> getConfigPropertiesForComponent(final String moduleName,
     final String componentName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     final Query query = Query.and(this.configPropertyRecordDefinition, filter);
@@ -569,7 +569,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   public List<Record> getConfigPropertiesForModule(final String environmentName,
     final String moduleName, final String componentName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
@@ -584,7 +584,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   public Record getConfigProperty(final String environmentName, final String moduleName,
     final String componentName, final String propertyName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
@@ -652,7 +652,7 @@ public class CpfDataAccessObject implements Transactionable {
    * @return The user account if it exists, null otherwise.
    */
   public Record getUserAccount(final String userClass, final String userName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(UserAccount.USER_ACCOUNT_CLASS, userClass);
     filter.put(UserAccount.USER_NAME, userName);
     final Query query = Query.and(this.userAccountRecordDefinition, filter);
@@ -690,7 +690,7 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   public Record getUserGroup(final String moduleName, final String groupName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(UserGroup.MODULE_NAME, moduleName);
     filter.put(UserGroup.USER_GROUP_NAME, groupName);
     final Query query = Query.and(this.userGroupRecordDefinition, filter);
@@ -699,7 +699,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   public Record getUserGroupPermission(final List<String> userGroupNames, final String moduleName,
     final String resourceClass, final String resourceId, final String actionName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(UserGroup.USER_GROUP_NAME, userGroupNames);
     filter.put("T." + UserGroupPermission.MODULE_NAME, moduleName);
     filter.put(UserGroupPermission.RESOURCE_CLASS, resourceClass);
@@ -712,7 +712,7 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   public List<Record> getUserGroupPermissions(final Record userGroup, final String moduleName) {
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(UserGroupPermission.USER_GROUP_ID, userGroup.getIdentifier());
     filter.put(UserGroupPermission.MODULE_NAME, moduleName);
     final Query query = Query.and(this.userGroupPermissionRecordDefinition, filter);

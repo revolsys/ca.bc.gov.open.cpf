@@ -59,7 +59,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.LoggerFactory;
-import com.revolsys.spring.resource.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -123,7 +122,7 @@ import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
-import com.revolsys.spring.InvokeMethodAfterCommit;
+import com.revolsys.spring.resource.FileSystemResource;
 import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
@@ -146,7 +145,7 @@ public class BatchJobService implements ModuleEventListener {
     final String groupId = group.getId();
     final long batchJobId = group.getBatchJobId();
     final String businessApplicationName = group.getBusinessApplicationName();
-    final Map<String, Object> appLogData = new LinkedHashMap<String, Object>();
+    final Map<String, Object> appLogData = new LinkedHashMap<>();
     appLogData.put("businessApplicationName", businessApplicationName);
     appLogData.put("batchJobId", batchJobId);
     appLogData.put("groupId", groupId);
@@ -753,7 +752,8 @@ public class BatchJobService implements ModuleEventListener {
     if (geometryFactory == null) {
       return null;
     } else {
-      final int srid = Maps.getInteger(parameters, "resultSrid", geometryFactory.getSrid());
+      final int srid = Maps.getInteger(parameters, "resultSrid",
+        geometryFactory.getCoordinateSystemId());
       final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
         geometryFactory.getAxisCount());
       final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
@@ -821,7 +821,7 @@ public class BatchJobService implements ModuleEventListener {
     final int maxMessageId, final List<String> moduleNames) {
     final long startTime = System.currentTimeMillis();
     final long endTime = startTime + this.maxWorkerWaitTime;
-    final Map<String, Object> response = new HashMap<String, Object>();
+    final Map<String, Object> response = new HashMap<>();
     if (this.running) {
       BatchJobRequestExecutionGroup group = null;
       try {
@@ -1085,7 +1085,7 @@ public class BatchJobService implements ModuleEventListener {
           if (log.isInfoEnabled()) {
             log.info("Start\tJob post-process\tbatchJobId=" + batchJobId);
           }
-          final Map<String, Object> postProcessScheduledStatistics = new HashMap<String, Object>();
+          final Map<String, Object> postProcessScheduledStatistics = new HashMap<>();
           postProcessScheduledStatistics.put("postProcessScheduledJobsTime",
             time - lastChangedTime);
           postProcessScheduledStatistics.put("postProcessScheduledJobsCount", 1);
@@ -1123,7 +1123,7 @@ public class BatchJobService implements ModuleEventListener {
           }
           final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
 
-          final Map<String, Object> postProcessStatistics = new HashMap<String, Object>();
+          final Map<String, Object> postProcessStatistics = new HashMap<>();
 
           postProcessStatistics.put("postProcessedTime", stopWatch);
           postProcessStatistics.put("postProcessedJobsCount", 1);
@@ -1136,8 +1136,7 @@ public class BatchJobService implements ModuleEventListener {
           postProcessStatistics.put("completedTime",
             System.currentTimeMillis() - whenCreated.getTime());
 
-          InvokeMethodAfterCommit.invoke(this, "addStatistics", businessApplication,
-            postProcessStatistics);
+          Transaction.afterCommit(() -> addStatistics(businessApplication, postProcessStatistics));
         }
       } catch (final Throwable e) {
         boolean result = true;
@@ -1186,7 +1185,7 @@ public class BatchJobService implements ModuleEventListener {
         structuredResultWriter = createStructuredResultWriter(batchJob, batchJobId, application,
           structuredResultFile, resultRecordDefinition, resultFormat);
         structuredResultWriter.open();
-        final Map<String, Object> defaultProperties = new HashMap<String, Object>(
+        final Map<String, Object> defaultProperties = new HashMap<>(
           structuredResultWriter.getProperties());
 
         boolean hasErrors = false;
@@ -1247,8 +1246,8 @@ public class BatchJobService implements ModuleEventListener {
       } catch (final Throwable e) {
         throw new RuntimeException("Unable to save results", e);
       } finally {
-        InvokeMethodAfterCommit.invoke(errorFile, "delete");
-        InvokeMethodAfterCommit.invoke(structuredResultFile, "delete");
+        Transaction.afterCommit(errorFile::delete);
+        Transaction.afterCommit(structuredResultFile::delete);
       }
     }
   }
@@ -1278,7 +1277,7 @@ public class BatchJobService implements ModuleEventListener {
             batchJob, batchJobId, businessApplication, structuredResultFile, resultRecordDefinition,
             resultFormat)) {
           structuredResultWriter.open();
-          final Map<String, Object> defaultProperties = new HashMap<String, Object>(
+          final Map<String, Object> defaultProperties = new HashMap<>(
             structuredResultWriter.getProperties());
           final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
           if (numSubmittedGroups > 0) {
@@ -1384,13 +1383,13 @@ public class BatchJobService implements ModuleEventListener {
             final int maxGroupSize = businessApplication.getNumRequestsPerWorker();
             int numGroups = 0;
             boolean valid = true;
-            final Map<String, Object> preProcessScheduledStatistics = new HashMap<String, Object>();
+            final Map<String, Object> preProcessScheduledStatistics = new HashMap<>();
             preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
             preProcessScheduledStatistics.put("preProcessScheduledJobsTime",
               time - lastChangedTime);
 
-            InvokeMethodAfterCommit.invoke(this, "addStatistics", businessApplication,
-              preProcessScheduledStatistics);
+            Transaction
+              .afterCommit(() -> addStatistics(businessApplication, preProcessScheduledStatistics));
 
             addStatistics(businessApplication, preProcessScheduledStatistics);
 
@@ -1531,18 +1530,17 @@ public class BatchJobService implements ModuleEventListener {
               batchJob.update();
               scheduleJob(batchJob);
             }
-            final Map<String, Object> preProcessStatistics = new HashMap<String, Object>();
+            final Map<String, Object> preProcessStatistics = new HashMap<>();
             preProcessStatistics.put("preProcessedTime", stopWatch);
             preProcessStatistics.put("preProcessedJobsCount", 1);
             preProcessStatistics.put("preProcessedRequestsCount", numSubmittedRequests);
 
-            InvokeMethodAfterCommit.invoke(this, "addStatistics", businessApplication,
-              preProcessStatistics);
+            Transaction.afterCommit(() -> addStatistics(businessApplication, preProcessStatistics));
 
             if (!valid) {
               final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
 
-              final Map<String, Object> jobCompletedStatistics = new HashMap<String, Object>();
+              final Map<String, Object> jobCompletedStatistics = new HashMap<>();
 
               jobCompletedStatistics.put("completedJobsCount", 1);
               jobCompletedStatistics.put("completedRequestsCount", numFailedRequests);
@@ -1550,8 +1548,8 @@ public class BatchJobService implements ModuleEventListener {
               jobCompletedStatistics.put("completedTime",
                 System.currentTimeMillis() - whenCreated.getTime());
 
-              InvokeMethodAfterCommit.invoke(this, "addStatistics", businessApplication,
-                jobCompletedStatistics);
+              Transaction
+                .afterCommit(() -> addStatistics(businessApplication, jobCompletedStatistics));
             }
           } finally {
             if (log.isInfoEnabled()) {
@@ -1909,7 +1907,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public void scheduleSaveStatistics(final List<String> businessApplicationNames) {
-    final Map<String, Object> values = new HashMap<String, Object>();
+    final Map<String, Object> values = new HashMap<>();
     values.put(StatisticsProcess.SAVE, Boolean.TRUE);
     values.put("businessApplicationNames", businessApplicationNames);
     sendStatistics(values);
@@ -2138,7 +2136,7 @@ public class BatchJobService implements ModuleEventListener {
         if (parameterValue instanceof Geometry) {
 
           geometry = (Geometry)parameterValue;
-          if (geometry.getSrid() == 0 && Property.hasValue(sridString)) {
+          if (geometry.getCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
             final int srid = Integer.parseInt(sridString);
             final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
             geometry = sourceGeometryFactory.geometry(geometry);
@@ -2170,7 +2168,7 @@ public class BatchJobService implements ModuleEventListener {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
-        if (geometry.getSrid() == 0) {
+        if (geometry.getCoordinateSystemId() == 0) {
           throw new IllegalArgumentException("does not have a coordinate system (SRID) specified");
         }
         if (validateGeometry == true) {
@@ -2212,7 +2210,7 @@ public class BatchJobService implements ModuleEventListener {
           this.workersById.put(workerId, worker);
           for (final Module module : this.businessApplicationRegistry.getModules()) {
             if (module.isStarted()) {
-              final LinkedHashMap<String, Object> message = new LinkedHashMap<String, Object>();
+              final LinkedHashMap<String, Object> message = new LinkedHashMap<>();
               message.put("type", "moduleStart");
               message.put("moduleName", module.getName());
               message.put("moduleTime", module.getStartedTime());
@@ -2348,7 +2346,7 @@ public class BatchJobService implements ModuleEventListener {
     final BusinessApplication businessApplication, final String moduleName,
     final long applicationExecutedTime, final long groupExecutedTime, final int successCount,
     final int errorCount) {
-    final Map<String, Object> appExecutedStatistics = new HashMap<String, Object>();
+    final Map<String, Object> appExecutedStatistics = new HashMap<>();
     appExecutedStatistics.put("applicationExecutedGroupsCount", 1);
     appExecutedStatistics.put("applicationExecutedRequestsCount", successCount + errorCount);
     appExecutedStatistics.put("applicationExecutedFailedRequestsCount", errorCount);
@@ -2359,12 +2357,12 @@ public class BatchJobService implements ModuleEventListener {
 
     final long executionStartTime = group.getExecutionStartTime();
     final long durationInMillis = System.currentTimeMillis() - executionStartTime;
-    final Map<String, Object> executedStatistics = new HashMap<String, Object>();
+    final Map<String, Object> executedStatistics = new HashMap<>();
     executedStatistics.put("executedGroupsCount", 1);
     executedStatistics.put("executedRequestsCount", successCount + errorCount);
     executedStatistics.put("executedTime", durationInMillis);
 
-    InvokeMethodAfterCommit.invoke(this, "addStatistics", businessApplication, executedStatistics);
+    Transaction.afterCommit(() -> addStatistics(businessApplication, executedStatistics));
 
     group.setNumCompletedRequests(successCount);
     group.setNumFailedRequests(errorCount);

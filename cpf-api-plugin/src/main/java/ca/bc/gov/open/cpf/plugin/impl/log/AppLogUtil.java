@@ -19,11 +19,10 @@ import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 
-import com.revolsys.spring.InvokeMethodAfterCommit;
+import com.revolsys.transaction.Transaction;
 
 public final class AppLogUtil {
-  public static void info(final AppLog log, final String message,
-    final StopWatch stopWatch) {
+  public static void info(final AppLog log, final String message, final StopWatch stopWatch) {
     if (log.isInfoEnabled()) {
       try {
         if (stopWatch.isRunning()) {
@@ -32,21 +31,20 @@ public final class AppLogUtil {
       } catch (final IllegalStateException e) {
       }
       final long time = stopWatch.getTotalTimeMillis();
-      log.info(message + "\ttime=" + (time / 1000.0));
+      log.info(message + "\ttime=" + time / 1000.0);
     }
   }
 
   public static void infoAfterCommit(final AppLog log, final String message) {
     if (log != null && message != null) {
-      InvokeMethodAfterCommit.invoke(log, "info", message);
+      Transaction.afterCommit(() -> log.info(message));
     }
   }
 
   public static void infoAfterCommit(final AppLog log, final String message,
     final StopWatch stopWatch) {
     if (log != null && stopWatch != null && message != null) {
-      InvokeMethodAfterCommit.invoke(AppLogUtil.class, "info", log, message,
-        stopWatch);
+      Transaction.afterCommit(() -> AppLogUtil.info(log, message, stopWatch));
     }
   }
 }

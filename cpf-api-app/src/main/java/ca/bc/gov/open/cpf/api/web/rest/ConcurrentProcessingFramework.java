@@ -43,7 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.LoggerFactory;
-import com.revolsys.spring.resource.ClassPathResource;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -100,10 +99,11 @@ import com.revolsys.record.io.format.json.JsonRecordIoFactory;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
-import com.revolsys.spring.InvokeMethodAfterCommit;
 import com.revolsys.spring.resource.ByteArrayResource;
+import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.spring.resource.OutputStreamResource;
+import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.decorator.FormHorizontalDecorator;
 import com.revolsys.ui.html.fields.BigDecimalField;
@@ -373,7 +373,7 @@ public class ConcurrentProcessingFramework {
     final String typeDescription, final String descriptionUrl, final String description,
     final boolean jobParameter, final boolean requestParameter, final boolean perRequestInputData,
     final Collection<Object> allowedValues) {
-    final Map<String, Object> parameter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> parameter = new LinkedHashMap<>();
     parameter.put("name", name);
     parameter.put("type", typeDescription);
     parameter.put("description", description);
@@ -767,11 +767,11 @@ public class ConcurrentProcessingFramework {
       if (businessApplication.isInfoLogEnabled()) {
         AppLogUtil.info(log, "End\tJob submit multiple\tbatchJobId=" + batchJobId, stopWatch);
       }
-      final Map<String, Object> statistics = new HashMap<String, Object>();
+      final Map<String, Object> statistics = new HashMap<>();
       statistics.put("submittedJobsTime", stopWatch);
       statistics.put("submittedJobsCount", 1);
-      InvokeMethodAfterCommit.invoke(this.batchJobService, "addStatistics", businessApplication,
-        statistics);
+      Transaction
+        .afterCommit(() -> this.batchJobService.addStatistics(businessApplication, statistics));
 
       if (MediaTypeUtil.isHtmlPage()) {
         this.batchJobUiBuilder.redirectPage("clientView");
@@ -997,7 +997,7 @@ public class ConcurrentProcessingFramework {
 
       AppLogUtil.infoAfterCommit(log, "End\tJob submit single\tbatchJobId=" + batchJobId,
         stopWatch);
-      final Map<String, Object> statistics = new HashMap<String, Object>();
+      final Map<String, Object> statistics = new HashMap<>();
       statistics.put("submittedJobsTime", stopWatch);
       statistics.put("submittedJobsCount", 1);
 
@@ -1008,8 +1008,8 @@ public class ConcurrentProcessingFramework {
       statistics.put("preProcessedJobsCount", 1);
       statistics.put("preProcessedRequestsCount", 1);
 
-      InvokeMethodAfterCommit.invoke(this.batchJobService, "addStatistics", businessApplication,
-        statistics);
+      Transaction
+        .afterCommit(() -> this.batchJobService.addStatistics(businessApplication, statistics));
 
       if (MediaTypeUtil.isHtmlPage()) {
         this.batchJobUiBuilder.redirectPage("clientView");
@@ -1031,7 +1031,7 @@ public class ConcurrentProcessingFramework {
           final JobController jobController = this.batchJobService.getJobController();
           jobController.createJobInputFile(batchJobId, contentType, in);
         } finally {
-          InvokeMethodAfterCommit.invoke(in, "close");
+          Transaction.afterCommit(() -> FileUtil.closeSilent(in));
         }
 
       } else {
@@ -1522,8 +1522,7 @@ public class ConcurrentProcessingFramework {
               writer.setProperty(IoConstants.WRITE_NULLS, Boolean.TRUE);
               writer.open();
               int i = 1;
-              final Map<String, Object> defaultProperties = new HashMap<String, Object>(
-                writer.getProperties());
+              final Map<String, Object> defaultProperties = new HashMap<>(writer.getProperties());
 
               for (final Map<String, Object> structuredResultMap : list) {
                 final Record structuredResult = Records.getObject(resultRecordDefinition,
@@ -1558,7 +1557,7 @@ public class ConcurrentProcessingFramework {
         if (isApiCall) {
           return getBusinessApplicationPageInfo(businessApplication, "instant");
         } else {
-          final Map<String, Object> titleParameters = new HashMap<String, Object>();
+          final Map<String, Object> titleParameters = new HashMap<>();
           final String title = businessApplication.getTitle();
           titleParameters.put("businessApplicationTitle", title);
           final PageInfo page = createRootPageInfo(title + " Instant");
@@ -1631,9 +1630,9 @@ public class ConcurrentProcessingFramework {
       final String consumerKey = getConsumerKey();
       ConcurrentProcessingFramework.checkPermission(businessApplication);
       if (HtmlUiBuilder.isDataTableCallback()) {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
+        final Map<String, Object> parameters = new HashMap<>();
 
-        final Map<String, Object> filter = new HashMap<String, Object>();
+        final Map<String, Object> filter = new HashMap<>();
         filter.put(BatchJob.USER_ID, consumerKey);
         filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
         parameters.put("filter", filter);
@@ -1785,7 +1784,7 @@ public class ConcurrentProcessingFramework {
     } else {
       CpfUiBuilder.checkPermission(businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplication.getName());
-      final Map<String, Object> titleParameters = new HashMap<String, Object>();
+      final Map<String, Object> titleParameters = new HashMap<>();
 
       if (MediaTypeUtil.isHtmlPage()) {
         final String title = businessApplication.getTitle();
@@ -1833,7 +1832,7 @@ public class ConcurrentProcessingFramework {
         "Business application " + businessApplicationName + " does not exist.");
     } else {
       checkPermission(businessApplication);
-      final Map<String, Object> titleParameters = new HashMap<String, Object>();
+      final Map<String, Object> titleParameters = new HashMap<>();
       final String title = businessApplication.getTitle();
       titleParameters.put("businessApplicationTitle", title);
       HttpServletUtils.setAttribute("title", title);
@@ -1867,7 +1866,7 @@ public class ConcurrentProcessingFramework {
           final Element multipleForm = getFormMultiple(businessApplication);
           tabs.add("multiple", "Create Multi-Request Job", multipleForm);
 
-          final Map<String, Object> parameters = new HashMap<String, Object>();
+          final Map<String, Object> parameters = new HashMap<>();
           parameters.put("serverSide", Boolean.TRUE);
           this.batchJobUiBuilder.addTabDataTable(tabs, BatchJob.BATCH_JOB, "clientAppList",
             parameters);
@@ -2009,7 +2008,7 @@ public class ConcurrentProcessingFramework {
     } else {
       CpfUiBuilder.checkPermission(businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplication.getName());
-      final Map<String, Object> titleParameters = new HashMap<String, Object>();
+      final Map<String, Object> titleParameters = new HashMap<>();
 
       if (MediaTypeUtil.isHtmlPage()) {
         final String title = businessApplication.getTitle();
@@ -2192,7 +2191,8 @@ public class ConcurrentProcessingFramework {
         field = new DateTimeField(name, required, defaultValue);
       } else if (Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
-      } else if (com.revolsys.geometry.model.Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
+      } else
+        if (com.revolsys.geometry.model.Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
       } else if (URL.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new UrlField(name, required, defaultValue);
@@ -2507,9 +2507,9 @@ public class ConcurrentProcessingFramework {
   public Object getJobs() {
     final String consumerKey = getConsumerKey();
     if (HtmlUiBuilder.isDataTableCallback()) {
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
 
-      final Map<String, Object> filter = new HashMap<String, Object>();
+      final Map<String, Object> filter = new HashMap<>();
       filter.put(BatchJob.USER_ID, consumerKey);
       parameters.put("filter", filter);
 
@@ -2762,23 +2762,23 @@ public class ConcurrentProcessingFramework {
     } else {
       final String title = "Batch Job " + batchJobId + " results";
       if (HtmlUiBuilder.isDataTableCallback()) {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
+        final Map<String, Object> parameters = new HashMap<>();
 
-        final Map<String, Object> filter = new HashMap<String, Object>();
+        final Map<String, Object> filter = new HashMap<>();
         filter.put(BatchJobResult.BATCH_JOB_ID, batchJobId);
         parameters.put("filter", filter);
 
         return this.batchJobResultUiBuilder.createDataTableMap("clientList", parameters);
       } else if (MediaTypeUtil.isHtmlPage()) {
         HttpServletUtils.setAttribute("title", title);
-        final Map<String, Object> parameters = new HashMap<String, Object>();
+        final Map<String, Object> parameters = new HashMap<>();
         parameters.put("serverSide", false);
         final TabElementContainer tabs = new TabElementContainer();
         this.batchJobResultUiBuilder.addTabDataTable(tabs, BatchJob.BATCH_JOB, "clientList",
           parameters);
         return tabs;
       } else {
-        final Map<String, Object> parameters = new HashMap<String, Object>();
+        final Map<String, Object> parameters = new HashMap<>();
         parameters.put("batchJobId", batchJobId);
         final PageInfo page = createRootPageInfo(title);
         final List<Record> results = this.dataAccessObject.getBatchJobResults(batchJobId);
@@ -2867,7 +2867,7 @@ public class ConcurrentProcessingFramework {
       final String typeDescription = attribute.getTypeDescription();
       final String description = attribute.getDescription();
 
-      final Map<String, Object> resultAttribute = new LinkedHashMap<String, Object>();
+      final Map<String, Object> resultAttribute = new LinkedHashMap<>();
       resultAttribute.put("name", name);
       resultAttribute.put("type", typeDescription);
       resultAttribute.put("description", description);
@@ -2899,7 +2899,7 @@ public class ConcurrentProcessingFramework {
 
       final TabElementContainer tabs = new TabElementContainer();
 
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("serverSide", Boolean.TRUE);
       this.businessAppBuilder.addTabDataTable(tabs, BatchJob.BATCH_JOB, "clientList", parameters);
 

@@ -416,10 +416,10 @@ public class WorkerGroupRunnable implements Runnable {
           if (!group.isEmpty()) {
             getTime = System.currentTimeMillis() - time;
             time = System.currentTimeMillis();
-            final Map<String, Object> globalError = new LinkedHashMap<String, Object>();
+            final Map<String, Object> globalError = new LinkedHashMap<>();
 
             final RecordDefinition requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
-            final Map<String, Object> applicationParameters = new HashMap<String, Object>(
+            final Map<String, Object> applicationParameters = new HashMap<>(
               (Map<String, Object>)group.get("applicationParameters"));
             for (final String name : requestRecordDefinition.getFieldNames()) {
               final Object value = applicationParameters.get(name);
@@ -606,7 +606,7 @@ public class WorkerGroupRunnable implements Runnable {
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }
-            final int srid = Maps.getInteger(parameters, "resultSrid", geometryFactory.getSrid());
+            final int srid = Maps.getInteger(parameters, "resultSrid", geometryFactory.getCoordinateSystemId());
             final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
@@ -616,7 +616,7 @@ public class WorkerGroupRunnable implements Runnable {
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
-            if (geometry.getSrid() == 0) {
+            if (geometry.getCoordinateSystemId() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }

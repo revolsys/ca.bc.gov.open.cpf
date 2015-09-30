@@ -77,7 +77,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Element pageCpfAdd(final HttpServletRequest request, final HttpServletResponse response)
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
-    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    final Map<String, Object> defaultValues = new HashMap<>();
     defaultValues.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL);
 
     final Element result = super.createObjectAddPage(defaultValues, null, "preInsert");
@@ -129,9 +129,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Object pageCpfList(final HttpServletRequest request, final HttpServletResponse response) {
     checkHasAnyRole(ADMIN);
     HttpServletUtils.setAttribute("title", "Config Properties");
-    final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+    final Map<String, Object> parameters = new LinkedHashMap<>();
 
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(ConfigProperty.MODULE_NAME, GLOBAL_MODULE_NAMES);
     parameters.put("filter", filter);
 
@@ -172,7 +172,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
-    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    final Map<String, Object> defaultValues = new HashMap<>();
     defaultValues.put(ConfigProperty.MODULE_NAME, moduleName);
     defaultValues.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.MODULE_BEAN_PROPERTY);
 
@@ -193,7 +193,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
 
     final String componentName = getAppComponentName(businessApplicationName);
-    final Map<String, Object> defaultValues = new HashMap<String, Object>();
+    final Map<String, Object> defaultValues = new HashMap<>();
     defaultValues.put(ConfigProperty.MODULE_NAME, moduleName);
     defaultValues.put(ConfigProperty.COMPONENT_NAME, componentName);
 
@@ -261,7 +261,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     hasModule(request, moduleName);
 
     final String componentName = getAppComponentName(businessApplicationName);
-    final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+    final Map<String, Object> parameters = new LinkedHashMap<>();
 
     final Condition where = Q.and(Q.equal(ConfigProperty.MODULE_NAME, moduleName),
       Q.equal(ConfigProperty.COMPONENT_NAME, componentName),
@@ -353,9 +353,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
-    final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+    final Map<String, Object> parameters = new LinkedHashMap<>();
 
-    final Map<String, Object> filter = new LinkedHashMap<String, Object>();
+    final Map<String, Object> filter = new LinkedHashMap<>();
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.MODULE_BEAN_PROPERTY);
     parameters.put("filter", filter);

@@ -37,12 +37,11 @@ import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.store.Buffer;
-import com.revolsys.parallel.process.InvokeMethodRunnable;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 
-public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor implements Process,
-  PropertyChangeListener {
+public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
+  implements Process, PropertyChangeListener {
   private final String jobStatusToProcess;
 
   /** The batch job service used to interact with the database. */
@@ -197,7 +196,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor 
     synchronized (this.scheduledIds) {
       if (!this.scheduledIds.contains(batchJobId)) {
         this.scheduledIds.add(batchJobId);
-        final Runnable runnable = new InvokeMethodRunnable(this, "processJobWrapper", batchJobId);
+        final Runnable runnable = () -> processJobWrapper(batchJobId);
         execute(runnable);
       }
     }
@@ -207,8 +206,8 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor 
     try {
       this.batchJobService.scheduleFromDatabase(this.jobStatusToProcess);
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error(
-        "Waiting 60 seconds due to: Unable to schedule from database", e);
+      LoggerFactory.getLogger(getClass())
+        .error("Waiting 60 seconds due to: Unable to schedule from database", e);
       ThreadUtil.pause(60 * 1000);
     }
   }

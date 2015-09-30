@@ -26,7 +26,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 public class StructuredToStructuredPluginTest {
   @Test
   public void testParameters() {
-    final Map<String, Object> parameters = new LinkedHashMap<String, Object>();
+    final Map<String, Object> parameters = new LinkedHashMap<>();
     parameters.put("booleanParameter", true);
     parameters.put("booleanListParameter", Collections.singletonList(true));
     parameters.put("booleanMapParameter", Collections.singletonMap("key", true));

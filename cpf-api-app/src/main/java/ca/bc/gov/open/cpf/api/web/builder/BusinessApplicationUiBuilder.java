@@ -17,12 +17,10 @@ package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -47,7 +45,6 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.equals.EqualsInstance;
@@ -232,7 +229,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
             JavaBeanUtil.setProperty(businessApplication, propertyName, newValue);
           }
 
-          final Map<String, Object> parameters = new HashMap<String, Object>();
+          final Map<String, Object> parameters = new HashMap<>();
 
           final String url = getPageUrl(viewName, parameters);
           response.sendRedirect(url);
@@ -269,12 +266,10 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public Object pageModuleList(final HttpServletRequest request, final HttpServletResponse response,
     final @PathVariable("moduleName") String moduleName)
       throws IOException, NoSuchRequestHandlingMethodException {
-    final Module module = getModule(request, moduleName);
+    getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
-    final Callable<Collection<? extends Object>> rowsCallable = new InvokeMethodCallable<Collection<? extends Object>>(
-      module, "getBusinessApplications");
-    return createDataTableHandlerOrRedirect(request, response, "moduleList", rowsCallable,
-      Module.class, "view");
+    return createDataTableHandlerOrRedirect(request, response, "moduleList",
+      this::getBusinessApplications, Module.class, "view");
   }
 
   @RequestMapping(value = {
@@ -292,7 +287,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, businessApplication, "module");
 
-      final Map<String, Object> parameters = new HashMap<String, Object>();
+      final Map<String, Object> parameters = new HashMap<>();
       parameters.put("serverSide", Boolean.FALSE);
 
       addTabDataTable(tabs, BusinessApplicationStatistics.class.getName(), "moduleAppList",

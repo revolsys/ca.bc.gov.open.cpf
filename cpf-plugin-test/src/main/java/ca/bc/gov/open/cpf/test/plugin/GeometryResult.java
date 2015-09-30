@@ -36,7 +36,7 @@ public class GeometryResult {
   }
 
   public Map<String, Object> getCustomizationProperties() {
-    final Map<String, Object> properties = new HashMap<String, Object>();
+    final Map<String, Object> properties = new HashMap<>();
     final String styleId = geometry.getGeometryType();
     properties.put("kmlStyleUrl", "http://gov.bc.ca/kmlStyle.kml#" + styleId);
     properties.put("kmlWriteNulls", true);

@@ -38,7 +38,7 @@ public class OAuthConsumer implements Serializable {
 
   public final OAuthServiceProvider serviceProvider;
 
-  private final Map<String, Object> properties = new HashMap<String, Object>();
+  private final Map<String, Object> properties = new HashMap<>();
 
   /**
    * The name of the property whose value is the Accept-Encoding header in HTTP

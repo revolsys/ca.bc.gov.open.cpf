@@ -51,7 +51,7 @@ public class MultipartToSimpleGeometry {
   }
 
   public Map<String, Object> getCustomizationProperties() {
-    final Map<String, Object> properties = new HashMap<String, Object>();
+    final Map<String, Object> properties = new HashMap<>();
     properties.put("kmlSnippet", "Length: $[length]");
     return properties;
   }

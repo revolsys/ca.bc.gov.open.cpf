@@ -16,11 +16,9 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletException;
@@ -41,7 +39,6 @@ import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.beans.InvokeMethodCallable;
 import com.revolsys.maven.MavenRepository;
 import com.revolsys.ui.html.decorator.FormHorizontalDecorator;
 import com.revolsys.ui.html.decorator.TableBody;
@@ -58,15 +55,11 @@ import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
 public class ModuleUiBuilder extends CpfUiBuilder {
-
   private MavenRepository mavenRepository;
 
   private ConfigPropertyModuleLoader moduleLoader;
 
   private final Object MODULE_ADD_SYNC = new Object();
-
-  private final Callable<Collection<? extends Object>> modulesCallable = new InvokeMethodCallable<Collection<? extends Object>>(
-    this, "getModules");
 
   public ModuleUiBuilder() {
     super("module", "Business Application Module", "Business Application Modules");
@@ -91,7 +84,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   public Element createModulePageAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
-    final Map<String, Object> parameters = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
 
     final Form form = new Form(this.typeName);
 
@@ -123,7 +116,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
                 moduleNameField.addValidationError("Module Name is a reserved word");
                 valid = false;
               } else if (!moduleName.matches("[A-Z0-9_]+")) {
-                moduleNameField.addValidationError("Can only contain the characters A-Z, 0-9, and _.");
+                moduleNameField
+                  .addValidationError("Can only contain the characters A-Z, 0-9, and _.");
                 valid = false;
               }
 
@@ -175,7 +169,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element createModulePageEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
@@ -239,7 +233,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response) throws IOException {
     HttpServletUtils.setAttribute("title", "Modules");
     checkAdminOrAnyModuleAdmin();
-    return createDataTableHandler(request, "list", this.modulesCallable);
+    return createDataTableHandler(request, "list", this::getModules);
   }
 
   @RequestMapping(value = {
@@ -248,14 +242,14 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element createModulePageView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();
     addObjectViewPage(tabs, module, null);
 
-    final Map<String, Object> parameters = new HashMap<String, Object>();
-    final Map<String, Object> filter = new HashMap<String, Object>();
+    final Map<String, Object> parameters = new HashMap<>();
+    final Map<String, Object> filter = new HashMap<>();
     filter.put("MODULE_NAME", moduleName);
     parameters.put("filter", filter);
 
@@ -285,9 +279,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/delete"
   }, method = RequestMethod.POST)
-  public void postModuleDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+  public void postModuleDelete(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Module module = getModule(request, moduleName);
     this.moduleLoader.deleteModule(module);
@@ -299,7 +292,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void postModuleRestart(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     module.restart();

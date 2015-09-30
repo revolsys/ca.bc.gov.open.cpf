@@ -43,7 +43,7 @@ public class OAuthAccessor implements Cloneable, Serializable {
 
   public String tokenSecret;
 
-  private final Map<String, Object> properties = new HashMap<String, Object>();
+  private final Map<String, Object> properties = new HashMap<>();
 
   public OAuthAccessor(final OAuthConsumer consumer) {
     this.consumer = consumer;

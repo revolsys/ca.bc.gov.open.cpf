@@ -76,7 +76,7 @@ public class ClientTest {
   // }
 
   // private void testDigestResourceMultiple() {
-  // final Map<String, Object> jobParameters = new HashMap<String, Object>();
+  // final Map<String, Object> jobParameters = new HashMap<>();
   // jobParameters.put("algorithmName", "SHA");
   // final List<Resource> resources = new ArrayList<Resource>();
   // resources.add(new ByteArrayResource("t", "This is a test".getBytes()));
@@ -99,7 +99,7 @@ public class ClientTest {
   // }
   //
   // private void testDigestResourceSingle() {
-  // final Map<String, Object> jobParameters = new HashMap<String, Object>();
+  // final Map<String, Object> jobParameters = new HashMap<>();
   // jobParameters.put("algorithmName", "SHA");
   // final String jobIdUrl = client.createJobWithOpaqueResourceSingleRequest(
   // "digest", "1.0.0", jobParameters, new ByteArrayResource("t",
@@ -116,7 +116,7 @@ public class ClientTest {
   // }
   //
   // private void testDigestUrlMultiple() {
-  // final Map<String, Object> jobParameters = new HashMap<String, Object>();
+  // final Map<String, Object> jobParameters = new HashMap<>();
   // jobParameters.put("algorithmName", "SHA");
   // final List<String> urls = new ArrayList<String>();
   // urls.add(url + "/");
@@ -134,7 +134,7 @@ public class ClientTest {
   // }
   //
   // private void testDigestUrlSingle() {
-  // final Map<String, Object> jobParameters = new HashMap<String, Object>();
+  // final Map<String, Object> jobParameters = new HashMap<>();
   // jobParameters.put("algorithmName", "SHA");
   // final String jobIdUrl = client.createJobWithOpaqueUrlSingleRequest(
   // "digest", "1.0.0", jobParameters, url + "/", "text/html",
@@ -170,7 +170,7 @@ public class ClientTest {
   }
 
   // private void testGetUserAppsJobIdUrls() {
-  // final Map<String, Object> request = new HashMap<String, Object>();
+  // final Map<String, Object> request = new HashMap<>();
   // request.put("mapGridName", "BCGS 1:20 000");
   // request.put("mapTileId", "92j016");
   // final String jobIdUrl = client.createJobWithStructuredSingleRequest(
@@ -182,7 +182,7 @@ public class ClientTest {
   // }
   //
   // private void testGetUserJobIdUrls() {
-  // final Map<String, Object> request = new HashMap<String, Object>();
+  // final Map<String, Object> request = new HashMap<>();
   // request.put("mapGridName", "BCGS 1:20 000");
   // request.put("mapTileId", "92j016");
   // final String jobIdUrl = client.createJobWithStructuredSingleRequest(
@@ -239,7 +239,7 @@ public class ClientTest {
   // }
   //
   // private void testMapTileByIdSingle() {
-  // final Map<String, Object> request = new HashMap<String, Object>();
+  // final Map<String, Object> request = new HashMap<>();
   // request.put("mapGridName", "BCGS 1:20 000");
   // request.put("mapTileId", "92j016");
   // final String jobIdUrl = client.createJobWithStructuredSingleRequest(
@@ -258,7 +258,7 @@ public class ClientTest {
   // }
   //
   // private void testMapTileByIdSingleDownloadResult() {
-  // final Map<String, Object> request = new HashMap<String, Object>();
+  // final Map<String, Object> request = new HashMap<>();
   // request.put("mapGridName", "BCGS 1:20 000");
   // request.put("mapTileId", "92j016");
   // final String jobIdUrl = client.createJobWithStructuredSingleRequest(
@@ -284,7 +284,7 @@ public class ClientTest {
   // }
   //
   // private void testMapTileByIdSingleError() {
-  // final Map<String, Object> request = new HashMap<String, Object>();
+  // final Map<String, Object> request = new HashMap<>();
   // request.put("mapGridName", "BCGS 1:20 000");
   // request.put("mapTileId", "92j0");
   // final String jobIdUrl = client.createJobWithStructuredSingleRequest(
