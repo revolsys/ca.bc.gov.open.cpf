@@ -72,8 +72,8 @@ public class DigestHttpClient {
 
   private final String webServiceUrl;
 
-  private final InvokeMethodResponseHandler<Map<String, Object>> jsonResponseHandler = new InvokeMethodResponseHandler<Map<String, Object>>(
-    this, "getJsonResource");
+  private final ResponseHandler<Map<String, Object>> jsonResponseHandler = new FunctionResponseHandler<>(
+    this::getJsonResource);
 
   private final DefaultHttpClient httpClient;
 
@@ -251,7 +251,8 @@ public class DigestHttpClient {
     }
   }
 
-  public HttpResponse postResource(final String url, final String contentType, final InputStream in) {
+  public HttpResponse postResource(final String url, final String contentType,
+    final InputStream in) {
     try {
       final HttpPost request = new HttpPost(url);
       final InputStreamEntity entity = new InputStreamEntity(in, ContentType.create(contentType));

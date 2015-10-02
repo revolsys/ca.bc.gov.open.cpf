@@ -37,6 +37,7 @@ import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -62,6 +63,7 @@ import com.revolsys.record.io.format.json.JsonParser;
 import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.util.ExceptionUtil;
 import com.revolsys.util.UrlUtil;
+import com.revolsys.util.WrappedException;
 
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthConsumer;
@@ -176,19 +178,23 @@ public class OAuthHttpClient extends DefaultHttpClient {
     EntityUtils.consume(entity);
   }
 
-  public Map<String, Object> getJsonResource(final HttpResponse response) throws IOException {
-    final StatusLine statusLine = response.getStatusLine();
-    final int httpStatusCode = statusLine.getStatusCode();
-    final HttpEntity entity = response.getEntity();
+  public Map<String, Object> getJsonResource(final HttpResponse response) {
+    try {
+      final StatusLine statusLine = response.getStatusLine();
+      final int httpStatusCode = statusLine.getStatusCode();
+      final HttpEntity entity = response.getEntity();
 
-    if (httpStatusCode == HttpStatus.SC_OK) {
-      try (
-        final InputStream in = entity.getContent()) {
-        final Map<String, Object> map = JsonParser.read(in);
-        return map;
+      if (httpStatusCode == HttpStatus.SC_OK) {
+        try (
+          final InputStream in = entity.getContent()) {
+          final Map<String, Object> map = JsonParser.read(in);
+          return map;
+        }
+      } else {
+        throw createException(entity, statusLine);
       }
-    } else {
-      throw createException(entity, statusLine);
+    } catch (final IOException e) {
+      throw new WrappedException(e);
     }
   }
 
@@ -196,8 +202,8 @@ public class OAuthHttpClient extends DefaultHttpClient {
     throws IOException, ClientProtocolException {
     request.addHeader("Accept", "application/json");
 
-    final InvokeMethodResponseHandler<Map<String, Object>> responseHandler = new InvokeMethodResponseHandler<Map<String, Object>>(
-      this, "getJsonResource");
+    final ResponseHandler<Map<String, Object>> responseHandler = new FunctionResponseHandler<>(
+      this::getJsonResource);
 
     final HttpHost target = determineTarget(request);
     final Map<String, Object> response = execute(target, request, responseHandler, this.context);
