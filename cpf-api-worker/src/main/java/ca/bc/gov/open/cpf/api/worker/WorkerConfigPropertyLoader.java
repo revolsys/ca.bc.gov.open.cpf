@@ -65,7 +65,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
     try {
       final JsonAsyncSender messageSender = this.workerScheduler.getMessageSender();
       if (messageSender != null) {
-        final Map<String, Object> message = Maps.create("type", "moduleConfigLoad");
+        final Map<String, Object> message = Maps.newLinkedHash("type", "moduleConfigLoad");
         message.put("moduleName", moduleName);
         message.put("environmentName", environmentName);
         message.put("componentName", componentName);

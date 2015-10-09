@@ -51,7 +51,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.io.PathName;
 import com.revolsys.record.Record;
-import com.revolsys.record.Records;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
@@ -343,7 +342,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
       if (!statistics.isEmpty()) {
         final BusinessApplicationStatistics stats = statistics.get(0);
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-        final int numRequests = Records.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS);
+        final int numRequests = batchJob.getInteger(BatchJob.NUM_SUBMITTED_REQUESTS);
         if (jobStatus.equals(BatchJobStatus.DOWNLOAD_INITIATED)
           || jobStatus.equals(BatchJobStatus.RESULTS_CREATED)
           || jobStatus.equals(BatchJobStatus.CANCELLED)) {

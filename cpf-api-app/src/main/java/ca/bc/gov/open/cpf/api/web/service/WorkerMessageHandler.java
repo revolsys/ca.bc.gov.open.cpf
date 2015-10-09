@@ -60,7 +60,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
 
   private Map<String, Object> createResultMessage(final Map<String, Object> message) {
     final String messageId = Maps.getString(message, "messageId");
-    final Map<String, Object> resultMessage = Maps.create("messageId", messageId);
+    final Map<String, Object> resultMessage = Maps.newLinkedHash("messageId", messageId);
     return resultMessage;
   }
 
@@ -92,7 +92,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
   @Override
   public void moduleChanged(final ModuleEvent event) {
     final String type = event.getAction();
-    final Map<String, Object> message = Maps.create("type", type);
+    final Map<String, Object> message = Maps.newLinkedHash("type", type);
 
     final String moduleName = event.getModuleName();
     message.put("moduleName", moduleName);

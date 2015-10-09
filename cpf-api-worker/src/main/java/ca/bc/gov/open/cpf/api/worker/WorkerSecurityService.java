@@ -45,7 +45,7 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
       if (messageSender == null) {
         return false;
       } else {
-        final Map<String, Object> message = Maps.create("type", "securityCanAccessResource");
+        final Map<String, Object> message = Maps.newLinkedHash("type", "securityCanAccessResource");
         message.put("moduleName", this.moduleName);
         message.put("consumerKey", getUsername());
         message.put("actionName", actionName);
@@ -64,7 +64,7 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
       if (messageSender == null) {
         return false;
       } else {
-        final Map<String, Object> message = Maps.create("type", "securityIsMemberOfGroup");
+        final Map<String, Object> message = Maps.newLinkedHash("type", "securityIsMemberOfGroup");
         message.put("moduleName", this.moduleName);
         message.put("consumerKey", getUsername());
         message.put("groupName", groupName);
@@ -84,7 +84,7 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
       if (messageSender == null) {
         return false;
       } else {
-        final Map<String, Object> message = Maps.create("type", "securityCanAccessResource");
+        final Map<String, Object> message = Maps.newLinkedHash("type", "securityCanAccessResource");
         message.put("moduleName", this.moduleName);
         message.put("consumerKey", getUsername());
         message.put("resourceClass", resourceClass);
@@ -106,7 +106,7 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
       if (messageSender == null) {
         return Collections.emptyMap();
       } else {
-        final Map<String, Object> message = Maps.create("type", "securityCanAccessResource");
+        final Map<String, Object> message = Maps.newLinkedHash("type", "securityCanAccessResource");
         message.put("moduleName", this.moduleName);
         message.put("consumerKey", getUsername());
         return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("attributes"));

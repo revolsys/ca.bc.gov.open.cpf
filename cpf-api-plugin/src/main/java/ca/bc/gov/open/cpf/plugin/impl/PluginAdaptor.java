@@ -445,9 +445,9 @@ public class PluginAdaptor {
     try {
       final RecordDefinitionImpl requestRecordDefinition = this.application
         .getRequestRecordDefinition();
-      final Class<?> attributeClass = requestRecordDefinition.getFieldClass(parameterName);
-      if (attributeClass != null) {
-        parameterValue = StringConverterRegistry.toObject(attributeClass, parameterValue);
+      final Class<?> fieldClass = requestRecordDefinition.getFieldClass(parameterName);
+      if (fieldClass != null) {
+        parameterValue = StringConverterRegistry.toObject(fieldClass, parameterValue);
       }
       if (parameterValue != null) {
         BeanUtils.setProperty(this.plugin, parameterName, parameterValue);

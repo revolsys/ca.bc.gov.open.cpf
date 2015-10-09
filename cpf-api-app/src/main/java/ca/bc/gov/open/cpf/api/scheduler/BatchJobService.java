@@ -1072,7 +1072,7 @@ public class BatchJobService implements ModuleEventListener {
           final StopWatch stopWatch = new StopWatch();
           stopWatch.start();
 
-          final long numRequests = Records.getInteger(batchJob, BatchJob.NUM_SUBMITTED_REQUESTS);
+          final long numRequests = batchJob.getInteger(BatchJob.NUM_SUBMITTED_REQUESTS);
           final String businessApplicationName = batchJob
             .getValue(BatchJob.BUSINESS_APPLICATION_NAME);
           final BusinessApplication businessApplication = getBusinessApplication(
@@ -1627,7 +1627,7 @@ public class BatchJobService implements ModuleEventListener {
   private Record preProcessParameters(final Record batchJob,
     final BusinessApplication businessApplication, final int requestSequenceNumber,
     final Map<String, String> jobParameters, final Record requestRecord) {
-    final long batchJobId = Records.getInteger(batchJob, BatchJob.BATCH_JOB_ID);
+    final long batchJobId = batchJob.getInteger(BatchJob.BATCH_JOB_ID);
     requestRecord.put("i", requestSequenceNumber);
     final RecordDefinition recordDefinition = requestRecord.getRecordDefinition();
     for (final FieldDefinition field : recordDefinition.getFields()) {

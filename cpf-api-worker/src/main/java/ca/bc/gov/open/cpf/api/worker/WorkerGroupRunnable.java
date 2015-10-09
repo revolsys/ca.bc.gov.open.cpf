@@ -570,9 +570,9 @@ public class WorkerGroupRunnable implements Runnable {
     Object parameterValue) {
     try {
       final RecordDefinitionImpl requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
-      final Class<?> attributeClass = requestRecordDefinition.getFieldClass(parameterName);
-      if (attributeClass != null) {
-        parameterValue = StringConverterRegistry.toObject(attributeClass, parameterValue);
+      final Class<?> fieldClass = requestRecordDefinition.getFieldClass(parameterName);
+      if (fieldClass != null) {
+        parameterValue = StringConverterRegistry.toObject(fieldClass, parameterValue);
       }
       if (parameterValue != null) {
         BeanUtils.setProperty(plugin, parameterName, parameterValue);
@@ -637,7 +637,7 @@ public class WorkerGroupRunnable implements Runnable {
       final Map<String, Object> resultListProperties = Property.get(plugin,
         "customizationProperties");
       if (resultListProperties != null) {
-        customizationProperties = Maps.createLinkedHashMap(customizationProperties);
+        customizationProperties = Maps.newLinkedHash(customizationProperties);
         customizationProperties.putAll(resultListProperties);
       }
     }
