@@ -86,7 +86,7 @@ import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 import com.revolsys.websocket.json.JsonAsyncSender;
@@ -535,7 +535,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
         responseMessage.put("type", "moduleStartFailed");
         responseMessage.put("moduleName", moduleName);
         responseMessage.put("moduleTime", moduleTime);
-        responseMessage.put("moduleError", ExceptionUtil.toString(e));
+        responseMessage.put("moduleError", Exceptions.toString(e));
         sendMessage(responseMessage);
         if (module != null) {
           this.businessApplicationRegistry.unloadModule(module);
@@ -818,7 +818,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
       final AppLog log = new AppLog(moduleName);
       log.error("Unable to load module " + moduleName, e);
       message = createModuleMessage(module, "moduleStartFailed");
-      message.put("moduleError", ExceptionUtil.toString(e));
+      message.put("moduleError", Exceptions.toString(e));
       this.businessApplicationRegistry.unloadModule(module);
     }
     if (message != null) {

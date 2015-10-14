@@ -92,7 +92,7 @@ import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.spring.config.AttributesBeanConfigurer;
 import com.revolsys.spring.resource.Resource;
 import com.revolsys.spring.resource.UrlResource;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
@@ -208,11 +208,11 @@ public class ClassLoaderModule implements Module {
     if (Property.hasValue(message)) {
       this.log.error("Unable to initialize module " + getName() + ":\n  " + message, e);
       if (e != null) {
-        message += ":\n  " + ExceptionUtil.toString(e);
+        message += ":\n  " + Exceptions.toString(e);
       }
     } else {
       this.log.error("Unable to initialize module " + getName(), e);
-      message = ExceptionUtil.toString(e);
+      message = Exceptions.toString(e);
     }
 
     this.moduleError += message + "\n";

@@ -47,7 +47,7 @@ import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.LineString;
@@ -171,7 +171,7 @@ public final class BusinessApplicationRegistry implements
         try {
           module.stop();
         } catch (final Throwable e) {
-          ExceptionUtil.log(getClass(), "Unable to stop " + module.getName(), e);
+          Exceptions.log(getClass(), "Unable to stop " + module.getName(), e);
         }
       }
 

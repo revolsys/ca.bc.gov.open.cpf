@@ -61,7 +61,7 @@ import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.json.JsonParser;
 import com.revolsys.spring.resource.InputStreamResource;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.UrlUtil;
 import com.revolsys.util.WrappedException;
 
@@ -217,7 +217,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
       return getJsonResource(request);
     } catch (final Throwable e) {
       request.abort();
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 
@@ -251,7 +251,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
         throw createException(entity, statusLine);
       }
     } catch (final Throwable e) {
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 
@@ -267,7 +267,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
       final HttpResponse response = execute(httpGet, this.context);
       return response;
     } catch (final Exception e) {
-      return (HttpResponse)ExceptionUtil.throwUncheckedException(e);
+      return (HttpResponse)Exceptions.throwUncheckedException(e);
     }
   }
 
@@ -304,7 +304,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
       final HttpResponse response = execute(httpPost, this.context);
       return response;
     } catch (final Throwable e) {
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 
@@ -317,7 +317,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
       final HttpResponse response = execute(httpPost, this.context);
       return response;
     } catch (final Throwable e) {
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 

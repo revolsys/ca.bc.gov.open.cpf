@@ -150,7 +150,7 @@ import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.ui.web.utils.MultipartFileResource;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.DateUtil;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.HtmlUtil;
 import com.revolsys.util.Property;
 import com.vividsolutions.jts.geom.Geometry;
@@ -1548,7 +1548,7 @@ public class ConcurrentProcessingFramework {
               writer.close();
               return null;
             } catch (final IOException e) {
-              return ExceptionUtil.throwUncheckedException(e);
+              return Exceptions.throwUncheckedException(e);
             }
           } else {
 

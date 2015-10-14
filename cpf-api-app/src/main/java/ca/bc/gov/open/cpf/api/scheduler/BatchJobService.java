@@ -128,7 +128,7 @@ import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.util.DateUtil;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
@@ -1473,7 +1473,7 @@ public class BatchJobService implements ModuleEventListener {
                             }
                           } catch (final Throwable e) {
                             transactionManager.rollback(status);
-                            ExceptionUtil.throwUncheckedException(e);
+                            Exceptions.throwUncheckedException(e);
                           }
                           transactionManager.commit(status);
                         }

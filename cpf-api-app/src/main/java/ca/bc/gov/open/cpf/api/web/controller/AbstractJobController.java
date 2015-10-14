@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.Reader;
 import com.revolsys.record.io.format.csv.Csv;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 
 public abstract class AbstractJobController implements JobController {
   @Override
@@ -114,7 +114,7 @@ public abstract class AbstractJobController implements JobController {
           FileUtil.copy(in, out);
         }
       } catch (final Throwable e) {
-        ExceptionUtil.throwUncheckedException(e);
+        Exceptions.throwUncheckedException(e);
       }
     }
   }

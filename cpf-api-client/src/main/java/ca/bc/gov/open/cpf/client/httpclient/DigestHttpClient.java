@@ -54,7 +54,7 @@ import com.revolsys.parallel.ThreadInterruptedException;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.json.JsonParser;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 
 public class DigestHttpClient {
   private static HttpHost determineTarget(final HttpUriRequest request) {
@@ -140,7 +140,7 @@ public class DigestHttpClient {
       if (ThreadUtil.isInterrupted()) {
         throw new ThreadInterruptedException();
       } else {
-        return ExceptionUtil.throwUncheckedException(e);
+        return Exceptions.throwUncheckedException(e);
       }
     }
   }
@@ -160,7 +160,7 @@ public class DigestHttpClient {
           FileUtil.closeSilent(in);
         }
       } catch (final Throwable e) {
-        return ExceptionUtil.throwUncheckedException(e);
+        return Exceptions.throwUncheckedException(e);
       }
     } else {
       throw createException(entity, statusLine);
@@ -181,7 +181,7 @@ public class DigestHttpClient {
       return getJsonResource(request);
     } catch (final Throwable e) {
       request.abort();
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 
@@ -203,7 +203,7 @@ public class DigestHttpClient {
               FileUtil.closeSilent(in);
             }
           } catch (final Throwable e) {
-            ExceptionUtil.throwUncheckedException(e);
+            Exceptions.throwUncheckedException(e);
           }
           return null;
         } else {
@@ -232,7 +232,7 @@ public class DigestHttpClient {
       request.setEntity(bodyEntity);
       return getJsonResource(request);
     } catch (final Throwable e) {
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 
@@ -247,7 +247,7 @@ public class DigestHttpClient {
       final HttpResponse response = this.httpClient.execute(request, context);
       return response;
     } catch (final Throwable e) {
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 
@@ -263,7 +263,7 @@ public class DigestHttpClient {
       final HttpResponse response = this.httpClient.execute(request, context);
       return response;
     } catch (final Throwable e) {
-      return ExceptionUtil.throwUncheckedException(e);
+      return Exceptions.throwUncheckedException(e);
     }
   }
 }

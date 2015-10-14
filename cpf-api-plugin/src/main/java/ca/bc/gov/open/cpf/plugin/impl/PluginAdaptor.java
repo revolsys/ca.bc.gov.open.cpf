@@ -59,7 +59,7 @@ import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
-import com.revolsys.util.ExceptionUtil;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
@@ -215,9 +215,9 @@ public class PluginAdaptor {
       try {
         setAppLogMethod.invoke(plugin, this.appLog);
       } catch (final IllegalAccessException e) {
-        ExceptionUtil.throwCauseException(e);
+        Exceptions.throwCauseException(e);
       } catch (final InvocationTargetException e) {
-        ExceptionUtil.throwCauseException(e);
+        Exceptions.throwCauseException(e);
       }
     } catch (final NoSuchMethodException e) {
     }
