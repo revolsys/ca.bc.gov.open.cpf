@@ -56,7 +56,7 @@ class Asn1Object {
    * (Integer, String) or a construct (sequence, choice, set).
    * </ul>
    * 
-   * @param tag Tag or Identifier
+   * @param tag Tag or WmsIdentifier
    * @param length Length of the field
    * @param value Encoded octet string for the field.
    */
