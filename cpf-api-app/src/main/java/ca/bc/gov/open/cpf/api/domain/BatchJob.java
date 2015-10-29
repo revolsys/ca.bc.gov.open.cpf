@@ -277,8 +277,8 @@ public class BatchJob extends DelegatingRecord implements Common {
     synchronized (this.completedRequests) {
       setValue(COMPLETED_REQUEST_RANGE, this.completedRequests.toString());
     }
-    if (getState() == RecordState.Modified) {
-      getRecordDefinition().getRecordStore().update(this);
+    if (getState() == RecordState.MODIFIED) {
+      getRecordDefinition().getRecordStore().updateRecord(this);
     }
 
   }

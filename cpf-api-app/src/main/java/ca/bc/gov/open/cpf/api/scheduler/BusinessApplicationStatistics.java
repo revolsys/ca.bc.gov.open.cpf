@@ -26,6 +26,7 @@ import java.util.TreeMap;
 
 import org.springframework.util.StopWatch;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.util.DateUtil;
 import com.revolsys.util.JavaBeanUtil;
@@ -105,7 +106,7 @@ public class BusinessApplicationStatistics {
 
   private final String businessApplicationName;
 
-  private Integer databaseId;
+  private Identifier databaseId;
 
   private long completedFailedRequestsCount;
 
@@ -394,7 +395,7 @@ public class BusinessApplicationStatistics {
     return formatTime(getCompletedTime());
   }
 
-  public Integer getDatabaseId() {
+  public Identifier getDatabaseId() {
     return this.databaseId;
   }
 
@@ -616,7 +617,7 @@ public class BusinessApplicationStatistics {
     this.completedTime = completedTime;
   }
 
-  public void setDatabaseId(final Integer databaseId) {
+  public void setDatabaseId(final Identifier databaseId) {
     this.databaseId = databaseId;
   }
 

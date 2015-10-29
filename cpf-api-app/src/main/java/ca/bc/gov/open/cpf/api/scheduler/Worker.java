@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import javax.websocket.Session;
 
 import com.revolsys.collection.map.Maps;
+import com.revolsys.identifier.Identifier;
 import com.revolsys.util.Property;
 import com.revolsys.websocket.json.JsonAsyncSender;
 
@@ -64,15 +65,15 @@ public class Worker {
     }
   }
 
-  public boolean cancelBatchJob(final long batchJobId) {
+  public boolean cancelBatchJob(final Identifier batchJobId) {
     synchronized (this.executingGroupsById) {
       boolean found = false;
-      for (final Iterator<Entry<String, BatchJobRequestExecutionGroup>> iterator = this.executingGroupsById.entrySet()
-        .iterator(); iterator.hasNext();) {
+      for (final Iterator<Entry<String, BatchJobRequestExecutionGroup>> iterator = this.executingGroupsById
+        .entrySet().iterator(); iterator.hasNext();) {
         final Entry<String, BatchJobRequestExecutionGroup> entry = iterator.next();
         final String groupId = entry.getKey();
         final BatchJobRequestExecutionGroup group = entry.getValue();
-        if (group.getBatchJobId() == batchJobId) {
+        if (group.getBatchJobId().equals(batchJobId)) {
           found = true;
           final Map<String, Object> message = new LinkedHashMap<>();
           message.put("type", "cancelGroup");
@@ -87,7 +88,8 @@ public class Worker {
 
   public Set<BatchJobRequestExecutionGroup> cancelExecutingGroups(final String moduleNameAndTime) {
     synchronized (this.executingGroupsById) {
-      final Set<BatchJobRequestExecutionGroup> groups = this.executingGroupsIdByModule.remove(moduleNameAndTime);
+      final Set<BatchJobRequestExecutionGroup> groups = this.executingGroupsIdByModule
+        .remove(moduleNameAndTime);
       if (groups != null) {
         for (final BatchJobRequestExecutionGroup group : groups) {
           final String groupId = group.getBaseId();

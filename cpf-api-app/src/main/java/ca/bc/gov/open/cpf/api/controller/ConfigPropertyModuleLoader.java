@@ -206,7 +206,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       if (in != null) {
         final InputStreamResource resource = new InputStreamResource("properties.json", in);
         final Reader<Map<String, Object>> reader = MapReader.newMapReader(resource);
-        final List<Map<String, Object>> pluginProperties = reader.read();
+        final List<Map<String, Object>> pluginProperties = reader.toList();
 
         final Map<String, Map<String, Record>> propertiesByEnvironment = getPropertiesByEnvironment(
           module, pluginProperties);

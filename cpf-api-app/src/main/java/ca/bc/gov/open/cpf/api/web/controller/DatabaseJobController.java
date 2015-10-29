@@ -22,6 +22,7 @@ import java.util.List;
 import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.csv.CsvRecordWriter;
@@ -37,12 +38,12 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public boolean cancelJob(final long jobId) {
+  public boolean cancelJob(final Identifier jobId) {
     return this.dataAccessObject.cancelBatchJob(jobId);
   }
 
   @Override
-  public void createJobFile(final long jobId, final String path, final long sequenceNumber,
+  public void createJobFile(final Identifier jobId, final String path, final long sequenceNumber,
     final String contentType, final Object data) {
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
@@ -59,17 +60,17 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public void deleteJob(final long jobId) {
+  public void deleteJob(final Identifier jobId) {
     this.dataAccessObject.deleteBatchJob(jobId);
   }
 
   @Override
-  protected long getFileSize(final long jobId, final String path, final int sequenceNumber) {
+  protected long getFileSize(final Identifier jobId, final String path, final int sequenceNumber) {
     return this.dataAccessObject.getBatchJobFileSize(jobId, path, sequenceNumber);
   }
 
   @Override
-  protected InputStream getFileStream(final long jobId, final String path,
+  protected InputStream getFileStream(final Identifier jobId, final String path,
     final int sequenceNumber) {
     return this.dataAccessObject.getBatchJobFileStream(jobId, JOB_INPUTS, 1);
   }
@@ -80,7 +81,7 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public void setGroupInput(final long jobId, final int sequenceNumber,
+  public void setGroupInput(final Identifier jobId, final int sequenceNumber,
     final RecordDefinition recordDefinition, final List<Record> requests) {
     if (!requests.isEmpty()) {
       final File file = FileUtil.createTempFile("job", ".csv");

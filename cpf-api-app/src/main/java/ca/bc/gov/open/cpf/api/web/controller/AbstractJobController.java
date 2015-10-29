@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.Reader;
 import com.revolsys.record.io.format.csv.Csv;
@@ -29,16 +30,18 @@ import com.revolsys.util.Exceptions;
 
 public abstract class AbstractJobController implements JobController {
   @Override
-  public void createJobInputFile(final long jobId, final String contentType, final Object data) {
+  public void createJobInputFile(final Identifier jobId, final String contentType,
+    final Object data) {
     createJobFile(jobId, JOB_INPUTS, 1, contentType, data);
   }
 
-  protected abstract long getFileSize(long jobId, String path, int sequenceNumber);
+  protected abstract long getFileSize(Identifier jobId, String path, int sequenceNumber);
 
-  protected abstract InputStream getFileStream(final long jobId, String path, int sequenceNumber);
+  protected abstract InputStream getFileStream(final Identifier jobId, String path,
+    int sequenceNumber);
 
   @Override
-  public String getGroupInputString(final long jobId, final int sequenceNumber) {
+  public String getGroupInputString(final Identifier jobId, final int sequenceNumber) {
     final InputStream inputStream = getFileStream(jobId, GROUP_INPUTS, sequenceNumber);
     if (inputStream == null) {
       return null;
@@ -49,7 +52,8 @@ public abstract class AbstractJobController implements JobController {
   }
 
   @Override
-  public Reader<Map<String, Object>> getGroupResultReader(final long jobId, final int sequenceNumber) {
+  public Reader<Map<String, Object>> getGroupResultReader(final Identifier jobId,
+    final int sequenceNumber) {
     final InputStream in = getGroupResultStream(jobId, sequenceNumber);
     if (in == null) {
       return null;
@@ -59,49 +63,50 @@ public abstract class AbstractJobController implements JobController {
   }
 
   @Override
-  public InputStream getGroupResultStream(final long jobId, final int sequenceNumber) {
+  public InputStream getGroupResultStream(final Identifier jobId, final int sequenceNumber) {
     return getFileStream(jobId, GROUP_RESULTS, sequenceNumber);
   }
 
   @Override
-  public InputStream getJobInputStream(final long jobId) {
+  public InputStream getJobInputStream(final Identifier jobId) {
     return getFileStream(jobId, JOB_INPUTS, 1);
   }
 
   @Override
-  public long getJobResultSize(final long jobId, final int sequenceNumber) {
+  public long getJobResultSize(final Identifier jobId, final int sequenceNumber) {
     return getFileSize(jobId, JOB_RESULTS, sequenceNumber);
   }
 
   @Override
-  public InputStream getJobResultStream(final long jobId, final int sequenceNumber) {
+  public InputStream getJobResultStream(final Identifier jobId, final int sequenceNumber) {
     return getFileStream(jobId, JOB_RESULTS, sequenceNumber);
   }
 
   @Override
-  public void setGroupError(final long jobId, final int sequenceNumber, final Object data) {
+  public void setGroupError(final Identifier jobId, final int sequenceNumber, final Object data) {
     createJobFile(jobId, GROUP_ERRORS, sequenceNumber, "text/csv", data);
   }
 
   @Override
-  public void setGroupInput(final long jobId, final int sequenceNumber, final String contentType,
-    final Object data) {
+  public void setGroupInput(final Identifier jobId, final int sequenceNumber,
+    final String contentType, final Object data) {
     createJobFile(jobId, GROUP_INPUTS, sequenceNumber, contentType, data);
   }
 
   @Override
-  public void setGroupResult(final long jobId, final int sequenceNumber, final InputStream in) {
+  public void setGroupResult(final Identifier jobId, final int sequenceNumber,
+    final InputStream in) {
     createJobFile(jobId, GROUP_RESULTS, sequenceNumber, "text/csv", in);
   }
 
   @Override
-  public void setJobResult(final long jobId, final int sequenceNumber, final String contentType,
-    final Object data) {
+  public void setJobResult(final Identifier jobId, final int sequenceNumber,
+    final String contentType, final Object data) {
     createJobFile(jobId, JOB_RESULTS, sequenceNumber, contentType, data);
   }
 
-  protected void writeFile(final HttpServletResponse response, final long jobId, final String path,
-    final int sequenceNumber) throws IOException {
+  protected void writeFile(final HttpServletResponse response, final Identifier jobId,
+    final String path, final int sequenceNumber) throws IOException {
     final String baseName = "job-" + jobId + "-" + sequenceNumber + "-" + path;
 
     response.setContentType("application/csv");
@@ -120,13 +125,13 @@ public abstract class AbstractJobController implements JobController {
   }
 
   @Override
-  public void writeGroupInput(final HttpServletResponse response, final long jobId,
+  public void writeGroupInput(final HttpServletResponse response, final Identifier jobId,
     final int sequenceNumber) throws IOException {
     writeFile(response, jobId, GROUP_INPUTS, sequenceNumber);
   }
 
   @Override
-  public void writeGroupResult(final HttpServletResponse response, final long jobId,
+  public void writeGroupResult(final HttpServletResponse response, final Identifier jobId,
     final int sequenceNumber) throws IOException {
     writeFile(response, jobId, GROUP_RESULTS, sequenceNumber);
   }

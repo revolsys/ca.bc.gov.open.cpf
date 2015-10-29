@@ -36,6 +36,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.record.Record;
@@ -66,12 +67,12 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     }
   }
 
-  public Record getBatchJobResult(final Long batchJobId, final Integer sequenceNumber)
+  public Record getBatchJobResult(final Identifier batchJobId, final Integer sequenceNumber)
     throws NoSuchRequestHandlingMethodException {
     final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
       Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
     final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
-    final Record batchJobResult = getRecordStore().queryFirst(query);
+    final Record batchJobResult = getRecordStore().getRecords(query).getFirst();
 
     if (batchJobResult != null) {
       return batchJobResult;
@@ -79,18 +80,18 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     throw new NoSuchRequestHandlingMethodException(getRequest());
   }
 
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{sequenceNumber}/download"
-      }, method = {
-        RequestMethod.GET, RequestMethod.POST
-      })
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{sequenceNumber}/download"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
   @ResponseBody
   public void getModuleAppJobDownload(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws NoSuchRequestHandlingMethodException,
-    IOException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Identifier batchJobId,
+    @PathVariable("sequenceNumber") final Integer sequenceNumber)
+      throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
@@ -105,7 +106,8 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
       final BatchJobService batchJobService = getBatchJobService();
       final InputStream in = batchJobService.getBatchJobResultData(batchJobId, sequenceNumber,
         batchJobResult);
-      final String resultDataContentType = batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+      final String resultDataContentType = batchJobResult
+        .getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
       response.setContentType(resultDataContentType);
       final long size = batchJobService.getBatchJobResultSize(batchJobId, sequenceNumber);
 
@@ -115,8 +117,8 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
         final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
         final String fileName = "job-" + batchJobId + "-result-" + sequenceNumber + "."
           + fileExtension;
-        response.setHeader("Content-Disposition", "attachment; filename=" + fileName + ";size="
-          + size);
+        response.setHeader("Content-Disposition",
+          "attachment; filename=" + fileName + ";size=" + size);
       }
       final ServletOutputStream out = response.getOutputStream();
 
@@ -130,8 +132,9 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName, @PathVariable("batchJobId") final Long batchJobId)
-    throws IOException, NoSuchRequestHandlingMethodException {
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Long batchJobId)
+      throws IOException, NoSuchRequestHandlingMethodException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);

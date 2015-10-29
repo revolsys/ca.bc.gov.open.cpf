@@ -59,8 +59,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "instantModePermission", "testModeEnabled");
 
   public ConfigPropertyUiBuilder() {
-    super("configProperty", ConfigProperty.CONFIG_PROPERTY, "CONFIG_PROPERTY_ID",
-      "Config Property", "Config Properties");
+    super("configProperty", ConfigProperty.CONFIG_PROPERTY, "CONFIG_PROPERTY_ID", "Config Property",
+      "Config Properties");
   }
 
   private String getAppComponentName(final String businessApplicationName) {
@@ -88,8 +88,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "/admin/configProperties/{configPropertyId}/delete"
   }, method = RequestMethod.POST)
   public void pageCpfDelete(final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
 
     final Record configProperty = loadObject(configPropertyId);
@@ -99,7 +99,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
         final String componentName = configProperty.getValue(ConfigProperty.COMPONENT_NAME);
         if (componentName.equals(ConfigProperty.GLOBAL)) {
           final RecordStore recordStore = getRecordStore();
-          recordStore.delete(configProperty);
+          recordStore.deleteRecord(configProperty);
           redirectPage("list");
           return;
         }
@@ -115,8 +115,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   })
   @ResponseBody
   public Element pageCpfEdit(final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Record configProperty = loadObject(configPropertyId);
     return super.createObjectEditPage(configProperty, null);
@@ -167,9 +167,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  public Element pageModuleAdd(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+  public Element pageModuleAdd(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Map<String, Object> defaultValues = new HashMap<>();
@@ -188,7 +187,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Element pageModuleAppAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -200,15 +199,14 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     return createObjectAddPage(defaultValues, "moduleApp", "preInsertModule");
   }
 
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/delete"
-      }, method = RequestMethod.POST)
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/delete"
+  }, method = RequestMethod.POST)
   public void pageModuleAppDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -217,25 +215,24 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(componentName)) {
-      getRecordStore().delete(configProperty);
+      getRecordStore().deleteRecord(configProperty);
       redirectPage("moduleAppList");
       return;
     }
     throw new NoSuchRequestHandlingMethodException(request);
   }
 
-  @RequestMapping(
-      value = {
-        "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/edit"
-      }, method = {
-        RequestMethod.GET, RequestMethod.POST
-      })
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/configProperties/{configPropertyId}/edit"
+  }, method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
   @ResponseBody
   public Element pageModuleAppEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -256,7 +253,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Object pageModuleAppList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName)
-    throws IOException, NoSuchRequestHandlingMethodException {
+      throws IOException, NoSuchRequestHandlingMethodException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -281,8 +278,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Element pageModuleAppView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -301,19 +298,18 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/configProperties/{configPropertyId}/delete"
   }, method = RequestMethod.POST)
-  public void pageModuleDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+  public void pageModuleDelete(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
     final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
-      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
-      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
-        ConfigProperty.MODULE_BEAN_PROPERTY)) {
-      getRecordStore().delete(configProperty);
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName) && configProperty
+        .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      getRecordStore().deleteRecord(configProperty);
       redirectPage("moduleList");
       return;
     }
@@ -328,16 +324,15 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
     final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
-      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
-      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
-        ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName) && configProperty
+        .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
       return createObjectEditPage(configProperty, "module");
     }
     throw new NoSuchRequestHandlingMethodException(request);
@@ -347,9 +342,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/configProperties"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object pageModuleList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, NoSuchRequestHandlingMethodException {
+  public Object pageModuleList(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName)
+      throws IOException, NoSuchRequestHandlingMethodException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -370,16 +365,15 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("configPropertyId") final Integer configPropertyId) throws IOException,
-    ServletException {
+    @PathVariable("configPropertyId") final Integer configPropertyId)
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
     final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
-      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
-      && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(
-        ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName) && configProperty
+        .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, configProperty, "module");
       return tabs;

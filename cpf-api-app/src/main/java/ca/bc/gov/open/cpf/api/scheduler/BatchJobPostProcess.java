@@ -24,6 +24,7 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.util.Property;
 
 public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
@@ -41,12 +42,13 @@ public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
   }
 
   @Override
-  public boolean processJob(final long batchJobId) {
+  public boolean processJob(final Identifier batchJobId) {
     final BatchJobService batchJobService = getBatchJobService();
     final BatchJob batchJob = batchJobService.getBatchJob(batchJobId);
     if (batchJob != null) {
       final long time = System.currentTimeMillis();
-      if (batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSED, BatchJobStatus.CREATING_RESULTS)) {
+      if (batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSED,
+        BatchJobStatus.CREATING_RESULTS)) {
         final long lastChangedTime = System.currentTimeMillis();
         return batchJobService.postProcessBatchJob(batchJobId, time, lastChangedTime);
       }

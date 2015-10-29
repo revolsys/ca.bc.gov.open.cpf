@@ -97,6 +97,7 @@ import com.revolsys.equals.Equals;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.geometry.operation.valid.IsValidOp;
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactoryRegistry;
@@ -112,6 +113,7 @@ import com.revolsys.parallel.channel.NamedChannelBundle;
 import com.revolsys.record.Record;
 import com.revolsys.record.Records;
 import com.revolsys.record.io.MapReaderRecordReader;
+import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.io.format.csv.CsvMapWriter;
 import com.revolsys.record.io.format.html.XhtmlMapWriter;
@@ -143,7 +145,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public static Map<String, Object> getGroupLogData(final BatchJobRequestExecutionGroup group) {
     final String groupId = group.getId();
-    final long batchJobId = group.getBatchJobId();
+    final Identifier batchJobId = group.getBatchJobId();
     final String businessApplicationName = group.getBusinessApplicationName();
     final Map<String, Object> appLogData = new LinkedHashMap<>();
     appLogData.put("businessApplicationName", businessApplicationName);
@@ -272,7 +274,7 @@ public class BatchJobService implements ModuleEventListener {
 
   private final Map<String, Worker> workersById = new TreeMap<String, Worker>();
 
-  private final Set<Long> preprocesedJobIds = new HashSet<Long>();
+  private final Set<Identifier> preprocesedJobIds = new HashSet<>();
 
   private long timeoutForCapacityErrors = 5 * 60 * 1000;
 
@@ -282,8 +284,9 @@ public class BatchJobService implements ModuleEventListener {
    *
    * @param validationErrorCode The failure error code.
    */
-  private boolean addJobValidationError(final long batchJobId, final ErrorCode validationErrorCode,
-    final String validationErrorDebugMessage, final String validationErrorMessage) {
+  private boolean addJobValidationError(final Identifier batchJobId,
+    final ErrorCode validationErrorCode, final String validationErrorDebugMessage,
+    final String validationErrorMessage) {
     if (this.dataAccessObject != null) {
 
       final String errorFormat = "text/csv";
@@ -345,7 +348,7 @@ public class BatchJobService implements ModuleEventListener {
     } else {
       previousStatistics.addStatistics(statistics);
       if (previousStatistics.getDatabaseId() == null) {
-        final Integer databaseId = statistics.getDatabaseId();
+        final Identifier databaseId = statistics.getDatabaseId();
         previousStatistics.setDatabaseId(databaseId);
       }
     }
@@ -353,7 +356,7 @@ public class BatchJobService implements ModuleEventListener {
       statistics.toMap());
   }
 
-  public boolean cancelBatchJob(final long batchJobId) {
+  public boolean cancelBatchJob(final Identifier batchJobId) {
     boolean cancelled = false;
     synchronized (this.preprocesedJobIds) {
       this.preprocesedJobIds.remove(batchJobId);
@@ -432,7 +435,7 @@ public class BatchJobService implements ModuleEventListener {
     final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
     final Query query = new Query(BusinessApplicationStatistics.APPLICATION_STATISTICS);
     query.addOrderBy(BusinessApplicationStatistics.START_TIMESTAMP, true);
-    final Reader<Record> reader = this.recordStore.query(query);
+    final Reader<Record> reader = this.recordStore.getRecords(query);
     try {
       for (final Record dbStatistics : reader) {
         boolean delete = false;
@@ -455,9 +458,9 @@ public class BatchJobService implements ModuleEventListener {
               final BusinessApplicationStatistics statistics = getStatistics(statisticsByAppAndId,
                 businessApplicationName, statisticsId);
 
-              final Integer databaseId = dbStatistics
-                .getInteger(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID);
-              final Integer previousDatabaseId = statistics.getDatabaseId();
+              final Identifier databaseId = dbStatistics
+                .getIdentifier(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID);
+              final Identifier previousDatabaseId = statistics.getDatabaseId();
               if (previousDatabaseId == null) {
                 statistics.setDatabaseId(databaseId);
                 statistics.addStatistics(values);
@@ -477,7 +480,7 @@ public class BatchJobService implements ModuleEventListener {
           }
 
           if (delete) {
-            this.recordStore.delete(dbStatistics);
+            this.recordStore.deleteRecord(dbStatistics);
           }
         }
       }
@@ -493,7 +496,7 @@ public class BatchJobService implements ModuleEventListener {
       for (final BusinessApplicationStatistics statistics : statsById.values()) {
         final String durationType = statistics.getDurationType();
         if (durationType.equals(BusinessApplicationStatistics.HOUR)) {
-          final Integer databaseId = statistics.getDatabaseId();
+          final Identifier databaseId = statistics.getDatabaseId();
           if (databaseId == null || statistics.isModified()) {
             addStatistics(statisticsByAppAndId, statistics);
           }
@@ -507,8 +510,9 @@ public class BatchJobService implements ModuleEventListener {
     sendStatistics(values);
   }
 
-  protected boolean createBatchJobExecutionGroup(final Long batchJobId, final int sequenceNumber,
-    final RecordDefinition requestRecordDefinition, final List<Record> requests) {
+  protected boolean createBatchJobExecutionGroup(final Identifier batchJobId,
+    final int sequenceNumber, final RecordDefinition requestRecordDefinition,
+    final List<Record> requests) {
     synchronized (this.preprocesedJobIds) {
       if (this.preprocesedJobIds.contains(batchJobId)) {
         this.jobController.setGroupInput(batchJobId, sequenceNumber, requestRecordDefinition,
@@ -520,7 +524,7 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void createBatchJobResult(final long batchJobId, final String resultDataType,
+  public void createBatchJobResult(final Identifier batchJobId, final String resultDataType,
     final String contentType, final Object data, final int sequenceNumber) {
     if (data != null) {
       if (data instanceof File) {
@@ -543,7 +547,7 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void createBatchJobResultOpaque(final long batchJobId, final int sequenceNumber,
+  public void createBatchJobResultOpaque(final Identifier batchJobId, final int sequenceNumber,
     final String contentType, final Object data) {
     final Record result = this.dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
     result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
@@ -555,8 +559,9 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   protected com.revolsys.io.Writer<Record> createStructuredResultWriter(final BatchJob batchJob,
-    final long batchJobId, final BusinessApplication application, final File structuredResultFile,
-    final RecordDefinition resultRecordDefinition, final String resultFormat) {
+    final Identifier batchJobId, final BusinessApplication application,
+    final File structuredResultFile, final RecordDefinition resultRecordDefinition,
+    final String resultFormat) {
     final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(
       batchJob);
     final GeometryFactory geometryFactory = getGeometryFactory(
@@ -591,7 +596,7 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void deleteJob(final long batchJobId) {
+  public void deleteJob(final Identifier batchJobId) {
     cancelBatchJob(batchJobId);
     this.jobController.deleteJob(batchJobId);
   }
@@ -658,7 +663,7 @@ public class BatchJobService implements ModuleEventListener {
     return this.config.getBaseUrl();
   }
 
-  public synchronized BatchJob getBatchJob(final Long batchJobId) {
+  public synchronized BatchJob getBatchJob(final Identifier batchJobId) {
     return this.dataAccessObject.getBatchJob(batchJobId);
   }
 
@@ -676,12 +681,12 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public InputStream getBatchJobResultData(final long batchJobId, final int sequenceNumber,
+  public InputStream getBatchJobResultData(final Identifier batchJobId, final int sequenceNumber,
     final Record batchJobResult) {
     return this.jobController.getJobResultStream(batchJobId, sequenceNumber);
   }
 
-  public long getBatchJobResultSize(final long batchJobId, final int sequenceNumber) {
+  public long getBatchJobResultSize(final Identifier batchJobId, final int sequenceNumber) {
     return this.jobController.getJobResultSize(batchJobId, sequenceNumber);
   }
 
@@ -772,7 +777,7 @@ public class BatchJobService implements ModuleEventListener {
     return this.jobController;
   }
 
-  public JobController getJobController(final long batchJobId) {
+  public JobController getJobController(final Identifier batchJobId) {
     return this.jobController;
   }
 
@@ -783,7 +788,7 @@ public class BatchJobService implements ModuleEventListener {
    *
    * @return BufferedReader or null if unable to connect to data
    */
-  private InputStream getJobInputDataStream(final Long batchJobId, final Record batchJob) {
+  private InputStream getJobInputDataStream(final Identifier batchJobId, final Record batchJob) {
     final String inputDataUrlString = batchJob.getValue(BatchJob.STRUCTURED_INPUT_DATA_URL);
     if (inputDataUrlString != null && !inputDataUrlString.equals("")) {
       try {
@@ -860,7 +865,7 @@ public class BatchJobService implements ModuleEventListener {
 
               group.setExecutionStartTime(System.currentTimeMillis());
               final String groupId = group.getId();
-              final Long batchJobId = group.getBatchJobId();
+              final Identifier batchJobId = group.getBatchJobId();
               final String baseId = group.getBaseId();
 
               response.put("batchJobId", batchJobId);
@@ -1054,19 +1059,19 @@ public class BatchJobService implements ModuleEventListener {
 
   }
 
-  public void postProcess(final long batchJobId) {
+  public void postProcess(final Identifier batchJobId) {
     if (this.postProcess != null) {
       SendToChannelAfterCommit.send(this.postProcess.getIn(), batchJobId);
     }
   }
 
-  public boolean postProcessBatchJob(final long batchJobId, final long time,
+  public boolean postProcessBatchJob(final Identifier batchJobId, final long time,
     final long lastChangedTime) {
     AppLog log = null;
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try (
-        com.revolsys.io.Writer<Record> writer = this.recordStore.getWriter();) {
+        RecordWriter writer = this.recordStore.newRecordWriter();) {
         final BatchJob batchJob = getBatchJob(batchJobId);
         if (batchJob != null) {
           final StopWatch stopWatch = new StopWatch();
@@ -1161,7 +1166,7 @@ public class BatchJobService implements ModuleEventListener {
    * @param batchJobId The Record identifier.
    */
   protected void postProcessCreateResults(final AppLog log, final BatchJob batchJob,
-    final long batchJobId) {
+    final Identifier batchJobId) {
     synchronized (batchJob) {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
@@ -1260,7 +1265,7 @@ public class BatchJobService implements ModuleEventListener {
    * @param batchJobId The batch job identifier.
    */
   protected void postProcessCreateStructuredResults(final BusinessApplication businessApplication,
-    final AppLog log, final BatchJob batchJob, final long batchJobId) {
+    final AppLog log, final BatchJob batchJob, final Identifier batchJobId) {
     synchronized (batchJob) {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
@@ -1346,13 +1351,13 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void preProcess(final long batchJobId) {
+  public void preProcess(final Identifier batchJobId) {
     if (this.preProcess != null) {
       SendToChannelAfterCommit.send(this.preProcess.getIn(), batchJobId);
     }
   }
 
-  public boolean preProcessBatchJob(final Long batchJobId, final long time,
+  public boolean preProcessBatchJob(final Identifier batchJobId, final long time,
     final long lastChangedTime) {
     synchronized (this.preprocesedJobIds) {
       this.preprocesedJobIds.add(batchJobId);
@@ -1575,7 +1580,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   private boolean preProcessParameter(final BusinessApplication businessApplication,
-    final long batchJobId, final int sequenceNumber, final Map<String, String> jobParameters,
+    final Identifier batchJobId, final int sequenceNumber, final Map<String, String> jobParameters,
     final Record requestParameters, final FieldDefinition field) {
     boolean jobParameter = false;
     final String parameterName = field.getName();
@@ -1627,7 +1632,7 @@ public class BatchJobService implements ModuleEventListener {
   private Record preProcessParameters(final Record batchJob,
     final BusinessApplication businessApplication, final int requestSequenceNumber,
     final Map<String, String> jobParameters, final Record requestRecord) {
-    final long batchJobId = batchJob.getInteger(BatchJob.BATCH_JOB_ID);
+    final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
     requestRecord.put("i", requestSequenceNumber);
     final RecordDefinition recordDefinition = requestRecord.getRecordDefinition();
     for (final FieldDefinition field : recordDefinition.getFields()) {
@@ -1786,7 +1791,7 @@ public class BatchJobService implements ModuleEventListener {
       final BusinessApplicationStatistics statistics = iterator.next();
       if (canDeleteStatistic(statistics, currentTime)) {
         iterator.remove();
-        final Integer databaseId = statistics.getDatabaseId();
+        final Identifier databaseId = statistics.getDatabaseId();
         if (databaseId != null) {
           this.dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
         }
@@ -1796,7 +1801,7 @@ public class BatchJobService implements ModuleEventListener {
         if (!currentId.equals(statistics.getId())) {
           this.dataAccessObject.saveStatistics(statistics);
         } else {
-          final Integer databaseId = statistics.getDatabaseId();
+          final Identifier databaseId = statistics.getDatabaseId();
           if (databaseId != null) {
             this.dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
           }
@@ -1853,9 +1858,9 @@ public class BatchJobService implements ModuleEventListener {
 
   public void scheduleFromDatabase(final String moduleName, final String businessApplicationName) {
     synchronized (businessApplicationName.intern()) {
-      final List<Long> batchJobIds = this.dataAccessObject
+      final List<Identifier> batchJobIds = this.dataAccessObject
         .getBatchJobIdsToSchedule(businessApplicationName);
-      for (final Long batchJobId : batchJobIds) {
+      for (final Identifier batchJobId : batchJobIds) {
         getAppLog(businessApplicationName).info("Schedule from database\tbatchJobId=" + batchJobId);
         scheduleJob(getBatchJob(batchJobId));
       }
@@ -1868,9 +1873,9 @@ public class BatchJobService implements ModuleEventListener {
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        final List<Long> batchJobIds = this.dataAccessObject.getBatchJobIds(businessApplicationName,
-          jobStatus);
-        for (final Long batchJobId : batchJobIds) {
+        final List<Identifier> batchJobIds = this.dataAccessObject
+          .getBatchJobIds(businessApplicationName, jobStatus);
+        for (final Identifier batchJobId : batchJobIds) {
           if (jobStatus.equals(BatchJobStatus.SUBMITTED)) {
             log.info("Pre-process from database\tbatchJobId=" + batchJobId);
             this.preProcess.schedule(batchJobId);
@@ -1917,7 +1922,7 @@ public class BatchJobService implements ModuleEventListener {
    * @param batchJobId The Record identifier.
    * @param batchJob The BatchJob.
    */
-  public void sendNotification(final Long batchJobId, final BatchJob batchJob) {
+  public void sendNotification(final Identifier batchJobId, final BatchJob batchJob) {
     String notificationUrl = batchJob.getValue(BatchJob.NOTIFICATION_URL);
     if (Property.hasValue(notificationUrl)) {
       try {
@@ -2318,7 +2323,7 @@ public class BatchJobService implements ModuleEventListener {
     final String groupId = group.getId();
     try {
       final int sequenceNumber = group.getSequenceNumber();
-      final long batchJobId = batchJob.getIdentifier().getLong(0);
+      final Identifier batchJobId = batchJob.getIdentifier();
       final BusinessApplication businessApplication = group.getBusinessApplication();
       if (!businessApplication.isPerRequestResultData()) {
         this.jobController.setGroupResult(batchJobId, sequenceNumber, in);

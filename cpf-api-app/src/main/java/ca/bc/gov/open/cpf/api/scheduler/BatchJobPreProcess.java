@@ -24,6 +24,7 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.util.Property;
 
 public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
@@ -41,7 +42,7 @@ public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
   }
 
   @Override
-  public boolean processJob(final long batchJobId) {
+  public boolean processJob(final Identifier batchJobId) {
     final BatchJobService batchJobService = getBatchJobService();
     final BatchJob batchJob = batchJobService.getBatchJob(batchJobId);
     if (batchJob != null) {

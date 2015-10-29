@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.Reader;
 import com.revolsys.record.Record;
 import com.revolsys.record.schema.RecordDefinition;
@@ -37,42 +38,43 @@ public interface JobController {
 
   String JOB_INPUTS = "jobInputs";
 
-  boolean cancelJob(long jobId);
+  boolean cancelJob(Identifier batchJobId);
 
-  void createJobFile(long jobId, String path, long sequenceNumber, String contentType, Object data);
+  void createJobFile(Identifier batchJobId, String path, long sequenceNumber, String contentType,
+    Object data);
 
-  void createJobInputFile(long jobId, String contentType, Object data);
+  void createJobInputFile(Identifier batchJobId, String contentType, Object data);
 
-  void deleteJob(long jobId);
+  void deleteJob(Identifier batchJobId);
 
-  String getGroupInputString(long jobId, int sequenceNumber);
+  String getGroupInputString(Identifier batchJobId, int sequenceNumber);
 
-  Reader<Map<String, Object>> getGroupResultReader(long jobId, int sequenceNumber);
+  Reader<Map<String, Object>> getGroupResultReader(Identifier batchJobId, int sequenceNumber);
 
-  InputStream getGroupResultStream(long jobId, int sequenceNumber);
+  InputStream getGroupResultStream(Identifier batchJobId, int sequenceNumber);
 
-  InputStream getJobInputStream(long jobId);
+  InputStream getJobInputStream(Identifier batchJobId);
 
-  long getJobResultSize(long jobId, int sequenceNumber);
+  long getJobResultSize(Identifier batchJobId, int sequenceNumber);
 
-  InputStream getJobResultStream(long jobId, int sequenceNumber);
+  InputStream getJobResultStream(Identifier batchJobId, int sequenceNumber);
 
   String getKey();
 
-  void setGroupError(long jobId, int sequenceNumber, Object data);
+  void setGroupError(Identifier batchJobId, int sequenceNumber, Object data);
 
-  void setGroupInput(long jobId, int sequenceNumber, RecordDefinition recordDefinition,
+  void setGroupInput(Identifier batchJobId, int sequenceNumber, RecordDefinition recordDefinition,
     List<Record> requests);
 
-  void setGroupInput(long jobId, int sequenceNumber, String contentType, Object data);
+  void setGroupInput(Identifier batchJobId, int sequenceNumber, String contentType, Object data);
 
-  void setGroupResult(long jobId, int sequenceNumber, InputStream in);
+  void setGroupResult(Identifier batchJobId, int sequenceNumber, InputStream in);
 
-  void setJobResult(long jobId, int sequenceNumber, String contentType, Object data);
+  void setJobResult(Identifier batchJobId, int sequenceNumber, String contentType, Object data);
 
-  void writeGroupInput(HttpServletResponse response, long jobId, int sequenceNumber)
+  void writeGroupInput(HttpServletResponse response, Identifier batchJobId, int sequenceNumber)
     throws IOException;
 
-  void writeGroupResult(HttpServletResponse response, long jobId, int sequenceNumber)
+  void writeGroupResult(HttpServletResponse response, Identifier batchJobId, int sequenceNumber)
     throws IOException;
 }

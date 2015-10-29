@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.csv.CsvRecordWriter;
@@ -71,7 +72,7 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public boolean cancelJob(final long jobId) {
+  public boolean cancelJob(final Identifier jobId) {
     final boolean cancelled = this.dataAccessObject.cancelBatchJob(jobId);
     for (final String directoryName : Arrays.asList(JOB_INPUTS, JOB_RESULTS, GROUP_INPUTS,
       GROUP_RESULTS)) {
@@ -82,7 +83,7 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public void createJobFile(final long jobId, final String path, final long sequenceNumber,
+  public void createJobFile(final Identifier jobId, final String path, final long sequenceNumber,
     final String contentType, final Object data) {
     final File file = getJobFile(jobId, path, sequenceNumber);
     file.getParentFile().mkdirs();
@@ -101,7 +102,7 @@ public class FileJobController extends AbstractJobController {
     }
   }
 
-  protected void deleteDirectory(final long jobId, final File directory) {
+  protected void deleteDirectory(final Identifier jobId, final File directory) {
     if (!FileUtil.deleteDirectory(directory)) {
       LoggerFactory.getLogger(getClass())
         .error("Unable to delete  " + directory + " for jobId=" + jobId);
@@ -109,20 +110,20 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public void deleteJob(final long jobId) {
+  public void deleteJob(final Identifier jobId) {
     this.dataAccessObject.deleteBatchJob(jobId);
     final File jobDirectory = getJobDirectory(jobId);
     deleteDirectory(jobId, jobDirectory);
   }
 
   @Override
-  protected long getFileSize(final long jobId, final String path, final int sequenceNumber) {
+  protected long getFileSize(final Identifier jobId, final String path, final int sequenceNumber) {
     final File resultFile = getJobFile(jobId, path, sequenceNumber);
     return resultFile.length();
   }
 
   @Override
-  protected InputStream getFileStream(final long jobId, final String path,
+  protected InputStream getFileStream(final Identifier jobId, final String path,
     final int sequenceNumber) {
     final File file = getJobFile(jobId, path, sequenceNumber);
     if (file.exists()) {
@@ -132,30 +133,31 @@ public class FileJobController extends AbstractJobController {
     }
   }
 
-  protected File getJobDirectory(final long jobId) {
-    final File jobDirectory = FileUtil.getFile(this.rootDirectory, "jobs/" + toPath(jobId));
+  protected File getJobDirectory(final Identifier jobId) {
+    final File jobDirectory = FileUtil.getFile(this.rootDirectory,
+      "jobs/" + toPath(jobId.getLong(0)));
     return jobDirectory;
   }
 
-  protected File getJobDirectory(final long jobId, final String path) {
+  protected File getJobDirectory(final Identifier jobId, final String path) {
     final File jobDirectory = getJobDirectory(jobId);
     final File groupsFile = FileUtil.getFile(jobDirectory, path);
     return groupsFile;
   }
 
-  protected File getJobFile(final long jobId, final String path, final long recordId) {
+  protected File getJobFile(final Identifier jobId, final String path, final long recordId) {
     final File groupsFile = getJobDirectory(jobId, path);
     final File file = FileUtil.getFile(groupsFile, toPath(recordId) + ".json");
     return file;
   }
 
   @Override
-  public InputStream getJobInputStream(final long jobId) {
+  public InputStream getJobInputStream(final Identifier jobId) {
     return getFileStream(jobId, JOB_INPUTS, 1);
   }
 
   @Override
-  public InputStream getJobResultStream(final long jobId, final int sequenceNumber) {
+  public InputStream getJobResultStream(final Identifier jobId, final int sequenceNumber) {
     final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
     return FileUtil.getInputStream(resultFile);
   }
@@ -166,7 +168,7 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public void setGroupInput(final long jobId, final int sequenceNumber,
+  public void setGroupInput(final Identifier jobId, final int sequenceNumber,
     final RecordDefinition recordDefinition, final List<Record> requests) {
     if (!requests.isEmpty()) {
       final File file = getJobFile(jobId, GROUP_INPUTS, sequenceNumber);

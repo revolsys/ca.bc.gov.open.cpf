@@ -927,7 +927,7 @@ public class ClassLoaderModule implements Module {
           if (userGroups.toString().startsWith(parentUrl)) {
             final Resource resource = new UrlResource(userGroups);
             final Reader<Map<String, Object>> reader = MapReader.newMapReader(resource);
-            return reader.read();
+            return reader.toList();
           }
         }
       }

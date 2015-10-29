@@ -23,6 +23,8 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.identifier.Identifier;
+
 public class BatchJobRequestExecutionGroup {
 
   private final BusinessApplication businessApplication;
@@ -85,8 +87,8 @@ public class BatchJobRequestExecutionGroup {
     return this.batchJob;
   }
 
-  public long getBatchJobId() {
-    return this.batchJob.getIdentifier().getLong(0);
+  public Identifier getBatchJobId() {
+    return this.batchJob.getIdentifier();
   }
 
   public BusinessApplication getBusinessApplication() {

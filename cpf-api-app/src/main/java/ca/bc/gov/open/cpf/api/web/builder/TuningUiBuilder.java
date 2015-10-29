@@ -146,7 +146,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
             condition.add(Q.equal(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL));
             condition.add(Q.equal(ConfigProperty.PROPERTY_NAME, fieldName));
             query.setWhereCondition(condition);
-            Record configProperty = recordStore.queryFirst(query);
+            Record configProperty = recordStore.getRecords(query).getFirst();
             final boolean exists = configProperty != null;
             if (!exists) {
               configProperty = createObject();

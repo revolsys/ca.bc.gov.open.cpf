@@ -25,7 +25,7 @@ public class WorkerModuleState {
 
   private String moduleError;
 
-  private String status = "Initializing";
+  private String status = "INITIALIZING";
 
   private long startedTime;
 

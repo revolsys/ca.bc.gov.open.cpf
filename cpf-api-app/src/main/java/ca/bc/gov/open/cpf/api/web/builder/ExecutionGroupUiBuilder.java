@@ -40,6 +40,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactoryRegistry;
 import com.revolsys.io.PathName;
@@ -52,8 +53,8 @@ import com.revolsys.util.Property;
 public class ExecutionGroupUiBuilder extends CpfUiBuilder {
 
   public ExecutionGroupUiBuilder() {
-    super("executionGroup", PathName.newPathName("ExecutionGroup"), "sequenceNumber", "Execution Group",
-      "Execution Groups");
+    super("executionGroup", PathName.newPathName("ExecutionGroup"), "sequenceNumber",
+      "Execution Group", "Execution Groups");
     setIdParameterName("sequenceNumber");
   }
 
@@ -96,7 +97,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
       // }
     } else {
       final JobController jobController = getJobController();
-      jobController.writeGroupInput(response, batchJobId, sequenceNumber);
+      jobController.writeGroupInput(response, Identifier.create(batchJobId), sequenceNumber);
     }
   }
 
@@ -140,7 +141,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
       // }
       // }
     } else {
-      getJobController().writeGroupResult(response, batchJobId, sequenceNumber);
+      getJobController().writeGroupResult(response, Identifier.create(batchJobId), sequenceNumber);
     }
   }
 

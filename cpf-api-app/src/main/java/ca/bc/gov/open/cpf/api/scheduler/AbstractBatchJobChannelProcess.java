@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
@@ -52,9 +53,10 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
   @Resource(name = "cpfConfig")
   private CpfConfig config;
 
-  private final Set<Long> scheduledIds = Collections.synchronizedSet(new LinkedHashSet<Long>());
+  private final Set<Identifier> scheduledIds = Collections
+    .synchronizedSet(new LinkedHashSet<Identifier>());
 
-  private final Channel<Long> in = new Channel<>(new Buffer<Long>());
+  private final Channel<Identifier> in = new Channel<>(new Buffer<Identifier>());
 
   private ProcessNetwork processNetwork;
 
@@ -117,7 +119,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     return this.config;
   }
 
-  public Channel<Long> getIn() {
+  public Channel<Identifier> getIn() {
     return this.in;
   }
 
@@ -126,9 +128,9 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     return this.processNetwork;
   }
 
-  public abstract boolean processJob(final long batchJobId);
+  public abstract boolean processJob(final Identifier batchJobId);
 
-  public void processJobWrapper(final long batchJobId) {
+  public void processJobWrapper(final Identifier batchJobId) {
     synchronized (this.scheduledIds) {
       this.scheduledIds.remove(batchJobId);
     }
@@ -162,7 +164,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     }
   }
 
-  protected void run(final Channel<Long> in) {
+  protected void run(final Channel<Identifier> in) {
     final Logger log = LoggerFactory.getLogger(getClass());
     log.info("Started");
     try {
@@ -170,7 +172,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
       while (true) {
         try {
           this.batchJobService.waitIfTablespaceError(getClass());
-          final Long batchJobId = in.read(this.timeout);
+          final Identifier batchJobId = in.read(this.timeout);
           if (batchJobId == null) {
             if (this.scheduledIds.isEmpty()) {
               scheduleFromDatabase();
@@ -192,7 +194,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     log.info("Stopped");
   }
 
-  public void schedule(final Long batchJobId) {
+  public void schedule(final Identifier batchJobId) {
     synchronized (this.scheduledIds) {
       if (!this.scheduledIds.contains(batchJobId)) {
         this.scheduledIds.add(batchJobId);

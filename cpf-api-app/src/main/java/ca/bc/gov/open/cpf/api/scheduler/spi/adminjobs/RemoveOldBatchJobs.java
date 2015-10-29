@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.util.DateUtil;
@@ -42,37 +43,36 @@ public class RemoveOldBatchJobs {
 
   public void removeOldJobs() {
     try (
-        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final int dayInMilliseconds = 1000 * 60 * 60 * 24;
 
         final Calendar cal = new GregorianCalendar(); // local time
         final long timeNow = cal.getTimeInMillis();
-        final long timeAtMidnightThisMorning = timeNow - timeNow
-          % dayInMilliseconds;
+        final long timeAtMidnightThisMorning = timeNow - timeNow % dayInMilliseconds;
         final long timeXDaysAgo = timeAtMidnightThisMorning
-            - this.batchJobService.getDaysToKeepOldJobs() * dayInMilliseconds;
+          - this.batchJobService.getDaysToKeepOldJobs() * dayInMilliseconds;
         final Timestamp keepUntilTimestamp = new Timestamp(timeXDaysAgo);
         cal.setTimeInMillis(timeXDaysAgo);
-        cal.add(Calendar.MILLISECOND,
-          -TimeZone.getDefault().getOffset(cal.getTimeInMillis()));
+        cal.add(Calendar.MILLISECOND, -TimeZone.getDefault().getOffset(cal.getTimeInMillis()));
 
         int numberJobsDeleted = 0;
-        final List<Long> batchJobIds = this.dataAccessObject.getOldBatchJobIds(keepUntilTimestamp);
-        for (final Long batchJobId : batchJobIds) {
+        final List<Identifier> batchJobIds = this.dataAccessObject
+          .getOldBatchJobIds(keepUntilTimestamp);
+        for (final Identifier batchJobId : batchJobIds) {
           try {
             this.batchJobService.deleteJob(batchJobId);
             numberJobsDeleted++;
           } catch (final Throwable t) {
-            LoggerFactory.getLogger(getClass()).error(
-              "Unable to delete Batch Job " + batchJobId, t);
+            LoggerFactory.getLogger(getClass()).error("Unable to delete Batch Job " + batchJobId,
+              t);
           }
         }
 
         if (numberJobsDeleted > 0) {
-          LoggerFactory.getLogger(getClass()).info(
-            numberJobsDeleted + " old batch jobs deleted for jobs prior to "
-                + DateUtil.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
+          LoggerFactory.getLogger(getClass())
+            .info(numberJobsDeleted + " old batch jobs deleted for jobs prior to "
+              + DateUtil.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
         }
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);

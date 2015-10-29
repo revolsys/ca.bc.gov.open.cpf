@@ -49,13 +49,13 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.record.Record;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
 import com.revolsys.ui.web.utils.HttpServletUtils;
-import com.revolsys.util.Numbers;
 
 public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
@@ -213,7 +213,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public BatchJob getBatchJob(final String businessApplicationName, final Object batchJobId)
     throws NoSuchRequestHandlingMethodException {
-    final BatchJob batchJob = this.dataAccessObject.getBatchJob(Numbers.toLong(batchJobId));
+    final BatchJob batchJob = this.dataAccessObject.getBatchJob(Identifier.create(batchJobId));
     if (batchJob != null) {
       if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(businessApplicationName)) {
         return batchJob;

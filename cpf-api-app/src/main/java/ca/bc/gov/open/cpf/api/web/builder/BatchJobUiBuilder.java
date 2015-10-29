@@ -35,6 +35,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
@@ -89,8 +90,8 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     } else if (keyName.startsWith("BUSINESS_APPLICATION_NAME") && object instanceof Record) {
       final Record batchJob = (Record)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      BusinessApplication businessApplication = getBusinessApplicationRegistry().getBusinessApplication(
-        businessApplicationName);
+      BusinessApplication businessApplication = getBusinessApplicationRegistry()
+        .getBusinessApplication(businessApplicationName);
       if (businessApplication == null) {
         businessApplication = new BusinessApplication(businessApplicationName);
       }
@@ -139,7 +140,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   public Object pageModuleAppList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
 
@@ -189,7 +190,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}/cancel"
   }, method = RequestMethod.POST)
-  public void postClientCancel(@PathVariable("batchJobId") final Long batchJobId) {
+  public void postClientCancel(@PathVariable("batchJobId") final Identifier batchJobId) {
     final String consumerKey = getConsumerKey();
     final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, batchJobId);
     if (batchJob == null) {
@@ -204,7 +205,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}/delete"
   }, method = RequestMethod.POST)
-  public void postClientDelete(@PathVariable("batchJobId") final Long batchJobId) {
+  public void postClientDelete(@PathVariable("batchJobId") final Identifier batchJobId) {
     final String consumerKey = getConsumerKey();
     final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, batchJobId);
     if (batchJob == null) {
@@ -222,7 +223,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   public void postModuleAppCancel(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId) throws IOException, ServletException {
+    @PathVariable("batchJobId") final Identifier batchJobId) throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
@@ -241,7 +242,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   public void postModuleAppDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId) throws IOException, ServletException {
+    @PathVariable("batchJobId") final Identifier batchJobId) throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();

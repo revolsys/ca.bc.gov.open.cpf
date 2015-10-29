@@ -931,7 +931,7 @@ public class CpfClient implements Closeable {
           final String resultUrl = (String)resultFile.get("resourceUri");
           final Reader<Map<String, Object>> reader = httpClient.getMapReader("error", resultUrl);
           try {
-            return reader.read();
+            return reader.toList();
           } finally {
             reader.close();
           }
@@ -1167,7 +1167,7 @@ public class CpfClient implements Closeable {
           final String resultUrl = (String)resultFile.get("resourceUri");
           final Reader<Map<String, Object>> reader = httpClient.getMapReader(resultUrl);
           try {
-            return reader.read();
+            return reader.toList();
           } finally {
             reader.close();
           }
