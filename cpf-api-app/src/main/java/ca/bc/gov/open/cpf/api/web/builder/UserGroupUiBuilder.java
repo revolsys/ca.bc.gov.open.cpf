@@ -88,7 +88,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     serializeLink(out, linkObject, UserGroup.USER_GROUP_NAME, pageName, parameterNames);
   }
 
-  public Element createUserGroupView(final HttpServletRequest request,
+  public Element newUserGroupView(final HttpServletRequest request,
     final HttpServletResponse response, final String prefix, final String membersPrefix,
     final String moduleName, final String userGroupName, final List<String> moduleNames)
     throws NoSuchRequestHandlingMethodException {
@@ -138,7 +138,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
     parameters.put("filter", filter);
 
-    return createDataTableHandlerOrRedirect(request, response, "moduleAdminList", Module.class,
+    return newDataTableHandlerOrRedirect(request, response, "moduleAdminList", Module.class,
       "view", parameters);
 
   }
@@ -151,7 +151,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName,
     @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
-    return createUserGroupView(request, response, "moduleAdmin", "moduleAdminGroup", moduleName,
+    return newUserGroupView(request, response, "moduleAdmin", "moduleAdminGroup", moduleName,
       userGroupName, Arrays.asList("ADMIN_MODULE_" + moduleName));
 
   }
@@ -172,7 +172,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     parameters.put(UserGroup.ACTIVE_IND, 1);
     parameters.put(UserGroup.MODULE_NAME, moduleName);
     parameters.put(UserGroup.USER_GROUP_NAME, moduleName + "_");
-    return createObjectAddPage(parameters, "module", "preInsert");
+    return newObjectAddPage(parameters, "module", "preInsert");
   }
 
   @RequestMapping(value = {
@@ -209,7 +209,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
     final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
-      return createObjectEditPage(userGroup, "module");
+      return newObjectEditPage(userGroup, "module");
     }
     throw new NoSuchRequestHandlingMethodException(request);
   }
@@ -232,7 +232,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
     parameters.put("filter", filter);
 
-    return createDataTableHandlerOrRedirect(request, response, "moduleList", Module.class, "view",
+    return newDataTableHandlerOrRedirect(request, response, "moduleList", Module.class, "view",
       parameters);
   }
 
@@ -244,7 +244,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName,
     @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
-    return createUserGroupView(request, response, "module", "moduleGroup", moduleName,
+    return newUserGroupView(request, response, "module", "moduleGroup", moduleName,
       userGroupName, getUserGroupModuleNames(moduleName));
   }
 
@@ -269,7 +269,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
 
       parameters.put("filter", filter);
 
-      return createDataTableHandlerOrRedirect(request, response, "userAccountList",
+      return newDataTableHandlerOrRedirect(request, response, "userAccountList",
         UserAccount.USER_ACCOUNT, "view", parameters);
 
     }
@@ -288,7 +288,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     defaultValues.put(UserGroup.ACTIVE_IND, 1);
     defaultValues.put(UserGroup.MODULE_NAME, "GLOBAL");
     defaultValues.put(UserGroup.USER_GROUP_NAME, "GLOBAL_");
-    return super.createObjectAddPage(defaultValues, "group", "preInsert");
+    return super.newObjectAddPage(defaultValues, "group", "preInsert");
   }
 
   @RequestMapping(value = {
@@ -318,7 +318,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Record userGroup = getUserGroup(userGroupName);
-    return super.createObjectEditPage(userGroup, "group");
+    return super.newObjectEditPage(userGroup, "group");
   }
 
   @RequestMapping(value = {
@@ -329,7 +329,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response) throws IOException {
     checkHasAnyRole(ADMIN);
     HttpServletUtils.setAttribute("title", "User Groups");
-    return createDataTableHandler(request, "groupList");
+    return newDataTableHandler(request, "groupList");
   }
 
   @RequestMapping(value = {
@@ -364,7 +364,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName)
     throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
-    return createUserGroupView(request, response, "group", "group", null, userGroupName, null);
+    return newUserGroupView(request, response, "group", "group", null, userGroupName, null);
   }
 
   @Override

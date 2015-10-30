@@ -75,13 +75,21 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     this.moduleLoader = null;
   }
 
+  public MavenRepository getMavenRepository() {
+    return this.mavenRepository;
+  }
+
+  public ConfigPropertyModuleLoader getModuleLoader() {
+    return this.moduleLoader;
+  }
+
   @RequestMapping(value = {
     "/admin/modules/add"
   }, method = {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  public Element createModulePageAdd(final HttpServletRequest request,
+  public Element newModulePageAdd(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Map<String, Object> parameters = new HashMap<>();
@@ -167,7 +175,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  public Element createModulePageEdit(final HttpServletRequest request,
+  public Element newModulePageEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
       throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
@@ -229,18 +237,18 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     "/admin/modules"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object createModulePageList(final HttpServletRequest request,
+  public Object newModulePageList(final HttpServletRequest request,
     final HttpServletResponse response) throws IOException {
     HttpServletUtils.setAttribute("title", "Modules");
     checkAdminOrAnyModuleAdmin();
-    return createDataTableHandler(request, "list", this::getModules);
+    return newDataTableHandler(request, "list", this::getModules);
   }
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Element createModulePageView(final HttpServletRequest request,
+  public Element newModulePageView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
       throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
@@ -266,14 +274,6 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     addTabDataTable(tabs, UserGroup.USER_GROUP, "moduleAdminList", parameters);
 
     return tabs;
-  }
-
-  public MavenRepository getMavenRepository() {
-    return this.mavenRepository;
-  }
-
-  public ConfigPropertyModuleLoader getModuleLoader() {
-    return this.moduleLoader;
   }
 
   @RequestMapping(value = {

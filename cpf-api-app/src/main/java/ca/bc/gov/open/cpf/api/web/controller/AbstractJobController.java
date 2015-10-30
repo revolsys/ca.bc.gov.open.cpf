@@ -30,9 +30,9 @@ import com.revolsys.util.Exceptions;
 
 public abstract class AbstractJobController implements JobController {
   @Override
-  public void createJobInputFile(final Identifier jobId, final String contentType,
+  public void newJobInputFile(final Identifier jobId, final String contentType,
     final Object data) {
-    createJobFile(jobId, JOB_INPUTS, 1, contentType, data);
+    newJobFile(jobId, JOB_INPUTS, 1, contentType, data);
   }
 
   protected abstract long getFileSize(Identifier jobId, String path, int sequenceNumber);
@@ -84,25 +84,25 @@ public abstract class AbstractJobController implements JobController {
 
   @Override
   public void setGroupError(final Identifier jobId, final int sequenceNumber, final Object data) {
-    createJobFile(jobId, GROUP_ERRORS, sequenceNumber, "text/csv", data);
+    newJobFile(jobId, GROUP_ERRORS, sequenceNumber, "text/csv", data);
   }
 
   @Override
   public void setGroupInput(final Identifier jobId, final int sequenceNumber,
     final String contentType, final Object data) {
-    createJobFile(jobId, GROUP_INPUTS, sequenceNumber, contentType, data);
+    newJobFile(jobId, GROUP_INPUTS, sequenceNumber, contentType, data);
   }
 
   @Override
   public void setGroupResult(final Identifier jobId, final int sequenceNumber,
     final InputStream in) {
-    createJobFile(jobId, GROUP_RESULTS, sequenceNumber, "text/csv", in);
+    newJobFile(jobId, GROUP_RESULTS, sequenceNumber, "text/csv", in);
   }
 
   @Override
   public void setJobResult(final Identifier jobId, final int sequenceNumber,
     final String contentType, final Object data) {
-    createJobFile(jobId, JOB_RESULTS, sequenceNumber, contentType, data);
+    newJobFile(jobId, JOB_RESULTS, sequenceNumber, contentType, data);
   }
 
   protected void writeFile(final HttpServletResponse response, final Identifier jobId,

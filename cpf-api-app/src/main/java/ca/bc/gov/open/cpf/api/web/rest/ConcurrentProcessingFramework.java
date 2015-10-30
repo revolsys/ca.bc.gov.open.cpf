@@ -194,7 +194,7 @@ public class ConcurrentProcessingFramework {
     }
   }
 
-  private static PageInfo createRootPageInfo(final String title) {
+  private static PageInfo newRootPageInfo(final String title) {
     HttpServletUtils.setAttribute("title", title);
     final PageInfo page = new PageInfo(title);
     final String url = HttpServletUtils.getFullRequestUrl();
@@ -594,7 +594,7 @@ public class ConcurrentProcessingFramework {
       final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
       addTestParameters(businessApplication, businessApplicationParameters);
 
-      final BatchJob batchJob = this.dataAccessObject.createBatchJob();
+      final BatchJob batchJob = this.dataAccessObject.newBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
       final AppLog log = businessApplication.getLog();
@@ -729,19 +729,19 @@ public class ConcurrentProcessingFramework {
                 final InputStream in = file.getInputStream()) {
                 final com.revolsys.spring.resource.Resource resource = new InputStreamResource("in",
                   in, file.getSize());
-                this.jobController.setGroupInput(Identifier.create(batchJobId),
+                this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId),
                   ++requestSequenceNumber, inputDataContentType, resource);
               }
             }
           } else {
             for (final String inputDataUrl : inputDataUrls) {
-              this.jobController.setGroupInput(Identifier.create(batchJobId),
+              this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId),
                 ++requestSequenceNumber, inputDataContentType, inputDataUrl.trim());
             }
           }
           this.batchJobService.scheduleJob(batchJob);
         } else {
-          createStructuredJob(Identifier.create(batchJobId), batchJob, inputDataFiles,
+          createStructuredJob(Identifier.newIdentifier(batchJobId), batchJob, inputDataFiles,
             inputDataUrls, inputDataContentType);
         }
       } catch (final IOException e) {
@@ -870,7 +870,7 @@ public class ConcurrentProcessingFramework {
       CpfUiBuilder.checkPermission(businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplicationName);
 
-      final BatchJob batchJob = this.dataAccessObject.createBatchJob();
+      final BatchJob batchJob = this.dataAccessObject.newBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
 
       final AppLog log = businessApplication.getLog();
@@ -979,10 +979,10 @@ public class ConcurrentProcessingFramework {
       this.dataAccessObject.write(batchJob.getRecord());
       if (perRequestInputData) {
         if (inputDataIn != null) {
-          this.jobController.setGroupInput(Identifier.create(batchJobId), 1, inputDataContentType,
+          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1, inputDataContentType,
             inputDataIn);
         } else {
-          this.jobController.setGroupInput(Identifier.create(batchJobId), 1, inputDataContentType,
+          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1, inputDataContentType,
             inputDataUrl);
         }
       } else {
@@ -990,7 +990,7 @@ public class ConcurrentProcessingFramework {
         inputData.put("i", 1);
         final String inputDataString = JsonRecordIoFactory.toString(requestRecordDefinition,
           Collections.singletonList(inputData));
-        this.jobController.setGroupInput(Identifier.create(batchJobId), 1, "application/json",
+        this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1, "application/json",
           inputDataString);
       }
       batchJob.setGroupCount(1);
@@ -1032,7 +1032,7 @@ public class ConcurrentProcessingFramework {
         final InputStream in = file.getInputStream();
         try {
           final JobController jobController = this.batchJobService.getJobController();
-          jobController.createJobInputFile(batchJobId, contentType, in);
+          jobController.newJobInputFile(batchJobId, contentType, in);
         } finally {
           Transaction.afterCommit(() -> FileUtil.closeSilent(in));
         }
@@ -1091,11 +1091,11 @@ public class ConcurrentProcessingFramework {
   }, method = RequestMethod.DELETE)
   public void deleteJob(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final Record batchJob = getBatchJob(Identifier.create(batchJobId), consumerKey);
+    final Record batchJob = getBatchJob(Identifier.newIdentifier(batchJobId), consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("The job " + batchJobId + " does not exist");
     } else {
-      if (this.batchJobService.cancelBatchJob(Identifier.create(batchJobId))) {
+      if (this.batchJobService.cancelBatchJob(Identifier.newIdentifier(batchJobId))) {
         throw new PageNotFoundException("The job " + batchJobId + " does not exist");
       } else {
         final HttpServletResponse response = HttpServletUtils.getResponse();
@@ -1245,7 +1245,7 @@ public class ConcurrentProcessingFramework {
     final List<BusinessApplication> applications = getAuthorizedBusinessApplications();
     HttpServletUtils.setAttribute("title", "Business Applications");
     if (HtmlUiBuilder.isDataTableCallback()) {
-      return this.businessAppBuilder.createDataTableMap(applications, "clientList");
+      return this.businessAppBuilder.newDataTableMap(applications, "clientList");
     } else if (MediaTypeUtil.isHtmlPage()) {
       final String url = HttpServletUtils.getFullUrl("/ws/#businessApplication_clientList");
       final HttpServletResponse response = HttpServletUtils.getResponse();
@@ -1253,7 +1253,7 @@ public class ConcurrentProcessingFramework {
       response.setHeader("Location", url);
       return null;
     } else {
-      final PageInfo page = createRootPageInfo("Business Appliations");
+      final PageInfo page = newRootPageInfo("Business Appliations");
 
       for (final BusinessApplication app : applications) {
         if (app.isEnabled()) {
@@ -1514,7 +1514,7 @@ public class ConcurrentProcessingFramework {
                 response.getOutputStream());
               final GeometryFactory geometryFactory = GeometryFactory.fixed(resultSrid,
                 resultNumAxis, resultScaleFactorXy, resultScaleFactorZ);
-              final Writer<Record> writer = this.batchJobService.createStructuredResultWriter(
+              final Writer<Record> writer = this.batchJobService.newStructuredResultWriter(
                 resource, businessApplication, resultRecordDefinition, format, "Result",
                 geometryFactory);
               final boolean hasMultipleResults = businessApplication
@@ -1563,7 +1563,7 @@ public class ConcurrentProcessingFramework {
           final Map<String, Object> titleParameters = new HashMap<>();
           final String title = businessApplication.getTitle();
           titleParameters.put("businessApplicationTitle", title);
-          final PageInfo page = createRootPageInfo(title + " Instant");
+          final PageInfo page = newRootPageInfo(title + " Instant");
           setBusinessApplicationDescription(page, businessApplication);
 
           page.setPagesElement(formElement);
@@ -1640,20 +1640,20 @@ public class ConcurrentProcessingFramework {
         filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
         parameters.put("filter", filter);
 
-        return this.batchJobUiBuilder.createDataTableMap("clientAppList", parameters);
+        return this.batchJobUiBuilder.newDataTableMap("clientAppList", parameters);
       } else if (MediaTypeUtil.isHtmlPage()) {
         this.batchJobUiBuilder.redirectToTab(BusinessApplication.class, "clientView",
           "clientAppList");
         return null;
       } else {
         final String title = businessApplication.getTitle();
-        final PageInfo page = createRootPageInfo(title + " Batch Jobs");
+        final PageInfo page = newRootPageInfo(title + " Batch Jobs");
         final List<Record> batchJobs = this.dataAccessObject
           .getBatchJobsForUserAndApplication(consumerKey, businessApplicationName);
         for (final Record job : batchJobs) {
           addBatchJobStatusLink(page, job);
         }
-        final Object table = this.batchJobUiBuilder.createDataTableHandler("clientList", batchJobs);
+        final Object table = this.batchJobUiBuilder.newDataTableHandler("clientList", batchJobs);
         if (table instanceof Element) {
           final Element element = (Element)table;
           page.setPagesElement(element);
@@ -1792,7 +1792,7 @@ public class ConcurrentProcessingFramework {
       if (MediaTypeUtil.isHtmlPage()) {
         final String title = businessApplication.getTitle();
         titleParameters.put("businessApplicationTitle", title);
-        final PageInfo page = createRootPageInfo(title + "Create Multi-Request job");
+        final PageInfo page = newRootPageInfo(title + "Create Multi-Request job");
         setBusinessApplicationDescription(page, businessApplication);
         page.addInputContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -1876,7 +1876,7 @@ public class ConcurrentProcessingFramework {
         }
         return container;
       } else {
-        final PageInfo page = createRootPageInfo(title);
+        final PageInfo page = newRootPageInfo(title);
 
         if (CpfUiBuilder.hasPermission(businessApplication.getInstantModeExpression())) {
           addPage(page, "instant", "Instant");
@@ -2017,7 +2017,7 @@ public class ConcurrentProcessingFramework {
         final String title = businessApplication.getTitle();
         titleParameters.put("businessApplicationTitle", title);
 
-        final PageInfo page = createRootPageInfo(title + "Create Single Request job");
+        final PageInfo page = newRootPageInfo(title + "Create Single Request job");
         setBusinessApplicationDescription(page, businessApplication);
 
         final Element form = getFormSingle(businessApplication);
@@ -2516,7 +2516,7 @@ public class ConcurrentProcessingFramework {
       filter.put(BatchJob.USER_ID, consumerKey);
       parameters.put("filter", filter);
 
-      return this.batchJobUiBuilder.createDataTableMap("clientList", parameters);
+      return this.batchJobUiBuilder.newDataTableMap("clientList", parameters);
     } else if (MediaTypeUtil.isHtmlPage()) {
       HttpServletUtils.setAttribute("title", "Batch Jobs");
       final String url = HttpServletUtils.getFullUrl("/ws/#batchJob_clientList");
@@ -2525,7 +2525,7 @@ public class ConcurrentProcessingFramework {
       response.setHeader("Location", url);
       return null;
     } else {
-      final PageInfo page = createRootPageInfo("Batch Jobs");
+      final PageInfo page = newRootPageInfo("Batch Jobs");
       final List<Record> batchJobs = this.dataAccessObject.getBatchJobsForUser(consumerKey);
       for (final Record job : batchJobs) {
         addBatchJobStatusLink(page, job);
@@ -2621,7 +2621,7 @@ public class ConcurrentProcessingFramework {
   @ResponseBody
   public Object getJobsInfo(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final BatchJob batchJob = getBatchJob(Identifier.create(batchJobId), consumerKey);
+    final BatchJob batchJob = getBatchJob(Identifier.newIdentifier(batchJobId), consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobId + " does not exist.");
     } else {
@@ -2665,7 +2665,7 @@ public class ConcurrentProcessingFramework {
   public void getJobsResult(@PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("resultId") final int resultId) throws IOException {
     final String consumerKey = getConsumerKey();
-    final Identifier batchJobIdentifier = Identifier.create(batchJobId);
+    final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
     final Record batchJob = getBatchJob(batchJobIdentifier, consumerKey);
 
     if (batchJob != null) {
@@ -2759,7 +2759,7 @@ public class ConcurrentProcessingFramework {
   @ResponseBody
   public Object getJobsResults(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final Identifier batchJobIdentifier = Identifier.create(batchJobId);
+    final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
 
     final Record batchJob = getBatchJob(batchJobIdentifier, consumerKey);
     if (batchJob == null) {
@@ -2773,7 +2773,7 @@ public class ConcurrentProcessingFramework {
         filter.put(BatchJobResult.BATCH_JOB_ID, batchJobIdentifier);
         parameters.put("filter", filter);
 
-        return this.batchJobResultUiBuilder.createDataTableMap("clientList", parameters);
+        return this.batchJobResultUiBuilder.newDataTableMap("clientList", parameters);
       } else if (MediaTypeUtil.isHtmlPage()) {
         HttpServletUtils.setAttribute("title", title);
         final Map<String, Object> parameters = new HashMap<>();
@@ -2785,7 +2785,7 @@ public class ConcurrentProcessingFramework {
       } else {
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("batchJobId", batchJobIdentifier);
-        final PageInfo page = createRootPageInfo(title);
+        final PageInfo page = newRootPageInfo(title);
         final List<Record> results = this.dataAccessObject.getBatchJobResults(batchJobIdentifier);
         if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null && !results.isEmpty()) {
           for (final Record batchJobResult : results) {
@@ -2914,7 +2914,7 @@ public class ConcurrentProcessingFramework {
 
       return tabs;
     } else {
-      final PageInfo page = createRootPageInfo("Concurrent Processing Framework");
+      final PageInfo page = newRootPageInfo("Concurrent Processing Framework");
       addPage(page, "jobs", "Jobs");
       addPage(page, "apps", "Business Applications");
       return page;

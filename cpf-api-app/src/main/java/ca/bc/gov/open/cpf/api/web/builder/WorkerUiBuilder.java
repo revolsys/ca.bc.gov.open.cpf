@@ -54,7 +54,7 @@ public class WorkerUiBuilder extends CpfUiBuilder {
   public Object pageList() {
     checkHasAnyRole(ADMIN);
     HttpServletUtils.setAttribute("title", "Workers");
-    return createDataTableHandler(getRequest(), "list", this::getWorkers);
+    return newDataTableHandler(getRequest(), "list", this::getWorkers);
   }
 
   @RequestMapping(value = {

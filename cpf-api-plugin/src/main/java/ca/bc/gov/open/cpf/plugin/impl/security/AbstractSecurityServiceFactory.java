@@ -32,7 +32,7 @@ public abstract class AbstractSecurityServiceFactory implements
 
   private final int maxAge = 5 * 60 * 1000;
 
-  protected abstract AbstractCachingSecurityService createSecurityService(
+  protected abstract AbstractCachingSecurityService newSecurityService(
     Module module, String consumerKey);
 
   @Override
@@ -54,7 +54,7 @@ public abstract class AbstractSecurityServiceFactory implements
         }
       }
       if (securityService == null) {
-        securityService = createSecurityService(module, consumerKey);
+        securityService = newSecurityService(module, consumerKey);
         securityServicesByUser.put(consumerKey, securityService);
         securityServiceAges.put(key, System.currentTimeMillis());
       }

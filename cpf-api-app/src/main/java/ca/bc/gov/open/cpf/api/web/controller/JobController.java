@@ -40,10 +40,10 @@ public interface JobController {
 
   boolean cancelJob(Identifier batchJobId);
 
-  void createJobFile(Identifier batchJobId, String path, long sequenceNumber, String contentType,
+  void newJobFile(Identifier batchJobId, String path, long sequenceNumber, String contentType,
     Object data);
 
-  void createJobInputFile(Identifier batchJobId, String contentType, Object data);
+  void newJobInputFile(Identifier batchJobId, String contentType, Object data);
 
   void deleteJob(Identifier batchJobId);
 

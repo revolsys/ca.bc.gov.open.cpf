@@ -80,7 +80,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final Map<String, Object> defaultValues = new HashMap<>();
     defaultValues.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL);
 
-    final Element result = super.createObjectAddPage(defaultValues, null, "preInsert");
+    final Element result = super.newObjectAddPage(defaultValues, null, "preInsert");
     return result;
   }
 
@@ -119,7 +119,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Record configProperty = loadObject(configPropertyId);
-    return super.createObjectEditPage(configProperty, null);
+    return super.newObjectEditPage(configProperty, null);
   }
 
   @RequestMapping(value = {
@@ -135,7 +135,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     filter.put(ConfigProperty.MODULE_NAME, GLOBAL_MODULE_NAMES);
     parameters.put("filter", filter);
 
-    return createDataTableHandler(request, "list", parameters);
+    return newDataTableHandler(request, "list", parameters);
   }
 
   @RequestMapping(value = {
@@ -175,7 +175,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     defaultValues.put(ConfigProperty.MODULE_NAME, moduleName);
     defaultValues.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.MODULE_BEAN_PROPERTY);
 
-    return createObjectAddPage(defaultValues, "module", "preInsertModule");
+    return newObjectAddPage(defaultValues, "module", "preInsertModule");
   }
 
   @RequestMapping(value = {
@@ -196,7 +196,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     defaultValues.put(ConfigProperty.MODULE_NAME, moduleName);
     defaultValues.put(ConfigProperty.COMPONENT_NAME, componentName);
 
-    return createObjectAddPage(defaultValues, "moduleApp", "preInsertModule");
+    return newObjectAddPage(defaultValues, "moduleApp", "preInsertModule");
   }
 
   @RequestMapping(value = {
@@ -241,7 +241,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(componentName)) {
-      return createObjectEditPage(configProperty, "moduleApp");
+      return newObjectEditPage(configProperty, "moduleApp");
     }
     throw new NoSuchRequestHandlingMethodException(request);
   }
@@ -267,7 +267,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final Query query = new Query(getTableName(), where);
     parameters.put("query", query);
 
-    return createDataTableHandlerOrRedirect(request, response, "moduleAppList", Module.class,
+    return newDataTableHandlerOrRedirect(request, response, "moduleAppList", Module.class,
       "view", parameters);
   }
 
@@ -333,7 +333,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     if (configProperty != null
       && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName) && configProperty
         .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
-      return createObjectEditPage(configProperty, "module");
+      return newObjectEditPage(configProperty, "module");
     }
     throw new NoSuchRequestHandlingMethodException(request);
   }
@@ -355,7 +355,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     filter.put(ConfigProperty.COMPONENT_NAME, ConfigProperty.MODULE_BEAN_PROPERTY);
     parameters.put("filter", filter);
 
-    return createDataTableHandlerOrRedirect(request, response, "moduleList", Module.class, "view",
+    return newDataTableHandlerOrRedirect(request, response, "moduleList", Module.class, "view",
       parameters);
   }
 

@@ -58,7 +58,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     }
   }
 
-  private Map<String, Object> createResultMessage(final Map<String, Object> message) {
+  private Map<String, Object> newResultMessage(final Map<String, Object> message) {
     final String messageId = Maps.getString(message, "messageId");
     final Map<String, Object> resultMessage = Maps.newLinkedHash("messageId", messageId);
     return resultMessage;
@@ -115,7 +115,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     if (configProperties != null) {
       applicationConfigProperties.addAll(configProperties);
     }
-    final Map<String, Object> resultMessage = createResultMessage(message);
+    final Map<String, Object> resultMessage = newResultMessage(message);
     resultMessage.put("properties", applicationConfigProperties);
     worker.sendMessage(resultMessage);
   }
@@ -206,7 +206,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     final String resourceId = Maps.getString(message, "resourceId");
     final String actionName = Maps.getString(message, "actionName");
 
-    final Map<String, Object> resultMessage = createResultMessage(message);
+    final Map<String, Object> resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,
@@ -226,7 +226,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     final String consumerKey = Maps.getString(message, "consumerKey");
     final String actionName = Maps.getString(message, "actionName");
 
-    final Map<String, Object> resultMessage = createResultMessage(message);
+    final Map<String, Object> resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,
@@ -245,7 +245,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     final String consumerKey = Maps.getString(message, "consumerKey");
     final String groupName = Maps.getString(message, "groupName");
 
-    final Map<String, Object> resultMessage = createResultMessage(message);
+    final Map<String, Object> resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,
@@ -260,7 +260,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     final String moduleName = Maps.getString(message, "moduleName");
     final String consumerKey = Maps.getString(message, "consumerKey");
 
-    final Map<String, Object> resultMessage = createResultMessage(message);
+    final Map<String, Object> resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,

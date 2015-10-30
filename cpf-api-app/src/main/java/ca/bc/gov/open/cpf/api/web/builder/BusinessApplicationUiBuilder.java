@@ -150,8 +150,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     final List<BusinessApplication> businessApplications = getBusinessApplications();
     final Map<String, Object> parameters = Collections.emptyMap();
 
-    final ElementContainer table = createDataTable(request, "list", parameters,
-      businessApplications);
+    final ElementContainer table = newDataTable(request, "list", parameters, businessApplications);
 
     final TabElementContainer tabs = new TabElementContainer();
     tabs.add("Business Applications", table);
@@ -189,7 +188,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
         }
       }
 
-      final Form form = createTableForm(configProperties, pageName);
+      final Form form = newTableForm(configProperties, pageName);
       form.initialize(request);
 
       if (form.isPosted() && form.isMainFormTask()) {
@@ -211,7 +210,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
                     propertyName);
                   final DataType valueType = DataTypes.getType(propertyClass);
 
-                  configProperty = dataAccessObject.createConfigProperty(ConfigProperty.DEFAULT,
+                  configProperty = dataAccessObject.newConfigProperty(ConfigProperty.DEFAULT,
                     moduleName, componentName, propertyName, newValue, valueType);
                 } catch (final Throwable e) {
                   LoggerFactory.getLogger(getClass())
@@ -268,7 +267,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       throws IOException, NoSuchRequestHandlingMethodException {
     getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
-    return createDataTableHandlerOrRedirect(request, response, "moduleList",
+    return newDataTableHandlerOrRedirect(request, response, "moduleList",
       this::getBusinessApplications, Module.class, "view");
   }
 

@@ -153,126 +153,6 @@ public class CpfDataAccessObject implements Transactionable {
     this.userGroupPermissionRecordDefinition = null;
   }
 
-  public Record create(final PathName typeName) {
-    return this.recordStore.newRecord(typeName);
-  }
-
-  public BatchJob createBatchJob() {
-    final Record record = create(BatchJob.BATCH_JOB);
-    final Identifier batchJobId = this.recordStore.newPrimaryIdentifier(BatchJob.BATCH_JOB);
-    record.setIdentifier(batchJobId);
-    final String prefix = PathAliasController.getAlias();
-    if (prefix != null) {
-      final Map<String, String> properties = new HashMap<String, String>();
-      properties.put("webServicePrefix", prefix);
-      record.setValue(BatchJob.PROPERTIES, Json.toString(properties));
-    }
-    record.setValue(BatchJob.JOB_STATUS, BatchJobStatus.SUBMITTED);
-    record.setValue(BatchJob.WHEN_STATUS_CHANGED, new Timestamp(System.currentTimeMillis()));
-    record.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 0);
-    record.setValue(BatchJob.GROUP_SIZE, 1);
-
-    final BatchJob batchJob = new BatchJob(record);
-    this.batchJobById.put(batchJobId, batchJob);
-    return batchJob;
-  }
-
-  public void createBatchJobExecutionGroup(final JobController jobController,
-    final Identifier batchJobId, final int groupSequenceNumber, final String errorCode,
-    final String errorMessage, final String errorDebugMessage) {
-    final Map<String, Object> error = new HashMap<>();
-    error.put("i", 1);
-    error.put("errorCode", errorCode);
-    error.put("errorMessage", errorMessage);
-    error.put("errorDebugMessage", errorDebugMessage);
-    final List<Map<String, Object>> resultDataItems = Collections.singletonList(error);
-
-    final Map<String, Object> resultData = Collections.<String, Object> singletonMap("items",
-      resultDataItems);
-    final String resultDataString = Json.toString(resultData);
-
-    // TODO errors jobController.setStructuredResultData(batchJobId,
-    // groupSequenceNumber, batchJobExecutionGroup,
-    // resultDataString);
-  }
-
-  public Record createConfigProperty(final String environmentName, final String moduleName,
-    final String componentName, final String propertyName, final Object propertyValue,
-    final DataType propertyValueType) {
-    final Record configProperty = create(ConfigProperty.CONFIG_PROPERTY);
-    configProperty.setValue(ConfigProperty.ENVIRONMENT_NAME, environmentName);
-    configProperty.setValue(ConfigProperty.MODULE_NAME, moduleName);
-    configProperty.setValue(ConfigProperty.COMPONENT_NAME, componentName);
-    configProperty.setValue(ConfigProperty.PROPERTY_NAME, propertyName);
-    configProperty.setValue(ConfigProperty.PROPERTY_VALUE_TYPE, propertyValueType.toString());
-
-    setConfigPropertyValue(configProperty, propertyValue);
-    write(configProperty);
-    return configProperty;
-  }
-
-  public Record createUserAccount(final String userAccountClass, final String userAccountName,
-    final String consumerKey, final String consumerSecret) {
-    final Record userAccount = create(UserAccount.USER_ACCOUNT);
-
-    userAccount.setValue(UserAccount.USER_NAME, userAccountName);
-    userAccount.setValue(UserAccount.USER_ACCOUNT_CLASS, userAccountClass);
-    userAccount.setValue(UserAccount.CONSUMER_KEY, consumerKey);
-    userAccount.setValue(UserAccount.CONSUMER_SECRET, consumerSecret);
-    userAccount.setValue(UserAccount.ACTIVE_IND, 1);
-
-    write(userAccount);
-    return userAccount;
-  }
-
-  public Record createUserGroup(final String moduleName, final String groupName,
-    final String description) {
-    Record userGroup = getUserGroup(moduleName, groupName);
-    if (userGroup == null) {
-      userGroup = create(UserGroup.USER_GROUP);
-      userGroup.setValue(UserGroup.MODULE_NAME, moduleName);
-      userGroup.setValue(UserGroup.USER_GROUP_NAME, groupName);
-      userGroup.setValue(UserGroup.DESCRIPTION, description);
-      userGroup.setValue(UserGroup.ACTIVE_IND, 1);
-      write(userGroup);
-    }
-    return userGroup;
-  }
-
-  public Record createUserGroupAccountXref(final Record userGroup, final Record userAccount) {
-    final Identifier userGroupId = userGroup.getIdentifier();
-    final Identifier userAccountId = userAccount.getIdentifier();
-
-    final Map<String, Object> filter = new LinkedHashMap<>();
-    filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
-    filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
-
-    final Query query = Query.and(this.userGroupAccountXrefRecordDefinition, filter);
-
-    Record userGroupAccountXref = this.recordStore.getRecords(query).getFirst();
-    if (userGroupAccountXref == null) {
-
-      userGroupAccountXref = create(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
-      userGroupAccountXref.setValue(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
-      userGroupAccountXref.setValue(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
-
-      write(userGroupAccountXref);
-    }
-    return userGroupAccountXref;
-  }
-
-  public Record createUserGroupPermission(final Record userGroup, final String groupName,
-    final ResourcePermission permission) {
-    final Record userGroupPermission = create(UserGroup.USER_GROUP);
-
-    userGroupPermission.setValue(UserGroup.MODULE_NAME, userGroup);
-    userGroupPermission.setValue(UserGroup.USER_GROUP_NAME, groupName);
-    userGroupPermission.setValue(UserGroup.DESCRIPTION, permission);
-
-    write(userGroupPermission);
-    return userGroup;
-  }
-
   public void delete(final Record record) {
     this.recordStore.deleteRecord(record);
   }
@@ -778,6 +658,126 @@ public class CpfDataAccessObject implements Transactionable {
     applicationStatistics.setValue(BusinessApplicationStatistics.STATISTIC_VALUES, valuesString);
     this.recordStore.insertRecord(applicationStatistics);
     statistics.setDatabaseId(databaseId);
+  }
+
+  public BatchJob newBatchJob() {
+    final Record record = newRecord(BatchJob.BATCH_JOB);
+    final Identifier batchJobId = this.recordStore.newPrimaryIdentifier(BatchJob.BATCH_JOB);
+    record.setIdentifier(batchJobId);
+    final String prefix = PathAliasController.getAlias();
+    if (prefix != null) {
+      final Map<String, String> properties = new HashMap<String, String>();
+      properties.put("webServicePrefix", prefix);
+      record.setValue(BatchJob.PROPERTIES, Json.toString(properties));
+    }
+    record.setValue(BatchJob.JOB_STATUS, BatchJobStatus.SUBMITTED);
+    record.setValue(BatchJob.WHEN_STATUS_CHANGED, new Timestamp(System.currentTimeMillis()));
+    record.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 0);
+    record.setValue(BatchJob.GROUP_SIZE, 1);
+
+    final BatchJob batchJob = new BatchJob(record);
+    this.batchJobById.put(batchJobId, batchJob);
+    return batchJob;
+  }
+
+  public void newBatchJobExecutionGroup(final JobController jobController,
+    final Identifier batchJobId, final int groupSequenceNumber, final String errorCode,
+    final String errorMessage, final String errorDebugMessage) {
+    final Map<String, Object> error = new HashMap<>();
+    error.put("i", 1);
+    error.put("errorCode", errorCode);
+    error.put("errorMessage", errorMessage);
+    error.put("errorDebugMessage", errorDebugMessage);
+    final List<Map<String, Object>> resultDataItems = Collections.singletonList(error);
+
+    final Map<String, Object> resultData = Collections.<String, Object> singletonMap("items",
+      resultDataItems);
+    final String resultDataString = Json.toString(resultData);
+
+    // TODO errors jobController.setStructuredResultData(batchJobId,
+    // groupSequenceNumber, batchJobExecutionGroup,
+    // resultDataString);
+  }
+
+  public Record newConfigProperty(final String environmentName, final String moduleName,
+    final String componentName, final String propertyName, final Object propertyValue,
+    final DataType propertyValueType) {
+    final Record configProperty = newRecord(ConfigProperty.CONFIG_PROPERTY);
+    configProperty.setValue(ConfigProperty.ENVIRONMENT_NAME, environmentName);
+    configProperty.setValue(ConfigProperty.MODULE_NAME, moduleName);
+    configProperty.setValue(ConfigProperty.COMPONENT_NAME, componentName);
+    configProperty.setValue(ConfigProperty.PROPERTY_NAME, propertyName);
+    configProperty.setValue(ConfigProperty.PROPERTY_VALUE_TYPE, propertyValueType.toString());
+
+    setConfigPropertyValue(configProperty, propertyValue);
+    write(configProperty);
+    return configProperty;
+  }
+
+  public Record newRecord(final PathName typeName) {
+    return this.recordStore.newRecord(typeName);
+  }
+
+  public Record newUserAccount(final String userAccountClass, final String userAccountName,
+    final String consumerKey, final String consumerSecret) {
+    final Record userAccount = newRecord(UserAccount.USER_ACCOUNT);
+
+    userAccount.setValue(UserAccount.USER_NAME, userAccountName);
+    userAccount.setValue(UserAccount.USER_ACCOUNT_CLASS, userAccountClass);
+    userAccount.setValue(UserAccount.CONSUMER_KEY, consumerKey);
+    userAccount.setValue(UserAccount.CONSUMER_SECRET, consumerSecret);
+    userAccount.setValue(UserAccount.ACTIVE_IND, 1);
+
+    write(userAccount);
+    return userAccount;
+  }
+
+  public Record newUserGroup(final String moduleName, final String groupName,
+    final String description) {
+    Record userGroup = getUserGroup(moduleName, groupName);
+    if (userGroup == null) {
+      userGroup = newRecord(UserGroup.USER_GROUP);
+      userGroup.setValue(UserGroup.MODULE_NAME, moduleName);
+      userGroup.setValue(UserGroup.USER_GROUP_NAME, groupName);
+      userGroup.setValue(UserGroup.DESCRIPTION, description);
+      userGroup.setValue(UserGroup.ACTIVE_IND, 1);
+      write(userGroup);
+    }
+    return userGroup;
+  }
+
+  public Record newUserGroupAccountXref(final Record userGroup, final Record userAccount) {
+    final Identifier userGroupId = userGroup.getIdentifier();
+    final Identifier userAccountId = userAccount.getIdentifier();
+
+    final Map<String, Object> filter = new LinkedHashMap<>();
+    filter.put(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
+    filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
+
+    final Query query = Query.and(this.userGroupAccountXrefRecordDefinition, filter);
+
+    Record userGroupAccountXref = this.recordStore.getRecords(query).getFirst();
+    if (userGroupAccountXref == null) {
+
+      userGroupAccountXref = newRecord(UserGroupAccountXref.USER_GROUP_ACCOUNT_XREF);
+      userGroupAccountXref.setValue(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
+      userGroupAccountXref.setValue(UserGroupAccountXref.USER_ACCOUNT_ID, userAccountId);
+
+      write(userGroupAccountXref);
+    }
+    return userGroupAccountXref;
+  }
+
+  public Record newUserGroupPermission(final Record userGroup, final String groupName,
+    final ResourcePermission permission) {
+    final Record userGroupPermission = newRecord(UserGroup.USER_GROUP);
+
+    userGroupPermission.setValue(UserGroup.MODULE_NAME, userGroup);
+    userGroupPermission.setValue(UserGroup.USER_GROUP_NAME, groupName);
+    userGroupPermission.setValue(UserGroup.DESCRIPTION, permission);
+
+    write(userGroupPermission);
+    return userGroup;
   }
 
   public void saveStatistics(final BusinessApplicationStatistics statistics) {

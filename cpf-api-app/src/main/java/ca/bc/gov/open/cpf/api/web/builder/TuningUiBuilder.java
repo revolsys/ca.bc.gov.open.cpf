@@ -94,8 +94,8 @@ public class TuningUiBuilder extends CpfUiBuilder {
     rows.add(row);
   }
 
-  private void addCounts(final List<Object> rows, final String title,
-    final ThreadPoolExecutor pool, final int maxSize) {
+  private void addCounts(final List<Object> rows, final String title, final ThreadPoolExecutor pool,
+    final int maxSize) {
     final int activeCount = pool.getActiveCount();
     final int poolSize = pool.getPoolSize();
     final int largestPoolSize = pool.getLargestPoolSize();
@@ -113,8 +113,8 @@ public class TuningUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  public Object createPageConfig(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException {
+  public Object newPageConfig(final HttpServletRequest request, final HttpServletResponse response)
+    throws IOException {
     checkHasAnyRole(ADMIN);
     final List<String> fieldNames = getKeyList("config");
 
@@ -122,7 +122,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
     for (final String fieldName : fieldNames) {
       updatedConfig.put(fieldName, Property.get(this.cpfConfig, fieldName));
     }
-    final Form form = createTableForm(updatedConfig, "config");
+    final Form form = newTableForm(updatedConfig, "config");
     form.initialize(request);
     for (final Field field : form.getFields().values()) {
       if (field instanceof NumberField) {
@@ -149,7 +149,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
             Record configProperty = recordStore.getRecords(query).getFirst();
             final boolean exists = configProperty != null;
             if (!exists) {
-              configProperty = createObject();
+              configProperty = newObject();
               configProperty.setValue(ConfigProperty.ENVIRONMENT_NAME, ConfigProperty.DEFAULT);
               configProperty.setValue(ConfigProperty.MODULE_NAME, ConfigProperty.CPF_TUNING);
               configProperty.setValue(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL);
@@ -191,7 +191,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
     "/admin/tuning"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Object createPageList(final HttpServletRequest request, final HttpServletResponse response)
+  public Object newPageList(final HttpServletRequest request, final HttpServletResponse response)
     throws IOException {
     checkAdminOrAnyModuleAdmin();
     HttpServletUtils.setAttribute("title", "Tuning");
@@ -217,7 +217,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
       this.cpfDataSource.getNumActive() + this.cpfDataSource.getNumIdle(),
       this.cpfDataSource.getMaxTotal(), this.cpfDataSource.getMaxTotal());
 
-    return createDataTableHandler(request, "list", rows);
+    return newDataTableHandler(request, "list", rows);
   }
 
   @Override
@@ -228,8 +228,10 @@ public class TuningUiBuilder extends CpfUiBuilder {
     final int groupResultPoolSize = form.getField("groupResultPoolSize").getValue(Integer.class);
     final Field databaseConnectionField = form.getField("databaseConnectionPoolSize");
     final int databaseConnectionPoolSize = databaseConnectionField.getValue(Integer.class);
-    if (preProcessPoolSize + postProcessPoolSize + schedulerPoolSize + groupResultPoolSize > 0.9 * databaseConnectionPoolSize) {
-      databaseConnectionField.addValidationError("Not enough database connections, at least 10% must be available for handling web service requests. preProcessPoolSize + schedulerPoolSize + groupResultPoolSize + postProcessPoolSize > 90% * databaseConnectionPoolSize");
+    if (preProcessPoolSize + postProcessPoolSize + schedulerPoolSize + groupResultPoolSize > 0.9
+      * databaseConnectionPoolSize) {
+      databaseConnectionField.addValidationError(
+        "Not enough database connections, at least 10% must be available for handling web service requests. preProcessPoolSize + schedulerPoolSize + groupResultPoolSize + postProcessPoolSize > 90% * databaseConnectionPoolSize");
       return false;
     }
 

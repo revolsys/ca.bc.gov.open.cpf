@@ -32,7 +32,7 @@ public class WorkerSecurityServiceFactory extends AbstractSecurityServiceFactory
   }
 
   @Override
-  protected AbstractCachingSecurityService createSecurityService(final Module module,
+  protected AbstractCachingSecurityService newSecurityService(final Module module,
     final String consumerKey) {
     return new WorkerSecurityService(this.workerScheduler, module, consumerKey);
   }

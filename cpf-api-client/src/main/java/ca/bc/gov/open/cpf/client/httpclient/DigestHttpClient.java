@@ -114,7 +114,7 @@ public class DigestHttpClient {
     }
   }
 
-  protected HttpStatusCodeException createException(final HttpEntity entity,
+  protected HttpStatusCodeException newException(final HttpEntity entity,
     final StatusLine statusLine) {
     final Logger log = LoggerFactory.getLogger(getClass());
     if (log.isDebugEnabled()) {
@@ -163,7 +163,7 @@ public class DigestHttpClient {
         return Exceptions.throwUncheckedException(e);
       }
     } else {
-      throw createException(entity, statusLine);
+      throw newException(entity, statusLine);
     }
   }
 
@@ -207,7 +207,7 @@ public class DigestHttpClient {
           }
           return null;
         } else {
-          throw createException(entity, statusLine);
+          throw newException(entity, statusLine);
         }
       }
     });

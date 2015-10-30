@@ -112,7 +112,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     }
   }
 
-  public static Expression createExpression(final String permission) {
+  public static Expression newExpression(final String permission) {
     return new SpelExpressionParser().parseExpression(permission);
   }
 
@@ -213,7 +213,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public BatchJob getBatchJob(final String businessApplicationName, final Object batchJobId)
     throws NoSuchRequestHandlingMethodException {
-    final BatchJob batchJob = this.dataAccessObject.getBatchJob(Identifier.create(batchJobId));
+    final BatchJob batchJob = this.dataAccessObject.getBatchJob(Identifier.newIdentifier(batchJobId));
     if (batchJob != null) {
       if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(businessApplicationName)) {
         return batchJob;

@@ -130,7 +130,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     throws IOException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     HttpServletUtils.setAttribute("title", "Batch Jobs");
-    return createDataTableHandler(request, "list");
+    return newDataTableHandler(request, "list");
   }
 
   @RequestMapping(value = {
@@ -150,7 +150,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     filter.put("BUSINESS_APPLICATION_NAME", businessApplicationName);
     parameters.put("filter", filter);
 
-    return createDataTableHandlerOrRedirect(request, response, "moduleAppList",
+    return newDataTableHandlerOrRedirect(request, response, "moduleAppList",
       BusinessApplication.class, "moduleView", parameters);
   }
 

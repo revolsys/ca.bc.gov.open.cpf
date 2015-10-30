@@ -205,7 +205,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   public void addExecutingGroupsMessage() {
-    final Map<String, Object> message = createExecutingGroupsMessage();
+    final Map<String, Object> message = newExecutingGroupsMessage();
     sendMessage(message);
   }
 
@@ -239,7 +239,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
-  protected Map<String, Object> createExecutingGroupsMessage() {
+  protected Map<String, Object> newExecutingGroupsMessage() {
     final Map<String, Object> message = new LinkedHashMap<>();
     message.put("type", "executingGroupIds");
     message.put("workerId", this.id);
@@ -250,13 +250,13 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return message;
   }
 
-  protected Map<String, Object> createModuleMessage(final Module module, final String action) {
+  protected Map<String, Object> newModuleMessage(final Module module, final String action) {
     final String moduleName = module.getName();
     final long moduleTime = module.getStartedTime();
-    return createModuleMessage(moduleName, moduleTime, action);
+    return newModuleMessage(moduleName, moduleTime, action);
   }
 
-  protected Map<String, Object> createModuleMessage(final String moduleName, final long moduleTime,
+  protected Map<String, Object> newModuleMessage(final String moduleName, final long moduleTime,
     final String action) {
     final Map<String, Object> message = new LinkedHashMap<>();
     message.put("type", action);
@@ -386,7 +386,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
       getMaximumPoolSize() + 1);
 
     this.businessApplicationRegistry.addModuleEventListener(this.securityServiceFactory);
-    this.tempDir = FileUtil.createTempDirectory("cpf", "jars");
+    this.tempDir = FileUtil.newTempDirectory("cpf", "jars");
     this.configPropertyLoader = new WorkerConfigPropertyLoader(this, this.environmentName);
 
     this.nextIdUrl = this.webServiceUrl + "/worker/workers/" + this.id
@@ -455,10 +455,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
       this.businessApplicationRegistry.unloadModule(module);
 
       final String moduleError = module.getModuleError();
-      message = createModuleMessage(module, "moduleExcluded");
+      message = newModuleMessage(module, "moduleExcluded");
       message.put("moduleError", moduleError);
     } else if (action.equals(ModuleEvent.STOP)) {
-      message = createModuleMessage(module, "moduleStopped");
+      message = newModuleMessage(module, "moduleStopped");
       this.loadedModuleNames.add(moduleName);
     }
     if (message != null) {
@@ -519,7 +519,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
           }
         }
         final ClassLoader parentClassLoader = getClass().getClassLoader();
-        final ClassLoader classLoader = ClassLoaderFactoryBean.createClassLoader(parentClassLoader,
+        final ClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(parentClassLoader,
           urls);
         final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(classLoader, false);
         module = new ClassLoaderModule(this.businessApplicationRegistry, moduleName, classLoader,
@@ -542,7 +542,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
         }
       }
     } else {
-      final Map<String, Object> responseMessage = createModuleMessage(moduleName, moduleTime,
+      final Map<String, Object> responseMessage = newModuleMessage(moduleName, moduleTime,
         "moduleDisabled");
       sendMessage(responseMessage);
     }
@@ -807,17 +807,17 @@ public class WorkerScheduler extends ThreadPoolExecutor
       module.loadApplications();
       final String moduleError = module.getModuleError();
       if (Property.hasValue(moduleError)) {
-        message = createModuleMessage(module, "moduleStartFailed");
+        message = newModuleMessage(module, "moduleStartFailed");
         message.put("moduleError", moduleError);
         this.businessApplicationRegistry.unloadModule(module);
       } else {
         this.loadedModuleNames.add(moduleName);
-        message = createModuleMessage(module, "moduleStarted");
+        message = newModuleMessage(module, "moduleStarted");
       }
     } catch (final Throwable e) {
       final AppLog log = new AppLog(moduleName);
       log.error("Unable to load module " + moduleName, e);
-      message = createModuleMessage(module, "moduleStartFailed");
+      message = newModuleMessage(module, "moduleStartFailed");
       message.put("moduleError", Exceptions.toString(e));
       this.businessApplicationRegistry.unloadModule(module);
     }

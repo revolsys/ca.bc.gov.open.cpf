@@ -50,9 +50,9 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
     "/admin/workers/{workerId}/modules/{moduleName}"
   }, method = RequestMethod.GET)
   @ResponseBody
-  public Element createModulePageView(final HttpServletRequest request,
+  public Element modulePageView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws ServletException {
+      throws ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();
@@ -70,13 +70,12 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
     final BatchJobService batchJobService = getBatchJobService();
     final Worker worker = batchJobService.getWorker(workerId);
     if (worker == null) {
-      throw new PageNotFoundException("The worker " + workerId
-        + " could not be found. It may no longer be connected.");
+      throw new PageNotFoundException(
+        "The worker " + workerId + " could not be found. It may no longer be connected.");
     } else {
       final List<WorkerModuleState> modules = worker.getModules();
-      return createDataTableHandlerOrRedirect(getRequest(),
-        HttpServletUtils.getResponse(), "workerList", modules, Worker.class,
-        "view");
+      return newDataTableHandlerOrRedirect(getRequest(), HttpServletUtils.getResponse(),
+        "workerList", modules, Worker.class, "view");
     }
   }
 

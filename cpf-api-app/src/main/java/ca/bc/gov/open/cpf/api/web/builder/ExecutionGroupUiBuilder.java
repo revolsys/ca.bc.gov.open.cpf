@@ -97,7 +97,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
       // }
     } else {
       final JobController jobController = getJobController();
-      jobController.writeGroupInput(response, Identifier.create(batchJobId), sequenceNumber);
+      jobController.writeGroupInput(response, Identifier.newIdentifier(batchJobId), sequenceNumber);
     }
   }
 
@@ -141,7 +141,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
       // }
       // }
     } else {
-      getJobController().writeGroupResult(response, Identifier.create(batchJobId), sequenceNumber);
+      getJobController().writeGroupResult(response, Identifier.newIdentifier(batchJobId), sequenceNumber);
     }
   }
 

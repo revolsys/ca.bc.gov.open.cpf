@@ -43,11 +43,11 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public void createJobFile(final Identifier jobId, final String path, final long sequenceNumber,
+  public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
     final String contentType, final Object data) {
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
-      final Record result = this.dataAccessObject.create(BatchJobFile.BATCH_JOB_FILE);
+      final Record result = this.dataAccessObject.newRecord(BatchJobFile.BATCH_JOB_FILE);
       result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
       result.setValue(BatchJobFile.PATH, path);
       result.setValue(BatchJobFile.CONTENT_TYPE, contentType);
@@ -84,16 +84,16 @@ public class DatabaseJobController extends AbstractJobController {
   public void setGroupInput(final Identifier jobId, final int sequenceNumber,
     final RecordDefinition recordDefinition, final List<Record> requests) {
     if (!requests.isEmpty()) {
-      final File file = FileUtil.createTempFile("job", ".csv");
+      final File file = FileUtil.newTempFile("job", ".csv");
       try {
         try (
           CsvRecordWriter writer = new CsvRecordWriter(recordDefinition,
-            FileUtil.createUtf8Writer(file), ',', true, false)) {
+            FileUtil.newUtf8Writer(file), ',', true, false)) {
           for (final Record record : requests) {
             writer.write(record);
           }
         }
-        createJobFile(jobId, GROUP_INPUTS, sequenceNumber, "text/csv", file);
+        newJobFile(jobId, GROUP_INPUTS, sequenceNumber, "text/csv", file);
       } finally {
         FileUtil.delete(file);
       }

@@ -101,7 +101,7 @@ public class ClassLoaderModule implements Module {
 
   @SuppressWarnings("unchecked")
   private static final Class<? extends Annotation>[] STANDARD_METHOD_EXCLUDE_ANNOTATIONS = ArrayUtil
-    .create(JobParameter.class, RequestParameter.class, Required.class);
+    .newArray(JobParameter.class, RequestParameter.class, Required.class);
 
   private static final Map<String, Class<?>[]> STANDARD_METHODS = new HashMap<String, Class<?>[]>();
 

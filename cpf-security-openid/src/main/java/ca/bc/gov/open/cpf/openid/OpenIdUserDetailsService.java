@@ -84,7 +84,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        this.dataAccessObject.createUserGroup("USER_TYPE", "OPENID", "OpenID All Users");
+        this.dataAccessObject.newUserGroup("USER_TYPE", "OPENID", "OpenID All Users");
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);
       }
@@ -122,7 +122,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
             final String consumerSecret = UUID.randomUUID().toString().toLowerCase();
             SecurityContextHolder.getContext().setAuthentication(
               new UsernamePasswordAuthenticationToken(consumerKey, consumerSecret));
-            user = this.dataAccessObject.createUserAccount(this.userAccountClass, userAccountName,
+            user = this.dataAccessObject.newUserAccount(this.userAccountClass, userAccountName,
               consumerKey, consumerSecret);
           }
         }

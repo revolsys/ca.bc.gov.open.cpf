@@ -131,8 +131,8 @@ public class WorkerGroupRunnable implements Runnable {
     final String errorCode, final Throwable e) {
     this.log.error(logPrefix + errorCode, e);
     if (this.errorWriter == null) {
-      this.errorFile = FileUtil.createTempFile(this.groupId, "csv");
-      this.errorWriter = new CsvWriter(FileUtil.createUtf8Writer(this.errorFile));
+      this.errorFile = FileUtil.newTempFile(this.groupId, "csv");
+      this.errorWriter = new CsvWriter(FileUtil.newUtf8Writer(this.errorFile));
       this.errorWriter.write("sequenceNumber", "errorCode", "message", "trace");
     }
     String message;
@@ -272,7 +272,7 @@ public class WorkerGroupRunnable implements Runnable {
           // parameters.put("inputDataUrl", inputDataUrl);
         }
         if (this.businessApplication.isPerRequestResultData()) {
-          resultFile = FileUtil.createTempFile(this.businessApplicationName, ".bin");
+          resultFile = FileUtil.newTempFile(this.businessApplicationName, ".bin");
           resultData = new FileOutputStream(resultFile);
           parameters.put("resultData", resultData);
         }

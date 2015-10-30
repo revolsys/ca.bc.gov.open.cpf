@@ -34,7 +34,7 @@ public class AuthorizationServiceUserSecurityServiceFactory extends
   }
 
   @Override
-  protected AbstractCachingSecurityService createSecurityService(
+  protected AbstractCachingSecurityService newSecurityService(
     final Module module, final String consumerKey) {
     final String userAccountClass = authorizationService.getUserClass(consumerKey);
     final String userAccountName = authorizationService.getUsername(consumerKey);

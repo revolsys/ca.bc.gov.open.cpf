@@ -82,7 +82,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
     final String pageName = prefix + "List";
     final HttpServletRequest request = getRequest();
-    final ElementContainer element = createDataTable(request, pageName, parameters);
+    final ElementContainer element = newDataTable(request, pageName, parameters);
     if (element != null) {
 
       final String addUrl = getPageUrl(prefix + "MemberAdd");
@@ -134,7 +134,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
           return new ModelAndView("/jsp/template/page", model);
         } else {
           final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-          dataAccessObject.createUserGroupAccountXref(userGroup, userAccount);
+          dataAccessObject.newUserGroupAccountXref(userGroup, userAccount);
           redirectToTab(UserGroup.USER_GROUP, parentPageName, tabName);
           return null;
         }
@@ -173,7 +173,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     return results;
   }
 
-  public Object createUserGroupMembersList(final HttpServletRequest request,
+  public Object newUserGroupMembersList(final HttpServletRequest request,
     final HttpServletResponse response, final String prefix, final String moduleName,
     final String userGroupName, final String groupModuleName)
       throws NoSuchRequestHandlingMethodException {
@@ -192,7 +192,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
         query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
           + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
 
-        return createDataTableMap(request, getRecordStore(), query, pageName);
+        return newDataTableMap(request, getRecordStore(), query, pageName);
       }
       throw new NoSuchRequestHandlingMethodException(request);
     } else {
@@ -236,7 +236,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     @PathVariable("userGroupName") final String userGroupName)
       throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
-    return createUserGroupMembersList(request, response, "moduleAdminGroup", moduleName,
+    return newUserGroupMembersList(request, response, "moduleAdminGroup", moduleName,
       userGroupName, "ADMIN_MODULE_" + moduleName);
   }
 
@@ -274,7 +274,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     @PathVariable("userGroupName") final String userGroupName)
       throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
-    return createUserGroupMembersList(request, response, "moduleGroup", moduleName, userGroupName,
+    return newUserGroupMembersList(request, response, "moduleGroup", moduleName, userGroupName,
       moduleName);
   }
 
@@ -291,7 +291,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     defaultValues.put(USER_ACCOUNT_CLASS, USER_ACCOUNT_CLASS_CPF);
     defaultValues.put(CONSUMER_SECRET, UUID.randomUUID().toString().replaceAll("-", ""));
     defaultValues.put(ACTIVE_IND, "1");
-    final TabElementContainer tabs = (TabElementContainer)super.createObjectAddPage(defaultValues,
+    final TabElementContainer tabs = (TabElementContainer)super.newObjectAddPage(defaultValues,
       null, "preInsert");
     final ElementContainer page = (ElementContainer)tabs.getElements().get(0);
     final List<Element> elements = page.getElements();
@@ -329,14 +329,14 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     checkHasAnyRole(ADMIN);
     final Record userAccount = getUserAccount(consumerKey);
     if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
-      final ElementContainer page = (ElementContainer)super.createObjectEditPage(userAccount, null);
+      final ElementContainer page = (ElementContainer)super.newObjectEditPage(userAccount, null);
       final List<Element> elements = page.getElements();
       final MenuElement menuView = (MenuElement)elements.get(elements.size() - 1);
       final Menu menu = menuView.getMenu();
       menu.addMenuItem("Generate Consumer Secret", "javascript:generateConsumerSecret()");
       return page;
     } else {
-      return super.createObjectEditPage(userAccount, "active");
+      return super.newObjectEditPage(userAccount, "active");
     }
   }
 
@@ -348,7 +348,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final HttpServletResponse response) throws IOException {
     checkHasAnyRole(ADMIN);
     HttpServletUtils.setAttribute("title", "User Accounts");
-    return createDataTableHandler(request, "list");
+    return newDataTableHandler(request, "list");
   }
 
   @RequestMapping(value = {
@@ -406,7 +406,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName)
       throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin();
-    return createUserGroupMembersList(request, response, "group", null, userGroupName, null);
+    return newUserGroupMembersList(request, response, "group", null, userGroupName, null);
   }
 
   @Override

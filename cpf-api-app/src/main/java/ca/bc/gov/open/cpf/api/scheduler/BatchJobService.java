@@ -304,8 +304,8 @@ public class BatchJobService implements ModuleEventListener {
         errorMapWriter.write(errorResultMap);
         try {
           final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
-          createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, errorFormat,
-            errorBytes, 0);
+          newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, errorFormat, errorBytes,
+            0);
         } catch (final UnsupportedEncodingException e) {
         }
       }
@@ -508,92 +508,6 @@ public class BatchJobService implements ModuleEventListener {
   public void collateStatistics() {
     final Map<String, ?> values = Collections.singletonMap(StatisticsProcess.COLLATE, Boolean.TRUE);
     sendStatistics(values);
-  }
-
-  protected boolean createBatchJobExecutionGroup(final Identifier batchJobId,
-    final int sequenceNumber, final RecordDefinition requestRecordDefinition,
-    final List<Record> requests) {
-    synchronized (this.preprocesedJobIds) {
-      if (this.preprocesedJobIds.contains(batchJobId)) {
-        this.jobController.setGroupInput(batchJobId, sequenceNumber, requestRecordDefinition,
-          requests);
-        return true;
-      } else {
-        return false;
-      }
-    }
-  }
-
-  public void createBatchJobResult(final Identifier batchJobId, final String resultDataType,
-    final String contentType, final Object data, final int sequenceNumber) {
-    if (data != null) {
-      if (data instanceof File) {
-        final File file = (File)data;
-        if (file.length() == 0) {
-          return;
-        }
-      }
-      try {
-        final Record result = this.dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
-        result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
-        result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
-        result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, resultDataType);
-        result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
-        this.jobController.setJobResult(batchJobId, sequenceNumber, contentType, data);
-        this.dataAccessObject.write(result);
-      } catch (final Throwable e) {
-        throw new RuntimeException("Unable to save result data", e);
-      }
-    }
-  }
-
-  public void createBatchJobResultOpaque(final Identifier batchJobId, final int sequenceNumber,
-    final String contentType, final Object data) {
-    final Record result = this.dataAccessObject.create(BatchJobResult.BATCH_JOB_RESULT);
-    result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
-    result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
-    result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, BatchJobResult.OPAQUE_RESULT_DATA);
-    result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
-    this.jobController.setJobResult(batchJobId, sequenceNumber, contentType, data);
-    this.dataAccessObject.write(result);
-  }
-
-  protected com.revolsys.io.Writer<Record> createStructuredResultWriter(final BatchJob batchJob,
-    final Identifier batchJobId, final BusinessApplication application,
-    final File structuredResultFile, final RecordDefinition resultRecordDefinition,
-    final String resultFormat) {
-    final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(
-      batchJob);
-    final GeometryFactory geometryFactory = getGeometryFactory(
-      resultRecordDefinition.getGeometryFactory(), businessApplicationParameters);
-    final String title = "Job " + batchJobId + " Result";
-
-    final FileSystemResource resource = new FileSystemResource(structuredResultFile);
-    return createStructuredResultWriter(resource, application, resultRecordDefinition, resultFormat,
-      title, geometryFactory);
-  }
-
-  public com.revolsys.io.Writer<Record> createStructuredResultWriter(
-    final com.revolsys.spring.resource.Resource resource, final BusinessApplication application,
-    final RecordDefinition resultRecordDefinition, final String resultFormat, final String title,
-    final GeometryFactory geometryFactory) {
-    final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
-    final RecordWriterFactory writerFactory = ioFactory
-      .getFactoryByMediaType(RecordWriterFactory.class, resultFormat.trim());
-    if (writerFactory == null) {
-      throw new IllegalArgumentException("Unsupported result content type: " + resultFormat);
-    } else {
-      final com.revolsys.io.Writer<Record> recordWriter = writerFactory
-        .newRecordWriter(resultRecordDefinition, resource);
-      recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
-        this.getBaseUrl() + "/kml/defaultStyle.kml#default");
-      recordWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
-      recordWriter.setProperty("htmlCssStyleUrl", this.getBaseUrl() + "/css/default.css");
-
-      recordWriter.setProperty(IoConstants.GEOMETRY_FACTORY, geometryFactory);
-      recordWriter.setProperties(application.getProperties());
-      return recordWriter;
-    }
   }
 
   public void deleteJob(final Identifier batchJobId) {
@@ -1059,6 +973,91 @@ public class BatchJobService implements ModuleEventListener {
 
   }
 
+  protected boolean newBatchJobExecutionGroup(final Identifier batchJobId, final int sequenceNumber,
+    final RecordDefinition requestRecordDefinition, final List<Record> requests) {
+    synchronized (this.preprocesedJobIds) {
+      if (this.preprocesedJobIds.contains(batchJobId)) {
+        this.jobController.setGroupInput(batchJobId, sequenceNumber, requestRecordDefinition,
+          requests);
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  public void newBatchJobResult(final Identifier batchJobId, final String resultDataType,
+    final String contentType, final Object data, final int sequenceNumber) {
+    if (data != null) {
+      if (data instanceof File) {
+        final File file = (File)data;
+        if (file.length() == 0) {
+          return;
+        }
+      }
+      try {
+        final Record result = this.dataAccessObject.newRecord(BatchJobResult.BATCH_JOB_RESULT);
+        result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
+        result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
+        result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, resultDataType);
+        result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
+        this.jobController.setJobResult(batchJobId, sequenceNumber, contentType, data);
+        this.dataAccessObject.write(result);
+      } catch (final Throwable e) {
+        throw new RuntimeException("Unable to save result data", e);
+      }
+    }
+  }
+
+  public void newBatchJobResultOpaque(final Identifier batchJobId, final int sequenceNumber,
+    final String contentType, final Object data) {
+    final Record result = this.dataAccessObject.newRecord(BatchJobResult.BATCH_JOB_RESULT);
+    result.setValue(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber);
+    result.setValue(BatchJobResult.BATCH_JOB_ID, batchJobId);
+    result.setValue(BatchJobResult.BATCH_JOB_RESULT_TYPE, BatchJobResult.OPAQUE_RESULT_DATA);
+    result.setValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE, contentType);
+    this.jobController.setJobResult(batchJobId, sequenceNumber, contentType, data);
+    this.dataAccessObject.write(result);
+  }
+
+  protected com.revolsys.io.Writer<Record> newStructuredResultWriter(final BatchJob batchJob,
+    final Identifier batchJobId, final BusinessApplication application,
+    final File structuredResultFile, final RecordDefinition resultRecordDefinition,
+    final String resultFormat) {
+    final Map<String, ? extends Object> businessApplicationParameters = getBusinessApplicationParameters(
+      batchJob);
+    final GeometryFactory geometryFactory = getGeometryFactory(
+      resultRecordDefinition.getGeometryFactory(), businessApplicationParameters);
+    final String title = "Job " + batchJobId + " Result";
+
+    final FileSystemResource resource = new FileSystemResource(structuredResultFile);
+    return newStructuredResultWriter(resource, application, resultRecordDefinition, resultFormat,
+      title, geometryFactory);
+  }
+
+  public com.revolsys.io.Writer<Record> newStructuredResultWriter(
+    final com.revolsys.spring.resource.Resource resource, final BusinessApplication application,
+    final RecordDefinition resultRecordDefinition, final String resultFormat, final String title,
+    final GeometryFactory geometryFactory) {
+    final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
+    final RecordWriterFactory writerFactory = ioFactory
+      .getFactoryByMediaType(RecordWriterFactory.class, resultFormat.trim());
+    if (writerFactory == null) {
+      throw new IllegalArgumentException("Unsupported result content type: " + resultFormat);
+    } else {
+      final com.revolsys.io.Writer<Record> recordWriter = writerFactory
+        .newRecordWriter(resultRecordDefinition, resource);
+      recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
+        this.getBaseUrl() + "/kml/defaultStyle.kml#default");
+      recordWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
+      recordWriter.setProperty("htmlCssStyleUrl", this.getBaseUrl() + "/css/default.css");
+
+      recordWriter.setProperty(IoConstants.GEOMETRY_FACTORY, geometryFactory);
+      recordWriter.setProperties(application.getProperties());
+      return recordWriter;
+    }
+  }
+
   public void postProcess(final Identifier batchJobId) {
     if (this.postProcess != null) {
       SendToChannelAfterCommit.send(this.postProcess.getIn(), batchJobId);
@@ -1182,12 +1181,12 @@ public class BatchJobService implements ModuleEventListener {
       MapWriter errorResultWriter = null;
       com.revolsys.io.Writer<Record> structuredResultWriter = null;
       try {
-        errorFile = FileUtil.createTempFile("errors", ".csv");
+        errorFile = FileUtil.newTempFile("errors", ".csv");
         errorWriter = new FileWriter(errorFile);
         errorResultWriter = new CsvMapWriter(errorWriter);
 
-        structuredResultFile = FileUtil.createTempFile("result", "." + fileExtension);
-        structuredResultWriter = createStructuredResultWriter(batchJob, batchJobId, application,
+        structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
+        structuredResultWriter = newStructuredResultWriter(batchJob, batchJobId, application,
           structuredResultFile, resultRecordDefinition, resultFormat);
         structuredResultWriter.open();
         final Map<String, Object> defaultProperties = new HashMap<>(
@@ -1241,12 +1240,11 @@ public class BatchJobService implements ModuleEventListener {
           FileUtil.closeSilent(errorWriter);
         }
         if (hasResults) {
-          createBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
+          newBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
             structuredResultFile, 1);
         }
         if (hasErrors) {
-          createBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, "text/csv", errorFile,
-            0);
+          newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, "text/csv", errorFile, 0);
         }
       } catch (final Throwable e) {
         throw new RuntimeException("Unable to save results", e);
@@ -1273,12 +1271,12 @@ public class BatchJobService implements ModuleEventListener {
         .getResultRecordDefinition();
 
       final String fileExtension = IoFactoryRegistry.getFileExtension(resultFormat);
-      final File structuredResultFile = FileUtil.createTempFile("result", "." + fileExtension);
+      final File structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
 
       boolean hasResults = false;
       try {
         try (
-          com.revolsys.io.Writer<Record> structuredResultWriter = createStructuredResultWriter(
+          com.revolsys.io.Writer<Record> structuredResultWriter = newStructuredResultWriter(
             batchJob, batchJobId, businessApplication, structuredResultFile, resultRecordDefinition,
             resultFormat)) {
           structuredResultWriter.open();
@@ -1305,7 +1303,7 @@ public class BatchJobService implements ModuleEventListener {
           }
         }
         if (hasResults) {
-          createBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
+          newBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
             structuredResultFile, 1);
         }
       } catch (final Throwable e) {
@@ -1446,7 +1444,7 @@ public class BatchJobService implements ModuleEventListener {
                             for (final Record inputDataRecord : inputDataReader) {
                               if (group.size() == maxGroupSize) {
                                 numGroups++;
-                                if (createBatchJobExecutionGroup(batchJobId, numGroups,
+                                if (newBatchJobExecutionGroup(batchJobId, numGroups,
                                   requestRecordDefinition, group)) {
                                   group = new ArrayList<>();
                                   if (numGroups % commitInterval == 0) {
@@ -1470,7 +1468,7 @@ public class BatchJobService implements ModuleEventListener {
                               }
                             }
                             numGroups++;
-                            if (createBatchJobExecutionGroup(batchJobId, numGroups,
+                            if (newBatchJobExecutionGroup(batchJobId, numGroups,
                               requestRecordDefinition, group)) {
                             } else {
                               transactionManager.rollback(status);
@@ -1599,7 +1597,7 @@ public class BatchJobService implements ModuleEventListener {
     }
     if (parameterValue == null) {
       if (field.isRequired()) {
-        this.dataAccessObject.createBatchJobExecutionGroup(this.jobController, batchJobId,
+        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
           sequenceNumber, ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
           ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " " + parameterName, null);
         return false;
@@ -1608,7 +1606,7 @@ public class BatchJobService implements ModuleEventListener {
       try {
         field.validate(parameterValue);
       } catch (final IllegalArgumentException e) {
-        this.dataAccessObject.createBatchJobExecutionGroup(this.jobController, batchJobId,
+        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
           sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(), e.getMessage(), null);
         return false;
       }
@@ -1618,7 +1616,7 @@ public class BatchJobService implements ModuleEventListener {
       } catch (final IllegalArgumentException e) {
         final StringWriter errorOut = new StringWriter();
         e.printStackTrace(new PrintWriter(errorOut));
-        this.dataAccessObject.createBatchJobExecutionGroup(this.jobController, batchJobId,
+        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
           sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
           ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " " + parameterName + " "
             + e.getMessage(),

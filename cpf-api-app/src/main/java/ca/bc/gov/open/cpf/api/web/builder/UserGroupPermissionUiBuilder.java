@@ -69,7 +69,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       parameters.put(UserGroupPermission.MODULE_NAME, moduleName);
       parameters.put(UserGroupPermission.USER_GROUP_ID, groupId);
       parameters.put(UserGroupPermission.ACTIVE_IND, 1);
-      return createObjectAddPage(parameters, "module", "preInsert");
+      return newObjectAddPage(parameters, "module", "preInsert");
     }
     notFound(response, "User group " + userGroupName + " does not exist");
     return null;
@@ -123,7 +123,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
         if (permission.getValue(UserGroupPermission.MODULE_NAME).equals(moduleName)) {
           final Identifier userGroupId = group.getIdentifier();
           if (permission.getValue(UserGroupPermission.USER_GROUP_ID).equals(userGroupId)) {
-            return createObjectEditPage(permission, "module");
+            return newObjectEditPage(permission, "module");
           }
         }
       }
@@ -151,7 +151,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       filter.put(UserGroupPermission.USER_GROUP_ID, userGroupId);
       parameters.put("filter", filter);
 
-      return createDataTableHandlerOrRedirect(request, response, "moduleList",
+      return newDataTableHandlerOrRedirect(request, response, "moduleList",
         UserGroup.USER_GROUP, "moduleView", parameters);
     }
     notFound(response, "User group " + userGroupName + " does not exist");

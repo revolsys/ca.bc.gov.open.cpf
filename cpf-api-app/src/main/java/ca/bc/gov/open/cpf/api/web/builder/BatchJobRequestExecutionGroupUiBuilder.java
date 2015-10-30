@@ -65,7 +65,7 @@ public class BatchJobRequestExecutionGroupUiBuilder extends CpfUiBuilder {
       throw new PageNotFoundException(
         "The worker " + workerId + " could not be found. It may no longer be connected.");
     } else {
-      return createDataTableHandler(getRequest(), "workerList", this::getWorkerExecutionGroups);
+      return newDataTableHandler(getRequest(), "workerList", this::getWorkerExecutionGroups);
     }
   }
 

@@ -145,7 +145,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     filter.put("BATCH_JOB_ID", batchJobId);
     parameters.put("filter", filter);
 
-    return createDataTableHandlerOrRedirect(request, response, "moduleAppJobList",
+    return newDataTableHandlerOrRedirect(request, response, "moduleAppJobList",
       BatchJob.BATCH_JOB, "moduleAppView", parameters);
   }
 

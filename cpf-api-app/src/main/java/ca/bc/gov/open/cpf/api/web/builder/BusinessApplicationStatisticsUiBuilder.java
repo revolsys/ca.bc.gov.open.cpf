@@ -65,7 +65,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     appBuilder.serializeLink(out, businessApplication, "name", "moduleView", parameterKeys);
   }
 
-  public ModelAndView createStatsViewPage(final String businessApplicationName,
+  public ModelAndView newStatsViewPage(final String businessApplicationName,
     final BusinessApplicationStatistics stats) {
     final ModelMap model = new ModelMap();
     model.put("title", businessApplicationName + " Statistics " + stats.getId());
@@ -145,7 +145,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     final BusinessApplication businessApplication = getBusinessApplicationRegistry()
       .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
-      return createDataTableHandlerOrRedirect(request, response, "moduleAppList", () -> {
+      return newDataTableHandlerOrRedirect(request, response, "moduleAppList", () -> {
         return getStatistics(businessApplication);
       } , BusinessApplication.class, "moduleView");
     }
@@ -169,7 +169,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
           .getStatistics(businessApplicationName, statisticId);
 
         if (statistics != null) {
-          final ModelAndView viewPage = createStatsViewPage(businessApplicationName, statistics);
+          final ModelAndView viewPage = newStatsViewPage(businessApplicationName, statistics);
 
           return viewPage;
         }
@@ -211,7 +211,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("durationType") final String durationType)
       throws IOException, NoSuchRequestHandlingMethodException {
     checkAdminOrAnyModuleAdminExceptSecurity();
-    return createDataTableHandlerOrRedirect(request, response, durationType + "List", () -> {
+    return newDataTableHandlerOrRedirect(request, response, durationType + "List", () -> {
       return getSummaryStatistics(durationType);
     } , this, "summary");
   }

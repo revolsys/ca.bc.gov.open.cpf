@@ -157,7 +157,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
     this.pool.releaseClient(this);
   }
 
-  protected IOException createException(final HttpEntity entity, final StatusLine statusLine) {
+  protected IOException newException(final HttpEntity entity, final StatusLine statusLine) {
     if (LoggerFactory.getLogger(OAuthHttpClient.class).isDebugEnabled()) {
       try {
         final String errorBody = EntityUtils.toString(entity);
@@ -191,7 +191,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
           return map;
         }
       } else {
-        throw createException(entity, statusLine);
+        throw newException(entity, statusLine);
       }
     } catch (final IOException e) {
       throw new WrappedException(e);
@@ -248,7 +248,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
         final InputStreamResource resource = new InputStreamResource(fileName, in);
         return factory.newMapreader(resource);
       } else {
-        throw createException(entity, statusLine);
+        throw newException(entity, statusLine);
       }
     } catch (final Throwable e) {
       return Exceptions.throwUncheckedException(e);

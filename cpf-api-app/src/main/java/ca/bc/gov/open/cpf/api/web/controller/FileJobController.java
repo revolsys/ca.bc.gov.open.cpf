@@ -83,7 +83,7 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public void createJobFile(final Identifier jobId, final String path, final long sequenceNumber,
+  public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
     final String contentType, final Object data) {
     final File file = getJobFile(jobId, path, sequenceNumber);
     file.getParentFile().mkdirs();
@@ -175,7 +175,7 @@ public class FileJobController extends AbstractJobController {
       file.getParentFile().mkdirs();
       try (
         CsvRecordWriter writer = new CsvRecordWriter(recordDefinition,
-          FileUtil.createUtf8Writer(file), ',', true, false)) {
+          FileUtil.newUtf8Writer(file), ',', true, false)) {
         for (final Record record : requests) {
           writer.write(record);
         }

@@ -97,7 +97,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   public Record getConfigProperty(final ConfigPropertyModule module,
     final Map<String, Object> property) {
-    final Record configProperty = this.dataAccessObject.create(ConfigProperty.CONFIG_PROPERTY);
+    final Record configProperty = this.dataAccessObject.newRecord(ConfigProperty.CONFIG_PROPERTY);
     String environmentName = (String)property.get("environmentName");
     if (!Property.hasValue(environmentName)) {
       environmentName = ConfigProperty.DEFAULT;
@@ -323,7 +323,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     final String adminModuleName = "ADMIN_MODULE_" + moduleName;
     final String groupName = adminModuleName + groupNameSuffix;
     final String description = descriptionSuffix + moduleName;
-    this.dataAccessObject.createUserGroup(adminModuleName, groupName, description);
+    this.dataAccessObject.newUserGroup(adminModuleName, groupName, description);
   }
 
   protected void refreshUserGroups(final ConfigPropertyModule module) {
@@ -354,7 +354,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
             final String groupName = groupPermissions.getKey();
             if (groupName.startsWith(moduleName + "_") && !existingGroupNames.contains(groupName)) {
 
-              this.dataAccessObject.createUserGroup(moduleName, groupName, null);
+              this.dataAccessObject.newUserGroup(moduleName, groupName, null);
             }
             final Record group = this.dataAccessObject.getUserGroup(groupName);
             if (group == null) {
@@ -370,7 +370,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
                 }
                 for (final ResourcePermission newPermission : newPermissions) {
 
-                  this.dataAccessObject.createUserGroupPermission(group, moduleName, newPermission);
+                  this.dataAccessObject.newUserGroupPermission(group, moduleName, newPermission);
                 }
               }
             }
@@ -411,7 +411,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         Record moduleIdProperty = this.dataAccessObject.getConfigProperty(environmentName,
           moduleName, componentName, propertyName);
         if (moduleIdProperty == null) {
-          moduleIdProperty = this.dataAccessObject.createConfigProperty(environmentName, moduleName,
+          moduleIdProperty = this.dataAccessObject.newConfigProperty(environmentName, moduleName,
             componentName, propertyName, mavenModuleId, DataTypes.STRING);
         } else {
           this.dataAccessObject.setConfigPropertyValue(moduleIdProperty, mavenModuleId);
@@ -421,7 +421,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         Record moduleEnabledProperty = this.dataAccessObject.getConfigProperty(environmentName,
           moduleName, componentName, ENABLED);
         if (moduleEnabledProperty == null) {
-          moduleEnabledProperty = this.dataAccessObject.createConfigProperty(environmentName,
+          moduleEnabledProperty = this.dataAccessObject.newConfigProperty(environmentName,
             moduleName, componentName, ENABLED, enabled, DataTypes.BOOLEAN);
         } else {
           this.dataAccessObject.setConfigPropertyValue(moduleEnabledProperty, enabled);

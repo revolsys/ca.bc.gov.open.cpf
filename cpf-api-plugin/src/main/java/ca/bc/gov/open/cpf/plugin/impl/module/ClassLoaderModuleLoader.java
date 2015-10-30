@@ -154,14 +154,14 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
 
   public void setFile(final File file) {
     final ClassLoader parentClassLoader = getClass().getClassLoader();
-    final URLClassLoader classLoader = ClassLoaderFactoryBean.createClassLoader(
+    final URLClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(
       parentClassLoader, file);
     setClassLoader(classLoader);
   }
 
   public void setUrls(final Collection<URL> urls) {
     final ClassLoader parentClassLoader = getClass().getClassLoader();
-    final URLClassLoader classLoader = ClassLoaderFactoryBean.createClassLoader(
+    final URLClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(
       parentClassLoader, urls);
     setClassLoader(classLoader);
   }

@@ -108,7 +108,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
     }
   }
 
-  public void createExecutionGroup(final BusinessApplication businessApplication,
+  public void newExecutionGroup(final BusinessApplication businessApplication,
     final BatchJob batchJob) {
     try {
       final BatchJobRequestExecutionGroup group = batchJob.getNextGroup(businessApplication);
@@ -292,7 +292,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
           final int scheduledCount = getScheduledGroupCount(businessApplicationName);
           if (scheduledCount < maxCount) {
             iterator.remove();
-            createExecutionGroup(businessApplication, batchJob);
+            newExecutionGroup(businessApplication, batchJob);
             schedule(batchJob);
           }
         } else {

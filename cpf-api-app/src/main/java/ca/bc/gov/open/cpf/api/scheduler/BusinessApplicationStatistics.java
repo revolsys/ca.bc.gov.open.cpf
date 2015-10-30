@@ -63,7 +63,7 @@ public class BusinessApplicationStatistics {
 
   public static final String APPLICATION_STATISTIC_ID = "APPLICATION_STATISTIC_ID";
 
-  public static BusinessApplicationStatistics createStatistics(final String businessApplicationName,
+  public static BusinessApplicationStatistics newStatistics(final String businessApplicationName,
     final String durationType) {
     final String id = getId(durationType);
     return new BusinessApplicationStatistics(businessApplicationName, id);

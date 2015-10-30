@@ -286,7 +286,7 @@ public class InternalWebService {
       synchronized (group) {
         if (!group.isCancelled()) {
           final int sequenceNumber = group.getSequenceNumber();
-          this.jobController.setGroupError(Identifier.create(batchJobId), sequenceNumber, in);
+          this.jobController.setGroupError(Identifier.newIdentifier(batchJobId), sequenceNumber, in);
         }
       }
     }
@@ -307,7 +307,7 @@ public class InternalWebService {
     if (group != null) {
       synchronized (group) {
         if (!group.isCancelled()) {
-          final Record batchJob = this.dataAccessObject.getBatchJob(Identifier.create(batchJobId));
+          final Record batchJob = this.dataAccessObject.getBatchJob(Identifier.newIdentifier(batchJobId));
           if (batchJob != null) {
             final String businessApplicationName = batchJob
               .getValue(BatchJob.BUSINESS_APPLICATION_NAME);
@@ -316,12 +316,12 @@ public class InternalWebService {
             if (businessApplication != null && businessApplication.isPerRequestResultData()) {
               final String resultDataContentType = batchJob
                 .getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-              final File file = FileUtil.createTempFile("result", ".bin");
+              final File file = FileUtil.newTempFile("result", ".bin");
 
               try {
                 FileUtil.copy(in, file);
                 if (!group.isCancelled()) {
-                  this.batchJobService.createBatchJobResultOpaque(Identifier.create(batchJobId),
+                  this.batchJobService.newBatchJobResultOpaque(Identifier.newIdentifier(batchJobId),
                     sequenceNumber, resultDataContentType, file);
                 }
               } finally {
