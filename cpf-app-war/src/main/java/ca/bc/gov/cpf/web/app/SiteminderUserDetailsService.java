@@ -99,16 +99,16 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_ALL", "BC Government All Users");
-        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INTERNAL",
+        this.dataAccessObject.newUserGroup("USER_TYPE", "BCGOV_ALL", "BC Government All Users");
+        this.dataAccessObject.newUserGroup("USER_TYPE", "BCGOV_INTERNAL",
           "BC Government Internal Users");
-        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_EXTERNAL",
+        this.dataAccessObject.newUserGroup("USER_TYPE", "BCGOV_EXTERNAL",
           "BC Government External Users");
-        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_BUSINESS",
+        this.dataAccessObject.newUserGroup("USER_TYPE", "BCGOV_BUSINESS",
           "BC Government External Business Users");
-        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_INDIVIDUAL",
+        this.dataAccessObject.newUserGroup("USER_TYPE", "BCGOV_INDIVIDUAL",
           "BC Government External Individual Users");
-        this.dataAccessObject.createUserGroup("USER_TYPE", "BCGOV_VERIFIED_INDIVIDUAL",
+        this.dataAccessObject.newUserGroup("USER_TYPE", "BCGOV_VERIFIED_INDIVIDUAL",
           "BC Government External Verified Individual Users");
         this.userAccountSecurityService.addGrantedAuthorityService(this);
       } catch (final Throwable e) {
@@ -149,7 +149,7 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
             username, consumerSecret);
           context.setAuthentication(authentication);
 
-          user = this.dataAccessObject.createUserAccount(USER_ACCOUNT_CLASS, userGuid, username,
+          user = this.dataAccessObject.newUserAccount(USER_ACCOUNT_CLASS, userGuid, username,
             consumerSecret);
         } else {
           username = user.getValue(UserAccount.CONSUMER_KEY);
