@@ -72,7 +72,7 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.converter.string.StringConverter;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.cs.CoordinateSystem;
@@ -80,7 +80,7 @@ import com.revolsys.geometry.cs.epsg.EpsgCoordinateSystems;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.IoFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
@@ -648,7 +648,6 @@ public class ClassLoaderModule implements Module {
         }
       }
 
-      final IoFactoryRegistry ioFactoryRegistry = IoFactoryRegistry.getInstance();
       final String[] inputDataContentTypes = pluginAnnotation.inputDataContentTypes();
       if (perRequestInputData) {
         if (inputDataContentTypes.length == 0) {
@@ -660,8 +659,7 @@ public class ClassLoaderModule implements Module {
         }
       } else {
         if (inputDataContentTypes.length == 0) {
-          final Set<MapReaderFactory> factories = ioFactoryRegistry
-            .getFactories(MapReaderFactory.class);
+          final List<MapReaderFactory> factories = IoFactory.factories(MapReaderFactory.class);
           for (final MapReaderFactory factory : factories) {
             if (factory.isSingleFile()) {
               if (factory.isCustomFieldsSupported()) {
@@ -676,8 +674,8 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           for (final String contentType : inputDataContentTypes) {
-            final MapReaderFactory factory = ioFactoryRegistry
-              .getFactoryByMediaType(MapReaderFactory.class, contentType);
+            final MapReaderFactory factory = IoFactory.factoryByMediaType(MapReaderFactory.class,
+              contentType);
             if (factory.isSingleFile()) {
               if (factory.isCustomFieldsSupported()) {
                 final String fileExtension = factory.getFileExtension(contentType);
@@ -702,8 +700,8 @@ public class ClassLoaderModule implements Module {
       } else {
         final boolean hasResultGeometry = businessApplication.isHasGeometryResultAttribute();
         if (resultDataContentTypes.length == 0) {
-          final Set<RecordWriterFactory> writerFactories = ioFactoryRegistry
-            .getFactories(RecordWriterFactory.class);
+          final List<RecordWriterFactory> writerFactories = IoFactory
+            .factories(RecordWriterFactory.class);
           for (final RecordWriterFactory factory : writerFactories) {
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
@@ -721,8 +719,8 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           for (final String contentType : resultDataContentTypes) {
-            final RecordWriterFactory factory = ioFactoryRegistry
-              .getFactoryByMediaType(RecordWriterFactory.class, contentType);
+            final RecordWriterFactory factory = IoFactory
+              .factoryByMediaType(RecordWriterFactory.class, contentType);
             if (factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomFieldsSupported()) {
@@ -1331,10 +1329,10 @@ public class ClassLoaderModule implements Module {
               scale, required, description);
             field.setProperty("units", units);
             if (Property.hasValue(minValue)) {
-              field.setMinValue(StringConverterRegistry.toObject(dataType, minValue));
+              field.setMinValue(StringConverter.toObject(dataType, minValue));
             }
             if (Property.hasValue(maxValue)) {
-              field.setMaxValue(StringConverterRegistry.toObject(dataType, maxValue));
+              field.setMaxValue(StringConverter.toObject(dataType, maxValue));
             }
             field.setAllowedValues(Arrays.asList(allowedValues));
             field.setProperty("units", units);
@@ -1343,7 +1341,7 @@ public class ClassLoaderModule implements Module {
             if (defaultValueMetadata != null) {
               final String defaultValueString = defaultValueMetadata.value();
               final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
-              final Object defaultValue = StringConverterRegistry.toObject(dataTypeClass,
+              final Object defaultValue = StringConverter.toObject(dataTypeClass,
                 defaultValueString);
               field.setDefaultValue(defaultValue);
             }

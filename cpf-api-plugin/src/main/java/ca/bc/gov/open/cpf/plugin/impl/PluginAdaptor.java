@@ -41,7 +41,7 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.collection.map.Maps;
 import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.converter.string.StringConverter;
 import com.revolsys.geometry.model.BoundingBox;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryCollection;
@@ -100,7 +100,7 @@ public class PluginAdaptor {
         }
       } else if (Date.class.isAssignableFrom(typeClass)) {
         final Timestamp time = new Timestamp(System.currentTimeMillis());
-        value = StringConverterRegistry.toObject(typeClass, time);
+        value = StringConverter.toObject(typeClass, time);
       } else if (LineString.class.isAssignableFrom(typeClass)) {
         value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
       } else if (Polygon.class.isAssignableFrom(typeClass)) {
@@ -447,7 +447,7 @@ public class PluginAdaptor {
         .getRequestRecordDefinition();
       final Class<?> fieldClass = requestRecordDefinition.getFieldClass(parameterName);
       if (fieldClass != null) {
-        parameterValue = StringConverterRegistry.toObject(fieldClass, parameterValue);
+        parameterValue = StringConverter.toObject(fieldClass, parameterValue);
       }
       if (parameterValue != null) {
         BeanUtils.setProperty(this.plugin, parameterName, parameterValue);

@@ -86,7 +86,7 @@ import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
-import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.IoFactory;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Writer;
 import com.revolsys.record.ArrayRecord;
@@ -194,14 +194,6 @@ public class ConcurrentProcessingFramework {
     }
   }
 
-  private static PageInfo newRootPageInfo(final String title) {
-    HttpServletUtils.setAttribute("title", title);
-    final PageInfo page = new PageInfo(title);
-    final String url = HttpServletUtils.getFullRequestUrl();
-    page.setUrl(url);
-    return page;
-  }
-
   private static boolean hasPermission(final BusinessApplication businessApplication,
     final EvaluationContext evaluationContext) {
     if (ExpressionUtils.evaluateAsBoolean(businessApplication.getBatchModeExpression(),
@@ -214,6 +206,14 @@ public class ConcurrentProcessingFramework {
       return false;
     }
 
+  }
+
+  private static PageInfo newRootPageInfo(final String title) {
+    HttpServletUtils.setAttribute("title", title);
+    final PageInfo page = new PageInfo(title);
+    final String url = HttpServletUtils.getFullRequestUrl();
+    page.setUrl(url);
+    return page;
   }
 
   private BatchJobService batchJobService;
@@ -979,19 +979,19 @@ public class ConcurrentProcessingFramework {
       this.dataAccessObject.write(batchJob.getRecord());
       if (perRequestInputData) {
         if (inputDataIn != null) {
-          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1, inputDataContentType,
-            inputDataIn);
+          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
+            inputDataContentType, inputDataIn);
         } else {
-          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1, inputDataContentType,
-            inputDataUrl);
+          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
+            inputDataContentType, inputDataUrl);
         }
       } else {
 
         inputData.put("i", 1);
         final String inputDataString = JsonRecordIoFactory.toString(requestRecordDefinition,
           Collections.singletonList(inputData));
-        this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1, "application/json",
-          inputDataString);
+        this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
+          "application/json", inputDataString);
       }
       batchJob.setGroupCount(1);
       this.batchJobService.scheduleJob(batchJob);
@@ -1498,8 +1498,8 @@ public class ConcurrentProcessingFramework {
             try {
               final HttpServletResponse response = HttpServletUtils.getResponse();
 
-              final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-                .getFactoryByMediaType(RecordWriterFactory.class, format);
+              final RecordWriterFactory writerFactory = IoFactory
+                .factoryByMediaType(RecordWriterFactory.class, format);
               if (writerFactory == null) {
                 throw new HttpMessageNotWritableException("Unsupported format " + format);
               } else {
@@ -1514,9 +1514,8 @@ public class ConcurrentProcessingFramework {
                 response.getOutputStream());
               final GeometryFactory geometryFactory = GeometryFactory.fixed(resultSrid,
                 resultNumAxis, resultScaleFactorXy, resultScaleFactorZ);
-              final Writer<Record> writer = this.batchJobService.newStructuredResultWriter(
-                resource, businessApplication, resultRecordDefinition, format, "Result",
-                geometryFactory);
+              final Writer<Record> writer = this.batchJobService.newStructuredResultWriter(resource,
+                businessApplication, resultRecordDefinition, format, "Result", geometryFactory);
               final boolean hasMultipleResults = businessApplication
                 .getResultListProperty() != null;
               if (!hasMultipleResults) {
@@ -2694,8 +2693,8 @@ public class ConcurrentProcessingFramework {
               size += 3 + jsonCallback.length();
             }
           }
-          final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-            .getFactoryByMediaType(RecordWriterFactory.class, resultDataContentType);
+          final RecordWriterFactory writerFactory = IoFactory
+            .factoryByMediaType(RecordWriterFactory.class, resultDataContentType);
           if (writerFactory != null) {
             final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
             final String fileName = "job-" + batchJobIdentifier + "-result-" + resultId + "."

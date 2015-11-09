@@ -55,7 +55,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 
-import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.IoFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.record.io.format.json.Json;
@@ -157,20 +157,6 @@ public class OAuthHttpClient extends DefaultHttpClient {
     this.pool.releaseClient(this);
   }
 
-  protected IOException newException(final HttpEntity entity, final StatusLine statusLine) {
-    if (LoggerFactory.getLogger(OAuthHttpClient.class).isDebugEnabled()) {
-      try {
-        final String errorBody = EntityUtils.toString(entity);
-        LoggerFactory.getLogger(OAuthHttpClient.class)
-          .debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
-      } catch (final Throwable e) {
-        LoggerFactory.getLogger(OAuthHttpClient.class)
-          .error("Unable to get error message server: " + statusLine + "\n");
-      }
-    }
-    return new IOException("Unable to get message from server: " + statusLine);
-  }
-
   public void deleteUrl(final String url) throws IOException, ClientProtocolException {
     final HttpDelete httpDelete = new HttpDelete(url);
     final HttpResponse response = execute(httpDelete, this.context);
@@ -239,8 +225,8 @@ public class OAuthHttpClient extends DefaultHttpClient {
         final Header contentTypeHeader = entity.getContentType();
 
         final String contentType = contentTypeHeader.getValue();
-        final MapReaderFactory factory = IoFactoryRegistry.getInstance()
-          .getFactoryByMediaType(MapReaderFactory.class, contentType);
+        final MapReaderFactory factory = IoFactory.factoryByMediaType(MapReaderFactory.class,
+          contentType);
         if (factory == null) {
           throw new RuntimeException("Unable to read " + contentType);
         }
@@ -273,6 +259,20 @@ public class OAuthHttpClient extends DefaultHttpClient {
 
   public String getUrl(final String path) {
     return this.webServiceUrl + path.replaceAll("/+", "/");
+  }
+
+  protected IOException newException(final HttpEntity entity, final StatusLine statusLine) {
+    if (LoggerFactory.getLogger(OAuthHttpClient.class).isDebugEnabled()) {
+      try {
+        final String errorBody = EntityUtils.toString(entity);
+        LoggerFactory.getLogger(OAuthHttpClient.class)
+          .debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
+      } catch (final Throwable e) {
+        LoggerFactory.getLogger(OAuthHttpClient.class)
+          .error("Unable to get error message server: " + statusLine + "\n");
+      }
+    }
+    return new IOException("Unable to get message from server: " + statusLine);
   }
 
   public Map<String, Object> postJsonResource(final String url)

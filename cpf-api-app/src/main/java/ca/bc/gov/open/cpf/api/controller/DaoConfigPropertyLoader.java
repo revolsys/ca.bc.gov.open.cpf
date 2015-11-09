@@ -51,7 +51,7 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
         final StringConverter<?> converter = StringConverterRegistry.getInstance()
           .getConverter(dataTypeClass);
         if (converter != null) {
-          value = converter.toObject(stringValue);
+          value = converter.stringToObject(stringValue);
         }
       }
       configProperties.put(propertyName, value);

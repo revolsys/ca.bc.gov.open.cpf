@@ -350,7 +350,7 @@ public class WorkerGroupRunnable implements Runnable {
               final StringConverter<Object> converter = StringConverterRegistry.getInstance()
                 .getConverter(dataTypeClass);
               if (converter != null) {
-                final Object convertedValue = converter.toObject(value);
+                final Object convertedValue = converter.objectToObject(value);
                 entry.setValue(convertedValue);
               }
             }
@@ -426,7 +426,7 @@ public class WorkerGroupRunnable implements Runnable {
               if (value != null) {
                 try {
                   final DataType dataType = requestRecordDefinition.getFieldType(name);
-                  final Object convertedValue = StringConverterRegistry.toObject(dataType, value);
+                  final Object convertedValue = StringConverter.toObject(dataType, value);
                   applicationParameters.put(name, convertedValue);
                 } catch (final Throwable e) {
                   this.log.error("Error processing group", e);
@@ -572,7 +572,7 @@ public class WorkerGroupRunnable implements Runnable {
       final RecordDefinitionImpl requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
       final Class<?> fieldClass = requestRecordDefinition.getFieldClass(parameterName);
       if (fieldClass != null) {
-        parameterValue = StringConverterRegistry.toObject(fieldClass, parameterValue);
+        parameterValue = StringConverter.toObject(fieldClass, parameterValue);
       }
       if (parameterValue != null) {
         BeanUtils.setProperty(plugin, parameterName, parameterValue);

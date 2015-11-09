@@ -910,7 +910,7 @@ public class CpfDataAccessObject implements Transactionable {
         if (converter == null) {
           stringValue = value.toString();
         } else {
-          stringValue = converter.toString(value);
+          stringValue = converter.objectToString(value);
         }
       }
       if (Property.hasValue(stringValue)) {

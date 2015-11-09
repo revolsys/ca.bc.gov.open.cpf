@@ -73,7 +73,7 @@ public class StructuredToStructuredPluginTest {
     for (final String key : parameters.keySet()) {
       final Object parameterValue = parameters.get(key);
       final Object resultValue = results.get(key);
-      // if (!EqualsRegistry.INSTANCE.equals(parameterValue, resultValue)) {
+      // if (!Equals.equals(parameterValue, resultValue)) {
       // Assert.assertEquals(key, parameterValue, resultValue);
       // }
     }

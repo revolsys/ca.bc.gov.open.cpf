@@ -33,25 +33,25 @@ public class JtsGeometryConverter implements StringConverter<Geometry> {
   }
 
   @Override
-  public Geometry toObject(final Object value) {
+  public Geometry objectToObject(final Object value) {
     if (value instanceof Geometry) {
       final Geometry geometry = (Geometry)value;
       return geometry;
     } else if (value == null) {
       return null;
     } else {
-      return toObject(value.toString());
+      return stringToObject(value.toString());
     }
   }
 
   @Override
-  public Geometry toObject(final String wkt) {
+  public Geometry stringToObject(final String wkt) {
     final GeometryFactory factory = GeometryFactory.getFactory();
     return factory.createGeometry(wkt);
   }
 
   @Override
-  public String toString(final Object value) {
+  public String objectToString(final Object value) {
     if (value == null) {
       return null;
     } else if (value instanceof Geometry) {

@@ -91,7 +91,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.collection.map.Maps;
-import com.revolsys.converter.string.StringConverterRegistry;
+import com.revolsys.converter.string.StringConverter;
 import com.revolsys.datatype.DataType;
 import com.revolsys.equals.Equals;
 import com.revolsys.geometry.model.Geometry;
@@ -100,7 +100,7 @@ import com.revolsys.geometry.operation.valid.IsValidOp;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
-import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.IoFactory;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReaderFactory;
@@ -1039,9 +1039,8 @@ public class BatchJobService implements ModuleEventListener {
     final com.revolsys.spring.resource.Resource resource, final BusinessApplication application,
     final RecordDefinition resultRecordDefinition, final String resultFormat, final String title,
     final GeometryFactory geometryFactory) {
-    final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
-    final RecordWriterFactory writerFactory = ioFactory
-      .getFactoryByMediaType(RecordWriterFactory.class, resultFormat.trim());
+    final RecordWriterFactory writerFactory = IoFactory
+      .factoryByMediaType(RecordWriterFactory.class, resultFormat.trim());
     if (writerFactory == null) {
       throw new IllegalArgumentException("Unsupported result content type: " + resultFormat);
     } else {
@@ -1173,7 +1172,7 @@ public class BatchJobService implements ModuleEventListener {
       final BusinessApplication application = getBusinessApplication(businessApplicationName);
       final RecordDefinition resultRecordDefinition = application.getResultRecordDefinition();
 
-      final String fileExtension = IoFactoryRegistry.getFileExtension(resultFormat);
+      final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
       File structuredResultFile = null;
 
       File errorFile = null;
@@ -1270,7 +1269,7 @@ public class BatchJobService implements ModuleEventListener {
       final RecordDefinition resultRecordDefinition = businessApplication
         .getResultRecordDefinition();
 
-      final String fileExtension = IoFactoryRegistry.getFileExtension(resultFormat);
+      final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
       final File structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
 
       boolean hasResults = false;
@@ -1321,7 +1320,7 @@ public class BatchJobService implements ModuleEventListener {
     final Number requestSequenceNumber = (Number)resultMap.get("i");
     final String errorMessage = (String)resultMap.get("errorMessage");
     final Map<String, String> errorMap = new LinkedHashMap<String, String>();
-    errorMap.put("sequenceNumber", StringConverterRegistry.toString(requestSequenceNumber));
+    errorMap.put("sequenceNumber", StringConverter.toString(requestSequenceNumber));
     errorMap.put("errorCode", errorCode);
     errorMap.put("errorMessage", errorMessage);
     errorMapWriter.write(errorMap);
@@ -1413,8 +1412,8 @@ public class BatchJobService implements ModuleEventListener {
                 final RecordDefinition requestRecordDefinition = businessApplication
                   .getInternalRequestRecordDefinition();
                 try {
-                  final MapReaderFactory factory = IoFactoryRegistry.getInstance()
-                    .getFactoryByMediaType(MapReaderFactory.class, inputContentType);
+                  final MapReaderFactory factory = IoFactory
+                    .factoryByMediaType(MapReaderFactory.class, inputContentType);
                   if (factory == null) {
                     valid = addJobValidationError(batchJobId, ErrorCode.INPUT_DATA_UNREADABLE,
                       inputContentType, "Media type not supported");
@@ -1970,9 +1969,8 @@ public class BatchJobService implements ModuleEventListener {
             notificationUri = new URI(notificationUrl);
             final StringWriter bodyOut = new StringWriter();
             final String contentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-            final IoFactoryRegistry ioFactory = IoFactoryRegistry.getInstance();
-            final MapWriterFactory writerFactory = ioFactory
-              .getFactoryByMediaType(MapWriterFactory.class, contentType);
+            final MapWriterFactory writerFactory = IoFactory
+              .factoryByMediaType(MapWriterFactory.class, contentType);
             if (writerFactory == null) {
               LoggerFactory.getLogger(BatchJobService.class)
                 .error("Media type not supported for Record #" + batchJobId + " to " + contentType);

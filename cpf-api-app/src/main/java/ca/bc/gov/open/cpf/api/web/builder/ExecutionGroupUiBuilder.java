@@ -42,7 +42,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.IoFactory;
 import com.revolsys.io.PathName;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.ui.html.serializer.key.KeySerializer;
@@ -141,7 +141,8 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
       // }
       // }
     } else {
-      getJobController().writeGroupResult(response, Identifier.newIdentifier(batchJobId), sequenceNumber);
+      getJobController().writeGroupResult(response, Identifier.newIdentifier(batchJobId),
+        sequenceNumber);
     }
   }
 
@@ -238,8 +239,8 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
       try {
         final long size = data.length();
 
-        final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-          .getFactoryByMediaType(RecordWriterFactory.class, contentType);
+        final RecordWriterFactory writerFactory = IoFactory
+          .factoryByMediaType(RecordWriterFactory.class, contentType);
         if (writerFactory != null) {
           final String fileExtension = writerFactory.getFileExtension(contentType);
           final String fileName = baseName + "." + fileExtension;

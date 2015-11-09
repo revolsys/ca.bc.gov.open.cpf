@@ -38,7 +38,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.IoFactoryRegistry;
+import com.revolsys.io.IoFactory;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.io.format.xml.XmlWriter;
@@ -111,8 +111,8 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
       response.setContentType(resultDataContentType);
       final long size = batchJobService.getBatchJobResultSize(batchJobId, sequenceNumber);
 
-      final RecordWriterFactory writerFactory = IoFactoryRegistry.getInstance()
-        .getFactoryByMediaType(RecordWriterFactory.class, resultDataContentType);
+      final RecordWriterFactory writerFactory = IoFactory
+        .factoryByMediaType(RecordWriterFactory.class, resultDataContentType);
       if (writerFactory != null) {
         final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
         final String fileName = "job-" + batchJobId + "-result-" + sequenceNumber + "."
@@ -145,8 +145,8 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     filter.put("BATCH_JOB_ID", batchJobId);
     parameters.put("filter", filter);
 
-    return newDataTableHandlerOrRedirect(request, response, "moduleAppJobList",
-      BatchJob.BATCH_JOB, "moduleAppView", parameters);
+    return newDataTableHandlerOrRedirect(request, response, "moduleAppJobList", BatchJob.BATCH_JOB,
+      "moduleAppView", parameters);
   }
 
 }

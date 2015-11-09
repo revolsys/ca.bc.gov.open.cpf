@@ -87,7 +87,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
                     final StringConverter<?> converter = StringConverterRegistry.getInstance()
                       .getConverter(dataTypeClass);
                     if (converter != null) {
-                      value = converter.toObject(stringValue);
+                      value = converter.stringToObject(stringValue);
                     }
                   }
                   configProperties.put(name, value);
