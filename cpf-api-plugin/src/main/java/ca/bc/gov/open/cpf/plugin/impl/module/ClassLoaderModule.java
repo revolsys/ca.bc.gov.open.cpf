@@ -388,7 +388,7 @@ public class ClassLoaderModule implements Module {
       this.enabled = true;
     }
     if (!isInitialized()) {
-      setStatus("Enabled");
+      setStatus("BooleanValueCloseable");
       this.initialized = true;
       start();
     }

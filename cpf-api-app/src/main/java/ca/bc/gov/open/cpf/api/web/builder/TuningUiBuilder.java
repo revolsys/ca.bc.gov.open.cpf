@@ -140,11 +140,11 @@ public class TuningUiBuilder extends CpfUiBuilder {
             final Object value = field.getValue();
             Property.set(this.cpfConfig, fieldName, value);
             final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
-            final And condition = new And();
-            condition.add(Q.equal(ConfigProperty.ENVIRONMENT_NAME, ConfigProperty.DEFAULT));
-            condition.add(Q.equal(ConfigProperty.MODULE_NAME, ConfigProperty.CPF_TUNING));
-            condition.add(Q.equal(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL));
-            condition.add(Q.equal(ConfigProperty.PROPERTY_NAME, fieldName));
+            final And condition = new And(
+              Q.equal(ConfigProperty.ENVIRONMENT_NAME, ConfigProperty.DEFAULT),
+              Q.equal(ConfigProperty.MODULE_NAME, ConfigProperty.CPF_TUNING),
+              Q.equal(ConfigProperty.COMPONENT_NAME, ConfigProperty.GLOBAL),
+              Q.equal(ConfigProperty.PROPERTY_NAME, fieldName));
             query.setWhereCondition(condition);
             Record configProperty = recordStore.getRecords(query).getFirst();
             final boolean exists = configProperty != null;

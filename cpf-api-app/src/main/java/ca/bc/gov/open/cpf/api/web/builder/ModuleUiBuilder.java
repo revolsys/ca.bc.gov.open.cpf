@@ -104,7 +104,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
     final CheckBoxField enabledField = new CheckBoxField("enabled");
     enabledField.setInitialValue(true);
-    FormHorizontalDecorator.add(form, enabledField, "Enabled", null);
+    FormHorizontalDecorator.add(form, enabledField, "BooleanValueCloseable", null);
 
     form.initialize(request);
 
@@ -191,7 +191,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
       final CheckBoxField enabledField = new CheckBoxField("enabled");
       enabledField.setInitialValue(module.isEnabled());
-      TableHeadingDecorator.addRow(fields, enabledField, "Enabled", null);
+      TableHeadingDecorator.addRow(fields, enabledField, "BooleanValueCloseable", null);
 
       form.add(fields);
       form.initialize(request);
