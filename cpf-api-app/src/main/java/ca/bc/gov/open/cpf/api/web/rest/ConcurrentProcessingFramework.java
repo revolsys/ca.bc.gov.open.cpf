@@ -15,7 +15,6 @@
  */
 package ca.bc.gov.open.cpf.api.web.rest;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -65,6 +64,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobResultUiBuilder;
@@ -77,10 +77,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
-import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
-import com.revolsys.datatype.SimpleDataType;
 import com.revolsys.equals.EqualsInstance;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.identifier.Identifier;
@@ -148,8 +146,9 @@ import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.rest.interceptor.MediaTypeUtil;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.ui.web.utils.MultipartFileResource;
+import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
-import com.revolsys.util.DateUtil;
+import com.revolsys.util.Dates;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.HtmlUtil;
 import com.revolsys.util.Property;
@@ -239,14 +238,14 @@ public class ConcurrentProcessingFramework {
   private void addBatchJobStatusLink(final PageInfo page, final Record job) {
     final Identifier batchJobId = job.getIdentifier();
     final String batchJobUrl = HttpServletUtils.getFullUrl("/ws/jobs/" + batchJobId + "/");
-    final Timestamp timestamp = job.getValue(BatchJob.WHEN_CREATED);
+    final Timestamp timestamp = job.getValue(Common.WHEN_CREATED);
     final PageInfo childPage = addPage(page, batchJobUrl, "Batch Job " + batchJobId + " Status");
 
     childPage.setAttribute("batchJobId", batchJobId);
     childPage.setAttribute("batchJobUrl", batchJobUrl);
     childPage.setAttribute("jobStatus", job.getValue(BatchJob.JOB_STATUS));
     childPage.setAttribute("creationTimestamp",
-      DateUtil.format(DateFormat.DEFAULT, DateFormat.SHORT, timestamp));
+      Dates.format(DateFormat.DEFAULT, DateFormat.SHORT, timestamp));
   }
 
   private void addField(final Map<String, String> fieldSectionMap, final PanelGroup panelGroup,
@@ -357,9 +356,9 @@ public class ConcurrentProcessingFramework {
     final String name = attribute.getName();
     final String typeDescription = attribute.getTypeDescription();
     final String description = attribute.getDescription();
-    final boolean jobParameter = BooleanStringConverter
+    final boolean jobParameter = Booleans
       .getBoolean(attribute.getProperty(BusinessApplication.JOB_PARAMETER));
-    final boolean requestParameter = BooleanStringConverter
+    final boolean requestParameter = Booleans
       .getBoolean(attribute.getProperty(BusinessApplication.REQUEST_PARAMETER));
     if (jobParameter || requestParameter) {
       final Collection<Object> allowedValues = attribute.getAllowedValues().keySet();
@@ -1144,7 +1143,7 @@ public class ConcurrentProcessingFramework {
     if (batchJob == null) {
       return null;
     } else {
-      final String userId = batchJob.getValue(BatchJob.WHO_CREATED);
+      final String userId = batchJob.getValue(Common.WHO_CREATED);
       if (consumerKey.equals(userId)) {
         return batchJob;
       } else {
@@ -1527,7 +1526,7 @@ public class ConcurrentProcessingFramework {
               final Map<String, Object> defaultProperties = new HashMap<>(writer.getProperties());
 
               for (final Map<String, Object> structuredResultMap : list) {
-                final Record structuredResult = Records.getObject(resultRecordDefinition,
+                final Record structuredResult = Records.newRecord(resultRecordDefinition,
                   structuredResultMap);
 
                 @SuppressWarnings("unchecked")
@@ -2099,8 +2098,7 @@ public class ConcurrentProcessingFramework {
       inputDataContentType.setDefaultValue(businessApplication.getDefaultInputDataContentType());
       requestAttributes.add(0, inputDataContentType);
 
-      final FieldDefinition inputData = new FieldDefinition("inputData",
-        new SimpleDataType("File", File.class), false,
+      final FieldDefinition inputData = new FieldDefinition("inputData", DataTypes.FILE, false,
         "The multi-part file containing the input data.");
       inputData.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(1, inputData);
@@ -2798,7 +2796,7 @@ public class ConcurrentProcessingFramework {
             resultPage.setAttribute("batchJobResultContentType",
               batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
             resultPage.setAttribute("expiryDate", this.batchJobService
-              .getExpiryDate((java.util.Date)batchJobResult.getValue(BatchJobResult.WHEN_CREATED)));
+              .getExpiryDate((java.util.Date)batchJobResult.getValue(Common.WHEN_CREATED)));
             if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
               resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
                 batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));

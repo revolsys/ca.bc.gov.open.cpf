@@ -34,6 +34,7 @@ import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMeth
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.identifier.Identifier;
@@ -45,7 +46,7 @@ import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.record.query.And;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
-import com.revolsys.util.DateUtil;
+import com.revolsys.util.Dates;
 
 @Controller
 public class BatchJobResultUiBuilder extends CpfUiBuilder {
@@ -58,12 +59,12 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
 
   public void expiryDate(final XmlWriter out, final Object object) throws IOException {
     final Record batchJobResult = (Record)object;
-    final Date completionTimestamp = batchJobResult.getValue(BatchJob.WHEN_CREATED);
+    final Date completionTimestamp = batchJobResult.getValue(Common.WHEN_CREATED);
     if (completionTimestamp == null) {
       out.append('-');
     } else {
       final java.sql.Date expiryDate = getBatchJobService().getExpiryDate(completionTimestamp);
-      out.append(DateUtil.format("yyyy-MM-dd", expiryDate));
+      out.append(Dates.format("yyyy-MM-dd", expiryDate));
     }
   }
 

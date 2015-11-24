@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 /**
  * Properties of one User of an OAuthConsumer. Properties may be added freely,
  * e.g. to support extensions.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
@@ -62,14 +62,12 @@ public class OAuthAccessor implements Cloneable, Serializable {
   }
 
   public Object getProperty(final String name) {
-    return properties.get(name);
+    return this.properties.get(name);
   }
 
-  public OAuthMessage newRequestMessage(
-    final String method,
-    final String url,
-    final Collection<? extends Entry<String,String>> parameters) throws OAuthException,
-    IOException, URISyntaxException {
+  public OAuthMessage newRequestMessage(final String method, final String url,
+    final Collection<? extends Entry<String, String>> parameters)
+      throws OAuthException, IOException, URISyntaxException {
     return newRequestMessage(method, url, parameters, null);
   }
 
@@ -77,18 +75,15 @@ public class OAuthAccessor implements Cloneable, Serializable {
    * Construct a request message containing the given parameters but no body.
    * Don't send the message, merely construct it. The caller will ordinarily
    * send it, for example by calling OAuthClient.invoke or access.
-   * 
+   *
    * @param method the HTTP request method. If this is null, use the default
    *          method; that is getProperty("httpMethod") or (if that's null)
    *          consumer.getProperty("httpMethod") or (if that's null)
    *          OAuthMessage.GET.
    */
-  public OAuthMessage newRequestMessage(
-    String method,
-    final String url,
-    final Collection<? extends Entry<String,String>> parameters,
-    final InputStream body) throws OAuthException, IOException,
-    URISyntaxException {
+  public OAuthMessage newRequestMessage(String method, final String url,
+    final Collection<? extends Entry<String, String>> parameters, final InputStream body)
+      throws OAuthException, IOException, URISyntaxException {
     if (method == null) {
       method = (String)this.getProperty("httpMethod");
       if (method == null) {
@@ -104,7 +99,7 @@ public class OAuthAccessor implements Cloneable, Serializable {
   }
 
   public void setProperty(final String name, final Object value) {
-    properties.put(name, value);
+    this.properties.put(name, value);
   }
 
 }

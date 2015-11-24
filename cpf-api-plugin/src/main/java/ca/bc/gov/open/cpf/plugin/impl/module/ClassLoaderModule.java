@@ -72,7 +72,6 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.converter.string.StringConverter;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.cs.CoordinateSystem;
@@ -1329,10 +1328,12 @@ public class ClassLoaderModule implements Module {
               scale, required, description);
             field.setProperty("units", units);
             if (Property.hasValue(minValue)) {
-              field.setMinValue(StringConverter.toObject(dataType, minValue));
+              final Object value = minValue;
+              field.setMinValue(dataType.toObject(value));
             }
             if (Property.hasValue(maxValue)) {
-              field.setMaxValue(StringConverter.toObject(dataType, maxValue));
+              final Object value = maxValue;
+              field.setMaxValue(dataType.toObject(value));
             }
             field.setAllowedValues(Arrays.asList(allowedValues));
             field.setProperty("units", units);
@@ -1340,9 +1341,7 @@ public class ClassLoaderModule implements Module {
             final DefaultValue defaultValueMetadata = method.getAnnotation(DefaultValue.class);
             if (defaultValueMetadata != null) {
               final String defaultValueString = defaultValueMetadata.value();
-              final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
-              final Object defaultValue = StringConverter.toObject(dataTypeClass,
-                defaultValueString);
+              final Object defaultValue = dataType.toObject(defaultValueString);
               field.setDefaultValue(defaultValue);
             }
 

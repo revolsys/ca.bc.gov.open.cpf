@@ -15,11 +15,6 @@
  */
 package net.oauth.client.httpclient4;
 
-import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthCredentials;
-import net.oauth.OAuthMessage;
-
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.RequestLine;
@@ -31,11 +26,21 @@ import org.apache.http.impl.auth.RFC2617Scheme;
 import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.message.BasicHeader;
 
+import net.oauth.OAuthAccessor;
+import net.oauth.OAuthConsumer;
+import net.oauth.OAuthCredentials;
+import net.oauth.OAuthMessage;
+
 /**
  * @author Paul Austin
  * @author John Kristian
  */
 class OAuthScheme extends RFC2617Scheme {
+
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
 
   private final String defaultRealm;
 
@@ -47,9 +52,8 @@ class OAuthScheme extends RFC2617Scheme {
   }
 
   @Override
-  public Header authenticate(
-    final Credentials credentials,
-    final HttpRequest request) throws AuthenticationException {
+  public Header authenticate(final Credentials credentials, final HttpRequest request)
+    throws AuthenticationException {
     String uri;
     String method;
     final HttpUriRequest uriRequest = getHttpUriRequest(request);
@@ -101,7 +105,7 @@ class OAuthScheme extends RFC2617Scheme {
   public String getRealm() {
     String realm = super.getRealm();
     if (realm == null) {
-      realm = defaultRealm;
+      realm = this.defaultRealm;
     }
     return realm;
   }
@@ -113,7 +117,7 @@ class OAuthScheme extends RFC2617Scheme {
 
   @Override
   public boolean isComplete() {
-    return complete;
+    return this.complete;
   }
 
   @Override
@@ -125,10 +129,9 @@ class OAuthScheme extends RFC2617Scheme {
    * Handle a challenge from an OAuth server.
    */
   @Override
-  public void processChallenge(final Header challenge)
-    throws MalformedChallengeException {
+  public void processChallenge(final Header challenge) throws MalformedChallengeException {
     super.processChallenge(challenge);
-    complete = true;
+    this.complete = true;
   }
 
 }

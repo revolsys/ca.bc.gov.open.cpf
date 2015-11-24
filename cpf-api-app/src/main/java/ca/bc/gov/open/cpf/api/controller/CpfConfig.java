@@ -114,8 +114,8 @@ public class CpfConfig implements PropertyChangeSupportProxy {
 
   public void setGroupResultPoolSize(final int groupResultPoolSize) {
     if (groupResultPoolSize < 1) {
-      throw new IllegalArgumentException("groupResultPoolSize must be > 1 not "
-        + groupResultPoolSize);
+      throw new IllegalArgumentException(
+        "groupResultPoolSize must be > 1 not " + groupResultPoolSize);
     }
     final int oldValue = this.groupResultPoolSize;
     this.groupResultPoolSize = groupResultPoolSize;
@@ -129,8 +129,8 @@ public class CpfConfig implements PropertyChangeSupportProxy {
 
   public void setPostProcessPoolSize(final int postProcessPoolSize) {
     if (postProcessPoolSize < 1) {
-      throw new IllegalArgumentException("postProcessPoolSize must be > 1 not "
-        + postProcessPoolSize);
+      throw new IllegalArgumentException(
+        "postProcessPoolSize must be > 1 not " + postProcessPoolSize);
     }
     final int oldValue = this.postProcessPoolSize;
     this.postProcessPoolSize = postProcessPoolSize;
@@ -140,7 +140,8 @@ public class CpfConfig implements PropertyChangeSupportProxy {
 
   public void setPreProcessPoolSize(final int preProcessPoolSize) {
     if (preProcessPoolSize < 1) {
-      throw new IllegalArgumentException("preProcessPoolSize must be > 1 not " + preProcessPoolSize);
+      throw new IllegalArgumentException(
+        "preProcessPoolSize must be > 1 not " + preProcessPoolSize);
     }
     final int oldValue = this.preProcessPoolSize;
     this.preProcessPoolSize = preProcessPoolSize;

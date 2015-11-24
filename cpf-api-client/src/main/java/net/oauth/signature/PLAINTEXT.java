@@ -20,7 +20,7 @@ import net.oauth.OAuthException;
 
 /**
  * The PLAINTEXT signature method.
- * 
+ *
  * @author John Kristian
  */
 class PLAINTEXT extends OAuthSignatureMethod {
@@ -28,11 +28,11 @@ class PLAINTEXT extends OAuthSignatureMethod {
   private String signature = null;
 
   private synchronized String getSignature() {
-    if (signature == null) {
-      signature = OAuth.percentEncode(getConsumerSecret()) + '&'
+    if (this.signature == null) {
+      this.signature = OAuth.percentEncode(getConsumerSecret()) + '&'
         + OAuth.percentEncode(getTokenSecret());
     }
-    return signature;
+    return this.signature;
   }
 
   @Override
@@ -41,15 +41,14 @@ class PLAINTEXT extends OAuthSignatureMethod {
   }
 
   @Override
-  protected boolean isValid(final String signature, final String baseString)
-    throws OAuthException {
+  protected boolean isValid(final String signature, final String baseString) throws OAuthException {
     return equals(getSignature(), signature);
   }
 
   @Override
   public void setConsumerSecret(final String consumerSecret) {
     synchronized (this) {
-      signature = null;
+      this.signature = null;
     }
     super.setConsumerSecret(consumerSecret);
   }
@@ -57,7 +56,7 @@ class PLAINTEXT extends OAuthSignatureMethod {
   @Override
   public void setTokenSecret(final String tokenSecret) {
     synchronized (this) {
-      signature = null;
+      this.signature = null;
     }
     super.setTokenSecret(tokenSecret);
   }

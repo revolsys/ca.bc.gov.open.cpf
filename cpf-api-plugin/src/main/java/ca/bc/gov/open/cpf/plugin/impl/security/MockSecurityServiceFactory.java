@@ -24,8 +24,7 @@ public class MockSecurityServiceFactory extends AbstractSecurityServiceFactory {
   }
 
   @Override
-  protected AbstractCachingSecurityService newSecurityService(
-    final Module module,
+  protected AbstractCachingSecurityService newSecurityService(final Module module,
     final String consumerKey) {
     return new MockSecurityService(module, consumerKey);
   }

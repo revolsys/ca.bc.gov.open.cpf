@@ -29,12 +29,6 @@ import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.util.Exceptions;
 
 public abstract class AbstractJobController implements JobController {
-  @Override
-  public void newJobInputFile(final Identifier jobId, final String contentType,
-    final Object data) {
-    newJobFile(jobId, JOB_INPUTS, 1, contentType, data);
-  }
-
   protected abstract long getFileSize(Identifier jobId, String path, int sequenceNumber);
 
   protected abstract InputStream getFileStream(final Identifier jobId, String path,
@@ -80,6 +74,11 @@ public abstract class AbstractJobController implements JobController {
   @Override
   public InputStream getJobResultStream(final Identifier jobId, final int sequenceNumber) {
     return getFileStream(jobId, JOB_RESULTS, sequenceNumber);
+  }
+
+  @Override
+  public void newJobInputFile(final Identifier jobId, final String contentType, final Object data) {
+    newJobFile(jobId, JOB_INPUTS, 1, contentType, data);
   }
 
   @Override

@@ -28,9 +28,7 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 
 import com.revolsys.geometry.model.Geometry;
 
-@BusinessApplicationPlugin(
-    numRequestsPerWorker = 100,
-    instantModePermission = "permitAll",
+@BusinessApplicationPlugin(numRequestsPerWorker = 100, instantModePermission = "permitAll",
     description = "Converts any multi-part geometries into multiple records each with a single-part geometry. Also returns the length and area of the geometry.")
 public class MultipartToSimpleGeometry {
 
@@ -42,10 +40,10 @@ public class MultipartToSimpleGeometry {
 
   public void execute() {
     this.appLog.debug("Start");
-    for (int i = 0; i < geometry.getGeometryCount(); i++) {
-      final Geometry part = geometry.getGeometry(i);
+    for (int i = 0; i < this.geometry.getGeometryCount(); i++) {
+      final Geometry part = this.geometry.getGeometry(i);
       final GeometryResult result = new GeometryResult(part);
-      results.add(result);
+      this.results.add(result);
     }
     this.appLog.debug("End");
   }
@@ -58,7 +56,7 @@ public class MultipartToSimpleGeometry {
 
   @ResultList
   public List<GeometryResult> getResults() {
-    return results;
+    return this.results;
   }
 
   public void setAppLog(final AppLog appLog) {
@@ -66,8 +64,7 @@ public class MultipartToSimpleGeometry {
   }
 
   @Required
-  @RequestParameter(
-      description = "The multi-part geometry to split into it's component parts.")
+  @RequestParameter(description = "The multi-part geometry to split into it's component parts.")
   public void setGeometry(final Geometry geometry) {
     this.geometry = geometry;
   }

@@ -59,8 +59,8 @@ import net.oauth.OAuthMessage;
 import net.oauth.OAuthServiceProvider;
 import net.oauth.SimpleOAuthValidator;
 
-public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilter implements
-  InitializingBean {
+public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilter
+  implements InitializingBean {
   /**
    * Extract the parts of the given request that are relevant to OAuth.
    * Parameters include OAuth Authorization headers and the usual request
@@ -117,8 +117,8 @@ public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilte
 
   @Override
   public Authentication attemptAuthentication(final HttpServletRequest request,
-    final HttpServletResponse response) throws AuthenticationException, IOException,
-    ServletException {
+    final HttpServletResponse response)
+      throws AuthenticationException, IOException, ServletException {
     final String requestUrl = getRequestURL(request);
     final OAuthMessage message = getMessage(request, requestUrl);
     final String consumerKey = message.getConsumerKey();
@@ -129,8 +129,10 @@ public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilte
 
         this.oauthMessageValidator.validateMessage(message, accessor);
         @SuppressWarnings("unchecked")
-        final Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>)consumerDetails.getAuthorities();
-        final Authentication authentication = new OAuthAuthenticationToken(consumerKey, authorities);
+        final Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>)consumerDetails
+          .getAuthorities();
+        final Authentication authentication = new OAuthAuthenticationToken(consumerKey,
+          authorities);
         authentication.setAuthenticated(true);
         return authentication;
       }
@@ -154,7 +156,8 @@ public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilte
     if (consumerKey == null) {
       return null;
     } else {
-      final UserDetails consumerDetails = this.consumerDetailsService.loadUserByUsername(consumerKey);
+      final UserDetails consumerDetails = this.consumerDetailsService
+        .loadUserByUsername(consumerKey);
       return consumerDetails;
     }
   }

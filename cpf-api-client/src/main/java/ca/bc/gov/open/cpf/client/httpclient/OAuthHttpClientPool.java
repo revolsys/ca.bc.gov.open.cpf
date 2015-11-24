@@ -34,55 +34,66 @@ public class OAuthHttpClientPool {
   public OAuthHttpClientPool() {
   }
 
-  public OAuthHttpClientPool(final String webServiceUrl,
-    final String consumerKey, final String consumerSecret, int maxConnections) {
+  public OAuthHttpClientPool(final String webServiceUrl, final String consumerKey,
+    final String consumerSecret, final int maxConnections) {
     this.webServiceUrl = webServiceUrl;
     this.consumerKey = consumerKey;
     this.consumerSecret = consumerSecret;
     this.maxConnections = maxConnections;
   }
 
+  public void close() {
+    synchronized (this.clients) {
+      for (final OAuthHttpClient client : this.clients) {
+        client.close();
+      }
+      final Set<OAuthHttpClient> oldClients = this.clients;
+      this.clients = null;
+      oldClients.notifyAll();
+    }
+  }
+
   public OAuthHttpClient getClient() {
-    synchronized (clients) {
-      while (clients != null && clients.size() >= maxConnections) {
+    synchronized (this.clients) {
+      while (this.clients != null && this.clients.size() >= this.maxConnections) {
         try {
-          clients.wait();
+          this.clients.wait();
         } catch (final InterruptedException e) {
         }
       }
-      if (clients == null) {
+      if (this.clients == null) {
         throw new IllegalStateException("Connection pool closed");
       } else {
-        OAuthHttpClient client = new OAuthHttpClient(this, webServiceUrl,
-          consumerKey, consumerSecret);
+        final OAuthHttpClient client = new OAuthHttpClient(this, this.webServiceUrl,
+          this.consumerKey, this.consumerSecret);
         return client;
       }
     }
   }
 
   public String getConsumerKey() {
-    return consumerKey;
+    return this.consumerKey;
   }
 
   public String getConsumerSecret() {
-    return consumerSecret;
+    return this.consumerSecret;
   }
 
   public int getMaxConnections() {
-    return maxConnections;
+    return this.maxConnections;
   }
 
   public String getWebServiceUrl() {
-    return webServiceUrl;
+    return this.webServiceUrl;
   }
 
   public void releaseClient(final OAuthHttpClient client) {
-    synchronized (clients) {
+    synchronized (this.clients) {
       if (client != null) {
         client.getConnectionManager().shutdown();
-        if (clients != null) {
-          clients.remove(client);
-          clients.notifyAll();
+        if (this.clients != null) {
+          this.clients.remove(client);
+          this.clients.notifyAll();
         }
       }
     }
@@ -97,24 +108,13 @@ public class OAuthHttpClientPool {
   }
 
   public void setMaxConnections(final int maxConnections) {
-    synchronized (clients) {
+    synchronized (this.clients) {
       this.maxConnections = maxConnections;
-      clients.notifyAll();
+      this.clients.notifyAll();
     }
   }
 
   public void setWebServiceUrl(final String webServiceUrl) {
     this.webServiceUrl = webServiceUrl;
-  }
-
-  public void close() {
-    synchronized (clients) {
-      for (OAuthHttpClient client : clients) {
-        client.close();
-      }
-      Set<OAuthHttpClient> oldClients = clients;
-      clients = null;
-      oldClients.notifyAll();
-    }
   }
 }

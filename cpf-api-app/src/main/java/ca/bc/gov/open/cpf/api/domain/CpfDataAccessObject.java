@@ -42,8 +42,6 @@ import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.list.Lists;
-import com.revolsys.converter.string.StringConverter;
-import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.identifier.Identifier;
@@ -903,15 +901,7 @@ public class CpfDataAccessObject implements Transactionable {
       if (dataType == null) {
         stringValue = value.toString();
       } else {
-        @SuppressWarnings("unchecked")
-        final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
-        final StringConverter<Object> converter = StringConverterRegistry.getInstance()
-          .getConverter(dataTypeClass);
-        if (converter == null) {
-          stringValue = value.toString();
-        } else {
-          stringValue = converter.objectToString(value);
-        }
+        stringValue = dataType.toString(value);
       }
       if (Property.hasValue(stringValue)) {
         object.setValue(ConfigProperty.PROPERTY_VALUE, stringValue);

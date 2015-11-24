@@ -51,14 +51,12 @@ import org.springframework.security.web.authentication.www.NonceExpiredException
 
 import com.revolsys.util.Md5;
 
-public class OAuthOrDigestProcessingFilterEntryPoint extends
-DigestAuthenticationEntryPoint {
+public class OAuthOrDigestProcessingFilterEntryPoint extends DigestAuthenticationEntryPoint {
 
   private static final Log logger = LogFactory.getLog(DigestAuthenticationEntryPoint.class);
 
-  public void commence(final ServletRequest request,
-    final ServletResponse response, final AuthenticationException authException)
-        throws IOException, ServletException {
+  public void commence(final ServletRequest request, final ServletResponse response,
+    final AuthenticationException authException) throws IOException, ServletException {
     final HttpServletResponse httpResponse = (HttpServletResponse)response;
     final String key = getKey();
     final String realmName = getRealmName();
@@ -66,29 +64,24 @@ DigestAuthenticationEntryPoint {
     // compute a nonce (do not use remote IP address due to proxy farms)
     // format of nonce is:
     // base64(expirationTime + ":" + md5Hex(expirationTime + ":" + key))
-    final long expiryTime = System.currentTimeMillis()
-        + getNonceValiditySeconds() * 1000;
+    final long expiryTime = System.currentTimeMillis() + getNonceValiditySeconds() * 1000;
     final String signatureValue = new String(Md5.md5Hex(expiryTime + ":" + key));
     final String nonceValue = expiryTime + ":" + signatureValue;
-    final String nonceValueBase64 = new String(
-      Base64.encodeBase64(nonceValue.getBytes()));
+    final String nonceValueBase64 = new String(Base64.encodeBase64(nonceValue.getBytes()));
 
-    String authenticateHeader = "Digest realm=\"" + realmName + "\", "
-        + "qop=\"auth\", nonce=\"" + nonceValueBase64 + "\"";
+    String authenticateHeader = "Digest realm=\"" + realmName + "\", " + "qop=\"auth\", nonce=\""
+      + nonceValueBase64 + "\"";
 
     if (authException instanceof NonceExpiredException) {
       authenticateHeader = authenticateHeader + ", stale=\"true\"";
     }
 
     if (logger.isDebugEnabled()) {
-      logger.debug("WWW-Authenticate header sent to user agent: "
-          + authenticateHeader);
+      logger.debug("WWW-Authenticate header sent to user agent: " + authenticateHeader);
     }
 
-    httpResponse.addHeader("WWW-Authenticate", "OAuth realm=\"" + realmName
-      + "\"");
+    httpResponse.addHeader("WWW-Authenticate", "OAuth realm=\"" + realmName + "\"");
     httpResponse.addHeader("WWW-Authenticate", authenticateHeader);
-    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED,
-      authException.getMessage());
+    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
   }
 }

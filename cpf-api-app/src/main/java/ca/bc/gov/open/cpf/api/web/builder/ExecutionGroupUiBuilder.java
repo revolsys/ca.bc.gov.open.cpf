@@ -16,16 +16,12 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -41,10 +37,7 @@ import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.identifier.Identifier;
-import com.revolsys.io.FileUtil;
-import com.revolsys.io.IoFactory;
 import com.revolsys.io.PathName;
-import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
@@ -228,34 +221,6 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
 
     } else {
       return redirectToTab(BatchJob.BATCH_JOB, "moduleAppView", "moduleAppJobList");
-    }
-  }
-
-  private void writeOpaqueData(final HttpServletResponse response, final String contentType,
-    final String baseName, final Blob data) throws SQLException, IOException {
-    response.setContentType(contentType);
-    if (data != null) {
-      final InputStream in = data.getBinaryStream();
-      try {
-        final long size = data.length();
-
-        final RecordWriterFactory writerFactory = IoFactory
-          .factoryByMediaType(RecordWriterFactory.class, contentType);
-        if (writerFactory != null) {
-          final String fileExtension = writerFactory.getFileExtension(contentType);
-          final String fileName = baseName + "." + fileExtension;
-          response.setHeader("Content-Disposition",
-            "attachment; filename=" + fileName + ";size=" + size);
-        }
-        final ServletOutputStream out = response.getOutputStream();
-        try {
-          FileUtil.copy(in, out);
-        } finally {
-          FileUtil.closeSilent(out);
-        }
-      } finally {
-        FileUtil.closeSilent(in);
-      }
     }
   }
 }

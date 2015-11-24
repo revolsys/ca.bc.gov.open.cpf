@@ -24,22 +24,22 @@ import java.lang.annotation.Target;
  * <p>The <code>JobParameter</code> method annotation indicates that a <code>setXXX</code> method is
  * a parameter that will be applied to all requests in a job on a {@link BusinessApplicationPlugin}
  * class.</p>
- * 
+ *
  * <p>Job parameters are implemented as Java bean properties on the plug-in class.
  * The plug-in must implement a <code>setXXX</code> property method for each job parameter. The
  * job parameter name is the name of the Java bean property. The parameter type can
  * only use the supported <a href="../../dataTypes.html">data types</a>. The job parameters will be converted by
  * the CPF from the input data to the correct Java type.</p>
- * 
+ *
  * <p>Before execution of the plug-in the job methods will be invoked to set the job parameter values.</p>
- * 
+ *
  * <p>A <code>JobParameter</code> method can also be marked as a {@link RequestParameter} if the
  * parameter can be specified either at the job or request level.</p>
- * 
+ *
  * <p>The following example shows the use of the annotation.</p>
- * 
+ *
  * <figure><pre class="prettyprint language-java">private String algorithmName;
- 
+
 &#064;JobParameter
 public void setAlgorithmName(final String algorithmName) {
   this.algorithmName = algorithmName;
@@ -56,7 +56,7 @@ public @interface JobParameter {
 
   /**
    * The url to a page that describes the parameter in greater detail than is possible on the
-   * form. If specified the name of the parameter will be a hyper-link to this URL. 
+   * form. If specified the name of the parameter will be a hyper-link to this URL.
    */
   String descriptionUrl() default "";
 
@@ -70,7 +70,7 @@ public @interface JobParameter {
    */
   int length() default -1;
 
-  /** 
+  /**
    * The maximum allowed value for numeric parameters. The string value will be converted to the
    * correct data type.
    */
@@ -78,7 +78,7 @@ public @interface JobParameter {
 
   /**
    * The minimum allowed value for numeric parameters. The string value will be converted to the
-   * correct data type. 
+   * correct data type.
    */
   String minValue() default "";
 

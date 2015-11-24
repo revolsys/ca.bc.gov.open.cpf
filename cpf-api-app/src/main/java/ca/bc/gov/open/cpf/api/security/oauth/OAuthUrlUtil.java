@@ -21,13 +21,13 @@
  You may obtain a copy of the License at
 
      http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- 
+
  $URL: https://secure.revolsys.com/svn/open.revolsys.com/ca.bc.gov.open.cpf/trunk/ca.bc.gov.open.cpf.api/src/main/java/ca/bc/gov/open/cpf/security/oauth/OAuthUrlUtil.java $
  $Author: paul.austin@revolsys.com $
  $Date: 2009-06-08 09:59:13 -0700 (Mon, 08 Jun 2009) $
@@ -55,15 +55,14 @@ import net.oauth.OAuthMessage;
 
 public class OAuthUrlUtil {
 
-  public static String addAuthenticationToUrl(final String method,
-    final String url, final String consumerKey, final String consumerSecret) {
+  public static String addAuthenticationToUrl(final String method, final String url,
+    final String consumerKey, final String consumerSecret) {
     try {
       final String baseUrl = getUriWithoutQuery(url);
       final Collection<Entry<String, String>> parameters = getParameters(url);
 
       final OAuthMessage message = new OAuthMessage(method, url, parameters);
-      final OAuthAccessor accessor = getOAuthAccessor(consumerKey,
-        consumerSecret);
+      final OAuthAccessor accessor = getOAuthAccessor(consumerKey, consumerSecret);
 
       message.addRequiredParameters(accessor);
       final List<Entry<String, String>> authenticatedParameters = message.getParameters();
@@ -73,8 +72,7 @@ public class OAuthUrlUtil {
     }
   }
 
-  private static void addParameter(final StringBuilder url,
-    final Entry<String, String> parameter) {
+  private static void addParameter(final StringBuilder url, final Entry<String, String> parameter) {
     final String key = parameter.getKey();
     final String value = parameter.getValue();
 
@@ -89,15 +87,14 @@ public class OAuthUrlUtil {
 
   private static OAuthAccessor getOAuthAccessor(final String consumerKey,
     final String consumerSecret) {
-    final OAuthAccessor accessor = new OAuthAccessor(new OAuthConsumer("",
-      consumerKey, consumerSecret, null));
+    final OAuthAccessor accessor = new OAuthAccessor(
+      new OAuthConsumer("", consumerKey, consumerSecret, null));
     return accessor;
   }
 
   public static Collection<Entry<String, String>> getParameters(final String uri)
     throws URISyntaxException {
-    final List<NameValuePair> parameters = URLEncodedUtils.parse(new URI(uri),
-      null);
+    final List<NameValuePair> parameters = URLEncodedUtils.parse(new URI(uri), null);
     final List<Entry<String, String>> parameterEntries = new ArrayList<Entry<String, String>>();
     for (final NameValuePair parameter : parameters) {
       final String name = parameter.getName();

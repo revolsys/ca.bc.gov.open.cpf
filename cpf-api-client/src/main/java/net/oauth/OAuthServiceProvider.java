@@ -19,7 +19,7 @@ import java.io.Serializable;
 
 /**
  * Properties of an OAuth Service Provider.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
@@ -33,8 +33,8 @@ public class OAuthServiceProvider implements Serializable {
 
   public final String accessTokenURL;
 
-  public OAuthServiceProvider(final String requestTokenURL,
-    final String userAuthorizationURL, final String accessTokenURL) {
+  public OAuthServiceProvider(final String requestTokenURL, final String userAuthorizationURL,
+    final String accessTokenURL) {
     this.requestTokenURL = requestTokenURL;
     this.userAuthorizationURL = userAuthorizationURL;
     this.accessTokenURL = accessTokenURL;
@@ -52,25 +52,25 @@ public class OAuthServiceProvider implements Serializable {
       return false;
     }
     final OAuthServiceProvider other = (OAuthServiceProvider)obj;
-    if (accessTokenURL == null) {
+    if (this.accessTokenURL == null) {
       if (other.accessTokenURL != null) {
         return false;
       }
-    } else if (!accessTokenURL.equals(other.accessTokenURL)) {
+    } else if (!this.accessTokenURL.equals(other.accessTokenURL)) {
       return false;
     }
-    if (requestTokenURL == null) {
+    if (this.requestTokenURL == null) {
       if (other.requestTokenURL != null) {
         return false;
       }
-    } else if (!requestTokenURL.equals(other.requestTokenURL)) {
+    } else if (!this.requestTokenURL.equals(other.requestTokenURL)) {
       return false;
     }
-    if (userAuthorizationURL == null) {
+    if (this.userAuthorizationURL == null) {
       if (other.userAuthorizationURL != null) {
         return false;
       }
-    } else if (!userAuthorizationURL.equals(other.userAuthorizationURL)) {
+    } else if (!this.userAuthorizationURL.equals(other.userAuthorizationURL)) {
       return false;
     }
     return true;
@@ -80,12 +80,10 @@ public class OAuthServiceProvider implements Serializable {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + (this.accessTokenURL == null ? 0 : this.accessTokenURL.hashCode());
+    result = prime * result + (this.requestTokenURL == null ? 0 : this.requestTokenURL.hashCode());
     result = prime * result
-      + ((accessTokenURL == null) ? 0 : accessTokenURL.hashCode());
-    result = prime * result
-      + ((requestTokenURL == null) ? 0 : requestTokenURL.hashCode());
-    result = prime * result
-      + ((userAuthorizationURL == null) ? 0 : userAuthorizationURL.hashCode());
+      + (this.userAuthorizationURL == null ? 0 : this.userAuthorizationURL.hashCode());
     return result;
   }
 

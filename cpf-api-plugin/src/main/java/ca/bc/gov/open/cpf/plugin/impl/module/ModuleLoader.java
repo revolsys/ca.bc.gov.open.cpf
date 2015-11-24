@@ -22,6 +22,5 @@ public interface ModuleLoader {
 
   public void refreshModules();
 
-  void setBusinessApplicationRegistry(
-    BusinessApplicationRegistry businessApplicationRegistry);
+  void setBusinessApplicationRegistry(BusinessApplicationRegistry businessApplicationRegistry);
 }

@@ -34,8 +34,7 @@ public class ModuleControlProcess extends AbstractProcess {
 
   private boolean running;
 
-  public ModuleControlProcess(
-    final BusinessApplicationRegistry businessApplicationRegistry,
+  public ModuleControlProcess(final BusinessApplicationRegistry businessApplicationRegistry,
     final Channel<Map<String, Object>> in) {
     this.businessApplicationRegistry = businessApplicationRegistry;
     this.in = in;
@@ -46,13 +45,14 @@ public class ModuleControlProcess extends AbstractProcess {
   public void run() {
     this.running = true;
     try {
-      while (running && !ThreadUtil.isInterrupted()) {
-        final Map<String, Object> control = in.read(5000);
+      while (this.running && !ThreadUtil.isInterrupted()) {
+        final Map<String, Object> control = this.in.read(5000);
         if (control != null) {
           try {
             final String moduleName = (String)control.get("moduleName");
             final String action = (String)control.get("action");
-            final ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry.getModule(moduleName);
+            final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
+              .getModule(moduleName);
             if (module != null) {
               if ("start".equals(action)) {
                 module.doStart();
@@ -63,8 +63,8 @@ public class ModuleControlProcess extends AbstractProcess {
               }
             }
           } catch (final Throwable t) {
-            LoggerFactory.getLogger(getClass()).error(
-              "Unable to perform module action: " + control, t);
+            LoggerFactory.getLogger(getClass()).error("Unable to perform module action: " + control,
+              t);
           }
         }
       }
@@ -72,12 +72,12 @@ public class ModuleControlProcess extends AbstractProcess {
     } catch (final ClosedException e) {
       return;
     } finally {
-      running = false;
+      this.running = false;
       try {
-        in.readDisconnect();
+        this.in.readDisconnect();
       } finally {
-        in = null;
-        businessApplicationRegistry = null;
+        this.in = null;
+        this.businessApplicationRegistry = null;
       }
     }
   }

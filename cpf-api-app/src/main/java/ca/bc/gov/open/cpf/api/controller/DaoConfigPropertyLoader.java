@@ -25,8 +25,6 @@ import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
-import com.revolsys.converter.string.StringConverter;
-import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.record.Record;
@@ -36,10 +34,9 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
   private CpfDataAccessObject dataAccessObject;
 
   private void addConfigProperties(final Map<String, Object> configProperties,
-    final String environmentName, final String moduleName,
-    final String componentName) {
-    final List<Record> properties = dataAccessObject.getConfigPropertiesForModule(
-      environmentName, moduleName, componentName);
+    final String environmentName, final String moduleName, final String componentName) {
+    final List<Record> properties = this.dataAccessObject
+      .getConfigPropertiesForModule(environmentName, moduleName, componentName);
     for (final Record configProperty : properties) {
       final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
       final String stringValue = configProperty.getValue(ConfigProperty.PROPERTY_VALUE);
@@ -47,12 +44,7 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
       final DataType dataType = DataTypes.getType(type);
       Object value = stringValue;
       if (dataType != null) {
-        final Class<?> dataTypeClass = dataType.getJavaClass();
-        final StringConverter<?> converter = StringConverterRegistry.getInstance()
-          .getConverter(dataTypeClass);
-        if (converter != null) {
-          value = converter.stringToObject(stringValue);
-        }
+        value = dataType.toObject(stringValue);
       }
       configProperties.put(propertyName, value);
     }
@@ -60,25 +52,22 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
 
   @PreDestroy
   public void close() {
-    dataAccessObject = null;
+    this.dataAccessObject = null;
   }
 
   @Override
   public Map<String, Object> getConfigProperties(final String moduleName,
     final String componentName) {
     final Map<String, Object> configProperties = new HashMap<>();
-    addConfigProperties(configProperties, ConfigProperty.DEFAULT, moduleName,
-      componentName);
+    addConfigProperties(configProperties, ConfigProperty.DEFAULT, moduleName, componentName);
     return configProperties;
   }
 
   @Override
   public Map<String, Object> getConfigProperties(final String environmentName,
     final String moduleName, final String componentName) {
-    final Map<String, Object> configProperties = getConfigProperties(
-      moduleName, componentName);
-    addConfigProperties(configProperties, environmentName, moduleName,
-      componentName);
+    final Map<String, Object> configProperties = getConfigProperties(moduleName, componentName);
+    addConfigProperties(configProperties, environmentName, moduleName, componentName);
     return configProperties;
   }
 

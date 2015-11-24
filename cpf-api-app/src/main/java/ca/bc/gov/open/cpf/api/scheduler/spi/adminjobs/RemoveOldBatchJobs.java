@@ -29,7 +29,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
-import com.revolsys.util.DateUtil;
+import com.revolsys.util.Dates;
 
 /**
  * Periodically delete Batch Jobs older than the specified number of days, along
@@ -72,7 +72,7 @@ public class RemoveOldBatchJobs {
         if (numberJobsDeleted > 0) {
           LoggerFactory.getLogger(getClass())
             .info(numberJobsDeleted + " old batch jobs deleted for jobs prior to "
-              + DateUtil.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
+              + Dates.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
         }
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);

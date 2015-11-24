@@ -71,6 +71,7 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
@@ -91,8 +92,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.collection.map.Maps;
-import com.revolsys.converter.string.StringConverter;
 import com.revolsys.datatype.DataType;
+import com.revolsys.datatype.DataTypes;
 import com.revolsys.equals.Equals;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
@@ -129,7 +130,7 @@ import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.transaction.Transaction;
-import com.revolsys.util.DateUtil;
+import com.revolsys.util.Dates;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
@@ -1109,10 +1110,10 @@ public class BatchJobService implements ModuleEventListener {
             final Timestamp now = new Timestamp(System.currentTimeMillis());
             batchJob.setValue(BatchJob.COMPLETED_TIMESTAMP, now);
             batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
-            batchJob.setValue(BatchJob.WHEN_UPDATED, now);
+            batchJob.setValue(Common.WHEN_UPDATED, now);
 
             final String username = CpfDataAccessObject.getUsername();
-            batchJob.setValue(BatchJob.WHO_UPDATED, username);
+            batchJob.setValue(Common.WHO_UPDATED, username);
 
             batchJob.update();
             sendNotification(batchJobId, batchJob);
@@ -1124,7 +1125,7 @@ public class BatchJobService implements ModuleEventListener {
               stopWatch);
             AppLogUtil.infoAfterCommit(log, "End\tJob execution\tbatchJobId=" + batchJobId);
           }
-          final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
+          final Timestamp whenCreated = batchJob.getValue(Common.WHEN_CREATED);
 
           final Map<String, Object> postProcessStatistics = new HashMap<>();
 
@@ -1320,7 +1321,7 @@ public class BatchJobService implements ModuleEventListener {
     final Number requestSequenceNumber = (Number)resultMap.get("i");
     final String errorMessage = (String)resultMap.get("errorMessage");
     final Map<String, String> errorMap = new LinkedHashMap<String, String>();
-    errorMap.put("sequenceNumber", StringConverter.toString(requestSequenceNumber));
+    errorMap.put("sequenceNumber", DataTypes.toString(requestSequenceNumber));
     errorMap.put("errorCode", errorCode);
     errorMap.put("errorMessage", errorMessage);
     errorMapWriter.write(errorMap);
@@ -1332,7 +1333,7 @@ public class BatchJobService implements ModuleEventListener {
     final com.revolsys.io.Writer<Record> structuredDataWriter,
     final RecordDefinition resultRecordDefinition, final Map<String, Object> defaultProperties,
     final Map<String, Object> resultData) {
-    final Record structuredResult = Records.getObject(resultRecordDefinition, resultData);
+    final Record structuredResult = Records.newRecord(resultRecordDefinition, resultData);
 
     final String propertiesString = (String)resultData.get("customizationProperties");
     final boolean hasProperties = Property.hasValue(propertiesString);
@@ -1540,7 +1541,7 @@ public class BatchJobService implements ModuleEventListener {
             Transaction.afterCommit(() -> addStatistics(businessApplication, preProcessStatistics));
 
             if (!valid) {
-              final Timestamp whenCreated = batchJob.getValue(BatchJob.WHEN_CREATED);
+              final Timestamp whenCreated = batchJob.getValue(Common.WHEN_CREATED);
 
               final Map<String, Object> jobCompletedStatistics = new HashMap<>();
 
@@ -2043,9 +2044,9 @@ public class BatchJobService implements ModuleEventListener {
         batchJob.setValue(BatchJob.JOB_STATUS, newJobStatus);
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
-        batchJob.setValue(BatchJob.WHEN_UPDATED, now);
+        batchJob.setValue(Common.WHEN_UPDATED, now);
         final String username = CpfDataAccessObject.getUsername();
-        batchJob.setValue(BatchJob.WHO_UPDATED, username);
+        batchJob.setValue(Common.WHO_UPDATED, username);
         updated = true;
       }
     }
@@ -2281,16 +2282,16 @@ public class BatchJobService implements ModuleEventListener {
         jobMap.put(param.getKey(), param.getValue());
       }
       jobMap.put("jobStatus", batchJob.getValue(BatchJob.JOB_STATUS));
-      jobMap.put("jobStatusDate", DateUtil.format(DATE_TIME_FORMAT));
+      jobMap.put("jobStatusDate", Dates.format(DATE_TIME_FORMAT));
       jobMap.put("startTime",
-        DateUtil.format(DATE_TIME_FORMAT, (Date)batchJob.getValue(BatchJob.WHEN_CREATED)));
+        Dates.format(DATE_TIME_FORMAT, (Date)batchJob.getValue(Common.WHEN_CREATED)));
       jobMap.put("modificationTime",
-        DateUtil.format(DATE_TIME_FORMAT, (Date)batchJob.getValue(BatchJob.WHEN_UPDATED)));
-      jobMap.put("lastScheduledTime", DateUtil.format(DATE_TIME_FORMAT,
-        (Date)batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP)));
+        Dates.format(DATE_TIME_FORMAT, (Date)batchJob.getValue(Common.WHEN_UPDATED)));
+      jobMap.put("lastScheduledTime",
+        Dates.format(DATE_TIME_FORMAT, (Date)batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP)));
       final Date completedDate = (Date)batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP);
-      jobMap.put("completionTime", DateUtil.format(DATE_TIME_FORMAT, completedDate));
-      jobMap.put("expiryDate", DateUtil.format("yyyy-MM-dd", getExpiryDate(completedDate)));
+      jobMap.put("completionTime", Dates.format(DATE_TIME_FORMAT, completedDate));
+      jobMap.put("expiryDate", Dates.format("yyyy-MM-dd", getExpiryDate(completedDate)));
 
       jobMap.put("secondsToWaitForStatusCheck", timeUntilNextCheck);
 

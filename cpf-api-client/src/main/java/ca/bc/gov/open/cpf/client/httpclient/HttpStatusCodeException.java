@@ -16,23 +16,27 @@
 package ca.bc.gov.open.cpf.client.httpclient;
 
 public class HttpStatusCodeException extends RuntimeException {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+
   private final int statusCode;
 
   private final String statusMessage;
 
-  public HttpStatusCodeException(final int statusCode,
-    final String statusMessage) {
+  public HttpStatusCodeException(final int statusCode, final String statusMessage) {
     super(statusCode + " " + statusMessage);
     this.statusCode = statusCode;
     this.statusMessage = statusMessage;
   }
 
   public int getStatusCode() {
-    return statusCode;
+    return this.statusCode;
   }
 
   public String getStatusMessage() {
-    return statusMessage;
+    return this.statusMessage;
   }
 
 }

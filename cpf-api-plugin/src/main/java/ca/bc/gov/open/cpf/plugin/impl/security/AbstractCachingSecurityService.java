@@ -157,13 +157,15 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
   }
 
   protected Boolean loadGroupPermission(final String groupName) {
-    final Map<String, Set<ResourcePermission>> permissionsByGroupName = this.module.getPermissionsByGroupName();
+    final Map<String, Set<ResourcePermission>> permissionsByGroupName = this.module
+      .getPermissionsByGroupName();
     return permissionsByGroupName.containsKey(groupName);
   }
 
   protected Boolean loadResourceAccessPermission(final String resourceClass,
     final String resourceId, final String actionName) {
-    final Map<String, Set<ResourcePermission>> permissionsByGroupName = this.module.getPermissionsByGroupName();
+    final Map<String, Set<ResourcePermission>> permissionsByGroupName = this.module
+      .getPermissionsByGroupName();
     final ResourcePermission resource = new ResourcePermission(resourceClass, resourceId,
       actionName);
     for (final Entry<String, Set<ResourcePermission>> entry : permissionsByGroupName.entrySet()) {

@@ -43,7 +43,7 @@ import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
-import com.revolsys.util.DateUtil;
+import com.revolsys.util.Dates;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 
@@ -103,7 +103,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
         return businessApplication;
       }
     } else if (keyName.equals("jobStatusDate")) {
-      return DateUtil.format("yyyy-MM-dd HH:mm:ss");
+      return Dates.format("yyyy-MM-dd HH:mm:ss");
     } else {
       return super.getProperty(object, keyName);
     }

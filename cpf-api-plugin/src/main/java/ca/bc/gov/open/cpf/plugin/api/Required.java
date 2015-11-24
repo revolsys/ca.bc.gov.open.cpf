@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * for a required parameter the scheduler will exclude that request from being processed and an
  * error returned. The annotation can only be defined
  * on a <code>setXXX</code> method which has the {@link JobParameter} or {@link RequestParameter} annotations.</p>
- * 
+ *
  * <p>The following example shows the use of the annotation on a {@link JobParameter} method.</p>
  *
  * <figure><pre class="prettyprint language-java">&#064;Required

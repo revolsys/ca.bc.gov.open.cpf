@@ -27,7 +27,7 @@ import net.oauth.signature.OAuthSignatureMethod;
 /**
  * This class convert PEM into byte array. The begin marker is saved and it can
  * be used to determine the type of the PEM file.
- * 
+ *
  * @author zhang
  */
 @SuppressWarnings("javadoc")
@@ -55,7 +55,7 @@ public class PEMReader {
   }
 
   public PEMReader(final InputStream inStream) throws IOException {
-    stream = inStream;
+    this.stream = inStream;
     readFile();
   }
 
@@ -64,22 +64,21 @@ public class PEMReader {
   }
 
   public String getBeginMarker() {
-    return beginMarker;
+    return this.beginMarker;
   }
 
   public byte[] getDerBytes() {
-    return derBytes;
+    return this.derBytes;
   }
 
   /**
    * Read the lines between BEGIN and END marker and convert the Base64 encoded
    * content into binary byte array.
-   * 
+   *
    * @return DER encoded octet stream
    * @throws IOException
    */
-  private byte[] readBytes(final BufferedReader reader, final String endMarker)
-    throws IOException {
+  private byte[] readBytes(final BufferedReader reader, final String endMarker) throws IOException {
     String line = null;
     final StringBuilder buf = new StringBuilder();
 
@@ -97,20 +96,19 @@ public class PEMReader {
 
   /**
    * Read the PEM file and save the DER encoded octet stream and begin marker.
-   * 
+   *
    * @throws IOException
    */
   protected void readFile() throws IOException {
 
     String line;
-    final BufferedReader reader = new BufferedReader(new InputStreamReader(
-      stream));
+    final BufferedReader reader = new BufferedReader(new InputStreamReader(this.stream));
     try {
       while ((line = reader.readLine()) != null) {
         if (line.indexOf(BEGIN_MARKER) != -1) {
-          beginMarker = line.trim();
-          final String endMarker = beginMarker.replace("BEGIN", "END");
-          derBytes = readBytes(reader, endMarker);
+          this.beginMarker = line.trim();
+          final String endMarker = this.beginMarker.replace("BEGIN", "END");
+          this.derBytes = readBytes(reader, endMarker);
           return;
         }
       }

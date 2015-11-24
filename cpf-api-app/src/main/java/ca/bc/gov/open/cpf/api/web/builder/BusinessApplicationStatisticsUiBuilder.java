@@ -65,15 +65,6 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     appBuilder.serializeLink(out, businessApplication, "name", "moduleView", parameterKeys);
   }
 
-  public ModelAndView newStatsViewPage(final String businessApplicationName,
-    final BusinessApplicationStatistics stats) {
-    final ModelMap model = new ModelMap();
-    model.put("title", businessApplicationName + " Statistics " + stats.getId());
-    model.put("statisitcs", stats);
-    model.put("body", "/WEB-INF/jsp/builder/businessApplicationStatisticsView.jsp");
-    return new ModelAndView("/jsp/template/page", model);
-  }
-
   @Override
   public Object getProperty(final Object object, final String keyName) {
     if (object instanceof BusinessApplicationStatistics) {
@@ -131,6 +122,15 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
       statistics.add(statistic);
     }
     return statistics;
+  }
+
+  public ModelAndView newStatsViewPage(final String businessApplicationName,
+    final BusinessApplicationStatistics stats) {
+    final ModelMap model = new ModelMap();
+    model.put("title", businessApplicationName + " Statistics " + stats.getId());
+    model.put("statisitcs", stats);
+    model.put("body", "/WEB-INF/jsp/builder/businessApplicationStatisticsView.jsp");
+    return new ModelAndView("/jsp/template/page", model);
   }
 
   @RequestMapping(value = {

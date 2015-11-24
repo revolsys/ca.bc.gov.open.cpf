@@ -63,7 +63,7 @@ import net.oauth.signature.pem.PKCS1EncodedKeySpec;
  * consumer's public key and be of type java.security.cert.X509Certificate,
  * String, or byte[]. In the latter two cases, the certificate must be
  * DER-encoded (byte[]) or PEM-encoded (String).
- * 
+ *
  * @author Dirk Balfanz
  */
 @SuppressWarnings("javadoc")
@@ -96,12 +96,12 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
     KeySpec keySpec;
 
     if (PEMReader.PRIVATE_PKCS1_MARKER.equals(reader.getBeginMarker())) {
-      keySpec = (new PKCS1EncodedKeySpec(bytes)).getKeySpec();
+      keySpec = new PKCS1EncodedKeySpec(bytes).getKeySpec();
     } else if (PEMReader.PRIVATE_PKCS8_MARKER.equals(reader.getBeginMarker())) {
       keySpec = new PKCS8EncodedKeySpec(bytes);
     } else {
-      throw new IOException("Invalid PEM file: Unknown marker "
-        + "for private key " + reader.getBeginMarker());
+      throw new IOException(
+        "Invalid PEM file: Unknown marker " + "for private key " + reader.getBeginMarker());
     }
 
     final KeyFactory fac = KeyFactory.getInstance("RSA");
@@ -139,8 +139,8 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
     } else if (PEMReader.CERTIFICATE_X509_MARKER.equals(reader.getBeginMarker())) {
       pubKey = getPublicKeyFromDerCert(bytes);
     } else {
-      throw new IOException("Invalid PEM fileL: Unknown marker for "
-        + " public key or cert " + reader.getBeginMarker());
+      throw new IOException("Invalid PEM fileL: Unknown marker for " + " public key or cert "
+        + reader.getBeginMarker());
     }
 
     return pubKey;
@@ -159,8 +159,7 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
   }
 
   @Override
-  protected void initialize(final String name, final OAuthAccessor accessor)
-    throws OAuthException {
+  protected void initialize(final String name, final OAuthAccessor accessor) throws OAuthException {
     super.initialize(name, accessor);
 
     // Due to the support of PEM input stream, the keys must be cached.
@@ -168,16 +167,16 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
     try {
       final Object privateKeyObject = accessor.consumer.getProperty(PRIVATE_KEY);
       if (privateKeyObject != null) {
-        privateKey = loadPrivateKey(privateKeyObject);
+        this.privateKey = loadPrivateKey(privateKeyObject);
       }
 
       final Object publicKeyObject = accessor.consumer.getProperty(PUBLIC_KEY);
       if (publicKeyObject != null) {
-        publicKey = loadPublicKey(publicKeyObject, false);
+        this.publicKey = loadPublicKey(publicKeyObject, false);
       } else { // public key was null. perhaps they gave us a X509 cert.
         final Object certObject = accessor.consumer.getProperty(X509_CERTIFICATE);
         if (certObject != null) {
-          publicKey = loadPublicKey(certObject, true);
+          this.publicKey = loadPublicKey(certObject, true);
         }
       }
     } catch (final GeneralSecurityException e) {
@@ -188,11 +187,9 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
   }
 
   @Override
-  protected boolean isValid(final String signature, final String baseString)
-    throws OAuthException {
+  protected boolean isValid(final String signature, final String baseString) throws OAuthException {
     try {
-      return verify(decodeBase64(signature),
-        baseString.getBytes(OAuth.ENCODING));
+      return verify(decodeBase64(signature), baseString.getBytes(OAuth.ENCODING));
     } catch (final UnsupportedEncodingException e) {
       throw new OAuthException(e);
     } catch (final GeneralSecurityException e) {
@@ -207,7 +204,7 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
    * <li>A string buffer for PEM
    * <li>A byte array with PKCS#8 encoded key
    * </ul>
-   * 
+   *
    * @param privateKeyObject
    * @return The private key
    * @throws IOException
@@ -231,10 +228,8 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
     } else if (privateKeyObject instanceof byte[]) {
       privateKey = getPrivateKeyFromDer((byte[])privateKeyObject);
     } else {
-      throw new IllegalArgumentException(
-        "Private key set through RSA_SHA1.PRIVATE_KEY must be of "
-          + "type PrivateKey, String or byte[] and not "
-          + privateKeyObject.getClass().getName());
+      throw new IllegalArgumentException("Private key set through RSA_SHA1.PRIVATE_KEY must be of "
+        + "type PrivateKey, String or byte[] and not " + privateKeyObject.getClass().getName());
     }
 
     return privateKey;
@@ -249,16 +244,15 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
    * <li>A string buffer for PEM
    * <li>A byte array with X509 encoded key or certificate
    * </ul>
-   * 
+   *
    * @param publicKeyObject The object for public key or certificate
    * @param isCert True if this object is provided as Certificate
    * @return The public key
    * @throws IOException
    * @throws GeneralSecurityException
    */
-  private PublicKey loadPublicKey(
-    final Object publicKeyObject,
-    final boolean isCert) throws IOException, GeneralSecurityException {
+  private PublicKey loadPublicKey(final Object publicKeyObject, final boolean isCert)
+    throws IOException, GeneralSecurityException {
 
     PublicKey publicKey;
 
@@ -291,32 +285,31 @@ public class RSA_SHA1 extends OAuthSignatureMethod {
       }
       throw new IllegalArgumentException(
         "Public key or certificate set through " + source + " must be of "
-          + "type PublicKey, String or byte[], and not "
-          + publicKeyObject.getClass().getName());
+          + "type PublicKey, String or byte[], and not " + publicKeyObject.getClass().getName());
     }
 
     return publicKey;
   }
 
   private byte[] sign(final byte[] message) throws GeneralSecurityException {
-    if (privateKey == null) {
+    if (this.privateKey == null) {
       throw new IllegalStateException("need to set private key with "
         + "OAuthConsumer.setProperty when " + "generating RSA-SHA1 signatures.");
     }
     final Signature signer = Signature.getInstance("SHA1withRSA");
-    signer.initSign(privateKey);
+    signer.initSign(this.privateKey);
     signer.update(message);
     return signer.sign();
   }
 
   private boolean verify(final byte[] signature, final byte[] message)
     throws GeneralSecurityException {
-    if (publicKey == null) {
+    if (this.publicKey == null) {
       throw new IllegalStateException("need to set public key with "
         + " OAuthConsumer.setProperty when " + "verifying RSA-SHA1 signatures.");
     }
     final Signature verifier = Signature.getInstance("SHA1withRSA");
-    verifier.initVerify(publicKey);
+    verifier.initVerify(this.publicKey);
     verifier.update(message);
     return verifier.verify(signature);
   }

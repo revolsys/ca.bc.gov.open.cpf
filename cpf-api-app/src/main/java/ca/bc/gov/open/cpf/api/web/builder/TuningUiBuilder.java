@@ -39,6 +39,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobScheduler;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
+import com.revolsys.datatype.DataTypes;
 import com.revolsys.jdbc.io.DataSourceImpl;
 import com.revolsys.record.Record;
 import com.revolsys.record.query.And;
@@ -222,12 +223,12 @@ public class TuningUiBuilder extends CpfUiBuilder {
 
   @Override
   public boolean validateForm(final UiBuilderObjectForm form) {
-    final int preProcessPoolSize = form.getField("preProcessPoolSize").getValue(Integer.class);
-    final int postProcessPoolSize = form.getField("postProcessPoolSize").getValue(Integer.class);
-    final int schedulerPoolSize = form.getField("schedulerPoolSize").getValue(Integer.class);
-    final int groupResultPoolSize = form.getField("groupResultPoolSize").getValue(Integer.class);
+    final int preProcessPoolSize = form.getField("preProcessPoolSize").getValue(DataTypes.INT);
+    final int postProcessPoolSize = form.getField("postProcessPoolSize").getValue(DataTypes.INT);
+    final int schedulerPoolSize = form.getField("schedulerPoolSize").getValue(DataTypes.INT);
+    final int groupResultPoolSize = form.getField("groupResultPoolSize").getValue(DataTypes.INT);
     final Field databaseConnectionField = form.getField("databaseConnectionPoolSize");
-    final int databaseConnectionPoolSize = databaseConnectionField.getValue(Integer.class);
+    final int databaseConnectionPoolSize = databaseConnectionField.getValue(DataTypes.INT);
     if (preProcessPoolSize + postProcessPoolSize + schedulerPoolSize + groupResultPoolSize > 0.9
       * databaseConnectionPoolSize) {
       databaseConnectionField.addValidationError(

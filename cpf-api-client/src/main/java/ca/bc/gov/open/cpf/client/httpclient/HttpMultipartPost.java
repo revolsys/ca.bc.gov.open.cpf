@@ -33,6 +33,7 @@ import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
+
 import com.revolsys.spring.resource.Resource;
 
 @SuppressWarnings("javadoc")
@@ -95,12 +96,10 @@ public class HttpMultipartPost {
     this.requestEntity.addPart(parameterName, new FileBody(file));
   }
 
-  public void addParameter(final String parameterName,
-    final Object parameterValue) {
+  public void addParameter(final String parameterName, final Object parameterValue) {
     if (parameterValue != null) {
       try {
-        this.requestEntity.addPart(parameterName,
-          new StringBody(parameterValue.toString()));
+        this.requestEntity.addPart(parameterName, new StringBody(parameterValue.toString()));
       } catch (final UnsupportedEncodingException e) {
         e.printStackTrace();
       }
@@ -115,8 +114,7 @@ public class HttpMultipartPost {
 
   public void addParameter(final String parameterName, final String filename,
     final InputStream inputStream) throws IOException {
-    this.requestEntity.addPart(parameterName, new InputStreamBody(inputStream,
-      filename));
+    this.requestEntity.addPart(parameterName, new InputStreamBody(inputStream, filename));
   }
 
   @SuppressWarnings("deprecation")

@@ -18,7 +18,7 @@ package ca.bc.gov.open.cpf.client.api;
 /**
  * <p>The callback interface is used by the CpfClient API to invoke code in a client application
  * to process a objects returned from the CPF REST API.</p>
- * 
+ *
  * <p>The use of a callback mechanism ensures that any connections to the server are closed
  * correctly after processing a request. The connections are closed even if there was a
  * communications error or an exception thrown by the callback.</p>
@@ -32,7 +32,7 @@ package ca.bc.gov.open.cpf.client.api;
 public interface Callback<T> {
   /**
    * Process the object.
-   * 
+   *
    * @param object The object to process.
    */
   void process(T object);

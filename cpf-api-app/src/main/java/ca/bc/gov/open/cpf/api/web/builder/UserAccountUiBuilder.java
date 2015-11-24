@@ -42,7 +42,6 @@ import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.domain.UserGroupAccountXref;
 
 import com.revolsys.collection.ArrayListOfMap;
-import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.equals.Equals;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.IoConstants;
@@ -63,6 +62,7 @@ import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.html.view.TableRow;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.utils.HttpServletUtils;
+import com.revolsys.util.Booleans;
 import com.revolsys.util.Property;
 
 @Controller
@@ -236,8 +236,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     @PathVariable("userGroupName") final String userGroupName)
       throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
-    return newUserGroupMembersList(request, response, "moduleAdminGroup", moduleName,
-      userGroupName, "ADMIN_MODULE_" + moduleName);
+    return newUserGroupMembersList(request, response, "moduleAdminGroup", moduleName, userGroupName,
+      "ADMIN_MODULE_" + moduleName);
   }
 
   @RequestMapping(value = {
@@ -486,7 +486,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
       final Record userAccount = getUserAccount(consumerKey);
       if (userAccount != null) {
-        if (BooleanStringConverter.getBoolean(confirm)) {
+        if (Booleans.getBoolean(confirm)) {
           final CpfDataAccessObject dataAccessObject = getDataAccessObject();
           dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
         }

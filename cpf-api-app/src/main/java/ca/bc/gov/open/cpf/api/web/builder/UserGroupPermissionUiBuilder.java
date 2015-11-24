@@ -59,7 +59,8 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageModuleUserGroupPermissionAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("userGroupName") final String userGroupName) throws ServletException, IOException {
+    @PathVariable("userGroupName") final String userGroupName)
+      throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -113,7 +114,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
-    throws ServletException, IOException {
+      throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -138,7 +139,8 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleUserGroupPermissionList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("userGroupName") final String userGroupName) throws IOException, ServletException {
+    @PathVariable("userGroupName") final String userGroupName)
+      throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -151,8 +153,8 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       filter.put(UserGroupPermission.USER_GROUP_ID, userGroupId);
       parameters.put("filter", filter);
 
-      return newDataTableHandlerOrRedirect(request, response, "moduleList",
-        UserGroup.USER_GROUP, "moduleView", parameters);
+      return newDataTableHandlerOrRedirect(request, response, "moduleList", UserGroup.USER_GROUP,
+        "moduleView", parameters);
     }
     notFound(response, "User group " + userGroupName + " does not exist");
     return null;
@@ -166,7 +168,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
-    throws ServletException, IOException {
+      throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);

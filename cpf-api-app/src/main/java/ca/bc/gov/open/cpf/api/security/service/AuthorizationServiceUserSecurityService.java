@@ -20,14 +20,12 @@ import java.util.Map;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.AbstractCachingSecurityService;
 
-public class AuthorizationServiceUserSecurityService extends
-  AbstractCachingSecurityService {
+public class AuthorizationServiceUserSecurityService extends AbstractCachingSecurityService {
 
   private AuthorizationService authorizationService;
 
-  public AuthorizationServiceUserSecurityService(
-    final AuthorizationService authorizationService, final Module module,
-    final String consumerKey, final String userClass, final String username) {
+  public AuthorizationServiceUserSecurityService(final AuthorizationService authorizationService,
+    final Module module, final String consumerKey, final String userClass, final String username) {
     super(module, consumerKey, userClass, username);
     this.authorizationService = authorizationService;
 
@@ -36,15 +34,14 @@ public class AuthorizationServiceUserSecurityService extends
   @Override
   public void close() {
     super.close();
-    authorizationService = null;
+    this.authorizationService = null;
   }
 
   @Override
   protected Boolean loadActionPermission(final String actionName) {
     final String consumerKey = getConsumerKey();
     final String moduleName = getModuleName();
-    if (authorizationService.canPerformAction(moduleName, consumerKey,
-      actionName)) {
+    if (this.authorizationService.canPerformAction(moduleName, consumerKey, actionName)) {
       return true;
     } else {
       return super.loadActionPermission(actionName);
@@ -55,7 +52,7 @@ public class AuthorizationServiceUserSecurityService extends
   protected Boolean loadGroupPermission(final String groupName) {
     final String consumerKey = getConsumerKey();
     final String moduleName = getModuleName();
-    if (authorizationService.isInGroup(moduleName, consumerKey, groupName)) {
+    if (this.authorizationService.isInGroup(moduleName, consumerKey, groupName)) {
       return true;
     } else {
       return super.loadGroupPermission(groupName);
@@ -67,12 +64,11 @@ public class AuthorizationServiceUserSecurityService extends
     final String resourceId, final String actionName) {
     final String consumerKey = getConsumerKey();
     final String moduleName = getModuleName();
-    if (authorizationService.canAccessResource(moduleName, consumerKey,
-      resourceClass, resourceId, actionName)) {
+    if (this.authorizationService.canAccessResource(moduleName, consumerKey, resourceClass,
+      resourceId, actionName)) {
       return true;
     } else {
-      return super.loadResourceAccessPermission(resourceClass, resourceId,
-        actionName);
+      return super.loadResourceAccessPermission(resourceClass, resourceId, actionName);
     }
   }
 
@@ -80,6 +76,6 @@ public class AuthorizationServiceUserSecurityService extends
   protected Map<String, Object> loadUserAttributes() {
     final String consumerKey = getConsumerKey();
     final String moduleName = getModuleName();
-    return authorizationService.getUserAttributes(moduleName, consumerKey);
+    return this.authorizationService.getUserAttributes(moduleName, consumerKey);
   }
 }

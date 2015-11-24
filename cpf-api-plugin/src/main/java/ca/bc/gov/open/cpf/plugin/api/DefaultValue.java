@@ -20,7 +20,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * <p>The <code>DefaultValue</code> method annotation defines the default value to display on the form or use
  * if a value was not provided for a {@link JobParameter} or {@link RequestParameter}. The annotation
@@ -31,10 +30,10 @@ import java.lang.annotation.Target;
  *
  * <p>The default value is displayed with the parameter descriptions in the
  * business application specifications web services.</p>
- * 
+ *
  * <p>On the submit jobs form the default value is displayed in the text field or as selected value for
  * a select list created using {@link AllowedValues} on the form.</p>
- * 
+ *
  * <p>The following code fragment shows an example of using the API.</p>
  *
  * <figure><pre class="prettyprint language-java">&#064;DefaultValue(value = "10"})

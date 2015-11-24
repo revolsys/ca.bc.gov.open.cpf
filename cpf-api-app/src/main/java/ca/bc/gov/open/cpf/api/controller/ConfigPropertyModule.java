@@ -45,10 +45,9 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   private final CpfDataAccessObject dataAccessObject;
 
   public ConfigPropertyModule(final ConfigPropertyModuleLoader moduleLoader,
-    final BusinessApplicationRegistry businessApplicationRegistry,
-    final String moduleName, final MavenRepository mavenRepository,
-    final String mavenModuleId, final Set<String> excludeMavenIds,
-    final ConfigPropertyLoader configPropertyLoader) {
+    final BusinessApplicationRegistry businessApplicationRegistry, final String moduleName,
+    final MavenRepository mavenRepository, final String mavenModuleId,
+    final Set<String> excludeMavenIds, final ConfigPropertyLoader configPropertyLoader) {
     super(businessApplicationRegistry, moduleName);
     this.moduleLoader = moduleLoader;
     this.mavenRepository = mavenRepository;
@@ -65,22 +64,25 @@ public class ConfigPropertyModule extends ClassLoaderModule {
     if (isEnabled()) {
       if (!isStarted()) {
         try (
-          Transaction transaction = dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+          Transaction transaction = this.dataAccessObject
+            .newTransaction(Propagation.REQUIRES_NEW)) {
           try {
             try {
               clearModuleError();
 
               final ClassLoader classLoader = getClassLoader();
-              final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(
-                classLoader, false);
+              final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(classLoader,
+                false);
               if (configUrls.size() == 1) {
                 final URL configUrl = configUrls.get(0);
                 setConfigUrl(configUrl);
                 setClassLoader(classLoader);
               } else if (configUrls.isEmpty()) {
-                addModuleError("No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
+                addModuleError(
+                  "No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
               } else {
-                addModuleError("Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
+                addModuleError(
+                  "Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
               }
               if (!isHasError()) {
                 super.doStart();
@@ -92,7 +94,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
             if (isHasError()) {
               doStop();
             } else {
-              final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+              final BatchJobService batchJobService = this.moduleLoader.getBatchJobService();
               batchJobService.collateStatistics();
             }
           } catch (final Throwable e) {
@@ -109,7 +111,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   public void doStop() {
     if (isStarted()) {
       try (
-        Transaction transaction = dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
         try {
           final List<String> businessApplicationNames = getBusinessApplicationNames();
           setStartedDate(null);
@@ -117,7 +119,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
           super.doStop();
           setClassLoader(null);
           setConfigUrl(null);
-          final BatchJobService batchJobService = moduleLoader.getBatchJobService();
+          final BatchJobService batchJobService = this.moduleLoader.getBatchJobService();
           batchJobService.scheduleSaveStatistics(businessApplicationNames);
         } catch (final Throwable e) {
           throw transaction.setRollbackOnly(e);
@@ -138,7 +140,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
       for (final String excludeId : this.excludeMavenIds) {
         try {
           excludeIds.add(MavenPom.getGroupAndArtifactId(excludeId));
-          final MavenPom pom = mavenRepository.getPom(excludeId);
+          final MavenPom pom = this.mavenRepository.getPom(excludeId);
           for (final String dependencyId : pom.getDependencies(excludeIds)) {
             excludeIds.add(MavenPom.getGroupAndArtifactId(dependencyId));
           }
@@ -146,7 +148,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
         }
       }
 
-      final MavenPom pom = mavenRepository.getPom(mavenModuleId);
+      final MavenPom pom = this.mavenRepository.getPom(this.mavenModuleId);
       classLoader = pom.newClassLoader(excludeIds);
       setClassLoader(classLoader);
     }
@@ -154,12 +156,12 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   }
 
   public String getMavenModuleId() {
-    return mavenModuleId;
+    return this.mavenModuleId;
   }
 
   @Override
   public String getModuleDescriptor() {
-    return mavenModuleId;
+    return this.mavenModuleId;
   }
 
   @Override
@@ -175,14 +177,12 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   @Override
   protected void preLoadApplications() {
     try (
-      Transaction transaction = dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        moduleLoader.refreshConfigProperties(this);
-        moduleLoader.refreshUserGroup(this, "_ADMIN",
-          "Application administrator for ");
-        moduleLoader.refreshUserGroup(this, "_SECURITY",
-          "Security administrator for ");
-        moduleLoader.refreshUserGroups(this);
+        this.moduleLoader.refreshConfigProperties(this);
+        this.moduleLoader.refreshUserGroup(this, "_ADMIN", "Application administrator for ");
+        this.moduleLoader.refreshUserGroup(this, "_SECURITY", "Security administrator for ");
+        this.moduleLoader.refreshUserGroups(this);
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);
       }

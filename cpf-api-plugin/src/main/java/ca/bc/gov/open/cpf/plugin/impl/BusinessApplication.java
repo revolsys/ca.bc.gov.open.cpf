@@ -41,7 +41,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.converter.string.BooleanStringConverter;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.equals.Equals;
 import com.revolsys.geometry.cs.CoordinateSystem;
@@ -52,6 +51,7 @@ import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
+import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.Debug;
 import com.revolsys.util.Property;
@@ -247,7 +247,8 @@ public class BusinessApplication extends BaseObjectWithProperties
     this.log = new AppLog(module.getName() + "." + name);
     this.requestRecordDefinition = new RecordDefinitionImpl(PathName.newPathName("/" + name));
     this.resultRecordDefinition = new RecordDefinitionImpl(PathName.newPathName("/" + name));
-    this.internalRequestRecordDefinition = new RecordDefinitionImpl(PathName.newPathName("/" + name));
+    this.internalRequestRecordDefinition = new RecordDefinitionImpl(
+      PathName.newPathName("/" + name));
   }
 
   public BusinessApplication(final String name) {
@@ -543,8 +544,7 @@ public class BusinessApplication extends BaseObjectWithProperties
         requestSequenceNumber.setMinValue(1);
 
         for (final FieldDefinition field : this.requestFieldMap.values()) {
-          if (BooleanStringConverter
-            .getBoolean(field.getProperty(BusinessApplication.REQUEST_PARAMETER))) {
+          if (Booleans.getBoolean(field.getProperty(BusinessApplication.REQUEST_PARAMETER))) {
             this.internalRequestRecordDefinition.addField(field);
           }
         }
@@ -709,7 +709,7 @@ public class BusinessApplication extends BaseObjectWithProperties
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist" + fieldName);
     } else {
-      return BooleanStringConverter.getBoolean(attribute.getProperty(CORE_PARAMETER));
+      return Booleans.getBoolean(attribute.getProperty(CORE_PARAMETER));
     }
   }
 
@@ -754,7 +754,7 @@ public class BusinessApplication extends BaseObjectWithProperties
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist" + fieldName);
     } else {
-      return BooleanStringConverter.getBoolean(attribute.getProperty(JOB_PARAMETER));
+      return Booleans.getBoolean(attribute.getProperty(JOB_PARAMETER));
     }
   }
 
@@ -771,7 +771,7 @@ public class BusinessApplication extends BaseObjectWithProperties
     if (attribute == null) {
       throw new IllegalArgumentException("Parameter does not exist" + fieldName);
     } else {
-      return BooleanStringConverter.getBoolean(attribute.getProperty(REQUEST_PARAMETER));
+      return Booleans.getBoolean(attribute.getProperty(REQUEST_PARAMETER));
     }
   }
 

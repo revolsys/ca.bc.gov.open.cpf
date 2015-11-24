@@ -25,7 +25,7 @@ import java.util.Map;
  * response that conforms to the OAuth <a
  * href="http://wiki.oauth.net/ProblemReporting">Problem Reporting
  * extension</a>.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
@@ -46,15 +46,14 @@ public class OAuthProblemException extends OAuthException {
   public static final String HTTP_LOCATION = "Location";
 
   /** The name of a parameter whose value is the OAuth signature base string. */
-  public static final String SIGNATURE_BASE_STRING = OAuth.OAUTH_SIGNATURE
-    + " base string";
+  public static final String SIGNATURE_BASE_STRING = OAuth.OAUTH_SIGNATURE + " base string";
 
   /** The name of a parameter whose value is the request URL. */
   public static final String URL = "URL";
 
-  private final Map<String, Object> parameters = new HashMap<>();
-
   private static final long serialVersionUID = 1L;
+
+  private final Map<String, Object> parameters = new HashMap<>();
 
   public OAuthProblemException() {
   }
@@ -62,7 +61,7 @@ public class OAuthProblemException extends OAuthException {
   public OAuthProblemException(final String problem) {
     super(problem);
     if (problem != null) {
-      parameters.put(OAUTH_PROBLEM, problem);
+      this.parameters.put(OAUTH_PROBLEM, problem);
     }
   }
 
@@ -110,7 +109,7 @@ public class OAuthProblemException extends OAuthException {
   }
 
   public Map<String, Object> getParameters() {
-    return parameters;
+    return this.parameters;
   }
 
   public String getProblem() {
@@ -136,7 +135,7 @@ public class OAuthProblemException extends OAuthException {
         }
       }
       Object msg = parameters.get(HTTP_REQUEST);
-      if ((msg != null)) {
+      if (msg != null) {
         s.append(eol + ">>>>>>>> " + HTTP_REQUEST + ":" + eol + msg);
       }
       msg = parameters.get(HTTP_RESPONSE);
@@ -145,9 +144,9 @@ public class OAuthProblemException extends OAuthException {
       } else {
         for (final Map.Entry<String, Object> parameter : parameters.entrySet()) {
           final String key = parameter.getKey();
-          if (OAuth.Problems.OAUTH_PROBLEM_ADVICE.equals(key)
-            || URL.equals(key) || SIGNATURE_BASE_STRING.equals(key)
-            || HTTP_REQUEST.equals(key) || HTTP_RESPONSE.equals(key)) {
+          if (OAuth.Problems.OAUTH_PROBLEM_ADVICE.equals(key) || URL.equals(key)
+            || SIGNATURE_BASE_STRING.equals(key) || HTTP_REQUEST.equals(key)
+            || HTTP_RESPONSE.equals(key)) {
             continue;
           }
           s.append(eol + key + ": " + parameter.getValue());

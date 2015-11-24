@@ -112,10 +112,6 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     }
   }
 
-  public static Expression newExpression(final String permission) {
-    return new SpelExpressionParser().parseExpression(permission);
-  }
-
   protected static Collection<GrantedAuthority> getGrantedAuthorities() {
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     final Authentication authentication = securityContext.getAuthentication();
@@ -179,6 +175,10 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     return false;
   }
 
+  public static Expression newExpression(final String permission) {
+    return new SpelExpressionParser().parseExpression(permission);
+  }
+
   private BatchJobService batchJobService;
 
   private BusinessApplicationRegistry businessApplicationRegistry;
@@ -213,7 +213,8 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
   public BatchJob getBatchJob(final String businessApplicationName, final Object batchJobId)
     throws NoSuchRequestHandlingMethodException {
-    final BatchJob batchJob = this.dataAccessObject.getBatchJob(Identifier.newIdentifier(batchJobId));
+    final BatchJob batchJob = this.dataAccessObject
+      .getBatchJob(Identifier.newIdentifier(batchJobId));
     if (batchJob != null) {
       if (batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME).equals(businessApplicationName)) {
         return batchJob;

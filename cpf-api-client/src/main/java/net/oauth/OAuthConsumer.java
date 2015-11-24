@@ -22,23 +22,13 @@ import java.util.Map;
 /**
  * Properties of an OAuth Consumer. Properties may be added freely, e.g. to
  * support extensions.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
 public class OAuthConsumer implements Serializable {
 
   private static final long serialVersionUID = -2258581186977818580L;
-
-  public final String callbackURL;
-
-  public final String consumerKey;
-
-  public final String consumerSecret;
-
-  public final OAuthServiceProvider serviceProvider;
-
-  private final Map<String, Object> properties = new HashMap<>();
 
   /**
    * The name of the property whose value is the Accept-Encoding header in HTTP
@@ -52,6 +42,16 @@ public class OAuthConsumer implements Serializable {
    */
   public static final String ACCESSOR_SECRET = "oauth_accessor_secret";
 
+  public final String callbackURL;
+
+  public final String consumerKey;
+
+  public final String consumerSecret;
+
+  public final OAuthServiceProvider serviceProvider;
+
+  private final Map<String, Object> properties = new HashMap<>();
+
   public OAuthConsumer(final String callbackURL, final String consumerKey,
     final String consumerSecret, final OAuthServiceProvider serviceProvider) {
     this.callbackURL = callbackURL;
@@ -61,11 +61,11 @@ public class OAuthConsumer implements Serializable {
   }
 
   public Object getProperty(final String name) {
-    return properties.get(name);
+    return this.properties.get(name);
   }
 
   public void setProperty(final String name, final Object value) {
-    properties.put(name, value);
+    this.properties.put(name, value);
   }
 
 }

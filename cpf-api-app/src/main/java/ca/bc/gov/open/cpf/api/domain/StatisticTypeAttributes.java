@@ -21,6 +21,7 @@ import java.util.Map;
 public class StatisticTypeAttributes {
   private final static Map<String, String> units = new HashMap<String, String>() {
     private static final long serialVersionUID = 1L;
+
     {
       put("default", "Time (milliseconds)");
       put("averageCountJobCreatedPerMinute", "Number of Jobs");
@@ -37,6 +38,7 @@ public class StatisticTypeAttributes {
 
   private final static Map<String, Double> divisor = new HashMap<String, Double>() {
     private static final long serialVersionUID = 1L;
+
     {
       put("currentCpuLoad", .01);
       put("heapMemoryUsed", 1000000D);

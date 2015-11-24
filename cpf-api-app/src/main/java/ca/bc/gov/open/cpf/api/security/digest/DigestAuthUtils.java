@@ -60,7 +60,7 @@ final class DigestAuthUtils {
   static String generateDigest(final boolean passwordAlreadyEncoded, final String username,
     final String realm, final String password, final String httpMethod, final String uri,
     final String qop, final String nonce, final String nc, final String cnonce)
-    throws IllegalArgumentException {
+      throws IllegalArgumentException {
     String a1Md5 = null;
     final String a2 = httpMethod + ":" + uri;
     final String a2Md5 = md5Hex(a2);
@@ -152,13 +152,13 @@ final class DigestAuthUtils {
 
     final Map<String, String> map = new HashMap<String, String>();
 
-    for (int i = 0; i < array.length; i++) {
+    for (final String element : array) {
       String postRemove;
 
       if (removeCharacters == null) {
-        postRemove = array[i];
+        postRemove = element;
       } else {
-        postRemove = StringUtils.replace(array[i], removeCharacters, "");
+        postRemove = StringUtils.replace(element, removeCharacters, "");
       }
 
       final String[] splitThisArrayElement = split(postRemove, delimiter);

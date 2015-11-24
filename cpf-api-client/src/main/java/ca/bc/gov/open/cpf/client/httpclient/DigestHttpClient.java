@@ -114,20 +114,6 @@ public class DigestHttpClient {
     }
   }
 
-  protected HttpStatusCodeException newException(final HttpEntity entity,
-    final StatusLine statusLine) {
-    final Logger log = LoggerFactory.getLogger(getClass());
-    if (log.isDebugEnabled()) {
-      try {
-        final String errorBody = EntityUtils.toString(entity);
-        log.debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
-      } catch (final Throwable e) {
-        log.error("Unable to get error message server: " + statusLine + "\n");
-      }
-    }
-    return new HttpStatusCodeException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
-  }
-
   protected <V> V execute(final HttpUriRequest request, final ResponseHandler<V> responseHandler) {
     final BasicHttpContext context = new BasicHttpContext();
 
@@ -215,6 +201,20 @@ public class DigestHttpClient {
 
   public String getUrl(final String path) {
     return this.webServiceUrl + path;
+  }
+
+  protected HttpStatusCodeException newException(final HttpEntity entity,
+    final StatusLine statusLine) {
+    final Logger log = LoggerFactory.getLogger(getClass());
+    if (log.isDebugEnabled()) {
+      try {
+        final String errorBody = EntityUtils.toString(entity);
+        log.debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
+      } catch (final Throwable e) {
+        log.error("Unable to get error message server: " + statusLine + "\n");
+      }
+    }
+    return new HttpStatusCodeException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
   }
 
   public Map<String, Object> postJsonResource(final String url) {

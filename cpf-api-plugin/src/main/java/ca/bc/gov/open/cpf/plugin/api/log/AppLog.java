@@ -54,8 +54,7 @@ public class AppLog {
     setLogLevel(logLevel);
   }
 
-  public AppLog(final String businessApplicationName, String groupId,
-    final String logLevel) {
+  public AppLog(final String businessApplicationName, String groupId, final String logLevel) {
     if (groupId == null || groupId.trim().length() == 0) {
       groupId = String.valueOf(System.currentTimeMillis());
     }

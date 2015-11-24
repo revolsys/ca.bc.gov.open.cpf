@@ -40,8 +40,6 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.collection.map.Maps;
-import com.revolsys.converter.string.BooleanStringConverter;
-import com.revolsys.converter.string.StringConverter;
 import com.revolsys.geometry.model.BoundingBox;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryCollection;
@@ -59,6 +57,7 @@ import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
+import com.revolsys.util.Booleans;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.MathUtil;
@@ -100,7 +99,7 @@ public class PluginAdaptor {
         }
       } else if (Date.class.isAssignableFrom(typeClass)) {
         final Timestamp time = new Timestamp(System.currentTimeMillis());
-        value = StringConverter.toObject(typeClass, time);
+        value = field.toFieldValue(time);
       } else if (LineString.class.isAssignableFrom(typeClass)) {
         value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
       } else if (Polygon.class.isAssignableFrom(typeClass)) {
@@ -232,7 +231,7 @@ public class PluginAdaptor {
     final String resultListProperty = this.application.getResultListProperty();
 
     final boolean testMode = this.application.isTestModeEnabled()
-      && BooleanStringConverter.isTrue(this.testParameters.get("cpfPluginTest"));
+      && Booleans.isTrue(this.testParameters.get("cpfPluginTest"));
     if (testMode) {
       double minTime = Maps.getDouble(this.testParameters, "cpfMinExecutionTime", -1.0);
       double maxTime = Maps.getDouble(this.testParameters, "cpfMaxExecutionTime", -1.0);
@@ -445,9 +444,9 @@ public class PluginAdaptor {
     try {
       final RecordDefinitionImpl requestRecordDefinition = this.application
         .getRequestRecordDefinition();
-      final Class<?> fieldClass = requestRecordDefinition.getFieldClass(parameterName);
-      if (fieldClass != null) {
-        parameterValue = StringConverter.toObject(fieldClass, parameterValue);
+      final FieldDefinition field = requestRecordDefinition.getField(parameterName);
+      if (field != null) {
+        parameterValue = field.toFieldValue(parameterValue);
       }
       if (parameterValue != null) {
         BeanUtils.setProperty(this.plugin, parameterName, parameterValue);

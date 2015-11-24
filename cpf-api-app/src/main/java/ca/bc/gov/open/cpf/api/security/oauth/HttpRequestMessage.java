@@ -30,7 +30,7 @@ import net.oauth.OAuthMessage;
 
 /**
  * An HttpServletRequest, encapsulated as an OAuthMessage.
- * 
+ *
  * @author John Kristian
  */
 public class HttpRequestMessage extends OAuthMessage {
@@ -53,8 +53,7 @@ public class HttpRequestMessage extends OAuthMessage {
   }
 
   @SuppressWarnings("unchecked")
-  public static List<OAuth.Parameter> getParameters(
-    final HttpServletRequest request) {
+  public static List<OAuth.Parameter> getParameters(final HttpServletRequest request) {
     final List<OAuth.Parameter> list = new ArrayList<OAuth.Parameter>();
     for (final Enumeration<String> headers = request.getHeaders("Authorization"); headers != null
       && headers.hasMoreElements();) {
@@ -85,12 +84,12 @@ public class HttpRequestMessage extends OAuthMessage {
 
   @Override
   public InputStream getBodyAsStream() throws IOException {
-    return request.getInputStream();
+    return this.request.getInputStream();
   }
 
   @Override
   public String getBodyEncoding() {
-    return request.getCharacterEncoding();
+    return this.request.getCharacterEncoding();
   }
 
 }

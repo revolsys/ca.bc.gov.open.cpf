@@ -21,7 +21,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
  * An OAuthAccessor, to be used as credentials for an AuthScheme based on OAuth.
  * The OAuthAccessor is contained by reference, so you can change it to contain
  * the OAuth tokens and secrets that you receive from a service provider.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
@@ -41,12 +41,11 @@ public class OAuthCredentials extends UsernamePasswordCredentials {
    * and Service Provider with no User involvement.
    */
   public OAuthCredentials(final String consumerKey, final String consumerSecret) {
-    this(new OAuthAccessor(new OAuthConsumer(null, consumerKey, consumerSecret,
-      null)));
+    this(new OAuthAccessor(new OAuthConsumer(null, consumerKey, consumerSecret, null)));
   }
 
   public OAuthAccessor getAccessor() {
-    return accessor;
+    return this.accessor;
   }
 
   /** Get the current consumer secret, to be used as a password. */

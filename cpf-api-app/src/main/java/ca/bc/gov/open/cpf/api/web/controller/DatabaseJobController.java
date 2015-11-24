@@ -43,23 +43,6 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
-    final String contentType, final Object data) {
-    try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
-      final Record result = this.dataAccessObject.newRecord(BatchJobFile.BATCH_JOB_FILE);
-      result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
-      result.setValue(BatchJobFile.PATH, path);
-      result.setValue(BatchJobFile.CONTENT_TYPE, contentType);
-      result.setValue(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber);
-      result.setValue(BatchJobFile.DATA, data);
-      this.dataAccessObject.write(result);
-    } catch (final Throwable e) {
-      throw new RuntimeException("Unable to create file", e);
-    }
-  }
-
-  @Override
   public void deleteJob(final Identifier jobId) {
     this.dataAccessObject.deleteBatchJob(jobId);
   }
@@ -78,6 +61,23 @@ public class DatabaseJobController extends AbstractJobController {
   @Override
   public String getKey() {
     return "database";
+  }
+
+  @Override
+  public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
+    final String contentType, final Object data) {
+    try (
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      final Record result = this.dataAccessObject.newRecord(BatchJobFile.BATCH_JOB_FILE);
+      result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
+      result.setValue(BatchJobFile.PATH, path);
+      result.setValue(BatchJobFile.CONTENT_TYPE, contentType);
+      result.setValue(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber);
+      result.setValue(BatchJobFile.DATA, data);
+      this.dataAccessObject.write(result);
+    } catch (final Throwable e) {
+      throw new RuntimeException("Unable to create file", e);
+    }
   }
 
   @Override

@@ -47,8 +47,6 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.collection.map.Maps;
 import com.revolsys.collection.range.RangeSet;
-import com.revolsys.converter.string.StringConverter;
-import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.datatype.DataType;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
@@ -127,8 +125,8 @@ public class WorkerGroupRunnable implements Runnable {
     this.log = new AppLog(this.businessApplicationName, this.groupId, this.logLevel);
   }
 
-  public void addError(final Integer sequenceNumber, final String logPrefix,
-    final String errorCode, final Throwable e) {
+  public void addError(final Integer sequenceNumber, final String logPrefix, final String errorCode,
+    final Throwable e) {
     this.log.error(logPrefix + errorCode, e);
     if (this.errorWriter == null) {
       this.errorFile = FileUtil.newTempFile(this.groupId, "csv");
@@ -150,7 +148,8 @@ public class WorkerGroupRunnable implements Runnable {
 
   @SuppressWarnings("unchecked")
   private void execute(final CsvWriter resultWriter, final AppLog appLog,
-    final Integer requestSequenceNumber, final Object plugin, final Map<String, Object> parameters) {
+    final Integer requestSequenceNumber, final Object plugin,
+    final Map<String, Object> parameters) {
     final String resultListProperty = this.businessApplication.getResultListProperty();
 
     final boolean testMode = this.businessApplication.isTestModeEnabled();
@@ -203,8 +202,8 @@ public class WorkerGroupRunnable implements Runnable {
       if (resultObjects == null || resultObjects.isEmpty()) {
         if (testMode) {
           final double meanNumResults = Maps.getDouble(testParameters, "cpfMeanNumResults", 3.0);
-          final int numResults = (int)Math.round(MathUtil.randomGaussian(meanNumResults,
-            meanNumResults / 5));
+          final int numResults = (int)Math
+            .round(MathUtil.randomGaussian(meanNumResults, meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
             writeResult(resultWriter, plugin, parameters, customizationProperties,
               requestSequenceNumber, i, testMode);
@@ -243,8 +242,8 @@ public class WorkerGroupRunnable implements Runnable {
    * @return The request map
    */
   protected void executeRequest(final CsvWriter resultWriter,
-    final RecordDefinition requestRecordDefinition,
-    final Map<String, Object> applicationParameters, final Map<String, Object> requestParameters) {
+    final RecordDefinition requestRecordDefinition, final Map<String, Object> applicationParameters,
+    final Map<String, Object> requestParameters) {
     final StopWatch requestStopWatch = new StopWatch("Request");
     requestStopWatch.start();
 
@@ -257,8 +256,9 @@ public class WorkerGroupRunnable implements Runnable {
       final Object plugin = this.module.getBusinessApplicationPlugin(this.businessApplicationName,
         this.groupId, this.logLevel);
       if (plugin == null) {
-        addError(requestSequenceNumber, "Unable to create plugin " + this.businessApplicationName
-          + " ", "ERROR_PROCESSING_REQUEST", null);
+        addError(requestSequenceNumber,
+          "Unable to create plugin " + this.businessApplicationName + " ",
+          "ERROR_PROCESSING_REQUEST", null);
       } else {
         final AppLog appLog = new AppLog(this.businessApplicationName, this.groupId, this.logLevel);
         File resultFile = null;
@@ -314,7 +314,8 @@ public class WorkerGroupRunnable implements Runnable {
       hasError = false;
     } catch (final Throwable e) {
       this.log.error("Error processing request " + requestSequenceNumber, e);
-      addError(requestSequenceNumber, "Error processing request ", "ERROR_PROCESSING_REQUEST", null);
+      addError(requestSequenceNumber, "Error processing request ", "ERROR_PROCESSING_REQUEST",
+        null);
     }
 
     if (hasError) {
@@ -331,8 +332,8 @@ public class WorkerGroupRunnable implements Runnable {
 
   @SuppressWarnings("unchecked")
   protected Map<String, Object> getParameters(final BusinessApplication businessApplication,
-    final RecordDefinition requestRecordDefinition,
-    final Map<String, Object> applicationParameters, final Map<String, Object> requestParameters) {
+    final RecordDefinition requestRecordDefinition, final Map<String, Object> applicationParameters,
+    final Map<String, Object> requestParameters) {
     final Map<String, Object> parameters = new LinkedHashMap<String, Object>(applicationParameters);
     parameters.putAll(requestParameters);
     if (!businessApplication.isPerRequestInputData()) {
@@ -341,19 +342,10 @@ public class WorkerGroupRunnable implements Runnable {
         final String name = entry.getKey();
         final Object value = entry.getValue();
         if (value != null) {
-          final FieldDefinition attribute = requestRecordDefinition.getField(name);
-          if (attribute != null) {
-            final DataType dataType = attribute.getType();
-            final Class<Object> dataTypeClass = (Class<Object>)dataType.getJavaClass();
-            if (!dataTypeClass.isAssignableFrom(value.getClass())) {
-              entry.setValue(value);
-              final StringConverter<Object> converter = StringConverterRegistry.getInstance()
-                .getConverter(dataTypeClass);
-              if (converter != null) {
-                final Object convertedValue = converter.objectToObject(value);
-                entry.setValue(convertedValue);
-              }
-            }
+          final FieldDefinition fieldDefinition = requestRecordDefinition.getField(name);
+          if (fieldDefinition != null) {
+            final Object convertedValue = fieldDefinition.toFieldValue(value);
+            entry.setValue(convertedValue);
           }
         }
       }
@@ -365,11 +357,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List<Map<String,Object>
    * logRecords List<Map<String,Object>
    * groupExecutionTime long
@@ -418,7 +410,8 @@ public class WorkerGroupRunnable implements Runnable {
             time = System.currentTimeMillis();
             final Map<String, Object> globalError = new LinkedHashMap<>();
 
-            final RecordDefinition requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
+            final RecordDefinition requestRecordDefinition = this.businessApplication
+              .getRequestRecordDefinition();
             final Map<String, Object> applicationParameters = new HashMap<>(
               (Map<String, Object>)group.get("applicationParameters"));
             for (final String name : requestRecordDefinition.getFieldNames()) {
@@ -426,7 +419,7 @@ public class WorkerGroupRunnable implements Runnable {
               if (value != null) {
                 try {
                   final DataType dataType = requestRecordDefinition.getFieldType(name);
-                  final Object convertedValue = StringConverter.toObject(dataType, value);
+                  final Object convertedValue = dataType.toObject(value);
                   applicationParameters.put(name, convertedValue);
                 } catch (final Throwable e) {
                   this.log.error("Error processing group", e);
@@ -478,8 +471,8 @@ public class WorkerGroupRunnable implements Runnable {
         if (this.errorWriter != null) {
           final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
             + "/groups/" + this.groupId + "/error";
-          final HttpResponse errorResponse = this.httpClient.postResource(
-            this.httpClient.getUrl(errorPath), "text/csv", this.errorFile);
+          final HttpResponse errorResponse = this.httpClient
+            .postResource(this.httpClient.getUrl(errorPath), "text/csv", this.errorFile);
           this.httpClient.closeResponse(errorResponse);
         }
       }
@@ -491,8 +484,8 @@ public class WorkerGroupRunnable implements Runnable {
       this.log.info("End\tGroup execution\tgroupId=" + this.groupId);
       FileUtil.delete(this.errorFile);
     }
-    System.out.println(getTime + "\t" + runTime + "\t" + putTime + "\t"
-      + (System.currentTimeMillis() - time));
+    System.out.println(
+      getTime + "\t" + runTime + "\t" + putTime + "\t" + (System.currentTimeMillis() - time));
   }
 
   protected void sendResultData(final Integer requestSequenceNumber,
@@ -503,9 +496,9 @@ public class WorkerGroupRunnable implements Runnable {
         resultData.flush();
         FileUtil.closeSilent(resultData);
         final String resultDataContentType = (String)parameters.get("resultDataContentType");
-        final String resultDataUrl = this.httpClient.getUrl("/worker/workers/" + this.workerId
-          + "/jobs/" + this.batchJobId + "/groups/" + this.groupId + "/requests/"
-          + requestSequenceNumber + "/resultData");
+        final String resultDataUrl = this.httpClient
+          .getUrl("/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
+            + this.groupId + "/requests/" + requestSequenceNumber + "/resultData");
 
         final HttpResponse response = this.httpClient.postResource(resultDataUrl,
           resultDataContentType, resultFile);
@@ -569,24 +562,26 @@ public class WorkerGroupRunnable implements Runnable {
   public void setPluginProperty(final Object plugin, final String parameterName,
     Object parameterValue) {
     try {
-      final RecordDefinitionImpl requestRecordDefinition = this.businessApplication.getRequestRecordDefinition();
-      final Class<?> fieldClass = requestRecordDefinition.getFieldClass(parameterName);
-      if (fieldClass != null) {
-        parameterValue = StringConverter.toObject(fieldClass, parameterValue);
+      final RecordDefinitionImpl requestRecordDefinition = this.businessApplication
+        .getRequestRecordDefinition();
+      final FieldDefinition field = requestRecordDefinition.getField(parameterName);
+      if (field != null) {
+        parameterValue = field.toFieldValue(parameterValue);
       }
       if (parameterValue != null) {
         BeanUtils.setProperty(plugin, parameterName, parameterValue);
       }
     } catch (final Throwable t) {
-      throw new IllegalArgumentException(this.businessApplication.getName() + "." + parameterName
-        + " could not be set", t);
+      throw new IllegalArgumentException(
+        this.businessApplication.getName() + "." + parameterName + " could not be set", t);
     }
   }
 
   private void writeResult(final CsvWriter resultWriter, final Object plugin,
     final Map<String, Object> parameters, Map<String, Object> customizationProperties,
     final Integer requestSequenceNumber, final int resultIndex, final boolean test) {
-    final RecordDefinition resultRecordDefinition = this.businessApplication.getResultRecordDefinition();
+    final RecordDefinition resultRecordDefinition = this.businessApplication
+      .getResultRecordDefinition();
     final List<Object> result = new ArrayList<>();
     result.add(requestSequenceNumber);
     if (resultIndex != 0) {
@@ -606,7 +601,8 @@ public class WorkerGroupRunnable implements Runnable {
             if (geometryFactory == GeometryFactory.floating3()) {
               geometryFactory = geometry.getGeometryFactory();
             }
-            final int srid = Maps.getInteger(parameters, "resultSrid", geometryFactory.getCoordinateSystemId());
+            final int srid = Maps.getInteger(parameters, "resultSrid",
+              geometryFactory.getCoordinateSystemId());
             final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",

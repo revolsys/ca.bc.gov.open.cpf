@@ -33,7 +33,6 @@ import org.springframework.web.servlet.HandlerMapping;
 
 import com.revolsys.spring.resource.Resource;
 import com.revolsys.spring.resource.ServletContextResource;
-import com.revolsys.spring.resource.SpringUtil;
 import com.revolsys.util.Property;
 
 @Controller

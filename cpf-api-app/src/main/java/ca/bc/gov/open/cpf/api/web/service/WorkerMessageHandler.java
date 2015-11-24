@@ -58,12 +58,6 @@ public class WorkerMessageHandler implements ModuleEventListener {
     }
   }
 
-  private Map<String, Object> newResultMessage(final Map<String, Object> message) {
-    final String messageId = Maps.getString(message, "messageId");
-    final Map<String, Object> resultMessage = Maps.newLinkedHash("messageId", messageId);
-    return resultMessage;
-  }
-
   public void executingGroupIds(final Map<String, Object> message, final Worker worker) {
     @SuppressWarnings("unchecked")
     final List<String> executingGroupIds = (List<String>)message.get("executingGroupIds");
@@ -163,6 +157,12 @@ public class WorkerMessageHandler implements ModuleEventListener {
     moduleState.setStartedTime(0);
   }
 
+  private Map<String, Object> newResultMessage(final Map<String, Object> message) {
+    final String messageId = Maps.getString(message, "messageId");
+    final Map<String, Object> resultMessage = Maps.newLinkedHash("messageId", messageId);
+    return resultMessage;
+  }
+
   @OnClose
   public void onClose(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
@@ -187,9 +187,9 @@ public class WorkerMessageHandler implements ModuleEventListener {
   public void onOpen(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
     if (this.businessApplicationRegistry == null) {
-      final WebApplicationContext wac = (WebApplicationContext)ContextLoader.getCurrentWebApplicationContext()
-        .getServletContext()
-        .getAttribute("org.springframework.web.servlet.FrameworkServlet.CONTEXT.cpf");
+      final WebApplicationContext wac = (WebApplicationContext)ContextLoader
+        .getCurrentWebApplicationContext().getServletContext().getAttribute(
+          "org.springframework.web.servlet.FrameworkServlet.CONTEXT.cpf");
       this.businessApplicationRegistry = wac.getBean(BusinessApplicationRegistry.class);
       this.businessApplicationRegistry.addModuleEventListener(this);
       this.batchJobService = wac.getBean(BatchJobService.class);

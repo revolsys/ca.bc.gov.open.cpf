@@ -55,8 +55,8 @@ public class UserAccountByConsumerKeyDetailsService implements UserDetailsServic
   }
 
   @Override
-  public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException,
-    DataAccessException {
+  public UserDetails loadUserByUsername(final String username)
+    throws UsernameNotFoundException, DataAccessException {
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {

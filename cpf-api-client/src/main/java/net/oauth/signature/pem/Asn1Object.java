@@ -21,7 +21,7 @@ import java.math.BigInteger;
 /**
  * An ASN.1 TLV. The object is not parsed. It can only handle integers and
  * strings.
- * 
+ *
  * @author zhang
  */
 @SuppressWarnings("javadoc")
@@ -40,7 +40,7 @@ class Asn1Object {
    * entity.
    * <p/>
    * The first byte in DER encoding is made of following fields,
-   * 
+   *
    * <pre>
    * -------------------------------------------------
    * |Bit 8|Bit 7|Bit 6|Bit 5|Bit 4|Bit 3|Bit 2|Bit 1|
@@ -48,14 +48,14 @@ class Asn1Object {
    * |  Class    | CF  |     +      Type             |
    * -------------------------------------------------
    * </pre>
-   * 
+   *
    * <ul>
    * <li>Class: Universal, Application, Context or Private
    * <li>CF: Constructed flag. If 1, the field is constructed.
    * <li>Type: This is actually called tag in ASN.1. It indicates data type
    * (Integer, String) or a construct (sequence, choice, set).
    * </ul>
-   * 
+   *
    * @param tag Tag or WmsIdentifier
    * @param length Length of the field
    * @param value Encoded octet string for the field.
@@ -69,25 +69,25 @@ class Asn1Object {
 
   /**
    * Get the value as integer
-   * 
+   *
    * @return BigInteger
    * @throws IOException
    */
   public BigInteger getInteger() throws IOException {
-    if (type != DerParser.INTEGER) {
+    if (this.type != DerParser.INTEGER) {
       throw new IOException("Invalid DER: object is not integer"); //$NON-NLS-1$
     }
 
-    return new BigInteger(value);
+    return new BigInteger(this.value);
   }
 
   public int getLength() {
-    return length;
+    return this.length;
   }
 
   /**
    * For constructed field, return a parser for its content.
-   * 
+   *
    * @return A parser for the construct.
    * @throws IOException
    */
@@ -96,12 +96,12 @@ class Asn1Object {
       throw new IOException("Invalid DER: can't parse primitive entity"); //$NON-NLS-1$
     }
 
-    return new DerParser(value);
+    return new DerParser(this.value);
   }
 
   /**
    * Get value as string. Most strings are treated as Latin-1.
-   * 
+   *
    * @return Java string
    * @throws IOException
    */
@@ -109,9 +109,9 @@ class Asn1Object {
 
     String encoding;
 
-    switch (type) {
+    switch (this.type) {
 
-    // Not all are Latin-1 but it's the closest thing
+      // Not all are Latin-1 but it's the closest thing
       case DerParser.NUMERIC_STRING:
       case DerParser.PRINTABLE_STRING:
       case DerParser.VIDEOTEX_STRING:
@@ -137,18 +137,18 @@ class Asn1Object {
         throw new IOException("Invalid DER: object is not a string"); //$NON-NLS-1$
     }
 
-    return new String(value, encoding);
+    return new String(this.value, encoding);
   }
 
   public int getType() {
-    return type;
+    return this.type;
   }
 
   public byte[] getValue() {
-    return value;
+    return this.value;
   }
 
   public boolean isConstructed() {
-    return (tag & DerParser.CONSTRUCTED) == DerParser.CONSTRUCTED;
+    return (this.tag & DerParser.CONSTRUCTED) == DerParser.CONSTRUCTED;
   }
 }

@@ -30,7 +30,7 @@ import java.math.BigInteger;
  * <p/>
  * There are many DER decoders in JRE but using them will tie this program to a
  * specific JCE/JVM.
- * 
+ *
  * @author zhang
  */
 @SuppressWarnings("javadoc")
@@ -103,7 +103,7 @@ class DerParser {
 
   /**
    * Construct a new new DER decoder from a byte array.
-   * 
+   *
    * @param The encoded bytes
    * @throws IOException
    */
@@ -113,7 +113,7 @@ class DerParser {
 
   /**
    * Construct a new new DER decoder from an input stream.
-   * 
+   *
    * @param in The DER encoded stream
    */
   public DerParser(final InputStream in) throws IOException {
@@ -133,13 +133,13 @@ class DerParser {
    * octets. Second and following octets give the length, base 256, most
    * significant digit first.
    * </ul>
-   * 
+   *
    * @return The length as integer
    * @throws IOException
    */
   private int getLength() throws IOException {
 
-    final int i = in.read();
+    final int i = this.in.read();
     if (i == -1) {
       throw new IOException("Invalid DER: length missing"); //$NON-NLS-1$
     }
@@ -158,7 +158,7 @@ class DerParser {
     }
 
     final byte[] bytes = new byte[num];
-    final int n = in.read(bytes);
+    final int n = this.in.read(bytes);
     if (n < num) {
       throw new IOException("Invalid DER: length too short"); //$NON-NLS-1$
     }
@@ -169,12 +169,12 @@ class DerParser {
   /**
    * Read next object. If it's constructed, the value holds encoded content and
    * it should be parsed by a new parser from <code>Asn1Object.getParser</code>.
-   * 
+   *
    * @return A object
    * @throws IOException
    */
   public Asn1Object read() throws IOException {
-    final int tag = in.read();
+    final int tag = this.in.read();
 
     if (tag == -1) {
       throw new IOException("Invalid DER: stream too short, missing tag"); //$NON-NLS-1$
@@ -183,7 +183,7 @@ class DerParser {
     final int length = getLength();
 
     final byte[] value = new byte[length];
-    final int n = in.read(value);
+    final int n = this.in.read(value);
     if (n < length) {
       throw new IOException("Invalid DER: stream too short, missing value"); //$NON-NLS-1$
     }

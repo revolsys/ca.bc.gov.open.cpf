@@ -24,20 +24,19 @@ import com.revolsys.record.Record;
 import com.revolsys.util.Property;
 
 public class ResourcePermission {
+  public static final String ALL = "ALL";
+
   public static List<ResourcePermission> getPermissions(
     final List<Map<String, Object>> permissions) {
     final List<ResourcePermission> resourcePermissions = new ArrayList<ResourcePermission>();
     if (permissions != null) {
       for (final Map<String, Object> permission : permissions) {
-        final ResourcePermission resourcePermission = new ResourcePermission(
-          permission);
+        final ResourcePermission resourcePermission = new ResourcePermission(permission);
         resourcePermissions.add(resourcePermission);
       }
     }
     return resourcePermissions;
   }
-
-  public static final String ALL = "ALL";
 
   private String actionName;
 
@@ -66,8 +65,8 @@ public class ResourcePermission {
     this.actionName = permission.getActionName();
   }
 
-  public ResourcePermission(final String resourceClass,
-    final String resourceId, final String actionName) {
+  public ResourcePermission(final String resourceClass, final String resourceId,
+    final String actionName) {
     setResourceClass(resourceClass);
     setResourceId(resourceId);
     setActionName(actionName);
@@ -125,8 +124,7 @@ public class ResourcePermission {
 
   @Override
   public int hashCode() {
-    return this.resourceClass.hashCode() + this.resourceId.hashCode()
-        + this.actionName.hashCode();
+    return this.resourceClass.hashCode() + this.resourceId.hashCode() + this.actionName.hashCode();
   }
 
   public void setActionName(final String actionName) {

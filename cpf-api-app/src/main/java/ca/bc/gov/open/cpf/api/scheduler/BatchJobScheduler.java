@@ -53,8 +53,8 @@ import com.revolsys.parallel.process.Process;
 import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.util.Property;
 
-public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
-  PropertyChangeListener {
+public class BatchJobScheduler extends ThreadPoolExecutor
+  implements Process, PropertyChangeListener {
   /** The batch job service used to interact with the database. */
   private BatchJobService batchJobService;
 
@@ -105,22 +105,6 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
     }
     synchronized (businessApplicationName) {
       this.scheduledGroupsByBusinessApplication.remove(businessApplicationName);
-    }
-  }
-
-  public void newExecutionGroup(final BusinessApplication businessApplication,
-    final BatchJob batchJob) {
-    try {
-      final BatchJobRequestExecutionGroup group = batchJob.getNextGroup(businessApplication);
-      if (group != null) {
-        final String businessApplicationName = group.getBusinessApplicationName();
-        synchronized (this.scheduledGroupsByBusinessApplication) {
-          Maps.addToSet(this.scheduledGroupsByBusinessApplication, businessApplicationName, group);
-        }
-        this.batchJobService.scheduleGroup(group);
-      }
-    } catch (final Throwable t) {
-      LoggerFactory.getLogger(BatchJobScheduler.class).error(t.getMessage(), t);
     }
   }
 
@@ -180,8 +164,8 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
 
   private int getScheduledGroupCount(final String businessApplicationName) {
     synchronized (this.scheduledGroupsByBusinessApplication) {
-      final int groupCount = CollectionUtil.getCollectionSize(
-        this.scheduledGroupsByBusinessApplication, businessApplicationName);
+      final int groupCount = CollectionUtil
+        .getCollectionSize(this.scheduledGroupsByBusinessApplication, businessApplicationName);
       return groupCount;
     }
   }
@@ -203,6 +187,22 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
     Property.addListener(config, "preProcessPoolSize", this);
     final int preProcessPoolSize = config.getPreProcessPoolSize();
     setMaximumPoolSize(preProcessPoolSize);
+  }
+
+  public void newExecutionGroup(final BusinessApplication businessApplication,
+    final BatchJob batchJob) {
+    try {
+      final BatchJobRequestExecutionGroup group = batchJob.getNextGroup(businessApplication);
+      if (group != null) {
+        final String businessApplicationName = group.getBusinessApplicationName();
+        synchronized (this.scheduledGroupsByBusinessApplication) {
+          Maps.addToSet(this.scheduledGroupsByBusinessApplication, businessApplicationName, group);
+        }
+        this.batchJobService.scheduleGroup(group);
+      }
+    } catch (final Throwable t) {
+      LoggerFactory.getLogger(BatchJobScheduler.class).error(t.getMessage(), t);
+    }
   }
 
   @Override
@@ -285,8 +285,10 @@ public class BatchJobScheduler extends ThreadPoolExecutor implements Process,
     synchronized (this.queuedJobs) {
       for (final Iterator<BatchJob> iterator = this.queuedJobs.iterator(); iterator.hasNext();) {
         final BatchJob batchJob = iterator.next();
-        final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-        final BusinessApplication businessApplication = this.batchJobService.getBusinessApplication(businessApplicationName);
+        final String businessApplicationName = batchJob
+          .getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+        final BusinessApplication businessApplication = this.batchJobService
+          .getBusinessApplication(businessApplicationName);
         if (businessApplication != null && businessApplication.getModule().isStarted()) {
           final int maxCount = businessApplication.getMaxConcurrentRequests();
           final int scheduledCount = getScheduledGroupCount(businessApplicationName);

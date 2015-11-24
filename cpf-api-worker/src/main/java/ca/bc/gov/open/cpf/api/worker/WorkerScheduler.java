@@ -239,32 +239,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
-  protected Map<String, Object> newExecutingGroupsMessage() {
-    final Map<String, Object> message = new LinkedHashMap<>();
-    message.put("type", "executingGroupIds");
-    message.put("workerId", this.id);
-    synchronized (this.executingGroupIds) {
-      message.put("executingGroupIds", new ArrayList<String>(this.executingGroupIds));
-    }
-    this.lastPingTime = System.currentTimeMillis();
-    return message;
-  }
-
-  protected Map<String, Object> newModuleMessage(final Module module, final String action) {
-    final String moduleName = module.getName();
-    final long moduleTime = module.getStartedTime();
-    return newModuleMessage(moduleName, moduleTime, action);
-  }
-
-  protected Map<String, Object> newModuleMessage(final String moduleName, final long moduleTime,
-    final String action) {
-    final Map<String, Object> message = new LinkedHashMap<>();
-    message.put("type", action);
-    message.put("moduleName", moduleName);
-    message.put("moduleTime", moduleTime);
-    return message;
-  }
-
   @PreDestroy
   public void destroy() {
     this.running = false;
@@ -555,6 +529,32 @@ public class WorkerScheduler extends ThreadPoolExecutor
     if (module != null) {
       unloadModule(module);
     }
+  }
+
+  protected Map<String, Object> newExecutingGroupsMessage() {
+    final Map<String, Object> message = new LinkedHashMap<>();
+    message.put("type", "executingGroupIds");
+    message.put("workerId", this.id);
+    synchronized (this.executingGroupIds) {
+      message.put("executingGroupIds", new ArrayList<String>(this.executingGroupIds));
+    }
+    this.lastPingTime = System.currentTimeMillis();
+    return message;
+  }
+
+  protected Map<String, Object> newModuleMessage(final Module module, final String action) {
+    final String moduleName = module.getName();
+    final long moduleTime = module.getStartedTime();
+    return newModuleMessage(moduleName, moduleTime, action);
+  }
+
+  protected Map<String, Object> newModuleMessage(final String moduleName, final long moduleTime,
+    final String action) {
+    final Map<String, Object> message = new LinkedHashMap<>();
+    message.put("type", action);
+    message.put("moduleName", moduleName);
+    message.put("moduleTime", moduleTime);
+    return message;
   }
 
   @OnClose

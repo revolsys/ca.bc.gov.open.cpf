@@ -32,12 +32,12 @@ public class GeometryResult {
 
   @ResultAttribute(description = "The area of the geometry")
   public double getArea() {
-    return geometry.getArea();
+    return this.geometry.getArea();
   }
 
   public Map<String, Object> getCustomizationProperties() {
     final Map<String, Object> properties = new HashMap<>();
-    final String styleId = geometry.getGeometryType();
+    final String styleId = this.geometry.getGeometryType();
     properties.put("kmlStyleUrl", "http://gov.bc.ca/kmlStyle.kml#" + styleId);
     properties.put("kmlWriteNulls", true);
     return properties;
@@ -45,12 +45,12 @@ public class GeometryResult {
 
   @ResultAttribute(description = "The simple geometry.")
   public Geometry getGeometry() {
-    return geometry;
+    return this.geometry;
   }
 
   @ResultAttribute(description = "The length of the geometry")
   public double getLength() {
-    return geometry.getLength();
+    return this.geometry.getLength();
   }
 
 }

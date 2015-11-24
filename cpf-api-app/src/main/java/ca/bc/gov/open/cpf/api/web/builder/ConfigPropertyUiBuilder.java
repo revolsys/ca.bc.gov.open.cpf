@@ -267,8 +267,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final Query query = new Query(getTableName(), where);
     parameters.put("query", query);
 
-    return newDataTableHandlerOrRedirect(request, response, "moduleAppList", Module.class,
-      "view", parameters);
+    return newDataTableHandlerOrRedirect(request, response, "moduleAppList", Module.class, "view",
+      parameters);
   }
 
   @RequestMapping(value = {

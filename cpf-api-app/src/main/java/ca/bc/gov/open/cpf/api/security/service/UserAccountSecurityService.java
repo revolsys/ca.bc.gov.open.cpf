@@ -53,7 +53,8 @@ public class UserAccountSecurityService {
             final String userType = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
             groupNames.add("USER");
             groupNames.add(userType);
-            final Set<Record> groups = this.dataAccessObject.getUserGroupsForUserAccount(userAccount);
+            final Set<Record> groups = this.dataAccessObject
+              .getUserGroupsForUserAccount(userAccount);
             if (groups != null) {
               for (final Record userGroup : groups) {
                 final String groupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
@@ -68,10 +69,9 @@ public class UserAccountSecurityService {
             }
           }
         } catch (final Throwable t) {
-          LoggerFactory.getLogger(UserAccountSecurityService.class)
-            .error(
-              "Unable to load authorities for user "
-                + userAccount.getValue(UserAccount.CONSUMER_KEY), t);
+          LoggerFactory.getLogger(UserAccountSecurityService.class).error(
+            "Unable to load authorities for user " + userAccount.getValue(UserAccount.CONSUMER_KEY),
+            t);
         }
         return groupNames;
       } catch (final Throwable e) {

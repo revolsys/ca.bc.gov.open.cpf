@@ -28,7 +28,6 @@ import java.util.Map;
 import ca.bc.gov.open.cpf.client.api.Callback;
 import ca.bc.gov.open.cpf.client.api.CpfClient;
 
-import com.revolsys.spring.resource.ByteArrayResource;
 import com.revolsys.spring.resource.FileSystemResource;
 import com.revolsys.spring.resource.Resource;
 
@@ -104,82 +103,6 @@ public class CpfClientTest {
   private static void testConstructor() {
     System.out.println("Constructor");
     final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-  }
-
-  private static void testCreateOpaqueResource() {
-    System.out.println("Opaque Input Resource");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
-      final Map<String, Object> parameters = new HashMap<>();
-      parameters.put("algorithmName", "MD5");
-
-      final Resource resource = new ByteArrayResource("Test string".getBytes());
-      // Resource resource = new FileSystemResource(pathToFile);
-
-      final String batchJobId = client.createJobWithOpaqueResourceRequests("Digest", parameters,
-        "text/plain", "application/json", resource);
-      // Download the results of the job
-      client.closeJob(batchJobId);
-    } finally {
-      client.closeConnection();
-    }
-  }
-
-  private static void testCreateOpaqueResourceCollection() {
-    System.out.println("Opaque Input Resource Collection");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
-      final Map<String, Object> parameters = new HashMap<>();
-      parameters.put("algorithmName", "MD5");
-
-      final List<Resource> requests = new ArrayList<Resource>();
-      requests.add(new ByteArrayResource("Test string".getBytes()));
-      // requests.add(Resource resource = new FileSystemResource(pathToFile));
-
-      final String batchJobId = client.createJobWithOpaqueResourceRequests("Digest", parameters,
-        "text/plain", "application/json", requests);
-      // Download the results of the job
-      client.closeJob(batchJobId);
-    } finally {
-      client.closeConnection();
-    }
-  }
-
-  private static void testCreateOpaqueUrl() {
-    System.out.println("Opaque URL Resource");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
-      final Map<String, Object> parameters = new HashMap<>();
-      parameters.put("algorithmName", "MD5");
-
-      final String inputDataUrl = "http://localhost/pub/cpf/css/cpf.css";
-
-      final String batchJobId = client.createJobWithOpaqueUrlRequests("Digest", parameters,
-        "text/plain", "application/json", inputDataUrl);
-      // Download the results of the job
-      client.closeJob(batchJobId);
-    } finally {
-      client.closeConnection();
-    }
-  }
-
-  private static void testCreateOpaqueUrlCollection() {
-    System.out.println("Opaque Input URL Collection");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
-      final Map<String, Object> parameters = new HashMap<>();
-      parameters.put("algorithmName", "MD5");
-
-      final List<String> inputDataUrls = new ArrayList<String>();
-      inputDataUrls.add("http://localhost/pub/cpf/css/cpf.css");
-
-      final String batchJobId = client.createJobWithOpaqueUrlRequests("Digest", parameters,
-        "text/plain", "application/json", inputDataUrls);
-      // Download the results of the job
-      client.closeJob(batchJobId);
-    } finally {
-      client.closeConnection();
-    }
   }
 
   private static void testCreateStructuredMultipleList() {

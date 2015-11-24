@@ -17,7 +17,6 @@ package ca.bc.gov.open.cpf.api.scheduler;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,9 +67,8 @@ public class Worker {
   public boolean cancelBatchJob(final Identifier batchJobId) {
     synchronized (this.executingGroupsById) {
       boolean found = false;
-      for (final Iterator<Entry<String, BatchJobRequestExecutionGroup>> iterator = this.executingGroupsById
-        .entrySet().iterator(); iterator.hasNext();) {
-        final Entry<String, BatchJobRequestExecutionGroup> entry = iterator.next();
+      for (final Entry<String, BatchJobRequestExecutionGroup> entry : this.executingGroupsById
+        .entrySet()) {
         final String groupId = entry.getKey();
         final BatchJobRequestExecutionGroup group = entry.getValue();
         if (group.getBatchJobId().equals(batchJobId)) {

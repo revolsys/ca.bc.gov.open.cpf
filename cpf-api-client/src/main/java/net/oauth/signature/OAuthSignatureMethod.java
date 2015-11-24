@@ -40,25 +40,24 @@ import net.oauth.OAuthProblemException;
  * Static methods of this class implement a registry of signature methods. It's
  * pre-populated with the standard OAuth algorithms. Appliations can replace
  * them or add new ones.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
 public abstract class OAuthSignatureMethod {
 
   /** An efficiently sortable wrapper around a parameter. */
-  private static class ComparableParameter implements
-    Comparable<ComparableParameter> {
+  private static class ComparableParameter implements Comparable<ComparableParameter> {
 
     private static String toString(final Object from) {
-      return (from == null) ? null : from.toString();
+      return from == null ? null : from.toString();
     }
 
-    final Entry<String,String> value;
+    final Entry<String, String> value;
 
     private final String key;
 
-    ComparableParameter(final Entry<String,String> value) {
+    ComparableParameter(final Entry<String, String> value) {
       this.value = value;
       final String n = toString(value.getKey());
       final String v = toString(value.getValue());
@@ -74,7 +73,7 @@ public abstract class OAuthSignatureMethod {
 
     @Override
     public String toString() {
-      return key;
+      return this.key;
     }
 
   }
@@ -133,10 +132,10 @@ public abstract class OAuthSignatureMethod {
     } else if (b.length <= 0) {
       return a.length <= 0;
     }
-    byte diff = (byte)((a.length == b.length) ? 0 : 1);
+    byte diff = (byte)(a.length == b.length ? 0 : 1);
     int j = 0;
-    for (int i = 0; i < a.length; ++i) {
-      diff |= a[i] ^ b[j];
+    for (final byte element : a) {
+      diff |= element ^ b[j];
       j = (j + 1) % b.length;
     }
     return diff == 0;
@@ -157,10 +156,10 @@ public abstract class OAuthSignatureMethod {
     }
     final char[] a = x.toCharArray();
     final char[] b = y.toCharArray();
-    char diff = (char)((a.length == b.length) ? 0 : 1);
+    char diff = (char)(a.length == b.length ? 0 : 1);
     int j = 0;
-    for (int i = 0; i < a.length; ++i) {
-      diff |= a[i] ^ b[j];
+    for (final char element : a) {
+      diff |= element ^ b[j];
       j = (j + 1) % b.length;
     }
     return diff == 0;
@@ -168,14 +167,14 @@ public abstract class OAuthSignatureMethod {
 
   public static String getBaseString(final OAuthMessage message)
     throws IOException, URISyntaxException {
-    List<Entry<String,String>> parameters;
+    List<Entry<String, String>> parameters;
     String url = message.URL;
     final int q = url.indexOf('?');
     if (q < 0) {
       parameters = message.getParameters();
     } else {
       // Combine the URL query string with the other parameters:
-      parameters = new ArrayList<Map.Entry<String,String>>();
+      parameters = new ArrayList<Map.Entry<String, String>>();
       parameters.addAll(OAuth.decodeForm(message.URL.substring(q + 1)));
       parameters.addAll(message.getParameters());
       url = url.substring(0, q);
@@ -186,12 +185,13 @@ public abstract class OAuthSignatureMethod {
   }
 
   /** Retrieve the original parameters from a sorted collection. */
-  private static List<Entry<String,String>> getParameters(
+  private static List<Entry<String, String>> getParameters(
     final Collection<ComparableParameter> parameters) {
     if (parameters == null) {
       return null;
     }
-    final List<Entry<String,String>> list = new ArrayList<Entry<String,String>>(parameters.size());
+    final List<Entry<String, String>> list = new ArrayList<Entry<String, String>>(
+      parameters.size());
     for (final ComparableParameter parameter : parameters) {
       list.add(parameter.value);
     }
@@ -199,9 +199,8 @@ public abstract class OAuthSignatureMethod {
   }
 
   /** The factory for signature methods. */
-  public static OAuthSignatureMethod newMethod(
-    final String name,
-    final OAuthAccessor accessor) throws OAuthException {
+  public static OAuthSignatureMethod newMethod(final String name, final OAuthAccessor accessor)
+    throws OAuthException {
     try {
       final Class<?> methodClass = NAME_TO_CLASS.get(name);
       if (methodClass != null) {
@@ -213,8 +212,7 @@ public abstract class OAuthSignatureMethod {
         OAuth.Problems.SIGNATURE_METHOD_REJECTED);
       final String acceptable = OAuth.percentEncode(NAME_TO_CLASS.keySet());
       if (acceptable.length() > 0) {
-        problem.setParameter("oauth_acceptable_signature_methods",
-          acceptable.toString());
+        problem.setParameter("oauth_acceptable_signature_methods", acceptable.toString());
       }
       throw problem;
     } catch (final InstantiationException e) {
@@ -224,24 +222,21 @@ public abstract class OAuthSignatureMethod {
     }
   }
 
-  public static OAuthSignatureMethod newSigner(
-    final OAuthMessage message,
+  public static OAuthSignatureMethod newSigner(final OAuthMessage message,
     final OAuthAccessor accessor) throws IOException, OAuthException {
     message.requireParameters(OAuth.OAUTH_SIGNATURE_METHOD);
-    final OAuthSignatureMethod signer = newMethod(message.getSignatureMethod(),
-      accessor);
+    final OAuthSignatureMethod signer = newMethod(message.getSignatureMethod(), accessor);
     signer.setTokenSecret(accessor.tokenSecret);
     return signer;
   }
 
   protected static String normalizeParameters(
-    final Collection<? extends Entry<String,String>> parameters) throws IOException {
+    final Collection<? extends Entry<String, String>> parameters) throws IOException {
     if (parameters == null) {
       return "";
     }
-    final List<ComparableParameter> p = new ArrayList<ComparableParameter>(
-      parameters.size());
-    for (final Entry<String,String> parameter : parameters) {
+    final List<ComparableParameter> p = new ArrayList<ComparableParameter>(parameters.size());
+    for (final Entry<String, String> parameter : parameters) {
       if (!"oauth_signature".equals(parameter.getKey())) {
         p.add(new ComparableParameter(parameter));
       }
@@ -250,13 +245,12 @@ public abstract class OAuthSignatureMethod {
     return OAuth.formEncode(getParameters(p));
   }
 
-  protected static String normalizeUrl(final String url)
-    throws URISyntaxException {
+  protected static String normalizeUrl(final String url) throws URISyntaxException {
     final URI uri = new URI(url);
     final String scheme = uri.getScheme().toLowerCase();
     String authority = uri.getAuthority().toLowerCase();
-    final boolean dropPort = (scheme.equals("http") && uri.getPort() == 80)
-      || (scheme.equals("https") && uri.getPort() == 443);
+    final boolean dropPort = scheme.equals("http") && uri.getPort() == 80
+      || scheme.equals("https") && uri.getPort() == 443;
     if (dropPort) {
       // find the last : in the authority
       final int index = authority.lastIndexOf(":");
@@ -296,7 +290,7 @@ public abstract class OAuthSignatureMethod {
   private String tokenSecret;
 
   protected String getConsumerSecret() {
-    return consumerSecret;
+    return this.consumerSecret;
   }
 
   protected String getSignature(final OAuthMessage message)
@@ -311,15 +305,13 @@ public abstract class OAuthSignatureMethod {
   }
 
   /** Compute the signature for the given base string. */
-  protected abstract String getSignature(String baseString)
-    throws OAuthException;
+  protected abstract String getSignature(String baseString) throws OAuthException;
 
   public String getTokenSecret() {
-    return tokenSecret;
+    return this.tokenSecret;
   }
 
-  protected void initialize(final String name, final OAuthAccessor accessor)
-    throws OAuthException {
+  protected void initialize(final String name, final OAuthAccessor accessor) throws OAuthException {
     String secret = accessor.consumer.consumerSecret;
     if (name.endsWith(_ACCESSOR)) {
       // This code supports the 'Accessor Secret' extensions
@@ -340,8 +332,7 @@ public abstract class OAuthSignatureMethod {
   }
 
   /** Decide whether the signature is valid. */
-  protected abstract boolean isValid(String signature, String baseString)
-    throws OAuthException;
+  protected abstract boolean isValid(String signature, String baseString) throws OAuthException;
 
   protected void setConsumerSecret(final String consumerSecret) {
     this.consumerSecret = consumerSecret;
@@ -353,34 +344,31 @@ public abstract class OAuthSignatureMethod {
 
   /**
    * Add a signature to the message.
-   * 
+   *
    * @throws URISyntaxException
    * @throws IOException
    */
-  public void sign(final OAuthMessage message) throws OAuthException,
-    IOException, URISyntaxException {
-    message.addParameter(new OAuth.Parameter("oauth_signature",
-      getSignature(message)));
+  public void sign(final OAuthMessage message)
+    throws OAuthException, IOException, URISyntaxException {
+    message.addParameter(new OAuth.Parameter("oauth_signature", getSignature(message)));
   }
 
   /**
    * Check whether the message has a valid signature.
-   * 
+   *
    * @throws URISyntaxException
    * @throws OAuthProblemException the signature is invalid
    */
-  public void validate(final OAuthMessage message) throws IOException,
-    OAuthException, URISyntaxException {
+  public void validate(final OAuthMessage message)
+    throws IOException, OAuthException, URISyntaxException {
     message.requireParameters("oauth_signature");
     final String signature = message.getSignature();
     final String baseString = getBaseString(message);
     if (!isValid(signature, baseString)) {
-      final OAuthProblemException problem = new OAuthProblemException(
-        "signature_invalid");
+      final OAuthProblemException problem = new OAuthProblemException("signature_invalid");
       problem.setParameter("oauth_signature", signature);
       problem.setParameter("oauth_signature_base_string", baseString);
-      problem.setParameter("oauth_signature_method",
-        message.getSignatureMethod());
+      problem.setParameter("oauth_signature_method", message.getSignatureMethod());
       throw problem;
     }
   }

@@ -79,20 +79,22 @@ public class PreemptiveAuthorizer implements HttpRequestInterceptor {
   })
   @Override
   public void process(final HttpRequest request, final HttpContext context)
-      throws HttpException, IOException {
+    throws HttpException, IOException {
     final AuthState authState = (AuthState)context.getAttribute(ClientContext.TARGET_AUTH_STATE);
     if (authState != null && authState.getAuthScheme() != null) {
       return;
     }
     final HttpHost target = (HttpHost)context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
-    final CredentialsProvider creds = (CredentialsProvider)context.getAttribute(ClientContext.CREDS_PROVIDER);
-    final AuthSchemeRegistry schemes = (AuthSchemeRegistry)context.getAttribute(ClientContext.AUTHSCHEME_REGISTRY);
-    for (final Object schemeName : (Iterable<Object>)context.getAttribute(ClientContext.AUTH_SCHEME_PREF)) {
-      final AuthScheme scheme = schemes.getAuthScheme(schemeName.toString(),
-        request.getParams());
+    final CredentialsProvider creds = (CredentialsProvider)context
+      .getAttribute(ClientContext.CREDS_PROVIDER);
+    final AuthSchemeRegistry schemes = (AuthSchemeRegistry)context
+      .getAttribute(ClientContext.AUTHSCHEME_REGISTRY);
+    for (final Object schemeName : (Iterable<Object>)context
+      .getAttribute(ClientContext.AUTH_SCHEME_PREF)) {
+      final AuthScheme scheme = schemes.getAuthScheme(schemeName.toString(), request.getParams());
       if (scheme != null) {
-        final AuthScope targetScope = new AuthScope(target.getHostName(),
-          target.getPort(), scheme.getRealm(), scheme.getSchemeName());
+        final AuthScope targetScope = new AuthScope(target.getHostName(), target.getPort(),
+          scheme.getRealm(), scheme.getSchemeName());
         final Credentials cred = creds.getCredentials(targetScope);
         if (cred != null) {
           authState.setAuthScheme(scheme);

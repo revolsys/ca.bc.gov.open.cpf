@@ -17,41 +17,24 @@ package ca.bc.gov.open.cpf.plugin.impl.geometry;
 
 import ca.bc.gov.open.cpf.plugin.api.GeometryFactory;
 
-import com.revolsys.converter.string.StringConverter;
+import com.revolsys.datatype.AbstractDataType;
 import com.vividsolutions.jts.geom.Geometry;
 
-public class JtsGeometryConverter implements StringConverter<Geometry> {
+public class JtsGeometryDataType extends AbstractDataType {
 
-  @Override
-  public Class<Geometry> getConvertedClass() {
-    return Geometry.class;
+  public JtsGeometryDataType(final String name, final Class<? extends Geometry> javaClass) {
+    super(name, javaClass, true);
   }
 
   @Override
-  public boolean requiresQuotes() {
-    return true;
-  }
-
-  @Override
-  public Geometry objectToObject(final Object value) {
-    if (value instanceof Geometry) {
-      final Geometry geometry = (Geometry)value;
-      return geometry;
-    } else if (value == null) {
-      return null;
-    } else {
-      return stringToObject(value.toString());
-    }
-  }
-
-  @Override
-  public Geometry stringToObject(final String wkt) {
+  @SuppressWarnings("unchecked")
+  public <V> V toObject(final String string) {
     final GeometryFactory factory = GeometryFactory.getFactory();
-    return factory.createGeometry(wkt);
+    return (V)factory.createGeometry(string);
   }
 
   @Override
-  public String objectToString(final Object value) {
+  public String toString(final Object value) {
     if (value == null) {
       return null;
     } else if (value instanceof Geometry) {

@@ -27,7 +27,7 @@ import net.oauth.OAuthException;
 
 /**
  * The HMAC-SHA1 signature method.
- * 
+ *
  * @author John Kristian
  */
 class HMAC_SHA1 extends OAuthSignatureMethod {
@@ -70,8 +70,7 @@ class HMAC_SHA1 extends OAuthSignatureMethod {
   }
 
   @Override
-  protected boolean isValid(final String signature, final String baseString)
-    throws OAuthException {
+  protected boolean isValid(final String signature, final String baseString) throws OAuthException {
     try {
       final byte[] expected = computeSignature(baseString);
       final byte[] actual = decodeBase64(signature);
@@ -86,7 +85,7 @@ class HMAC_SHA1 extends OAuthSignatureMethod {
   @Override
   public void setConsumerSecret(final String consumerSecret) {
     synchronized (this) {
-      key = null;
+      this.key = null;
     }
     super.setConsumerSecret(consumerSecret);
   }
@@ -94,7 +93,7 @@ class HMAC_SHA1 extends OAuthSignatureMethod {
   @Override
   public void setTokenSecret(final String tokenSecret) {
     synchronized (this) {
-      key = null;
+      this.key = null;
     }
     super.setTokenSecret(tokenSecret);
   }

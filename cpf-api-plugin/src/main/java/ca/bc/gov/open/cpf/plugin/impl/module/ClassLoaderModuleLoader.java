@@ -43,7 +43,8 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
     final boolean useParentClassloader) {
     final List<URL> configUrls = new ArrayList<URL>();
     try {
-      final Enumeration<URL> urls = classLoader.getResources("META-INF/ca.bc.gov.open.cpf.plugin.sf.xml");
+      final Enumeration<URL> urls = classLoader
+        .getResources("META-INF/ca.bc.gov.open.cpf.plugin.sf.xml");
       while (urls.hasMoreElements()) {
         final URL configUrl = urls.nextElement();
         if (isDefinedInClassLoader(classLoader, useParentClassloader, configUrl)) {
@@ -51,8 +52,8 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
         }
       }
     } catch (final IOException e) {
-      LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error(
-        "Unable to get spring config URLs", e);
+      LoggerFactory.getLogger(ClassLoaderModuleLoader.class)
+        .error("Unable to get spring config URLs", e);
     }
     return configUrls;
   }
@@ -100,13 +101,11 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
     if (this.modulesByName == null) {
       this.modulesByName = new HashMap<String, Module>();
       try {
-        final List<URL> configUrls = getConfigUrls(this.classLoader,
-          this.useParentClassLoader);
+        final List<URL> configUrls = getConfigUrls(this.classLoader, this.useParentClassLoader);
         for (final URL configUrl : configUrls) {
           try {
             String moduleName = configUrl.toString();
-            moduleName = moduleName.replaceAll(
-              "META-INF/ca.bc.gov.open.cpf.plugin.sf.xml", "");
+            moduleName = moduleName.replaceAll("META-INF/ca.bc.gov.open.cpf.plugin.sf.xml", "");
             moduleName = moduleName.replaceAll("!", "");
             moduleName = moduleName.replaceAll("/target/classes", "");
             moduleName = moduleName.replaceAll("/+$", "");
@@ -123,21 +122,21 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
             if (!Property.hasValue(moduleName)) {
               moduleName = UUID.randomUUID().toString();
             }
-            final ConfigPropertyLoader configPropertyLoader = this.businessApplicationRegistry.getConfigPropertyLoader();
-            final ClassLoaderModule module = new ClassLoaderModule(
-              this.businessApplicationRegistry, moduleName, this.classLoader,
-              configPropertyLoader, configUrl);
+            final ConfigPropertyLoader configPropertyLoader = this.businessApplicationRegistry
+              .getConfigPropertyLoader();
+            final ClassLoaderModule module = new ClassLoaderModule(this.businessApplicationRegistry,
+              moduleName, this.classLoader, configPropertyLoader, configUrl);
             this.businessApplicationRegistry.addModule(module);
             this.modulesByName.put(moduleName, module);
             module.enable();
           } catch (final Throwable e) {
-            LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error(
-              "Unable to register module for " + configUrl, e);
+            LoggerFactory.getLogger(ClassLoaderModuleLoader.class)
+              .error("Unable to register module for " + configUrl, e);
           }
         }
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error(
-          "Unable to register modules", e);
+        LoggerFactory.getLogger(ClassLoaderModuleLoader.class).error("Unable to register modules",
+          e);
       }
     }
   }
@@ -154,22 +153,21 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
 
   public void setFile(final File file) {
     final ClassLoader parentClassLoader = getClass().getClassLoader();
-    final URLClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(
-      parentClassLoader, file);
+    final URLClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(parentClassLoader,
+      file);
     setClassLoader(classLoader);
   }
 
   public void setUrls(final Collection<URL> urls) {
     final ClassLoader parentClassLoader = getClass().getClassLoader();
-    final URLClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(
-      parentClassLoader, urls);
+    final URLClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(parentClassLoader,
+      urls);
     setClassLoader(classLoader);
   }
 
   public void setUrls(final URL... urls) {
     final ClassLoader parentClassLoader = getClass().getClassLoader();
-    final URLClassLoader classLoader = new URLClassLoader(urls,
-      parentClassLoader);
+    final URLClassLoader classLoader = new URLClassLoader(urls, parentClassLoader);
     setClassLoader(classLoader);
   }
 

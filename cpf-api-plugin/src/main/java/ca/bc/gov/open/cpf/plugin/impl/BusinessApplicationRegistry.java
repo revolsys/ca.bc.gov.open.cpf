@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsGeometryConverter;
+import ca.bc.gov.open.cpf.plugin.impl.geometry.JtsGeometryDataType;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleControlProcess;
@@ -43,8 +43,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 
 import com.revolsys.comparator.IgnoreCaseStringComparator;
-import com.revolsys.converter.string.StringConverterRegistry;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
 import com.revolsys.util.Exceptions;
@@ -58,30 +56,19 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
-public final class BusinessApplicationRegistry implements
-  ApplicationListener<ContextRefreshedEvent> {
+public final class BusinessApplicationRegistry
+  implements ApplicationListener<ContextRefreshedEvent> {
 
   static {
-    DataTypes.register("JtsGeometry", Geometry.class);
-    DataTypes.register("JtsGeometryCollection", GeometryCollection.class);
-    DataTypes.register("JtsPoint", Point.class);
-    DataTypes.register("JtsMultiPoint", MultiPoint.class);
-    DataTypes.register("JtsLineString", LineString.class);
-    DataTypes.register("JtsLinearRing", LinearRing.class);
-    DataTypes.register("JtsMultiLineString", MultiLineString.class);
-    DataTypes.register("JtsPolygon", Polygon.class);
-    DataTypes.register("JtsMultiPolygon", MultiPolygon.class);
-    final JtsGeometryConverter converter = new JtsGeometryConverter();
-    final StringConverterRegistry registry = StringConverterRegistry.getInstance();
-    registry.addConverter(Geometry.class, converter);
-    registry.addConverter(GeometryCollection.class, converter);
-    registry.addConverter(Point.class, converter);
-    registry.addConverter(MultiPoint.class, converter);
-    registry.addConverter(LineString.class, converter);
-    registry.addConverter(LinearRing.class, converter);
-    registry.addConverter(MultiLineString.class, converter);
-    registry.addConverter(Polygon.class, converter);
-    registry.addConverter(MultiPolygon.class, converter);
+    new JtsGeometryDataType("JtsGeometry", Geometry.class);
+    new JtsGeometryDataType("JtsGeometryCollection", GeometryCollection.class);
+    new JtsGeometryDataType("JtsPoint", Point.class);
+    new JtsGeometryDataType("JtsMultiPoint", MultiPoint.class);
+    new JtsGeometryDataType("JtsLineString", LineString.class);
+    new JtsGeometryDataType("JtsLinearRing", LinearRing.class);
+    new JtsGeometryDataType("JtsMultiLineString", MultiLineString.class);
+    new JtsGeometryDataType("JtsPolygon", Polygon.class);
+    new JtsGeometryDataType("JtsMultiPolygon", MultiPolygon.class);
   }
 
   private final Map<String, Module> modulesByName = new TreeMap<String, Module>();
@@ -273,7 +260,8 @@ public final class BusinessApplicationRegistry implements
     final List<BusinessApplication> businessApplications = new ArrayList<BusinessApplication>();
     final List<String> businessApplicationNames = getBusinessApplicationNames();
     for (final String businessApplicationName : businessApplicationNames) {
-      final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
+      final BusinessApplication businessApplication = getBusinessApplication(
+        businessApplicationName);
       if (businessApplication != null) {
         businessApplications.add(businessApplication);
       }
@@ -311,7 +299,8 @@ public final class BusinessApplicationRegistry implements
     return null;
   }
 
-  private synchronized Module getModuleForBusinessApplication(final String businessApplicationName) {
+  private synchronized Module getModuleForBusinessApplication(
+    final String businessApplicationName) {
     if (this.moduleNamesByBusinessApplicationName == null) {
       this.moduleNamesByBusinessApplicationName = new HashMap<String, String>();
       final Map<BusinessApplication, Module> businessApplicationModuleMap = new TreeMap<BusinessApplication, Module>();
@@ -321,7 +310,8 @@ public final class BusinessApplicationRegistry implements
         }
       }
 
-      for (final Entry<BusinessApplication, Module> entry : businessApplicationModuleMap.entrySet()) {
+      for (final Entry<BusinessApplication, Module> entry : businessApplicationModuleMap
+        .entrySet()) {
         final BusinessApplication businessApplication = entry.getKey();
         final Module module = entry.getValue();
         final String name = businessApplication.getName();
@@ -330,7 +320,8 @@ public final class BusinessApplicationRegistry implements
         this.moduleNamesByBusinessApplicationName.put(name, moduleName);
       }
     }
-    final String moduleName = this.moduleNamesByBusinessApplicationName.get(businessApplicationName);
+    final String moduleName = this.moduleNamesByBusinessApplicationName
+      .get(businessApplicationName);
     if (moduleName == null) {
       return null;
     } else {
@@ -465,8 +456,8 @@ public final class BusinessApplicationRegistry implements
   }
 
   public synchronized void unloadModule(final Module module) {
-    LoggerFactory.getLogger(BusinessApplicationRegistry.class).debug(
-      "Unloading module " + module.toString());
+    LoggerFactory.getLogger(BusinessApplicationRegistry.class)
+      .debug("Unloading module " + module.toString());
     clearModuleToAppCache();
     final String moduleName = module.getName();
     if (module == this.modulesByName.get(moduleName)) {

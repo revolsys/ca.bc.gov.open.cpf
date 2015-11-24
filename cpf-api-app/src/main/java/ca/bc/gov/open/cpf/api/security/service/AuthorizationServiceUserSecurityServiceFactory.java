@@ -19,8 +19,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.AbstractCachingSecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.security.AbstractSecurityServiceFactory;
 
-public class AuthorizationServiceUserSecurityServiceFactory extends
-  AbstractSecurityServiceFactory {
+public class AuthorizationServiceUserSecurityServiceFactory extends AbstractSecurityServiceFactory {
 
   private final AuthorizationService authorizationService;
 
@@ -34,13 +33,12 @@ public class AuthorizationServiceUserSecurityServiceFactory extends
   }
 
   @Override
-  protected AbstractCachingSecurityService newSecurityService(
-    final Module module, final String consumerKey) {
-    final String userAccountClass = authorizationService.getUserClass(consumerKey);
-    final String userAccountName = authorizationService.getUsername(consumerKey);
+  protected AbstractCachingSecurityService newSecurityService(final Module module,
+    final String consumerKey) {
+    final String userAccountClass = this.authorizationService.getUserClass(consumerKey);
+    final String userAccountName = this.authorizationService.getUsername(consumerKey);
     final AbstractCachingSecurityService securityService = new AuthorizationServiceUserSecurityService(
-      authorizationService, module, consumerKey, userAccountClass,
-      userAccountName);
+      this.authorizationService, module, consumerKey, userAccountClass, userAccountName);
     return securityService;
   }
 }

@@ -26,7 +26,7 @@ import java.security.spec.RSAPrivateCrtKeySpec;
  * <p/>
  * Unfortunately, JCE doesn't have an API to decode the DER. This class takes
  * DER buffer and decoded into CRT key.
- * 
+ *
  * @author zhang
  */
 @SuppressWarnings("javadoc")
@@ -36,7 +36,7 @@ public class PKCS1EncodedKeySpec {
 
   /**
    * Construct a new PKCS#1 keyspec from DER encoded buffer
-   * 
+   *
    * @param keyBytes DER encoded octet stream
    * @throws IOException
    */
@@ -48,25 +48,25 @@ public class PKCS1EncodedKeySpec {
    * Decode PKCS#1 encoded private key into RSAPrivateCrtKeySpec.
    * <p/>
    * The ASN.1 syntax for the private key with CRT is
-   * 
+   *
    * <pre>
-   * -- 
+   * --
    * -- Representation of RSA private key with information for the CRT algorithm.
    * --
    * RSAPrivateKey ::= SEQUENCE {
-   *   version           Version, 
+   *   version           Version,
    *   modulus           INTEGER,  -- n
    *   publicExponent    INTEGER,  -- e
    *   privateExponent   INTEGER,  -- d
    *   prime1            INTEGER,  -- p
    *   prime2            INTEGER,  -- q
    *   exponent1         INTEGER,  -- d mod (p-1)
-   *   exponent2         INTEGER,  -- d mod (q-1) 
+   *   exponent2         INTEGER,  -- d mod (q-1)
    *   coefficient       INTEGER,  -- (inverse of q) mod p
-   *   otherPrimeInfos   OtherPrimeInfos OPTIONAL 
+   *   otherPrimeInfos   OtherPrimeInfos OPTIONAL
    * }
    * </pre>
-   * 
+   *
    * @param keyBytes PKCS#1 encoded key
    * @throws IOException
    */
@@ -93,16 +93,16 @@ public class PKCS1EncodedKeySpec {
     final BigInteger exp2 = parser.read().getInteger();
     final BigInteger crtCoef = parser.read().getInteger();
 
-    keySpec = new RSAPrivateCrtKeySpec(modulus, publicExp, privateExp, prime1,
-      prime2, exp1, exp2, crtCoef);
+    this.keySpec = new RSAPrivateCrtKeySpec(modulus, publicExp, privateExp, prime1, prime2, exp1,
+      exp2, crtCoef);
   }
 
   /**
    * Get the key spec that JCE understands.
-   * 
+   *
    * @return CRT keyspec defined by JCE
    */
   public RSAPrivateCrtKeySpec getKeySpec() {
-    return keySpec;
+    return this.keySpec;
   }
 }

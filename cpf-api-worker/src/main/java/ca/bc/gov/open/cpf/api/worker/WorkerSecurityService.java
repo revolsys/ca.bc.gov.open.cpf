@@ -52,8 +52,9 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
         return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("hasAccess"));
       }
     } catch (final Throwable e) {
-      throw new RuntimeException("Unable to get security action permission for " + getUsername()
-        + " action=" + actionName, e);
+      throw new RuntimeException(
+        "Unable to get security action permission for " + getUsername() + " action=" + actionName,
+        e);
     }
   }
 
@@ -71,8 +72,8 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
         return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("memberOfGroup"));
       }
     } catch (final Throwable e) {
-      throw new RuntimeException("Unable to get security group permission for " + getUsername()
-        + " group=" + groupName, e);
+      throw new RuntimeException(
+        "Unable to get security group permission for " + getUsername() + " group=" + groupName, e);
     }
   }
 

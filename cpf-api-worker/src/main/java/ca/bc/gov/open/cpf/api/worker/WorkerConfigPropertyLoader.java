@@ -29,8 +29,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.collection.map.Maps;
-import com.revolsys.converter.string.StringConverter;
-import com.revolsys.converter.string.StringConverterRegistry;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.spring.config.BeanConfigurrer;
@@ -73,7 +71,8 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
           @Override
           public <V> V getResult(final Map<String, Object> result) {
             final Map<String, Object> configProperties = new HashMap<>();
-            final List<Map<String, Object>> configPropertyList = (List<Map<String, Object>>)result.get("properties");
+            final List<Map<String, Object>> configPropertyList = (List<Map<String, Object>>)result
+              .get("properties");
             for (final Map<String, Object> configProperty : configPropertyList) {
               final String name = (String)configProperty.get("PROPERTY_NAME");
               if (Property.hasValue(name)) {
@@ -83,12 +82,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
                   final DataType dataType = DataTypes.getType(QName.valueOf(type));
                   Object value = stringValue;
                   if (dataType != null) {
-                    final Class<?> dataTypeClass = dataType.getJavaClass();
-                    final StringConverter<?> converter = StringConverterRegistry.getInstance()
-                      .getConverter(dataTypeClass);
-                    if (converter != null) {
-                      value = converter.stringToObject(stringValue);
-                    }
+                    value = dataType.toObject(stringValue);
                   }
                   configProperties.put(name, value);
                 } else {
@@ -101,8 +95,8 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
         });
       }
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error(
-        "Unable to get config properties for " + moduleName, e);
+      LoggerFactory.getLogger(getClass()).error("Unable to get config properties for " + moduleName,
+        e);
     }
     return Collections.emptyMap();
   }
@@ -111,8 +105,8 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
   public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory)
     throws BeansException {
     try {
-      final Map<String, Object> attributes = getConfigProperties(this.environmentName,
-        "CPF_WORKER", "GLOBAL");
+      final Map<String, Object> attributes = getConfigProperties(this.environmentName, "CPF_WORKER",
+        "GLOBAL");
       setAttributes(attributes);
       super.postProcessBeanFactory(beanFactory);
     } catch (final Throwable e) {

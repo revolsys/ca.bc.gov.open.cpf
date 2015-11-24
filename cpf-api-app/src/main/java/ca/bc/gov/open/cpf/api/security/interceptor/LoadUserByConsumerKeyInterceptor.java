@@ -21,13 +21,13 @@
  You may obtain a copy of the License at
 
      http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- 
+
  $URL: https://secure.revolsys.com/svn/open.revolsys.com/ca.bc.gov.open.cpf/trunk/ca.bc.gov.open.cpf.api/src/main/java/ca/bc/gov/open/cpf/security/interceptor/LoadUserByConsumerKeyInterceptor.java $
  $Author: paul.austin@revolsys.com $
  $Date: 2009-06-08 09:59:13 -0700 (Mon, 08 Jun 2009) $
@@ -61,7 +61,7 @@ public class LoadUserByConsumerKeyInterceptor extends HandlerInterceptorAdapter 
   /**
    * Load the {@link UserAccount} for the logged in user and store it in the
    * userAccount request attribute.
-   * 
+   *
    * @param request The HTTP request.
    * @param response The HTTP response.
    * @param handler The handler which is being invoked.
@@ -69,14 +69,14 @@ public class LoadUserByConsumerKeyInterceptor extends HandlerInterceptorAdapter 
    * @throws Exception If there was an exception loading the user.
    */
   @Override
-  public boolean preHandle(final HttpServletRequest request,
-    final HttpServletResponse response, final Object handler) throws Exception {
+  public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response,
+    final Object handler) throws Exception {
 
     final SecurityContext context = SecurityContextHolder.getContext();
     final Authentication authentication = context.getAuthentication();
     if (authentication != null) {
       final String userAccountName = authentication.getName();
-      final Record userAccount = dataAccessObject.getUserAccount(userAccountName);
+      final Record userAccount = this.dataAccessObject.getUserAccount(userAccountName);
       if (userAccount != null) {
         request.setAttribute("userAccount", userAccount);
       } else {

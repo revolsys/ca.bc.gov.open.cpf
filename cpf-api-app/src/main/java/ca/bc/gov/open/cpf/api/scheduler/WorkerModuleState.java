@@ -34,31 +34,31 @@ public class WorkerModuleState {
   }
 
   public String getModuleError() {
-    return moduleError;
+    return this.moduleError;
   }
 
   public String getName() {
-    return name;
+    return this.name;
   }
 
   public Date getStartedDate() {
-    if (startedTime > 0) {
-      return new Date(startedTime);
+    if (this.startedTime > 0) {
+      return new Date(this.startedTime);
     } else {
       return null;
     }
   }
 
   public long getStartedTime() {
-    return startedTime;
+    return this.startedTime;
   }
 
   public String getStatus() {
-    return status;
+    return this.status;
   }
 
   public boolean isEnabled() {
-    return enabled;
+    return this.enabled;
   }
 
   public boolean isStarted() {
@@ -68,7 +68,7 @@ public class WorkerModuleState {
   public void setEnabled(final boolean enabled) {
     this.enabled = enabled;
     if (!enabled) {
-      startedTime = 0;
+      this.startedTime = 0;
     }
   }
 

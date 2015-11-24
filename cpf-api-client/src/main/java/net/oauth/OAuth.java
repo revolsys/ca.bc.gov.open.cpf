@@ -30,7 +30,7 @@ import java.util.Map.Entry;
 
 /**
  * Miscellaneous constants, methods and types.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
@@ -43,7 +43,7 @@ public class OAuth {
 
     private String value;
 
-   public Parameter(final String key, final String value) {
+    public Parameter(final String key, final String value) {
       this.key = key;
       this.value = value;
     }
@@ -60,18 +60,18 @@ public class OAuth {
         return false;
       }
       final Parameter that = (Parameter)obj;
-      if (key == null) {
+      if (this.key == null) {
         if (that.key != null) {
           return false;
         }
-      } else if (!key.equals(that.key)) {
+      } else if (!this.key.equals(that.key)) {
         return false;
       }
-      if (value == null) {
+      if (this.value == null) {
         if (that.value != null) {
           return false;
         }
-      } else if (!value.equals(that.value)) {
+      } else if (!this.value.equals(that.value)) {
         return false;
       }
       return true;
@@ -79,20 +79,20 @@ public class OAuth {
 
     @Override
     public String getKey() {
-      return key;
+      return this.key;
     }
 
     @Override
     public String getValue() {
-      return value;
+      return this.value;
     }
 
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((key == null) ? 0 : key.hashCode());
-      result = prime * result + ((value == null) ? 0 : value.hashCode());
+      result = prime * result + (this.key == null ? 0 : this.key.hashCode());
+      result = prime * result + (this.value == null ? 0 : this.value.hashCode());
       return result;
     }
 
@@ -238,13 +238,12 @@ public class OAuth {
   private static String characterEncoding = ENCODING;
 
   public static String addParameters(final String url,
-    final Iterable<? extends Map.Entry<String, String>> parameters)
-    throws IOException {
+    final Iterable<? extends Map.Entry<String, String>> parameters) throws IOException {
     final String form = formEncode(parameters);
     if (form == null || form.length() <= 0) {
       return url;
     } else {
-      return url + ((url.indexOf("?") < 0) ? '?' : '&') + form;
+      return url + (url.indexOf("?") < 0 ? '?' : '&') + form;
     }
   }
 
@@ -252,8 +251,8 @@ public class OAuth {
    * Construct a URL like the given one, but with the given parameters added to
    * its query string.
    */
-  public static String addParameters(final String url,
-    final String... parameters) throws IOException {
+  public static String addParameters(final String url, final String... parameters)
+    throws IOException {
     return addParameters(url, newList(parameters));
   }
 
@@ -314,8 +313,7 @@ public class OAuth {
    * name/value pairs. Use OAuth percent encoding (not exactly the encoding
    * mandated by HTTP).
    */
-  public static String formEncode(
-    final Iterable<? extends Entry<String, String>> parameters)
+  public static String formEncode(final Iterable<? extends Entry<String, String>> parameters)
     throws IOException {
     final ByteArrayOutputStream b = new ByteArrayOutputStream();
     formEncode(parameters, b);
@@ -326,8 +324,7 @@ public class OAuth {
    * Write a form-urlencoded document into the given stream, containing the
    * given sequence of name/value pairs.
    */
-  public static void formEncode(
-    final Iterable<? extends Entry<String, String>> parameters,
+  public static void formEncode(final Iterable<? extends Entry<String, String>> parameters,
     final OutputStream into) throws IOException {
     if (parameters != null) {
       boolean first = true;
@@ -345,7 +342,7 @@ public class OAuth {
   }
 
   public static boolean isEmpty(final String str) {
-    return (str == null) || (str.length() == 0);
+    return str == null || str.length() == 0;
   }
 
   /** Return true if the given Content-Type header means FORM_ENCODED. */
@@ -374,8 +371,7 @@ public class OAuth {
    * several parameters have the same name, the MapService will contain the
    * first value, only.
    */
-  public static Map<String, String> newMap(
-    final Iterable<? extends Entry<String, String>> from) {
+  public static Map<String, String> newMap(final Iterable<? extends Entry<String, String>> from) {
     final Map<String, String> map = new HashMap<String, String>();
     if (from != null) {
       for (final Entry<String, String> f : from) {
@@ -406,7 +402,7 @@ public class OAuth {
     }
     try {
       return URLEncoder.encode(s, ENCODING)
-      // OAuth encodes some characters differently:
+        // OAuth encodes some characters differently:
         .replace("+", "%20")
         .replace("*", "%2A")
         .replace("%7E", "~");
@@ -421,6 +417,6 @@ public class OAuth {
   }
 
   private static final String toString(final Object from) {
-    return (from == null) ? null : from.toString();
+    return from == null ? null : from.toString();
   }
 }

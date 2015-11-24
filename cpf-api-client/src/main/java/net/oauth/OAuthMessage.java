@@ -40,25 +40,11 @@ import net.oauth.signature.OAuthSignatureMethod;
  * OAuthClient.invoke and OAuthResponseMessage.completeParameters are
  * responsible for percent-encoding parameters before transmission and decoding
  * them after reception.
- * 
+ *
  * @author John Kristian
  */
 @SuppressWarnings("javadoc")
 public class OAuthMessage {
-
-  public String method;
-
-  public String URL;
-
-  private final List<Entry<String,String>> parameters;
-
-  private Map<String, String> parameterMap;
-
-  private boolean parametersAreComplete = false;
-
-  private final List<Entry<String,String>> headers = new ArrayList<Entry<String,String>>();
-
-  private final InputStream bodyAsStream;
 
   public static final String AUTH_SCHEME = "OAuth";
 
@@ -79,8 +65,7 @@ public class OAuthMessage {
    * header. The realm is included as a parameter. If the given header doesn't
    * start with "OAuth ", return an empty list.
    */
-  public static List<OAuth.Parameter> decodeAuthorization(
-    final String authorization) {
+  public static List<OAuth.Parameter> decodeAuthorization(final String authorization) {
     final List<OAuth.Parameter> into = new ArrayList<OAuth.Parameter>();
     if (authorization != null) {
       Matcher m = AUTHORIZATION.matcher(authorization);
@@ -102,12 +87,11 @@ public class OAuthMessage {
 
   /**
    * Read all the data from the given stream, and close it.
-   * 
+   *
    * @return null if from is null, or the data from the stream converted to a
    *         String
    */
-  public static String readAll(final InputStream from, final String encoding)
-    throws IOException {
+  public static String readAll(final InputStream from, final String encoding) throws IOException {
     if (from == null) {
       return null;
     }
@@ -125,57 +109,67 @@ public class OAuthMessage {
   }
 
   private static final String toString(final Object from) {
-    return (from == null) ? null : from.toString();
+    return from == null ? null : from.toString();
   }
 
+  public String method;
+
+  public String URL;
+
+  private final List<Entry<String, String>> parameters;
+
+  private Map<String, String> parameterMap;
+
+  private boolean parametersAreComplete = false;
+
+  private final List<Entry<String, String>> headers = new ArrayList<Entry<String, String>>();
+
+  private final InputStream bodyAsStream;
+
   public OAuthMessage(final String method, final String URL,
-    final Collection<? extends Entry<String,String>> parameters) {
+    final Collection<? extends Entry<String, String>> parameters) {
     this(method, URL, parameters, null);
   }
 
   public OAuthMessage(final String method, final String URL,
-    final Collection<? extends Entry<String,String>> parameters,
-    final InputStream bodyAsStream) {
+    final Collection<? extends Entry<String, String>> parameters, final InputStream bodyAsStream) {
     this.method = method;
     this.URL = URL;
     this.bodyAsStream = bodyAsStream;
     if (parameters == null) {
-      this.parameters = new ArrayList<Entry<String,String>>();
+      this.parameters = new ArrayList<Entry<String, String>>();
     } else {
-      this.parameters = new ArrayList<Entry<String,String>>(
-        parameters.size());
-      for (final Entry<String,String> p : parameters) {
-        this.parameters.add(new OAuth.Parameter(toString(p.getKey()),
-          toString(p.getValue())));
+      this.parameters = new ArrayList<Entry<String, String>>(parameters.size());
+      for (final Entry<String, String> p : parameters) {
+        this.parameters.add(new OAuth.Parameter(toString(p.getKey()), toString(p.getValue())));
       }
     }
   }
 
-  public void addParameter(final Entry<String,String> parameter) {
-    parameters.add(parameter);
-    parameterMap = null;
+  public void addParameter(final Entry<String, String> parameter) {
+    this.parameters.add(parameter);
+    this.parameterMap = null;
   }
 
   public void addParameter(final String key, final String value) {
     addParameter(new OAuth.Parameter(key, value));
   }
 
-  public void addParameters(
-    final Collection<? extends Entry<String,String>> parameters) {
+  public void addParameters(final Collection<? extends Entry<String, String>> parameters) {
     this.parameters.addAll(parameters);
-    parameterMap = null;
+    this.parameterMap = null;
   }
 
   /**
    * Add some of the parameters needed to request access to a protected
    * resource, if they aren't already in the message.
-   * 
+   *
    * @throws IOException
    * @throws URISyntaxException
    */
   public void addRequiredParameters(final OAuthAccessor accessor)
     throws OAuthException, IOException, URISyntaxException {
-    final Map<String, String> pMap = OAuth.newMap(parameters);
+    final Map<String, String> pMap = OAuth.newMap(this.parameters);
     if (pMap.get(OAuth.OAUTH_TOKEN) == null && accessor.accessToken != null) {
       addParameter(OAuth.OAUTH_TOKEN, accessor.accessToken);
     }
@@ -192,8 +186,7 @@ public class OAuthMessage {
       addParameter(OAuth.OAUTH_SIGNATURE_METHOD, signatureMethod);
     }
     if (pMap.get(OAuth.OAUTH_TIMESTAMP) == null) {
-      addParameter(OAuth.OAUTH_TIMESTAMP, (System.currentTimeMillis() / 1000)
-        + "");
+      addParameter(OAuth.OAUTH_TIMESTAMP, System.currentTimeMillis() / 1000 + "");
     }
     if (pMap.get(OAuth.OAUTH_NONCE) == null) {
       addParameter(OAuth.OAUTH_NONCE, System.nanoTime() + "");
@@ -206,9 +199,9 @@ public class OAuthMessage {
 
   /** A caller is about to get a parameter. */
   private void beforeGetParameter() throws IOException {
-    if (!parametersAreComplete) {
+    if (!this.parametersAreComplete) {
       completeParameters();
-      parametersAreComplete = true;
+      this.parametersAreComplete = true;
     }
   }
 
@@ -220,8 +213,8 @@ public class OAuthMessage {
   }
 
   protected void dump(final Map<String, Object> into) throws IOException {
-    into.put(OAuthProblemException.URL, URL);
-    if (parametersAreComplete) {
+    into.put(OAuthProblemException.URL, this.URL);
+    if (this.parametersAreComplete) {
       try {
         into.putAll(getParameterMap());
       } catch (final Exception ignored) {
@@ -239,8 +232,8 @@ public class OAuthMessage {
       into.append(" realm=\"").append(OAuth.percentEncode(realm)).append('"');
     }
     beforeGetParameter();
-    if (parameters != null) {
-      for (final Entry<String,String> parameter : parameters) {
+    if (this.parameters != null) {
+      for (final Entry<String, String> parameter : this.parameters) {
         final String name = toString(parameter.getKey());
         if (name.startsWith("oauth_")) {
           if (into.length() > 0) {
@@ -248,8 +241,7 @@ public class OAuthMessage {
           }
           into.append(" ");
           into.append(OAuth.percentEncode(name)).append("=\"");
-          into.append(OAuth.percentEncode(toString(parameter.getValue())))
-            .append('"');
+          into.append(OAuth.percentEncode(toString(parameter.getValue()))).append('"');
         }
       }
     }
@@ -261,17 +253,17 @@ public class OAuthMessage {
    * This is designed to support efficient streaming of a large message. The
    * caller must close the returned stream, to release the underlying resources
    * such as the TCP connection for an HTTP response.
-   * 
+   *
    * @return a stream from which to read the body, or null to indicate there is
    *         no body.
    */
   public InputStream getBodyAsStream() throws IOException {
-    return bodyAsStream;
+    return this.bodyAsStream;
   }
 
   /**
    * The character encoding of the body of this message.
-   * 
+   *
    * @return the name of an encoding, or "ISO-8859-1" if no charset has been
    *         specified.
    */
@@ -281,7 +273,7 @@ public class OAuthMessage {
 
   /**
    * The MIME type of the body of this message.
-   * 
+   *
    * @return the MIME type, or null to indicate the type is unknown.
    */
   public String getBodyType() {
@@ -302,13 +294,13 @@ public class OAuthMessage {
   /**
    * The value of the last HTTP header with the given name. The name is case
    * insensitive.
-   * 
+   *
    * @return the value of the last header, or null to indicate that there is no
    *         such header in this message.
    */
   public final String getHeader(final String name) {
     String value = null; // no such header
-    for (final Entry<String,String> header : getHeaders()) {
+    for (final Entry<String, String> header : getHeaders()) {
       if (name.equalsIgnoreCase(header.getKey())) {
         value = header.getValue();
       }
@@ -317,8 +309,8 @@ public class OAuthMessage {
   }
 
   /** All HTTP headers. You can add headers to this list. */
-  public final List<Entry<String,String>> getHeaders() {
-    return headers;
+  public final List<Entry<String, String>> getHeaders() {
+    return this.headers;
   }
 
   public String getParameter(final String name) throws IOException {
@@ -327,15 +319,15 @@ public class OAuthMessage {
 
   protected Map<String, String> getParameterMap() throws IOException {
     beforeGetParameter();
-    if (parameterMap == null) {
-      parameterMap = OAuth.newMap(parameters);
+    if (this.parameterMap == null) {
+      this.parameterMap = OAuth.newMap(this.parameters);
     }
-    return parameterMap;
+    return this.parameterMap;
   }
 
   public List<Entry<String, String>> getParameters() throws IOException {
     beforeGetParameter();
-    return Collections.unmodifiableList(parameters);
+    return Collections.unmodifiableList(this.parameters);
   }
 
   public String getSignature() throws IOException {
@@ -353,7 +345,7 @@ public class OAuthMessage {
   /**
    * Read the body of the HTTP request or response and convert it to a String.
    * This method isn't repeatable, since it consumes and closes getBodyAsStream.
-   * 
+   *
    * @return the body, or null to indicate there is no body.
    */
   public final String readBodyAsString() throws IOException {
@@ -364,12 +356,11 @@ public class OAuthMessage {
   /**
    * Verify that the required parameter names are contained in the actual
    * collection.
-   * 
+   *
    * @throws OAuthProblemException one or more parameters are absent.
    * @throws IOException
    */
-  public void requireParameters(final String... names)
-    throws OAuthProblemException, IOException {
+  public void requireParameters(final String... names) throws OAuthProblemException, IOException {
     final Set<String> present = getParameterMap().keySet();
     final List<String> absent = new ArrayList<String>();
     for (final String required : names) {
@@ -380,25 +371,24 @@ public class OAuthMessage {
     if (!absent.isEmpty()) {
       final OAuthProblemException problem = new OAuthProblemException(
         OAuth.Problems.PARAMETER_ABSENT);
-      problem.setParameter(OAuth.Problems.OAUTH_PARAMETERS_ABSENT,
-        OAuth.percentEncode(absent));
+      problem.setParameter(OAuth.Problems.OAUTH_PARAMETERS_ABSENT, OAuth.percentEncode(absent));
       throw problem;
     }
   }
 
   /**
    * Add a signature to the message.
-   * 
+   *
    * @throws URISyntaxException
    */
-  public void sign(final OAuthAccessor accessor) throws IOException,
-    OAuthException, URISyntaxException {
+  public void sign(final OAuthAccessor accessor)
+    throws IOException, OAuthException, URISyntaxException {
     OAuthSignatureMethod.newSigner(this, accessor).sign(this);
   }
 
   @Override
   public String toString() {
-    return "OAuthMessage(" + method + ", " + URL + ", " + parameters + ")";
+    return "OAuthMessage(" + this.method + ", " + this.URL + ", " + this.parameters + ")";
   }
 
 }

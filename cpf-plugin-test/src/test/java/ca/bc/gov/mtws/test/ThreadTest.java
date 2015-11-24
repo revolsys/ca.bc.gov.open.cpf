@@ -20,14 +20,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.revolsys.spring.resource.FileSystemResource;
-import com.revolsys.spring.resource.Resource;
-
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 
 import com.revolsys.io.map.MapReader;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
+import com.revolsys.spring.resource.FileSystemResource;
+import com.revolsys.spring.resource.Resource;
 
 public class ThreadTest {
   public static void main(final String[] args) {
@@ -47,52 +46,52 @@ public class ThreadTest {
   private BusinessApplicationPluginExecutor executor = new BusinessApplicationPluginExecutor();
 
   private final Channel<Boolean> startChannel = new Channel<Boolean>(
-    new Buffer<Boolean>(numThreads));
+    new Buffer<Boolean>(this.numThreads));
 
   private final Object startSync = new Object();
 
   private final Channel<Boolean> stopChannel = new Channel<Boolean>(
-    new Buffer<Boolean>(numThreads));
+    new Buffer<Boolean>(this.numThreads));
 
   private List<Map<String, Object>> testData = new ArrayList<Map<String, Object>>();
 
   public ThreadTest() {
-    executor.setTestModeEnabled(businessApplicationName, Boolean.TRUE);
+    this.executor.setTestModeEnabled(this.businessApplicationName, Boolean.TRUE);
   }
 
   public String getBusinessApplicationName() {
-    return businessApplicationName;
+    return this.businessApplicationName;
   }
 
   public BusinessApplicationPluginExecutor getExecutor() {
-    return executor;
+    return this.executor;
   }
 
   public int getIterationCount() {
-    return iterationCount;
+    return this.iterationCount;
   }
 
   public Map<String, Object> getTestData(final int index) {
-    final int i = index % testData.size();
-    return testData.get(i);
+    final int i = index % this.testData.size();
+    return this.testData.get(i);
   }
 
   public void run() {
-    if (inputDataResource.exists()) {
-      testData = MapReader.newMapReader(inputDataResource).toList();
+    if (this.inputDataResource.exists()) {
+      this.testData = MapReader.newMapReader(this.inputDataResource).toList();
     } else {
-      testData.add(Collections.<String, Object> emptyMap());
+      this.testData.add(Collections.<String, Object> emptyMap());
     }
-    for (int i = 0; i < numThreads; i++) {
+    for (int i = 0; i < this.numThreads; i++) {
       final ThreadTestRunnable runnable = new ThreadTestRunnable(this, i);
       final Thread thread = new Thread(runnable, "Runner " + i);
       thread.start();
     }
     waitForAllThreadsToStart();
     waitForAllThreadsToStop();
-    executor.close();
-    executor = null;
-    testData.clear();
+    this.executor.close();
+    this.executor = null;
+    this.testData.clear();
     System.gc();
     System.gc();
     System.gc();
@@ -111,31 +110,31 @@ public class ThreadTest {
   }
 
   public void threadStarted() {
-    startChannel.write(true);
-    synchronized (startSync) {
+    this.startChannel.write(true);
+    synchronized (this.startSync) {
       try {
-        startSync.wait();
+        this.startSync.wait();
       } catch (final InterruptedException e) {
       }
     }
   }
 
   public void threadStopped() {
-    stopChannel.write(true);
+    this.stopChannel.write(true);
   }
 
   protected void waitForAllThreadsToStart() {
-    for (int i = 0; i < numThreads; i++) {
-      startChannel.read();
+    for (int i = 0; i < this.numThreads; i++) {
+      this.startChannel.read();
     }
-    synchronized (startSync) {
-      startSync.notifyAll();
+    synchronized (this.startSync) {
+      this.startSync.notifyAll();
     }
   }
 
   protected void waitForAllThreadsToStop() {
-    for (int i = 0; i < numThreads; i++) {
-      stopChannel.read();
+    for (int i = 0; i < this.numThreads; i++) {
+      this.stopChannel.read();
     }
   }
 }

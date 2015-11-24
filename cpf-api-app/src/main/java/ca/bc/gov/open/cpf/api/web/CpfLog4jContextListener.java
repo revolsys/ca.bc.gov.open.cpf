@@ -57,8 +57,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
         rootDirectory = null;
       }
     }
-    if (rootDirectory == null
-      || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
+    if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
       new ConsoleAppender().activateOptions();
       final ConsoleAppender appender = new ConsoleAppender();
       appender.activateOptions();
@@ -76,8 +75,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
 
       appender.setFile(activeFileName);
       appender.setRollingPolicy(rollingPolicy);
-      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(
-        1024 * 1024 * 10));
+      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
       appender.activateOptions();
       appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
       appender.rollover();

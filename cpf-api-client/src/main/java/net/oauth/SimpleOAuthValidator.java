@@ -37,19 +37,18 @@ public class SimpleOAuthValidator implements OAuthValidator {
     private final String sortKey;
 
     UsedNonce(final long timestamp, final String... nonceEtc) {
-      final StringBuilder key = new StringBuilder(String.format("%20d",
-        Long.valueOf(timestamp)));
+      final StringBuilder key = new StringBuilder(String.format("%20d", Long.valueOf(timestamp)));
       // The blank padding ensures that timestamps are compared as numbers.
       for (final String etc : nonceEtc) {
         key.append("&").append(etc == null ? " " : OAuth.percentEncode(etc));
         // A null value is different from "" or any other String.
       }
-      sortKey = key.toString();
+      this.sortKey = key.toString();
     }
 
     @Override
     public int compareTo(final UsedNonce that) {
-      return (that == null) ? 1 : sortKey.compareTo(that.sortKey);
+      return that == null ? 1 : this.sortKey.compareTo(that.sortKey);
     }
 
     @Override
@@ -63,25 +62,25 @@ public class SimpleOAuthValidator implements OAuthValidator {
       if (that.getClass() != getClass()) {
         return false;
       }
-      return sortKey.equals(((UsedNonce)that).sortKey);
+      return this.sortKey.equals(((UsedNonce)that).sortKey);
     }
 
     long getTimestamp() {
-      int end = sortKey.indexOf("&");
+      int end = this.sortKey.indexOf("&");
       if (end < 0) {
-        end = sortKey.length();
+        end = this.sortKey.length();
       }
-      return Long.parseLong(sortKey.substring(0, end).trim());
+      return Long.parseLong(this.sortKey.substring(0, end).trim());
     }
 
     @Override
     public int hashCode() {
-      return sortKey.hashCode();
+      return this.sortKey.hashCode();
     }
 
     @Override
     public String toString() {
-      return sortKey;
+      return this.sortKey;
     }
   }
 
@@ -94,9 +93,8 @@ public class SimpleOAuthValidator implements OAuthValidator {
   private static Set<String> constructSingleParameters() {
     final Set<String> s = new HashSet<String>();
     for (final String p : new String[] {
-      OAuth.OAUTH_CONSUMER_KEY, OAuth.OAUTH_TOKEN, OAuth.OAUTH_TOKEN_SECRET,
-      OAuth.OAUTH_CALLBACK, OAuth.OAUTH_SIGNATURE_METHOD,
-      OAuth.OAUTH_SIGNATURE, OAuth.OAUTH_TIMESTAMP, OAuth.OAUTH_NONCE,
+      OAuth.OAUTH_CONSUMER_KEY, OAuth.OAUTH_TOKEN, OAuth.OAUTH_TOKEN_SECRET, OAuth.OAUTH_CALLBACK,
+      OAuth.OAUTH_SIGNATURE_METHOD, OAuth.OAUTH_SIGNATURE, OAuth.OAUTH_TIMESTAMP, OAuth.OAUTH_NONCE,
       OAuth.OAUTH_VERSION
     }) {
       s.add(p);
@@ -116,8 +114,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
     this(DEFAULT_TIMESTAMP_WINDOW, Double.parseDouble(OAuth.VERSION_1_0));
   }
 
-  public SimpleOAuthValidator(final long maxTimestampAgeMsec,
-    final double maxVersion) {
+  public SimpleOAuthValidator(final long maxTimestampAgeMsec, final double maxVersion) {
     this.maxTimestampAgeMsec = maxTimestampAgeMsec;
     this.maxVersion = maxVersion;
   }
@@ -153,8 +150,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
       }
       final OAuthProblemException problem = new OAuthProblemException(
         OAuth.Problems.PARAMETER_REJECTED);
-      problem.setParameter(OAuth.Problems.OAUTH_PARAMETERS_REJECTED,
-        OAuth.formEncode(rejected));
+      problem.setParameter(OAuth.Problems.OAUTH_PARAMETERS_REJECTED, OAuth.formEncode(rejected));
       throw problem;
     }
   }
@@ -169,12 +165,11 @@ public class SimpleOAuthValidator implements OAuthValidator {
 
   private Date removeOldNonces(final long currentTimeMsec) {
     UsedNonce next = null;
-    final UsedNonce min = new UsedNonce(
-      (currentTimeMsec - maxTimestampAgeMsec + 500) / 1000L);
-    synchronized (usedNonces) {
+    final UsedNonce min = new UsedNonce((currentTimeMsec - this.maxTimestampAgeMsec + 500) / 1000L);
+    synchronized (this.usedNonces) {
       // Because usedNonces is a TreeSet, its iterator produces
       // elements from oldest to newest (their natural order).
-      for (final Iterator<UsedNonce> iter = usedNonces.iterator(); iter.hasNext();) {
+      for (final Iterator<UsedNonce> iter = this.usedNonces.iterator(); iter.hasNext();) {
         final UsedNonce used = iter.next();
         if (min.compareTo(used) <= 0) {
           next = used;
@@ -186,28 +181,25 @@ public class SimpleOAuthValidator implements OAuthValidator {
     if (next == null) {
       return null;
     }
-    return new Date((next.getTimestamp() * 1000L) + maxTimestampAgeMsec + 500);
+    return new Date(next.getTimestamp() * 1000L + this.maxTimestampAgeMsec + 500);
   }
 
   @Override
-  public void validateMessage(final OAuthMessage message,
-    final OAuthAccessor accessor) throws OAuthException, IOException,
-    URISyntaxException {
+  public void validateMessage(final OAuthMessage message, final OAuthAccessor accessor)
+    throws OAuthException, IOException, URISyntaxException {
     checkSingleParameters(message);
     validateVersion(message);
     validateTimestampAndNonce(message);
     validateSignature(message, accessor);
   }
 
-  protected Date validateNonce(final OAuthMessage message,
-    final long timestamp, final long currentTimeMsec) throws IOException,
-    OAuthProblemException {
-    final UsedNonce nonce = new UsedNonce(timestamp,
-      message.getParameter(OAuth.OAUTH_NONCE), message.getConsumerKey(),
-      message.getToken());
+  protected Date validateNonce(final OAuthMessage message, final long timestamp,
+    final long currentTimeMsec) throws IOException, OAuthProblemException {
+    final UsedNonce nonce = new UsedNonce(timestamp, message.getParameter(OAuth.OAUTH_NONCE),
+      message.getConsumerKey(), message.getToken());
     boolean valid = false;
-    synchronized (usedNonces) {
-      valid = usedNonces.add(nonce);
+    synchronized (this.usedNonces) {
+      valid = this.usedNonces.add(nonce);
     }
     if (!valid) {
       throw new OAuthProblemException(OAuth.Problems.NONCE_USED);
@@ -215,24 +207,21 @@ public class SimpleOAuthValidator implements OAuthValidator {
     return removeOldNonces(currentTimeMsec);
   }
 
-  protected void validateSignature(final OAuthMessage message,
-    final OAuthAccessor accessor) throws OAuthException, IOException,
-    URISyntaxException {
-    message.requireParameters(OAuth.OAUTH_CONSUMER_KEY,
-      OAuth.OAUTH_SIGNATURE_METHOD, OAuth.OAUTH_SIGNATURE);
+  protected void validateSignature(final OAuthMessage message, final OAuthAccessor accessor)
+    throws OAuthException, IOException, URISyntaxException {
+    message.requireParameters(OAuth.OAUTH_CONSUMER_KEY, OAuth.OAUTH_SIGNATURE_METHOD,
+      OAuth.OAUTH_SIGNATURE);
     OAuthSignatureMethod.newSigner(message, accessor).validate(message);
   }
 
-  protected void validateTimestamp(final OAuthMessage message,
-    final long timestamp, final long currentTimeMsec) throws IOException,
-    OAuthProblemException {
-    final long min = (currentTimeMsec - maxTimestampAgeMsec + 500) / 1000L;
-    final long max = (currentTimeMsec + maxTimestampAgeMsec + 500) / 1000L;
+  protected void validateTimestamp(final OAuthMessage message, final long timestamp,
+    final long currentTimeMsec) throws IOException, OAuthProblemException {
+    final long min = (currentTimeMsec - this.maxTimestampAgeMsec + 500) / 1000L;
+    final long max = (currentTimeMsec + this.maxTimestampAgeMsec + 500) / 1000L;
     if (timestamp < min || max < timestamp) {
       final OAuthProblemException problem = new OAuthProblemException(
         OAuth.Problems.TIMESTAMP_REFUSED);
-      problem.setParameter(OAuth.Problems.OAUTH_ACCEPTABLE_TIMESTAMPS, min
-        + "-" + max);
+      problem.setParameter(OAuth.Problems.OAUTH_ACCEPTABLE_TIMESTAMPS, min + "-" + max);
       throw problem;
     }
   }
@@ -246,16 +235,15 @@ public class SimpleOAuthValidator implements OAuthValidator {
     validateNonce(message, timestamp, now);
   }
 
-  protected void validateVersion(final OAuthMessage message)
-    throws OAuthException, IOException {
+  protected void validateVersion(final OAuthMessage message) throws OAuthException, IOException {
     final String versionString = message.getParameter(OAuth.OAUTH_VERSION);
     if (versionString != null) {
       final double version = Double.parseDouble(versionString);
-      if (version < minVersion || maxVersion < version) {
+      if (version < this.minVersion || this.maxVersion < version) {
         final OAuthProblemException problem = new OAuthProblemException(
           OAuth.Problems.VERSION_REJECTED);
         problem.setParameter(OAuth.Problems.OAUTH_ACCEPTABLE_VERSIONS,
-          minVersion + "-" + maxVersion);
+          this.minVersion + "-" + this.maxVersion);
         throw problem;
       }
     }

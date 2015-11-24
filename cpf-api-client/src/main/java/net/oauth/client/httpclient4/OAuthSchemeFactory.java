@@ -26,7 +26,7 @@ import org.apache.http.params.HttpParams;
  * adding an Authorization header. It can't change the request URL query string,
  * it can't handle OAuth parameters in the URL query and it can't sign
  * parameters from the request body.
- * 
+ *
  * @author Paul Austin
  * @author John Kristian
  */

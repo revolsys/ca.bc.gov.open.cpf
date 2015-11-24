@@ -33,30 +33,30 @@ public class ThreadTestRunnable implements Runnable {
 
   @Override
   public void run() {
-    test.threadStarted();
+    this.test.threadStarted();
     try {
-      final BusinessApplicationPluginExecutor executor = test.getExecutor();
-      final String businessApplicationName = test.getBusinessApplicationName();
-      final int count = test.getIterationCount();
+      final BusinessApplicationPluginExecutor executor = this.test.getExecutor();
+      final String businessApplicationName = this.test.getBusinessApplicationName();
+      final int count = this.test.getIterationCount();
       for (int i = 0; i < count; i++) {
-        final int requestSequenceNumber = index + count * i;
-        final Map<String, Object> inputData = test.getTestData(requestSequenceNumber);
+        final int requestSequenceNumber = this.index + count * i;
+        final Map<String, Object> inputData = this.test.getTestData(requestSequenceNumber);
         Object results;
         if (executor.hasResultsList(businessApplicationName)) {
           results = executor.executeList(businessApplicationName, inputData);
         } else {
           results = executor.execute(businessApplicationName, inputData);
         }
-        LoggerFactory.getLogger(getClass()).info(
-          "Request " + requestSequenceNumber + "\n" + results);
+        LoggerFactory.getLogger(getClass())
+          .info("Request " + requestSequenceNumber + "\n" + results);
       }
     } finally {
-      test.threadStopped();
+      this.test.threadStopped();
     }
   }
 
   @Override
   public String toString() {
-    return String.valueOf(index);
+    return String.valueOf(this.index);
   }
 }

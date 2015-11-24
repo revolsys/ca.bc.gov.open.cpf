@@ -48,6 +48,11 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 @SuppressWarnings("serial")
 public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory {
 
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+
   /** The cached geometry factories. */
   private static Map<String, GeometryFactory> factories = new HashMap<String, GeometryFactory>();
 
@@ -129,7 +134,8 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
    * A scale factor of 1000 will give a precision of 1 / 1000 = 1mm for projected coordinate systems using metres.
    * @return The geometry factory.
    */
-  public static GeometryFactory getFactory(final int srid, final double scaleXy, final double scaleZ) {
+  public static GeometryFactory getFactory(final int srid, final double scaleXy,
+    final double scaleZ) {
     return getFactory(srid, 3, scaleXy, scaleZ);
   }
 
@@ -203,8 +209,8 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
    */
   private GeometryFactory(final int crsId, final int axisCount, final double scaleXY,
     final double scaleZ) {
-    super(getPrecisionModel(scaleXY), crsId, new PackedCoordinateSequenceFactory(
-      PackedCoordinateSequenceFactory.DOUBLE, axisCount));
+    super(getPrecisionModel(scaleXY), crsId,
+      new PackedCoordinateSequenceFactory(PackedCoordinateSequenceFactory.DOUBLE, axisCount));
     this.axisCount = axisCount;
     this.scaleXy = scaleXY;
     this.scaleZ = scaleZ;
@@ -378,7 +384,8 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
    */
   public Polygon createPolygon(final List<?> rings) {
     if (rings.size() == 0) {
-      final CoordinateSequence nullPoints = getCoordinateSequenceFactory().create(0, getAxisCount());
+      final CoordinateSequence nullPoints = getCoordinateSequenceFactory().create(0,
+        getAxisCount());
       final LinearRing ring = createLinearRing(nullPoints);
       return createPolygon(ring, null);
     } else {
@@ -530,8 +537,8 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
     if (hasText(text, "EMPTY")) {
       skipWhitespace(text);
       if (text.length() > 0) {
-        throw new IllegalArgumentException("Unexpected text at the end of an empty geometry: "
-          + text);
+        throw new IllegalArgumentException(
+          "Unexpected text at the end of an empty geometry: " + text);
       }
       return true;
     } else {
@@ -589,8 +596,8 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
             }
             axisNum = 0;
           } else {
-            throw new IllegalArgumentException("Too many coordinates, vertex must have "
-              + axisCount + " coordinates not " + (axisNum + 1));
+            throw new IllegalArgumentException("Too many coordinates, vertex must have " + axisCount
+              + " coordinates not " + (axisNum + 1));
           }
           if (c == ')') {
             finished = true;
@@ -604,8 +611,8 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
             }
             axisNum++;
           } else {
-            throw new IllegalArgumentException("Too many coordinates, vertex must have "
-              + axisCount + " coordinates not " + (axisNum + 1));
+            throw new IllegalArgumentException("Too many coordinates, vertex must have " + axisCount
+              + " coordinates not " + (axisNum + 1));
 
           }
         }

@@ -40,11 +40,6 @@ public interface JobController {
 
   boolean cancelJob(Identifier batchJobId);
 
-  void newJobFile(Identifier batchJobId, String path, long sequenceNumber, String contentType,
-    Object data);
-
-  void newJobInputFile(Identifier batchJobId, String contentType, Object data);
-
   void deleteJob(Identifier batchJobId);
 
   String getGroupInputString(Identifier batchJobId, int sequenceNumber);
@@ -60,6 +55,11 @@ public interface JobController {
   InputStream getJobResultStream(Identifier batchJobId, int sequenceNumber);
 
   String getKey();
+
+  void newJobFile(Identifier batchJobId, String path, long sequenceNumber, String contentType,
+    Object data);
+
+  void newJobInputFile(Identifier batchJobId, String contentType, Object data);
 
   void setGroupError(Identifier batchJobId, int sequenceNumber, Object data);
 

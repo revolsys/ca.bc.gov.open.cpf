@@ -82,26 +82,6 @@ public class FileJobController extends AbstractJobController {
     return cancelled;
   }
 
-  @Override
-  public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
-    final String contentType, final Object data) {
-    final File file = getJobFile(jobId, path, sequenceNumber);
-    file.getParentFile().mkdirs();
-    if (data instanceof File) {
-      final File dataFile = (File)data;
-      FileUtil.copy(dataFile, file);
-    } else if (data instanceof InputStream) {
-      final InputStream in = (InputStream)data;
-      FileUtil.copy(in, file);
-    } else if (data instanceof byte[]) {
-      final byte[] bytes = (byte[])data;
-      FileUtil.copy(new ByteArrayInputStream(bytes), file);
-    } else if (data instanceof String) {
-      final String string = (String)data;
-      FileUtil.copy(string, file);
-    }
-  }
-
   protected void deleteDirectory(final Identifier jobId, final File directory) {
     if (!FileUtil.deleteDirectory(directory)) {
       LoggerFactory.getLogger(getClass())
@@ -168,14 +148,34 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
+  public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
+    final String contentType, final Object data) {
+    final File file = getJobFile(jobId, path, sequenceNumber);
+    file.getParentFile().mkdirs();
+    if (data instanceof File) {
+      final File dataFile = (File)data;
+      FileUtil.copy(dataFile, file);
+    } else if (data instanceof InputStream) {
+      final InputStream in = (InputStream)data;
+      FileUtil.copy(in, file);
+    } else if (data instanceof byte[]) {
+      final byte[] bytes = (byte[])data;
+      FileUtil.copy(new ByteArrayInputStream(bytes), file);
+    } else if (data instanceof String) {
+      final String string = (String)data;
+      FileUtil.copy(string, file);
+    }
+  }
+
+  @Override
   public void setGroupInput(final Identifier jobId, final int sequenceNumber,
     final RecordDefinition recordDefinition, final List<Record> requests) {
     if (!requests.isEmpty()) {
       final File file = getJobFile(jobId, GROUP_INPUTS, sequenceNumber);
       file.getParentFile().mkdirs();
       try (
-        CsvRecordWriter writer = new CsvRecordWriter(recordDefinition,
-          FileUtil.newUtf8Writer(file), ',', true, false)) {
+        CsvRecordWriter writer = new CsvRecordWriter(recordDefinition, FileUtil.newUtf8Writer(file),
+          ',', true, false)) {
         for (final Record record : requests) {
           writer.write(record);
         }

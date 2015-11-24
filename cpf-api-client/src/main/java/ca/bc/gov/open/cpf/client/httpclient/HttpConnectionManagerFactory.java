@@ -22,13 +22,11 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
 
 @SuppressWarnings("javadoc")
-public class HttpConnectionManagerFactory implements
-  ClientConnectionManagerFactory {
+public class HttpConnectionManagerFactory implements ClientConnectionManagerFactory {
 
   @SuppressWarnings("deprecation")
   @Override
-  public ClientConnectionManager newInstance(
-    final HttpParams params,
+  public ClientConnectionManager newInstance(final HttpParams params,
     final SchemeRegistry schemeRegistry) {
     return new ThreadSafeClientConnManager(params, schemeRegistry);
   }

@@ -29,19 +29,20 @@ public class LoadJobIdsToScheduleFromDatabase implements Runnable {
   }
 
   public boolean isRunning() {
-    return running;
+    return this.running;
   }
 
   @Override
   public void run() {
     try {
-      running = true;
-      batchJobService.scheduleFromDatabase();
+      this.running = true;
+      this.batchJobService.scheduleFromDatabase();
     } catch (final ClosedException e) {
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(LoadJobIdsToScheduleFromDatabase.class).error("Unable to schedule from database", e);
+      LoggerFactory.getLogger(LoadJobIdsToScheduleFromDatabase.class)
+        .error("Unable to schedule from database", e);
     } finally {
-      running = false;
+      this.running = false;
     }
   }
 }

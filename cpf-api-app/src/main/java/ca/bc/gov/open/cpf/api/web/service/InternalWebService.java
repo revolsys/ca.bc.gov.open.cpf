@@ -286,7 +286,8 @@ public class InternalWebService {
       synchronized (group) {
         if (!group.isCancelled()) {
           final int sequenceNumber = group.getSequenceNumber();
-          this.jobController.setGroupError(Identifier.newIdentifier(batchJobId), sequenceNumber, in);
+          this.jobController.setGroupError(Identifier.newIdentifier(batchJobId), sequenceNumber,
+            in);
         }
       }
     }
@@ -307,7 +308,8 @@ public class InternalWebService {
     if (group != null) {
       synchronized (group) {
         if (!group.isCancelled()) {
-          final Record batchJob = this.dataAccessObject.getBatchJob(Identifier.newIdentifier(batchJobId));
+          final Record batchJob = this.dataAccessObject
+            .getBatchJob(Identifier.newIdentifier(batchJobId));
           if (batchJob != null) {
             final String businessApplicationName = batchJob
               .getValue(BatchJob.BUSINESS_APPLICATION_NAME);

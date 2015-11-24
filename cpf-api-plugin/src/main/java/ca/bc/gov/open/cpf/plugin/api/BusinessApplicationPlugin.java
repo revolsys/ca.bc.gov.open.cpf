@@ -79,7 +79,7 @@ public @interface BusinessApplicationPlugin {
   String batchModePermission() default "permitAll";
 
   @Deprecated
-  String[] compatibleVersions() default {};
+  String[]compatibleVersions() default {};
 
   /**
    * <p>A description of the plug-in that is displayed on the business application
@@ -101,7 +101,7 @@ public @interface BusinessApplicationPlugin {
    * structured data MIME media types. For perRequestInputData=true set this to
    * the MIME media types of the input data supported (e.g. image/jpeg).</p>
    */
-  String[] inputDataContentTypes() default {};
+  String[]inputDataContentTypes() default {};
 
   /**
    * <p>A <a href="http://static.springsource.org/spring-security/site/docs/3.0.x/reference/el-access.html">Spring security expression</a>
@@ -206,7 +206,7 @@ public @interface BusinessApplicationPlugin {
    * structured data MIME media types. For perRequestOutputData=true set this to
    * the MIME media types of the output data supported (e.g. image/jpeg).</p>
    */
-  String[] resultDataContentTypes() default {};
+  String[]resultDataContentTypes() default {};
 
   /**
    * <p>The display title displayed on the web site for the plug-in (e.g. Fibonacci

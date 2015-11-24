@@ -28,7 +28,7 @@ import org.springframework.util.StopWatch;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
-import com.revolsys.util.DateUtil;
+import com.revolsys.util.Dates;
 import com.revolsys.util.JavaBeanUtil;
 
 public class BusinessApplicationStatistics {
@@ -63,12 +63,6 @@ public class BusinessApplicationStatistics {
 
   public static final String APPLICATION_STATISTIC_ID = "APPLICATION_STATISTIC_ID";
 
-  public static BusinessApplicationStatistics newStatistics(final String businessApplicationName,
-    final String durationType) {
-    final String id = getId(durationType);
-    return new BusinessApplicationStatistics(businessApplicationName, id);
-  }
-
   public static String getId(final String durationType) {
     final Date date = new Date();
     return getId(durationType, date);
@@ -93,7 +87,13 @@ public class BusinessApplicationStatistics {
         }
       }
     }
-    return DateUtil.format(pattern, date);
+    return Dates.format(pattern, date);
+  }
+
+  public static BusinessApplicationStatistics newStatistics(final String businessApplicationName,
+    final String durationType) {
+    final String id = getId(durationType);
+    return new BusinessApplicationStatistics(businessApplicationName, id);
   }
 
   private long applicationExecutedFailedRequestsCount;
@@ -176,7 +176,7 @@ public class BusinessApplicationStatistics {
         }
       }
     }
-    final Date startTime = DateUtil.getDate(pattern, dateString);
+    final Date startTime = Dates.getDate(pattern, dateString);
     this.businessApplicationName = businessApplicationName;
     this.durationType = durationType;
     final Calendar calendar = new GregorianCalendar();
@@ -212,7 +212,7 @@ public class BusinessApplicationStatistics {
     this.startTime = calendar.getTime();
     calendar.add(incrementField, 1);
     this.endTime = calendar.getTime();
-    this.dateString = DateUtil.format(pattern, startTime);
+    this.dateString = Dates.format(pattern, startTime);
     this.id = dateString;
     this.modified = false;
   }

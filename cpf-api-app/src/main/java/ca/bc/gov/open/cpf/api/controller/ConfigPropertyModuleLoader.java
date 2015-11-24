@@ -278,8 +278,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   public void refreshModules() {
     synchronized (this.modulesByName) {
       try (
-        Transaction transaction = this.dataAccessObject
-          .newTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
         try {
           final Map<String, Module> modulesToDelete = new HashMap<String, Module>(
             this.modulesByName);

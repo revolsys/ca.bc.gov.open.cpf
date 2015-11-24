@@ -56,8 +56,8 @@ public class BaseAuthorizationService implements AuthorizationService {
       for (final String groupName : this.userAccountSecurityService.getGroupNames(userAccount)) {
         groupNames.add(groupName);
       }
-      final Record permission = this.dataAccessObject.getUserGroupPermission(groupNames,
-        moduleName, resourceClass, resourceId, actionName);
+      final Record permission = this.dataAccessObject.getUserGroupPermission(groupNames, moduleName,
+        resourceClass, resourceId, actionName);
       return permission != null;
     }
   }
@@ -105,7 +105,8 @@ public class BaseAuthorizationService implements AuthorizationService {
   }
 
   @Override
-  public boolean isInGroup(final String moduleName, final String consumerKey, final String groupName) {
+  public boolean isInGroup(final String moduleName, final String consumerKey,
+    final String groupName) {
     final Record userAccount = this.dataAccessObject.getUserAccount(consumerKey);
     if (userAccount == null) {
       return false;
