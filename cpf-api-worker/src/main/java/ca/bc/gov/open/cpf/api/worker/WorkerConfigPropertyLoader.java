@@ -79,7 +79,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
                 final String stringValue = (String)configProperty.get("PROPERTY_VALUE");
                 if (Property.hasValue(stringValue)) {
                   final String type = (String)configProperty.get("PROPERTY_VALUE_TYPE");
-                  final DataType dataType = DataTypes.getType(QName.valueOf(type));
+                  final DataType dataType = DataTypes.getDataType(QName.valueOf(type));
                   Object value = stringValue;
                   if (dataType != null) {
                     value = dataType.toObject(stringValue);

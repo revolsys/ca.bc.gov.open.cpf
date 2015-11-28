@@ -41,7 +41,7 @@ public class DaoConfigPropertyLoader implements ConfigPropertyLoader {
       final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
       final String stringValue = configProperty.getValue(ConfigProperty.PROPERTY_VALUE);
       final String type = configProperty.getValue(ConfigProperty.PROPERTY_VALUE_TYPE);
-      final DataType dataType = DataTypes.getType(type);
+      final DataType dataType = DataTypes.getDataType(type);
       Object value = stringValue;
       if (dataType != null) {
         value = dataType.toObject(stringValue);

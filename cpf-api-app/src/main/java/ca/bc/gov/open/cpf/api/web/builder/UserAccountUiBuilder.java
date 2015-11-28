@@ -42,7 +42,7 @@ import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.domain.UserGroupAccountXref;
 
 import com.revolsys.collection.ArrayListOfMap;
-import com.revolsys.equals.Equals;
+import com.revolsys.datatype.DataType;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.IoConstants;
 import com.revolsys.record.Record;
@@ -414,7 +414,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     super.postUpdate(userAccount);
     final String consumerKey = userAccount.getString(CONSUMER_KEY);
     final String oldConsumerKey = HttpServletUtils.getAttribute("oldConsumerKey");
-    if (!Equals.equal(consumerKey, oldConsumerKey)) {
+    if (!DataType.equal(consumerKey, oldConsumerKey)) {
       final CpfDataAccessObject dataAccessObject = getDataAccessObject();
       dataAccessObject.updateJobUserId(oldConsumerKey, consumerKey);
     }

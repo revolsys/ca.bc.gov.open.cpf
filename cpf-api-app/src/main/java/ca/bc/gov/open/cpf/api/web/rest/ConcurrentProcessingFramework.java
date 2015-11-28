@@ -79,7 +79,6 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
-import com.revolsys.equals.EqualsInstance;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
@@ -661,7 +660,7 @@ public class ConcurrentProcessingFramework {
         final boolean jobParameter = businessApplication.isJobParameter(parameterName);
         final boolean requestParameter = businessApplication.isRequestParameter(parameterName);
         boolean hasValue = Property.hasValue(value);
-        if (parameter.getType() == DataTypes.BOOLEAN) {
+        if (parameter.getDataType() == DataTypes.BOOLEAN) {
           if ("on".equals(value)) {
             value = "true";
           } else {
@@ -673,7 +672,7 @@ public class ConcurrentProcessingFramework {
           if (jobParameter) {
             businessApplicationParameters.put(parameterName, value);
           } else if (requestParameter) {
-            if (parameter.getType() != DataTypes.BOOLEAN
+            if (parameter.getDataType() != DataTypes.BOOLEAN
               || Property.hasValue(HttpServletUtils.getParameter(parameterName))) {
               throw new HttpMessageNotReadableException("Parameter " + parameterName
                 + " cannot be specified on a job. It can only be specified as a field in the input data.");
@@ -930,7 +929,7 @@ public class ConcurrentProcessingFramework {
         String value = HttpServletUtils.getParameter(parameterName);
         final boolean required = attribute.isRequired();
         boolean hasValue = value != null && value.trim().length() > 0;
-        if (attribute.getType() == DataTypes.BOOLEAN) {
+        if (attribute.getDataType() == DataTypes.BOOLEAN) {
           if ("on".equals(value)) {
             value = "true";
           } else {
@@ -1454,7 +1453,7 @@ public class ConcurrentProcessingFramework {
               final String name = attribute.getName();
               String value = HttpServletUtils.getParameter(name);
               boolean hasValue = Property.hasValue(value);
-              if (attribute.getType() == DataTypes.BOOLEAN) {
+              if (attribute.getDataType() == DataTypes.BOOLEAN) {
                 if ("on".equals(value)) {
                   value = "true";
                 } else {
@@ -2155,7 +2154,7 @@ public class ConcurrentProcessingFramework {
   private Field getField(final FieldDefinition attribute) {
     final String name = attribute.getName();
     final boolean required = attribute.isRequired();
-    final DataType dataType = attribute.getType();
+    final DataType dataType = attribute.getDataType();
     final Map<Object, Object> allowedValues = attribute.getAllowedValues();
     final Object defaultValue = attribute.getDefaultValue();
     Field field;
@@ -2668,7 +2667,7 @@ public class ConcurrentProcessingFramework {
     if (batchJob != null) {
       final Record batchJobResult = this.dataAccessObject.getBatchJobResult(batchJobIdentifier,
         resultId);
-      if (batchJobResult != null && EqualsInstance.INSTANCE.equals(batchJobIdentifier,
+      if (batchJobResult != null && DataType.equal(batchJobIdentifier,
         batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
         this.dataAccessObject.setBatchJobDownloaded(batchJobIdentifier);
         final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);

@@ -94,7 +94,6 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
-import com.revolsys.equals.Equals;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.geometry.operation.valid.IsValidOp;
@@ -1589,7 +1588,7 @@ public class BatchJobService implements ModuleEventListener {
       if (jobValue != null) {
         if (parameterValue == null) {
           parameterValue = jobValue;
-        } else if (Equals.equal(parameterValue, jobValue)) {
+        } else if (DataType.equal(parameterValue, jobValue)) {
           requestParameters.setValue(parameterName, null);
           return true;
         }
@@ -2040,7 +2039,7 @@ public class BatchJobService implements ModuleEventListener {
     boolean updated = false;
     synchronized (batchJob) {
       final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-      if (Equals.equal(jobStatus, oldJobStatus)) {
+      if (DataType.equal(jobStatus, oldJobStatus)) {
         batchJob.setValue(BatchJob.JOB_STATUS, newJobStatus);
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
@@ -2129,7 +2128,7 @@ public class BatchJobService implements ModuleEventListener {
   public void setStructuredInputDataValue(final String sridString,
     final Map<String, Object> requestParemeters, final FieldDefinition field, Object parameterValue,
     final boolean setValue) {
-    final DataType dataType = field.getType();
+    final DataType dataType = field.getDataType();
     final Class<?> dataClass = dataType.getJavaClass();
     if (Geometry.class.isAssignableFrom(dataClass)) {
       if (parameterValue != null) {

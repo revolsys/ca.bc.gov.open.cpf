@@ -897,7 +897,7 @@ public class CpfDataAccessObject implements Transactionable {
     } else {
       final String stringValue;
       final String valueType = object.getValue(ConfigProperty.PROPERTY_VALUE_TYPE);
-      final DataType dataType = DataTypes.getType(QName.valueOf(valueType));
+      final DataType dataType = DataTypes.getDataType(QName.valueOf(valueType));
       if (dataType == null) {
         stringValue = value.toString();
       } else {

@@ -1306,7 +1306,7 @@ public class ClassLoaderModule implements Module {
             }
           }
 
-          final DataType dataType = DataTypes.getType(parameterType);
+          final DataType dataType = DataTypes.getDataType(parameterType);
           if (dataType == null) {
             throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
               + " has an unsupported return type " + parameterType);
@@ -1411,7 +1411,7 @@ public class ClassLoaderModule implements Module {
           final String fieldName = JavaBeanUtil.getPropertyName(methodName);
           final String description = fieldMetadata.description();
           final Class<?> returnType = method.getReturnType();
-          final DataType dataType = DataTypes.getType(returnType);
+          final DataType dataType = DataTypes.getDataType(returnType);
           if (dataType == null) {
             throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
               + " has an unsupported return type " + returnType);

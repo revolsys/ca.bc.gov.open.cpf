@@ -47,7 +47,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
-import com.revolsys.equals.EqualsInstance;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.PathName;
 import com.revolsys.record.ArrayRecord;
@@ -199,7 +198,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
           for (final String propertyName : propertyNames) {
             final Object defaultValue = Property.get(pluginAnnotation, propertyName);
             final Object newValue = form.getValue(propertyName);
-            final boolean equal = EqualsInstance.INSTANCE.equals(defaultValue, newValue);
+            final boolean equal = DataType.equal(defaultValue, newValue);
 
             Record configProperty = dataAccessObject.getConfigProperty(ConfigProperty.DEFAULT,
               moduleName, componentName, propertyName);
@@ -208,7 +207,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
                 try {
                   final Class<?> propertyClass = PropertyUtils.getPropertyType(businessApplication,
                     propertyName);
-                  final DataType valueType = DataTypes.getType(propertyClass);
+                  final DataType valueType = DataTypes.getDataType(propertyClass);
 
                   configProperty = dataAccessObject.newConfigProperty(ConfigProperty.DEFAULT,
                     moduleName, componentName, propertyName, newValue, valueType);

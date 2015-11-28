@@ -41,8 +41,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.map.Maps;
+import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
-import com.revolsys.equals.Equals;
 import com.revolsys.geometry.cs.CoordinateSystem;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
@@ -396,7 +396,7 @@ public class BusinessApplication extends BaseObjectWithProperties
       throw new IllegalArgumentException("Business Application " + getName()
         + " Duplicate index for " + RequestParameter.class + " on " + fieldName);
     } else {
-      if (Geometry.class.isAssignableFrom(field.getType().getJavaClass())) {
+      if (Geometry.class.isAssignableFrom(field.getDataType().getJavaClass())) {
         this.hasGeometryRequestAttribute = true;
       } else {
         this.hasNonGeometryRequestAttribute = true;
@@ -431,7 +431,7 @@ public class BusinessApplication extends BaseObjectWithProperties
       throw new IllegalArgumentException("Business Application " + getName()
         + " Duplicate index for " + ResultAttribute.class + " on " + fieldName);
     } else {
-      if (Geometry.class.isAssignableFrom(field.getType().getJavaClass())) {
+      if (Geometry.class.isAssignableFrom(field.getDataType().getJavaClass())) {
         this.hasGeometryResultAttribute = true;
       }
       this.resultFieldMap.put(index, field);
@@ -698,7 +698,7 @@ public class BusinessApplication extends BaseObjectWithProperties
   private boolean isContentTypeOrFileExtensionEqual(final String match, final String contentType,
     final String fileExtension) {
     if (Property.hasValue(match)) {
-      return Equals.equal(match, contentType) || Equals.equal(match, fileExtension);
+      return DataType.equal(match, contentType) || DataType.equal(match, fileExtension);
     } else {
       return false;
     }
