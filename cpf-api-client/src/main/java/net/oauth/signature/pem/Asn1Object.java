@@ -27,13 +27,13 @@ import java.math.BigInteger;
 @SuppressWarnings("javadoc")
 class Asn1Object {
 
-  protected final int type;
-
   protected final int length;
 
-  protected final byte[] value;
-
   protected final int tag;
+
+  protected final int type;
+
+  protected final byte[] value;
 
   /**
    * Construct a ASN.1 TLV. The TLV could be either a constructed or primitive

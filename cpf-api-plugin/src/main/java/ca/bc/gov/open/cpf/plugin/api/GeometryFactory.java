@@ -45,12 +45,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
  * <p>The <code>GeometryFactory</code> does not provide a public constructor. <code>GeometryFactory</code> instances can
  * be obtained using the <code>getFactory</code> static methods described below.
  */
-@SuppressWarnings("serial")
 public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory {
-
-  /**
-   *
-   */
   private static final long serialVersionUID = 1L;
 
   /** The cached geometry factories. */

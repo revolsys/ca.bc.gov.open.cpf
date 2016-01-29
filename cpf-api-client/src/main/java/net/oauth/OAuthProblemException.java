@@ -31,7 +31,8 @@ import java.util.Map;
 @SuppressWarnings("javadoc")
 public class OAuthProblemException extends OAuthException {
 
-  public static final String OAUTH_PROBLEM = "oauth_problem";
+  /** The name of a parameter whose value is the response Location header. */
+  public static final String HTTP_LOCATION = "Location";
 
   /** The name of a parameter whose value is the HTTP request. */
   public static final String HTTP_REQUEST = "HTTP request";
@@ -42,16 +43,15 @@ public class OAuthProblemException extends OAuthException {
   /** The name of a parameter whose value is the HTTP resopnse status code. */
   public static final String HTTP_STATUS_CODE = "HTTP status";
 
-  /** The name of a parameter whose value is the response Location header. */
-  public static final String HTTP_LOCATION = "Location";
+  public static final String OAUTH_PROBLEM = "oauth_problem";
+
+  private static final long serialVersionUID = 1L;
 
   /** The name of a parameter whose value is the OAuth signature base string. */
   public static final String SIGNATURE_BASE_STRING = OAuth.OAUTH_SIGNATURE + " base string";
 
   /** The name of a parameter whose value is the request URL. */
   public static final String URL = "URL";
-
-  private static final long serialVersionUID = 1L;
 
   private final Map<String, Object> parameters = new HashMap<>();
 

@@ -116,45 +116,19 @@ public class OAuth {
    * reporting</a>.
    */
   public static class Problems {
-    public static final String VERSION_REJECTED = "version_rejected";
-
-    public static final String PARAMETER_ABSENT = "parameter_absent";
-
-    public static final String PARAMETER_REJECTED = "parameter_rejected";
-
-    public static final String TIMESTAMP_REFUSED = "timestamp_refused";
-
-    public static final String NONCE_USED = "nonce_used";
-
-    public static final String SIGNATURE_METHOD_REJECTED = "signature_method_rejected";
-
-    public static final String SIGNATURE_INVALID = "signature_invalid";
-
-    public static final String CONSUMER_KEY_UNKNOWN = "consumer_key_unknown";
-
-    public static final String CONSUMER_KEY_REJECTED = "consumer_key_rejected";
+    public static final String ADDITIONAL_AUTHORIZATION_REQUIRED = "additional_authorization_required";
 
     public static final String CONSUMER_KEY_REFUSED = "consumer_key_refused";
 
-    public static final String TOKEN_USED = "token_used";
+    public static final String CONSUMER_KEY_REJECTED = "consumer_key_rejected";
 
-    public static final String TOKEN_EXPIRED = "token_expired";
+    public static final String CONSUMER_KEY_UNKNOWN = "consumer_key_unknown";
 
-    public static final String TOKEN_REVOKED = "token_revoked";
-
-    public static final String TOKEN_REJECTED = "token_rejected";
-
-    public static final String ADDITIONAL_AUTHORIZATION_REQUIRED = "additional_authorization_required";
-
-    public static final String PERMISSION_UNKNOWN = "permission_unknown";
-
-    public static final String PERMISSION_DENIED = "permission_denied";
-
-    public static final String USER_REFUSED = "user_refused";
-
-    public static final String OAUTH_ACCEPTABLE_VERSIONS = "oauth_acceptable_versions";
+    public static final String NONCE_USED = "nonce_used";
 
     public static final String OAUTH_ACCEPTABLE_TIMESTAMPS = "oauth_acceptable_timestamps";
+
+    public static final String OAUTH_ACCEPTABLE_VERSIONS = "oauth_acceptable_versions";
 
     public static final String OAUTH_PARAMETERS_ABSENT = "oauth_parameters_absent";
 
@@ -162,12 +136,38 @@ public class OAuth {
 
     public static final String OAUTH_PROBLEM_ADVICE = "oauth_problem_advice";
 
+    public static final String PARAMETER_ABSENT = "parameter_absent";
+
+    public static final String PARAMETER_REJECTED = "parameter_rejected";
+
+    public static final String PERMISSION_DENIED = "permission_denied";
+
+    public static final String PERMISSION_UNKNOWN = "permission_unknown";
+
+    public static final String SIGNATURE_INVALID = "signature_invalid";
+
+    public static final String SIGNATURE_METHOD_REJECTED = "signature_method_rejected";
+
+    public static final String TIMESTAMP_REFUSED = "timestamp_refused";
+
     /**
      * A map from an <a
      * href="http://wiki.oauth.net/ProblemReporting">oauth_problem</a> value to
      * the appropriate HTTP response code.
      */
     public static final Map<String, Integer> TO_HTTP_CODE = mapToHttpCode();
+
+    public static final String TOKEN_EXPIRED = "token_expired";
+
+    public static final String TOKEN_REJECTED = "token_rejected";
+
+    public static final String TOKEN_REVOKED = "token_revoked";
+
+    public static final String TOKEN_USED = "token_used";
+
+    public static final String USER_REFUSED = "user_refused";
+
+    public static final String VERSION_REJECTED = "version_rejected";
 
     private static Map<String, Integer> mapToHttpCode() {
       final Integer badRequest = new Integer(400);
@@ -201,41 +201,41 @@ public class OAuth {
 
   }
 
-  public static final String VERSION_1_0 = "1.0";
-
   /** The encoding used to represent characters as bytes. */
   public static final String ENCODING = "UTF-8";
+
+  private static String characterEncoding = ENCODING;
 
   /** The MIME type for a sequence of OAuth parameters. */
   public static final String FORM_ENCODED = "application/x-www-form-urlencoded";
 
-  public static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
-
-  public static final String OAUTH_TOKEN = "oauth_token";
-
-  public static final String OAUTH_TOKEN_SECRET = "oauth_token_secret";
-
-  public static final String OAUTH_SIGNATURE_METHOD = "oauth_signature_method";
-
-  public static final String OAUTH_SIGNATURE = "oauth_signature";
-
-  public static final String OAUTH_TIMESTAMP = "oauth_timestamp";
-
-  public static final String OAUTH_NONCE = "oauth_nonce";
-
-  public static final String OAUTH_VERSION = "oauth_version";
+  public static final String HMAC_SHA1 = "HMAC-SHA1";
 
   public static final String OAUTH_CALLBACK = "oauth_callback";
 
   public static final String OAUTH_CALLBACK_CONFIRMED = "oauth_callback_confirmed";
 
+  public static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
+
+  public static final String OAUTH_NONCE = "oauth_nonce";
+
+  public static final String OAUTH_SIGNATURE = "oauth_signature";
+
+  public static final String OAUTH_SIGNATURE_METHOD = "oauth_signature_method";
+
+  public static final String OAUTH_TIMESTAMP = "oauth_timestamp";
+
+  public static final String OAUTH_TOKEN = "oauth_token";
+
+  public static final String OAUTH_TOKEN_SECRET = "oauth_token_secret";
+
   public static final String OAUTH_VERIFIER = "oauth_verifier";
 
-  public static final String HMAC_SHA1 = "HMAC-SHA1";
+  public static final String OAUTH_VERSION = "oauth_version";
 
   public static final String RSA_SHA1 = "RSA-SHA1";
 
-  private static String characterEncoding = ENCODING;
+  public static final String VERSION_1_0 = "1.0";
 
   public static String addParameters(final String url,
     final Iterable<? extends Map.Entry<String, String>> parameters) throws IOException {

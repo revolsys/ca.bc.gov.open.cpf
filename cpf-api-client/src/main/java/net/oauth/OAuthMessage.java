@@ -48,17 +48,17 @@ public class OAuthMessage {
 
   public static final String AUTH_SCHEME = "OAuth";
 
+  private static final Pattern AUTHORIZATION = Pattern.compile("\\s*(\\w*)\\s+(.*)");
+
+  public static final String DELETE = "DELETE";
+
   public static final String GET = "GET";
+
+  private static final Pattern NVP = Pattern.compile("(\\S*)\\s*\\=\\s*\"([^\"]*)\"");
 
   public static final String POST = "POST";
 
   public static final String PUT = "PUT";
-
-  public static final String DELETE = "DELETE";
-
-  private static final Pattern AUTHORIZATION = Pattern.compile("\\s*(\\w*)\\s+(.*)");
-
-  private static final Pattern NVP = Pattern.compile("(\\S*)\\s*\\=\\s*\"([^\"]*)\"");
 
   /**
    * Parse the parameters from an OAuth Authorization or WWW-Authenticate
@@ -112,19 +112,19 @@ public class OAuthMessage {
     return from == null ? null : from.toString();
   }
 
-  public String method;
-
-  public String URL;
-
-  private final List<Entry<String, String>> parameters;
-
-  private Map<String, String> parameterMap;
-
-  private boolean parametersAreComplete = false;
+  private final InputStream bodyAsStream;
 
   private final List<Entry<String, String>> headers = new ArrayList<Entry<String, String>>();
 
-  private final InputStream bodyAsStream;
+  public String method;
+
+  private Map<String, String> parameterMap;
+
+  private final List<Entry<String, String>> parameters;
+
+  private boolean parametersAreComplete = false;
+
+  public String URL;
 
   public OAuthMessage(final String method, final String URL,
     final Collection<? extends Entry<String, String>> parameters) {

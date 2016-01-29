@@ -28,8 +28,6 @@ import java.util.Map;
 @SuppressWarnings("javadoc")
 public class OAuthConsumer implements Serializable {
 
-  private static final long serialVersionUID = -2258581186977818580L;
-
   /**
    * The name of the property whose value is the Accept-Encoding header in HTTP
    * requests.
@@ -42,15 +40,17 @@ public class OAuthConsumer implements Serializable {
    */
   public static final String ACCESSOR_SECRET = "oauth_accessor_secret";
 
+  private static final long serialVersionUID = -2258581186977818580L;
+
   public final String callbackURL;
 
   public final String consumerKey;
 
   public final String consumerSecret;
 
-  public final OAuthServiceProvider serviceProvider;
-
   private final Map<String, Object> properties = new HashMap<>();
+
+  public final OAuthServiceProvider serviceProvider;
 
   public OAuthConsumer(final String callbackURL, final String consumerKey,
     final String consumerSecret, final OAuthServiceProvider serviceProvider) {

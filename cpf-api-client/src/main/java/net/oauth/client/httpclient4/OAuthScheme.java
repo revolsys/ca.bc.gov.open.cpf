@@ -42,10 +42,10 @@ class OAuthScheme extends RFC2617Scheme {
    */
   private static final long serialVersionUID = 1L;
 
-  private final String defaultRealm;
-
   /** Whether the authentication process is complete (for the current context) */
   private boolean complete;
+
+  private final String defaultRealm;
 
   OAuthScheme(final String defaultRealm) {
     this.defaultRealm = defaultRealm;

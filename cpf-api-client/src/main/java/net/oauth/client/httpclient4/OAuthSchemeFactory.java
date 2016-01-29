@@ -32,9 +32,6 @@ import org.apache.http.params.HttpParams;
  */
 public class OAuthSchemeFactory implements AuthSchemeFactory {
 
-  /** The name of this authorization scheme. */
-  public static final String SCHEME_NAME = "OAuth";
-
   /**
    * The name of an DigestHttpClient param whose value is the realm to send in
    * Authorization headers, if no realm was previously received in a
@@ -42,6 +39,9 @@ public class OAuthSchemeFactory implements AuthSchemeFactory {
    * that is sending an Authorization header without any need for a challenge.
    */
   public static final String DEFAULT_REALM = "defaultRealm";
+
+  /** The name of this authorization scheme. */
+  public static final String SCHEME_NAME = "OAuth";
 
   @SuppressWarnings("javadoc")
   @Override

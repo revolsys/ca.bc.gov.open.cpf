@@ -33,11 +33,11 @@ import com.revolsys.spring.resource.Resource;
 
 @SuppressWarnings("javadoc")
 public class CpfClientTest {
-  private static final String url = "http://localhost/pub/cpf";
-
   private static final String consumerKey = "cpftest";
 
   private static final String consumerSecret = "cpftest";
+
+  private static final String url = "http://localhost/pub/cpf";
 
   public static void main(final String[] args) throws IOException {
     testConstructor();

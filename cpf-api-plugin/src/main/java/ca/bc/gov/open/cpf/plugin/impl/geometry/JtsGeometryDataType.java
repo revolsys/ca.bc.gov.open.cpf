@@ -34,15 +34,8 @@ public class JtsGeometryDataType extends AbstractDataType {
   }
 
   @Override
-  public String toString(final Object value) {
-    if (value == null) {
-      return null;
-    } else if (value instanceof Geometry) {
-      final Geometry geometry = (Geometry)value;
-      return JtsWktWriter.toString(geometry, true);
-    } else {
-      return value.toString();
-    }
+  public String toStringDo(final Object value) {
+    final Geometry geometry = (Geometry)value;
+    return JtsWktWriter.toString(geometry, true);
   }
-
 }

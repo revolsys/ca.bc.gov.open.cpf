@@ -90,8 +90,6 @@ public class OAuthHttpClient extends DefaultHttpClient {
     return target;
   }
 
-  private String webServiceUrl;
-
   private final String consumerKey;
 
   private final String consumerSecret;
@@ -99,6 +97,8 @@ public class OAuthHttpClient extends DefaultHttpClient {
   private BasicHttpContext context;
 
   private final OAuthHttpClientPool pool;
+
+  private String webServiceUrl;
 
   @SuppressWarnings("deprecation")
   public OAuthHttpClient(final OAuthHttpClientPool pool, final String webServiceUrl,

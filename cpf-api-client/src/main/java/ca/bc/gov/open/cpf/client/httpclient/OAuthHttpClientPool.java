@@ -21,15 +21,15 @@ import java.util.Set;
 @SuppressWarnings("javadoc")
 public class OAuthHttpClientPool {
 
-  private String webServiceUrl;
+  private Set<OAuthHttpClient> clients = new HashSet<OAuthHttpClient>();
 
   private String consumerKey;
 
   private String consumerSecret;
 
-  private Set<OAuthHttpClient> clients = new HashSet<OAuthHttpClient>();
-
   private int maxConnections = 10;
+
+  private String webServiceUrl;
 
   public OAuthHttpClientPool() {
   }

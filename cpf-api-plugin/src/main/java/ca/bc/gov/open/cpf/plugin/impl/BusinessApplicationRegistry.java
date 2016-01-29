@@ -407,7 +407,7 @@ public final class BusinessApplicationRegistry
       this.moduleControlChannel.write(parameters);
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
-      module.doRestart();
+      module.restartDo();
     }
   }
 
@@ -436,7 +436,7 @@ public final class BusinessApplicationRegistry
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
       if (module != null) {
-        module.doStart();
+        module.startDo();
       }
     }
   }
@@ -450,7 +450,7 @@ public final class BusinessApplicationRegistry
     } else {
       final ClassLoaderModule module = (ClassLoaderModule)getModule(moduleName);
       if (module != null) {
-        module.doStop();
+        module.stopDo();
       }
     }
   }

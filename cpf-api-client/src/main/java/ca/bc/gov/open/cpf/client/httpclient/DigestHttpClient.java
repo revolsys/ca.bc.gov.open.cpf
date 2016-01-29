@@ -70,12 +70,12 @@ public class DigestHttpClient {
     return target;
   }
 
-  private final String webServiceUrl;
+  private final DefaultHttpClient httpClient;
 
   private final ResponseHandler<Map<String, Object>> jsonResponseHandler = new FunctionResponseHandler<>(
     this::getJsonResource);
 
-  private final DefaultHttpClient httpClient;
+  private final String webServiceUrl;
 
   public DigestHttpClient(final String webServiceUrl, final String username, final String password,
     final int poolSize) {

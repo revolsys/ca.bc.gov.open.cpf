@@ -33,22 +33,22 @@ import net.oauth.signature.OAuthSignatureMethod;
 @SuppressWarnings("javadoc")
 public class PEMReader {
 
+  private static final String BEGIN_MARKER = "-----BEGIN ";
+
+  public static final String CERTIFICATE_X509_MARKER = "-----BEGIN CERTIFICATE-----";
+
   // Begin markers for all supported PEM files
   public static final String PRIVATE_PKCS1_MARKER = "-----BEGIN RSA PRIVATE KEY-----";
 
   public static final String PRIVATE_PKCS8_MARKER = "-----BEGIN PRIVATE KEY-----";
 
-  public static final String CERTIFICATE_X509_MARKER = "-----BEGIN CERTIFICATE-----";
-
   public static final String PUBLIC_X509_MARKER = "-----BEGIN PUBLIC KEY-----";
 
-  private static final String BEGIN_MARKER = "-----BEGIN ";
-
-  private final InputStream stream;
+  private String beginMarker;
 
   private byte[] derBytes;
 
-  private String beginMarker;
+  private final InputStream stream;
 
   public PEMReader(final byte[] buffer) throws IOException {
     this(new ByteArrayInputStream(buffer));

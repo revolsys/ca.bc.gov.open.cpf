@@ -218,7 +218,7 @@ public class ClassLoaderModule implements Module {
     if (this.moduleError.length() > 2000) {
       this.moduleError = this.moduleError.substring(0, 1997) + "...";
     }
-    doStop();
+    stopDo();
     setStatus("Start Failed");
   }
 
@@ -278,7 +278,7 @@ public class ClassLoaderModule implements Module {
   @Override
   @PreDestroy
   public void destroy() {
-    doStop();
+    stopDo();
     if (this.classLoader instanceof URLClassLoader) {
       final URLClassLoader urlClassLoader = (URLClassLoader)this.classLoader;
       try {
@@ -302,12 +302,12 @@ public class ClassLoaderModule implements Module {
     setStatus("Disabled");
   }
 
-  public void doRestart() {
+  public void restartDo() {
     stop();
     start();
   }
 
-  public void doStart() {
+  public void startDo() {
     if (isEnabled()) {
       if (isStarted()) {
         setStatus("Started");
@@ -345,7 +345,7 @@ public class ClassLoaderModule implements Module {
     }
   }
 
-  public void doStop() {
+  public void stopDo() {
     setStatus("Stopping");
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
@@ -387,7 +387,7 @@ public class ClassLoaderModule implements Module {
       this.enabled = true;
     }
     if (!isInitialized()) {
-      setStatus("BooleanValueCloseable");
+      setStatus("ValueCloseable");
       this.initialized = true;
       start();
     }
@@ -1239,7 +1239,6 @@ public class ClassLoaderModule implements Module {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private void processParameter(final Class<?> pluginClass,
     final BusinessApplication businessApplication, final Method method) {
     final String methodName = method.getName();

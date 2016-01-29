@@ -27,11 +27,11 @@ public class OAuthServiceProvider implements Serializable {
 
   private static final long serialVersionUID = 3306534392621038574L;
 
+  public final String accessTokenURL;
+
   public final String requestTokenURL;
 
   public final String userAuthorizationURL;
-
-  public final String accessTokenURL;
 
   public OAuthServiceProvider(final String requestTokenURL, final String userAuthorizationURL,
     final String accessTokenURL) {

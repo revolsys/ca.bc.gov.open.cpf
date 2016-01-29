@@ -49,13 +49,13 @@ public class HttpMultipartPost {
     }
   };
 
-  private HttpEntity responseEntity = null;
-
   private HttpResponse response = null;
 
-  private final String userAgent = "";
+  private HttpEntity responseEntity = null;
 
   private String url;
+
+  private final String userAgent = "";
 
   public HttpMultipartPost(final HttpClient httpclient, final String url) {
     this(new HttpPost(url));

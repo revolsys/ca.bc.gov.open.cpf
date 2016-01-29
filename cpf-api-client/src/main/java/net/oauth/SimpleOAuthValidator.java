@@ -102,11 +102,11 @@ public class SimpleOAuthValidator implements OAuthValidator {
     return Collections.unmodifiableSet(s);
   }
 
-  protected final double minVersion = 1.0;
+  protected final long maxTimestampAgeMsec;
 
   protected final double maxVersion;
 
-  protected final long maxTimestampAgeMsec;
+  protected final double minVersion = 1.0;
 
   private final Set<UsedNonce> usedNonces = new TreeSet<UsedNonce>();
 

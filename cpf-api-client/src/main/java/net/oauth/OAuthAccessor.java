@@ -35,15 +35,15 @@ public class OAuthAccessor implements Cloneable, Serializable {
 
   private static final long serialVersionUID = 5590788443138352999L;
 
+  public String accessToken;
+
   public final OAuthConsumer consumer;
+
+  private final Map<String, Object> properties = new HashMap<>();
 
   public String requestToken;
 
-  public String accessToken;
-
   public String tokenSecret;
-
-  private final Map<String, Object> properties = new HashMap<>();
 
   public OAuthAccessor(final OAuthConsumer consumer) {
     this.consumer = consumer;

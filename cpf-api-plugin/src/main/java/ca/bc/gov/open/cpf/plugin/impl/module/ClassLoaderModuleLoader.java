@@ -33,7 +33,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.Path;
+import com.revolsys.io.PathUtil;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.Property;
 
@@ -117,7 +117,7 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
                 moduleName = moduleName.substring(dashIndex + 1);
               }
             } else {
-              moduleName = FileUtil.getFileNameExtension(Path.getName(moduleName));
+              moduleName = FileUtil.getFileNameExtension(PathUtil.getName(moduleName));
             }
             if (!Property.hasValue(moduleName)) {
               moduleName = UUID.randomUUID().toString();

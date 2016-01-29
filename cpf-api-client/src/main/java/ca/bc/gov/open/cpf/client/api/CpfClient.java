@@ -16,7 +16,6 @@
 package ca.bc.gov.open.cpf.client.api;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ import ca.bc.gov.open.cpf.client.httpclient.HttpMultipartPost;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
 
+import com.revolsys.io.BaseCloseable;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapWriter;
@@ -94,7 +94,7 @@ import com.revolsys.util.Property;
  * encoding be used for all text files. This includes the text in a .dbf file for a .shpz archive, unless
  * a .cpf file is provided in the shpz archive.</p>
  */
-public class CpfClient implements Closeable {
+public class CpfClient implements BaseCloseable {
   /** DigestHttpClient using OAuth credentials */
   private OAuthHttpClientPool httpClientPool;
 

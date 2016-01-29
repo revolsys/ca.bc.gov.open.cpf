@@ -59,7 +59,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   }
 
   @Override
-  public void doStart() {
+  public void startDo() {
 
     if (isEnabled()) {
       if (!isStarted()) {
@@ -85,14 +85,14 @@ public class ConfigPropertyModule extends ClassLoaderModule {
                   "Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
               }
               if (!isHasError()) {
-                super.doStart();
+                super.startDo();
               }
             } catch (final Throwable e) {
               transaction.setRollbackOnly();
               addModuleError(e);
             }
             if (isHasError()) {
-              doStop();
+              stopDo();
             } else {
               final BatchJobService batchJobService = this.moduleLoader.getBatchJobService();
               batchJobService.collateStatistics();
@@ -108,7 +108,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   }
 
   @Override
-  public void doStop() {
+  public void stopDo() {
     if (isStarted()) {
       try (
         Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
@@ -116,7 +116,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
           final List<String> businessApplicationNames = getBusinessApplicationNames();
           setStartedDate(null);
 
-          super.doStop();
+          super.stopDo();
           setClassLoader(null);
           setConfigUrl(null);
           final BatchJobService batchJobService = this.moduleLoader.getBatchJobService();

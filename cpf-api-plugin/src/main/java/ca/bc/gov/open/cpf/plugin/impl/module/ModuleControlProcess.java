@@ -55,11 +55,11 @@ public class ModuleControlProcess extends AbstractProcess {
               .getModule(moduleName);
             if (module != null) {
               if ("start".equals(action)) {
-                module.doStart();
+                module.startDo();
               } else if ("restart".equals(action)) {
-                module.doRestart();
+                module.restartDo();
               } else if ("stop".equals(action)) {
-                module.doStop();
+                module.stopDo();
               }
             }
           } catch (final Throwable t) {

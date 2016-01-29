@@ -53,9 +53,9 @@ public abstract class OAuthSignatureMethod {
       return from == null ? null : from.toString();
     }
 
-    final Entry<String, String> value;
-
     private final String key;
+
+    final Entry<String, String> value;
 
     ComparableParameter(final Entry<String, String> value) {
       this.value = value;
@@ -80,13 +80,13 @@ public abstract class OAuthSignatureMethod {
 
   public static final String _ACCESSOR = "-Accessor";
 
+  private static final Base64 BASE64 = new Base64();
+
   /**
    * The character encoding used for base64. Arguably US-ASCII is more accurate,
    * but this one decodes all byte values unambiguously.
    */
   private static final String BASE64_ENCODING = "ISO-8859-1";
-
-  private static final Base64 BASE64 = new Base64();
 
   private static final Map<String, Class<?>> NAME_TO_CLASS = new ConcurrentHashMap<String, Class<?>>();
 
