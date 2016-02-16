@@ -75,8 +75,8 @@ public class CpfClientTest {
 
   private static void testCloseBatchJob() {
     System.out.println("Close Batch Job");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92g025");
@@ -84,31 +84,28 @@ public class CpfClientTest {
         parameters, "application/json");
       // Download the results of the job
       client.closeJob(batchJobId);
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testCloseConnection() {
     System.out.println("Close Connection");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       // Use the client
-    } finally {
-      client.closeConnection();
     }
   }
 
-  @SuppressWarnings("unused")
   private static void testConstructor() {
     System.out.println("Constructor");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
+    }
   }
 
   private static void testCreateStructuredMultipleList() {
     System.out.println("Create Batch Job Structured Multiple List");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> jobParameters = new HashMap<>();
       jobParameters.put("mapGridName", "BCGS 1:20 000");
 
@@ -126,15 +123,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testCreateStructuredMultipleResource() {
     System.out.println("Create Batch Job Structured Multiple Resource");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> jobParameters = new HashMap<>();
       jobParameters.put("mapGridName", "NTS 1:500 000");
 
@@ -152,15 +147,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testCreateStructuredMultipleUrl() {
     System.out.println("Create Batch Job Structured Multiple URL");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> jobParameters = new HashMap<>();
       jobParameters.put("mapGridName", "NTS 1:500 000");
 
@@ -177,15 +170,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testCreateStructuredSingle() {
     System.out.println("Create Batch Job Structured Single");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j025");
@@ -199,15 +190,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testGetBatchJobResultsError() {
     System.out.println("Get Batch Job Results Error");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
@@ -221,15 +210,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testGetBatchJobResultsList() {
     System.out.println("Get Batch Job Results File List");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
@@ -243,8 +230,6 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
@@ -253,8 +238,8 @@ public class CpfClientTest {
     final String url = "http://localhost/pub/cpf";
     final String consumerKey = "cpftest";
     final String consumerSecret = "cpftest";
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
@@ -266,8 +251,6 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
@@ -276,8 +259,8 @@ public class CpfClientTest {
     final String url = "http://localhost/pub/cpf";
     final String consumerKey = "cpftest";
     final String consumerSecret = "cpftest";
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j025");
@@ -291,8 +274,6 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
@@ -301,57 +282,49 @@ public class CpfClientTest {
     final String url = "http://localhost/pub/cpf";
     final String consumerKey = "cpftest";
     final String consumerSecret = "cpftest";
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> specification = client
         .getBusinessApplicationInstantSpecification("MapTileByTileId");
       System.out.println(specification);
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testGetBusinessApplicationMultipleSpecification() {
     System.out.println("Get Business Application Specification");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> specification = client
         .getBusinessApplicationMultipleSpecification("MapTileByTileId");
       System.out.println(specification);
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testGetBusinessApplicationNames() {
     System.out.println("Get Business Application Names");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final List<String> businessApplicationNames = client.getBusinessApplicationNames();
       for (final String businessApplicationName : businessApplicationNames) {
         System.out.println(businessApplicationName);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testGetBusinessApplicationSingleSpecification() {
     System.out.println("Get Business Application Specification");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> specification = client
         .getBusinessApplicationSingleSpecification("MapTileByTileId");
       System.out.println(specification);
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testIsBatchJobCompleted() {
     System.out.println("Is Batch Job Completed");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
@@ -365,15 +338,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testProcessBatchJobResultFile() {
     System.out.println("Process Batch Job Results File");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j016");
@@ -401,15 +372,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testProcessBatchJobResultsError() {
     System.out.println("Process Batch Job Results Error");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
@@ -427,15 +396,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testProcessBatchJobStructuredResults() {
     System.out.println("Process Batch Job Structured Results");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "92j025");
@@ -453,15 +420,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testUserAppGetBatchJobIds() {
     System.out.println("User Get App Batch Job Ids");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
@@ -478,15 +443,13 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 
   private static void testUserGetBatchJobIds() {
     System.out.println("User Get Batch Job Ids");
-    final CpfClient client = new CpfClient(url, consumerKey, consumerSecret);
-    try {
+    try (
+      final CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
       final Map<String, Object> parameters = new HashMap<>();
       parameters.put("mapGridName", "BCGS 1:20 000");
       parameters.put("mapTileId", "INVALID");
@@ -503,8 +466,6 @@ public class CpfClientTest {
       } finally {
         client.closeJob(batchJobId);
       }
-    } finally {
-      client.closeConnection();
     }
   }
 }

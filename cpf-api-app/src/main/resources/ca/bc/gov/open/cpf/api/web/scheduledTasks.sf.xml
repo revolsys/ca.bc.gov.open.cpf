@@ -31,7 +31,7 @@
       cron="0 0/5 * * * *" />
 
     <task:scheduled
-      ref="batchJobService"
+      ref="statisticsService"
       method="collateStatistics"
       cron="5 0 * * * *" />
 

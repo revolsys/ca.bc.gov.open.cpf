@@ -22,10 +22,12 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.springframework.util.StopWatch;
 
+import com.revolsys.collection.set.Sets;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.util.Dates;
@@ -50,6 +52,8 @@ public class BusinessApplicationStatistics {
   public static final String STATISTIC_VALUES = "STATISTIC_VALUES";
 
   public static final String YEAR = "year";
+
+  public static final Set<String> MONTH_OR_YEAR = Sets.newHash(MONTH, YEAR);
 
   public static final List<String> DURATION_TYPES = Arrays.asList(HOUR, DAY, MONTH, YEAR);
 

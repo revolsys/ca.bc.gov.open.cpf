@@ -32,6 +32,7 @@ import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.scheduler.StatisticsService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -69,6 +70,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   private MavenRepository mavenRepository;
 
   private final Map<String, ConfigPropertyModule> modulesByName = new LinkedHashMap<String, ConfigPropertyModule>();
+
+  private StatisticsService statisticsService;
 
   public ConfigPropertyModuleLoader() {
     final String cpfVersion = getClass().getPackage().getImplementationVersion();
@@ -172,6 +175,10 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       }
     }
     return propertiesByEnvironment;
+  }
+
+  public StatisticsService getStatisticsService() {
+    return this.statisticsService;
   }
 
   private boolean isConfigPropertyDeleted(
@@ -384,6 +391,11 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   @javax.annotation.Resource(name = "batchJobService")
   public void setBatchJobService(final BatchJobService batchJobService) {
     this.batchJobService = batchJobService;
+  }
+
+  @javax.annotation.Resource(name = "statisticsService")
+  public void setBatchJobService(final StatisticsService statisticsService) {
+    this.statisticsService = statisticsService;
   }
 
   @Override

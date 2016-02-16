@@ -44,6 +44,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
+import ca.bc.gov.open.cpf.api.scheduler.StatisticsService;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -188,6 +189,9 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   /** The minimum time in milliseconds between status checks. */
   private int minTimeUntilNextCheck = 10;
 
+  @Resource
+  private StatisticsService statisticsService;
+
   public CpfUiBuilder() {
   }
 
@@ -209,6 +213,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     this.batchJobService = null;
     this.businessApplicationRegistry = null;
     this.dataAccessObject = null;
+    this.statisticsService = null;
   }
 
   public BatchJob getBatchJob(final String businessApplicationName, final Object batchJobId)
@@ -326,6 +331,10 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     return modules;
   }
 
+  public StatisticsService getStatisticsService() {
+    return this.statisticsService;
+  }
+
   /**
    * Get the time in milliseconds until the user should next check the status of
    * the job. If time is less than minValue then minValue will be returned.
@@ -338,7 +347,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
       .getBusinessApplication(businessApplicationName);
     long timeRemaining = 0;
     if (application != null) {
-      final List<BusinessApplicationStatistics> statistics = this.batchJobService
+      final List<BusinessApplicationStatistics> statistics = this.statisticsService
         .getStatisticsList(businessApplicationName);
       if (!statistics.isEmpty()) {
         final BusinessApplicationStatistics stats = statistics.get(0);

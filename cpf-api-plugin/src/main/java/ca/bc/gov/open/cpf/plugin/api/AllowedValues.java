@@ -49,6 +49,10 @@ public void setAlgorithmName(final String algorithmName) {
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = ElementType.METHOD)
 public @interface AllowedValues {
-  /** The list of allowed values encoded as strings. The string values will be converted to the data type of the parameter. */
+  /**
+   * The list of allowed values encoded as strings. The string values will be converted to the data type of the parameter.
+   *
+   * @return The list of allowed values.
+   */
   String[]value();
 }

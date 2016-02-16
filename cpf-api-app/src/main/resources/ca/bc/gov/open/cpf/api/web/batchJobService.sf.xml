@@ -60,4 +60,9 @@
     p:mailSender-ref="mailSender"
     p:fromEmail="noreply@localhost"
     p:timeoutForCapacityErrors="5" />
+
+  <bean
+    id="statisticsService"
+    class="ca.bc.gov.open.cpf.api.scheduler.StatisticsService"
+  />
 </beans>

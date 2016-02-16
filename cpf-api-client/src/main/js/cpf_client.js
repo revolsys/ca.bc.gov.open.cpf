@@ -502,7 +502,7 @@ CpfClient.prototype.getJobStatus = function(
     <select name="resultDataContentType">
       <option value="text/csv">Comma-Separated Values (text/csv)</option>
       <option value="application/x-shp+zip">ESRI Shapefile inside a ZIP archive (application/x-shp+zip)</option>
-      <option value="application/x-geo+json">GeoJSON (application/x-geo+json)</option>
+      <option value="application/vnd.geo+json">GeoJSON (application/vnd.geo+json)</option>
       <option value="application/gml+xml">Geography Markup Language (application/gml+xml)</option>
       <option selected="true" value="application/json">JavaScript Object Notation (application/json)</option>
       <option value="application/vnd.google-earth.kml+xml">KML (application/vnd.google-earth.kml+xml)</option>

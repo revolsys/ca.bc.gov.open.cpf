@@ -36,6 +36,7 @@
                   <head></head>
                 </tag>
               </tags>
+              <additionalparam>-Xdoclint:none</additionalparam>
             </configuration>
             <goals>
               <goal>jar</goal>

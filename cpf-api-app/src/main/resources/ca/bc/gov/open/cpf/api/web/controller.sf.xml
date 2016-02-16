@@ -54,7 +54,7 @@
       value="text/csv" />
     <entry
       key="geojson"
-      value="application/x-geo+json" />
+      value="application/vnd.geo+json" />
     <entry
       key="gml"
       value="application/gml+xml" />

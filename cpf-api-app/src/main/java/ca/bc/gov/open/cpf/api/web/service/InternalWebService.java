@@ -47,6 +47,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.scheduler.StatisticsService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -72,6 +73,9 @@ public class InternalWebService {
   private CpfConfig cpfConfig;
 
   private JobController jobController;
+
+  @Resource
+  private StatisticsService statisticsService;
 
   private void checkRunning() {
     if (!this.batchJobService.isRunning()) {
@@ -370,7 +374,7 @@ public class InternalWebService {
             batchJob.removeGroup(group);
             final BusinessApplication businessApplication = group.getBusinessApplication();
             final String moduleName = businessApplication.getModuleName();
-            final long executionTime = this.batchJobService.updateGroupStatistics(group,
+            final long executionTime = this.statisticsService.updateGroupStatistics(group,
               businessApplication, moduleName, applicationExecutedTime, groupExecutedTime,
               completedRequests.size(), failedRequests.size());
             final AppLog appLog = businessApplication.getLog();

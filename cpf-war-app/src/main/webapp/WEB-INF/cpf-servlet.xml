@@ -11,5 +11,7 @@
     resource="classpath:com/revolsys/ui/web/attributes.sf.xml" />
   <import
     resource="classpath:ca/bc/gov/open/cpf/api/web/web.sf.xml" />
+
+  <bean class="com.revolsys.beans.propertyeditor.ResourceEditorRegistrar" />
 </beans>
 

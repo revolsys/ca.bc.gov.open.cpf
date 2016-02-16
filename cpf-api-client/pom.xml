@@ -56,6 +56,7 @@
               <show>public</show>
               <useStandardDocletOptions>false</useStandardDocletOptions>
               <windowtitle>CPF Java Client API (${project.version})</windowtitle>
+              <additionalparam>-Xdoclint:none</additionalparam>
             </configuration>
             <goals>
               <goal>javadoc</goal>

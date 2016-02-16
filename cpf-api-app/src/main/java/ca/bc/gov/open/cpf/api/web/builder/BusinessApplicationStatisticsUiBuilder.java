@@ -36,8 +36,8 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
+import ca.bc.gov.open.cpf.api.scheduler.StatisticsService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.record.Record;
@@ -103,21 +103,21 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   public List<BusinessApplicationStatistics> getStatistics(
     final BusinessApplication businessApplication) {
     final String businessApplicationName = businessApplication.getName();
-    final BatchJobService batchJobService = getBatchJobService();
-    final List<BusinessApplicationStatistics> statistics = batchJobService
+    final StatisticsService statisticsService = getStatisticsService();
+    final List<BusinessApplicationStatistics> statistics = statisticsService
       .getStatisticsList(businessApplicationName);
     Collections.reverse(statistics);
     return statistics;
   }
 
   public List<BusinessApplicationStatistics> getSummaryStatistics(final String durationType) {
-    final BatchJobService batchJobService = getBatchJobService();
     final String statisticId = BusinessApplicationStatistics.getId(durationType);
     final List<BusinessApplication> apps = getBusinessApplications();
     final List<BusinessApplicationStatistics> statistics = new ArrayList<BusinessApplicationStatistics>();
     for (final BusinessApplication businessApplication : apps) {
       final String businessApplicationName = businessApplication.getName();
-      final BusinessApplicationStatistics statistic = batchJobService
+      final StatisticsService statisticsService = getStatisticsService();
+      final BusinessApplicationStatistics statistic = statisticsService
         .getStatistics(businessApplicationName, statisticId);
       statistics.add(statistic);
     }
@@ -164,8 +164,8 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
       final BusinessApplication businessApplication = getBusinessApplicationRegistry()
         .getModuleBusinessApplication(moduleName, businessApplicationName);
       if (businessApplication != null) {
-        final BatchJobService batchJobService = getBatchJobService();
-        final BusinessApplicationStatistics statistics = batchJobService
+        final StatisticsService statisticsService = getStatisticsService();
+        final BusinessApplicationStatistics statistics = statisticsService
           .getStatistics(businessApplicationName, statisticId);
 
         if (statistics != null) {

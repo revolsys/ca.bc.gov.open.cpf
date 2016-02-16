@@ -23,9 +23,4 @@
     id="cpfJobPostProcess"
     class="ca.bc.gov.open.cpf.api.scheduler.BatchJobPostProcess"
   />
-
-  <bean
-    id="cpfStatisticsProcess"
-    class="ca.bc.gov.open.cpf.api.scheduler.StatisticsProcess"
- />
 </beans>

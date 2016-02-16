@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
-import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.scheduler.StatisticsService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
@@ -56,80 +56,6 @@ public class ConfigPropertyModule extends ClassLoaderModule {
     this.dataAccessObject = moduleLoader.getDataAccessObject();
     setConfigPropertyLoader(configPropertyLoader);
     setRemoteable(true);
-  }
-
-  @Override
-  public void startDo() {
-
-    if (isEnabled()) {
-      if (!isStarted()) {
-        try (
-          Transaction transaction = this.dataAccessObject
-            .newTransaction(Propagation.REQUIRES_NEW)) {
-          try {
-            try {
-              clearModuleError();
-
-              final ClassLoader classLoader = getClassLoader();
-              final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(classLoader,
-                false);
-              if (configUrls.size() == 1) {
-                final URL configUrl = configUrls.get(0);
-                setConfigUrl(configUrl);
-                setClassLoader(classLoader);
-              } else if (configUrls.isEmpty()) {
-                addModuleError(
-                  "No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
-              } else {
-                addModuleError(
-                  "Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
-              }
-              if (!isHasError()) {
-                super.startDo();
-              }
-            } catch (final Throwable e) {
-              transaction.setRollbackOnly();
-              addModuleError(e);
-            }
-            if (isHasError()) {
-              stopDo();
-            } else {
-              final BatchJobService batchJobService = this.moduleLoader.getBatchJobService();
-              batchJobService.collateStatistics();
-            }
-          } catch (final Throwable e) {
-            throw transaction.setRollbackOnly(e);
-          }
-        }
-      }
-    } else {
-      setStatus("Disabled");
-    }
-  }
-
-  @Override
-  public void stopDo() {
-    if (isStarted()) {
-      try (
-        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
-        try {
-          final List<String> businessApplicationNames = getBusinessApplicationNames();
-          setStartedDate(null);
-
-          super.stopDo();
-          setClassLoader(null);
-          setConfigUrl(null);
-          final BatchJobService batchJobService = this.moduleLoader.getBatchJobService();
-          batchJobService.scheduleSaveStatistics(businessApplicationNames);
-        } catch (final Throwable e) {
-          throw transaction.setRollbackOnly(e);
-        }
-      }
-    } else if (isEnabled()) {
-      setStatus("Stopped");
-    } else {
-      setStatus("Disabled");
-    }
   }
 
   @Override
@@ -195,6 +121,80 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   public void setModuleDescriptor(final String mavenModuleId) {
     this.mavenModuleId = mavenModuleId;
+  }
+
+  @Override
+  public void startDo() {
+
+    if (isEnabled()) {
+      if (!isStarted()) {
+        try (
+          Transaction transaction = this.dataAccessObject
+            .newTransaction(Propagation.REQUIRES_NEW)) {
+          try {
+            try {
+              clearModuleError();
+
+              final ClassLoader classLoader = getClassLoader();
+              final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(classLoader,
+                false);
+              if (configUrls.size() == 1) {
+                final URL configUrl = configUrls.get(0);
+                setConfigUrl(configUrl);
+                setClassLoader(classLoader);
+              } else if (configUrls.isEmpty()) {
+                addModuleError(
+                  "No META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resource found for Maven module");
+              } else {
+                addModuleError(
+                  "Multiple META-INF/ca.bc.gov.open.cpf.plugin.sf.xml resources found for Maven module");
+              }
+              if (!isHasError()) {
+                super.startDo();
+              }
+            } catch (final Throwable e) {
+              transaction.setRollbackOnly();
+              addModuleError(e);
+            }
+            if (isHasError()) {
+              stopDo();
+            } else {
+              final StatisticsService statisticsService = this.moduleLoader.getStatisticsService();
+              statisticsService.collateStatistics();
+            }
+          } catch (final Throwable e) {
+            throw transaction.setRollbackOnly(e);
+          }
+        }
+      }
+    } else {
+      setStatus("Disabled");
+    }
+  }
+
+  @Override
+  public void stopDo() {
+    if (isStarted()) {
+      try (
+        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+        try {
+          final List<String> businessApplicationNames = getBusinessApplicationNames();
+          setStartedDate(null);
+
+          super.stopDo();
+          setClassLoader(null);
+          setConfigUrl(null);
+          final StatisticsService statisticsService = this.moduleLoader.getStatisticsService();
+          statisticsService.scheduleSaveStatistics(businessApplicationNames);
+        } catch (final Throwable e) {
+          throw transaction.setRollbackOnly(e);
+        }
+      }
+    } else if (isEnabled()) {
+      setStatus("Stopped");
+    } else {
+      setStatus("Disabled");
+    }
   }
 
   @Override

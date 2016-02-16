@@ -37,6 +37,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -67,6 +68,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.scheduler.StatisticsService;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobResultUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationUiBuilder;
@@ -215,6 +217,9 @@ public class ConcurrentProcessingFramework {
   }
 
   private BatchJobService batchJobService;
+
+  @Resource
+  private StatisticsService statisticsService;
 
   private BatchJobUiBuilder batchJobUiBuilder;
 
@@ -769,7 +774,7 @@ public class ConcurrentProcessingFramework {
       statistics.put("submittedJobsTime", stopWatch);
       statistics.put("submittedJobsCount", 1);
       Transaction
-        .afterCommit(() -> this.batchJobService.addStatistics(businessApplication, statistics));
+        .afterCommit(() -> this.statisticsService.addStatistics(businessApplication, statistics));
 
       if (MediaTypeUtil.isHtmlPage()) {
         this.batchJobUiBuilder.redirectPage("clientView");
@@ -1010,7 +1015,7 @@ public class ConcurrentProcessingFramework {
       statistics.put("preProcessedRequestsCount", 1);
 
       Transaction
-        .afterCommit(() -> this.batchJobService.addStatistics(businessApplication, statistics));
+        .afterCommit(() -> this.statisticsService.addStatistics(businessApplication, statistics));
 
       if (MediaTypeUtil.isHtmlPage()) {
         this.batchJobUiBuilder.redirectPage("clientView");

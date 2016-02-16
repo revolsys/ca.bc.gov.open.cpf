@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +106,6 @@ import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.io.map.MapWriterFactory;
 import com.revolsys.parallel.ThreadUtil;
-import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.NamedChannelBundle;
 import com.revolsys.record.Record;
@@ -120,7 +118,6 @@ import com.revolsys.record.io.format.html.XhtmlMapWriter;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.kml.Kml22Constants;
 import com.revolsys.record.property.FieldProperties;
-import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
@@ -152,31 +149,6 @@ public class BatchJobService implements ModuleEventListener {
     appLogData.put("batchJobId", batchJobId);
     appLogData.put("groupId", groupId);
     return appLogData;
-  }
-
-  protected static Map<String, BusinessApplicationStatistics> getStatistics(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId,
-    final String businessApplicationName) {
-    Map<String, BusinessApplicationStatistics> statistics = statisticsByAppAndId
-      .get(businessApplicationName);
-    if (statistics == null) {
-      statistics = new HashMap<String, BusinessApplicationStatistics>();
-      statisticsByAppAndId.put(businessApplicationName, statistics);
-    }
-    return statistics;
-  }
-
-  protected static BusinessApplicationStatistics getStatistics(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId,
-    final String businessApplicationName, final String statisticsId) {
-    final Map<String, BusinessApplicationStatistics> statisticsById = getStatistics(
-      statisticsByAppAndId, businessApplicationName);
-    BusinessApplicationStatistics statistics = statisticsById.get(statisticsId);
-    if (statistics == null) {
-      statistics = new BusinessApplicationStatistics(businessApplicationName, statisticsId);
-      statisticsById.put(statisticsId, statistics);
-    }
-    return statistics;
   }
 
   public static boolean isDatabaseResourcesException(final Throwable e) {
@@ -236,8 +208,6 @@ public class BatchJobService implements ModuleEventListener {
 
   private boolean compressData = false;
 
-  private StatisticsProcess statisticsProcess;
-
   private AuthorizationService authorizationService;
 
   private BusinessApplicationRegistry businessApplicationRegistry;
@@ -251,8 +221,6 @@ public class BatchJobService implements ModuleEventListener {
   private JavaMailSender mailSender;
 
   private long maxWorkerWaitTime = 60 * 1000;
-
-  private Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
 
   private BatchJobPostProcess postProcess;
 
@@ -270,13 +238,16 @@ public class BatchJobService implements ModuleEventListener {
 
   private CpfDataAccessObject dataAccessObject;
 
-  private RecordStore recordStore;
-
   private final Map<String, Worker> workersById = new TreeMap<String, Worker>();
 
   private final Set<Identifier> preprocesedJobIds = new HashSet<>();
 
   private long timeoutForCapacityErrors = 5 * 60 * 1000;
+
+  @Resource
+  private StatisticsService statisticsService;
+
+  private RecordStore recordStore;
 
   /**
    * Generate an error result for the job, update the job counts and status, and
@@ -313,47 +284,6 @@ public class BatchJobService implements ModuleEventListener {
       LoggerFactory.getLogger(BatchJobService.class).debug(validationErrorDebugMessage);
     }
     return false;
-  }
-
-  protected void addStatisticRollUp(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId,
-    final String businessApplicationName, final String statisticsId,
-    final Map<String, ? extends Object> values) {
-    if (statisticsId != null) {
-      final BusinessApplicationStatistics statistics = getStatistics(statisticsByAppAndId,
-        businessApplicationName, statisticsId);
-      statistics.addStatistics(values);
-      final String parentStatisticsId = statistics.getParentId();
-      addStatisticRollUp(statisticsByAppAndId, businessApplicationName, parentStatisticsId, values);
-    }
-  }
-
-  public void addStatistics(final BusinessApplication businessApplication,
-    final Map<String, Object> values) {
-    values.put("businessApplicationName", businessApplication.getName());
-    values.put("time", new Date(System.currentTimeMillis()));
-    sendStatistics(values);
-  }
-
-  protected void addStatistics(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId,
-    final BusinessApplicationStatistics statistics) {
-    final String statisticsId = statistics.getId();
-    final String businessApplicationName = statistics.getBusinessApplicationName();
-    final Map<String, BusinessApplicationStatistics> statisticsById = getStatistics(
-      statisticsByAppAndId, businessApplicationName);
-    final BusinessApplicationStatistics previousStatistics = statisticsById.get(statisticsId);
-    if (previousStatistics == null) {
-      statisticsById.put(statisticsId, statistics);
-    } else {
-      previousStatistics.addStatistics(statistics);
-      if (previousStatistics.getDatabaseId() == null) {
-        final Identifier databaseId = statistics.getDatabaseId();
-        previousStatistics.setDatabaseId(databaseId);
-      }
-    }
-    addStatisticRollUp(statisticsByAppAndId, businessApplicationName, statistics.getParentId(),
-      statistics.toMap());
   }
 
   public boolean cancelBatchJob(final Identifier batchJobId) {
@@ -395,121 +325,6 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public boolean canDeleteStatistic(final BusinessApplicationStatistics statistics,
-    final Date currentTime) {
-    final String durationType = statistics.getDurationType();
-
-    if (durationType.equals(BusinessApplicationStatistics.YEAR)) {
-      return false;
-    } else {
-      final String parentDurationType = statistics.getParentDurationType();
-      final String parentId = statistics.getParentId();
-      final String currentParentId = BusinessApplicationStatistics.getId(parentDurationType,
-        currentTime);
-      return parentId.compareTo(currentParentId) < 0;
-    }
-  }
-
-  protected void collateAllStatistics() {
-    try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
-      try {
-        final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
-
-        collateInMemoryStatistics(statisticsByAppAndId);
-
-        collateDatabaseStatistics(statisticsByAppAndId);
-
-        saveStatistics(statisticsByAppAndId);
-
-        setStatisticsByAppAndId(statisticsByAppAndId);
-      } catch (final Throwable e) {
-        throw transaction.setRollbackOnly(e);
-      }
-    } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error("Unable to collate statistics", e);
-    }
-  }
-
-  private void collateDatabaseStatistics(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
-    final Query query = new Query(BusinessApplicationStatistics.APPLICATION_STATISTICS);
-    query.addOrderBy(BusinessApplicationStatistics.START_TIMESTAMP, true);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
-      for (final Record dbStatistics : reader) {
-        boolean delete = false;
-        final Date startTime = dbStatistics.getValue(BusinessApplicationStatistics.START_TIMESTAMP);
-        final String durationType = dbStatistics
-          .getValue(BusinessApplicationStatistics.DURATION_TYPE);
-        final String businessApplicationName = dbStatistics
-          .getValue(BusinessApplicationStatistics.BUSINESS_APPLICATION_NAME);
-        final BusinessApplication businessApplication = getBusinessApplication(
-          businessApplicationName);
-        if (businessApplication != null) {
-          final String statisticsId = BusinessApplicationStatistics.getId(durationType, startTime);
-          final String valuesString = dbStatistics
-            .getValue(BusinessApplicationStatistics.STATISTIC_VALUES);
-          if (Property.hasValue(valuesString)) {
-            final Map<String, Object> values = Json.toObjectMap(valuesString);
-            if (values.isEmpty()) {
-              delete = true;
-            } else {
-              final BusinessApplicationStatistics statistics = getStatistics(statisticsByAppAndId,
-                businessApplicationName, statisticsId);
-
-              final Identifier databaseId = dbStatistics
-                .getIdentifier(BusinessApplicationStatistics.APPLICATION_STATISTIC_ID);
-              final Identifier previousDatabaseId = statistics.getDatabaseId();
-              if (previousDatabaseId == null) {
-                statistics.setDatabaseId(databaseId);
-                statistics.addStatistics(values);
-                final String parentStatisticsId = statistics.getParentId();
-                addStatisticRollUp(statisticsByAppAndId, businessApplicationName,
-                  parentStatisticsId, values);
-              } else if (!databaseId.equals(previousDatabaseId)) {
-                statistics.addStatistics(values);
-                final String parentStatisticsId = statistics.getParentId();
-                addStatisticRollUp(statisticsByAppAndId, businessApplicationName,
-                  parentStatisticsId, values);
-                delete = true;
-              }
-            }
-          } else {
-            delete = true;
-          }
-
-          if (delete) {
-            this.recordStore.deleteRecord(dbStatistics);
-          }
-        }
-      }
-    } finally {
-      reader.close();
-    }
-  }
-
-  private void collateInMemoryStatistics(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
-    final Map<String, Map<String, BusinessApplicationStatistics>> oldStatistics = getStatisticsByAppAndId();
-    for (final Map<String, BusinessApplicationStatistics> statsById : oldStatistics.values()) {
-      for (final BusinessApplicationStatistics statistics : statsById.values()) {
-        final String durationType = statistics.getDurationType();
-        if (durationType.equals(BusinessApplicationStatistics.HOUR)) {
-          final Identifier databaseId = statistics.getDatabaseId();
-          if (databaseId == null || statistics.isModified()) {
-            addStatistics(statisticsByAppAndId, statistics);
-          }
-        }
-      }
-    }
-  }
-
-  public void collateStatistics() {
-    final Map<String, ?> values = Collections.singletonMap(StatisticsProcess.COLLATE, Boolean.TRUE);
-    sendStatistics(values);
-  }
-
   public void deleteJob(final Identifier batchJobId) {
     cancelBatchJob(batchJobId);
     this.jobController.deleteJob(batchJobId);
@@ -542,11 +357,6 @@ public class BatchJobService implements ModuleEventListener {
       this.scheduler = null;
     }
     this.securityServiceFactory = null;
-    this.statisticsByAppAndId.clear();
-    if (this.statisticsProcess != null) {
-      this.statisticsProcess.getIn().writeDisconnect();
-      this.statisticsProcess = null;
-    }
     this.userClassBaseUrls.clear();
     this.workersById.clear();
     this.jobController = null;
@@ -828,26 +638,6 @@ public class BatchJobService implements ModuleEventListener {
     return this.securityServiceFactory.getSecurityService(module, consumerKey);
   }
 
-  public BusinessApplicationStatistics getStatistics(final String businessApplicationName,
-    final String statisticsId) {
-    synchronized (this.statisticsByAppAndId) {
-      return getStatistics(this.statisticsByAppAndId, businessApplicationName, statisticsId);
-    }
-  }
-
-  public Map<String, Map<String, BusinessApplicationStatistics>> getStatisticsByAppAndId() {
-    return this.statisticsByAppAndId;
-  }
-
-  public List<BusinessApplicationStatistics> getStatisticsList(
-    final String businessApplicationName) {
-    synchronized (this.statisticsByAppAndId) {
-      final Map<String, BusinessApplicationStatistics> statisticsById = getStatistics(
-        this.statisticsByAppAndId, businessApplicationName);
-      return new ArrayList<BusinessApplicationStatistics>(statisticsById.values());
-    }
-  }
-
   public long getTimeoutForCapacityErrors() {
     return this.timeoutForCapacityErrors;
   }
@@ -1092,7 +882,7 @@ public class BatchJobService implements ModuleEventListener {
           postProcessScheduledStatistics.put("postProcessScheduledJobsTime",
             time - lastChangedTime);
           postProcessScheduledStatistics.put("postProcessScheduledJobsCount", 1);
-          addStatistics(businessApplication, postProcessScheduledStatistics);
+          this.statisticsService.addStatistics(businessApplication, postProcessScheduledStatistics);
 
           if (businessApplication.isPerRequestResultData()) {
 
@@ -1139,7 +929,8 @@ public class BatchJobService implements ModuleEventListener {
           postProcessStatistics.put("completedTime",
             System.currentTimeMillis() - whenCreated.getTime());
 
-          Transaction.afterCommit(() -> addStatistics(businessApplication, postProcessStatistics));
+          Transaction.afterCommit(
+            () -> this.statisticsService.addStatistics(businessApplication, postProcessStatistics));
         }
       } catch (final Throwable e) {
         boolean result = true;
@@ -1390,10 +1181,8 @@ public class BatchJobService implements ModuleEventListener {
             preProcessScheduledStatistics.put("preProcessScheduledJobsTime",
               time - lastChangedTime);
 
-            Transaction
-              .afterCommit(() -> addStatistics(businessApplication, preProcessScheduledStatistics));
-
-            addStatistics(businessApplication, preProcessScheduledStatistics);
+            Transaction.afterCommit(() -> this.statisticsService.addStatistics(businessApplication,
+              preProcessScheduledStatistics));
 
             final InputStream inputDataStream = getJobInputDataStream(batchJobId, batchJob);
             int numFailedRequests = batchJob.getNumFailedRequests();
@@ -1537,7 +1326,8 @@ public class BatchJobService implements ModuleEventListener {
             preProcessStatistics.put("preProcessedJobsCount", 1);
             preProcessStatistics.put("preProcessedRequestsCount", numSubmittedRequests);
 
-            Transaction.afterCommit(() -> addStatistics(businessApplication, preProcessStatistics));
+            Transaction.afterCommit(() -> this.statisticsService.addStatistics(businessApplication,
+              preProcessStatistics));
 
             if (!valid) {
               final Timestamp whenCreated = batchJob.getValue(Common.WHEN_CREATED);
@@ -1550,8 +1340,8 @@ public class BatchJobService implements ModuleEventListener {
               jobCompletedStatistics.put("completedTime",
                 System.currentTimeMillis() - whenCreated.getTime());
 
-              Transaction
-                .afterCommit(() -> addStatistics(businessApplication, jobCompletedStatistics));
+              Transaction.afterCommit(() -> this.statisticsService
+                .addStatistics(businessApplication, jobCompletedStatistics));
             }
           } finally {
             if (log.isInfoEnabled()) {
@@ -1756,80 +1546,22 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  protected void saveAllStatistics() {
-    List<String> businessApplicationNames;
-    synchronized (this.statisticsByAppAndId) {
-      businessApplicationNames = new ArrayList<String>(this.statisticsByAppAndId.keySet());
-    }
-    saveStatistics(businessApplicationNames);
-  }
-
-  protected void saveStatistics(final Collection<String> businessApplicationNames) {
-    for (final String businessApplicationName : businessApplicationNames) {
-      Map<String, BusinessApplicationStatistics> statisticsById;
-      synchronized (this.statisticsByAppAndId) {
-        statisticsById = this.statisticsByAppAndId.remove(businessApplicationName);
-      }
-      if (statisticsById != null) {
-        for (final BusinessApplicationStatistics statistics : statisticsById.values()) {
-          final String durationType = statistics.getDurationType();
-          if (durationType.equals(BusinessApplicationStatistics.HOUR)) {
-            this.dataAccessObject.saveStatistics(statistics);
-          }
-        }
-      }
-    }
-  }
-
-  protected void saveStatistics(final Map<String, BusinessApplicationStatistics> statsById,
-    final Date currentTime) {
-    for (final Iterator<BusinessApplicationStatistics> iterator = statsById.values()
-      .iterator(); iterator.hasNext();) {
-      final BusinessApplicationStatistics statistics = iterator.next();
-      if (canDeleteStatistic(statistics, currentTime)) {
-        iterator.remove();
-        final Identifier databaseId = statistics.getDatabaseId();
-        if (databaseId != null) {
-          this.dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
-        }
-      } else {
-        final String durationType = statistics.getDurationType();
-        final String currentId = BusinessApplicationStatistics.getId(durationType, currentTime);
-        if (!currentId.equals(statistics.getId())) {
-          this.dataAccessObject.saveStatistics(statistics);
-        } else {
-          final Identifier databaseId = statistics.getDatabaseId();
-          if (databaseId != null) {
-            this.dataAccessObject.deleteBusinessApplicationStatistics(databaseId);
-          }
-        }
-      }
-    }
-  }
-
-  protected void saveStatistics(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
-    final Date currentTime = new Date(System.currentTimeMillis());
-    for (final Map<String, BusinessApplicationStatistics> statsById : statisticsByAppAndId
-      .values()) {
-      saveStatistics(statsById, currentTime);
-    }
-  }
-
   public void scheduleFromDatabase() {
-    try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
-      try {
-        for (final Module module : this.businessApplicationRegistry.getModules()) {
-          if (module.isStarted()) {
-            final String moduleName = module.getName();
-            for (final String businessApplicationName : module.getBusinessApplicationNames()) {
-              scheduleFromDatabase(moduleName, businessApplicationName);
+    if (this.dataAccessObject != null) {
+      try (
+        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+        try {
+          for (final Module module : this.businessApplicationRegistry.getModules()) {
+            if (module.isStarted()) {
+              final String moduleName = module.getName();
+              for (final String businessApplicationName : module.getBusinessApplicationNames()) {
+                scheduleFromDatabase(moduleName, businessApplicationName);
+              }
             }
           }
+        } catch (final Throwable e) {
+          throw transaction.setRollbackOnly(e);
         }
-      } catch (final Throwable e) {
-        throw transaction.setRollbackOnly(e);
       }
     }
   }
@@ -1906,13 +1638,6 @@ public class BatchJobService implements ModuleEventListener {
         scheduler.schedule(batchJob);
       }
     }
-  }
-
-  public void scheduleSaveStatistics(final List<String> businessApplicationNames) {
-    final Map<String, Object> values = new HashMap<>();
-    values.put(StatisticsProcess.SAVE, Boolean.TRUE);
-    values.put("businessApplicationNames", businessApplicationNames);
-    sendStatistics(values);
   }
 
   /**
@@ -2005,15 +1730,6 @@ public class BatchJobService implements ModuleEventListener {
       } catch (final Throwable e) {
         LoggerFactory.getLogger(BatchJobService.class).error(
           "Unable to send notification for Record #" + batchJobId + " to " + notificationUrl, e);
-      }
-    }
-  }
-
-  private void sendStatistics(final Map<String, ?> values) {
-    if (this.statisticsProcess != null) {
-      final Channel<Map<String, ? extends Object>> in = this.statisticsProcess.getIn();
-      if (!in.isClosed()) {
-        in.write(values);
       }
     }
   }
@@ -2113,16 +1829,6 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setScheduler(final BatchJobScheduler scheduler) {
     this.scheduler = scheduler;
-  }
-
-  private void setStatisticsByAppAndId(
-    final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId) {
-    this.statisticsByAppAndId = statisticsByAppAndId;
-  }
-
-  public void setStatisticsProcess(final StatisticsProcess statisticsProcess) {
-    this.statisticsProcess = statisticsProcess;
-    statisticsProcess.getIn().writeConnect();
   }
 
   public void setStructuredInputDataValue(final String sridString,
@@ -2341,33 +2047,6 @@ public class BatchJobService implements ModuleEventListener {
       }
       cancelGroup(worker, groupId);
     }
-  }
-
-  public long updateGroupStatistics(final BatchJobRequestExecutionGroup group,
-    final BusinessApplication businessApplication, final String moduleName,
-    final long applicationExecutedTime, final long groupExecutedTime, final int successCount,
-    final int errorCount) {
-    final Map<String, Object> appExecutedStatistics = new HashMap<>();
-    appExecutedStatistics.put("applicationExecutedGroupsCount", 1);
-    appExecutedStatistics.put("applicationExecutedRequestsCount", successCount + errorCount);
-    appExecutedStatistics.put("applicationExecutedFailedRequestsCount", errorCount);
-    appExecutedStatistics.put("applicationExecutedTime", applicationExecutedTime);
-    appExecutedStatistics.put("executedTime", groupExecutedTime);
-
-    addStatistics(businessApplication, appExecutedStatistics);
-
-    final long executionStartTime = group.getExecutionStartTime();
-    final long durationInMillis = System.currentTimeMillis() - executionStartTime;
-    final Map<String, Object> executedStatistics = new HashMap<>();
-    executedStatistics.put("executedGroupsCount", 1);
-    executedStatistics.put("executedRequestsCount", successCount + errorCount);
-    executedStatistics.put("executedTime", durationInMillis);
-
-    Transaction.afterCommit(() -> addStatistics(businessApplication, executedStatistics));
-
-    group.setNumCompletedRequests(successCount);
-    group.setNumFailedRequests(errorCount);
-    return durationInMillis;
   }
 
   public void updateWorkerExecutingGroups(final Worker worker,
