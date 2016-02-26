@@ -55,9 +55,9 @@ import com.revolsys.ui.html.fields.AutoCompleteTextField;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.fields.FieldWithSubmitButton;
 import com.revolsys.ui.html.form.Form;
+import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
-import com.revolsys.ui.html.view.MenuElement;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.html.view.TableRow;
 import com.revolsys.ui.model.Menu;
@@ -295,7 +295,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       null, "preInsert");
     final ElementContainer page = (ElementContainer)tabs.getElements().get(0);
     final List<Element> elements = page.getElements();
-    final MenuElement menuView = (MenuElement)elements.get(elements.size() - 1);
+    final ButtonsToolbarElement menuView = (ButtonsToolbarElement)elements.get(elements.size() - 1);
     final Menu menu = menuView.getMenu();
     menu.addMenuItem("Generate Consumer Secret", "javascript:generateConsumerSecret()");
     return page;
@@ -331,7 +331,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     if (USER_ACCOUNT_CLASS_CPF.equals(userAccount.getValue(USER_ACCOUNT_CLASS))) {
       final ElementContainer page = (ElementContainer)super.newObjectEditPage(userAccount, null);
       final List<Element> elements = page.getElements();
-      final MenuElement menuView = (MenuElement)elements.get(elements.size() - 1);
+      final ButtonsToolbarElement menuView = (ButtonsToolbarElement)elements
+        .get(elements.size() - 1);
       final Menu menu = menuView.getMenu();
       menu.addMenuItem("Generate Consumer Secret", "javascript:generateConsumerSecret()");
       return page;

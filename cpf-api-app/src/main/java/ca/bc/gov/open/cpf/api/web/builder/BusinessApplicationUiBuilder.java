@@ -62,7 +62,6 @@ import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.utils.HttpServletUtils;
-import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 
 @Controller
@@ -224,7 +223,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
                 dataAccessObject.write(configProperty);
               }
             }
-            JavaBeanUtil.setProperty(businessApplication, propertyName, newValue);
+            Property.setSimple(businessApplication, propertyName, newValue);
           }
 
           final Map<String, Object> parameters = new HashMap<>();
@@ -246,8 +245,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       final String name = form.getName();
       actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-      final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
-      final ElementContainer view = new ElementContainer(form, actionMenuElement);
+      final ButtonsToolbarElement buttonsToolbar = new ButtonsToolbarElement(actionMenu);
+      final ElementContainer view = new ElementContainer(form, buttonsToolbar);
       final TabElementContainer tabs = new TabElementContainer();
       tabs.add(title, view);
       return tabs;

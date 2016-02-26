@@ -97,7 +97,7 @@ public class CpfConfig implements PropertyChangeSupportProxy {
       while (resultSet.next()) {
         final String propertyName = resultSet.getString(1);
         final String propertyValue = resultSet.getString(2);
-        Property.set(this, propertyName, propertyValue);
+        Property.setSimple(this, propertyName, propertyValue);
       }
     } catch (final Throwable e) {
       LoggerFactory.getLogger(getClass()).error("Unable to load configuration", e);

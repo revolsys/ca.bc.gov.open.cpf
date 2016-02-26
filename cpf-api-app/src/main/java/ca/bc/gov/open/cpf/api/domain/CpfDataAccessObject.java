@@ -550,7 +550,7 @@ public class CpfDataAccessObject implements Transactionable {
       final Query query = new Query(UserAccount.USER_ACCOUNT, or);
       final Reader<Record> reader = this.recordStore.getRecords(query);
       try {
-        return Lists.array(reader, 20);
+        return Lists.toArray(reader, 20);
       } finally {
         reader.close();
       }

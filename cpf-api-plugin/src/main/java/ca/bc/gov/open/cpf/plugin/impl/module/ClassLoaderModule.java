@@ -302,92 +302,13 @@ public class ClassLoaderModule implements Module {
     setStatus("Disabled");
   }
 
-  public void restartDo() {
-    stop();
-    start();
-  }
-
-  public void startDo() {
-    if (isEnabled()) {
-      if (isStarted()) {
-        setStatus("Started");
-      } else {
-        final StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        initAppLogAppender(null);
-        setStatus("Starting");
-        this.log.info("Start\tModule Start\tmoduleName=" + this.name);
-        clearModuleError();
-        try {
-          initializeGroupPermissions();
-          preLoadApplications();
-          if (!isHasError()) {
-            for (final String businessApplicationName : getBusinessApplicationNames()) {
-              this.log.info("Found business application " + businessApplicationName + " from "
-                + this.configUrl);
-            }
-            loadBusinessApplications();
-            this.businessApplicationRegistry.clearModuleToAppCache();
-            if (isHasError()) {
-              this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.START_FAILED);
-            } else {
-              setStatus("Started");
-              this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.START);
-            }
-          }
-        } catch (final Throwable e) {
-          addModuleError(e);
-        }
-        AppLogUtil.info(this.log, "End\tModule Start\tmoduleName=" + this.name, stopWatch);
-      }
-    } else {
-      setStatus("Disabled");
-    }
-  }
-
-  public void stopDo() {
-    setStatus("Stopping");
-    final StopWatch stopWatch = new StopWatch();
-    stopWatch.start();
-    this.log.info("Start\tModule Stop\tmoduleName=" + this.name);
-    this.started = false;
-    this.applicationsLoaded = false;
-    if (this.applicationContext != null && this.applicationContext.isActive()) {
-      this.applicationContext.close();
-    }
-    final List<String> names = this.businessApplicationNames;
-    this.applicationContext = null;
-    this.businessApplicationsByName = Collections.emptyMap();
-    this.businessApplicationsToBeanNames = Collections.emptyMap();
-    this.businessApplicationNames = Collections.emptyList();
-    this.permissionsByGroupName = null;
-    this.groupNamesToDelete = null;
-    this.businessApplicationRegistry.clearModuleToAppCache();
-    for (final String businessApplicationName : names) {
-      closeAppLogAppender(this.name + "." + businessApplicationName);
-    }
-    try {
-      this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.STOP, names);
-    } finally {
-      this.lastStartTime = getStartedTime();
-      this.startedDate = null;
-      AppLogUtil.info(this.log, "End\tModule Stop\tmoduleName=" + this.name, stopWatch);
-      closeAppLogAppender(this.name);
-      if (isEnabled()) {
-        setStatus("Stopped");
-      } else {
-        setStatus("Disabled");
-      }
-    }
-  }
-
   @Override
   public synchronized void enable() {
     if (!this.enabled) {
       this.enabled = true;
     }
     if (!isInitialized()) {
-      setStatus("ValueCloseable");
+      setStatus("enabled");
       this.initialized = true;
       start();
     }
@@ -760,7 +681,7 @@ public class ClassLoaderModule implements Module {
 
       final Map<String, Object> configProperties = getConfigProperties(moduleName,
         "APP_" + businessApplicationName.toUpperCase());
-      Property.set(businessApplication, configProperties);
+      businessApplication.setProperties(configProperties);
       return businessApplication;
     }
   }
@@ -1177,7 +1098,7 @@ public class ClassLoaderModule implements Module {
                       final String propertyName = entry.getKey();
                       final Object propertyValue = entry.getValue();
                       try {
-                        JavaBeanUtil.setProperty(businessApplication, propertyName, propertyValue);
+                        Property.setSimple(businessApplication, propertyName, propertyValue);
                       } catch (final Throwable t) {
                       }
                     }
@@ -1518,6 +1439,11 @@ public class ClassLoaderModule implements Module {
     getBusinessApplicationRegistry().restartModule(this.name);
   }
 
+  public void restartDo() {
+    stop();
+    start();
+  }
+
   public void setClassLoader(final ClassLoader classLoader) {
     this.classLoader = classLoader;
   }
@@ -1554,12 +1480,86 @@ public class ClassLoaderModule implements Module {
     }
   }
 
+  public void startDo() {
+    if (isEnabled()) {
+      if (isStarted()) {
+        setStatus("Started");
+      } else {
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        initAppLogAppender(null);
+        setStatus("Starting");
+        this.log.info("Start\tModule Start\tmoduleName=" + this.name);
+        clearModuleError();
+        try {
+          initializeGroupPermissions();
+          preLoadApplications();
+          if (!isHasError()) {
+            for (final String businessApplicationName : getBusinessApplicationNames()) {
+              this.log.info("Found business application " + businessApplicationName + " from "
+                + this.configUrl);
+            }
+            loadBusinessApplications();
+            this.businessApplicationRegistry.clearModuleToAppCache();
+            if (isHasError()) {
+              this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.START_FAILED);
+            } else {
+              setStatus("Started");
+              this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.START);
+            }
+          }
+        } catch (final Throwable e) {
+          addModuleError(e);
+        }
+        AppLogUtil.info(this.log, "End\tModule Start\tmoduleName=" + this.name, stopWatch);
+      }
+    } else {
+      setStatus("Disabled");
+    }
+  }
+
   @Override
   public void stop() {
     setStatus("Stop Requested");
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     if (businessApplicationRegistry != null) {
       businessApplicationRegistry.stopModule(this.name);
+    }
+  }
+
+  public void stopDo() {
+    setStatus("Stopping");
+    final StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+    this.log.info("Start\tModule Stop\tmoduleName=" + this.name);
+    this.started = false;
+    this.applicationsLoaded = false;
+    if (this.applicationContext != null && this.applicationContext.isActive()) {
+      this.applicationContext.close();
+    }
+    final List<String> names = this.businessApplicationNames;
+    this.applicationContext = null;
+    this.businessApplicationsByName = Collections.emptyMap();
+    this.businessApplicationsToBeanNames = Collections.emptyMap();
+    this.businessApplicationNames = Collections.emptyList();
+    this.permissionsByGroupName = null;
+    this.groupNamesToDelete = null;
+    this.businessApplicationRegistry.clearModuleToAppCache();
+    for (final String businessApplicationName : names) {
+      closeAppLogAppender(this.name + "." + businessApplicationName);
+    }
+    try {
+      this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.STOP, names);
+    } finally {
+      this.lastStartTime = getStartedTime();
+      this.startedDate = null;
+      AppLogUtil.info(this.log, "End\tModule Stop\tmoduleName=" + this.name, stopWatch);
+      closeAppLogAppender(this.name);
+      if (isEnabled()) {
+        setStatus("Stopped");
+      } else {
+        setStatus("Disabled");
+      }
     }
   }
 

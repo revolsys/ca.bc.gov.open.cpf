@@ -276,7 +276,7 @@ public class PluginAdaptor {
       this.responseFields = getResult(this.plugin, false, testMode);
       this.results.add(this.responseFields);
     } else {
-      final List<Object> resultObjects = JavaBeanUtil.getProperty(this.plugin, resultListProperty);
+      final List<Object> resultObjects = Property.getSimple(this.plugin, resultListProperty);
       if (resultObjects == null || resultObjects.isEmpty()) {
         if (testMode) {
           final double meanNumResults = Maps.getDouble(this.testParameters, "cpfMeanNumResults",
@@ -318,7 +318,7 @@ public class PluginAdaptor {
       if (!INTERNAL_PROPERTY_NAMES.contains(fieldName)) {
         Object value = null;
         try {
-          value = Property.getSimple(resultObject, fieldName);
+          value = Property.getProperty(resultObject, fieldName);
         } catch (final Throwable t) {
           if (!test) {
             throw new IllegalArgumentException(

@@ -139,7 +139,7 @@ public class TuningUiBuilder extends CpfUiBuilder {
           for (final String fieldName : fieldNames) {
             final Field field = form.getField(fieldName);
             final Object value = field.getValue();
-            Property.set(this.cpfConfig, fieldName, value);
+            Property.setSimple(this.cpfConfig, fieldName, value);
             final Query query = new Query(ConfigProperty.CONFIG_PROPERTY);
             final And condition = new And(
               Q.equal(ConfigProperty.ENVIRONMENT_NAME, ConfigProperty.DEFAULT),
@@ -182,8 +182,8 @@ public class TuningUiBuilder extends CpfUiBuilder {
     final String name = form.getName();
     actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-    final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
-    final ElementContainer view = new ElementContainer(form, actionMenuElement);
+    final ButtonsToolbarElement buttonsToolbar = new ButtonsToolbarElement(actionMenu);
+    final ElementContainer view = new ElementContainer(form, buttonsToolbar);
     view.setDecorator(new CollapsibleBox(title, true));
     return view;
   }

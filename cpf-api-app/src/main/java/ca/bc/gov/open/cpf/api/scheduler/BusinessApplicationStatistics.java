@@ -32,6 +32,7 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.util.Dates;
 import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
 
 public class BusinessApplicationStatistics {
   public static final PathName APPLICATION_STATISTICS = PathName
@@ -223,10 +224,10 @@ public class BusinessApplicationStatistics {
 
   public long addStatistic(final String statisticName, final Long value) {
     if (STATISTIC_NAMES.contains(statisticName)) {
-      Long totalValue = JavaBeanUtil.getProperty(this, statisticName);
+      Long totalValue = Property.getSimple(this, statisticName);
       if (value > 0) {
         totalValue += value;
-        JavaBeanUtil.setProperty(this, statisticName, totalValue);
+        Property.setSimple(this, statisticName, totalValue);
         this.modified = true;
       }
       return totalValue;
@@ -257,7 +258,7 @@ public class BusinessApplicationStatistics {
 
   public void addStatistics(final BusinessApplicationStatistics savedStatistics) {
     for (final String name : STATISTIC_NAMES) {
-      final Long value = JavaBeanUtil.getProperty(savedStatistics, name);
+      final Long value = Property.getSimple(savedStatistics, name);
       if (value > 0) {
         addStatistic(name, value);
       }
@@ -692,7 +693,7 @@ public class BusinessApplicationStatistics {
   public Map<String, Long> toMap() {
     final Map<String, Long> statistics = new TreeMap<String, Long>();
     for (final String name : STATISTIC_NAMES) {
-      final Long value = JavaBeanUtil.getProperty(this, name);
+      final Long value = Property.getSimple(this, name);
       if (value > 0) {
         statistics.put(name, value);
       }

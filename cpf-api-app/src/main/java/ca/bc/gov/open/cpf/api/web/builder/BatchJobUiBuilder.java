@@ -44,7 +44,6 @@ import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Dates;
-import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 
 @Controller
@@ -95,7 +94,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
       if (businessApplication == null) {
         businessApplication = new BusinessApplication(businessApplicationName);
       }
-      final String subKey = JavaBeanUtil.getSubName(keyName);
+      final String subKey = Property.getSubName(keyName);
       if (Property.hasValue(subKey)) {
         final HtmlUiBuilder<?> uiBuilder = getBuilder(businessApplication);
         return uiBuilder.getProperty(businessApplication, subKey);

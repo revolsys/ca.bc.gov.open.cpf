@@ -198,7 +198,7 @@ public class WorkerGroupRunnable implements Runnable {
       writeResult(resultWriter, plugin, parameters, customizationProperties, requestSequenceNumber,
         0, testMode);
     } else {
-      final List<Object> resultObjects = JavaBeanUtil.getProperty(plugin, resultListProperty);
+      final List<Object> resultObjects = Property.getSimple(plugin, resultListProperty);
       if (resultObjects == null || resultObjects.isEmpty()) {
         if (testMode) {
           final double meanNumResults = Maps.getDouble(testParameters, "cpfMeanNumResults", 3.0);

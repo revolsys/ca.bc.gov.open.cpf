@@ -40,9 +40,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.maven.MavenRepository;
-import com.revolsys.ui.html.decorator.FormHorizontalDecorator;
+import com.revolsys.ui.html.decorator.FormGroupDecorator;
 import com.revolsys.ui.html.decorator.TableBody;
-import com.revolsys.ui.html.decorator.TableHeadingDecorator;
 import com.revolsys.ui.html.fields.CheckBoxField;
 import com.revolsys.ui.html.fields.TextField;
 import com.revolsys.ui.html.form.Form;
@@ -97,14 +96,14 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     final Form form = new Form(this.typeName);
 
     final TextField moduleNameField = new TextField("moduleName", 30, true);
-    FormHorizontalDecorator.add(form, moduleNameField, "Module Name", null);
+    FormGroupDecorator.decorate(form, moduleNameField, "Module Name", null);
 
     final TextField mavenModuleIdField = new TextField("mavenModuleId", 70, true);
-    FormHorizontalDecorator.add(form, mavenModuleIdField, "Maven Module ID", null);
+    FormGroupDecorator.decorate(form, mavenModuleIdField, "Maven Module ID", null);
 
     final CheckBoxField enabledField = new CheckBoxField("enabled");
     enabledField.setInitialValue(true);
-    FormHorizontalDecorator.add(form, enabledField, "ValueCloseable", null);
+    FormGroupDecorator.decorate(form, enabledField, "enabled", null);
 
     form.initialize(request);
 
@@ -162,8 +161,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     final String name = form.getName();
     actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-    final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
-    final ElementContainer view = new ElementContainer(form, actionMenuElement);
+    final ButtonsToolbarElement buttonsToolbar = new ButtonsToolbarElement(actionMenu);
+    final ElementContainer view = new ElementContainer(form, buttonsToolbar);
     final TabElementContainer tabs = new TabElementContainer();
     tabs.add(title, view);
     return tabs;
@@ -187,11 +186,11 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
       final TextField mavenModuleIdField = new TextField("mavenModuleId", 70, true);
       mavenModuleIdField.setInitialValue(module.getModuleDescriptor());
-      TableHeadingDecorator.addRow(fields, mavenModuleIdField, "Maven Module ID", null);
+      FormGroupDecorator.decorate(fields, mavenModuleIdField, "Maven Module ID", null);
 
       final CheckBoxField enabledField = new CheckBoxField("enabled");
       enabledField.setInitialValue(module.isEnabled());
-      TableHeadingDecorator.addRow(fields, enabledField, "ValueCloseable", null);
+      FormGroupDecorator.decorate(fields, enabledField, "Enabled", null);
 
       form.add(fields);
       form.initialize(request);
@@ -223,8 +222,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
       final String name = form.getName();
       actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
 
-      final ButtonsToolbarElement actionMenuElement = new ButtonsToolbarElement(actionMenu);
-      final ElementContainer view = new ElementContainer(form, actionMenuElement);
+      final ButtonsToolbarElement buttonsToolbar = new ButtonsToolbarElement(actionMenu);
+      final ElementContainer view = new ElementContainer(form, buttonsToolbar);
       final TabElementContainer tabs = new TabElementContainer();
       tabs.add(title, view);
       return tabs;
