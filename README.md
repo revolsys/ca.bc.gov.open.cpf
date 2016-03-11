@@ -1,6 +1,6 @@
 [![Stories in Ready](https://badge.waffle.io/bcgov/cpf.png?label=ready&title=Waffle Issues)](https://waffle.io/bcgov/cpf) [![License](https://img.shields.io/badge/Apache%202.0-License-blue.svg)](https://raw.githubusercontent.com/bcgov/cpf/master/LICENSE)
 
-# Project Name
+# Concurrent Processing Framework (CPF)
 
 The Concurrent Processing Framework (CPF) Client APIs allows web applications to be developed using JavaScript, Java or another programming language to submit batch jobs to the CPF and to download the results of those jobs.
 
@@ -19,10 +19,12 @@ The asynchronous processing allows a user to submit the requests for a job with 
 
 ## Documentation
 
-See [](https://bcgov.github.io/cpf/) for full documentation on installing the CPF on a server and
+See https://bcgov.github.io/cpf/ for full documentation on installing the CPF on a server and
 developing custom plug-ins.
 
 ## Issues
+
+Issues with the library or documentation can be submitted using the [GitHub Issues List](https://github.com/bcgov/cpf/issues). Alternatively  [Waffle](https://waffle.io/bcgov/cpf) can be used to add issues to the [GitHub Issues List](https://github.com/bcgov/cpf/issues).
 
 ## License
 
