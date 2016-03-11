@@ -27,7 +27,7 @@
   </licenses>
 
   <scm>
-    <connection>https://github.com/bcgov/cpf.git</connection>
+    <connection>scm:git:https://github.com/bcgov/cpf.git</connection>
     <developerConnection>scm:git:git@github.com:bcgov/cpf.git</developerConnection>
     <url>https://github.com/bcgov/cpf</url>
   </scm>
