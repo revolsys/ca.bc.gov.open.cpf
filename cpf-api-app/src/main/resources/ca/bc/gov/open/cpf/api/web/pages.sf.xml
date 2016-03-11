@@ -43,7 +43,7 @@
               <bean
                 class="com.revolsys.ui.model.Menu"
                 p:title="Developer Documentation"
-                p:uri="http://pauldaustin.github.io/cpf/" />
+                p:uri="https://bcgov.github.io/cpf/" />
             </list>
           </property>
         </bean>

@@ -11,6 +11,7 @@
   <name>Concurrent Processing Framework</name>
   <version>5.0.0-SNAPSHOT</version>
   <inceptionYear>2008</inceptionYear>
+  <url>https://bcgov.github.io/cpf/</url>
 
   <organization>
     <name>The Province of British Columbia</name>
@@ -26,11 +27,16 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:http://apps.bcgov/svn/cpf/api-source/trunk</connection>
-    <developerConnection>scm:svn:https://apps.bcgov/svn/cpf/api-source/trunk</developerConnection>
-    <url>http://apps.bcgov/wsvn/TC7.cpf-api?/</url>
+    <connection>https://github.com/bcgov/cpf.git</connection>
+    <developerConnection>scm:git:git@github.com:bcgov/cpf.git</developerConnection>
+    <url>https://github.com/bcgov/cpf</url>
   </scm>
 
+  <issueManagement>
+    <system>waffle.io</system>
+    <url>https://waffle.io/bcgov/cpf</url>
+  </issueManagement>
+  
   <developers>
     <developer>
       <name>Paul Austin</name>
