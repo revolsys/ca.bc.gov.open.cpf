@@ -355,11 +355,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List<Map<String,Object>
    * logRecords List<Map<String,Object>
    * groupExecutionTime long
@@ -483,8 +483,6 @@ public class WorkerGroupRunnable implements Runnable {
       this.log.info("End\tGroup execution\tgroupId=" + this.groupId);
       FileUtil.delete(this.errorFile);
     }
-    System.out.println(
-      getTime + "\t" + runTime + "\t" + putTime + "\t" + (System.currentTimeMillis() - time));
   }
 
   protected void sendResultData(final Integer requestSequenceNumber,
