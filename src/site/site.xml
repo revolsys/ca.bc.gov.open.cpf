@@ -11,6 +11,7 @@
 
   <custom>
     <reflowSkin>
+      <protocolRelativeURLs>true</protocolRelativeURLs>
       <absoluteResourceURL>${siteUrl}</absoluteResourceURL>
       <bottomNav maxSpan="0">
         <column>Home</column>
@@ -24,7 +25,6 @@
       </brand>
       <highlightJs>true</highlightJs>
       <skinAttribution>false</skinAttribution>
-      <theme>bootswatch-flatly</theme>
       <toc>top</toc>
       <pages>
         <index project="cpf-parent">
@@ -73,7 +73,7 @@
   <bannerRight>
     <name>Province of British Columbia</name>
     <src>/images/bc_sun_logo_horiz.gif</src>
-    <href>http://www.gov.bc.ca/</href>
+    <href>https://www2.gov.bc.ca</href>
   </bannerRight>
 
   <publishDate
@@ -156,6 +156,9 @@
         name="GitHub Project"
         href="${gitHubUrl}" />
       <item
+        name="Issues (Waffle)"
+        href="https://waffle.io/bcgov/cpf" />
+      <item
         name="Issues (GitHub)"
         href="${gitHubUrl}/issues/" />
     </menu>
@@ -166,11 +169,11 @@
     >
       <item
         name="Province of British Columbia"
-        href="http://www.gov.bc.ca/"
+        href="https://www2.gov.bc.ca"
         target="_blank" />
       <item
         name="BC Developer Exchange"
-        href="http://bcdevexchange.org/"
+        href="https://bcdevexchange.org/"
         target="_blank" />
     </menu>
 

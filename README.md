@@ -1,93 +1,19 @@
-[![Stories in Ready](https://badge.waffle.io/bcgov/cpf.png?label=ready&title=Ready)](https://waffle.io/bcgov/cpf)
+[![Stories in Ready](https://badge.waffle.io/bcgov/cpf.png?label=ready&title=Issues)](https://waffle.io/bcgov/cpf)
+
 [![License](https://img.shields.io/badge/Apache%202.0-License-blue.svg)](https://raw.githubusercontent.com/bcgov/cpf/master/LICENSE)
 
-Description
------------
-Project:           cpf-api
-Title:             Concurrent Processing Framework Open API
-Version:           4.0.3
+# License
 
-Software/Hardware Requirements
-------------------------------
-Oracle:                       N/A
-Java:                         6+
-Maven:                        3.0.3+
-App Server:                   N/A
-App Server Additional Memory: N/A
+    Copyright © 2008-2016 Province of British Columbia
 
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at 
 
-1. Database Installation
-------------------------
+       http://www.apache.org/licenses/LICENSE-2.0
 
-N/A
-
-2. Configuration Files
-----------------------
-
-N/A
-
-3. Ministry Continuous Integration System
------------------------------------------
-
-The application can be build and deployed using the  Ministry Continuous
-Integration System, use the Ministry Standards below as a Guide.
-
-http://apps.bcgov/standards/index.php/Migration_Task_with_CIS
-
-Construct a new new maven 2/3 job with the following parameters.
-
-Project name:                       revolys-cpf-api-deploy
-Description:                        Build the shared CPF Open API and deploy to artifactory.
-Source Code Management: 
-  (*) Subversion:
-    Repository URL:                 http://apps.bcgov/svn/cpf/api-source/trunk/
-MVN Goals and options:              clean install
-E-Mail Notification:                leo.lou@gov.bc.ca paul.austin@revolsys.com
-Resolve Artifacts from Artifactory: Yes
-Post-build Actions:
- Deploy artifacts to Artifactory:
-   Artifactory Server:              http://delivery.apps.bcgov/artifactory/
-     Target releases repository:    libs-release-local
-     Target snapshots repository:   libs-snapshot-local
-  Deploy to Tomcat:                 # This project is a library so is not
-                                    # deployed to Tomcat.
-  Build other projects              # Other than in delivery leave blank. 
-                                    # Manually build other projects.
-                                    # Do not allow other projects to be auto
-                                    # built when this project is built.
-
-4. Compilation & Deployment
----------------------------
-
-Build the revolys-cpf-api-deploy job using the Ministry Continuous Integration
-System.
-
-5. Post Build Actions
----------------------
-
-N/A
-
-6. Notification
----------------
-
-Notify all developers and contributors listed in the pom.xml that the deployment
-is complete.
-
-7. Perform Release 
-------------------
-
-This step is performed before migration of an application to the test or
-production environment.
-
-The migration to test occurs after the developer has tested the application in
-the delivery environment. The migration to production occurs after the business
-area has tested the application in the test environment.
-
-Perform a maven release using the following settings.
-
- * Test Migration
-
-Test Version:             4.0.3.RC
-
- * Production Migration
-Release Version:          4.0.3
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.

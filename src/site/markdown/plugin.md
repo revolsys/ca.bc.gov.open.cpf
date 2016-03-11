@@ -87,7 +87,7 @@ Use the links in the following table to view the Plug-in API documentation or do
 The CPF uses maven modules for the deployment of plug-in modules to the CPF web services. Each CPF
 plug-in module is a maven project that contains all the code and dependencies of the plug-in.
 Within the CPF plug-in module one or more
-[Business Application Classes](#Business_Application_Class) implementations can be defined.
+[Business Application Class](#Business_Application_Class) implementations can be defined.
 
 #### Create a plug-in project
 
