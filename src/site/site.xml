@@ -1,0 +1,183 @@
+<project
+  xmlns="http://maven.apache.org/DECORATION/1.6.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/DECORATION/1.6.0 http://maven.apache.org/xsd/decoration-1.6.0.xsd"
+>
+  <skin>
+    <groupId>lt.velykis.maven.skins</groupId>
+    <artifactId>reflow-maven-skin</artifactId>
+    <version>1.1.1</version>
+  </skin>
+
+  <custom>
+    <reflowSkin>
+      <absoluteResourceURL>${siteUrl}</absoluteResourceURL>
+      <bottomNav maxSpan="0">
+        <column>Home</column>
+      </bottomNav>
+      <brand>
+        <name>
+          <![CDATA[
+          <span class="color-highlight">CPF</span>]]>
+        </name>
+        <href>${siteUrl}</href>
+      </brand>
+      <highlightJs>true</highlightJs>
+      <skinAttribution>false</skinAttribution>
+      <theme>bootswatch-flatly</theme>
+      <toc>top</toc>
+      <pages>
+        <index project="cpf-parent">
+          <titleTemplate>Concurrent Processing Framework</titleTemplate>
+          <breadcrumbs>false</breadcrumbs>
+          <toc>false</toc>
+          <markPageHeader>false</markPageHeader>
+          <sections>
+            <body />
+          </sections>
+        </index>
+        <contribute>
+          <breadcrumbs>false</breadcrumbs>
+        </contribute>
+        <source-repository>
+          <highlightJs>false</highlightJs>
+        </source-repository>
+        <issue-tracking>
+          <highlightJs>false</highlightJs>
+          <toc>false</toc>
+        </issue-tracking>
+        <license>
+          <highlightJs>false</highlightJs>
+          <toc>false</toc>
+        </license>
+        <project-info>
+          <toc>false</toc>
+        </project-info>
+        <github-report>
+          <toc>false</toc>
+        </github-report>
+        <dependencies>
+          <tocTopMax>4</tocTopMax>
+        </dependencies>
+      </pages>
+    </reflowSkin>
+  </custom>
+<!--  -->
+<!--  <bannerLeft>
+    <name><![CDATA[
+      <span class="color-highlight">Concurrent Processing Framework</span>
+      ]]></name>
+    <href>${siteUrl}</href>
+  </bannerLeft>
+ -->
+  <bannerRight>
+    <name>Province of British Columbia</name>
+    <src>/images/bc_sun_logo_horiz.gif</src>
+    <href>http://www.gov.bc.ca/</href>
+  </bannerRight>
+
+  <publishDate
+    position="bottom"
+    format="yyyy-MMM-dd" />
+  <version position="bottom" />
+
+  <body>
+    <breadcrumbs>
+      <item
+        name="CPF"
+        href="${siteUrl}" />
+    </breadcrumbs>
+
+    <menu
+      name="Documentation"
+      inherit="bottom"
+    >
+      <item
+        name="About"
+        href="index.html" />
+      <item
+        name="Installation"
+        href="install.html"
+      />
+      <item
+        name="Plug-in Developer Guide"
+        href="plugin.html"
+      />
+      <item
+        name="Client Developer Guide"
+        href="client.html"
+      />
+      <item
+        name="Administrator Guide"
+        href="admin.html"
+      />
+      <item
+        name="Reference"
+      >
+        <item
+          name="Maven"
+          href="reference/maven.html" />
+        <item
+          name="Authentication"
+          href="reference/authentication.html" />
+        <item
+          name="Data Types"
+          href="reference/dataTypes.html" />
+        <item
+          name="File Formats"
+          href="reference/fileFormats.html" />
+        <item
+          name="Resource Description"
+          href="reference/resourceDescription.html" />
+        <item
+          name="Job Status"
+          href="reference/jobStatus.html" />
+        <item
+          name="Structured Data"
+          href="reference/structuredData.html" />
+        <item
+          name="Opaque Data"
+          href="reference/opaqueData.html" />
+      </item>
+    </menu>
+
+    <menu
+      ref="parent"
+      inherit="top" />
+    <menu
+      ref="modules"
+      inherit="top" />
+
+    <menu
+      name="Contribute"
+      inherit="bottom"
+    >
+      <item
+        name="GitHub Project"
+        href="${gitHubUrl}" />
+      <item
+        name="Issues (GitHub)"
+        href="${gitHubUrl}/issues/" />
+    </menu>
+
+    <menu
+      name="Links"
+      inherit="top"
+    >
+      <item
+        name="Province of British Columbia"
+        href="http://www.gov.bc.ca/"
+        target="_blank" />
+      <item
+        name="BC Developer Exchange"
+        href="http://bcdevexchange.org/"
+        target="_blank" />
+    </menu>
+
+    <menu
+      name="Maven documentation"
+      ref="reports"
+      inherit="bottom" />
+  </body>
+
+</project>
