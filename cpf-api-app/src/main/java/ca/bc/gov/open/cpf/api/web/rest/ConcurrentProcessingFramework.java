@@ -65,6 +65,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
 import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
@@ -87,11 +88,11 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.NamedLinkedHashMap;
-import com.revolsys.io.Writer;
 import com.revolsys.record.ArrayRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.RecordState;
 import com.revolsys.record.Records;
+import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.json.JsonRecordIoFactory;
@@ -722,8 +723,9 @@ public class ConcurrentProcessingFramework {
         } else if (businessApplication.isPerRequestInputData()) {
           batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
             inputDataFiles.size() + inputDataUrls.size());
-          batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.PROCESSING);
           this.dataAccessObject.write(batchJob.getRecord());
+          this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
+          this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSING);
           int requestSequenceNumber = 0;
           if (inputDataUrls.isEmpty()) {
             for (final MultipartFile file : inputDataFiles) {
@@ -863,7 +865,7 @@ public class ConcurrentProcessingFramework {
         defaultValue = "-1") final int resultScaleFactorZ,
     @RequestParam(value = "notificationUrl", required = false) String notificationUrl,
     @RequestParam(value = "notificationEmail", required = false) final String notificationEmail)
-      throws IOException {
+    throws IOException {
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName,
@@ -975,10 +977,9 @@ public class ConcurrentProcessingFramework {
       }
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultDataContentType);
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
-      final Timestamp now = new Timestamp(System.currentTimeMillis());
-      batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.PROCESSING);
-      batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
       this.dataAccessObject.write(batchJob.getRecord());
+      this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
+      this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSING);
       if (perRequestInputData) {
         if (inputDataIn != null) {
           this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
@@ -1025,7 +1026,7 @@ public class ConcurrentProcessingFramework {
     return null;
   }
 
-  private void createStructuredJob(final Identifier batchJobId, final Record batchJob,
+  private void createStructuredJob(final Identifier batchJobId, final BatchJob batchJob,
     final List<MultipartFile> inputDataFiles, final List<String> inputDataUrls,
     final String contentType) throws IOException {
     if (!inputDataFiles.isEmpty()) {
@@ -1051,6 +1052,7 @@ public class ConcurrentProcessingFramework {
       }
     }
     this.dataAccessObject.write(batchJob);
+    this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
     this.batchJobService.preProcess(batchJobId);
   }
 
@@ -1093,7 +1095,8 @@ public class ConcurrentProcessingFramework {
   }, method = RequestMethod.DELETE)
   public void deleteJob(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final Record batchJob = getBatchJob(Identifier.newIdentifier(batchJobId), consumerKey);
+    final Record batchJob = this.batchJobService.getBatchJob(Identifier.newIdentifier(batchJobId),
+      consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("The job " + batchJobId + " does not exist");
     } else {
@@ -1139,20 +1142,6 @@ public class ConcurrentProcessingFramework {
       }
     }
     return businessApplications;
-  }
-
-  protected BatchJob getBatchJob(final Identifier batchJobId, final String consumerKey) {
-    final BatchJob batchJob = this.batchJobService.getBatchJob(batchJobId);
-    if (batchJob == null) {
-      return null;
-    } else {
-      final String userId = batchJob.getValue(Common.WHO_CREATED);
-      if (consumerKey.equals(userId)) {
-        return batchJob;
-      } else {
-        return null;
-      }
-    }
   }
 
   private BusinessApplication getBusinessApplication(final String businessApplicationName,
@@ -1387,7 +1376,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -1516,14 +1505,14 @@ public class ConcurrentProcessingFramework {
                 response.getOutputStream());
               final GeometryFactory geometryFactory = GeometryFactory.fixed(resultSrid,
                 resultNumAxis, resultScaleFactorXy, resultScaleFactorZ);
-              final Writer<Record> writer = this.batchJobService.newStructuredResultWriter(resource,
+              final RecordWriter writer = this.batchJobService.newStructuredResultWriter(resource,
                 businessApplication, resultRecordDefinition, format, "Result", geometryFactory);
               final boolean hasMultipleResults = businessApplication
                 .getResultListProperty() != null;
               if (!hasMultipleResults) {
                 writer.setProperty(IoConstants.SINGLE_OBJECT_PROPERTY, true);
               }
-              writer.setProperty(IoConstants.WRITE_NULLS, Boolean.TRUE);
+              writer.setWriteNulls(Boolean.TRUE);
               writer.open();
               int i = 1;
               final Map<String, Object> defaultProperties = new HashMap<>(writer.getProperties());
@@ -2194,8 +2183,8 @@ public class ConcurrentProcessingFramework {
         field = new DateTimeField(name, required, defaultValue);
       } else if (Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
-      } else
-        if (com.revolsys.geometry.model.Geometry.class.isAssignableFrom(dataType.getJavaClass())) {
+      } else if (com.revolsys.geometry.model.Geometry.class
+        .isAssignableFrom(dataType.getJavaClass())) {
         field = new TextAreaField(name, 60, 10, required);
       } else if (URL.class.isAssignableFrom(dataType.getJavaClass())) {
         field = new UrlField(name, required, defaultValue);
@@ -2621,7 +2610,8 @@ public class ConcurrentProcessingFramework {
   @ResponseBody
   public Object getJobsInfo(@PathVariable("batchJobId") final Long batchJobId) {
     final String consumerKey = getConsumerKey();
-    final BatchJob batchJob = getBatchJob(Identifier.newIdentifier(batchJobId), consumerKey);
+    final BatchJob batchJob = this.batchJobService.getBatchJob(Identifier.newIdentifier(batchJobId),
+      consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobId + " does not exist.");
     } else {
@@ -2629,14 +2619,16 @@ public class ConcurrentProcessingFramework {
         HttpServletUtils.setAttribute("title", "Batch Job " + batchJobId);
         final TabElementContainer tabs = new TabElementContainer();
         this.batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
+        final Map<String, Object> parameters = Collections.emptyMap();
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
         if (BatchJobStatus.RESULTS_CREATED.equals(jobStatus)
           || BatchJobStatus.DOWNLOAD_INITIATED.equals(jobStatus)) {
-          final Map<String, Object> parameters = Collections.emptyMap();
           this.batchJobUiBuilder.addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT,
             "clientList", parameters);
           tabs.setSelectedIndex(1);
         }
+        this.batchJobUiBuilder.addTabDataTable(tabs, BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE,
+          "clientList", parameters);
         return tabs;
       } else {
         final String url = this.batchJobUiBuilder.getPageUrl("clientView");
@@ -2666,7 +2658,7 @@ public class ConcurrentProcessingFramework {
     @PathVariable("resultId") final int resultId) throws IOException {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
-    final Record batchJob = getBatchJob(batchJobIdentifier, consumerKey);
+    final Record batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
 
     if (batchJob != null) {
       final Record batchJobResult = this.dataAccessObject.getBatchJobResult(batchJobIdentifier,
@@ -2761,7 +2753,7 @@ public class ConcurrentProcessingFramework {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
 
-    final Record batchJob = getBatchJob(batchJobIdentifier, consumerKey);
+    final Record batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobIdentifier + " does not exist.");
     } else {

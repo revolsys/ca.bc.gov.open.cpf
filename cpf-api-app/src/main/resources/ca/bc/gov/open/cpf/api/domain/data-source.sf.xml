@@ -50,6 +50,13 @@
                   p:shortName="CPF_BJ" />
               </list>
             </entry>
+            <entry key="/CPF/CPF_BATCH_JOB_STATUS_CHANGE">
+              <list>
+                <bean
+                  class="com.revolsys.record.property.ShortNameProperty"
+                  p:shortName="CPF_BJSC" />
+              </list>
+            </entry>
             <entry key="/CPF/CPF_BATCH_JOB_EXECUTION_GROUPS">
               <list>
                 <bean

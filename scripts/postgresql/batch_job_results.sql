@@ -1,16 +1,18 @@
-CREATE TABLE cpf_batch_job_results (
-  batch_job_result_type character varying(50) NOT NULL,
-  download_timestamp timestamp without time zone,
-  sequence_number integer NOT NULL,
-  result_data oid,
-  result_data_content_type character varying(255) NOT NULL,
-  result_data_url character varying(2000),
-  WHO_CREATED character varying(36) NOT NULL,
-  WHEN_CREATED timestamp without time zone NOT NULL,
-  WHO_UPDATED character varying(36) NOT NULL,
-  WHEN_UPDATED timestamp without time zone NOT NULL,
-  batch_job_id bigint NOT NULL,
+CREATE TABLE CPF_BATCH_JOB_RESULTS (
+  BATCH_JOB_RESULT_TYPE           CHARACTER VARYING(50)          NOT NULL,
+  DOWNLOAD_TIMESTAMP              TIMESTAMP WITHOUT TIME ZONE,
+  SEQUENCE_NUMBER                 INTEGER                        NOT NULL,
+  RESULT_DATA                     OID,
+  RESULT_DATA_CONTENT_TYPE        CHARACTER VARYING(255)         NOT NULL,
+  RESULT_DATA_URL                 CHARACTER VARYING(2000),
+  WHO_CREATED                     CHARACTER VARYING(36)          NOT NULL,
+  WHEN_CREATED                    TIMESTAMP WITHOUT TIME ZONE    NOT NULL,
+  WHO_UPDATED                     CHARACTER VARYING(36)          NOT NULL,
+  WHEN_UPDATED                    TIMESTAMP WITHOUT TIME ZONE    NOT NULL,
+  BATCH_JOB_ID                    BIGINT                         NOT NULL,
   
-  CONSTRAINT batch_job_results_pk PRIMARY KEY (batch_job_id, sequence_number),
-  CONSTRAINT batch_job_results_fk FOREIGN KEY (batch_job_id) REFERENCES CPF.cpf_batch_jobs(batch_job_id) ON DELETE CASCADE
+  CONSTRAINT BATCH_JOB_RESULTS_PK PRIMARY KEY (BATCH_JOB_ID, SEQUENCE_NUMBER),
+  CONSTRAINT BATCH_JOB_RESULTS_FK FOREIGN KEY (BATCH_JOB_ID) REFERENCES CPF.CPF_BATCH_JOBS(BATCH_JOB_ID) ON DELETE CASCADE
 );
+
+CREATE INDEX CPF_BJR_BJ_FK_I ON CPF.CPF_BATCH_JOB_STATUS_CHANGE (BATCH_JOB_ID);

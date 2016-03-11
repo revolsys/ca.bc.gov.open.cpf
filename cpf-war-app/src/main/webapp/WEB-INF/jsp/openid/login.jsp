@@ -59,7 +59,7 @@
           </form>
         </div>
         <c:if test="${!empty sessionScope['SPRING_SECURITY_LAST_EXCEPTION']}">
-         <div class="error"><c:out value="${sessionScope['SPRING_SECURITY_LAST_EXCEPTION'].message}" /></div>
+         <div class="alert alert-danger" role="alert"><c:out value="${sessionScope['SPRING_SECURITY_LAST_EXCEPTION'].message}" /></div>
         </c:if>
         <div class="disclaimer">Access to or unauthorized use of data on this
         computer system by any person other than the authorized employee(s) or

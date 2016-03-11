@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -139,7 +140,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   public Object pageModuleAppList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
 
@@ -182,6 +183,9 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final Map<String, Object> parameters = new HashMap<>();
     parameters.put("serverSide", Boolean.TRUE);
     addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList", parameters);
+
+    addTabDataTable(tabs, BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE, "moduleAppJobList",
+      parameters);
 
     return tabs;
   }

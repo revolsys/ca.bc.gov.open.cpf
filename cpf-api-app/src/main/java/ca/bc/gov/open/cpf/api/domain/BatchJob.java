@@ -19,7 +19,6 @@ import com.revolsys.record.RecordState;
 import com.revolsys.record.io.format.json.Json;
 
 public class BatchJob extends DelegatingRecord implements Common {
-
   public static final PathName BATCH_JOB = PathName.newPathName("/CPF/CPF_BATCH_JOBS");
 
   public static final String BATCH_JOB_ID = "BATCH_JOB_ID";
@@ -113,7 +112,7 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public Map<String, String> getBusinessApplicationParameters() {
-    final String jobParameters = getValue(BatchJob.BUSINESS_APPLICATION_PARAMS);
+    final String jobParameters = getString(BatchJob.BUSINESS_APPLICATION_PARAMS);
     final Map<String, String> parameters = Json.toMap(jobParameters);
     return parameters;
   }
@@ -158,11 +157,11 @@ public class BatchJob extends DelegatingRecord implements Common {
         this.scheduledGroups.add(sequenceNumber);
       }
 
-      final String userId = getValue(BatchJob.USER_ID);
+      final String userId = getString(BatchJob.USER_ID);
 
       final Map<String, String> businessApplicationParameterMap = BatchJobService
         .getBusinessApplicationParameters(this);
-      final String resultDataContentType = getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+      final String resultDataContentType = getString(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
@@ -191,7 +190,7 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public int getNumSubmittedGroups() {
-    return getValue(NUM_SUBMITTED_GROUPS);
+    return getInteger(NUM_SUBMITTED_GROUPS, 0);
   }
 
   public String getScheduledGroups() {
@@ -217,7 +216,7 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public boolean isProcessing() {
-    final String status = getValue(JOB_STATUS);
+    final String status = getString(JOB_STATUS);
     if (status.equals(BatchJobStatus.PROCESSING)) {
       return true;
     } else {

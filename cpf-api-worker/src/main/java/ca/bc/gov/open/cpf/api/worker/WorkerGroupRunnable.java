@@ -55,14 +55,12 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.parallel.ThreadUtil;
-import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.csv.CsvWriter;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
-import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 
@@ -357,11 +355,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<Map<String,Object>
    * logRecords List<Map<String,Object>
    * groupExecutionTime long
@@ -429,9 +427,10 @@ public class WorkerGroupRunnable implements Runnable {
               }
             }
             if (globalError.isEmpty()) {
-              final String requestsCsv = Maps.getString(group, "requests");
+              final Map<String, List<Map<String, Object>>> requests = (Map<String, List<Map<String, Object>>>)group
+                .get("requests");
 
-              for (final Map<String, Object> requestParameters : Csv.mapReader(requestsCsv)) {
+              for (final Map<String, Object> requestParameters : requests.get("items")) {
                 if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
                   this.executor.addFailedGroup(this.groupId);
                   return;

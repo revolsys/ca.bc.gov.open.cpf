@@ -30,7 +30,6 @@ import com.revolsys.jdbc.io.DataSourceImpl;
 import com.revolsys.util.Property;
 
 public class CpfConfig implements PropertyChangeSupportProxy {
-
   private String baseUrl = "http://localhost/pub/cpf";
 
   private String secureBaseUrl = "https://localhost/pub/cpf/secure";

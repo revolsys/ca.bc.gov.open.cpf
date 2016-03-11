@@ -7,6 +7,7 @@ CREATE SCHEMA CPF;
 \i 'user_group_account_xref.sql'
 \i 'application_statistics.sql'
 \i 'batch_jobs.sql'
+\i 'batch_job_status_change.sql'
 \i 'batch_job_files.sql'
 \i 'batch_job_results.sql'
 

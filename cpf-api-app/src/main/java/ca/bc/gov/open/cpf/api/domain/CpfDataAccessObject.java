@@ -37,6 +37,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
@@ -101,6 +102,8 @@ public class CpfDataAccessObject implements Transactionable {
   private RecordDefinition userGroupPermissionRecordDefinition;
 
   private Map<Identifier, BatchJob> batchJobById = new HashMap<>();
+
+  private BatchJobService batchJobService;
 
   public CpfDataAccessObject() {
   }
@@ -353,16 +356,15 @@ public class CpfDataAccessObject implements Transactionable {
       businessApplicationName));
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, true);
-    final Reader<Record> batchJobs = this.recordStore.getRecords(query);
-    try {
+    try (
+      Transaction transaction = this.recordStore.newTransaction();
+      final Reader<Record> batchJobs = this.recordStore.getRecords(query);) {
       final List<Identifier> batchJobIds = new ArrayList<>();
       for (final Record batchJob : batchJobs) {
         final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
       return batchJobIds;
-    } finally {
-      batchJobs.close();
     }
   }
 
@@ -668,10 +670,11 @@ public class CpfDataAccessObject implements Transactionable {
       properties.put("webServicePrefix", prefix);
       record.setValue(BatchJob.PROPERTIES, Json.toString(properties));
     }
-    record.setValue(BatchJob.JOB_STATUS, BatchJobStatus.SUBMITTED);
-    record.setValue(BatchJob.WHEN_STATUS_CHANGED, new Timestamp(System.currentTimeMillis()));
     record.setValue(BatchJob.NUM_SUBMITTED_GROUPS, 0);
     record.setValue(BatchJob.GROUP_SIZE, 1);
+    record.setValue(BatchJob.JOB_STATUS, BatchJobStatus.SUBMITTED);
+    final Timestamp now = new Timestamp(System.currentTimeMillis());
+    record.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
 
     final BatchJob batchJob = new BatchJob(record);
     this.batchJobById.put(batchJobId, batchJob);
@@ -873,6 +876,10 @@ public class CpfDataAccessObject implements Transactionable {
     }
   }
 
+  public void setBatchJobService(final BatchJobService batchJobService) {
+    this.batchJobService = batchJobService;
+  }
+
   public boolean setBatchJobStatus(final Identifier batchJobId, final String oldJobStatus,
     final String newJobStatus) {
     try (
@@ -1038,5 +1045,4 @@ public class CpfDataAccessObject implements Transactionable {
     }
     writer.write(record);
   }
-
 }

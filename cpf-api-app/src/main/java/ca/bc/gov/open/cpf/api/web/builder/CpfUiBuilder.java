@@ -56,10 +56,11 @@ import com.revolsys.record.Record;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
+import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
+import com.revolsys.ui.html.serializer.key.StringKeySerializer;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 public class CpfUiBuilder extends RecordHtmlUiBuilder {
-
   public static final String ADMIN = "ROLE_ADMIN";
 
   public static void checkAdminOrAnyModuleAdmin() {
@@ -193,6 +194,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   private StatisticsService statisticsService;
 
   public CpfUiBuilder() {
+    this(null, null);
   }
 
   public CpfUiBuilder(final String typePath, final PathName tableName, final String idPropertyName,
@@ -201,11 +203,11 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public CpfUiBuilder(final String typePath, final String title) {
-    super(typePath, title);
+    this(typePath, title, title);
   }
 
   public CpfUiBuilder(final String typePath, final String title, final String pluralTitle) {
-    super(typePath, title, pluralTitle);
+    this(typePath, null, null, title, pluralTitle);
   }
 
   @PreDestroy
@@ -396,6 +398,15 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     } else {
       throw new NoSuchRequestHandlingMethodException(request);
     }
+  }
+
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+    addKeySerializer(new DateFormatKeySerializer("WHEN_CREATED", "Creation Time"));
+    addKeySerializer(new DateFormatKeySerializer("WHEN_UPDATED", "Modification Time"));
+    addKeySerializer(new StringKeySerializer("WHO_CREATED", "Created By"));
+    addKeySerializer(new StringKeySerializer("WHO_UPDATED", "Modified By"));
   }
 
   @Override

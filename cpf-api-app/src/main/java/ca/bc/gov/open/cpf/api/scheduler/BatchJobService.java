@@ -70,6 +70,7 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
 import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -90,6 +91,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
+import com.revolsys.collection.list.Lists;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
@@ -117,6 +119,8 @@ import com.revolsys.record.io.format.csv.CsvMapWriter;
 import com.revolsys.record.io.format.html.XhtmlMapWriter;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.kml.Kml22Constants;
+import com.revolsys.record.io.format.tsv.Tsv;
+import com.revolsys.record.io.format.tsv.TsvWriter;
 import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
@@ -132,6 +136,12 @@ import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
 public class BatchJobService implements ModuleEventListener {
+  private static final ArrayList<String> JOB_TSV_FIELD_NAMES = Lists.newArray(
+    BatchJob.BUSINESS_APPLICATION_NAME, BatchJob.BATCH_JOB_ID, BatchJob.USER_ID,
+    BatchJob.WHEN_CREATED, BatchJob.COMPLETED_TIMESTAMP, BatchJob.NUM_SUBMITTED_REQUESTS,
+    BatchJob.FAILED_REQUEST_RANGE, BatchJob.INPUT_DATA_CONTENT_TYPE,
+    BatchJob.RESULT_DATA_CONTENT_TYPE);
+
   private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
   private static long capacityErrorTime;
@@ -248,6 +258,10 @@ public class BatchJobService implements ModuleEventListener {
   private StatisticsService statisticsService;
 
   private RecordStore recordStore;
+
+  private final Object jobTsvFileSync = new Object();
+
+  private File appLogDirectory;
 
   /**
    * Generate an error result for the job, update the job counts and status, and
@@ -379,6 +393,10 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public File getAppLogDirectory() {
+    return this.appLogDirectory;
+  }
+
   public AuthorizationService getAuthorizationService() {
     return this.authorizationService;
   }
@@ -389,6 +407,20 @@ public class BatchJobService implements ModuleEventListener {
 
   public synchronized BatchJob getBatchJob(final Identifier batchJobId) {
     return this.dataAccessObject.getBatchJob(batchJobId);
+  }
+
+  public BatchJob getBatchJob(final Identifier batchJobId, final String consumerKey) {
+    final BatchJob batchJob = getBatchJob(batchJobId);
+    if (batchJob == null) {
+      return null;
+    } else {
+      final String userId = batchJob.getValue(Common.WHO_CREATED);
+      if (consumerKey.equals(userId)) {
+        return batchJob;
+      } else {
+        return null;
+      }
+    }
   }
 
   public BatchJob getBatchJob(final Record batchJob) {
@@ -825,7 +857,7 @@ public class BatchJobService implements ModuleEventListener {
       title, geometryFactory);
   }
 
-  public com.revolsys.io.Writer<Record> newStructuredResultWriter(
+  public RecordWriter newStructuredResultWriter(
     final com.revolsys.spring.resource.Resource resource, final BusinessApplication application,
     final RecordDefinition resultRecordDefinition, final String resultFormat, final String title,
     final GeometryFactory geometryFactory) {
@@ -834,8 +866,8 @@ public class BatchJobService implements ModuleEventListener {
     if (writerFactory == null) {
       throw new IllegalArgumentException("Unsupported result content type: " + resultFormat);
     } else {
-      final com.revolsys.io.Writer<Record> recordWriter = writerFactory
-        .newRecordWriter(resultRecordDefinition, resource);
+      final RecordWriter recordWriter = writerFactory.newRecordWriter(resultRecordDefinition,
+        resource);
       recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
         this.getBaseUrl() + "/kml/defaultStyle.kml#default");
       recordWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
@@ -896,14 +928,31 @@ public class BatchJobService implements ModuleEventListener {
             || setBatchJobStatus(batchJob, BatchJobStatus.CREATING_RESULTS,
               BatchJobStatus.RESULTS_CREATED)) {
 
-            final Timestamp now = new Timestamp(System.currentTimeMillis());
+            final Timestamp now = batchJob.getValue(BatchJob.WHEN_STATUS_CHANGED);
             batchJob.setValue(BatchJob.COMPLETED_TIMESTAMP, now);
-            batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
             batchJob.setValue(Common.WHEN_UPDATED, now);
 
             final String username = CpfDataAccessObject.getUsername();
             batchJob.setValue(Common.WHO_UPDATED, username);
 
+            synchronized (this.jobTsvFileSync) {
+              final File jobsDirectory = FileUtil.getDirectory(this.appLogDirectory, "jobs");
+
+              final String dateString = Dates.format("yyyy-MM-dd", now);
+              final File jobsFile = FileUtil.getFile(jobsDirectory, "jobs-" + dateString + ".tsv");
+              final boolean newFile = !jobsFile.exists();
+              try (
+                Writer jobsWriter = new FileWriter(jobsFile, true);
+                TsvWriter jobsTsvWriter = Tsv.plainWriter(jobsWriter)) {
+                if (newFile) {
+                  jobsTsvWriter.write(JOB_TSV_FIELD_NAMES);
+                }
+                final List<Object> values = batchJob.getValues(JOB_TSV_FIELD_NAMES);
+                jobsTsvWriter.write(values);
+              } catch (final Throwable e) {
+                Exceptions.log(this, "Unable to log job to:" + jobsFile, e);
+              }
+            }
             batchJob.update();
             sendNotification(batchJobId, batchJob);
           }
@@ -1591,7 +1640,8 @@ public class BatchJobService implements ModuleEventListener {
         .getBatchJobIdsToSchedule(businessApplicationName);
       for (final Identifier batchJobId : batchJobIds) {
         getAppLog(businessApplicationName).info("Schedule from database\tbatchJobId=" + batchJobId);
-        scheduleJob(getBatchJob(batchJobId));
+        final BatchJob batchJob = getBatchJob(batchJobId);
+        scheduleJob(batchJob);
       }
     }
   }
@@ -1746,8 +1796,30 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public void setAppLogDirectory(final File appLogDirectory) {
+    this.appLogDirectory = appLogDirectory;
+  }
+
   public void setAuthorizationService(final AuthorizationService authorizationService) {
     this.authorizationService = authorizationService;
+  }
+
+  public void setBatchJobStatus(final BatchJob batchJob, final String jobStatus) {
+    batchJob.setValue(BatchJob.JOB_STATUS, jobStatus);
+    final Timestamp now = new Timestamp(System.currentTimeMillis());
+    final String username = CpfDataAccessObject.getUsername();
+    batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
+    batchJob.setValue(Common.WHEN_UPDATED, now);
+    batchJob.setValue(Common.WHO_UPDATED, username);
+
+    final Record batchJobStatusChange = this.recordStore
+      .newRecord(BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE);
+    batchJobStatusChange.setValue(BatchJobStatusChange.BATCH_JOB_ID, batchJob,
+      BatchJob.BATCH_JOB_ID);
+    batchJobStatusChange.setValue(BatchJobStatusChange.JOB_STATUS, jobStatus);
+    batchJobStatusChange.setValue(Common.WHEN_CREATED, now);
+    batchJobStatusChange.setValue(Common.WHO_UPDATED, username);
+    this.dataAccessObject.write(batchJobStatusChange);
   }
 
   public boolean setBatchJobStatus(final BatchJob batchJob, final String oldJobStatus,
@@ -1756,12 +1828,7 @@ public class BatchJobService implements ModuleEventListener {
     synchronized (batchJob) {
       final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
       if (DataType.equal(jobStatus, oldJobStatus)) {
-        batchJob.setValue(BatchJob.JOB_STATUS, newJobStatus);
-        final Timestamp now = new Timestamp(System.currentTimeMillis());
-        batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
-        batchJob.setValue(Common.WHEN_UPDATED, now);
-        final String username = CpfDataAccessObject.getUsername();
-        batchJob.setValue(Common.WHO_UPDATED, username);
+        setBatchJobStatus(batchJob, newJobStatus);
         updated = true;
       }
     }
@@ -1783,6 +1850,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
+    dataAccessObject.setBatchJobService(this);
     // this.jobController = new DatabaseJobController(dataAccessObject);
     this.jobController = new FileJobController(this, new File("/apps/data/cpf"));
   }

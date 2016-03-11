@@ -75,14 +75,14 @@
   </util:list>
 
   <util:list id="cpfJavaScriptUrls">
-    <value>https://code.jquery.com/jquery-1.11.1.min.js</value>
-    <value>https://code.jquery.com/ui/1.11.2/jquery-ui.min.js</value>
+    <value>https://code.jquery.com/jquery-1.12.1.min.js</value>
+    <value>https://code.jquery.com/ui/1.11.4/jquery-ui.min.js</value>
     <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js</value>
     <value>https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js</value>
     <value>https://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js</value>
-    <value>https://cdn.datatables.net/1.10.6/js/jquery.dataTables.min.js</value>
+    <value>https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js</value>
     <value>https://cdn.datatables.net/scroller/1.2.2/js/dataTables.scroller.min.js</value>
-    <value>https://cdn.datatables.net/plug-ins/1.10.6/integration/bootstrap/3/dataTables.bootstrap.js</value>
+    <value>https://cdn.datatables.net/1.10.11/js/dataTables.bootstrap.min.js</value>
     <value>/js/rs.js</value>
     <value>/js/admin.js</value>
     <value>/js/ws.js</value>
