@@ -226,10 +226,8 @@
             <licenseMerge>apache_v2|Apache 2</licenseMerge>
             <licenseMerge>apache_v2|ASF 2.0</licenseMerge>
             <licenseMerge>mit|MIT License</licenseMerge>
-            <licenseMerge>cddl_v1|Common Development and Distribution License (CDDL)
-              v1.0</licenseMerge>
-            <licenseMerge>cddl_v1|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)
-              Version 1.0</licenseMerge>
+            <licenseMerge>cddl_v1|Common Development and Distribution License (CDDL) v1.0</licenseMerge>
+            <licenseMerge>cddl_v1|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
             <licenseMerge>epl_v1|Eclipse Public License - v 1.0</licenseMerge>
             <licenseMerge>bsd_2|The BSD License</licenseMerge>
             <licenseMerge>bsd_2|BSD License</licenseMerge>
