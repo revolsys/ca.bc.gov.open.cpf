@@ -186,12 +186,12 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>2.9</version>
-        <inherited>false</inherited>
+        <inherited>true</inherited>
         <configuration>
           <header>src/license/APACHE-2.txt</header>
           <properties>
             <owner>Province of British Columbia</owner>
-            <year>2015</year>
+            <year>2016</year>
           </properties>
           <includes>
             <include>**/*.java</include>
@@ -211,7 +211,7 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
+<!--     <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>2.9</version>
@@ -220,7 +220,7 @@
           <header>src/license/APACHE-2.txt</header>
           <properties>
             <owner>Province of British Columbia</owner>
-            <year>2015</year>
+            <year>2016</year>
           </properties>
           <includes>
             <exclude>*/src/test/java/**/*.java</exclude>
@@ -239,7 +239,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin> -->  
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
@@ -330,6 +330,31 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-archetype-plugin</artifactId>
           <version>2.1</version>
+        </plugin>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <versionRange>[2.9,)</versionRange>
+                    <goals>
+                      <goal>format</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
