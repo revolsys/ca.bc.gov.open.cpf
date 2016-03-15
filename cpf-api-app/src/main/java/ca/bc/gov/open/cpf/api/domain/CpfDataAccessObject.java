@@ -37,7 +37,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
@@ -103,12 +102,10 @@ public class CpfDataAccessObject implements Transactionable {
 
   private Map<Identifier, BatchJob> batchJobById = new HashMap<>();
 
-  private BatchJobService batchJobService;
-
   public CpfDataAccessObject() {
   }
 
-  public boolean cancelBatchJob(final Identifier jobId) {
+  public boolean cancelBatchJob(final Identifier batchJobId) {
     try (
       Transaction transaction = newTransaction(Propagation.REQUIRES_NEW)) {
       try {
@@ -121,15 +118,16 @@ public class CpfDataAccessObject implements Transactionable {
           + "JOB_STATUS = 'cancelled',"
           + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
         final Timestamp now = new Timestamp(System.currentTimeMillis());
-        if (JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username, jobId) == 1) {
-          deleteBatchJobResults(jobId);
+        if (JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username,
+          batchJobId.getLong(0)) == 1) {
+          deleteBatchJobResults(batchJobId);
           return true;
         } else {
           return false;
         }
       } catch (final Throwable e) {
         transaction.setRollbackOnly();
-        throw new RuntimeException("Unable to cencel jobId=" + jobId, e);
+        throw new RuntimeException("Unable to cencel jobId=" + batchJobId, e);
       }
     }
   }
@@ -288,42 +286,6 @@ public class CpfDataAccessObject implements Transactionable {
 
     final Query query = Query.and(this.batchJobRecordDefinition, filter);
     return this.recordStore.getRecords(query).getFirst();
-  }
-
-  public long getBatchJobFileSize(final Identifier jobId, final String path,
-    final int sequenceNumber) {
-    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, path));
-    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
-    final Record file = this.recordStore.getRecords(query).getFirst();
-    if (file != null) {
-      try {
-        final Blob resultData = file.getValue(BatchJobFile.DATA);
-        return resultData.length();
-      } catch (final SQLException e) {
-        throw new WrappedException(e);
-      }
-    }
-    return 0;
-  }
-
-  public InputStream getBatchJobFileStream(final Identifier jobId, final String path,
-    final int sequenceNumber) {
-    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, path));
-    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
-    final Record file = this.recordStore.getRecords(query).getFirst();
-    if (file != null) {
-      try {
-        final Blob resultData = file.getValue(BatchJobFile.DATA);
-        return resultData.getBinaryStream();
-      } catch (final SQLException e) {
-        throw new WrappedException(e);
-      }
-    }
-    return null;
   }
 
   public List<Identifier> getBatchJobIds(final String businessApplicationName,
@@ -825,7 +787,8 @@ public class CpfDataAccessObject implements Transactionable {
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
-      return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username, batchJobId) == 1;
+      return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username,
+        batchJobId.getLong(0)) == 1;
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to set job downloaded " + batchJobId, e);
     }
@@ -842,7 +805,7 @@ public class CpfDataAccessObject implements Transactionable {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
       return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, now, username,
-        batchJobId) == 1;
+        batchJobId.getLong(0)) == 1;
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
     }
@@ -868,16 +831,13 @@ public class CpfDataAccessObject implements Transactionable {
           + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         final boolean result = JdbcUtils.executeUpdate(jdbcRecordStore, sql, numSubmittedRequests,
-          numFailedRequests, groupSize, numGroups, now, now, now, getUsername(), batchJobId) == 1;
+          numFailedRequests, groupSize, numGroups, now, now, now, getUsername(),
+          batchJobId.getLong(0)) == 1;
         return result;
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);
       }
     }
-  }
-
-  public void setBatchJobService(final BatchJobService batchJobService) {
-    this.batchJobService = batchJobService;
   }
 
   public boolean setBatchJobStatus(final Identifier batchJobId, final String oldJobStatus,
@@ -890,7 +850,7 @@ public class CpfDataAccessObject implements Transactionable {
         final Timestamp now = new Timestamp(System.currentTimeMillis());
         final String username = getUsername();
         final int count = JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username,
-          newJobStatus, oldJobStatus, batchJobId);
+          newJobStatus, oldJobStatus, batchJobId.getLong(0));
         return count == 1;
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);
@@ -996,20 +956,6 @@ public class CpfDataAccessObject implements Transactionable {
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to change jobs for user rename", e);
     }
-  }
-
-  public int updateResetGroupsForRestart(final String businessApplicationName) {
-    if (this.recordStore instanceof JdbcRecordStore) {
-      final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-      final String sql = "UPDATE CPF.CPF_BATCH_JOB_EXECUTION_GROUPS SET STARTED_IND = 0 WHERE STARTED_IND = 1 AND COMPLETED_IND = 0 AND BATCH_JOB_ID IN (SELECT BATCH_JOB_ID FROM CPF.CPF_BATCH_JOBS WHERE BUSINESS_APPLICATION_NAME = ?)";
-      try {
-        return JdbcUtils.executeUpdate(jdbcRecordStore, sql, businessApplicationName);
-      } catch (final Throwable e) {
-        throw new RuntimeException("Unable to reset started status", e);
-      }
-    }
-
-    return 0;
   }
 
   public void write(final Record record) {

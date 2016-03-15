@@ -43,11 +43,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.websocket.Session;
 
 import org.apache.http.HttpEntity;
@@ -58,6 +63,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -130,19 +136,22 @@ import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.transaction.Transaction;
+import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Dates;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
 public class BatchJobService implements ModuleEventListener {
+  private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
   private static final ArrayList<String> JOB_TSV_FIELD_NAMES = Lists.newArray(
     BatchJob.BUSINESS_APPLICATION_NAME, BatchJob.BATCH_JOB_ID, BatchJob.USER_ID,
     BatchJob.WHEN_CREATED, BatchJob.COMPLETED_TIMESTAMP, BatchJob.NUM_SUBMITTED_REQUESTS,
     BatchJob.FAILED_REQUEST_RANGE, BatchJob.INPUT_DATA_CONTENT_TYPE,
     BatchJob.RESULT_DATA_CONTENT_TYPE);
 
-  private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+  private static final Pattern RANGE_PATTERN = Pattern.compile("bytes=(\\d+)?-(\\d+)?");
 
   private static long capacityErrorTime;
 
@@ -376,6 +385,90 @@ public class BatchJobService implements ModuleEventListener {
     this.jobController = null;
   }
 
+  public void downloadBatchJobResult(final HttpServletRequest request,
+    final HttpServletResponse response, final Identifier batchJobIdentifier, final int resultId,
+    final Record batchJobResult) throws IOException {
+    final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
+    if (resultDataUrl != null) {
+      response.setStatus(HttpServletResponse.SC_SEE_OTHER);
+      response.setHeader("Location", resultDataUrl);
+    } else {
+      final String etag = Integer.toString(resultId);
+      long size = getBatchJobResultSize(batchJobIdentifier, resultId);
+      long fromIndex = 0;
+      long toIndex = size - 1;
+      boolean hasRange = false;
+
+      String jsonCallback = null;
+      final String resultDataContentType = batchJobResult
+        .getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+      if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
+        jsonCallback = HttpServletUtils.getParameter("callback");
+        if (Property.hasValue(jsonCallback)) {
+          size += 3 + jsonCallback.length();
+        }
+      }
+
+      if (jsonCallback == null && etag.equals(request.getHeader("If-Range"))) {
+        final String range = request.getHeader("Range");
+        if (range != null) {
+          final Matcher matcher = RANGE_PATTERN.matcher(range);
+          if (matcher.matches()) {
+            hasRange = true;
+            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+            final String from = matcher.group(0);
+            if (Property.hasValue(from)) {
+              fromIndex = Integer.parseInt(from);
+            }
+            final String to = matcher.group(0);
+            if (Property.hasValue(to)) {
+              toIndex = Integer.parseInt(to);
+            }
+          }
+        }
+      }
+
+      if (jsonCallback == null) {
+        response.setHeader("Accept-ranges", "bytes");
+        response.setHeader("Content-Length", Long.toString(size));
+        final java.util.Date lastModified = batchJobResult.getValue(BatchJobResult.WHEN_CREATED);
+
+        response.setHeader("Last-Modified",
+          Dates.format("EEE, dd MMM yyyy HH:mm:ss z", lastModified));
+        response.setHeader("ETag", etag);
+        response.setHeader("Connection", "keep-alive");
+        if (hasRange) {
+          response.setHeader("Content-Range", "bytes " + fromIndex + "-" + toIndex + "/" + size);
+        }
+      }
+      try (
+        final InputStream in = getBatchJobResultData(batchJobIdentifier, resultId, batchJobResult,
+          hasRange, fromIndex, toIndex)) {
+        response.setContentType(resultDataContentType);
+        final RecordWriterFactory writerFactory = IoFactory
+          .factoryByMediaType(RecordWriterFactory.class, resultDataContentType);
+        if (writerFactory != null) {
+          final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
+          final String fileName = "job-" + batchJobIdentifier + "-result-" + resultId + "."
+            + fileExtension;
+          response.setHeader("Content-Disposition",
+            "attachment; filename=" + fileName + ";size=" + size);
+        }
+        final ServletOutputStream out = response.getOutputStream();
+        if (Property.hasValue(jsonCallback)) {
+          out.write(jsonCallback.getBytes());
+          out.write("(".getBytes());
+          FileUtil.copy(in, out);
+          out.write(");".getBytes());
+        } else if (hasRange) {
+          FileUtil.copy(in, out, toIndex - fromIndex);
+        } else {
+          FileUtil.copy(in, out);
+        }
+      }
+    }
+  }
+
   private void error(final AppLog log, final String message, final Throwable e) {
     if (log == null) {
       LoggerFactory.getLogger(getClass()).error(message, e);
@@ -438,8 +531,12 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public InputStream getBatchJobResultData(final Identifier batchJobId, final int sequenceNumber,
-    final Record batchJobResult) {
-    return this.jobController.getJobResultStream(batchJobId, sequenceNumber);
+    final Record batchJobResult, final boolean hasRange, final long fromIndex, final long toIndex) {
+    if (hasRange) {
+      return this.jobController.getJobResultStream(batchJobId, sequenceNumber, fromIndex, toIndex);
+    } else {
+      return this.jobController.getJobResultStream(batchJobId, sequenceNumber);
+    }
   }
 
   public long getBatchJobResultSize(final Identifier batchJobId, final int sequenceNumber) {
@@ -1580,11 +1677,6 @@ public class BatchJobService implements ModuleEventListener {
           }
         }
       }
-      final int numCleanedRequests = this.dataAccessObject
-        .updateResetGroupsForRestart(businessApplicationName);
-      if (numCleanedRequests > 0) {
-        log.info("Groups cleaned for restart\tcount=" + numCleanedRequests);
-      }
       final int numCleanedStatus = this.dataAccessObject
         .updateBatchJobProcessedStatus(businessApplicationName);
       if (numCleanedStatus > 0) {
@@ -1850,7 +1942,6 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
-    dataAccessObject.setBatchJobService(this);
     // this.jobController = new DatabaseJobController(dataAccessObject);
     this.jobController = new FileJobController(this, new File("/apps/data/cpf"));
   }

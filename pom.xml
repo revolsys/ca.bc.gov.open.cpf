@@ -507,7 +507,9 @@
     <module>cpf-war-worker</module>
     <module>cpf-archetype-plugin</module>
     <module>cpf-archetype-web</module>
-    <module>cpf-plugin-test</module>
+    <module>plugins/test</module>
+    <module>plugins/gvws</module>
+    <module>plugins/mtws</module>
   </modules>
 
   <profiles>

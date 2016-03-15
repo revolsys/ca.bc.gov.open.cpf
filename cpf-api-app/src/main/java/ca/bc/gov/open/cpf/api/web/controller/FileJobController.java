@@ -17,6 +17,8 @@ package ca.bc.gov.open.cpf.api.web.controller;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -33,6 +35,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.csv.CsvRecordWriter;
 import com.revolsys.record.schema.RecordDefinition;
+import com.revolsys.util.Exceptions;
 
 public class FileJobController extends AbstractJobController {
 
@@ -113,6 +116,23 @@ public class FileJobController extends AbstractJobController {
     }
   }
 
+  @Override
+  protected InputStream getFileStream(final Identifier jobId, final String path,
+    final int sequenceNumber, final long fromIndex, long toIndex) {
+    final File file = getJobFile(jobId, path, sequenceNumber);
+    if (file.exists()) {
+      final FileInputStream in = FileUtil.getInputStream(file);
+      try {
+        in.skip(fromIndex);
+      } catch (final IOException e) {
+        return Exceptions.throwUncheckedException(e);
+      }
+      return in;
+    } else {
+      return null;
+    }
+  }
+
   protected File getJobDirectory(final Identifier jobId) {
     final File jobDirectory = FileUtil.getFile(this.rootDirectory,
       "jobs/" + toPath(jobId.getLong(0)));
@@ -129,17 +149,6 @@ public class FileJobController extends AbstractJobController {
     final File groupsFile = getJobDirectory(jobId, path);
     final File file = FileUtil.getFile(groupsFile, toPath(recordId) + ".json");
     return file;
-  }
-
-  @Override
-  public InputStream getJobInputStream(final Identifier jobId) {
-    return getFileStream(jobId, JOB_INPUTS, 1);
-  }
-
-  @Override
-  public InputStream getJobResultStream(final Identifier jobId, final int sequenceNumber) {
-    final File resultFile = getJobFile(jobId, JOB_RESULTS, sequenceNumber);
-    return FileUtil.getInputStream(resultFile);
   }
 
   @Override

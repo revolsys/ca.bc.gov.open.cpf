@@ -94,7 +94,7 @@
   </util:map>
 
   <bean
-    class="com.revolsys.ui.web.rest.interceptor.AnnotationMethodHandlerAdapter"
+    class="com.revolsys.ui.web.rest.interceptor.WebAnnotationMethodHandlerAdapter"
     p:defaultMediaType="text/html"
     p:alwaysUseFullPath="true"
     p:mediaTypes-ref="mediaTypes"

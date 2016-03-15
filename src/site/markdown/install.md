@@ -42,18 +42,18 @@ changed to any directory as required as the SQL scripts are not location specifi
 **UNIX/Mac**
 
 ```bash
-mkdir -p /apps/cpf
-cd /apps/cpf
-svn co (http://apps.bcgov/svn/cpf/api-source/trunk/scripts/) sql
+mkdir cpf
+cd cpf
+svn co https://github.com/bcgov/cpf/trunk/sql sql
 cd sql
 ```
   
 **Windows**
 
 ```winbatch
-md \apps\cpf
-cd \apps\cpf
-svn co (http://apps.bcgov/svn/cpf/api-source/trunk/scripts/) sql
+md cpf
+cd cpf
+svn co https://github.com/bcgov/cpf/trunk/sql sql
 cd sql
 ```
 
@@ -73,7 +73,7 @@ parameters while executing the script. DB_VENDOR can be either postgresql or ora
 
 ```bash
 DB_VENDOR=...
-cd /apps/cpf/sql/${DB_VENDOR}
+cd cpf/sql/${DB_VENDOR}
 cp sample-db.properties db.properties
 ```
  
@@ -81,7 +81,7 @@ cp sample-db.properties db.properties
 
 ```winbatch
 set DB_VENDOR=...
-cd \apps\cpf\sql\%DB_VENDOR%
+cd cpf\sql\%DB_VENDOR%
 cp sample-db.properties db.properties
 ```
 
@@ -90,7 +90,7 @@ cp sample-db.properties db.properties
 
 Edit the `db.properties` file.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Property</th>
@@ -133,7 +133,7 @@ c:/data/postgres/cpf</code></td>
       directory.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 
 For PostgreSQL, to avoid needing to enter in the passwords for each SQL command create a `~/.pgpass`
@@ -167,14 +167,14 @@ prompted to enter this in the script.
 **Unix/Mac**
 ```
 DB_VENDOR={postgresql|oracle}</b>
-cd /apps/cpf/sql/${DB_VENDOR}
+cd cpf/sql/${DB_VENDOR}
 ./install.sh
 ```
 
 **Windows**
 ```
 set DB_VENDOR={postgresql|oracle}
-cd \apps\cpf\sql\${DB_VENDOR}
+cd  cpf\sql\${DB_VENDOR}
 install.cmd
 ```
   
@@ -215,7 +215,7 @@ file in the tomcat conf directory.
 
 The CPF requires directories to be created on the server. The following directories must be created.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
   <tr>
     <th>Directory</th>
@@ -248,7 +248,7 @@ The CPF requires directories to be created on the server. The following director
     the user's local maven repository cache.</td>
   </tr>
   </tbody>
-</table>
+</table></div>
 
 Create the directories using the following commands. Make sure the directory permissions are set
 as shown in the table above.
@@ -323,7 +323,7 @@ mvn ^
 > line continuation character that treats multiple lines as a single line. Therefore you can cut and
 > paste the above text into a command window.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
     <th>Parameter</th>
@@ -372,11 +372,11 @@ mvn ^
       `file:///C:/apps/cpf/repository`).</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 The following directory structure would be created if the command were run using the parameters above.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
     <th>File/Directory</th>
@@ -447,7 +447,7 @@ The following directory structure would be created if the command were run using
     <td><code>&nbsp;&nbsp;sample-config/cpf.properties</code></td>
     <td>A sample config file to copy to `/apps/cpf/conf/`.</td>
     </tr>
-</table>
+</table></div>
 
   
 > **NOTE:** Developers shouldn't need to edit any of these configuration files. They are 
@@ -491,7 +491,7 @@ Copy the `sample-config/cpf.properties` file to the `/apps/cpf/config/cpf.proper
 the server.
 
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
     <th>Property</th>
@@ -521,7 +521,7 @@ the server.
      `http://open.gov.bc.ca/cpf/SystemUser` user in the cpf.cpf_user_accounts table.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ### External Maven Repository Configuration
 

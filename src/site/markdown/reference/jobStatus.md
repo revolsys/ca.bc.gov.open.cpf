@@ -1,7 +1,8 @@
 ## Job Status
 The following status fields are returned with the job status.
 
-<table>
+<div class="table-responsive">
+<table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Field Name</th>
@@ -71,3 +72,4 @@ The following status fields are returned with the job status.
     </tr>
   </tbody>
 </table>
+</div>

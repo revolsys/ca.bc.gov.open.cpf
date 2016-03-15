@@ -65,7 +65,7 @@ the Ministry's server.
 
 Use the links in the following table to view the Plug-in API documentation or download the API libraries.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>API</th>
@@ -80,7 +80,7 @@ Use the links in the following table to view the Plug-in API documentation or do
       <td><a href="../../lib/cpf-api-plugin-${project.version}.jar">Download</a></td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ### Maven Project
 
@@ -112,7 +112,7 @@ mvn \
   -Dplug-inAcronym=demo
 ```
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Parameter</th>
@@ -154,11 +154,11 @@ mvn \
       <td>The acronym of the plug-in. This will be used to generate the plug-in jar name.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 The following directory structure would be created if the command were run using the parameters above.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>File/Directory</th>
@@ -211,7 +211,7 @@ The following directory structure would be created if the command were run using
       <td>The spring configuration file containing any beans used by the plug-ins.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### Add Dependencies
 
@@ -806,7 +806,7 @@ using the admin web application.
 The following customization properties are used to define the sections to group fields on the
 forms and the default values for fields on the job submission forms.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Name</th>
@@ -992,13 +992,13 @@ forms and the default values for fields on the job submission forms.
         unit was 1mm (0.001) the scale factor is 1000 (1 / 0.001).</td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 
 #### Result File Customization Properties
 
 The following customization properties are supported.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Name</th>
@@ -1070,7 +1070,7 @@ The following customization properties are supported.
       if the kmlLookAtRange or calculated range is greater than this value.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 See the [kml reference guide](https://developers.google.com/kml/documentation/kmlreference)
 for details on how to use the KML attributes.
@@ -1132,7 +1132,7 @@ src/main/resources/META-INF/ca.bc.gov.open.cpf.plugin.ConfigProperties.json
 The configuration file is a JSON list containing JSON objects for each property. Each configuration
 JSON object represents one configuration property and must include the following attributes.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1158,7 +1158,7 @@ JSON object represents one configuration property and must include the following
       data type specified in the type attribute.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 Consider the example of a data source defined with the following bean definition.
 
@@ -1230,7 +1230,7 @@ The <code>USER_TYPE</code> user groups are virtual groups that indicate the type
 In the BC Government infrastructure the following `USER_TYPE` groups are supported.
 
 <div class="simpleDataTable">
-  <table>
+  <div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
     <thead>
       <tr>
         <th>Name</th>
@@ -1263,7 +1263,7 @@ In the BC Government infrastructure the following `USER_TYPE` groups are support
         <td>BC Government External Verified Individual</td>
       </tr>
     </tbody>
-  </table>
+  </table></div>
 </div>
 
 ##### Global
@@ -1294,7 +1294,7 @@ The CPF allows security permissions to be granted to groups of users. Security p
 members of a group permission to perform a specified action on a resource. Negative permissions
 that deny access to a resource are not supported.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1322,7 +1322,7 @@ that deny access to a resource are not supported.
       View, Edit for the action name.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 The special value 'All' can be used as a wildcard for the resourceClass, resourceId or action. When 
 enforcing permissions the 'All' value will match any requested value for that attribute when the 
@@ -1353,7 +1353,7 @@ The User Groups config file is a JSON list of JSON objects. Each object represen
 be created or to create permissions for. Only groups starting with the {Module Name}_ prefix will
 be created. The USER_TYPE or GLOBAL groups must already exist for permissions to be added to them.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1371,11 +1371,11 @@ be created. The USER_TYPE or GLOBAL groups must already exist for permissions to
       of permission attributes.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
     
 The following table shows the JSON attributes for a permission object.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1403,7 +1403,7 @@ The following table shows the JSON attributes for a permission object.
       View, Edit for the action name.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 The following example shows a group called DEMO_PARTNER that will be created if it does not exist.
 The members of that group will be granted the permission to View the Demo Report. Members of the
@@ -1472,7 +1472,7 @@ following page.
 Click on the link for a business application to get the list of resources for that application.
 Depending on the plug-in the following resources maybe available.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Resource</th>
@@ -1501,7 +1501,7 @@ Depending on the plug-in the following resources maybe available.
       upload or a URL forthe request data fields.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 Use one of the above forms to create a new job and then download the results to confirm that the
 plug-in works as expected.

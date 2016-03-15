@@ -73,9 +73,9 @@
   </contributors>
 
   <scm>
-    <connection>scm:svn:http://apps.bcgov/svn/${pluginAcronym}/source/trunk/</connection>
-    <developerConnection>scm:svn:http://apps.bcgov/svn/${pluginAcronym}/source/trunk/</developerConnection>
-    <url>https://apps.bcgov/TC7.${pluginAcronym}-source?</url>
+    <connection></connection>
+    <developerConnection></developerConnection>
+    <url></url>
   </scm>
 
   <organization>

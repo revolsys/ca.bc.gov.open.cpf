@@ -16,7 +16,11 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -40,6 +44,7 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
+import com.revolsys.ui.html.serializer.key.StringKeySerializer;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.exception.PageNotFoundException;
@@ -107,6 +112,22 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     } else {
       return super.getProperty(object, keyName);
     }
+  }
+
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+    final StringKeySerializer completedRequests = new StringKeySerializer("completedRequests",
+      "Completed Requests");
+    completedRequests.setProperty("sortable", false);
+    completedRequests.setProperty("searchable", false);
+    addKeySerializer(completedRequests);
+
+    final StringKeySerializer failedRequests = new StringKeySerializer("failedRequests",
+      "Failed Requests");
+    failedRequests.setProperty("sortable", false);
+    failedRequests.setProperty("searchable", false);
+    addKeySerializer(failedRequests);
   }
 
   public void module(final XmlWriter out, final Object object) {
@@ -179,28 +200,34 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
       parameters.put("ordering", false);
       addTabDataTable(tabs, "ExecutionGroup", "moduleAppJobList", parameters);
     }
-
-    final Map<String, Object> parameters = new HashMap<>();
-    parameters.put("serverSide", Boolean.TRUE);
-    addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList", parameters);
-
-    addTabDataTable(tabs, BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE, "moduleAppJobList",
-      parameters);
-
+    {
+      final Map<String, Object> parameters = new HashMap<>();
+      parameters.put("serverSide", Boolean.TRUE);
+      addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT, "moduleAppJobList", parameters);
+    }
+    {
+      final Map<String, Object> parameters = new LinkedHashMap<>();
+      final List<List<Object>> sorting = Collections
+        .singletonList(Arrays.<Object> asList(1, "asc"));
+      parameters.put("order", sorting);
+      addTabDataTable(tabs, BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE, "moduleAppJobList",
+        parameters);
+    }
     return tabs;
   }
 
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}/cancel"
   }, method = RequestMethod.POST)
-  public void postClientCancel(@PathVariable("batchJobId") final Identifier batchJobId) {
+  public void postClientCancel(@PathVariable("batchJobId") final Long batchJobId) {
+    final Identifier jobId = Identifier.newIdentifier(batchJobId);
     final String consumerKey = getConsumerKey();
-    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, batchJobId);
+    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, jobId);
     if (batchJob == null) {
       throw new PageNotFoundException("The job " + batchJobId + " does not exist");
     } else {
       final BatchJobService batchJobService = getBatchJobService();
-      batchJobService.cancelBatchJob(batchJobId);
+      batchJobService.cancelBatchJob(jobId);
       redirectPage("clientList");
     }
   }
@@ -208,14 +235,15 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}/delete"
   }, method = RequestMethod.POST)
-  public void postClientDelete(@PathVariable("batchJobId") final Identifier batchJobId) {
+  public void postClientDelete(@PathVariable("batchJobId") final Long batchJobId) {
+    final Identifier jobId = Identifier.newIdentifier(batchJobId);
     final String consumerKey = getConsumerKey();
-    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, batchJobId);
+    final Record batchJob = getDataAccessObject().getBatchJob(consumerKey, jobId);
     if (batchJob == null) {
       throw new PageNotFoundException("The job " + batchJobId + " does not exist");
     } else {
       final BatchJobService batchJobService = getBatchJobService();
-      batchJobService.deleteJob(batchJobId);
+      batchJobService.deleteJob(jobId);
       redirectPage("clientList");
     }
   }
@@ -226,11 +254,12 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   public void postModuleAppCancel(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Identifier batchJobId) throws IOException, ServletException {
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException, ServletException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
-    batchJobService.cancelBatchJob(batchJobId);
+    final Identifier jobId = Identifier.newIdentifier(batchJobId);
+    batchJobService.cancelBatchJob(jobId);
     final String url = request.getHeader("Referer");
     if (Property.hasValue(url) && url.indexOf("/apps") != -1) {
       redirectPage("moduleAppList");
@@ -245,11 +274,12 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
   public void postModuleAppDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Identifier batchJobId) throws IOException, ServletException {
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException, ServletException {
+    final Identifier jobId = Identifier.newIdentifier(batchJobId);
     checkAdminOrAnyModuleAdminExceptSecurity();
     getModuleBusinessApplication(moduleName, businessApplicationName);
     final BatchJobService batchJobService = getBatchJobService();
-    batchJobService.deleteJob(batchJobId);
+    batchJobService.deleteJob(jobId);
     final String url = request.getHeader("Referer");
     if (Property.hasValue(url) && url.indexOf("/apps") != -1) {
       redirectPage("moduleAppList");

@@ -55,6 +55,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.parallel.ThreadUtil;
+import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.csv.CsvWriter;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.property.FieldProperties;
@@ -328,7 +329,6 @@ public class WorkerGroupRunnable implements Runnable {
     return this.groupId;
   }
 
-  @SuppressWarnings("unchecked")
   protected Map<String, Object> getParameters(final BusinessApplication businessApplication,
     final RecordDefinition requestRecordDefinition, final Map<String, Object> applicationParameters,
     final Map<String, Object> requestParameters) {
@@ -370,10 +370,6 @@ public class WorkerGroupRunnable implements Runnable {
   @Override
   @SuppressWarnings("unchecked")
   public void run() {
-    long getTime = 0;
-    long putTime = 0;
-    long runTime = 0;
-    long time = System.currentTimeMillis();
     this.log.info("Start\tGroup Execution\tgroupId=" + this.groupId);
     try (
       FileBackedCache resultCache = new FileBackedCache()) {
@@ -404,8 +400,6 @@ public class WorkerGroupRunnable implements Runnable {
             + "/jobs/" + this.batchJobId + "/groups/" + this.groupId);
           final Map<String, Object> group = this.httpClient.getJsonResource(groupUrl);
           if (!group.isEmpty()) {
-            getTime = System.currentTimeMillis() - time;
-            time = System.currentTimeMillis();
             final Map<String, Object> globalError = new LinkedHashMap<>();
 
             final RecordDefinition requestRecordDefinition = this.businessApplication
@@ -427,10 +421,15 @@ public class WorkerGroupRunnable implements Runnable {
               }
             }
             if (globalError.isEmpty()) {
-              final Map<String, List<Map<String, Object>>> requests = (Map<String, List<Map<String, Object>>>)group
-                .get("requests");
-
-              for (final Map<String, Object> requestParameters : requests.get("items")) {
+              final Object requestsValue = group.get("requests");
+              Iterable<Map<String, Object>> requests;
+              if (requestsValue instanceof String) {
+                final String requestsCsv = (String)requestsValue;
+                requests = Csv.mapReader(requestsCsv);
+              } else {
+                requests = ((Map<String, List<Map<String, Object>>>)requestsValue).get("items");
+              }
+              for (final Map<String, Object> requestParameters : requests) {
                 if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
                   this.executor.addFailedGroup(this.groupId);
                   return;
@@ -454,8 +453,6 @@ public class WorkerGroupRunnable implements Runnable {
         } catch (final IllegalStateException e) {
         }
         final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
-        runTime = System.currentTimeMillis() - time;
-        time = System.currentTimeMillis();
 
         final String path = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
           + "/groups/" + this.groupId + "/results?groupExecutedTime=" + groupExecutionTime
@@ -465,8 +462,6 @@ public class WorkerGroupRunnable implements Runnable {
         final HttpResponse response = this.httpClient.postResource(this.httpClient.getUrl(path),
           "text/csv", resultCache.getInputStream());
         this.httpClient.closeResponse(response);
-        putTime = System.currentTimeMillis() - time;
-        time = System.currentTimeMillis();
         if (this.errorWriter != null) {
           final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
             + "/groups/" + this.groupId + "/error";
@@ -516,9 +511,7 @@ public class WorkerGroupRunnable implements Runnable {
     }
   }
 
-  @SuppressWarnings("resource")
   public void setParameters(final Object plugin, final Map<String, ? extends Object> parameters) {
-
     this.businessApplication.pluginSetParameters(plugin, parameters);
     if (this.businessApplication.isPerRequestInputData()) {
       for (final String parameterName : PluginAdaptor.INPUT_DATA_PARAMETER_NAMES) {

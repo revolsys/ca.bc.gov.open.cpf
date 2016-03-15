@@ -80,11 +80,7 @@
               <additionalparam>
                 -d ${project.build.directory}/site/java-api
                 -doctitle "CPF Client Java API"
-                -docid "clientJava"
-                -htmlheader
-                ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateHeader.html
-                -htmlfooter
-                ${basedir}/../cpf-war-app/src/main/webapp/Templates/docTemplateFooter.html</additionalparam>
+              </additionalparam>
             </configuration>
             <goals>
               <goal>javadoc</goal>

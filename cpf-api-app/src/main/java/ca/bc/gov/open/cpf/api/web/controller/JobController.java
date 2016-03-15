@@ -54,6 +54,8 @@ public interface JobController {
 
   InputStream getJobResultStream(Identifier batchJobId, int sequenceNumber);
 
+  InputStream getJobResultStream(Identifier batchJobId, int sequenceNumber, long fromIndex, long toIndex);
+
   String getKey();
 
   void newJobFile(Identifier batchJobId, String path, long sequenceNumber, String contentType,

@@ -42,16 +42,21 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
+import com.revolsys.record.query.Q;
+import com.revolsys.record.query.Query;
 import com.revolsys.ui.html.fields.Field;
 import com.revolsys.ui.html.form.Form;
+import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
+import com.revolsys.ui.html.serializer.key.MultipleKeySerializer;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.annotation.PageMapping;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Booleans;
 
 @Controller
-public class UserGroupUiBuilder extends CpfUiBuilder {
-
+public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
   private static final List<String> GLOBAL_GROUP_NAMES = Arrays.asList("ADMIN", "USER_TYPE",
     "GLOBAL", "WORKER");
 
@@ -93,10 +98,31 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     return Arrays.asList(moduleName, "USER_TYPE", "GLOBAL");
   }
 
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+
+    final MultipleKeySerializer globalActions = new MultipleKeySerializer("globalActions",
+      "Actions");
+    globalActions.addSerializer(new ActionFormKeySerializer("groupDelete", "Delete", "fa fa-trash")
+      .addParameterName("userGroupName", "USER_GROUP_NAME"));
+    addKeySerializer(globalActions);
+
+    addKeySerializer(
+      new PageLinkKeySerializer("adminGroupView", USER_GROUP_NAME, "Group", "groupView"));
+
+    final MultipleKeySerializer userAccountActions = new MultipleKeySerializer("userAccountActions",
+      "Actions");
+    userAccountActions
+      .addSerializer(new ActionFormKeySerializer("userAccountDelete", "Delete", "fa fa-trash")
+        .addParameterName("userGroupName", "USER_GROUP_NAME"));
+    addKeySerializer(userAccountActions);
+  }
+
   public Element newUserGroupView(final HttpServletRequest request,
     final HttpServletResponse response, final String prefix, final String membersPrefix,
     final String moduleName, final String userGroupName, final List<String> moduleNames)
-      throws NoSuchRequestHandlingMethodException {
+    throws NoSuchRequestHandlingMethodException {
     if (moduleName != null) {
       hasModule(request, moduleName);
     }
@@ -128,7 +154,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleAdminList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -152,7 +178,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName,
     @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
-    return newUserGroupView(request, response, "moduleAdmin", "moduleAdminGroup", moduleName,
+    return newUserGroupView(request, response, "moduleAdmin", "moduleGroupAdmin", moduleName,
       userGroupName, Arrays.asList("ADMIN_MODULE_" + moduleName));
 
   }
@@ -165,7 +191,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageModuleUserGroupAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -182,7 +208,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   public void pageModuleUserGroupDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -222,7 +248,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleUserGroupList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -251,34 +277,6 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(value = {
-    "/admin/userAccounts/{consumerKey}/userGroups"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Object pageUserAccountList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("consumerKey") final String consumerKey)
-      throws IOException, NoSuchRequestHandlingMethodException {
-    checkHasAnyRole(ADMIN);
-    final Record userAccount = getUserAccount(consumerKey);
-    if (userAccount != null) {
-
-      final Map<String, Object> parameters = new HashMap<>();
-
-      parameters.put("fromClause", "CPF.CPF_USER_GROUPS T"
-        + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
-
-      final Map<String, Object> filter = new HashMap<>();
-      filter.put(UserGroupAccountXref.USER_ACCOUNT_ID, userAccount.getIdentifier());
-
-      parameters.put("filter", filter);
-
-      return newDataTableHandlerOrRedirect(request, response, "userAccountList",
-        UserAccount.USER_ACCOUNT, "view", parameters);
-
-    }
-    throw new NoSuchRequestHandlingMethodException(request);
-  }
-
-  @RequestMapping(value = {
     "/admin/userGroups/add"
   }, method = {
     RequestMethod.GET, RequestMethod.POST
@@ -298,7 +296,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void pageUserGroupDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
 
     final Record userGroup = getUserGroup(userGroupName);
@@ -317,7 +315,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageUserGroupEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Record userGroup = getUserGroup(userGroupName);
     return super.newObjectEditPage(userGroup, "group");
@@ -364,7 +362,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageUserGroupView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     return newUserGroupView(request, response, "group", "group", null, userGroupName, null);
   }
@@ -435,6 +433,40 @@ public class UserGroupUiBuilder extends CpfUiBuilder {
       nameField.addValidationError("Group name is already used");
       return false;
     }
+  }
+
+  @PageMapping(title = "User Groups", fieldNames = {
+    "adminGroupView", MODULE_NAME, DESCRIPTION, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
+    "userAccountActions"
+  })
+  @RequestMapping(value = {
+    "/admin/userAccounts/{consumerKey}/userGroups"
+  }, method = RequestMethod.GET)
+  @ResponseBody
+  public Object userAccountList(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("consumerKey") final String consumerKey)
+    throws IOException, NoSuchRequestHandlingMethodException {
+    checkHasAnyRole(ADMIN);
+    final Record userAccount = getUserAccount(consumerKey);
+    if (userAccount != null) {
+
+      final Map<String, Object> parameters = new HashMap<>();
+
+      final Query query = new Query();
+      query.setFieldNames(USER_GROUP_NAME, MODULE_NAME, DESCRIPTION, ACTIVE_IND,
+        "X.WHEN_CREATED as \"GROUP_XREF_WHEN_CREATED\"");
+      query.setFromClause("CPF.CPF_USER_GROUPS T"
+        + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
+      query.setWhereCondition(
+        Q.equal(UserGroupAccountXref.USER_ACCOUNT_ID, userAccount.getIdentifier()));
+
+      parameters.put("query", query);
+
+      return newDataTableHandlerOrRedirect(request, response, "userAccountList",
+        UserAccount.USER_ACCOUNT, "view", parameters);
+
+    }
+    throw new NoSuchRequestHandlingMethodException(request);
   }
 
   public void userGroupName(final XmlWriter out, final Object object) {

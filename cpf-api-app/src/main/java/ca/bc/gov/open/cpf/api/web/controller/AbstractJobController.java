@@ -34,6 +34,9 @@ public abstract class AbstractJobController implements JobController {
   protected abstract InputStream getFileStream(final Identifier jobId, String path,
     int sequenceNumber);
 
+  protected abstract InputStream getFileStream(final Identifier jobId, String path,
+    int sequenceNumber, long fromIndex, long toIndex);
+
   @Override
   public String getGroupInputString(final Identifier jobId, final int sequenceNumber) {
     final InputStream inputStream = getFileStream(jobId, GROUP_INPUTS, sequenceNumber);
@@ -74,6 +77,12 @@ public abstract class AbstractJobController implements JobController {
   @Override
   public InputStream getJobResultStream(final Identifier jobId, final int sequenceNumber) {
     return getFileStream(jobId, JOB_RESULTS, sequenceNumber);
+  }
+
+  @Override
+  public InputStream getJobResultStream(final Identifier jobId, final int sequenceNumber,
+    final long fromIndex, long toIndex) {
+    return getFileStream(jobId, JOB_RESULTS, sequenceNumber, fromIndex, toIndex);
   }
 
   @Override

@@ -95,6 +95,7 @@
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="BUSINESS_APPLICATION_NAME.name"
           p:label="Business Application"
+          p:sortFieldName="BUSINESS_APPLICATION_NAME"
           p:pageName="moduleView"
 
         >
@@ -113,6 +114,7 @@
           p:name="CLIENT_BUSINESS_APPLICATION_NAME_LINK"
           class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
           p:key="BUSINESS_APPLICATION_NAME.title"
+          p:sortFieldName="BUSINESS_APPLICATION_NAME"
           p:label="Business Application"
           p:pageName="clientView"
 
@@ -131,7 +133,6 @@
           p:key="BUSINESS_APPLICATION_NAME.module.name"
           p:label="Module"
           p:pageName="view"
-
         >
           <property name="parameterKeys">
             <map>

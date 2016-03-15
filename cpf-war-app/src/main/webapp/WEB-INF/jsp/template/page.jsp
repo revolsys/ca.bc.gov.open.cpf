@@ -12,7 +12,6 @@
 <title><c:out value="${title}" /></title>
 <c:forEach var="cssUrl" items="${cssUrls}">
   <link href="<c:url value="${cssUrl}" />" rel="stylesheet" type="text/css" /></c:forEach>
-<link href="<c:url value="/css/bcgov.css" />" rel="stylesheet" type="text/css" />
 <c:forEach var="javascriptUrl" items="${javascriptUrls}">
   <script type="text/javascript" src="<c:url value="${javascriptUrl}" />">
   </script></c:forEach>

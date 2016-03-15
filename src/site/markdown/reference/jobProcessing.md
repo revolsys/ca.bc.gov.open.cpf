@@ -21,7 +21,8 @@ NOTE:  to use the demo.
 "BCGS 1:20 000",,"92j025"```
 2. Using a web browser go to (https://apps.gov.bc.ca/pub/cpf/secure/ws/apps/MapTileByTileId/1.0.0/multiple/).
 3. Enter the values for the following parameters.
-<table>
+<div class="table-responsive">
+<table class="table table-striped tabled-bordered table-condensed">
 <tbody>
 <tr><th>Num Requests</th><td>3</td></tr>
 <tr><th>Input Data Content Type</th><td>text/csv</td></tr>
@@ -30,6 +31,7 @@ NOTE:  to use the demo.
 <tr><th>Map Grid Name</th><td>BCGS 1:20 000</td></tr>
 <tr><th>Num Boundary Points</th><td>5</td></tr>
 </tbody></table>
+</div>
 4. Click Submit, this is the submit job step.
 5. After a few seconds the job status HTML page will be displayed. The Id is the URL to this page,
    which can be saved and used later to check the status of the job.

@@ -56,11 +56,15 @@ import com.revolsys.record.Record;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
+import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
 import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
 import com.revolsys.ui.html.serializer.key.StringKeySerializer;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 public class CpfUiBuilder extends RecordHtmlUiBuilder {
+
+  protected static final String GROUP_XREF_WHEN_CREATED = "GROUP_XREF_WHEN_CREATED";
+
   public static final String ADMIN = "ROLE_ADMIN";
 
   public static void checkAdminOrAnyModuleAdmin() {
@@ -403,10 +407,13 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   @Override
   protected void initSerializers() {
     super.initSerializers();
+    addKeySerializer(new BooleanImageKeySerializer("ACTIVE_IND", "Active"));
     addKeySerializer(new DateFormatKeySerializer("WHEN_CREATED", "Creation Time"));
     addKeySerializer(new DateFormatKeySerializer("WHEN_UPDATED", "Modification Time"));
     addKeySerializer(new StringKeySerializer("WHO_CREATED", "Created By"));
     addKeySerializer(new StringKeySerializer("WHO_UPDATED", "Modified By"));
+    addKeySerializer(new DateFormatKeySerializer(GROUP_XREF_WHEN_CREATED, "Creation Time")
+      .setKey("X.WHEN_CREATED"));
   }
 
   @Override

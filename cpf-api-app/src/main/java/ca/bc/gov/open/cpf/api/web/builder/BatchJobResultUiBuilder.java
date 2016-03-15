@@ -16,12 +16,10 @@
 package ca.bc.gov.open.cpf.api.web.builder;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -38,14 +36,12 @@ import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.identifier.Identifier;
-import com.revolsys.io.FileUtil;
-import com.revolsys.io.IoFactory;
 import com.revolsys.record.Record;
-import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.record.query.And;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.util.Dates;
 
 @Controller
@@ -90,40 +86,21 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   public void getModuleAppJobDownload(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Identifier batchJobId,
+    @PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("sequenceNumber") final Integer sequenceNumber)
-      throws NoSuchRequestHandlingMethodException, IOException {
+    throws NoSuchRequestHandlingMethodException, IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
+    final Identifier jobId = Identifier.newIdentifier(batchJobId);
 
-    final Record batchJobResult = getBatchJobResult(batchJobId, sequenceNumber);
-
-    final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
-    if (resultDataUrl != null) {
-      response.setStatus(HttpServletResponse.SC_SEE_OTHER);
-      response.setHeader("Location", resultDataUrl);
+    final Record batchJobResult = getBatchJobResult(jobId, sequenceNumber);
+    final BatchJobService batchJobService = getBatchJobService();
+    if (batchJobResult == null) {
+      throw new PageNotFoundException("Batch Job result " + sequenceNumber + " does not exist.");
     } else {
-      final BatchJobService batchJobService = getBatchJobService();
-      final InputStream in = batchJobService.getBatchJobResultData(batchJobId, sequenceNumber,
+      batchJobService.downloadBatchJobResult(request, response, jobId, sequenceNumber,
         batchJobResult);
-      final String resultDataContentType = batchJobResult
-        .getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
-      response.setContentType(resultDataContentType);
-      final long size = batchJobService.getBatchJobResultSize(batchJobId, sequenceNumber);
-
-      final RecordWriterFactory writerFactory = IoFactory
-        .factoryByMediaType(RecordWriterFactory.class, resultDataContentType);
-      if (writerFactory != null) {
-        final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
-        final String fileName = "job-" + batchJobId + "-result-" + sequenceNumber + "."
-          + fileExtension;
-        response.setHeader("Content-Disposition",
-          "attachment; filename=" + fileName + ";size=" + size);
-      }
-      final ServletOutputStream out = response.getOutputStream();
-
-      FileUtil.copy(in, out);
     }
   }
 
@@ -135,7 +112,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId)
-      throws IOException, NoSuchRequestHandlingMethodException {
+    throws IOException, NoSuchRequestHandlingMethodException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);

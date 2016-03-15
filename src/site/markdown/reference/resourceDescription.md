@@ -4,7 +4,8 @@ are children of the resource.
 
 The document contains a single <code>resource</code> object with the following fields.
 
-<table>
+<div class="table-responsive">
+<table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -30,6 +31,7 @@ The document contains a single <code>resource</code> object with the following f
     </tr>
   </tbody>
 </table>
+</div>
 
 See the links below for example resource list documents.
 

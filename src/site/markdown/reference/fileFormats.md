@@ -7,7 +7,8 @@ The CPF requires that <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
 encoding be used for all text files. This includes the text in a .dbf file for a .shpz archive,
 unless a .cpg file is provided in the .shpz archive.
 
-<table>
+<div class="table-responsive">
+<table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>File Extension</th>
@@ -185,3 +186,4 @@ unless a .cpg file is provided in the .shpz archive.
     </tr>
   </tbody>
 </table>
+</div>

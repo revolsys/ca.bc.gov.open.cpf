@@ -38,7 +38,6 @@ import java.util.Set;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -175,7 +174,6 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 @Controller
 public class ConcurrentProcessingFramework {
-
   private static PageInfo addPage(final PageInfo parent, final Object path, final String title) {
     final String url = MediaTypeUtil.getUrlWithExtension(path.toString());
     return parent.addPage(url, title);
@@ -2619,16 +2617,23 @@ public class ConcurrentProcessingFramework {
         HttpServletUtils.setAttribute("title", "Batch Job " + batchJobId);
         final TabElementContainer tabs = new TabElementContainer();
         this.batchJobUiBuilder.addObjectViewPage(tabs, batchJob, "client");
-        final Map<String, Object> parameters = Collections.emptyMap();
         final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
         if (BatchJobStatus.RESULTS_CREATED.equals(jobStatus)
           || BatchJobStatus.DOWNLOAD_INITIATED.equals(jobStatus)) {
+          final Map<String, Object> parameters = Collections.emptyMap();
           this.batchJobUiBuilder.addTabDataTable(tabs, BatchJobResult.BATCH_JOB_RESULT,
             "clientList", parameters);
           tabs.setSelectedIndex(1);
         }
-        this.batchJobUiBuilder.addTabDataTable(tabs, BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE,
-          "clientList", parameters);
+        {
+          final Map<String, Object> parameters = new LinkedHashMap<>();
+          final List<List<Object>> sorting = Collections
+            .singletonList(Arrays.<Object> asList(1, "asc"));
+          parameters.put("order", sorting);
+
+          this.batchJobUiBuilder.addTabDataTable(tabs, BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE,
+            "clientList", parameters);
+        }
         return tabs;
       } else {
         final String url = this.batchJobUiBuilder.getPageUrl("clientView");
@@ -2654,8 +2659,9 @@ public class ConcurrentProcessingFramework {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  public void getJobsResult(@PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("resultId") final int resultId) throws IOException {
+  public void getJobsResult(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("batchJobId") final Long batchJobId, @PathVariable("resultId") final int resultId)
+    throws IOException {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
     final Record batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
@@ -2666,46 +2672,8 @@ public class ConcurrentProcessingFramework {
       if (batchJobResult != null && DataType.equal(batchJobIdentifier,
         batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
         this.dataAccessObject.setBatchJobDownloaded(batchJobIdentifier);
-        final String resultDataUrl = batchJobResult.getValue(BatchJobResult.RESULT_DATA_URL);
-        final HttpServletResponse response = HttpServletUtils.getResponse();
-        if (resultDataUrl != null) {
-          response.setStatus(HttpServletResponse.SC_SEE_OTHER);
-          response.setHeader("Location", resultDataUrl);
-        } else {
-          final InputStream in = this.batchJobService.getBatchJobResultData(batchJobIdentifier,
-            resultId, batchJobResult);
-          final String resultDataContentType = batchJobResult
-            .getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
-          response.setContentType(resultDataContentType);
-
-          long size = this.batchJobService.getBatchJobResultSize(batchJobIdentifier, resultId);
-          String jsonCallback = null;
-          if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
-            jsonCallback = HttpServletUtils.getParameter("callback");
-            if (Property.hasValue(jsonCallback)) {
-              size += 3 + jsonCallback.length();
-            }
-          }
-          final RecordWriterFactory writerFactory = IoFactory
-            .factoryByMediaType(RecordWriterFactory.class, resultDataContentType);
-          if (writerFactory != null) {
-            final String fileExtension = writerFactory.getFileExtension(resultDataContentType);
-            final String fileName = "job-" + batchJobIdentifier + "-result-" + resultId + "."
-              + fileExtension;
-            response.setHeader("Content-Disposition",
-              "attachment; filename=" + fileName + ";size=" + size);
-          }
-          final ServletOutputStream out = response.getOutputStream();
-          if (Property.hasValue(jsonCallback)) {
-            out.write(jsonCallback.getBytes());
-            out.write("(".getBytes());
-          }
-          FileUtil.copy(in, out);
-          if (Property.hasValue(jsonCallback)) {
-            out.write(");".getBytes());
-          }
-          return;
-        }
+        this.batchJobService.downloadBatchJobResult(request, response, batchJobIdentifier, resultId,
+          batchJobResult);
       }
     }
     throw new PageNotFoundException("Batch Job result " + resultId + " does not exist.");

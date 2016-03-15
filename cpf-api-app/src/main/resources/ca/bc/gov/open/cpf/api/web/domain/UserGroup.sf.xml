@@ -44,11 +44,6 @@
           p:path="/admin/userGroups/{userGroupName}/delete/"
           p:permission="#userGroupName.startsWith('GLOBAL_')" />
         <bean
-          p:name="userAccountList"
-          class="com.revolsys.ui.web.config.Page"
-          p:title="User Groups"
-          p:path="/admin/userAccounts/{consumerKey}/userGroups/" />
-        <bean
           p:name="userAccountDelete"
           class="com.revolsys.ui.web.config.Page"
           p:path="/admin/userAccounts/{consumerKey}/userGroups/{userGroupName}/delete/" />
@@ -90,53 +85,6 @@
           class="com.revolsys.ui.web.config.Page"
           p:title="Admin User Group {userGroupName}"
           p:path="/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/" />
-      </list>
-    </property>
-    <property name="serializers">
-      <list>
-        <bean
-          p:name="ACTIVE_IND"
-          class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer" />
-        <bean
-          p:name="globalActions"
-          class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-          p:label="Actions"
-        >
-          <property name="serializers">
-            <list>
-              <bean
-                class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-                p:name="groupDelete"
-                p:label="Delete"
-                p:iconName="fa fa-trash"
-              >
-                <property name="parameterNameMap">
-                  <map>
-                    <entry
-                      key="userGroupName"
-                      value="USER_GROUP_NAME" />
-                  </map>
-                </property>
-              </bean>
-            </list>
-          </property>
-        </bean>
-        <bean
-          p:name="WHO_CREATED"
-          p:label="Created By"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
-        <bean
-          p:name="WHEN_CREATED"
-          p:label="Creation Time"
-          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
-        <bean
-          p:name="WHO_UPDATED"
-          p:label="Modified By"
-          class="com.revolsys.ui.html.serializer.key.StringKeySerializer" />
-        <bean
-          p:name="WHEN_UPDATED"
-          p:label="Modification Time"
-          class="com.revolsys.ui.html.serializer.key.DateFormatKeySerializer" />
       </list>
     </property>
     <property name="fields">
@@ -187,40 +135,6 @@
             <value>WHO_UPDATED</value>
             <value>WHEN_UPDATED</value>
             <value>globalActions</value>
-          </list>
-        </entry>
-        <entry key="userAccountList">
-          <list>
-            <bean
-              class="com.revolsys.ui.html.serializer.key.PageLinkKeySerializer"
-              p:name="USER_GROUP_NAME"
-              p:pageName="groupView" />
-            <value>MODULE_NAME</value>
-            <value>DESCRIPTION</value>
-            <value>ACTIVE_IND</value>
-            <bean
-              class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-              p:name="actions"
-            >
-              <property name="serializers">
-                <list>
-                  <bean
-                    class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-                    p:name="userAccountDelete"
-                    p:label="Delete"
-                    p:iconName="fa fa-trash"
-                  >
-                    <property name="parameterNameMap">
-                      <map>
-                        <entry
-                          key="userGroupName"
-                          value="USER_GROUP_NAME" />
-                      </map>
-                    </property>
-                  </bean>
-                </list>
-              </property>
-            </bean>
           </list>
         </entry>
         <entry key="moduleList">

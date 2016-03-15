@@ -76,7 +76,7 @@ manage items related to a module.
 
 The following table summarizes the fields used for modules.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Field</th>
@@ -127,7 +127,7 @@ The following table summarizes the fields used for modules.
       </ul></td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### Module List
 
@@ -256,7 +256,7 @@ describe how to manage items related to a business application.
 
 The following table summarizes the fields used for business applications.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Name</th>
@@ -367,7 +367,7 @@ The following table summarizes the fields used for business applications.
       to run on the worker.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ##### Permission Strings
 Permissions are defined using a
@@ -464,7 +464,7 @@ properties.
 
 The following table summarizes the fields used for configuration properties.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Field</th>
@@ -498,7 +498,7 @@ The following table summarizes the fields used for configuration properties.
       <td>The <a href="#Data Type">data type</a> the value will be converted to.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ##### Environment Name
 
@@ -516,7 +516,7 @@ with the values 16 and 32 respectively.
 
 ##### Data Type
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <th>Type</th>
     <th>Description</th>
@@ -611,7 +611,7 @@ with the values 16 and 32 respectively.
       <td>WKT Multi-Polygon</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### Configuration Property List
 
@@ -716,7 +716,7 @@ The CPF master web application requires the following properties to be defined i
 The master will ignore any other properties in this file. So where the master and worker are on
 the same machine they can share the same configuration file.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Property Name</th>
@@ -780,7 +780,7 @@ the same machine they can share the same configuration file.
       <td>7</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #####CPF Worker Configuration Properties
 
@@ -789,7 +789,7 @@ The CPF worker web application requires the following properties to be defined i
 The worker will ignore any other properties in this file. So where the worker and master are on
 the same machine they can share the same configuration file.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Property Name</th>
@@ -830,7 +830,7 @@ the same machine they can share the same configuration file.
       <td>32</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ### Tuning
 This section describes the parameters available for tuning the performance and resources
@@ -854,7 +854,7 @@ active threads or connections will still be used until they are returned to the 
 The table below shows the thread and database connection pools that can be configured
 to tune the system.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <th>Name</th>
     <th>Description</th>
@@ -902,7 +902,7 @@ to tune the system.
       <td>60 = (Pre Process + Scheduler + Group Result + Post Process) * 125%</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 The size of the thread pools will depend on the number of processor cores. The example
 values shown are for a 4 processor system, each processor with 4 cores. This gives a total
@@ -981,7 +981,7 @@ to assign users to user groups.
 
 The following table summarizes the fields used for user accounts.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Field</th>
@@ -1016,7 +1016,7 @@ The following table summarizes the fields used for user accounts.
       from accessing the CPF.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### User Account Classes
 
@@ -1041,7 +1041,7 @@ These are used by the user when authenticating using one of the following two au
 
 The CPF is installed with the following two accounts defined.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Consumer Key</th>
@@ -1064,7 +1064,7 @@ The CPF is installed with the following two accounts defined.
       accounts must be added to the WORKER user group.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### User Account List
 
@@ -1146,7 +1146,7 @@ applications.
 
 The following table summarizes the fields used for user groups.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Field</th>
@@ -1182,13 +1182,13 @@ The following table summarizes the fields used for user groups.
       from being used to control security policies.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ##### User Group Module Name
 
 The following table describes the Module Name's that are used for User Groups.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Module Name</th>
@@ -1230,14 +1230,14 @@ The following table describes the Module Name's that are used for User Groups.
       the module.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ##### Default User Groups
 
 The following table describes the user groups that are automatically created by the CPF. In
 addition to these new GLOBAL and plug-in module specific groups can be created. 
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Module Name</th>
@@ -1278,7 +1278,7 @@ addition to these new GLOBAL and plug-in module specific groups can be created.
       the groups and security permissions for a module.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### User Group List
 
@@ -1488,7 +1488,7 @@ correct permissions after a change.
 
 The following table summarizes the fields used for user group permissions.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Field</th>
@@ -1533,7 +1533,7 @@ The following table summarizes the fields used for user group permissions.
       from accessing the CPF.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 ##### User Group Permission List
 
@@ -1673,7 +1673,7 @@ and business application. Statistics are automatically rolled up for each day, m
 
 The following table shows the statistics that are displayed on the [View Statistics](#View_Statistics) pages.
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>Field</th>
@@ -1747,7 +1747,7 @@ The following table shows the statistics that are displayed on the [View Statist
       Statistics are calculated for the post-process average time, total of all times and a count.</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### Summary Statistics
 
@@ -1936,7 +1936,7 @@ The log files by default are stored in `/apps/logs/cpf/`.
 Each module and business application has separate directories for their log files. Log files will
 be rolled over once they reach 10MB. The last 7 log files will be retained with extensions `.{i}.log` (e.g. `.2.log`).
 
-<table>
+<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
   <thead>
     <tr>
       <th>File</th>
@@ -1987,7 +1987,7 @@ be rolled over once they reach 10MB. The last 7 log files will be retained with 
       New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .{1-7}.log (e.g. .1.log).</td>
     </tr>
   </tbody>
-</table>
+</table></div>
 
 #### Diagnosing Issues
 

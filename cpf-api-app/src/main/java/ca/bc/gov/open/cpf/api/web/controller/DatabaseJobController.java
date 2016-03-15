@@ -17,6 +17,8 @@ package ca.bc.gov.open.cpf.api.web.controller;
 
 import java.io.File;
 import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.List;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
@@ -26,15 +28,22 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.csv.CsvRecordWriter;
+import com.revolsys.record.query.Q;
+import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.RecordDefinition;
+import com.revolsys.record.schema.RecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
+import com.revolsys.util.WrappedException;
 
 public class DatabaseJobController extends AbstractJobController {
   private final CpfDataAccessObject dataAccessObject;
 
+  private final RecordStore recordStore;
+
   public DatabaseJobController(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
+    this.recordStore = dataAccessObject.getRecordStore();
   }
 
   @Override
@@ -49,13 +58,58 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   protected long getFileSize(final Identifier jobId, final String path, final int sequenceNumber) {
-    return this.dataAccessObject.getBatchJobFileSize(jobId, path, sequenceNumber);
+    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
+    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
+    final Record file = this.recordStore.getRecords(query).getFirst();
+    if (file != null) {
+      try {
+        final Blob resultData = file.getValue(BatchJobFile.DATA);
+        return resultData.length();
+      } catch (final SQLException e) {
+        throw new WrappedException(e);
+      }
+    }
+    return 0;
   }
 
   @Override
   protected InputStream getFileStream(final Identifier jobId, final String path,
     final int sequenceNumber) {
-    return this.dataAccessObject.getBatchJobFileStream(jobId, JOB_INPUTS, 1);
+    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
+    query.and(Q.equal(BatchJobFile.PATH, JOB_INPUTS));
+    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, 1));
+    final Record file = this.recordStore.getRecords(query).getFirst();
+    if (file != null) {
+      try {
+        final Blob resultData = file.getValue(BatchJobFile.DATA);
+        return resultData.getBinaryStream();
+      } catch (final SQLException e) {
+        throw new WrappedException(e);
+      }
+    }
+    return null;
+  }
+
+  @Override
+  protected InputStream getFileStream(final Identifier jobId, final String path,
+    final int sequenceNumber, final long fromIndex, final long toIndex) {
+    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
+    query.and(Q.equal(BatchJobFile.PATH, JOB_INPUTS));
+    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, 1));
+    final Record file = this.recordStore.getRecords(query).getFirst();
+    if (file != null) {
+      try {
+        final Blob resultData = file.getValue(BatchJobFile.DATA);
+        return resultData.getBinaryStream(fromIndex, toIndex - fromIndex);
+      } catch (final SQLException e) {
+        throw new WrappedException(e);
+      }
+    }
+    return null;
   }
 
   @Override

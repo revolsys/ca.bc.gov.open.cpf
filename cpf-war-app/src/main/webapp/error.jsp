@@ -4,25 +4,37 @@
   pageEncoding="UTF-8"
 %><%@
   taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"
-%><?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+%><!DOCTYPE html>
+<html xml:lang="en">
   <head>
     <title><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js">
+    </script>
+    <style>
+body {
+  padding-top: 50px;
+}
+    </style>
   </head>
-
   <body>
-    <h1><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</h1>
-<c:if test="${param['subTitle'] != null}">
-    <h2><c:out value="${param['subTitle']}" /></h2>
+  <div class="container">
+    <div class="panel panel-danger">
+      <div class="panel-heading">
+        <h3 class="panel-title"><c:out value="${requestScope['javax.servlet.error.status_code']}" /> Error</h3>
+      </div>
+      <div class="panel-body">
+<c:if test="${not empty param['subTitle']}">
+        <h4><c:out value="${param['subTitle']}" /></h4>
 </c:if>
-<c:if test="${requestScope['javax.servlet.error.message'] != null}">
-    <pre></pre><c:out value="${requestScope['javax.servlet.error.message']}" escapeXml="false" /></pre>
+<c:if test="${not empty requestScope['javax.servlet.error.message']}">
+        <pre><c:out value="${requestScope['javax.servlet.error.message']}" escapeXml="false" /></pre>
 </c:if>
-    <ul>
-      <li>To return to the previous page <a href="javascript:history.go(-1)">click here</a></li>
-      <li>To return to the home page <a href="<c:url value="/" />">click here</a></li>
-    </ul>
+        <button type="button" onclick="history.go(-1)" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span> Back</button>
+        <a type="button" href="<c:url value="/" />" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-home" aria-hidden="true"></span> Home</a>
+      </div>
+    </div>
+  </div>
   </body>
 </html>
