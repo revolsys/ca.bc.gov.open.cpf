@@ -1273,7 +1273,8 @@ public class ClassLoaderModule implements Module {
             }
             final GeometryConfiguration geometryConfiguration = pluginClass
               .getAnnotation(GeometryConfiguration.class);
-            if (Geometry.class.isAssignableFrom(parameterType)) {
+            if (Geometry.class.isAssignableFrom(parameterType)
+              || com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(parameterType)) {
               GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {
@@ -1344,7 +1345,8 @@ public class ClassLoaderModule implements Module {
               required, description);
             final GeometryConfiguration geometryConfiguration = method
               .getAnnotation(GeometryConfiguration.class);
-            if (Geometry.class.isAssignableFrom(returnType)) {
+            if (Geometry.class.isAssignableFrom(returnType)
+              || com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(returnType)) {
               GeometryFactory geometryFactory = businessApplication.getGeometryFactory();
               boolean validateGeometry = businessApplication.isValidateGeometry();
               if (geometryConfiguration != null) {

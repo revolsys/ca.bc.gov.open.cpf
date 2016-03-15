@@ -176,7 +176,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element newModulePageEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
@@ -249,7 +249,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element newModulePageView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();
@@ -260,11 +260,9 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     filter.put("MODULE_NAME", moduleName);
     parameters.put("filter", filter);
 
-    parameters.put("serverSide", Boolean.FALSE);
+    parameters.put("serverSide", Boolean.TRUE);
 
     addTabDataTable(tabs, BusinessApplication.class.getName(), "moduleList", parameters);
-
-    parameters.put("serverSide", Boolean.TRUE);
 
     addTabDataTable(tabs, ConfigProperty.CONFIG_PROPERTY, "moduleList", parameters);
 
@@ -291,7 +289,7 @@ public class ModuleUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void postModuleRestart(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     module.restart();

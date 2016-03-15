@@ -164,7 +164,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
     final BusinessApplication businessApplication = businessApplicationRegistry
@@ -262,11 +262,11 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageModuleList(final HttpServletRequest request, final HttpServletResponse response,
     final @PathVariable("moduleName") String moduleName)
-      throws IOException, NoSuchRequestHandlingMethodException {
-    getModule(request, moduleName);
+    throws IOException, NoSuchRequestHandlingMethodException {
+    final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
     return newDataTableHandlerOrRedirect(request, response, "moduleList",
-      this::getBusinessApplications, Module.class, "view");
+      module::getBusinessApplications, Module.class, "view");
   }
 
   @RequestMapping(value = {
@@ -276,7 +276,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getBusinessApplicationRegistry()
       .getModuleBusinessApplication(moduleName, businessApplicationName);

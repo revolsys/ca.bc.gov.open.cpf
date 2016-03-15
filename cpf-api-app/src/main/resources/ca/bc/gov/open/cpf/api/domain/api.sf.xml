@@ -10,7 +10,7 @@
 >
 
   <import
-    resource="mail.sf.xml " />
+    resource="mail.sf.xml" />
 
   <import
     resource="data-source.sf.xml" />

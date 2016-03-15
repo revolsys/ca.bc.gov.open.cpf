@@ -186,8 +186,9 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>2.9</version>
-        <inherited>true</inherited>
+        <inherited>false</inherited>
         <configuration>
+          <aggregate>true</aggregate>
           <header>src/license/APACHE-2.txt</header>
           <properties>
             <owner>Province of British Columbia</owner>
@@ -211,35 +212,6 @@
           </execution>
         </executions>
       </plugin>
-<!--     <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>2.9</version>
-        <inherited>false</inherited>
-        <configuration>
-          <header>src/license/APACHE-2.txt</header>
-          <properties>
-            <owner>Province of British Columbia</owner>
-            <year>2016</year>
-          </properties>
-          <includes>
-            <exclude>*/src/test/java/**/*.java</exclude>
-            <exclude>*/src/main/java/**/*.java</exclude>
-          </includes>
-          <mapping>
-            <java>SLASHSTAR_STYLE</java>
-          </mapping>
-        </configuration>
-        <executions>
-          <execution>
-            <id>format-header</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>format</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin> -->  
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>
