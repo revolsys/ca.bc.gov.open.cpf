@@ -191,6 +191,11 @@
   </error-page>
 
   <error-page>
+    <error-code>405</error-code>
+    <location>/error.jsp?subTitle=This resource cannot be accessed using this request method</location>
+  </error-page>
+
+  <error-page>
     <error-code>500</error-code>
     <location>/error.jsp?subTitle=I'm sorry there was an error
       generating the
