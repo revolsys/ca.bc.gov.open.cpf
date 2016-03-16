@@ -54,7 +54,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -723,6 +723,7 @@ public class ConcurrentProcessingFramework {
             inputDataFiles.size() + inputDataUrls.size());
           this.dataAccessObject.write(batchJob.getRecord());
           this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
+          this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS);
           this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSING);
           int requestSequenceNumber = 0;
           if (inputDataUrls.isEmpty()) {
@@ -977,6 +978,7 @@ public class ConcurrentProcessingFramework {
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
       this.dataAccessObject.write(batchJob.getRecord());
       this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
+      this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS);
       this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSING);
       if (perRequestInputData) {
         if (inputDataIn != null) {
@@ -1374,7 +1376,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -2674,6 +2676,7 @@ public class ConcurrentProcessingFramework {
         this.dataAccessObject.setBatchJobDownloaded(batchJobIdentifier);
         this.batchJobService.downloadBatchJobResult(request, response, batchJobIdentifier, resultId,
           batchJobResult);
+        return;
       }
     }
     throw new PageNotFoundException("Batch Job result " + resultId + " does not exist.");

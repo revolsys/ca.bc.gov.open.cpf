@@ -15,9 +15,6 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
-import java.io.InputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,7 +63,6 @@ import com.revolsys.transaction.Transaction;
 import com.revolsys.transaction.Transactionable;
 import com.revolsys.ui.web.controller.PathAliasController;
 import com.revolsys.util.Property;
-import com.revolsys.util.WrappedException;
 
 public class CpfDataAccessObject implements Transactionable {
   public static String getUsername() {
@@ -905,18 +901,22 @@ public class CpfDataAccessObject implements Transactionable {
    * @return The number of records updated.
    */
   public int updateBatchJobProcessedStatus(final String businessApplicationName) {
-    if (this.recordStore instanceof JdbcRecordStore) {
-      final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "JOB_STATUS = 'processed', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-        + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ? AND COMPLETED_REQUEST_RANGE + FAILED_REQUEST_RANGE = NUM_SUBMITTED_REQUESTS";
-      try {
-        final Timestamp now = new Timestamp(System.currentTimeMillis());
-        return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, businessApplicationName);
-      } catch (final Throwable e) {
-        throw new RuntimeException("Unable to update status: " + sql, e);
-      }
-    }
+    // if (this.recordStore instanceof JdbcRecordStore) {
+    // final JdbcRecordStore jdbcRecordStore =
+    // (JdbcRecordStore)this.recordStore;
+    // final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
+    // + "JOB_STATUS = 'processed', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?,
+    // WHO_UPDATED = 'SYSTEM' "
+    // + "WHERE JOB_STATUS = 'processing' AND BUSINESS_APPLICATION_NAME = ? AND
+    // COMPLETED_REQUEST_RANGE + FAILED_REQUEST_RANGE = NUM_SUBMITTED_REQUESTS";
+    // try {
+    // final Timestamp now = new Timestamp(System.currentTimeMillis());
+    // return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now,
+    // businessApplicationName);
+    // } catch (final Throwable e) {
+    // throw new RuntimeException("Unable to update status: " + sql, e);
+    // }
+    // }
 
     return 0;
   }

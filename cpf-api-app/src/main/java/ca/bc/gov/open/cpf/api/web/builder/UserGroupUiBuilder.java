@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -51,7 +50,7 @@ import com.revolsys.ui.html.serializer.key.MultipleKeySerializer;
 import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
-import com.revolsys.ui.web.annotation.PageMapping;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Booleans;
 
@@ -435,13 +434,11 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
     }
   }
 
-  @PageMapping(title = "User Groups", fieldNames = {
-    "adminGroupView", MODULE_NAME, DESCRIPTION, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
-    "userAccountActions"
-  })
-  @RequestMapping(value = {
-    "/admin/userAccounts/{consumerKey}/userGroups"
-  }, method = RequestMethod.GET)
+  @RequestMapping(value = "/admin/userAccounts/{consumerKey}/userGroups",
+      method = RequestMethod.GET, title = "User Groups", fieldNames = {
+        "adminGroupView", MODULE_NAME, DESCRIPTION, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
+        "userAccountActions"
+      })
   @ResponseBody
   public Object userAccountList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("consumerKey") final String consumerKey)

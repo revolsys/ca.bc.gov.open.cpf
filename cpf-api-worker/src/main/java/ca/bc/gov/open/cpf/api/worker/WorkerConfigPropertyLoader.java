@@ -20,8 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -79,7 +77,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
                 final String stringValue = (String)configProperty.get("PROPERTY_VALUE");
                 if (Property.hasValue(stringValue)) {
                   final String type = (String)configProperty.get("PROPERTY_VALUE_TYPE");
-                  final DataType dataType = DataTypes.getDataType(QName.valueOf(type));
+                  final DataType dataType = DataTypes.getDataType(type);
                   Object value = stringValue;
                   if (dataType != null) {
                     value = dataType.toObject(stringValue);

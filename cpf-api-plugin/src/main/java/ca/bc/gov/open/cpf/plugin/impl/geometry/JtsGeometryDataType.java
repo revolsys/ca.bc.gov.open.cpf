@@ -34,6 +34,13 @@ public class JtsGeometryDataType extends AbstractDataType {
   }
 
   @Override
+  protected Object toObjectDo(final Object value) {
+    final String string = value.toString();
+    final GeometryFactory factory = GeometryFactory.getFactory();
+    return factory.createGeometry(string);
+  }
+
+  @Override
   public String toStringDo(final Object value) {
     final Geometry geometry = (Geometry)value;
     return JtsWktWriter.toString(geometry, true);

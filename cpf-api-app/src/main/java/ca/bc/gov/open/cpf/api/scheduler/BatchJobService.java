@@ -82,7 +82,7 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.FileJobController;
+import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -143,6 +143,8 @@ import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
 public class BatchJobService implements ModuleEventListener {
+  private static final String CONTENT_TYPE_JSON = MediaType.APPLICATION_JSON.toString();
+
   private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
   private static final ArrayList<String> JOB_TSV_FIELD_NAMES = Lists.newArray(
@@ -402,44 +404,40 @@ public class BatchJobService implements ModuleEventListener {
       String jsonCallback = null;
       final String resultDataContentType = batchJobResult
         .getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
-      if (resultDataContentType.equals(MediaType.APPLICATION_JSON.toString())) {
+      if (CONTENT_TYPE_JSON.equals(resultDataContentType)) {
         jsonCallback = HttpServletUtils.getParameter("callback");
         if (Property.hasValue(jsonCallback)) {
           size += 3 + jsonCallback.length();
         }
       }
 
-      if (jsonCallback == null && etag.equals(request.getHeader("If-Range"))) {
-        final String range = request.getHeader("Range");
-        if (range != null) {
-          final Matcher matcher = RANGE_PATTERN.matcher(range);
-          if (matcher.matches()) {
-            hasRange = true;
-            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-            final String from = matcher.group(0);
-            if (Property.hasValue(from)) {
-              fromIndex = Integer.parseInt(from);
-            }
-            final String to = matcher.group(0);
-            if (Property.hasValue(to)) {
-              toIndex = Integer.parseInt(to);
-            }
+      final String range = request.getHeader("Range");
+      if (jsonCallback == null && range != null) {
+        final Matcher matcher = RANGE_PATTERN.matcher(range);
+        if (matcher.matches()) {
+          hasRange = true;
+          response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+          final String from = matcher.group(1);
+          if (Property.hasValue(from)) {
+            fromIndex = Integer.parseInt(from);
+          }
+          final String to = matcher.group(2);
+          if (Property.hasValue(to)) {
+            toIndex = Integer.parseInt(to);
           }
         }
       }
 
       if (jsonCallback == null) {
-        response.setHeader("Accept-ranges", "bytes");
+        response.setHeader("Accept-Ranges", "bytes");
         response.setHeader("Content-Length", Long.toString(size));
         final java.util.Date lastModified = batchJobResult.getValue(BatchJobResult.WHEN_CREATED);
 
-        response.setHeader("Last-Modified",
-          Dates.format("EEE, dd MMM yyyy HH:mm:ss z", lastModified));
+        final String lastModifiedString = Dates.format("EEE, dd MMM yyyy HH:mm:ss z", lastModified);
+        response.setHeader("Last-Modified", lastModifiedString);
         response.setHeader("ETag", etag);
         response.setHeader("Connection", "keep-alive");
-        if (hasRange) {
-          response.setHeader("Content-Range", "bytes " + fromIndex + "-" + toIndex + "/" + size);
-        }
+        response.setHeader("Content-Range", "bytes " + fromIndex + "-" + toIndex + "/" + size);
       }
       try (
         final InputStream in = getBatchJobResultData(batchJobIdentifier, resultId, batchJobResult,
@@ -461,7 +459,7 @@ public class BatchJobService implements ModuleEventListener {
           FileUtil.copy(in, out);
           out.write(");".getBytes());
         } else if (hasRange) {
-          FileUtil.copy(in, out, toIndex - fromIndex);
+          FileUtil.copy(in, out, toIndex - fromIndex + 1);
         } else {
           FileUtil.copy(in, out);
         }
@@ -544,25 +542,45 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public BusinessApplication getBusinessApplication(final String name) {
-    return this.businessApplicationRegistry.getBusinessApplication(name);
+    if (this.businessApplicationRegistry == null) {
+      return null;
+    } else {
+      return this.businessApplicationRegistry.getBusinessApplication(name);
+    }
   }
 
   public BusinessApplication getBusinessApplication(final String name, final String version) {
-    return this.businessApplicationRegistry.getBusinessApplication(name);
+    if (this.businessApplicationRegistry == null) {
+      return null;
+    } else {
+      return this.businessApplicationRegistry.getBusinessApplication(name);
+    }
   }
 
   public List<String> getBusinessApplicationNames() {
-    return this.businessApplicationRegistry.getBusinessApplicationNames();
+    if (this.businessApplicationRegistry == null) {
+      return null;
+    } else {
+      return this.businessApplicationRegistry.getBusinessApplicationNames();
+    }
   }
 
   public PluginAdaptor getBusinessApplicationPlugin(final BusinessApplication businessApplication) {
-    return this.businessApplicationRegistry.getBusinessApplicationPlugin(businessApplication);
+    if (this.businessApplicationRegistry == null) {
+      return null;
+    } else {
+      return this.businessApplicationRegistry.getBusinessApplicationPlugin(businessApplication);
+    }
   }
 
   public PluginAdaptor getBusinessApplicationPlugin(final String businessApplicationName,
     final String businessApplicationVersion) {
-    return this.businessApplicationRegistry.getBusinessApplicationPlugin(businessApplicationName,
-      businessApplicationVersion);
+    if (this.businessApplicationRegistry == null) {
+      return null;
+    } else {
+      return this.businessApplicationRegistry.getBusinessApplicationPlugin(businessApplicationName,
+        businessApplicationVersion);
+    }
   }
 
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
@@ -570,7 +588,11 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public List<BusinessApplication> getBusinessApplications() {
-    return this.businessApplicationRegistry.getBusinessApplications();
+    if (this.businessApplicationRegistry == null) {
+      return null;
+    } else {
+      return this.businessApplicationRegistry.getBusinessApplications();
+    }
   }
 
   public ConfigPropertyLoader getConfigPropertyLoader() {
@@ -672,7 +694,11 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public Module getModule(final String moduleName) {
-    return this.businessApplicationRegistry.getModule(moduleName);
+    if (this.businessApplicationRegistry == null) {
+      return null;
+    } else {
+      return this.businessApplicationRegistry.getModule(moduleName);
+    }
   }
 
   public Map<String, Object> getNextBatchJobRequestExecutionGroup(final String workerId,
@@ -1916,19 +1942,22 @@ public class BatchJobService implements ModuleEventListener {
 
   public boolean setBatchJobStatus(final BatchJob batchJob, final String oldJobStatus,
     final String newJobStatus) {
-    boolean updated = false;
-    synchronized (batchJob) {
-      final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-      if (DataType.equal(jobStatus, oldJobStatus)) {
-        setBatchJobStatus(batchJob, newJobStatus);
-        updated = true;
+    try (
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRED)) {
+      boolean updated = false;
+      synchronized (batchJob) {
+        final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
+        if (DataType.equal(jobStatus, oldJobStatus)) {
+          setBatchJobStatus(batchJob, newJobStatus);
+          updated = true;
+        }
       }
-    }
-    if (updated) {
-      batchJob.update();
+      if (updated) {
+        batchJob.update();
 
+      }
+      return updated;
     }
-    return updated;
   }
 
   public void setBusinessApplicationRegistry(
@@ -1942,8 +1971,9 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
-    // this.jobController = new DatabaseJobController(dataAccessObject);
-    this.jobController = new FileJobController(this, new File("/apps/data/cpf"));
+    this.jobController = new DatabaseJobController(dataAccessObject);
+    // this.jobController = new FileJobController(this, new
+    // File("/apps/data/cpf"));
   }
 
   public void setDaysToKeepOldJobs(final int daysToKeepOldJobs) {

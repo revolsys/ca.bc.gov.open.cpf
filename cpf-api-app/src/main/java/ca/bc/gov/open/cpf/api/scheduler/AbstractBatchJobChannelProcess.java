@@ -128,17 +128,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     return this.processNetwork;
   }
 
-  public abstract boolean processJob(final Identifier batchJobId);
-
-  public void processJobWrapper(final Identifier batchJobId) {
-    synchronized (this.scheduledIds) {
-      this.scheduledIds.remove(batchJobId);
-    }
-    final boolean success = processJob(batchJobId);
-    if (!success) {
-      schedule(batchJobId);
-    }
-  }
+  protected abstract boolean processJob(final Identifier batchJobId);
 
   @Override
   public final void run() {
@@ -196,9 +186,17 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
 
   public void schedule(final Identifier batchJobId) {
     synchronized (this.scheduledIds) {
-      if (!this.scheduledIds.contains(batchJobId)) {
+      if (batchJobId != null && !this.scheduledIds.contains(batchJobId)) {
         this.scheduledIds.add(batchJobId);
-        final Runnable runnable = () -> processJobWrapper(batchJobId);
+        final Runnable runnable = () -> {
+          synchronized (this.scheduledIds) {
+            this.scheduledIds.remove(batchJobId);
+          }
+          final boolean success = processJob(batchJobId);
+          if (!success) {
+            schedule(batchJobId);
+          }
+        };
         execute(runnable);
       }
     }

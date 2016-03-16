@@ -20,7 +20,7 @@
     p:maxUploadSize="20000000" />
 
   <bean
-    class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping"
+    class="com.revolsys.ui.web.rest.interceptor.DefaultAnnotationHandlerMapping"
     p:alwaysUseFullPath="true"
   >
     <property name="interceptors">

@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -61,6 +60,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.StringPrinter;
 import com.revolsys.record.Record;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.util.UrlUtil;
 
 @Controller
@@ -95,7 +95,7 @@ public class InternalWebService {
     @PathVariable("workerId") final String workerId, final HttpServletResponse response,
     @PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("sequenceNumber") final long sequenceNumber)
-      throws NoSuchRequestHandlingMethodException {
+    throws NoSuchRequestHandlingMethodException {
     checkRunning();
     // final Record batchJobExecutionGroup =
     // this.dataAccessObject.getBatchJobExecutionGroup(
@@ -162,7 +162,7 @@ public class InternalWebService {
   @ResponseBody
   public Map<String, Object> getBatchJobRequestExecutionGroup(final HttpServletRequest request,
     @PathVariable("workerId") final String workerId, @PathVariable("groupId") final String groupId)
-      throws NoSuchRequestHandlingMethodException {
+    throws NoSuchRequestHandlingMethodException {
     checkRunning();
     final BatchJobRequestExecutionGroup group = this.batchJobService
       .getBatchJobRequestExecutionGroup(workerId, groupId);
@@ -223,7 +223,7 @@ public class InternalWebService {
   public void getModuleUrl(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("moduleTime") final Long moduleTime, @PathVariable("urlId") final int urlId)
-      throws NoSuchRequestHandlingMethodException, IOException {
+    throws NoSuchRequestHandlingMethodException, IOException {
     checkRunning();
     final Module module = this.batchJobService.getModule(moduleName);
     if (module == null || !module.isStarted() || module.getStartedTime() != moduleTime) {
@@ -253,7 +253,7 @@ public class InternalWebService {
   public Map<String, Object> getModuleUrls(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("moduleTime") final Long moduleTime)
-      throws NoSuchRequestHandlingMethodException, IOException {
+    throws NoSuchRequestHandlingMethodException, IOException {
     checkRunning();
     final BusinessApplicationRegistry businessApplicationRegistry = this.batchJobService
       .getBusinessApplicationRegistry();
@@ -304,7 +304,7 @@ public class InternalWebService {
     @PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("groupId") final String groupId,
     @PathVariable("sequenceNumber") final int sequenceNumber, final InputStream in)
-      throws NoSuchRequestHandlingMethodException {
+    throws NoSuchRequestHandlingMethodException {
     checkRunning();
     final BatchJobRequestExecutionGroup group = this.batchJobService
       .getBatchJobRequestExecutionGroup(workerId, groupId);

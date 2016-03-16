@@ -79,8 +79,8 @@ public class DatabaseJobController extends AbstractJobController {
     final int sequenceNumber) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, JOB_INPUTS));
-    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, 1));
+    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
     final Record file = this.recordStore.getRecords(query).getFirst();
     if (file != null) {
       try {
@@ -98,8 +98,8 @@ public class DatabaseJobController extends AbstractJobController {
     final int sequenceNumber, final long fromIndex, final long toIndex) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, JOB_INPUTS));
-    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, 1));
+    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
     final Record file = this.recordStore.getRecords(query).getFirst();
     if (file != null) {
       try {
@@ -113,6 +113,14 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
+  public String getGroupInputString(final Identifier jobId, final int sequenceNumber) {
+    try (
+      Transaction transaction = this.recordStore.newTransaction(Propagation.REQUIRED)) {
+      return super.getGroupInputString(jobId, sequenceNumber);
+    }
+  }
+
+  @Override
   public String getKey() {
     return "database";
   }
@@ -121,7 +129,7 @@ public class DatabaseJobController extends AbstractJobController {
   public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
     final String contentType, final Object data) {
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRED)) {
       final Record result = this.dataAccessObject.newRecord(BatchJobFile.BATCH_JOB_FILE);
       result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
       result.setValue(BatchJobFile.PATH, path);

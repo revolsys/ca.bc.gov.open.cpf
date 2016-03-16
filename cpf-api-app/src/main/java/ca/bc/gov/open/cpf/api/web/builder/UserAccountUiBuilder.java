@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -67,7 +66,7 @@ import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
-import com.revolsys.ui.web.annotation.PageMapping;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Booleans;
 import com.revolsys.util.Property;
@@ -83,14 +82,11 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     newKeyList("activeEdit", Collections.singletonList(ACTIVE_IND));
   }
 
-  @PageMapping(title = "Add User Account", fieldNames = {
+  @RequestMapping(value = "/admin/userAccounts/add", method = {
+    RequestMethod.GET, RequestMethod.POST
+  }, title = "Add User Account", fieldNames = {
     CONSUMER_KEY, CONSUMER_SECRET, ACTIVE_IND
   }, permission = "hasRole('ROLE_ADMIN')")
-  @RequestMapping(value = {
-    "/admin/userAccounts/add"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
-  })
   @ResponseBody
   public Element add(final HttpServletRequest request, final HttpServletResponse response)
     throws IOException, ServletException {
@@ -204,10 +200,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     return results;
   }
 
-  @PageMapping(title = "Delete User Account {consumerKey}", permission = "hasRole('ROLE_ADMIN')")
-  @RequestMapping(value = {
-    "/admin/userAccounts/{consumerKey}/delete"
-  }, method = RequestMethod.POST)
+  @RequestMapping(value = "/admin/userAccounts/{consumerKey}/delete", method = RequestMethod.POST,
+      title = "Delete User Account {consumerKey}", permission = "hasRole('ROLE_ADMIN')")
   public void delete(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("consumerKey") final String consumerKey) throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
@@ -220,14 +214,11 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     }
   }
 
-  @PageMapping(title = "Edit User Account {consumerKey}", fieldNames = {
+  @RequestMapping(value = "/admin/userAccounts/{consumerKey}/edit", method = {
+    RequestMethod.GET, RequestMethod.POST
+  }, title = "Edit User Account {consumerKey}", fieldNames = {
     CONSUMER_KEY, CONSUMER_SECRET, ACTIVE_IND
   }, permission = "hasRole('ROLE_ADMIN')")
-  @RequestMapping(value = {
-    "/admin/userAccounts/{consumerKey}/edit"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
-  })
   @ResponseBody
   public Element edit(final HttpServletRequest request, final HttpServletResponse response,
     final @PathVariable("consumerKey") String consumerKey) throws IOException, ServletException {
@@ -251,13 +242,11 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     }
   }
 
-  @PageMapping(title = "User Accounts for Group", fieldNames = {
-    CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
-    "groupActions"
-  })
-  @RequestMapping(value = {
-    "/admin/userGroups/{userGroupName}/members"
-  }, method = RequestMethod.GET)
+  @RequestMapping(value = "/admin/userGroups/{userGroupName}/members", method = RequestMethod.GET,
+      title = "User Accounts for Group", fieldNames = {
+        CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
+        "groupActions"
+      })
   @ResponseBody
   public Object groupList(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("userGroupName") final String userGroupName)
@@ -266,10 +255,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     return newUserGroupMembersList(request, response, "group", null, userGroupName, null);
   }
 
-  @PageMapping
-  @RequestMapping(value = {
-    "/admin/userGroups/{userGroupName}/members/add"
-  }, method = RequestMethod.POST)
+  @RequestMapping(value = "/admin/userGroups/{userGroupName}/members/add",
+      method = RequestMethod.POST)
   public ModelAndView groupMemberAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName,
     @RequestParam("consumerKey") final String consumerKey) throws IOException, ServletException {
@@ -278,10 +265,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       "groupView", "groupList");
   }
 
-  @PageMapping
-  @RequestMapping(value = {
-    "/admin/userGroups/{userGroupName}/members/{consumerKey}/delete"
-  }, method = RequestMethod.POST)
+  @RequestMapping(value = "/admin/userGroups/{userGroupName}/members/{consumerKey}/delete",
+      method = RequestMethod.POST)
   public void groupMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("consumerKey") final String consumerKey,
@@ -338,12 +323,10 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     addKeySerializer(moduleGroupAdminActions);
   }
 
-  @PageMapping(title = "User Accounts", fieldNames = {
-    CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, "actions"
-  }, permission = "hasRole('ROLE_ADMIN')")
-  @RequestMapping(value = {
-    "/admin/userAccounts"
-  }, method = RequestMethod.GET)
+  @RequestMapping(value = "/admin/userAccounts", method = RequestMethod.GET,
+      title = "User Accounts", fieldNames = {
+        CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, "actions"
+      }, permission = "hasRole('ROLE_ADMIN')")
   @ResponseBody
   public Object list(final HttpServletRequest request, final HttpServletResponse response)
     throws IOException {
@@ -352,13 +335,11 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     return newDataTableHandler(request, "list");
   }
 
-  @PageMapping(title = "User Accounts for Group", fieldNames = {
-    CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
-    "moduleGroupAdminActions"
-  })
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members"
-  }, method = RequestMethod.GET)
+  @RequestMapping(value = "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members",
+      method = RequestMethod.GET, title = "User Accounts for Group", fieldNames = {
+        CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
+        "moduleGroupAdminActions"
+      })
   @ResponseBody
   public Object moduleGroupAdminList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
@@ -381,10 +362,9 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       "ADMIN_MODULE_" + moduleName, consumerKey, "moduleAdminView", "moduleGroupAdminList");
   }
 
-  @PageMapping
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members/{consumerKey}/delete"
-  }, method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}/members/{consumerKey}/delete",
+      method = RequestMethod.POST)
   public void moduleGroupAdminMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
@@ -397,13 +377,11 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
   }
 
-  @PageMapping(title = "User Accounts for Group", fieldNames = {
-    CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
-    "moduleGroupActions"
-  }, permission = "#userGroupName.startsWith(#moduleName)")
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups/{userGroupName}/members"
-  }, method = RequestMethod.GET)
+  @RequestMapping(value = "/admin/modules/{moduleName}/userGroups/{userGroupName}/members",
+      method = RequestMethod.GET, title = "User Accounts for Group", fieldNames = {
+        CONSUMER_KEY_VIEW, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, GROUP_XREF_WHEN_CREATED,
+        "moduleGroupActions"
+      }, permission = "#userGroupName.startsWith(#moduleName)")
   @ResponseBody
   public Object moduleGroupList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
@@ -414,10 +392,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       moduleName);
   }
 
-  @PageMapping(permission = "#userGroupName.startsWith(#moduleName)")
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups/{userGroupName}/members/add"
-  }, method = RequestMethod.POST)
+  @RequestMapping(value = "/admin/modules/{moduleName}/userGroups/{userGroupName}/members/add",
+      method = RequestMethod.POST, permission = "#userGroupName.startsWith(#moduleName)")
   public ModelAndView moduleGroupMemberAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
@@ -427,10 +403,9 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       consumerKey, "moduleView", "moduleGroupList");
   }
 
-  @PageMapping(permission = "#userGroupName.startsWith(#moduleName)")
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups/{userGroupName}/members/{consumerKey}/delete"
-  }, method = RequestMethod.POST)
+  @RequestMapping(
+      value = "/admin/modules/{moduleName}/userGroups/{userGroupName}/members/{consumerKey}/delete",
+      method = RequestMethod.POST, permission = "#userGroupName.startsWith(#moduleName)")
   public void moduleGroupMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
@@ -559,13 +534,11 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     throw new NoSuchRequestHandlingMethodException(request);
   }
 
-  @PageMapping(title = "User Account {consumerKey}", fieldNames = {
-    USER_ACCOUNT_ID, CONSUMER_KEY, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, WHO_CREATED,
-    WHEN_CREATED, WHO_UPDATED, WHEN_UPDATED, "actions"
-  }, permission = "hasRole('ROLE_ADMIN')")
-  @RequestMapping(value = {
-    "/admin/userAccounts/{consumerKey}"
-  }, method = RequestMethod.GET)
+  @RequestMapping(value = "/admin/userAccounts/{consumerKey}", method = RequestMethod.GET,
+      title = "User Account {consumerKey}", fieldNames = {
+        USER_ACCOUNT_ID, CONSUMER_KEY, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND, WHO_CREATED,
+        WHEN_CREATED, WHO_UPDATED, WHEN_UPDATED, "actions"
+      }, permission = "hasRole('ROLE_ADMIN')")
   @ResponseBody
   public ElementContainer view(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("consumerKey") final String consumerKey) throws IOException, ServletException {

@@ -32,6 +32,7 @@ import com.revolsys.record.DelegatingRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.RecordState;
 import com.revolsys.record.io.format.json.Json;
+import com.revolsys.record.schema.RecordStore;
 
 public class BatchJob extends DelegatingRecord implements Common {
   public static final PathName BATCH_JOB = PathName.newPathName("/CPF/CPF_BATCH_JOBS");
@@ -292,8 +293,8 @@ public class BatchJob extends DelegatingRecord implements Common {
       setValue(COMPLETED_REQUEST_RANGE, this.completedRequests.toString());
     }
     if (getState() == RecordState.MODIFIED) {
-      getRecordDefinition().getRecordStore().updateRecord(this);
+      final RecordStore recordStore = getRecordStore();
+      recordStore.updateRecord(this);
     }
-
   }
 }

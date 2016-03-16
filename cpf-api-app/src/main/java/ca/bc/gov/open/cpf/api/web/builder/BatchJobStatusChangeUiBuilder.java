@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
@@ -34,7 +33,8 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
-import com.revolsys.ui.web.annotation.PageMapping;
+import com.revolsys.ui.web.annotation.ColumnSortOrder;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 
 @Controller
@@ -46,13 +46,14 @@ public class BatchJobStatusChangeUiBuilder extends CpfUiBuilder {
       "Batch Job Status Changes");
   }
 
-  @PageMapping(title = "Status Changes", fieldNames = {
-    BatchJobStatusChange.JOB_STATUS, //
-    BatchJobStatusChange.WHEN_CREATED
-  })
-  @RequestMapping(value = {
-    "/ws/jobs/{batchJobId}/statusChanges"
-  }, method = RequestMethod.GET)
+  @RequestMapping(value = "/ws/jobs/{batchJobId}/statusChanges", //
+      method = RequestMethod.GET, //
+      title = "Status Changes", fieldNames = {
+        BatchJobStatusChange.JOB_STATUS, //
+        BatchJobStatusChange.WHEN_CREATED
+      }, //
+      columnSortOrder = @ColumnSortOrder(value = BatchJobStatusChange.WHEN_CREATED,
+          ascending = false))
   @ResponseBody
   public Object clientList(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("batchJobId") final Long batchJobId)
@@ -75,14 +76,13 @@ public class BatchJobStatusChangeUiBuilder extends CpfUiBuilder {
     }
   }
 
-  @PageMapping(title = "Status Changes", fieldNames = {
-    BatchJobStatusChange.JOB_STATUS, //
-    BatchJobStatusChange.WHEN_CREATED, //
-    BatchJobStatusChange.WHO_CREATED
-  })
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/statusChanges"
-  }, method = RequestMethod.GET)
+  @RequestMapping(
+      value = "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/statusChanges",
+      method = RequestMethod.GET, title = "Status Changes", fieldNames = {
+        BatchJobStatusChange.JOB_STATUS, //
+        BatchJobStatusChange.WHEN_CREATED, //
+        BatchJobStatusChange.WHO_CREATED
+      }, columnSortOrder = @ColumnSortOrder(value = BatchJobStatusChange.WHEN_CREATED, ascending = false))
   @ResponseBody
   public Object moduleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,

@@ -42,7 +42,7 @@ public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
   }
 
   @Override
-  public boolean processJob(final Identifier batchJobId) {
+  protected boolean processJob(final Identifier batchJobId) {
     final BatchJobService batchJobService = getBatchJobService();
     final BatchJob batchJob = batchJobService.getBatchJob(batchJobId);
     if (batchJob != null) {

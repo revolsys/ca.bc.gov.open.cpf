@@ -995,25 +995,27 @@ public class ClassLoaderModule implements Module {
           this.applicationContext);
         beanReader.setBeanClassLoader(classLoader);
         beanReader.loadBeanDefinitions(new UrlResource(this.configUrl));
-        if (this.applicationContext.containsBeanDefinition("beanImports")) {
-          @SuppressWarnings("unchecked")
-          final List<String> beanImports = (List<String>)this.applicationContext
-            .getBean("beanImports");
-          for (final String beanImport : beanImports) {
-            try {
-              final org.springframework.core.io.Resource[] resources = this.applicationContext
-                .getResources(beanImport);
-              for (final org.springframework.core.io.Resource resource : resources) {
-                beanReader.loadBeanDefinitions(resource);
+        if (!isHasError()) {
+          this.applicationContext.refresh();
+          if (this.applicationContext.containsBeanDefinition("beanImports")) {
+            @SuppressWarnings("unchecked")
+            final List<String> beanImports = (List<String>)this.applicationContext
+              .getBean("beanImports");
+            for (final String beanImport : beanImports) {
+              try {
+                final org.springframework.core.io.Resource[] resources = this.applicationContext
+                  .getResources(beanImport);
+                for (final org.springframework.core.io.Resource resource : resources) {
+                  beanReader.loadBeanDefinitions(resource);
+                }
+              } catch (final Throwable e) {
+                addModuleError(
+                  "Error loading bean import " + beanImport + " from " + this.configUrl, e);
               }
-            } catch (final Throwable e) {
-              addModuleError("Error loading bean import " + beanImport + " from " + this.configUrl,
-                e);
             }
           }
         }
         if (!isHasError()) {
-          this.applicationContext.refresh();
           this.applicationsLoaded = true;
         }
       } catch (final Throwable t) {
