@@ -43,9 +43,11 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
+import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
 import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
 import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.html.serializer.key.MapTableKeySerializer;
+import com.revolsys.ui.html.serializer.key.MultipleKeySerializer;
 import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.serializer.key.StringKeySerializer;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -61,6 +63,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
 
   public BatchJobUiBuilder() {
     super("batchJob", BatchJob.BATCH_JOB, BatchJob.BATCH_JOB_ID, "Batch Job", "Batch Jobs");
+    addLabel("jobStatusDate", "Job Status as of");
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
@@ -216,107 +219,47 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
       .setKey("PROPERTIES"));
     addKeySerializer(new StringKeySerializer("NUM_SUBMITTED_GROUPS", "Group Count"));
     addKeySerializer(new StringKeySerializer("NUM_SUBMITTED_REQUESTS", "Request Count"));
-    //
-    // <bean
-    // p:name="adminActions"
-    // p:label="Actions"
-    // class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-    //
-    // >
-    // <property name="serializers">
-    // <list>
-    // <bean
-    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-    // p:name="moduleAppCancel"
-    // p:label="Cancel"
-    // p:iconName="fa fa-stop"
-    // p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS
-    // == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
-    // >
-    // <property name="parameterNameMap">
-    // <map>
-    // <entry
-    // key="moduleName"
-    // value="BUSINESS_APPLICATION_NAME.module.name" />
-    // <entry
-    // key="businessApplicationName"
-    // value="BUSINESS_APPLICATION_NAME" />
-    // <entry
-    // key="batchJobId"
-    // value="BATCH_JOB_ID" />
-    // </map>
-    // </property>
-    // </bean>
-    // <bean
-    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-    // p:name="moduleAppDelete"
-    // p:label="Delete"
-    // p:iconName="fa fa-trash"
-    // p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS ==
-    // 'resultsCreated' or #JOB_STATUS == 'cancelled'"
-    // >
-    // <property name="parameterNameMap">
-    // <map>
-    // <entry
-    // key="moduleName"
-    // value="BUSINESS_APPLICATION_NAME.module.name" />
-    // <entry
-    // key="businessApplicationName"
-    // value="BUSINESS_APPLICATION_NAME" />
-    // <entry
-    // key="batchJobId"
-    // value="BATCH_JOB_ID" />
-    // </map>
-    // </property>
-    // </bean>
-    // </list>
-    // </property>
-    // </bean>
-    //
-    // <bean
-    // p:name="clientActions"
-    // p:label="Actions"
-    // class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
-    // >
-    // <property name="serializers">
-    // <list>
-    // <bean
-    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-    // p:name="clientCancel"
-    // p:label="Cancel"
-    // p:iconName="fa fa-stop"
-    // p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS
-    // == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
-    // >
-    // <property name="parameterNameMap">
-    // <map>
-    // <entry
-    // key="batchJobId"
-    // value="batchJobId" />
-    // </map>
-    // </property>
-    // </bean>
-    // <bean
-    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-    // p:name="clientDelete"
-    // p:label="Delete"
-    // p:iconName="fa fa-trash"
-    // p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS ==
-    // 'resultsCreated' or #JOB_STATUS == 'cancelled'"
-    // >
-    // <property name="parameterNameMap">
-    // <map>
-    // <entry
-    // key="batchJobId"
-    // value="batchJobId" />
-    // </map>
-    // </property>
-    // </bean>
-    // </list>
-    // </property>
-    // </bean>
-    //
-    // </list>
+
+    // Admin Actions
+    final MultipleKeySerializer adminActions = new MultipleKeySerializer("adminActions", "Actions");
+    addKeySerializer(adminActions);
+
+    final ActionFormKeySerializer moduleAppCancel = new ActionFormKeySerializer("moduleAppCancel",
+      "Cancel", "fa fa-stop");
+    moduleAppCancel.setEnabledExpression(
+      "!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled')");
+    moduleAppCancel.addParameterName("moduleName", "BUSINESS_APPLICATION_NAME.module.name");
+    moduleAppCancel.addParameterName("businessApplicationName", "BUSINESS_APPLICATION_NAME");
+    moduleAppCancel.addParameterName("batchJobId", "BATCH_JOB_ID");
+    adminActions.addSerializer(moduleAppCancel);
+
+    final ActionFormKeySerializer moduleAppDelete = new ActionFormKeySerializer("moduleAppDelete",
+      "Delete", "fa fa-trash-o");
+    moduleAppDelete.setEnabledExpression(
+      "#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled'");
+    moduleAppDelete.addParameterName("moduleName", "BUSINESS_APPLICATION_NAME.module.name");
+    moduleAppDelete.addParameterName("businessApplicationName", "BUSINESS_APPLICATION_NAME");
+    moduleAppDelete.addParameterName("batchJobId", "BATCH_JOB_ID");
+    adminActions.addSerializer(moduleAppDelete);
+
+    // Client Actions
+    final MultipleKeySerializer clientActions = new MultipleKeySerializer("clientActions",
+      "Actions");
+    addKeySerializer(clientActions);
+
+    final ActionFormKeySerializer clientCancel = new ActionFormKeySerializer("clientCancel",
+      "Cancel", "fa fa-stop");
+    clientCancel.setEnabledExpression(
+      "!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled')");
+    clientCancel.addParameterName("batchJobId", "BATCH_JOB_ID");
+    clientActions.addSerializer(clientCancel);
+
+    final ActionFormKeySerializer clientDelete = new ActionFormKeySerializer("clientDelete",
+      "Delete", "fa fa-trash-o");
+    clientDelete.setEnabledExpression(
+      "#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS == 'resultsCreated' or #JOB_STATUS == 'cancelled'");
+    clientDelete.addParameterName("batchJobId", "BATCH_JOB_ID");
+    clientActions.addSerializer(clientDelete);
   }
 
   public void module(final XmlWriter out, final Object object) {

@@ -93,7 +93,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     checkHasAnyRole(ADMIN);
     final Map<String, Object> parameters = new HashMap<>();
 
-    final Form form = new Form(this.typeName);
+    final String typeName = getTypeName();
+    final Form form = new Form(typeName);
 
     final TextField moduleNameField = new TextField("moduleName", 30, true);
     FormGroupDecorator.decorate(form, moduleNameField, "Module Name", null);
@@ -180,7 +181,8 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
-      final Form form = new Form(this.typeName);
+      final String typeName = getTypeName();
+      final Form form = new Form(typeName);
 
       final ElementContainer fields = new ElementContainer(new TableBody());
 
