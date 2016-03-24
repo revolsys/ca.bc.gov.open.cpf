@@ -37,7 +37,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
@@ -59,6 +58,7 @@ import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
 import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
 import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
 import com.revolsys.ui.html.serializer.key.StringKeySerializer;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
 public class CpfUiBuilder extends RecordHtmlUiBuilder {
@@ -222,8 +222,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     this.statisticsService = null;
   }
 
-  public BatchJob getBatchJob(final String businessApplicationName, final Object batchJobId)
-    throws NoSuchRequestHandlingMethodException {
+  public BatchJob getBatchJob(final String businessApplicationName, final Object batchJobId) {
     final BatchJob batchJob = this.dataAccessObject
       .getBatchJob(Identifier.newIdentifier(batchJobId));
     if (batchJob != null) {
@@ -232,7 +231,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
 
       }
     }
-    throw new NoSuchRequestHandlingMethodException(getRequest());
+    throw new PageNotFoundException("Job " + batchJobId + " does not exist");
   }
 
   public BatchJobService getBatchJobService() {
@@ -286,25 +285,25 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     return this.minTimeUntilNextCheck;
   }
 
-  protected Module getModule(final HttpServletRequest request, final String moduleName)
-    throws NoSuchRequestHandlingMethodException {
+  protected Module getModule(final HttpServletRequest request, final String moduleName) {
     final Module module = this.businessApplicationRegistry.getModule(moduleName);
     if (module != null) {
       HttpServletUtils.setPathVariable("MODULE_NAME", moduleName);
       return module;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException("Module " + module + " does not exist");
 
   }
 
   public BusinessApplication getModuleBusinessApplication(final String moduleName,
-    final String businessApplicationName) throws NoSuchRequestHandlingMethodException {
+    final String businessApplicationName) {
     final BusinessApplication businessApplication = this.businessApplicationRegistry
       .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
       return businessApplication;
     }
-    throw new NoSuchRequestHandlingMethodException(getRequest());
+    throw new PageNotFoundException("Business Application " + businessApplicationName
+      + " does not exist for module " + moduleName);
   }
 
   public List<String> getModuleNames() {
@@ -395,12 +394,11 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     return userGroup;
   }
 
-  public boolean hasModule(final HttpServletRequest request, final String moduleName)
-    throws NoSuchRequestHandlingMethodException {
+  public boolean hasModule(final HttpServletRequest request, final String moduleName) {
     if (this.businessApplicationRegistry.hasModule(moduleName)) {
       return true;
     } else {
-      throw new NoSuchRequestHandlingMethodException(request);
+      throw new PageNotFoundException("Module " + moduleName + " does not exist");
     }
   }
 

@@ -75,14 +75,12 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public boolean cancelJob(final Identifier jobId) {
-    final boolean cancelled = this.dataAccessObject.cancelBatchJob(jobId);
+  public void cancelJob(final Identifier jobId) {
     for (final String directoryName : Arrays.asList(JOB_INPUTS, JOB_RESULTS, GROUP_INPUTS,
       GROUP_RESULTS)) {
       final File directory = getJobDirectory(jobId, directoryName);
       deleteDirectory(jobId, directory);
     }
-    return cancelled;
   }
 
   protected void deleteDirectory(final Identifier jobId, final File directory) {
@@ -97,6 +95,16 @@ public class FileJobController extends AbstractJobController {
     this.dataAccessObject.deleteBatchJob(jobId);
     final File jobDirectory = getJobDirectory(jobId);
     deleteDirectory(jobId, jobDirectory);
+  }
+
+  @Override
+  protected String getFileContentType(final Identifier jobId, final String path,
+    final int sequenceNumber) {
+    final File contentTypeFile = getJobFile(jobId, path + "_content_type", sequenceNumber);
+    if (contentTypeFile.exists()) {
+      return FileUtil.getFileAsString(contentTypeFile);
+    }
+    return null;
   }
 
   @Override
@@ -118,7 +126,7 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   protected InputStream getFileStream(final Identifier jobId, final String path,
-    final int sequenceNumber, final long fromIndex, long toIndex) {
+    final int sequenceNumber, final long fromIndex, final long toIndex) {
     final File file = getJobFile(jobId, path, sequenceNumber);
     if (file.exists()) {
       final FileInputStream in = FileUtil.getInputStream(file);
@@ -174,6 +182,9 @@ public class FileJobController extends AbstractJobController {
       final String string = (String)data;
       FileUtil.copy(string, file);
     }
+    final File contentTypeFile = getJobFile(jobId, path + "_content_type", sequenceNumber);
+    contentTypeFile.getParentFile().mkdirs();
+    FileUtil.copy(contentType, contentTypeFile);
   }
 
   @Override

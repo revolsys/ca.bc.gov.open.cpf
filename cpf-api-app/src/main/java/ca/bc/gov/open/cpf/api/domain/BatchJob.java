@@ -27,12 +27,16 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.range.AbstractRange;
 import com.revolsys.collection.range.RangeSet;
+import com.revolsys.datatype.DataType;
+import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.record.DelegatingRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.RecordState;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.schema.RecordStore;
+import com.revolsys.transaction.Propagation;
+import com.revolsys.transaction.Transaction;
 
 public class BatchJob extends DelegatingRecord implements Common {
   public static final PathName BATCH_JOB = PathName.newPathName("/CPF/CPF_BATCH_JOBS");
@@ -91,46 +95,69 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public BatchJob(final Record record) {
     super(record);
-    final String completedGroupRange = record.getString(BatchJob.COMPLETED_GROUP_RANGE);
+    final String completedGroupRange = record.getString(COMPLETED_GROUP_RANGE);
     this.completedGroups = RangeSet.newRangeSet(completedGroupRange);
-    final String completedRequestsRange = record.getString(BatchJob.COMPLETED_REQUEST_RANGE);
+    final String completedRequestsRange = record.getString(COMPLETED_REQUEST_RANGE);
     this.completedRequests = RangeSet.newRangeSet(completedRequestsRange);
-    final String failedRequestsRange = record.getString(BatchJob.FAILED_REQUEST_RANGE);
+    final String failedRequestsRange = record.getString(FAILED_REQUEST_RANGE);
     this.failedRequests = RangeSet.newRangeSet(failedRequestsRange);
-    final int groupCount = record.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
+    final int groupCount = record.getInteger(NUM_SUBMITTED_GROUPS);
     setGroupCount(groupCount);
     this.groupsToProcess.remove(this.completedGroups);
   }
 
-  public void addCompletedGroup(final long groupSequenceNumber) {
-    synchronized (this.scheduledGroups) {
+  public synchronized void addCompletedGroup(final long groupSequenceNumber) {
+    if (!isCancelled()) {
       this.scheduledGroups.remove(groupSequenceNumber);
-    }
-    synchronized (this.completedGroups) {
       this.completedGroups.add(groupSequenceNumber);
     }
   }
 
-  public RangeSet addCompletedRequests(final String range) {
+  public synchronized RangeSet addCompletedRequests(final String range) {
     final RangeSet rangeSet = RangeSet.newRangeSet(range);
-    synchronized (this.completedRequests) {
+    if (!isCancelled()) {
       this.completedRequests.addRanges(rangeSet);
     }
     return rangeSet;
   }
 
-  public RangeSet addFailedRequests(final String range) {
+  public synchronized RangeSet addFailedRequests(final String range) {
     final RangeSet rangeSet = RangeSet.newRangeSet(range);
-    synchronized (this.failedRequests) {
+    if (!isCancelled()) {
       this.failedRequests.addRanges(rangeSet);
     }
     return rangeSet;
   }
 
+  public synchronized boolean cancelJob(final BatchJobService batchJobService) {
+    final boolean cancelled = !isCancelled();
+    final Identifier batchJobId = getIdentifier();
+    batchJobService.getDataAccessObject().clearBatchJob(batchJobId);
+    setStatus(batchJobService, BatchJobStatus.CANCELLED);
+    this.completedRequests.clear();
+    this.completedGroups.clear();
+    final int numSubmittedRequests = getInteger(NUM_SUBMITTED_REQUESTS, 0);
+    if (numSubmittedRequests == 0) {
+      this.failedRequests.clear();
+    } else {
+      this.failedRequests.addRange(1, numSubmittedRequests);
+    }
+    this.groups.clear();
+    this.groupsToProcess.clear();
+    this.resheduledGroups.clear();
+    this.scheduledGroups.clear();
+    update();
+    return cancelled;
+  }
+
   public Map<String, String> getBusinessApplicationParameters() {
-    final String jobParameters = getString(BatchJob.BUSINESS_APPLICATION_PARAMS);
+    final String jobParameters = getString(BUSINESS_APPLICATION_PARAMS);
     final Map<String, String> parameters = Json.toMap(jobParameters);
     return parameters;
+  }
+
+  public int getCompletedCount() {
+    return this.completedRequests.size();
   }
 
   public String getCompletedGroups() {
@@ -139,6 +166,10 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public String getCompletedRequests() {
     return this.completedRequests.toString();
+  }
+
+  public int getFailedCount() {
+    return this.failedRequests.size();
   }
 
   public String getFailedRequests() {
@@ -153,40 +184,35 @@ public class BatchJob extends DelegatingRecord implements Common {
     return this.groupsToProcess.toString();
   }
 
-  public BatchJobRequestExecutionGroup getNextGroup(final BusinessApplication businessApplication) {
-    synchronized (this.resheduledGroups) {
-      if (!this.resheduledGroups.isEmpty()) {
-        return this.resheduledGroups.removeFirst();
-      }
+  public synchronized BatchJobRequestExecutionGroup getNextGroup(
+    final BusinessApplication businessApplication) {
+    if (isCancelled()) {
+      return null;
+    } else if (!this.resheduledGroups.isEmpty()) {
+      return this.resheduledGroups.removeFirst();
     }
     final Object nextValue;
-    synchronized (this.groupsToProcess) {
-      if (this.groupsToProcess.size() == 0) {
-        nextValue = null;
-      } else {
-        nextValue = this.groupsToProcess.removeFirst();
-      }
+    if (this.groupsToProcess.size() == 0) {
+      nextValue = null;
+    } else {
+      nextValue = this.groupsToProcess.removeFirst();
     }
     if (nextValue instanceof Number) {
       final Integer sequenceNumber = ((Number)nextValue).intValue();
-      synchronized (this.scheduledGroups) {
-        this.scheduledGroups.add(sequenceNumber);
-      }
+      this.scheduledGroups.add(sequenceNumber);
 
-      final String userId = getString(BatchJob.USER_ID);
+      final String userId = getString(USER_ID);
 
       final Map<String, String> businessApplicationParameterMap = BatchJobService
         .getBusinessApplicationParameters(this);
-      final String resultDataContentType = getString(BatchJob.RESULT_DATA_CONTENT_TYPE);
+      final String resultDataContentType = getString(RESULT_DATA_CONTENT_TYPE);
 
       final Timestamp now = new Timestamp(System.currentTimeMillis());
-      setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
+      setValue(LAST_SCHEDULED_TIMESTAMP, now);
       final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(userId, this,
         businessApplication, businessApplicationParameterMap, resultDataContentType, now,
         sequenceNumber);
-      synchronized (this.groups) {
-        this.groups.add(group);
-      }
+      this.groups.add(group);
       return group;
     } else {
       return null;
@@ -194,15 +220,11 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public int getNumCompletedRequests() {
-    synchronized (this.completedRequests) {
-      return this.completedRequests.size();
-    }
+    return this.completedRequests.size();
   }
 
   public int getNumFailedRequests() {
-    synchronized (this.failedRequests) {
-      return this.failedRequests.size();
-    }
+    return this.failedRequests.size();
   }
 
   public int getNumSubmittedGroups() {
@@ -213,8 +235,17 @@ public class BatchJob extends DelegatingRecord implements Common {
     return this.scheduledGroups.toString();
   }
 
+  public String getStatus() {
+    return getString(JOB_STATUS);
+  }
+
   public boolean hasAvailableGroup() {
     return this.groupsToProcess.size() > 0;
+  }
+
+  public boolean isCancelled() {
+    final String status = getStatus();
+    return status.equals(BatchJobStatus.CANCELLED);
   }
 
   public boolean isCompleted() {
@@ -232,47 +263,71 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public boolean isProcessing() {
-    final String status = getString(JOB_STATUS);
-    if (status.equals(BatchJobStatus.PROCESSING)) {
-      return true;
-    } else {
-      return false;
-    }
+    final String status = getStatus();
+    return status.equals(BatchJobStatus.PROCESSING);
   }
 
-  public void removeGroup(final BatchJobRequestExecutionGroup group) {
-    synchronized (this.groups) {
-      this.groups.remove(group);
-    }
+  public boolean isStatus(final String status) {
+    final String jobStatus = getStatus();
+    return jobStatus.equals(jobStatus);
+  }
+
+  public synchronized void removeGroup(final BatchJobRequestExecutionGroup group) {
+    this.groups.remove(group);
   }
 
   public void rescheduleGroup(final BatchJobRequestExecutionGroup group) {
     this.resheduledGroups.add(group);
   }
 
-  public void reset() {
-    synchronized (this.resheduledGroups) {
-      this.resheduledGroups.clear();
+  public synchronized void reset() {
+    this.resheduledGroups.clear();
+    this.groups.clear();
+    for (final AbstractRange<?> range : this.scheduledGroups.getRanges()) {
+      this.groupsToProcess.addRange(range);
     }
-    synchronized (this.groups) {
-      this.groups.clear();
-    }
-    synchronized (this.groupsToProcess) {
-      synchronized (this.scheduledGroups) {
-        for (final AbstractRange<?> range : this.scheduledGroups.getRanges()) {
-          this.groupsToProcess.addRange(range);
-        }
-        this.scheduledGroups.clear();
-      }
+    this.scheduledGroups.clear();
+  }
+
+  public synchronized void setGroupCount(final int groupCount) {
+    setValue(NUM_SUBMITTED_GROUPS, groupCount);
+    this.groupsToProcess.clear();
+    if (groupCount != 0) {
+      this.groupsToProcess.addRange(1, groupCount);
     }
   }
 
-  public void setGroupCount(final int groupCount) {
-    setValue(BatchJob.NUM_SUBMITTED_GROUPS, groupCount);
-    synchronized (this.groupsToProcess) {
-      this.groupsToProcess.clear();
-      if (groupCount != 0) {
-        this.groupsToProcess.addRange(1, groupCount);
+  public synchronized void setStatus(final BatchJobService batchJobService,
+    final String jobStatus) {
+    setValue(JOB_STATUS, jobStatus);
+    final Timestamp now = new Timestamp(System.currentTimeMillis());
+    final String username = CpfDataAccessObject.getUsername();
+    setValue(WHEN_STATUS_CHANGED, now);
+    setValue(Common.WHEN_UPDATED, now);
+    setValue(Common.WHO_UPDATED, username);
+
+    final RecordStore recordStore = batchJobService.getRecordStore();
+    final Record batchJobStatusChange = recordStore
+      .newRecord(BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE);
+    batchJobStatusChange.setValue(BatchJobStatusChange.BATCH_JOB_ID, this, BATCH_JOB_ID);
+    batchJobStatusChange.setValue(BatchJobStatusChange.JOB_STATUS, jobStatus);
+    batchJobStatusChange.setValue(Common.WHEN_CREATED, now);
+    batchJobStatusChange.setValue(Common.WHO_UPDATED, username);
+    final CpfDataAccessObject dataAccessObject = batchJobService.getDataAccessObject();
+    dataAccessObject.write(batchJobStatusChange);
+  }
+
+  public synchronized boolean setStatus(final BatchJobService batchJobService,
+    final String oldJobStatus, final String newJobStatus) {
+    try (
+      Transaction transaction = batchJobService.newTransaction(Propagation.REQUIRED)) {
+      final String jobStatus = getStatus();
+      if (DataType.equal(jobStatus, oldJobStatus)) {
+        setStatus(batchJobService, newJobStatus);
+        update();
+        return true;
+      } else {
+        return false;
       }
     }
   }
@@ -283,15 +338,9 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public synchronized void update() {
-    synchronized (this.completedGroups) {
-      setValue(COMPLETED_GROUP_RANGE, this.completedGroups.toString());
-    }
-    synchronized (this.failedRequests) {
-      setValue(FAILED_REQUEST_RANGE, this.failedRequests.toString());
-    }
-    synchronized (this.completedRequests) {
-      setValue(COMPLETED_REQUEST_RANGE, this.completedRequests.toString());
-    }
+    setValue(COMPLETED_GROUP_RANGE, this.completedGroups.toString());
+    setValue(FAILED_REQUEST_RANGE, this.failedRequests.toString());
+    setValue(COMPLETED_REQUEST_RANGE, this.completedRequests.toString());
     if (getState() == RecordState.MODIFIED) {
       final RecordStore recordStore = getRecordStore();
       recordStore.updateRecord(this);

@@ -26,7 +26,6 @@ import com.revolsys.websocket.json.JsonAsyncSender;
 import com.revolsys.websocket.json.JsonPropertyAsyncResult;
 
 public class WorkerSecurityService extends AbstractCachingSecurityService {
-
   private final WorkerScheduler workerScheduler;
 
   private final String moduleName;

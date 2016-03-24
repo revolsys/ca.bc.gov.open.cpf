@@ -760,6 +760,36 @@ public class ClassLoaderModule implements Module {
   }
 
   @Override
+  public int getJarCount() {
+    if (isEnabled()) {
+      final ClassLoader classLoader = getClassLoader();
+      if (classLoader instanceof URLClassLoader) {
+        @SuppressWarnings("resource")
+        final URLClassLoader urlClassLoader = (URLClassLoader)classLoader;
+        final URL[] urls = urlClassLoader.getURLs();
+        return urls.length;
+      }
+    }
+    return 0;
+  }
+
+  @Override
+  public URL getJarUrl(final int urlIndex) {
+    if (isEnabled()) {
+      final ClassLoader classLoader = getClassLoader();
+      if (classLoader instanceof URLClassLoader) {
+        @SuppressWarnings("resource")
+        final URLClassLoader urlClassLoader = (URLClassLoader)classLoader;
+        final URL[] urls = urlClassLoader.getURLs();
+        if (urlIndex >= 0 && urlIndex < urls.length) {
+          return urls[urlIndex];
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
   public List<URL> getJarUrls() {
     if (isEnabled()) {
       final ClassLoader classLoader = getClassLoader();

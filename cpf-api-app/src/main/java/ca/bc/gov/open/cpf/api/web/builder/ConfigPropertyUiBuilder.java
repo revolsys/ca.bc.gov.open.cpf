@@ -28,10 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -46,6 +44,7 @@ import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
@@ -89,7 +88,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.POST)
   public void pageCpfDelete(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
 
     final Record configProperty = loadObject(configPropertyId);
@@ -105,7 +104,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
         }
       }
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -116,7 +115,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element pageCpfEdit(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Record configProperty = loadObject(configPropertyId);
     return super.newObjectEditPage(configProperty, null);
@@ -187,7 +186,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Element pageModuleAppAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -206,7 +205,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -219,7 +218,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       redirectPage("moduleAppList");
       return;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -232,7 +231,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -243,7 +242,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       && configProperty.getValue(ConfigProperty.COMPONENT_NAME).equals(componentName)) {
       return newObjectEditPage(configProperty, "moduleApp");
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -253,7 +252,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Object pageModuleAppList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName)
-      throws IOException, NoSuchRequestHandlingMethodException {
+    throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -279,7 +278,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -292,7 +291,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       addObjectViewPage(tabs, configProperty, "moduleApp");
       return tabs;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -301,7 +300,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public void pageModuleDelete(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -313,7 +312,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       redirectPage("moduleList");
       return;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -325,7 +324,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Element pageModuleEdit(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -335,7 +334,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
         .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
       return newObjectEditPage(configProperty, "module");
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -343,8 +342,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Object pageModuleList(final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable("moduleName") final String moduleName)
-      throws IOException, NoSuchRequestHandlingMethodException {
+    @PathVariable("moduleName") final String moduleName) throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -366,7 +364,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
   public Element pageModuleView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("configPropertyId") final Integer configPropertyId)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     hasModule(request, moduleName);
 
@@ -378,7 +376,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
       addObjectViewPage(tabs, configProperty, "module");
       return tabs;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @Override

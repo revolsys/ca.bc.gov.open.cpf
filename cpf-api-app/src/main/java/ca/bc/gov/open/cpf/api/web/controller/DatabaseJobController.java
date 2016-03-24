@@ -47,18 +47,29 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public boolean cancelJob(final Identifier jobId) {
-    return this.dataAccessObject.cancelBatchJob(jobId);
-  }
-
-  @Override
   public void deleteJob(final Identifier jobId) {
     this.dataAccessObject.deleteBatchJob(jobId);
   }
 
   @Override
+  protected String getFileContentType(final Identifier jobId, final String path,
+    final int sequenceNumber) {
+    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.setFieldNames(BatchJobFile.CONTENT_TYPE);
+    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
+    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
+    final Record file = this.recordStore.getRecords(query).getFirst();
+    if (file != null) {
+      return file.getValue(BatchJobFile.CONTENT_TYPE);
+    }
+    return null;
+  }
+
+  @Override
   protected long getFileSize(final Identifier jobId, final String path, final int sequenceNumber) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.setFieldNames(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.PATH, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
@@ -78,6 +89,7 @@ public class DatabaseJobController extends AbstractJobController {
   protected InputStream getFileStream(final Identifier jobId, final String path,
     final int sequenceNumber) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.setFieldNames(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.PATH, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
@@ -97,6 +109,7 @@ public class DatabaseJobController extends AbstractJobController {
   protected InputStream getFileStream(final Identifier jobId, final String path,
     final int sequenceNumber, final long fromIndex, final long toIndex) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.setFieldNames(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.PATH, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));

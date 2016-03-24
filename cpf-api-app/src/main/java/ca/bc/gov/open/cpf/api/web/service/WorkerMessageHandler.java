@@ -29,7 +29,6 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 import org.slf4j.LoggerFactory;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
@@ -47,6 +46,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
 import com.revolsys.collection.map.Maps;
 import com.revolsys.record.Record;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.util.Property;
 import com.revolsys.websocket.json.JsonDecoder;
 import com.revolsys.websocket.json.JsonEncoder;
@@ -108,6 +108,10 @@ public class WorkerMessageHandler implements ModuleEventListener {
 
     final long moduleTime = event.getModuleTime();
     message.put("moduleTime", moduleTime);
+
+    final Module module = event.getModule();
+    int jarCount = module.getJarCount();
+    message.put("moduleJarCount", jarCount);
 
     for (final Worker worker : this.batchJobService.getWorkers()) {
       worker.sendMessage(message);

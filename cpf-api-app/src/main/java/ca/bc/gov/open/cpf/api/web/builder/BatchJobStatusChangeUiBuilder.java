@@ -26,7 +26,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
@@ -56,8 +55,7 @@ public class BatchJobStatusChangeUiBuilder extends CpfUiBuilder {
           ascending = false))
   @ResponseBody
   public Object clientList(final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable("batchJobId") final Long batchJobId)
-    throws IOException, NoSuchRequestHandlingMethodException {
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
     final Record batchJob = getBatchJobService().getBatchJob(batchJobIdentifier, consumerKey);
@@ -87,8 +85,7 @@ public class BatchJobStatusChangeUiBuilder extends CpfUiBuilder {
   public Object moduleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId)
-    throws IOException, NoSuchRequestHandlingMethodException {
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);

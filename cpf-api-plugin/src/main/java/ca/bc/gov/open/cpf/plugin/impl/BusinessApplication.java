@@ -77,6 +77,8 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   private static final Object[] NO_ARGS = new Object[0];
 
+  public static final String SEQUENCE_NUMBER = "\u039D";
+
   public static String getDefaultFileExtension(final Map<String, ?> fileExtensionMap) {
     final Collection<String> fileExtensions = fileExtensionMap.keySet();
     String defaultValue = "csv";
@@ -539,7 +541,7 @@ public class BusinessApplication extends BaseObjectWithProperties
     if (this.internalRequestRecordDefinition.getFieldCount() == 0) {
       if (this.requestFieldMap.size() > 0) {
         final FieldDefinition requestSequenceNumber = this.internalRequestRecordDefinition
-          .addField("i", DataTypes.INT);
+          .addField(SEQUENCE_NUMBER, DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER, true);
         requestSequenceNumber.setMinValue(1);
 
@@ -597,8 +599,8 @@ public class BusinessApplication extends BaseObjectWithProperties
   public synchronized RecordDefinitionImpl getRequestRecordDefinition() {
     if (this.requestRecordDefinition.getFieldCount() == 0) {
       if (this.requestFieldMap.size() > 0) {
-        final FieldDefinition requestSequenceNumber = this.requestRecordDefinition.addField("i",
-          DataTypes.INT);
+        final FieldDefinition requestSequenceNumber = this.requestRecordDefinition
+          .addField(SEQUENCE_NUMBER, DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER, true);
         requestSequenceNumber.setMinValue(1);
 

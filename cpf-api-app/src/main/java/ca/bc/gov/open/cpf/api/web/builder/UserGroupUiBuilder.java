@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -51,6 +50,7 @@ import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.annotation.RequestMapping;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Booleans;
 
@@ -120,8 +120,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
 
   public Element newUserGroupView(final HttpServletRequest request,
     final HttpServletResponse response, final String prefix, final String membersPrefix,
-    final String moduleName, final String userGroupName, final List<String> moduleNames)
-    throws NoSuchRequestHandlingMethodException {
+    final String moduleName, final String userGroupName, final List<String> moduleNames) {
     if (moduleName != null) {
       hasModule(request, moduleName);
     }
@@ -144,7 +143,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
 
       return tabs;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -238,7 +237,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
     if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
       return newObjectEditPage(userGroup, "module");
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -442,7 +441,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
   @ResponseBody
   public Object userAccountList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("consumerKey") final String consumerKey)
-    throws IOException, NoSuchRequestHandlingMethodException {
+    throws IOException {
     checkHasAnyRole(ADMIN);
     final Record userAccount = getUserAccount(consumerKey);
     if (userAccount != null) {
@@ -463,7 +462,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
         UserAccount.USER_ACCOUNT, "view", parameters);
 
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException("User Account " + consumerKey + " does not exist");
   }
 
   public void userGroupName(final XmlWriter out, final Object object) {

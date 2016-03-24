@@ -48,7 +48,7 @@ public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {
     if (batchJob != null) {
       final long time = System.currentTimeMillis();
       if (batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSED,
-        BatchJobStatus.CREATING_RESULTS)) {
+        BatchJobStatus.CREATING_RESULTS) || batchJob.isStatus(BatchJobStatus.CREATING_RESULTS)) {
         final long lastChangedTime = System.currentTimeMillis();
         return batchJobService.postProcessBatchJob(batchJobId, time, lastChangedTime);
       }

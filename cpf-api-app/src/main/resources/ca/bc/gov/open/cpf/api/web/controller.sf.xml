@@ -131,7 +131,7 @@
 
   <bean
     id="cpfInternal"
-    class="ca.bc.gov.open.cpf.api.web.service.InternalWebService" />
+    class="ca.bc.gov.open.cpf.api.web.service.WorkerWebService" />
 
   <bean class="ca.bc.gov.open.cpf.api.web.controller.DocumentationController" />
 

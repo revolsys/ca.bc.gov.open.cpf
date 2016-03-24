@@ -59,7 +59,6 @@ import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.Booleans;
 import com.revolsys.util.Exceptions;
-import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
@@ -118,8 +117,8 @@ public class PluginAdaptor {
         || MultiPoint.class.isAssignableFrom(typeClass)) {
         final Point point = GeometryFactory.wgs84().point(-125, 53);
         value = GeometryFactory.wgs84().multiPoint(point);
-      } else
-        if (Geometry.class.isAssignableFrom(typeClass) || Point.class.isAssignableFrom(typeClass)) {
+      } else if (Geometry.class.isAssignableFrom(typeClass)
+        || Point.class.isAssignableFrom(typeClass)) {
         value = GeometryFactory.wgs84().point(-125, 53);
       } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
         // JTS
@@ -131,7 +130,7 @@ public class PluginAdaptor {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125.1, 53
-          }, 2);
+            }, 2);
           final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory
             .createLineString(points);
           value = line;
@@ -139,7 +138,7 @@ public class PluginAdaptor {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
-          }, 2);
+            }, 2);
           final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory
             .createPolygon(points);
           value = polygon;
@@ -147,7 +146,7 @@ public class PluginAdaptor {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125.1, 53
-          }, 2);
+            }, 2);
           final com.vividsolutions.jts.geom.LineString line = jtsGeometryFactory
             .createLineString(points);
           value = jtsGeometryFactory
@@ -158,7 +157,7 @@ public class PluginAdaptor {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125, 53.1, -125.1, 53.1, -125.1, 53, -125, 53
-          }, 2);
+            }, 2);
           final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory
             .createPolygon(points);
           value = jtsGeometryFactory.createMultiPolygon(new com.vividsolutions.jts.geom.Polygon[] {

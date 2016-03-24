@@ -46,10 +46,7 @@
       pattern="/admin/**"
       access="hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*')" />
     <security:intercept-url
-      pattern="/worker/**"
-      access="hasRole('ROLE_WORKER')" />
-    <security:intercept-url
-      pattern="/ws**"
+       pattern="/ws**"
       access="hasRole('ROLE_USER')" />
     <security:intercept-url
       pattern="/ws/**"
@@ -79,6 +76,10 @@
     id="consumerDetailsService"
     class="ca.bc.gov.open.cpf.api.security.service.UserAccountByConsumerKeyDetailsService"
     p:userAccountSecurityService-ref="userAccountSecurityService" />
+
+  <bean
+    id="workerSecurityFilter"
+    class="ca.bc.gov.open.cpf.api.web.service.WorkerSecurityFilter" />
 
   <bean
     id="oAuthProcessingFilter"

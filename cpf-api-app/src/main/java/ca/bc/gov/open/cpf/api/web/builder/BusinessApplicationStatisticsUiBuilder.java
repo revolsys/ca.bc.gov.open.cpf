@@ -29,11 +29,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
@@ -43,6 +41,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.annotation.RequestMapping;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 
 @Controller
 public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
@@ -140,16 +140,17 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   public Object pageBusinessApplicationList(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
-      throws IOException, NoSuchRequestHandlingMethodException {
+    throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getBusinessApplicationRegistry()
       .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
       return newDataTableHandlerOrRedirect(request, response, "moduleAppList", () -> {
         return getStatistics(businessApplication);
-      } , BusinessApplication.class, "moduleView");
+      }, BusinessApplication.class, "moduleView");
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException("Business Application " + businessApplicationName
+      + " does not exist for module " + moduleName);
   }
 
   @RequestMapping(value = {
@@ -176,7 +177,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
       }
     } catch (final IllegalArgumentException e) {
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -209,11 +210,11 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Object pageSummaryList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("durationType") final String durationType)
-      throws IOException, NoSuchRequestHandlingMethodException {
+    throws IOException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     return newDataTableHandlerOrRedirect(request, response, durationType + "List", () -> {
       return getSummaryStatistics(durationType);
-    } , this, "summary");
+    }, this, "summary");
   }
 
 }

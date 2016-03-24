@@ -27,10 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
@@ -39,6 +37,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.ui.html.serializer.key.KeySerializer;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
 
@@ -61,8 +60,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber)
-      throws NoSuchRequestHandlingMethodException, IOException {
+    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
       businessApplicationName);
@@ -104,8 +102,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber)
-      throws NoSuchRequestHandlingMethodException, IOException {
+    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
       businessApplicationName);
@@ -146,8 +143,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
   public Object pageModuleAppJobList(final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId)
-      throws IOException, NoSuchRequestHandlingMethodException {
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException {
 
     if (isDataTableCallback(request)) {
       checkAdminOrModuleAdmin(moduleName);

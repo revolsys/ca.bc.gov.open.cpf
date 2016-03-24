@@ -54,7 +54,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -143,6 +142,7 @@ import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.html.view.TableView;
 import com.revolsys.ui.html.view.XmlTagElement;
 import com.revolsys.ui.model.PageInfo;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.rest.interceptor.MediaTypeUtil;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -722,9 +722,9 @@ public class ConcurrentProcessingFramework {
           batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
             inputDataFiles.size() + inputDataUrls.size());
           this.dataAccessObject.write(batchJob.getRecord());
-          this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
-          this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS);
-          this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSING);
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED);
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS);
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING);
           int requestSequenceNumber = 0;
           if (inputDataUrls.isEmpty()) {
             for (final MultipartFile file : inputDataFiles) {
@@ -875,6 +875,7 @@ public class ConcurrentProcessingFramework {
 
       final BatchJob batchJob = this.dataAccessObject.newBatchJob();
       final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
+      batchJob.setGroupCount(1);
 
       final AppLog log = businessApplication.getLog();
       log.info("Start\tJob submit single\tbatchJobId=" + batchJobId);
@@ -977,9 +978,9 @@ public class ConcurrentProcessingFramework {
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultDataContentType);
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
       this.dataAccessObject.write(batchJob.getRecord());
-      this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
-      this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS);
-      this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.PROCESSING);
+      batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED);
+      batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS);
+      batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING);
       if (perRequestInputData) {
         if (inputDataIn != null) {
           this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
@@ -990,7 +991,7 @@ public class ConcurrentProcessingFramework {
         }
       } else {
 
-        inputData.put("i", 1);
+        inputData.put(BusinessApplication.SEQUENCE_NUMBER, 1);
         final String inputDataString = JsonRecordIoFactory.toString(requestRecordDefinition,
           Collections.singletonList(inputData));
         this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
@@ -1052,7 +1053,7 @@ public class ConcurrentProcessingFramework {
       }
     }
     this.dataAccessObject.write(batchJob);
-    this.batchJobService.setBatchJobStatus(batchJob, BatchJobStatus.SUBMITTED);
+    batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED);
     this.batchJobService.preProcess(batchJobId);
   }
 
@@ -1376,7 +1377,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -2666,14 +2667,15 @@ public class ConcurrentProcessingFramework {
     throws IOException {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
-    final Record batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
+    final BatchJob batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
 
     if (batchJob != null) {
       final Record batchJobResult = this.dataAccessObject.getBatchJobResult(batchJobIdentifier,
         resultId);
       if (batchJobResult != null && DataType.equal(batchJobIdentifier,
         batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
-        this.dataAccessObject.setBatchJobDownloaded(batchJobIdentifier);
+        batchJob.setStatus(this.batchJobService, BatchJobStatus.DOWNLOAD_INITIATED);
+        batchJob.update();
         this.batchJobService.downloadBatchJobResult(request, response, batchJobIdentifier, resultId,
           batchJobResult);
         return;

@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -67,6 +66,7 @@ import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.annotation.RequestMapping;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Booleans;
 import com.revolsys.util.Property;
@@ -108,8 +108,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     return tabs;
   }
 
-  public void addMembersDataTable(final TabElementContainer container, final String prefix)
-    throws NoSuchRequestHandlingMethodException {
+  public void addMembersDataTable(final TabElementContainer container, final String prefix) {
     final Map<String, Object> parameters = new HashMap<>();
     parameters.put("serverSide", Boolean.TRUE);
     parameters.put("deferLoading", 0);
@@ -144,7 +143,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public ModelAndView addUserGroupMembership(final HttpServletRequest request,
     final HttpServletResponse response, final String moduleName, final String userGroupName,
     final String moduleGroupName, final String consumerKey, final String parentPageName,
-    final String tabName) throws NoSuchRequestHandlingMethodException {
+    final String tabName) {
     if (Property.hasValue(consumerKey)) {
       if (moduleName != null) {
         hasModule(request, moduleName);
@@ -166,7 +165,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
           return null;
         }
       }
-      throw new NoSuchRequestHandlingMethodException(request);
+      throw new PageNotFoundException();
     } else {
       final ModelMap model = new ModelMap();
       model.put("body", "/WEB-INF/jsp/admin/groupMemberNull.jsp");
@@ -418,8 +417,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
   public Object newUserGroupMembersList(final HttpServletRequest request,
     final HttpServletResponse response, final String prefix, final String moduleName,
-    final String userGroupName, final String groupModuleName)
-    throws NoSuchRequestHandlingMethodException {
+    final String userGroupName, final String groupModuleName) {
     final String pageName = prefix + "List";
     if (isDataTableCallback(request)) {
       if (moduleName != null) {
@@ -440,7 +438,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
         final RecordStore recordStore = getRecordStore();
         return newDataTableMap(request, recordStore, query, pageName);
       }
-      throw new NoSuchRequestHandlingMethodException(request);
+      throw new PageNotFoundException();
     } else {
       return redirectToTab(UserGroup.USER_GROUP, prefix + "View", pageName);
     }
@@ -531,7 +529,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
         return;
       }
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = "/admin/userAccounts/{consumerKey}", method = RequestMethod.GET,
@@ -555,7 +553,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       addTabDataTable(tabs, UserGroup.USER_GROUP, "userAccountList", parameters);
       return tabs;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 
 }

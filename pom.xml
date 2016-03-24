@@ -505,8 +505,9 @@
     <module>cpf-archetype-plugin</module>
     <module>cpf-archetype-web</module>
     <module>plugins/test</module>
-    <module>plugins/gvws</module>
-    <module>plugins/mtws</module>
+    <module>plugins/digest</module>
+    <module>plugins/geometry-validation</module>
+    <module>plugins/map-tile</module>
   </modules>
 
   <profiles>
@@ -559,6 +560,16 @@
   </profiles>
 
   <distributionManagement>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>sonatype-releases</name>
+      <url>https://oss.sonatype.org/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>sonatype-snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
     <site>
       <id>gh-pages</id>
       <name>Deployment through GitHub's site deployment plugin</name>

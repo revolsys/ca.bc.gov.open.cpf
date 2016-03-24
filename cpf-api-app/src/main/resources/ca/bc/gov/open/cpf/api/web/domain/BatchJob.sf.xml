@@ -344,8 +344,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>completedRequests</value>
-            <value>failedRequests</value>
+            <value>completedCount</value>
+            <value>failedCount</value>
             <value>USER_ID</value>
             <value>adminActions</value>
           </list>
@@ -359,8 +359,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>completedRequests</value>
-            <value>failedRequests</value>
+            <value>completedCount</value>
+            <value>failedCount</value>
             <value>clientActions</value>
           </list>
         </entry>
@@ -371,8 +371,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>completedRequests</value>
-            <value>failedRequests</value>
+            <value>completedCount</value>
+            <value>failedCount</value>
             <value>clientActions</value>
           </list>
         </entry>
@@ -432,8 +432,8 @@
             <value>WHEN_UPDATED</value>
             <value>JOB_STATUS</value>
             <value>NUM_SUBMITTED_REQUESTS</value>
-            <value>completedRequests</value>
-            <value>failedRequests</value>
+            <value>completedCount</value>
+            <value>failedCount</value>
             <value>USER_ID</value>
             <value>adminActions</value>
           </list>

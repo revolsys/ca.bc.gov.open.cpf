@@ -13,17 +13,17 @@
 >
   <bean
     id="multiPartToSimpleGeometry"
-    class="ca.bc.gov.open.cpf.test.plugin.MultipartToSimpleGeometry"
+    class="ca.bc.gov.open.cpf.plugins.test.MultipartToSimpleGeometry"
     scope="prototype" />
 
   <bean
     id="TestAllDataTypes"
-    class="ca.bc.gov.open.cpf.test.plugin.TestAllDataTypes"
+    class="ca.bc.gov.open.cpf.plugins.test.TestAllDataTypes"
     scope="prototype" />
 
   <bean
     id="securityTest"
-    class="ca.bc.gov.open.cpf.test.plugin.SecurityTest"
+    class="ca.bc.gov.open.cpf.plugins.test.SecurityTest"
     scope="prototype" />
 
 

@@ -63,6 +63,10 @@ public interface Module {
 
   URL getConfigUrl();
 
+  int getJarCount();
+
+  URL getJarUrl(int urlIndex);
+
   List<URL> getJarUrls();
 
   long getLastStartTime();

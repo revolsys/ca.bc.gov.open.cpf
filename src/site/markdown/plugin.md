@@ -575,7 +575,7 @@ See the [GeometryFactory](cpf-api-plugin/java-api//#ca.bc.gov.open.cpf.plugin.ap
 class for details on creating [Java Topology Suite](http://tsusiatsoftware.net/jts/main.html) (JTS)
 geometry objects.
 
-#### Per request result data<
+#### Per request result data
 [Opaque input data](reference/opaqueData.html) plug-ins with
 [perRequestResultData](cpf-api-plugin/java-api//#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin.perRequestResultData)=true
 cannot return result attributes. They can only return the binary content of the result data. The

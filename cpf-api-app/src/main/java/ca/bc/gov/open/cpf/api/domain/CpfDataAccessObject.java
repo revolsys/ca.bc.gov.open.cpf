@@ -36,9 +36,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.list.Lists;
+import com.revolsys.collection.map.Maps;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.identifier.Identifier;
@@ -98,39 +100,42 @@ public class CpfDataAccessObject implements Transactionable {
 
   private Map<Identifier, BatchJob> batchJobById = new HashMap<>();
 
+  private final Map<String, Set<Identifier>> batchJobIdsByBusinessApplication = new HashMap<>();
+
   public CpfDataAccessObject() {
   }
 
-  public boolean cancelBatchJob(final Identifier batchJobId) {
-    try (
-      Transaction transaction = newTransaction(Propagation.REQUIRES_NEW)) {
-      try {
-        final String username = getUsername();
-        final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-        final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " //
-          + "COMPLETED_GROUP_RANGE = null, "//
-          + "COMPLETED_REQUEST_RANGE = null, "//
-          + "FAILED_REQUEST_RANGE = NUM_SUBMITTED_REQUESTS," + "WHEN_STATUS_CHANGED = ?, " //
-          + "JOB_STATUS = 'cancelled',"
-          + "WHEN_UPDATED = ?, WHO_UPDATED = ? WHERE BATCH_JOB_ID = ?";
-        final Timestamp now = new Timestamp(System.currentTimeMillis());
-        if (JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username,
-          batchJobId.getLong(0)) == 1) {
-          deleteBatchJobResults(batchJobId);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (final Throwable e) {
-        transaction.setRollbackOnly();
-        throw new RuntimeException("Unable to cencel jobId=" + batchJobId, e);
+  private BatchJob addBatchJob(final Record record, final Identifier batchJobId) {
+    BatchJob batchJob;
+    batchJob = new BatchJob(record);
+    this.batchJobById.put(batchJobId, batchJob);
+    final String businessApplicationName = batchJob.getString(BatchJob.BUSINESS_APPLICATION_NAME);
+    Maps.addToSet(this.batchJobIdsByBusinessApplication, businessApplicationName, batchJobId);
+    return batchJob;
+  }
+
+  public BatchJob clearBatchJob(final Identifier batchJobId) {
+    synchronized (this.batchJobById) {
+      final BatchJob batchJob = this.batchJobById.remove(batchJobId);
+      if (batchJob != null) {
+        final String businessApplicationName = batchJob
+          .getString(BatchJob.BUSINESS_APPLICATION_NAME);
+        Maps.removeFromCollection(this.batchJobIdsByBusinessApplication, businessApplicationName,
+          batchJobId);
       }
+      return batchJob;
     }
   }
 
-  public void clearBatchJob(final Identifier batchJobId) {
+  public void clearBatchJobs(final String businessApplicationName) {
     synchronized (this.batchJobById) {
-      this.batchJobById.remove(batchJobId);
+      final Set<Identifier> batchJobIds = this.batchJobIdsByBusinessApplication
+        .remove(businessApplicationName);
+      if (this.batchJobById != null) {
+        for (final Identifier batchJobId : batchJobIds) {
+          this.batchJobById.remove(batchJobId);
+        }
+      }
     }
   }
 
@@ -243,8 +248,7 @@ public class CpfDataAccessObject implements Transactionable {
         if (batchJob == null) {
           final Record record = this.recordStore.getRecord(BatchJob.BATCH_JOB, batchJobId);
           if (record != null) {
-            batchJob = new BatchJob(record);
-            this.batchJobById.put(batchJobId, batchJob);
+            batchJob = addBatchJob(record, batchJobId);
           }
         }
         return batchJob;
@@ -266,8 +270,7 @@ public class CpfDataAccessObject implements Transactionable {
         } else {
           BatchJob batchJob = this.batchJobById.get(batchJobId);
           if (batchJob == null) {
-            batchJob = new BatchJob(record);
-            this.batchJobById.put(batchJobId, batchJob);
+            batchJob = addBatchJob(record, batchJobId);
           }
           return batchJob;
         }
@@ -310,7 +313,7 @@ public class CpfDataAccessObject implements Transactionable {
     // TODO move to scheduling groups
     query.setWhereCondition(Q.sql(
       "JOB_STATUS IN ( 'processing') AND " + "NUM_SUBMITTED_GROUPS > 0 AND "
-        + "COMPLETED_GROUP_RANGE <> concat('1~', NUM_SUBMITTED_GROUPS) AND BUSINESS_APPLICATION_NAME = ?",
+        + "(COMPLETED_GROUP_RANGE IS NULL OR (NUM_SUBMITTED_GROUPS <> 1 AND COMPLETED_GROUP_RANGE <> concat('1~', NUM_SUBMITTED_GROUPS))) AND BUSINESS_APPLICATION_NAME = ?",
       businessApplicationName));
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, true);
@@ -643,7 +646,7 @@ public class CpfDataAccessObject implements Transactionable {
     final Identifier batchJobId, final int groupSequenceNumber, final String errorCode,
     final String errorMessage, final String errorDebugMessage) {
     final Map<String, Object> error = new HashMap<>();
-    error.put("i", 1);
+    error.put(BusinessApplication.SEQUENCE_NUMBER, 1);
     error.put("errorCode", errorCode);
     error.put("errorMessage", errorMessage);
     error.put("errorDebugMessage", errorDebugMessage);
@@ -774,22 +777,6 @@ public class CpfDataAccessObject implements Transactionable {
     }
   }
 
-  public boolean setBatchJobDownloaded(final Identifier batchJobId) {
-    final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-
-    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET "
-      + "JOB_STATUS = 'downloadInitiated', WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ? "
-      + "WHERE JOB_STATUS = 'resultsCreated' AND BATCH_JOB_ID = ?";
-    try {
-      final Timestamp now = new Timestamp(System.currentTimeMillis());
-      final String username = getUsername();
-      return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username,
-        batchJobId.getLong(0)) == 1;
-    } catch (final Throwable e) {
-      throw new RuntimeException("Unable to set job downloaded " + batchJobId, e);
-    }
-  }
-
   public boolean setBatchJobFailed(final Identifier batchJobId) {
     final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
 
@@ -830,24 +817,6 @@ public class CpfDataAccessObject implements Transactionable {
           numFailedRequests, groupSize, numGroups, now, now, now, getUsername(),
           batchJobId.getLong(0)) == 1;
         return result;
-      } catch (final Throwable e) {
-        throw transaction.setRollbackOnly(e);
-      }
-    }
-  }
-
-  public boolean setBatchJobStatus(final Identifier batchJobId, final String oldJobStatus,
-    final String newJobStatus) {
-    try (
-      Transaction transaction = newTransaction(Propagation.REQUIRES_NEW)) {
-      try {
-        final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-        final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = ?, JOB_STATUS = ? WHERE JOB_STATUS = ? AND BATCH_JOB_ID = ?";
-        final Timestamp now = new Timestamp(System.currentTimeMillis());
-        final String username = getUsername();
-        final int count = JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, username,
-          newJobStatus, oldJobStatus, batchJobId.getLong(0));
-        return count == 1;
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);
       }
@@ -918,33 +887,6 @@ public class CpfDataAccessObject implements Transactionable {
     // }
     // }
 
-    return 0;
-  }
-
-  /**
-   * Set the status to the newStatus for all BatchJob objects for the list of
-   * businessApplicationNames which have the oldStatus.
-   *
-   * @param newStatus The status to change the jobs to.
-   * @param oldStatus The status of jobs to update.
-   * @param businessApplicationName The list of business application names.
-   * @return The number of BatchJobs updated.
-   */
-  public int updateBatchJobStatus(final String newStatus, final String oldStatus,
-    final String businessApplicationName) {
-    if (this.recordStore instanceof JdbcRecordStore) {
-      final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-      final String sql = "UPDATE CPF.CPF_BATCH_JOBS BJ SET "
-        + "JOB_STATUS = ?, WHEN_STATUS_CHANGED = ?, WHEN_UPDATED = ?, WHO_UPDATED = 'SYSTEM' "
-        + "WHERE JOB_STATUS = ? AND BUSINESS_APPLICATION_NAME = ?";
-      try {
-        final Timestamp now = new Timestamp(System.currentTimeMillis());
-        return JdbcUtils.executeUpdate(jdbcRecordStore, sql, newStatus, now, now, oldStatus,
-          businessApplicationName);
-      } catch (final Throwable e) {
-        throw new RuntimeException("Unable to update status: " + sql, e);
-      }
-    }
     return 0;
   }
 

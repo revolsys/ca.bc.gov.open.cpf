@@ -76,7 +76,6 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
-import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
 import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
@@ -128,6 +127,9 @@ import com.revolsys.record.io.format.kml.Kml22Constants;
 import com.revolsys.record.io.format.tsv.Tsv;
 import com.revolsys.record.io.format.tsv.TsvWriter;
 import com.revolsys.record.property.FieldProperties;
+import com.revolsys.record.query.Condition;
+import com.revolsys.record.query.Q;
+import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
@@ -323,7 +325,8 @@ public class BatchJobService implements ModuleEventListener {
         for (final BatchJobRequestExecutionGroup group : groups) {
           group.cancel();
         }
-        cancelled = this.jobController.cancelJob(batchJobId);
+        cancelled = batchJob.cancelJob(this);
+        this.jobController.cancelJob(batchJobId);
         synchronized (this.workersById) {
           for (final Worker worker : this.workersById.values()) {
             worker.cancelBatchJob(batchJobId);
@@ -333,7 +336,6 @@ public class BatchJobService implements ModuleEventListener {
             groupsToSchedule.notifyReaders();
           }
         }
-        this.dataAccessObject.clearBatchJob(batchJobId);
       }
     }
     return cancelled;
@@ -851,52 +853,17 @@ public class BatchJobService implements ModuleEventListener {
         final Module module = event.getModule();
         final String moduleName = module.getName();
         synchronized (module) {
-          // if (action.equals(ModuleEvent.STOP)) {
-          // final LinkedHashMap<String, Object> message = new
-          // LinkedHashMap<String, Object>();
-          // message.put("type", "moduleStop");
-          // message.put("moduleName", module.getName());
-          // message.put("moduleTime", module.getLastStartTime());
-          // addWorkerMessage(message);
-          //
-          // final NamedChannelBundle<BatchJobRequestExecutionGroup>
-          // groupsToSchedule = this.groupsToSchedule;
-          // if (groupsToSchedule != null) {
-          // final Collection<BatchJobRequestExecutionGroup> groups =
-          // groupsToSchedule.remove(moduleName);
-          // if (groups != null) {
-          // for (final BatchJobRequestExecutionGroup group : groups) {
-          // group.cancel();
-          // }
-          // }
-          // }
-          // for (final Worker worker : getWorkers()) {
-          // final String moduleNameAndTime = moduleName + ":" +
-          // module.getStartedTime();
-          // worker.cancelExecutingGroups(moduleNameAndTime);
-          // }
-          // for (final String businessApplicationName :
-          // event.getBusinessApplicationNames()) {
-          // this.scheduler.clearBusinessApplication(businessApplicationName);
-          // }
-          // } else if (action.equals(ModuleEvent.START)) {
-          // final LinkedHashMap<String, Object> message = new
-          // LinkedHashMap<String, Object>();
-          // message.put("type", "moduleStart");
-          // message.put("moduleName", module.getName());
-          // message.put("moduleTime", module.getStartedTime());
-          // addWorkerMessage(message);
-          // }
           final List<String> businessApplicationNames = module.getBusinessApplicationNames();
           for (final String businessApplicationName : businessApplicationNames) {
             synchronized (businessApplicationName.intern()) {
               if (action.equals(ModuleEvent.STOP)) {
-                // final NamedChannelBundle<BatchJobRequestExecutionGroup>
-                // groupsToSchedule = this.groupsToSchedule;
-                // if (groupsToSchedule != null) {
-                // groupsToSchedule.remove(businessApplicationName);
-                // }
+                final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
+                if (groupsToSchedule != null) {
+                  groupsToSchedule.remove(businessApplicationName);
+                }
+                this.dataAccessObject.clearBatchJobs(businessApplicationName);
               } else if (action.equals(ModuleEvent.START)) {
+                this.dataAccessObject.clearBatchJobs(businessApplicationName);
                 resetProcessingBatchJobs(moduleName, businessApplicationName);
                 resetCreatingRequestsBatchJobs(moduleName, businessApplicationName);
                 resetCreatingResultsBatchJobs(moduleName, businessApplicationName);
@@ -1000,6 +967,10 @@ public class BatchJobService implements ModuleEventListener {
       recordWriter.setProperties(application.getProperties());
       return recordWriter;
     }
+  }
+
+  public Transaction newTransaction(final Propagation propagation) {
+    return this.dataAccessObject.newTransaction(propagation);
   }
 
   public void postProcess(final Identifier batchJobId) {
@@ -1280,7 +1251,7 @@ public class BatchJobService implements ModuleEventListener {
     final Map<String, Object> resultMap) {
     boolean written;
     final String errorCode = (String)resultMap.get("errorCode");
-    final Number requestSequenceNumber = (Number)resultMap.get("i");
+    final Number requestSequenceNumber = (Number)resultMap.get(BusinessApplication.SEQUENCE_NUMBER);
     final String errorMessage = (String)resultMap.get("errorMessage");
     final Map<String, String> errorMap = new LinkedHashMap<String, String>();
     errorMap.put("sequenceNumber", DataTypes.toString(requestSequenceNumber));
@@ -1423,6 +1394,7 @@ public class BatchJobService implements ModuleEventListener {
                                 inputDataRecord);
                               if (requestParameters == null) {
                                 numFailedRequests++;
+                                batchJob.addFailedRequests(Integer.toString(numSubmittedRequests));
                               } else {
                                 group.add(requestParameters);
                               }
@@ -1487,7 +1459,6 @@ public class BatchJobService implements ModuleEventListener {
               final Timestamp now = batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP);
               batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
               batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, numSubmittedRequests);
-              batchJob.setValue(BatchJob.FAILED_REQUEST_RANGE, numFailedRequests);
               batchJob.setValue(BatchJob.GROUP_SIZE, maxGroupSize);
               batchJob.setGroupCount(numGroups);
               batchJob.update();
@@ -1592,7 +1563,7 @@ public class BatchJobService implements ModuleEventListener {
     final BusinessApplication businessApplication, final int requestSequenceNumber,
     final Map<String, String> jobParameters, final Record requestRecord) {
     final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
-    requestRecord.put("i", requestSequenceNumber);
+    requestRecord.put(BusinessApplication.SEQUENCE_NUMBER, requestSequenceNumber);
     final RecordDefinition recordDefinition = requestRecord.getRecordDefinition();
     for (final FieldDefinition field : recordDefinition.getFields()) {
       if (!preProcessParameter(businessApplication, batchJobId, requestSequenceNumber,
@@ -1617,13 +1588,24 @@ public class BatchJobService implements ModuleEventListener {
     final String businessApplicationName) {
     final AppLog log = getAppLog(businessApplicationName);
     try {
-      final int numCleanedJobs = this.dataAccessObject.updateBatchJobStatus(
-        BatchJobStatus.SUBMITTED, BatchJobStatus.CREATING_REQUESTS, businessApplicationName);
+      int numCleanedJobs = 0;
+      final Condition where = Q.equal(BatchJob.JOB_STATUS, BatchJobStatus.CREATING_REQUESTS) //
+        .and(Q.equal(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName)) //
+        .and(Q.equal(BatchJob.NUM_SUBMITTED_REQUESTS, 0)) //
+      ;
+      final Query query = new Query(BatchJob.BATCH_JOB, where);
+      query.setFieldNames(BatchJob.BATCH_JOB_ID);
+      for (final Record job : this.recordStore.getRecords(query)) {
+        final Identifier jobId = job.getIdentifier();
+        preProcess(jobId);
+        numCleanedJobs++;
+      }
       if (numCleanedJobs > 0) {
-        log.info("Job status reset to submitted\tcount=" + numCleanedJobs);
+        log.info(
+          "Re-schedule pre-procces\t" + businessApplicationName + "\tcount=" + numCleanedJobs);
       }
     } catch (final Throwable e) {
-      log.error("Unable to reset job status to submitted", e);
+      log.error("Unable to re-schedule pre-procces\t" + businessApplicationName, e);
     }
   }
 
@@ -1631,13 +1613,24 @@ public class BatchJobService implements ModuleEventListener {
     final String businessApplicationName) {
     final AppLog log = getAppLog(businessApplicationName);
     try {
-      final int numCleanedJobs = this.dataAccessObject.updateBatchJobStatus(
-        BatchJobStatus.PROCESSED, BatchJobStatus.CREATING_RESULTS, businessApplicationName);
+      final String oldStatus = BatchJobStatus.CREATING_RESULTS;
+      int numCleanedJobs = 0;
+      final Condition where = Q.equal(BatchJob.JOB_STATUS, oldStatus) //
+        .and(Q.equal(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName)) //
+      ;
+      final Query query = new Query(BatchJob.BATCH_JOB, where);
+      query.setFieldNames(BatchJob.BATCH_JOB_ID);
+      for (final Record job : this.recordStore.getRecords(query)) {
+        final Identifier jobId = job.getIdentifier();
+        postProcess(jobId);
+        numCleanedJobs++;
+      }
       if (numCleanedJobs > 0) {
-        log.info("Job status reset to processed\tcount=" + numCleanedJobs);
+        log.info(
+          "Re-schedule post-procces\t" + businessApplicationName + "\tcount=" + numCleanedJobs);
       }
     } catch (final Throwable e) {
-      log.error("Unable to reset job status to processed", e);
+      log.error("Unable to re-schedule post-procces\t" + businessApplicationName, e);
     }
   }
 
@@ -1874,6 +1867,7 @@ public class BatchJobService implements ModuleEventListener {
               writer.close();
               final HttpEntity body = new StringEntity(bodyOut.toString());
               try (
+                @SuppressWarnings("deprecation")
                 final CloseableHttpClient client = new DefaultHttpClient()) {
                 final HttpPost request = new HttpPost(notificationUri);
                 request.setHeader("Content-type", contentType);
@@ -1922,42 +1916,9 @@ public class BatchJobService implements ModuleEventListener {
     this.authorizationService = authorizationService;
   }
 
-  public void setBatchJobStatus(final BatchJob batchJob, final String jobStatus) {
-    batchJob.setValue(BatchJob.JOB_STATUS, jobStatus);
-    final Timestamp now = new Timestamp(System.currentTimeMillis());
-    final String username = CpfDataAccessObject.getUsername();
-    batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
-    batchJob.setValue(Common.WHEN_UPDATED, now);
-    batchJob.setValue(Common.WHO_UPDATED, username);
-
-    final Record batchJobStatusChange = this.recordStore
-      .newRecord(BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE);
-    batchJobStatusChange.setValue(BatchJobStatusChange.BATCH_JOB_ID, batchJob,
-      BatchJob.BATCH_JOB_ID);
-    batchJobStatusChange.setValue(BatchJobStatusChange.JOB_STATUS, jobStatus);
-    batchJobStatusChange.setValue(Common.WHEN_CREATED, now);
-    batchJobStatusChange.setValue(Common.WHO_UPDATED, username);
-    this.dataAccessObject.write(batchJobStatusChange);
-  }
-
   public boolean setBatchJobStatus(final BatchJob batchJob, final String oldJobStatus,
     final String newJobStatus) {
-    try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRED)) {
-      boolean updated = false;
-      synchronized (batchJob) {
-        final String jobStatus = batchJob.getValue(BatchJob.JOB_STATUS);
-        if (DataType.equal(jobStatus, oldJobStatus)) {
-          setBatchJobStatus(batchJob, newJobStatus);
-          updated = true;
-        }
-      }
-      if (updated) {
-        batchJob.update();
-
-      }
-      return updated;
-    }
+    return batchJob.setStatus(this, oldJobStatus, newJobStatus);
   }
 
   public void setBusinessApplicationRegistry(
@@ -2108,8 +2069,16 @@ public class BatchJobService implements ModuleEventListener {
             if (module.isStarted()) {
               final LinkedHashMap<String, Object> message = new LinkedHashMap<>();
               message.put("type", "moduleStart");
-              message.put("moduleName", module.getName());
-              message.put("moduleTime", module.getStartedTime());
+
+              final String name = module.getName();
+              message.put("moduleName", name);
+
+              final long startedTime = module.getStartedTime();
+              message.put("moduleTime", startedTime);
+
+              final int jarCount = module.getJarCount();
+              message.put("moduleJarCount", jarCount);
+
               worker.sendMessage(message);
             }
           }

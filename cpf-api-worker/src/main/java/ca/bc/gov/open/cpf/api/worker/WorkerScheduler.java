@@ -18,7 +18,6 @@ package ca.bc.gov.open.cpf.api.worker;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -68,7 +67,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.web.context.ServletContextAware;
 
-import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
@@ -88,7 +86,6 @@ import com.revolsys.parallel.process.ProcessNetwork;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
-import com.revolsys.util.UrlUtil;
 import com.revolsys.websocket.json.JsonAsyncSender;
 import com.revolsys.websocket.json.JsonDecoder;
 import com.revolsys.websocket.json.JsonEncoder;
@@ -122,8 +119,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return 80;
   }
 
-  private boolean abbortedRequest;
-
   private String beanName;
 
   private BusinessApplicationRegistry businessApplicationRegistry;
@@ -134,7 +129,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private final Set<String> executingGroupIds = new LinkedHashSet<String>();
 
-  private DigestHttpClient httpClient;
+  private WorkerHttpClient httpClient;
 
   private String id;
 
@@ -149,8 +144,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
   private final List<String> excludedModuleNames = new ArrayList<>();
 
   private final Object monitor = new Object();
-
-  private String nextIdUrl;
 
   private final AtomicInteger taskCount = new AtomicInteger();
 
@@ -184,6 +177,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
   private ClientManager client;
 
   private JsonAsyncSender messageSender;
+
+  private String nextIdPath;
 
   public WorkerScheduler() {
     super(0, 100, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory());
@@ -241,7 +236,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   @PreDestroy
   public void destroy() {
-    this.running = false;
+    if (this.running) {
+      this.running = false;
+      this.messageSender = null;
+    }
     if (this.processNetwork != null) {
       this.processNetwork.stop();
     }
@@ -252,6 +250,13 @@ public class WorkerScheduler extends ThreadPoolExecutor
     this.groupIdByFutureTask.clear();
     this.processNetwork = null;
 
+    if (this.client != null) {
+      this.client.shutdown();
+      this.client = null;
+    }
+    if (this.httpClient != null) {
+      this.httpClient.close();
+    }
     this.httpClient = null;
     shutdownNow();
     if (this.securityServiceFactory != null) {
@@ -324,6 +329,14 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return this.environmentName;
   }
 
+  public WorkerHttpClient getHttpClient() {
+    return this.httpClient;
+  }
+
+  public String getId() {
+    return this.id;
+  }
+
   public JsonAsyncSender getMessageSender() {
     return this.messageSender;
   }
@@ -344,6 +357,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return this.processNetwork;
   }
 
+  public WorkerSecurityServiceFactory getSecurityServiceFactory() {
+    return this.securityServiceFactory;
+  }
+
   public String getUsername() {
     return this.username;
   }
@@ -356,15 +373,15 @@ public class WorkerScheduler extends ThreadPoolExecutor
   public void init() {
     initLogging();
 
-    this.httpClient = new DigestHttpClient(this.webServiceUrl, this.username, this.password,
+    final String workerPath = "/worker/workers/" + this.id + "/" + this.startTime;
+    this.httpClient = new WorkerHttpClient(this.webServiceUrl, this.username, this.password,
       getMaximumPoolSize() + 1);
 
     this.businessApplicationRegistry.addModuleEventListener(this.securityServiceFactory);
     this.tempDir = FileUtil.newTempDirectory("cpf", "jars");
     this.configPropertyLoader = new WorkerConfigPropertyLoader(this, this.environmentName);
 
-    this.nextIdUrl = this.webServiceUrl + "/worker/workers/" + this.id
-      + "/jobs/groups/nextId?workerStartTime=" + this.startTime;
+    this.nextIdPath = workerPath + "/jobs/groups/nextId";
 
     try {
       this.client = ClientManager.createClient();
@@ -378,8 +395,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
         this.password.getBytes(StandardCharsets.ISO_8859_1));
       config.put(ClientProperties.CREDENTIALS, credentials);
 
-      final URI webSocketUri = new URI(this.webServiceUrl.replaceFirst("http", "ws")
-        + "/worker/workers/" + this.id + "/" + this.startTime + "/message");
+      final URI webSocketUri = new URI(
+        this.webServiceUrl.replaceFirst("http", "ws") + workerPath + "/message");
       this.client.connectToServer(this, webSocketUri);
     } catch (final Exception e) {
       throw new RuntimeException(e);
@@ -414,6 +431,20 @@ public class WorkerScheduler extends ThreadPoolExecutor
       appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
       appender.rollover();
       logger.addAppender(appender);
+    }
+  }
+
+  public boolean isRunning() {
+    return this.running;
+  }
+
+  public void logError(final String message) {
+    LoggerFactory.getLogger(getClass()).error(message);
+  }
+
+  protected void logError(final String message, final Throwable e) {
+    if (isRunning()) {
+      Exceptions.log(this, message, e);
     }
   }
 
@@ -453,6 +484,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
   protected void moduleStart(final Map<String, Object> message) {
     final String moduleName = (String)message.get("moduleName");
     final Long moduleTime = Maps.getLong(message, "moduleTime");
+    final int moduleJarCount = Maps.getInteger(message, "moduleJarCount", 0);
     if ((this.includedModuleNames.isEmpty() || this.includedModuleNames.contains(moduleName))
       && !this.excludedModuleNames.contains(moduleName)) {
       final AppLog log = new AppLog(moduleName);
@@ -471,38 +503,48 @@ public class WorkerScheduler extends ThreadPoolExecutor
         }
       }
       try {
-        final String modulesUrl = this.httpClient
-          .getUrl("/worker/modules/" + moduleName + "/" + moduleTime + "/urls.json");
-        final Map<String, Object> response = this.httpClient.getJsonResource(modulesUrl);
         final File moduleDir = new File(this.tempDir, moduleName + "-" + moduleTime);
         moduleDir.mkdir();
         moduleDir.deleteOnExit();
-        final List<URL> urls = new ArrayList<URL>();
-        @SuppressWarnings("unchecked")
-        final List<String> jarUrls = (List<String>)response.get("jarUrls");
-        for (int i = 0; i < jarUrls.size(); i++) {
-          final String jarUrl = jarUrls.get(i);
+        final List<URL> urls = new ArrayList<>();
+        for (int jarIndex = 0; jarIndex < moduleJarCount; jarIndex++) {
+          final String jarPath = "/worker/modules/" + moduleName + "/" + moduleTime + "/jar/"
+            + jarIndex;
           try {
-            final File jarFile = new File(moduleDir, i + ".jar");
+            final File jarFile = new File(moduleDir, jarIndex + ".jar");
             jarFile.deleteOnExit();
-            this.httpClient.getResource(jarUrl, jarFile);
+            this.httpClient.getResource(jarPath, jarFile);
 
             urls.add(FileUtil.toUrl(jarFile));
           } catch (final Throwable e) {
-            throw new RuntimeException("Unable to download jar file " + jarUrl, e);
+            throw new RuntimeException("Unable to download jar file " + jarPath, e);
           }
         }
         final ClassLoader parentClassLoader = getClass().getClassLoader();
         final ClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(parentClassLoader,
           urls);
         final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(classLoader, false);
-        module = new ClassLoaderModule(this.businessApplicationRegistry, moduleName, classLoader,
-          this.configPropertyLoader, configUrls.get(0));
-        this.businessApplicationRegistry.addModule(module);
-        module.setStartedDate(new Date(moduleTime));
-        module.enable();
-        final Module startModule = module;
-        execute(() -> startApplications(startModule));
+        if (configUrls.isEmpty()) {
+          final String urlsMessage = "Cannot load classes for module " + moduleName;
+          log.error(urlsMessage);
+          final Map<String, Object> responseMessage = new LinkedHashMap<>();
+          responseMessage.put("type", "moduleStartFailed");
+          responseMessage.put("moduleName", moduleName);
+          responseMessage.put("moduleTime", moduleTime);
+          responseMessage.put("moduleError", urlsMessage);
+          sendMessage(responseMessage);
+          if (module != null) {
+            this.businessApplicationRegistry.unloadModule(module);
+          }
+        } else {
+          module = new ClassLoaderModule(this.businessApplicationRegistry, moduleName, classLoader,
+            this.configPropertyLoader, configUrls.get(0));
+          this.businessApplicationRegistry.addModule(module);
+          module.setStartedDate(new Date(moduleTime));
+          module.enable();
+          final Module startModule = module;
+          execute(() -> startApplications(startModule));
+        }
       } catch (final Throwable e) {
         log.error("Unable to load module " + moduleName, e);
         final Map<String, Object> responseMessage = new LinkedHashMap<>();
@@ -590,7 +632,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
     if (System.currentTimeMillis() > this.lastPingTime + this.maxTimeBetweenPings * 1000) {
       addExecutingGroupsMessage();
     }
-    if (!this.running) {
+    if (!isRunning()) {
       return false;
     }
     final long time = System.currentTimeMillis();
@@ -604,14 +646,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
         Map<String, Object> response = null;
         parameters.put("moduleName", this.loadedModuleNames);
 
-        final String url = UrlUtil.getUrl(this.nextIdUrl, parameters);
-        if (this.running) {
-          if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
-            LoggerFactory.getLogger(getClass()).debug(url);
-          }
-          response = this.httpClient.postJsonResource(url);
+        if (isRunning()) {
+          response = this.httpClient.postGetJsonResource(this.nextIdPath, parameters);
         }
-        if (!this.running) {
+        if (!isRunning()) {
           return false;
         } else {
 
@@ -623,14 +661,12 @@ public class WorkerScheduler extends ThreadPoolExecutor
               final String groupId = (String)response.get("groupId");
               addExecutingGroupId(groupId);
               try {
-                final Runnable runnable = new WorkerGroupRunnable(this,
-                  this.businessApplicationRegistry, this.httpClient, this.securityServiceFactory,
-                  this.id, response);
+                final Runnable runnable = new WorkerGroupRunnable(this, response);
                 final Future<?> future = submit(runnable);
                 this.futureTaskByGroupId.put(groupId, future);
                 this.groupIdByFutureTask.put(future, groupId);
               } catch (final Throwable e) {
-                if (this.running) {
+                if (isRunning()) {
                   LoggerFactory.getLogger(getClass())
                     .error("Unable to get execute group " + groupId, e);
                 }
@@ -650,25 +686,13 @@ public class WorkerScheduler extends ThreadPoolExecutor
         if (t.getStatusCode() == 404) {
 
         } else {
-          if (this.running) {
+          if (isRunning()) {
             LoggerFactory.getLogger(getClass()).error("Unable to get group", t);
           }
         }
       } catch (final Throwable t) {
-        if (t.getCause() instanceof SocketException) {
-          addExecutingGroupsMessage();
-          if (this.abbortedRequest) {
-            return true;
-          } else {
-            LoggerFactory.getLogger(getClass()).error("Unable to get group", t.getCause());
-            return false;
-          }
-        } else {
-          addExecutingGroupsMessage();
-          if (this.running) {
-            LoggerFactory.getLogger(getClass()).error("Unable to get group", t);
-          }
-        }
+        addExecutingGroupsMessage();
+        logError("Unable to get group", t);
       }
     }
     return false;
@@ -685,7 +709,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
     LoggerFactory.getLogger(getClass()).info("Started");
     try {
       this.running = true;
-      while (this.running) {
+      while (isRunning()) {
         try {
           if (processNextTask()) {
             this.timeout = 0;
@@ -694,7 +718,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
               this.timeout += this.timeoutStep;
             }
           }
-          if (this.running && this.timeout != 0) {
+          if (isRunning() && this.timeout != 0) {
             synchronized (this.monitor) {
               LoggerFactory.getLogger(getClass())
                 .debug("Waiting " + this.timeout + " seconds before getting next task");
@@ -702,7 +726,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
             }
           }
         } catch (final InterruptedException e) {
-          if (!this.running) {
+          if (!isRunning()) {
             return;
           }
         }
@@ -714,6 +738,39 @@ public class WorkerScheduler extends ThreadPoolExecutor
     } finally {
       LoggerFactory.getLogger(getClass()).info("Stopped");
     }
+  }
+
+  public boolean scheduleGroup(final Map<String, Object> group) {
+    if (isRunning()) {
+      if (group != null && !group.isEmpty()) {
+        if (group.get("batchJobId") != null) {
+          if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
+            LoggerFactory.getLogger(getClass()).debug("Scheduling group " + group);
+          }
+          final String groupId = (String)group.get("groupId");
+          this.addExecutingGroupId(groupId);
+          try {
+            final Runnable runnable = new WorkerGroupRunnable(this, group);
+            final Future<?> future = this.submit(runnable);
+            this.futureTaskByGroupId.put(groupId, future);
+            this.groupIdByFutureTask.put(future, groupId);
+            return true;
+          } catch (final Throwable e) {
+            if (isRunning()) {
+              LoggerFactory.getLogger(getClass()).error("Unable to get execute group " + groupId,
+                e);
+            }
+            removeExecutingGroupId(groupId);
+            addExecutingGroupsMessage();
+          }
+        }
+      } else {
+        if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
+          LoggerFactory.getLogger(getClass()).debug("No group available");
+        }
+      }
+    }
+    return false;
   }
 
   private void sendMessage(final Map<String, Object> message) {

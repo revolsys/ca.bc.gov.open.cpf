@@ -30,10 +30,8 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
@@ -60,7 +58,9 @@ import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.config.Page;
+import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
 
@@ -251,9 +251,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       tabs.add(title, view);
       return tabs;
     }
-
-    throw new NoSuchRequestHandlingMethodException(request);
-
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {
@@ -261,8 +259,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Object pageModuleList(final HttpServletRequest request, final HttpServletResponse response,
-    final @PathVariable("moduleName") String moduleName)
-    throws IOException, NoSuchRequestHandlingMethodException {
+    final @PathVariable("moduleName") String moduleName) throws IOException {
     final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
     return newDataTableHandlerOrRedirect(request, response, "moduleList",
@@ -296,6 +293,6 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
 
       return tabs;
     }
-    throw new NoSuchRequestHandlingMethodException(request);
+    throw new PageNotFoundException();
   }
 }

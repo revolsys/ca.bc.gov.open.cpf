@@ -38,9 +38,14 @@ public interface JobController {
 
   String JOB_INPUTS = "jobInputs";
 
-  boolean cancelJob(Identifier batchJobId);
+  default void cancelJob(final Identifier batchJobId) {
+  }
 
   void deleteJob(Identifier batchJobId);
+
+  String getGroupInputContentType(Identifier batchJobId, int sequenceNumber);
+
+  InputStream getGroupInputStream(Identifier batchJobId, int sequenceNumber);
 
   String getGroupInputString(Identifier batchJobId, int sequenceNumber);
 
@@ -54,7 +59,8 @@ public interface JobController {
 
   InputStream getJobResultStream(Identifier batchJobId, int sequenceNumber);
 
-  InputStream getJobResultStream(Identifier batchJobId, int sequenceNumber, long fromIndex, long toIndex);
+  InputStream getJobResultStream(Identifier batchJobId, int sequenceNumber, long fromIndex,
+    long toIndex);
 
   String getKey();
 

@@ -25,10 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
@@ -41,6 +39,7 @@ import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.record.query.And;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.util.Dates;
 
@@ -64,8 +63,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     }
   }
 
-  public Record getBatchJobResult(final Identifier batchJobId, final Integer sequenceNumber)
-    throws NoSuchRequestHandlingMethodException {
+  public Record getBatchJobResult(final Identifier batchJobId, final Integer sequenceNumber) {
     final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
       Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
     final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
@@ -74,7 +72,8 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     if (batchJobResult != null) {
       return batchJobResult;
     }
-    throw new NoSuchRequestHandlingMethodException(getRequest());
+    throw new PageNotFoundException(
+      "Job " + batchJobId + " or result " + sequenceNumber + " does not exist");
   }
 
   @RequestMapping(value = {
@@ -87,8 +86,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber)
-    throws NoSuchRequestHandlingMethodException, IOException {
+    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);
@@ -111,8 +109,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   public Object pageModuleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId)
-    throws IOException, NoSuchRequestHandlingMethodException {
+    @PathVariable("batchJobId") final Long batchJobId) throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);

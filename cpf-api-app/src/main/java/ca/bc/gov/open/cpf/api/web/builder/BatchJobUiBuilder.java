@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -44,9 +43,14 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.builder.HtmlUiBuilder;
+import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
+import com.revolsys.ui.html.serializer.key.KeySerializer;
+import com.revolsys.ui.html.serializer.key.MapTableKeySerializer;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.serializer.key.StringKeySerializer;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Dates;
@@ -70,29 +74,68 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     appBuilder.serializeLink(out, businessApplication, "name", "moduleView", parameterKeys);
   }
 
+  public void completedCount(final XmlWriter out, final Object object) {
+    final BatchJob batchJob = (BatchJob)object;
+    final int count = batchJob.getCompletedCount();
+    out.text(count);
+  }
+
+  public void completedGroups(final XmlWriter out, final Object object) {
+    final BatchJob batchJob = (BatchJob)object;
+    final String text = batchJob.getCompletedGroups();
+    out.text(text);
+  }
+
+  public void completedRequests(final XmlWriter out, final Object object) {
+    final BatchJob batchJob = (BatchJob)object;
+    final String text = batchJob.getCompletedRequests();
+    if (Property.hasValue(text)) {
+      boolean first = true;
+      for (final String range : text.split(",")) {
+        if (first) {
+          first = false;
+        } else {
+          out.text(", ");
+        }
+        out.text(range);
+      }
+    } else {
+      out.text('-');
+    }
+  }
+
   @Override
   protected Record convertRecord(final Record batchJob) {
     return getBatchJobService().getBatchJob(batchJob);
   }
 
+  public void failedCount(final XmlWriter out, final Object object) {
+    final BatchJob batchJob = (BatchJob)object;
+    final int count = batchJob.getFailedCount();
+    out.text(count);
+  }
+
+  public void failedRequests(final XmlWriter out, final Object object) {
+    final BatchJob batchJob = (BatchJob)object;
+    final String text = batchJob.getFailedRequests();
+    if (Property.hasValue(text)) {
+      boolean first = true;
+      for (final String range : text.split(",")) {
+        if (first) {
+          first = false;
+        } else {
+          out.text(", ");
+        }
+        out.text(range);
+      }
+    } else {
+      out.text('-');
+    }
+  }
+
   @Override
   public Object getProperty(final Object object, final String keyName) {
-    if (keyName.equals("groupsToProcess")) {
-      final BatchJob batchJob = (BatchJob)object;
-      return batchJob.getGroupsToProcess();
-    } else if (keyName.equals("scheduledGroups")) {
-      final BatchJob batchJob = (BatchJob)object;
-      return batchJob.getScheduledGroups();
-    } else if (keyName.equals("completedGroups")) {
-      final BatchJob batchJob = (BatchJob)object;
-      return batchJob.getCompletedGroups();
-    } else if (keyName.equals("completedRequests")) {
-      final BatchJob batchJob = (BatchJob)object;
-      return batchJob.getCompletedRequests();
-    } else if (keyName.equals("failedRequests")) {
-      final BatchJob batchJob = (BatchJob)object;
-      return batchJob.getFailedRequests();
-    } else if (keyName.startsWith("BUSINESS_APPLICATION_NAME") && object instanceof Record) {
+    if (keyName.startsWith("BUSINESS_APPLICATION_NAME") && object instanceof Record) {
       final Record batchJob = (Record)object;
       final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
       BusinessApplication businessApplication = getBusinessApplicationRegistry()
@@ -114,20 +157,166 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     }
   }
 
+  public void groupsToProcess(final XmlWriter out, final Object object) {
+    final BatchJob batchJob = (BatchJob)object;
+    final String text = batchJob.getGroupsToProcess();
+    out.text(text);
+  }
+
   @Override
   protected void initSerializers() {
     super.initSerializers();
-    final StringKeySerializer completedRequests = new StringKeySerializer("completedRequests",
-      "Completed Requests");
-    completedRequests.setProperty("sortable", false);
-    completedRequests.setProperty("searchable", false);
-    addKeySerializer(completedRequests);
 
-    final StringKeySerializer failedRequests = new StringKeySerializer("failedRequests",
-      "Failed Requests");
-    failedRequests.setProperty("sortable", false);
-    failedRequests.setProperty("searchable", false);
-    addKeySerializer(failedRequests);
+    final KeySerializer completedCount = getKeySerializer("completedCount");
+    completedCount.setProperty("sortable", false);
+    completedCount.setProperty("searchable", false);
+
+    final KeySerializer failedCount = getKeySerializer("failedCount");
+    failedCount.setProperty("sortable", false);
+    failedCount.setProperty("searchable", false);
+
+    addKeySerializer(
+      new PageLinkKeySerializer("BATCH_JOB_ID_CLIENT_LINK", "BATCH_JOB_ID", "ID", "clientView")
+        .addParameterKey("batchJobId", "BATCH_JOB_ID"));
+
+    addKeySerializer(new PageLinkKeySerializer("BUSINESS_APPLICATION_NAME_LINK",
+      "BUSINESS_APPLICATION_NAME.name", "Business Application", "moduleView")//
+        .addParameterKey("moduleName", "module.name")//
+        .addParameterKey("businessApplicationName", "name") //
+        .setSortFieldName("BUSINESS_APPLICATION_NAME"));
+
+    addKeySerializer(new PageLinkKeySerializer("CLIENT_BUSINESS_APPLICATION_NAME_LINK",
+      "BUSINESS_APPLICATION_NAME.title", "Business Application", "clientView") //
+        .addParameterKey("businessApplicationName", "name")//
+        .setSortFieldName("BUSINESS_APPLICATION_NAME"));
+
+    final PageLinkKeySerializer moduleLinkSerializer = new PageLinkKeySerializer("MODULE_NAME_LINK",
+      "BUSINESS_APPLICATION_NAME.module.name", "Module", "view") //
+        .addParameterKey("moduleName", "name");
+    moduleLinkSerializer.setProperty("searchable", false);
+    moduleLinkSerializer.setProperty("sortable", false);
+    addKeySerializer(moduleLinkSerializer);
+
+    addKeySerializer(new DateFormatKeySerializer("LAST_SCHEDULED_TIMESTAMP",
+      "Most Recent Request Scheduled Time"));
+    addKeySerializer(new DateFormatKeySerializer("COMPLETED_TIMESTAMP", "Completion Time"));
+    addKeySerializer(new MapTableKeySerializer(//
+      "businessApplicationParameterMap", //
+      "Business Application Parameter"//
+    )//
+      .setKeyLabel("Parameter")//
+      .setValueLabel("Value")//
+      .setKey("BUSINESS_APPLICATION_PARAMS"));
+    addKeySerializer(new MapTableKeySerializer(//
+      "propertyMap", //
+      "Properties"//
+    )//
+      .setKeyLabel("Name")//
+      .setValueLabel("Value")//
+      .setKey("PROPERTIES"));
+    addKeySerializer(new StringKeySerializer("NUM_SUBMITTED_GROUPS", "Group Count"));
+    addKeySerializer(new StringKeySerializer("NUM_SUBMITTED_REQUESTS", "Request Count"));
+    //
+    // <bean
+    // p:name="adminActions"
+    // p:label="Actions"
+    // class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+    //
+    // >
+    // <property name="serializers">
+    // <list>
+    // <bean
+    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+    // p:name="moduleAppCancel"
+    // p:label="Cancel"
+    // p:iconName="fa fa-stop"
+    // p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS
+    // == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
+    // >
+    // <property name="parameterNameMap">
+    // <map>
+    // <entry
+    // key="moduleName"
+    // value="BUSINESS_APPLICATION_NAME.module.name" />
+    // <entry
+    // key="businessApplicationName"
+    // value="BUSINESS_APPLICATION_NAME" />
+    // <entry
+    // key="batchJobId"
+    // value="BATCH_JOB_ID" />
+    // </map>
+    // </property>
+    // </bean>
+    // <bean
+    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+    // p:name="moduleAppDelete"
+    // p:label="Delete"
+    // p:iconName="fa fa-trash"
+    // p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS ==
+    // 'resultsCreated' or #JOB_STATUS == 'cancelled'"
+    // >
+    // <property name="parameterNameMap">
+    // <map>
+    // <entry
+    // key="moduleName"
+    // value="BUSINESS_APPLICATION_NAME.module.name" />
+    // <entry
+    // key="businessApplicationName"
+    // value="BUSINESS_APPLICATION_NAME" />
+    // <entry
+    // key="batchJobId"
+    // value="BATCH_JOB_ID" />
+    // </map>
+    // </property>
+    // </bean>
+    // </list>
+    // </property>
+    // </bean>
+    //
+    // <bean
+    // p:name="clientActions"
+    // p:label="Actions"
+    // class="com.revolsys.ui.html.serializer.key.MultipleKeySerializer"
+    // >
+    // <property name="serializers">
+    // <list>
+    // <bean
+    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+    // p:name="clientCancel"
+    // p:label="Cancel"
+    // p:iconName="fa fa-stop"
+    // p:enabledExpression="!(#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS
+    // == 'resultsCreated' or #JOB_STATUS == 'cancelled')"
+    // >
+    // <property name="parameterNameMap">
+    // <map>
+    // <entry
+    // key="batchJobId"
+    // value="batchJobId" />
+    // </map>
+    // </property>
+    // </bean>
+    // <bean
+    // class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
+    // p:name="clientDelete"
+    // p:label="Delete"
+    // p:iconName="fa fa-trash"
+    // p:enabledExpression="#JOB_STATUS == 'downloadInitiated' or #JOB_STATUS ==
+    // 'resultsCreated' or #JOB_STATUS == 'cancelled'"
+    // >
+    // <property name="parameterNameMap">
+    // <map>
+    // <entry
+    // key="batchJobId"
+    // value="batchJobId" />
+    // </map>
+    // </property>
+    // </bean>
+    // </list>
+    // </property>
+    // </bean>
+    //
+    // </list>
   }
 
   public void module(final XmlWriter out, final Object object) {
@@ -286,5 +475,11 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     } else {
       redirectPage("list");
     }
+  }
+
+  public void scheduledGroups(final XmlWriter out, final Object object) {
+    final BatchJob batchJob = (BatchJob)object;
+    final String text = batchJob.getScheduledGroups();
+    out.text(text);
   }
 }

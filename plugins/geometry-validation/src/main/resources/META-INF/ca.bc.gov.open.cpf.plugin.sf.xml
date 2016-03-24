@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-4.1.xsd
+  "
+>
+  <bean
+    id="gvws"
+    class="ca.bc.gov.open.cpf.plugins.geometryvalidation.GeometryValidatorPlugin"
+    scope="prototype" />
+
+  <util:map id="properties">
+    <entry key="default">
+      <map>
+        <entry
+          key="inputDataFileExtension"
+          value="kmz" />
+        <entry
+          key="srid"
+          value="4326" />
+        <entry
+          key="resultDataFileExtension"
+          value="kmz" />
+        <entry
+          key="resultSrid"
+          value="4326" />
+        <entry
+          key="resultNumAxis"
+          value="2" />
+        <entry
+          key="resultScaleFactorXy"
+          value="1000" />
+        <entry
+          key="resultScaleFactorZ"
+          value="1" />
+        <entry
+          key="kmlPlaceMarkNameAttribute"
+          value="mapTileId" />
+      </map>
+    </entry>
+  </util:map>
+</beans>

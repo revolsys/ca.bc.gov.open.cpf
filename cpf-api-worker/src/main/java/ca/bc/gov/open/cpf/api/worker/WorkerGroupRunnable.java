@@ -32,15 +32,14 @@ import java.util.Map.Entry;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.log4j.Logger;
 import org.springframework.util.StopWatch;
 
-import ca.bc.gov.open.cpf.client.httpclient.DigestHttpClient;
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
@@ -68,7 +67,7 @@ import com.revolsys.util.Property;
 public class WorkerGroupRunnable implements Runnable {
   private final Map<String, Object> groupIdMap;
 
-  private final DigestHttpClient httpClient;
+  private final WorkerHttpClient httpClient;
 
   private final SecurityServiceFactory securityServiceFactory;
 
@@ -106,14 +105,12 @@ public class WorkerGroupRunnable implements Runnable {
 
   private File errorFile;
 
-  public WorkerGroupRunnable(final WorkerScheduler executor,
-    final BusinessApplicationRegistry businessApplicationRegistry,
-    final DigestHttpClient httpClient, final SecurityServiceFactory securityServiceFactory,
-    final String workerId, final Map<String, Object> groupIdMap) {
-    this.executor = executor;
-    this.httpClient = httpClient;
-    this.securityServiceFactory = securityServiceFactory;
-    this.workerId = workerId;
+  public WorkerGroupRunnable(final WorkerScheduler scheduler,
+    final Map<String, Object> groupIdMap) {
+    this.executor = scheduler;
+    this.httpClient = scheduler.getHttpClient();
+    this.securityServiceFactory = scheduler.getSecurityServiceFactory();
+    this.workerId = scheduler.getId();
     this.groupIdMap = groupIdMap;
     this.groupId = (String)groupIdMap.get("groupId");
     this.moduleName = (String)groupIdMap.get("moduleName");
@@ -246,7 +243,8 @@ public class WorkerGroupRunnable implements Runnable {
     final StopWatch requestStopWatch = new StopWatch("Request");
     requestStopWatch.start();
 
-    final Integer requestSequenceNumber = Maps.getInteger(requestParameters, "i");
+    final Integer requestSequenceNumber = Maps.getInteger(requestParameters,
+      BusinessApplication.SEQUENCE_NUMBER);
 
     boolean hasError = true;
     try {
@@ -263,12 +261,10 @@ public class WorkerGroupRunnable implements Runnable {
         File resultFile = null;
         OutputStream resultData = null;
         if (this.businessApplication.isPerRequestInputData()) {
-          // TODO urls for per request input data
-          // final String inputDataUrl = httpClient.getOAuthUrl("GET",
-          // "/worker/workers/" + workerId + "/jobs/" + batchJobId
-          // + "/groups/" + groupId + "/requests/" + sequenceNumber
-          // + "/inputData");
-          // parameters.put("inputDataUrl", inputDataUrl);
+          final String inputDataUrl = this.httpClient
+            .getUrl("/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
+              + this.groupId + "/requests/" + requestSequenceNumber + "/inputData", null);
+          parameters.put("inputDataUrl", inputDataUrl);
         }
         if (this.businessApplication.isPerRequestResultData()) {
           resultFile = FileUtil.newTempFile(this.businessApplicationName, ".bin");
@@ -396,9 +392,9 @@ public class WorkerGroupRunnable implements Runnable {
               this.userId);
           }
 
-          final String groupUrl = this.httpClient.getUrl("/worker/workers/" + this.workerId
-            + "/jobs/" + this.batchJobId + "/groups/" + this.groupId);
-          final Map<String, Object> group = this.httpClient.getJsonResource(groupUrl);
+          final String groupPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+            + "/groups/" + this.groupId;
+          final Map<String, Object> group = this.httpClient.getJsonResource(groupPath);
           if (!group.isEmpty()) {
             final Map<String, Object> globalError = new LinkedHashMap<>();
 
@@ -459,15 +455,15 @@ public class WorkerGroupRunnable implements Runnable {
           + "&applicationExecutedTime=" + this.applicationExecutionTime + //
           "&completedRequestRange=" + this.successRequests + //
           "&failedRequestRange=" + this.errorRequests;
-        final HttpResponse response = this.httpClient.postResource(this.httpClient.getUrl(path),
-          "text/csv", resultCache.getInputStream());
-        this.httpClient.closeResponse(response);
+        final HttpResponse response = this.httpClient.postResource(path, "text/csv",
+          resultCache.getInputStream());
+        HttpClientUtils.closeQuietly(response);
         if (this.errorWriter != null) {
           final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
             + "/groups/" + this.groupId + "/error";
-          final HttpResponse errorResponse = this.httpClient
-            .postResource(this.httpClient.getUrl(errorPath), "text/csv", this.errorFile);
-          this.httpClient.closeResponse(errorResponse);
+          final HttpResponse errorResponse = this.httpClient.postResource(errorPath, "text/csv",
+            this.errorFile);
+          HttpClientUtils.closeQuietly(errorResponse);
         }
       }
     } catch (final Throwable e) {
@@ -488,21 +484,18 @@ public class WorkerGroupRunnable implements Runnable {
         resultData.flush();
         FileUtil.closeSilent(resultData);
         final String resultDataContentType = (String)parameters.get("resultDataContentType");
-        final String resultDataUrl = this.httpClient
-          .getUrl("/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
-            + this.groupId + "/requests/" + requestSequenceNumber + "/resultData");
+        final String resultDataPath = "/worker/workers/" + this.workerId + "/jobs/"
+          + this.batchJobId + "/groups/" + this.groupId + "/requests/" + requestSequenceNumber
+          + "/resultData";
 
-        final HttpResponse response = this.httpClient.postResource(resultDataUrl,
+        final HttpResponse response = this.httpClient.postResource(resultDataPath,
           resultDataContentType, resultFile);
-        try {
 
-          final StatusLine statusLine = response.getStatusLine();
-          if (statusLine.getStatusCode() != HttpURLConnection.HTTP_OK) {
-            throw new RecoverableException("Result data not accepted by server "
-              + statusLine.getStatusCode() + " " + statusLine.getReasonPhrase());
-          }
-        } finally {
-          FileUtil.closeSilent(response.getEntity().getContent());
+        final StatusLine status = response.getStatusLine();
+        final int statusCode = status.getStatusCode();
+        if (statusCode != HttpURLConnection.HTTP_OK) {
+          throw new RecoverableException(
+            "Result data not accepted by server " + statusCode + " " + status.getReasonPhrase());
         }
       } catch (final Throwable e) {
         this.log.error("Error sending result data", e);

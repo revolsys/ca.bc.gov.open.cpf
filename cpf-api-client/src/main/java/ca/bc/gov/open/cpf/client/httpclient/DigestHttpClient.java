@@ -104,6 +104,10 @@ public class DigestHttpClient {
 
   }
 
+  public void close() {
+    this.httpClient.close();
+  }
+
   public void closeResponse(final HttpResponse response) {
     try {
       final HttpEntity entity = response.getEntity();
