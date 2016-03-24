@@ -218,9 +218,11 @@
         <version>1.8</version>
         <executions>
           <execution>
+            <phase>deploy</phase>
             <id>aggregate-add-third-party</id>
             <inherited>true</inherited>
             <configuration>
+              <skipAggregateAddThirdParty>${license.skipAggregateAddThirdParty}</skipAggregateAddThirdParty>
               <force>true</force>
               <outputDirectory>src/license/</outputDirectory>
               <useMissingFile>true</useMissingFile>
@@ -584,6 +586,7 @@
     <org.springframework.security.version>4.0.2.RELEASE</org.springframework.security.version>
     <org.slf4j.version>1.6.4</org.slf4j.version>
     <skipWebDeploy>true</skipWebDeploy>
+    <license.skipAggregateAddThirdParty>true</license.skipAggregateAddThirdParty>
     <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
     <github.global.server>github</github.global.server>
     <gitHubUser>bcgov</gitHubUser>
