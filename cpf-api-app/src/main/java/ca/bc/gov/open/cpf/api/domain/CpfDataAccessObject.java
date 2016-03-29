@@ -131,7 +131,7 @@ public class CpfDataAccessObject implements Transactionable {
     synchronized (this.batchJobById) {
       final Set<Identifier> batchJobIds = this.batchJobIdsByBusinessApplication
         .remove(businessApplicationName);
-      if (this.batchJobById != null) {
+      if (batchJobIds != null) {
         for (final Identifier batchJobId : batchJobIds) {
           this.batchJobById.remove(batchJobId);
         }

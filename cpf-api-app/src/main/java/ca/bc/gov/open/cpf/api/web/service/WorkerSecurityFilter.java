@@ -17,7 +17,6 @@ package ca.bc.gov.open.cpf.api.web.service;
 
 import java.io.IOException;
 
-import javax.annotation.Resource;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -26,42 +25,63 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import ca.bc.gov.open.cpf.plugin.impl.security.SignatureUtil;
 
 import com.revolsys.ui.web.utils.HttpServletUtils;
+import com.revolsys.util.Property;
 
 public class WorkerSecurityFilter extends OncePerRequestFilter {
-  @Resource(name = "userAccountSecurityService")
   private UserDetailsService userDetailsService;
 
   @Override
   protected void doFilterInternal(final HttpServletRequest request,
     final HttpServletResponse response, final FilterChain filterChain)
     throws ServletException, IOException {
-    try {
-      final String workerUserName = request.getParameter("workerUsername");
-      final UserDetails userDetails = this.userDetailsService.loadUserByUsername(workerUserName);
-      if (userDetails != null && userDetails.isEnabled()) {
-        for (final GrantedAuthority authority : userDetails.getAuthorities()) {
-          if ("ROLE_WORKER".equals(authority.getAuthority())) {
-            final String password = userDetails.getPassword();
-            final String path = HttpServletUtils.getOriginatingRequestUri(request);
-            final String time = request.getParameter("workerTime");
-            final String signature = request.getParameter("workerSignature");
-            final String calculatedSignature = SignatureUtil.sign(password, path, time);
-            if (calculatedSignature.equals(signature)) {
-              filterChain.doFilter(request, response);
-            } else {
-              response.sendError(HttpServletResponse.SC_FORBIDDEN);
+    String workerUserName = request.getParameter("workerUsername");
+    String time = request.getParameter("workerTime");
+    String signature = request.getParameter("workerSignature");
+    final String authorization = request.getHeader("Authorization");
+    if (Property.hasValue(authorization)) {
+      final String[] parameters = authorization.split(",");
+      if (parameters.length == 3) {
+        workerUserName = parameters[0];
+        time = parameters[1];
+        signature = parameters[2];
+      }
+    }
+    if (Property.hasValue(workerUserName)) {
+      try {
+        final UserDetails userDetails = this.userDetailsService.loadUserByUsername(workerUserName);
+        if (userDetails != null && userDetails.isEnabled()) {
+          for (final GrantedAuthority authority : userDetails.getAuthorities()) {
+            if ("ROLE_WORKER".equals(authority.getAuthority())) {
+              final String password = userDetails.getPassword();
+              final String path = HttpServletUtils.getOriginatingRequestUri(request);
+              final String calculatedSignature = SignatureUtil.sign(password, path, time);
+              if (calculatedSignature.equals(signature)) {
+                filterChain.doFilter(request, response);
+                return;
+              }
             }
-            return;
           }
         }
+      } catch (final UsernameNotFoundException e) {
+      } catch (final Throwable e) {
+        e.printStackTrace();
       }
-    } catch (final Throwable e) {
     }
-    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+    response.setHeader("WWW-Authenticate", "CPF_WORKER realm=\"CPF\"");
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Required");
+  }
+
+  public UserDetailsService getUserDetailsService() {
+    return this.userDetailsService;
+  }
+
+  public void setUserDetailsService(final UserDetailsService userDetailsService) {
+    this.userDetailsService = userDetailsService;
   }
 }

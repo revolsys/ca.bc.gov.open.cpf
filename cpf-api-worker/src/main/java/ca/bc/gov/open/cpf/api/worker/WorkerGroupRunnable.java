@@ -18,6 +18,7 @@ package ca.bc.gov.open.cpf.api.worker;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -69,11 +70,9 @@ public class WorkerGroupRunnable implements Runnable {
 
   private final WorkerHttpClient httpClient;
 
-  private final SecurityServiceFactory securityServiceFactory;
-
   private final String workerId;
 
-  private final WorkerScheduler executor;
+  private final WorkerScheduler scheduler;
 
   private final String groupId;
 
@@ -107,9 +106,8 @@ public class WorkerGroupRunnable implements Runnable {
 
   public WorkerGroupRunnable(final WorkerScheduler scheduler,
     final Map<String, Object> groupIdMap) {
-    this.executor = scheduler;
+    this.scheduler = scheduler;
     this.httpClient = scheduler.getHttpClient();
-    this.securityServiceFactory = scheduler.getSecurityServiceFactory();
     this.workerId = scheduler.getId();
     this.groupIdMap = groupIdMap;
     this.groupId = (String)groupIdMap.get("groupId");
@@ -351,11 +349,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<Map<String,Object>
    * logRecords List<Map<String,Object>
    * groupExecutionTime long
@@ -376,10 +374,10 @@ public class WorkerGroupRunnable implements Runnable {
         "ExecutionGroupResults");
 
       final Long moduleTime = ((Number)this.groupIdMap.get("moduleTime")).longValue();
-      this.businessApplication = this.executor.getBusinessApplication(this.log, this.moduleName,
+      this.businessApplication = this.scheduler.getBusinessApplication(this.log, this.moduleName,
         moduleTime, this.businessApplicationName);
       if (this.businessApplication == null) {
-        this.executor.addFailedGroup(this.groupId);
+        this.scheduler.addFailedGroup(this.groupId);
         return;
       } else {
         try (
@@ -388,7 +386,9 @@ public class WorkerGroupRunnable implements Runnable {
           this.businessApplication.setLogLevel(this.logLevel);
           this.module = this.businessApplication.getModule();
           if (this.businessApplication.isSecurityServiceRequired()) {
-            this.securityService = this.securityServiceFactory.getSecurityService(this.module,
+            final SecurityServiceFactory securityServiceFactory = this.scheduler
+              .getSecurityServiceFactory();
+            this.securityService = securityServiceFactory.getSecurityService(this.module,
               this.userId);
           }
 
@@ -427,7 +427,7 @@ public class WorkerGroupRunnable implements Runnable {
               }
               for (final Map<String, Object> requestParameters : requests) {
                 if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
-                  this.executor.addFailedGroup(this.groupId);
+                  this.scheduler.addFailedGroup(this.groupId);
                   return;
                 }
                 executeRequest(resultWriter, requestRecordDefinition, applicationParameters,
@@ -439,7 +439,7 @@ public class WorkerGroupRunnable implements Runnable {
           }
         }
         if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
-          this.executor.addFailedGroup(this.groupId);
+          this.scheduler.addFailedGroup(this.groupId);
           return;
         }
         try {
@@ -450,27 +450,32 @@ public class WorkerGroupRunnable implements Runnable {
         }
         final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
 
+        final Map<String, Object> parameters = new HashMap<>();
+        parameters.put("groupExecutedTime", groupExecutionTime);
+        parameters.put("applicationExecutedTime", this.applicationExecutionTime);
+        parameters.put("completedRequestRange", this.successRequests);
+        parameters.put("failedRequestRange", this.errorRequests);
         final String path = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-          + "/groups/" + this.groupId + "/results?groupExecutedTime=" + groupExecutionTime
-          + "&applicationExecutedTime=" + this.applicationExecutionTime + //
-          "&completedRequestRange=" + this.successRequests + //
-          "&failedRequestRange=" + this.errorRequests;
-        final HttpResponse response = this.httpClient.postResource(path, "text/csv",
-          resultCache.getInputStream());
-        HttpClientUtils.closeQuietly(response);
-        if (this.errorWriter != null) {
-          final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-            + "/groups/" + this.groupId + "/error";
-          final HttpResponse errorResponse = this.httpClient.postResource(errorPath, "text/csv",
-            this.errorFile);
-          HttpClientUtils.closeQuietly(errorResponse);
+          + "/groups/" + this.groupId + "/results";
+        try (
+          InputStream inputStream = resultCache.getInputStream()) {
+          final HttpResponse response = this.httpClient.postResource(path, "text/csv", inputStream,
+            parameters);
+          HttpClientUtils.closeQuietly(response);
+          if (this.errorWriter != null) {
+            final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+              + "/groups/" + this.groupId + "/error";
+            final HttpResponse errorResponse = this.httpClient.postResource(errorPath, "text/csv",
+              this.errorFile);
+            HttpClientUtils.closeQuietly(errorResponse);
+          }
         }
       }
     } catch (final Throwable e) {
       this.log.error("Unable to process group " + this.groupId, e);
-      this.executor.addFailedGroup(this.groupId);
+      this.scheduler.addFailedGroup(this.groupId);
     } finally {
-      this.executor.removeExecutingGroupId(this.groupId);
+      this.scheduler.removeExecutingGroupId(this.groupId);
       this.log.info("End\tGroup execution\tgroupId=" + this.groupId);
       FileUtil.delete(this.errorFile);
     }

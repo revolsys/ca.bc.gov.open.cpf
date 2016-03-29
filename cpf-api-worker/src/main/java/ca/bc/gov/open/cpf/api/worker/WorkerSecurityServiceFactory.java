@@ -15,16 +15,18 @@
  */
 package ca.bc.gov.open.cpf.api.worker;
 
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.AbstractCachingSecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.security.AbstractSecurityServiceFactory;
 
 public class WorkerSecurityServiceFactory extends AbstractSecurityServiceFactory {
+  private final WorkerMessageHandler messageHandler;
 
-  private final WorkerScheduler workerScheduler;
-
-  public WorkerSecurityServiceFactory(final WorkerScheduler workerScheduler) {
-    this.workerScheduler = workerScheduler;
+  public WorkerSecurityServiceFactory(final WorkerMessageHandler messageHandler) {
+    this.messageHandler = messageHandler;
+    BusinessApplicationRegistry businessApplicationRegistry = this.messageHandler.getBusinessApplicationRegistry();
+    businessApplicationRegistry.addModuleEventListener(this);
   }
 
   @Override
@@ -34,7 +36,7 @@ public class WorkerSecurityServiceFactory extends AbstractSecurityServiceFactory
   @Override
   protected AbstractCachingSecurityService newSecurityService(final Module module,
     final String consumerKey) {
-    return new WorkerSecurityService(this.workerScheduler, module, consumerKey);
+    return new WorkerSecurityService(this.messageHandler, module, consumerKey);
   }
 
 }

@@ -207,11 +207,11 @@ public class WorkerHttpClient {
     final StringBuilder url = new StringBuilder(this.webServiceUrl);
     url.append(path);
     url.append("?workerUsername=");
-    url.append(this.username);
+    url.append(SignatureUtil.urlEncode(this.username));
     url.append("&workerSignature=");
-    url.append(signature);
+    url.append(SignatureUtil.urlEncode(signature));
     url.append("&workerTime=");
-    url.append(time);
+    url.append(SignatureUtil.urlEncode(time));
     if (Property.hasValue(parameters)) {
       url.append('&');
       UrlUtil.appendQuery(url, parameters);
@@ -244,7 +244,12 @@ public class WorkerHttpClient {
 
   public HttpResponse postResource(final String path, final String contentType,
     final InputStream in) {
-    final String url = getUrl(path, null);
+    return postResource(path, contentType, in, null);
+  }
+
+  public HttpResponse postResource(final String path, final String contentType,
+    final InputStream in, final Map<String, Object> parameters) {
+    final String url = getUrl(path, parameters);
     try {
       final HttpPost request = new HttpPost(url);
       final InputStreamEntity entity = new InputStreamEntity(in, ContentType.create(contentType));

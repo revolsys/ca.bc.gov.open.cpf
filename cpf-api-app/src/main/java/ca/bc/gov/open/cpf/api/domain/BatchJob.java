@@ -299,11 +299,17 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public synchronized void setStatus(final BatchJobService batchJobService,
     final String jobStatus) {
+    final long time = System.currentTimeMillis();
+    setStatus(batchJobService, jobStatus, time);
+  }
+
+  public void setStatus(final BatchJobService batchJobService, final String jobStatus,
+    final long time) {
+    final Timestamp timestamp = new Timestamp(time);
     setValue(JOB_STATUS, jobStatus);
-    final Timestamp now = new Timestamp(System.currentTimeMillis());
     final String username = CpfDataAccessObject.getUsername();
-    setValue(WHEN_STATUS_CHANGED, now);
-    setValue(Common.WHEN_UPDATED, now);
+    setValue(WHEN_STATUS_CHANGED, timestamp);
+    setValue(Common.WHEN_UPDATED, timestamp);
     setValue(Common.WHO_UPDATED, username);
 
     final RecordStore recordStore = batchJobService.getRecordStore();
@@ -311,7 +317,7 @@ public class BatchJob extends DelegatingRecord implements Common {
       .newRecord(BatchJobStatusChange.BATCH_JOB_STATUS_CHANGE);
     batchJobStatusChange.setValue(BatchJobStatusChange.BATCH_JOB_ID, this, BATCH_JOB_ID);
     batchJobStatusChange.setValue(BatchJobStatusChange.JOB_STATUS, jobStatus);
-    batchJobStatusChange.setValue(Common.WHEN_CREATED, now);
+    batchJobStatusChange.setValue(Common.WHEN_CREATED, timestamp);
     batchJobStatusChange.setValue(Common.WHO_UPDATED, username);
     final CpfDataAccessObject dataAccessObject = batchJobService.getDataAccessObject();
     dataAccessObject.write(batchJobStatusChange);

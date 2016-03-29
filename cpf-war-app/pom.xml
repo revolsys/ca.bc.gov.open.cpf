@@ -29,20 +29,6 @@
               </includes>
             </resource>
             <resource>
-              <directory>../cpf-api-client/target/site</directory>
-              <targetPath>docs/client/</targetPath>
-              <includes>
-                <include>java-api/**</include>
-              </includes>
-            </resource>
-            <resource>
-              <directory>../cpf-api-client/target</directory>
-              <targetPath>docs/client/</targetPath>
-              <includes>
-                <include>javascript-api/**</include>
-              </includes>
-            </resource>
-            <resource>
               <directory>../cpf-api-client/src/main/js/</directory>
               <targetPath>js/</targetPath>
               <includes>
@@ -50,24 +36,10 @@
               </includes>
             </resource>
             <resource>
-              <directory>../cpf-api-app/target/site</directory>
-              <targetPath>docs/client/</targetPath>
-              <includes>
-                <include>rest-api/**</include>
-              </includes>
-            </resource>
-            <resource>
               <directory>../cpf-api-plugin/target</directory>
               <targetPath>lib</targetPath>
               <includes>
                 <include>cpf-api-plugin-${project.version}.jar</include>
-              </includes>
-            </resource>
-            <resource>
-              <directory>../cpf-api-plugin/target/site</directory>
-              <targetPath>docs/plugin/</targetPath>
-              <includes>
-                <include>java-api/**</include>
               </includes>
             </resource>
             <resource>

@@ -106,6 +106,7 @@ import com.revolsys.ui.html.builder.HtmlUiBuilder;
 import com.revolsys.ui.html.decorator.FormGroupDecorator;
 import com.revolsys.ui.html.fields.BigDecimalField;
 import com.revolsys.ui.html.fields.BigIntegerField;
+import com.revolsys.ui.html.fields.Button;
 import com.revolsys.ui.html.fields.ByteField;
 import com.revolsys.ui.html.fields.CheckBoxField;
 import com.revolsys.ui.html.fields.DateField;
@@ -120,7 +121,6 @@ import com.revolsys.ui.html.fields.LongField;
 import com.revolsys.ui.html.fields.NumberField;
 import com.revolsys.ui.html.fields.SelectField;
 import com.revolsys.ui.html.fields.ShortField;
-import com.revolsys.ui.html.fields.SubmitField;
 import com.revolsys.ui.html.fields.TextAreaField;
 import com.revolsys.ui.html.fields.TextField;
 import com.revolsys.ui.html.fields.TimestampField;
@@ -722,9 +722,11 @@ public class ConcurrentProcessingFramework {
           batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
             inputDataFiles.size() + inputDataUrls.size());
           this.dataAccessObject.write(batchJob.getRecord());
-          batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED);
-          batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS);
-          batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING);
+          final long time = System.currentTimeMillis();
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS, time + 1);
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING, time + 2);
+          batchJob.update();
           int requestSequenceNumber = 0;
           if (inputDataUrls.isEmpty()) {
             for (final MultipartFile file : inputDataFiles) {
@@ -978,9 +980,11 @@ public class ConcurrentProcessingFramework {
       batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultDataContentType);
       batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
       this.dataAccessObject.write(batchJob.getRecord());
-      batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED);
-      batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS);
-      batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING);
+      final long time = System.currentTimeMillis();
+      batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
+      batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS, time + 1);
+      batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING, time + 2);
+      batchJob.update();
       if (perRequestInputData) {
         if (inputDataIn != null) {
           this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
@@ -1053,7 +1057,11 @@ public class ConcurrentProcessingFramework {
       }
     }
     this.dataAccessObject.write(batchJob);
-    batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED);
+    final long time = System.currentTimeMillis();
+    batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
+    batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS, time + 1);
+    batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING, time + 2);
+    batchJob.update();
     this.batchJobService.preProcess(batchJobId);
   }
 
@@ -1377,7 +1385,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -2247,7 +2255,8 @@ public class ConcurrentProcessingFramework {
     addResultDataFields(fieldSectionMap, panelGroup, businessApplication, "format");
     addTestFields(fieldSectionMap, panelGroup, businessApplication);
     addSections("Instant", businessApplication, form, panelGroup);
-    form.add(new DivElementContainer("actionMenu", new SubmitField("instantForm", "Create Job")));
+    form.add(new DivElementContainer("btn-toolbar", Button.submit("instantForm", "Create Job"))
+      .setRole("toolbar"));
 
     container.add(form);
     return container;
@@ -2286,8 +2295,8 @@ public class ConcurrentProcessingFramework {
     addTestFields(fieldSectionMap, panelGroup, businessApplication);
 
     addSections("Multiple", businessApplication, form, panelGroup);
-    form
-      .add(new DivElementContainer("actionMenu", new SubmitField("clientMultiple", "Create Job")));
+    form.add(new DivElementContainer("btn-toolbar", Button.submit("clientMultiple", "Create Job"))
+      .setRole("toolbar"));
 
     container.add(form);
     return container;
@@ -2427,7 +2436,8 @@ public class ConcurrentProcessingFramework {
     final Form form = new Form("createSingle", url);
     addSections("Single", businessApplication, form, panelGroup);
 
-    form.add(new DivElementContainer("actionMenu", new SubmitField("createSingle", "Create Job")));
+    form.add(new DivElementContainer("btn-toolbar", Button.submit("createSingle", "Create Job"))
+      .setRole("toolbar"));
 
     final ElementContainer container = new ElementContainer(form);
     return container;

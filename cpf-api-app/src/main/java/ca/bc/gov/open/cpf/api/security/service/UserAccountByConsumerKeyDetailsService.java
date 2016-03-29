@@ -37,6 +37,7 @@ import com.revolsys.record.Record;
 import com.revolsys.record.Records;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
+import com.revolsys.util.Property;
 
 public class UserAccountByConsumerKeyDetailsService implements UserDetailsService {
 
@@ -57,34 +58,38 @@ public class UserAccountByConsumerKeyDetailsService implements UserDetailsServic
   @Override
   public UserDetails loadUserByUsername(final String username)
     throws UsernameNotFoundException, DataAccessException {
-    try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
-      try {
-        final String name = username.toLowerCase();
-        final Record user = this.dataAccessObject.getUserAccount(name);
-        if (user == null) {
-          throw new UsernameNotFoundException("Username or password incorrect");
-        } else {
-          final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
-          final boolean active = Records.getBoolean(user, UserAccount.ACTIVE_IND);
-          final List<String> groupNames = this.userAccountSecurityService.getGroupNames(user);
-          final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-          for (final String groupName : groupNames) {
-            authorities.add(new SimpleGrantedAuthority(groupName));
-            authorities.add(new SimpleGrantedAuthority("ROLE_" + groupName));
+    if (Property.hasValue(username)) {
+      try (
+        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+        try {
+          final String name = username.toLowerCase();
+          final Record user = this.dataAccessObject.getUserAccount(name);
+          if (user == null) {
+            throw new UsernameNotFoundException("Username or password incorrect");
+          } else {
+            final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
+            final boolean active = Records.getBoolean(user, UserAccount.ACTIVE_IND);
+            final List<String> groupNames = this.userAccountSecurityService.getGroupNames(user);
+            final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+            for (final String groupName : groupNames) {
+              authorities.add(new SimpleGrantedAuthority(groupName));
+              authorities.add(new SimpleGrantedAuthority("ROLE_" + groupName));
+            }
+            final User userDetails = new User(name, userPassword, active, true, true, true,
+              authorities);
+            if (this.userDetailsChecker != null) {
+              this.userDetailsChecker.check(userDetails);
+            }
+            return userDetails;
           }
-          final User userDetails = new User(name, userPassword, active, true, true, true,
-            authorities);
-          if (this.userDetailsChecker != null) {
-            this.userDetailsChecker.check(userDetails);
-          }
-          return userDetails;
+        } catch (final AuthenticationException e) {
+          throw e;
+        } catch (final Throwable e) {
+          throw transaction.setRollbackOnly(e);
         }
-      } catch (final AuthenticationException e) {
-        throw e;
-      } catch (final Throwable e) {
-        throw transaction.setRollbackOnly(e);
       }
+    } else {
+      throw new UsernameNotFoundException("Username or password incorrect");
     }
   }
 

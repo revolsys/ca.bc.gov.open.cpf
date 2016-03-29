@@ -35,21 +35,20 @@ import com.revolsys.websocket.AsyncResult;
 import com.revolsys.websocket.json.JsonAsyncSender;
 
 public class WorkerConfigPropertyLoader extends BeanConfigurrer implements ConfigPropertyLoader {
+  private final WorkerMessageHandler messageHandler;
 
-  private String environmentName = "default";
-
-  private final WorkerScheduler workerScheduler;
+  private final WorkerScheduler scheduler;
 
   public WorkerConfigPropertyLoader(final WorkerScheduler workerScheduler,
-    final String environmentName) {
-    this.workerScheduler = workerScheduler;
-    this.environmentName = environmentName;
+    final WorkerMessageHandler messageHandler) {
+    this.scheduler = workerScheduler;
+    this.messageHandler = messageHandler;
   }
 
   @Override
   public synchronized Map<String, Object> getConfigProperties(final String moduleName,
     final String componentName) {
-    return getConfigProperties(this.environmentName, moduleName, componentName);
+    return getConfigProperties(this.getEnvironmentName(), moduleName, componentName);
   }
 
   @Override
@@ -59,7 +58,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
   public synchronized Map<String, Object> getConfigProperties(final String environmentName,
     final String moduleName, final String componentName) {
     try {
-      final JsonAsyncSender messageSender = this.workerScheduler.getMessageSender();
+      final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
       if (messageSender != null) {
         final Map<String, Object> message = Maps.newLinkedHash("type", "moduleConfigLoad");
         message.put("moduleName", moduleName);
@@ -99,17 +98,20 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
     return Collections.emptyMap();
   }
 
+  private String getEnvironmentName() {
+    return this.scheduler.getEnvironmentName();
+  }
+
   @Override
   public void postProcessBeanFactory(final ConfigurableListableBeanFactory beanFactory)
     throws BeansException {
     try {
-      final Map<String, Object> attributes = getConfigProperties(this.environmentName, "CPF_WORKER",
-        "GLOBAL");
+      final Map<String, Object> attributes = getConfigProperties(this.getEnvironmentName(),
+        "CPF_WORKER", "GLOBAL");
       setAttributes(attributes);
       super.postProcessBeanFactory(beanFactory);
     } catch (final Throwable e) {
       LoggerFactory.getLogger(getClass()).error("Unable to load config", e.getCause());
     }
   }
-
 }

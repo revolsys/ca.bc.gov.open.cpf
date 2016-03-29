@@ -26,21 +26,21 @@ import com.revolsys.websocket.json.JsonAsyncSender;
 import com.revolsys.websocket.json.JsonPropertyAsyncResult;
 
 public class WorkerSecurityService extends AbstractCachingSecurityService {
-  private final WorkerScheduler workerScheduler;
+  private final WorkerMessageHandler messageHandler;
 
   private final String moduleName;
 
-  public WorkerSecurityService(final WorkerScheduler workerScheduler, final Module module,
+  public WorkerSecurityService(final WorkerMessageHandler messageHandler, final Module module,
     final String userId) {
     super(module, userId);
-    this.workerScheduler = workerScheduler;
+    this.messageHandler = messageHandler;
     this.moduleName = module.getName();
   }
 
   @Override
   protected Boolean loadActionPermission(final String actionName) {
     try {
-      final JsonAsyncSender messageSender = this.workerScheduler.getMessageSender();
+      final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
       if (messageSender == null) {
         return false;
       } else {
@@ -60,7 +60,7 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
   @Override
   protected Boolean loadGroupPermission(final String groupName) {
     try {
-      final JsonAsyncSender messageSender = this.workerScheduler.getMessageSender();
+      final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
       if (messageSender == null) {
         return false;
       } else {
@@ -80,7 +80,7 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
   protected Boolean loadResourceAccessPermission(final String resourceClass,
     final String resourceId, final String actionName) {
     try {
-      final JsonAsyncSender messageSender = this.workerScheduler.getMessageSender();
+      final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
       if (messageSender == null) {
         return false;
       } else {
@@ -102,7 +102,7 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
   @Override
   protected Map<String, Object> loadUserAttributes() {
     try {
-      final JsonAsyncSender messageSender = this.workerScheduler.getMessageSender();
+      final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
       if (messageSender == null) {
         return Collections.emptyMap();
       } else {

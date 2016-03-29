@@ -42,6 +42,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 
+import com.revolsys.collection.list.Lists;
 import com.revolsys.comparator.IgnoreCaseStringComparator;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
@@ -158,7 +159,7 @@ public final class BusinessApplicationRegistry
         try {
           module.stop();
         } catch (final Throwable e) {
-          Exceptions.log(getClass(), "Unable to stop " + module.getName(), e);
+          Exceptions.error(getClass(), "Unable to stop " + module.getName(), e);
         }
       }
 
@@ -423,8 +424,8 @@ public final class BusinessApplicationRegistry
     this.environmentId = environmentId;
   }
 
-  public void setModuleLoaders(final List<ModuleLoader> moduleLoaders) {
-    this.moduleLoaders = new ArrayList<ModuleLoader>(moduleLoaders);
+  public void setModuleLoaders(final Collection<ModuleLoader> moduleLoaders) {
+    this.moduleLoaders = Lists.toArray(moduleLoaders);
   }
 
   public void startModule(final String moduleName) {

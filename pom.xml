@@ -180,6 +180,7 @@
         <configuration>
           <archiveClasses>false</archiveClasses>
           <attachClasses>false</attachClasses>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
         </configuration>
       </plugin>
       <plugin>

@@ -79,7 +79,9 @@
 
   <bean
     id="workerSecurityFilter"
-    class="ca.bc.gov.open.cpf.api.web.service.WorkerSecurityFilter" />
+    class="ca.bc.gov.open.cpf.api.web.service.WorkerSecurityFilter"
+    p:userDetailsService-ref="consumerDetailsService"
+    />
 
   <bean
     id="oAuthProcessingFilter"

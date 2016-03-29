@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-fragment
+  xmlns="http://java.sun.com/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://java.sun.com/xml/ns/javaee
+    http://java.sun.com/xml/ns/javaee/web-fragment_3_0.xsd
+  "
+  version="3.0"
+>
+  <name>ca.bc.gov.open.cpf.web.app</name>
+  
+  <listener>
+    <listener-class>ca.bc.gov.open.cpf.api.web.CpfLog4jContextListener</listener-class>
+  </listener>
+
+  <listener>
+    <listener-class>com.revolsys.ui.web.servlet.listener.ContextLoaderListener</listener-class>
+  </listener>
+</web-fragment>

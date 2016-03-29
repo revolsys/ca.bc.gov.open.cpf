@@ -18,40 +18,33 @@ package ca.bc.gov.open.cpf.api.worker;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
-import java.net.URI;
-import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.Query;
 import javax.servlet.ServletContext;
-import javax.websocket.ClientEndpoint;
-import javax.websocket.OnClose;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
@@ -60,39 +53,25 @@ import org.apache.log4j.rolling.FixedWindowRollingPolicy;
 import org.apache.log4j.rolling.RollingFileAppender;
 import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.ClientProperties;
-import org.glassfish.tyrus.client.auth.AuthConfig;
-import org.glassfish.tyrus.client.auth.Credentials;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.web.context.ServletContextAware;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
-import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModuleLoader;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
 import com.revolsys.collection.map.Maps;
-import com.revolsys.io.FileUtil;
 import com.revolsys.parallel.NamedThreadFactory;
-import com.revolsys.parallel.process.Process;
-import com.revolsys.parallel.process.ProcessNetwork;
-import com.revolsys.spring.ClassLoaderFactoryBean;
+import com.revolsys.record.io.format.json.Json;
+import com.revolsys.spring.resource.ClassPathResource;
+import com.revolsys.spring.resource.Resource;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
-import com.revolsys.websocket.json.JsonAsyncSender;
-import com.revolsys.websocket.json.JsonDecoder;
-import com.revolsys.websocket.json.JsonEncoder;
 
-@ClientEndpoint(encoders = JsonEncoder.class, decoders = JsonDecoder.class)
+@WebListener
 public class WorkerScheduler extends ThreadPoolExecutor
-  implements Process, BeanNameAware, ModuleEventListener, ServletContextAware {
+  implements Runnable, ServletContextListener {
 
   private static Integer getPortNumber() {
     try {
@@ -121,9 +100,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private String beanName;
 
-  private BusinessApplicationRegistry businessApplicationRegistry;
-
-  private ConfigPropertyLoader configPropertyLoader;
+  private BusinessApplicationRegistry businessApplicationRegistry = new BusinessApplicationRegistry();
 
   private String environmentName = "default";
 
@@ -139,34 +116,23 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private final int maxTimeout = 60;
 
-  private final List<String> includedModuleNames = new ArrayList<>();
-
-  private final List<String> excludedModuleNames = new ArrayList<>();
-
   private final Object monitor = new Object();
 
   private final AtomicInteger taskCount = new AtomicInteger();
 
-  private String password = "cpf2009";
-
-  private ProcessNetwork processNetwork;
+  private String password = "w0rk3r";
 
   private boolean running;
 
-  private WorkerSecurityServiceFactory securityServiceFactory = new WorkerSecurityServiceFactory(
-    this);
-
-  private File tempDir;
+  private WorkerSecurityServiceFactory securityServiceFactory;
 
   private int timeout = 0;
 
   private final int timeoutStep = 10;
 
-  private String username = "cpf";
+  private String username = "cpf_worker";
 
   private String webServiceUrl = "http://localhost/cpf";
-
-  private final Set<String> loadedModuleNames = new HashSet<>();
 
   private final long startTime = System.currentTimeMillis();
 
@@ -176,12 +142,15 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private ClientManager client;
 
-  private JsonAsyncSender messageSender;
-
   private String nextIdPath;
 
+  private File appLogDirectory;
+
+  private WorkerMessageHandler messageHandler = new WorkerMessageHandler(this);
+
   public WorkerScheduler() {
-    super(0, 100, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory());
+    super(0, 100, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(),
+      new NamedThreadFactory().setNamePrefix("cpfWorker-pool"));
     String hostName;
     try {
       hostName = InetAddress.getLocalHost().getCanonicalHostName();
@@ -190,7 +159,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
 
     this.id = this.environmentName + ":" + hostName + ":" + getPortNumber();
-
+    this.securityServiceFactory = new WorkerSecurityServiceFactory(this.messageHandler);
   }
 
   protected void addExecutingGroupId(final String groupId) {
@@ -201,14 +170,14 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   public void addExecutingGroupsMessage() {
     final Map<String, Object> message = newExecutingGroupsMessage();
-    sendMessage(message);
+    this.messageHandler.sendMessage(message);
   }
 
   public void addFailedGroup(final String groupId) {
     final Map<String, Object> message = new LinkedHashMap<>();
     message.put("type", "failedGroupId");
     message.put("groupId", groupId);
-    sendMessage(message);
+    this.messageHandler.sendMessage(message);
   }
 
   @SuppressWarnings("rawtypes")
@@ -234,21 +203,54 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
+  @Override
+  public void contextDestroyed(final ServletContextEvent sce) {
+    destroy();
+  }
+
+  @Override
+  public void contextInitialized(final ServletContextEvent servletContextEvent) {
+    final ServletContext servletContext = servletContextEvent.getServletContext();
+    final String contextPath = servletContext.getContextPath();
+    this.id += ":" + contextPath.replaceFirst("^/", "").replaceAll("/", "-");
+
+    this.businessApplicationRegistry.setEnvironmentId("worker_" + this.id.replaceAll(":", "_"));
+    this.businessApplicationRegistry.setModuleLoaders(null);
+
+    initConfig();
+    initLogging();
+    try {
+      this.httpClient = new WorkerHttpClient(this.webServiceUrl, this.username, this.password,
+        getMaximumPoolSize() + 1);
+
+      final String workerPath = getWorkerPath();
+      this.nextIdPath = workerPath + "/jobs/groups/nextId";
+    } catch (final Exception e) {
+      Exceptions.error(this, "Error initializing worker", e);
+    }
+    execute(this.messageHandler::connect);
+    execute(this);
+  }
+
   @PreDestroy
   public void destroy() {
     if (this.running) {
       this.running = false;
-      this.messageSender = null;
     }
-    if (this.processNetwork != null) {
-      this.processNetwork.stop();
+    if (this.messageHandler != null) {
+      this.messageHandler.close();
+      this.messageHandler = null;
     }
-
+    if (this.securityServiceFactory != null) {
+      this.securityServiceFactory.close();
+      this.securityServiceFactory = null;
+    }
+    if (this.businessApplicationRegistry != null) {
+      this.businessApplicationRegistry.destroy();
+    }
     this.businessApplicationRegistry = null;
-    this.configPropertyLoader = null;
     this.futureTaskByGroupId.clear();
     this.groupIdByFutureTask.clear();
-    this.processNetwork = null;
 
     if (this.client != null) {
       this.client.shutdown();
@@ -259,16 +261,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
     this.httpClient = null;
     shutdownNow();
-    if (this.securityServiceFactory != null) {
-      this.securityServiceFactory.close();
-      this.securityServiceFactory = null;
-    }
-    if (this.tempDir != null) {
-      if (!FileUtil.deleteDirectory(this.tempDir)) {
-        LoggerFactory.getLogger(getClass()).error("Unable to delete jar cache " + this.tempDir);
-      }
-      this.tempDir = null;
-    }
   }
 
   @Override
@@ -292,9 +284,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
-  @Override
-  public String getBeanName() {
-    return this.beanName;
+  public File getAppLogDirectory() {
+    return this.appLogDirectory;
   }
 
   public BusinessApplication getBusinessApplication(final AppLog log, final String moduleName,
@@ -321,10 +312,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return this.businessApplicationRegistry;
   }
 
-  public ConfigPropertyLoader getConfigPropertyLoader() {
-    return this.configPropertyLoader;
-  }
-
   public String getEnvironmentName() {
     return this.environmentName;
   }
@@ -337,24 +324,12 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return this.id;
   }
 
-  public JsonAsyncSender getMessageSender() {
-    return this.messageSender;
-  }
-
   public String getPassword() {
     return this.password;
   }
 
   public int getPriority() {
     return ((NamedThreadFactory)getThreadFactory()).getPriority();
-  }
-
-  /**
-   * @return the processNetwork
-   */
-  @Override
-  public ProcessNetwork getProcessNetwork() {
-    return this.processNetwork;
   }
 
   public WorkerSecurityServiceFactory getSecurityServiceFactory() {
@@ -369,45 +344,51 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return this.webServiceUrl;
   }
 
-  @PostConstruct
-  public void init() {
-    initLogging();
+  public String getWorkerPath() {
+    return "/worker/workers/" + this.id + "/" + this.startTime;
+  }
 
-    final String workerPath = "/worker/workers/" + this.id + "/" + this.startTime;
-    this.httpClient = new WorkerHttpClient(this.webServiceUrl, this.username, this.password,
-      getMaximumPoolSize() + 1);
-
-    this.businessApplicationRegistry.addModuleEventListener(this.securityServiceFactory);
-    this.tempDir = FileUtil.newTempDirectory("cpf", "jars");
-    this.configPropertyLoader = new WorkerConfigPropertyLoader(this, this.environmentName);
-
-    this.nextIdPath = workerPath + "/jobs/groups/nextId";
-
+  private void initConfig() {
+    final Resource configResource = new ClassPathResource("/cpfWorker.json");
     try {
-      this.client = ClientManager.createClient();
-      final Map<String, Object> config = this.client.getProperties();
-
-      final AuthConfig authConfig = AuthConfig.Builder.create().disableProvidedBasicAuth().build();
-      config.put(ClientProperties.AUTH_CONFIG, authConfig);
-      config.put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
-
-      final Credentials credentials = new Credentials(this.username,
-        this.password.getBytes(StandardCharsets.ISO_8859_1));
-      config.put(ClientProperties.CREDENTIALS, credentials);
-
-      final URI webSocketUri = new URI(
-        this.webServiceUrl.replaceFirst("http", "ws") + workerPath + "/message");
-      this.client.connectToServer(this, webSocketUri);
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
+      final Map<String, Object> config = Json.toMap(configResource);
+      final String importName = (String)config.get("j:import");
+      if (Property.hasValue(importName)) {
+        final Resource importResource = Resource.getResource(importName);
+        try {
+          if (importResource.exists()) {
+            final String importExtension = importResource.getFileNameExtension();
+            if ("json".equals(importExtension)) {
+              final Map<String, Object> importConfig = Json.toMap(configResource);
+              config.putAll(importConfig);
+            } else if ("properties".equals(importExtension)) {
+              final Properties properties = new Properties();
+              properties.load(importResource.newBufferedReader());
+              Maps.putAll(config, properties);
+            }
+          }
+        } catch (final Throwable e) {
+          Exceptions.error(this, "Error reading config:" + importResource, e);
+        }
+      }
+      for (final Entry<String, Object> entry : config.entrySet()) {
+        String key = entry.getKey();
+        final Object value = entry.getValue();
+        if (key.startsWith("cpfWorker.")) {
+          key = key.substring(10);
+          Property.setSimple(this, key, value);
+        }
+      }
+    } catch (final Throwable e) {
+      Exceptions.error(this, "Error reading config:" + configResource, e);
     }
   }
 
   @SuppressWarnings("deprecation")
-  protected void initLogging() {
+  private void initLogging() {
     final Logger logger = Logger.getRootLogger();
     logger.removeAllAppenders();
-    final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
+    final File rootDirectory = this.appLogDirectory;
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
       new ConsoleAppender().activateOptions();
       final ConsoleAppender appender = new ConsoleAppender();
@@ -444,132 +425,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   protected void logError(final String message, final Throwable e) {
     if (isRunning()) {
-      Exceptions.log(this, message, e);
-    }
-  }
-
-  @Override
-  public void moduleChanged(final ModuleEvent event) {
-    final String action = event.getAction();
-    final Module module = event.getModule();
-    final String moduleName = module.getName();
-    Map<String, Object> message = null;
-    if (action.equals(ModuleEvent.START)) {
-
-    } else if (action.equals(ModuleEvent.START_FAILED)) {
-      this.businessApplicationRegistry.unloadModule(module);
-
-      final String moduleError = module.getModuleError();
-      message = newModuleMessage(module, "moduleExcluded");
-      message.put("moduleError", moduleError);
-    } else if (action.equals(ModuleEvent.STOP)) {
-      message = newModuleMessage(module, "moduleStopped");
-      this.loadedModuleNames.add(moduleName);
-    }
-    if (message != null) {
-      sendMessage(message);
-    }
-  }
-
-  private void moduleSecurityChanged(final Map<String, Object> message) {
-    final String moduleName = Maps.getString(message, "moduleName");
-    final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
-      .getModule(moduleName);
-    if (module != null) {
-      final ModuleEvent moduleEvent = new ModuleEvent(module, ModuleEvent.SECURITY_CHANGED);
-      this.securityServiceFactory.moduleChanged(moduleEvent);
-    }
-  }
-
-  protected void moduleStart(final Map<String, Object> message) {
-    final String moduleName = (String)message.get("moduleName");
-    final Long moduleTime = Maps.getLong(message, "moduleTime");
-    final int moduleJarCount = Maps.getInteger(message, "moduleJarCount", 0);
-    if ((this.includedModuleNames.isEmpty() || this.includedModuleNames.contains(moduleName))
-      && !this.excludedModuleNames.contains(moduleName)) {
-      final AppLog log = new AppLog(moduleName);
-
-      ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
-        .getModule(moduleName);
-      if (module != null) {
-        final long lastStartedTime = module.getStartedTime();
-        if (lastStartedTime < moduleTime) {
-          log.info("Unloading older module version\tmoduleName=" + moduleName + "\tmoduleTime="
-            + lastStartedTime);
-          unloadModule(module);
-          module = null;
-        } else if (lastStartedTime == moduleTime) {
-          return;
-        }
-      }
-      try {
-        final File moduleDir = new File(this.tempDir, moduleName + "-" + moduleTime);
-        moduleDir.mkdir();
-        moduleDir.deleteOnExit();
-        final List<URL> urls = new ArrayList<>();
-        for (int jarIndex = 0; jarIndex < moduleJarCount; jarIndex++) {
-          final String jarPath = "/worker/modules/" + moduleName + "/" + moduleTime + "/jar/"
-            + jarIndex;
-          try {
-            final File jarFile = new File(moduleDir, jarIndex + ".jar");
-            jarFile.deleteOnExit();
-            this.httpClient.getResource(jarPath, jarFile);
-
-            urls.add(FileUtil.toUrl(jarFile));
-          } catch (final Throwable e) {
-            throw new RuntimeException("Unable to download jar file " + jarPath, e);
-          }
-        }
-        final ClassLoader parentClassLoader = getClass().getClassLoader();
-        final ClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(parentClassLoader,
-          urls);
-        final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(classLoader, false);
-        if (configUrls.isEmpty()) {
-          final String urlsMessage = "Cannot load classes for module " + moduleName;
-          log.error(urlsMessage);
-          final Map<String, Object> responseMessage = new LinkedHashMap<>();
-          responseMessage.put("type", "moduleStartFailed");
-          responseMessage.put("moduleName", moduleName);
-          responseMessage.put("moduleTime", moduleTime);
-          responseMessage.put("moduleError", urlsMessage);
-          sendMessage(responseMessage);
-          if (module != null) {
-            this.businessApplicationRegistry.unloadModule(module);
-          }
-        } else {
-          module = new ClassLoaderModule(this.businessApplicationRegistry, moduleName, classLoader,
-            this.configPropertyLoader, configUrls.get(0));
-          this.businessApplicationRegistry.addModule(module);
-          module.setStartedDate(new Date(moduleTime));
-          module.enable();
-          final Module startModule = module;
-          execute(() -> startApplications(startModule));
-        }
-      } catch (final Throwable e) {
-        log.error("Unable to load module " + moduleName, e);
-        final Map<String, Object> responseMessage = new LinkedHashMap<>();
-        responseMessage.put("type", "moduleStartFailed");
-        responseMessage.put("moduleName", moduleName);
-        responseMessage.put("moduleTime", moduleTime);
-        responseMessage.put("moduleError", Exceptions.toString(e));
-        sendMessage(responseMessage);
-        if (module != null) {
-          this.businessApplicationRegistry.unloadModule(module);
-        }
-      }
-    } else {
-      final Map<String, Object> responseMessage = newModuleMessage(moduleName, moduleTime,
-        "moduleDisabled");
-      sendMessage(responseMessage);
-    }
-  }
-
-  protected void moduleStop(final Map<String, Object> message) {
-    final String moduleName = Maps.getString(message, "moduleName");
-    final ClassLoaderModule module = (ClassLoaderModule)this.businessApplicationRegistry
-      .getModule(moduleName);
-    if (module != null) {
-      unloadModule(module);
+      Exceptions.error(this, message, e);
     }
   }
 
@@ -582,50 +438,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
     this.lastPingTime = System.currentTimeMillis();
     return message;
-  }
-
-  protected Map<String, Object> newModuleMessage(final Module module, final String action) {
-    final String moduleName = module.getName();
-    final long moduleTime = module.getStartedTime();
-    return newModuleMessage(moduleName, moduleTime, action);
-  }
-
-  protected Map<String, Object> newModuleMessage(final String moduleName, final long moduleTime,
-    final String action) {
-    final Map<String, Object> message = new LinkedHashMap<>();
-    message.put("type", action);
-    message.put("moduleName", moduleName);
-    message.put("moduleTime", moduleTime);
-    return message;
-  }
-
-  @OnClose
-  public void onClose(final Session session) {
-    this.messageSender = null;
-  }
-
-  @OnMessage
-  public void onMessage(final Map<String, Object> message) {
-    final String type = Maps.getString(message, "type");
-    if (ModuleEvent.STOP.equals(type)) {
-      moduleStop(message);
-    } else if (ModuleEvent.START.equals(type)) {
-      moduleStart(message);
-    } else if (ModuleEvent.SECURITY_CHANGED.equals(type)) {
-      moduleSecurityChanged(message);
-    } else if ("cancelGroup".equals(type)) {
-      cancelGroup(message);
-    } else {
-      final JsonAsyncSender messageSender = getMessageSender();
-      if (messageSender != null) {
-        messageSender.setResult(message);
-      }
-    }
-  }
-
-  @OnOpen
-  public void onOpen(final Session session) {
-    this.messageSender = new JsonAsyncSender(session);
   }
 
   public boolean processNextTask() {
@@ -644,7 +456,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
       try {
         final Map<String, Object> parameters = new HashMap<>();
         Map<String, Object> response = null;
-        parameters.put("moduleName", this.loadedModuleNames);
+        final Set<String> loadedModuleNames = this.messageHandler.getLoadedModuleNames();
+        parameters.put("moduleName", loadedModuleNames);
 
         if (isRunning()) {
           response = this.httpClient.postGetJsonResource(this.nextIdPath, parameters);
@@ -733,8 +546,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
       }
 
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error(e.getMessage(), e);
-      getProcessNetwork().stop();
+      Exceptions.error(this, e);
     } finally {
       LoggerFactory.getLogger(getClass()).info("Stopped");
     }
@@ -773,27 +585,9 @@ public class WorkerScheduler extends ThreadPoolExecutor
     return false;
   }
 
-  private void sendMessage(final Map<String, Object> message) {
-    final JsonAsyncSender messageSender = getMessageSender();
-    if (messageSender != null) {
-      messageSender.sendMessage(message);
-    }
-  }
-
-  @Override
-  public void setBeanName(final String beanName) {
-    this.beanName = beanName;
-    final ThreadFactory threadFactory = getThreadFactory();
-    if (threadFactory instanceof NamedThreadFactory) {
-      final NamedThreadFactory namedThreadFactory = (NamedThreadFactory)threadFactory;
-      namedThreadFactory.setNamePrefix(beanName + "-pool");
-    }
-  }
-
-  public void setBusinessApplicationRegistry(
-    final BusinessApplicationRegistry businessApplicationRegistry) {
-    this.businessApplicationRegistry = businessApplicationRegistry;
-    businessApplicationRegistry.addModuleEventListener(this);
+  public void setAppLogDirectory(final File appLogDirectory) {
+    this.appLogDirectory = appLogDirectory;
+    this.businessApplicationRegistry.setAppLogDirectory(appLogDirectory);
   }
 
   public void setEnvironmentName(final String environmentName) {
@@ -806,17 +600,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   public void setModuleNames(final List<String> moduleNames) {
-    this.includedModuleNames.clear();
-    this.excludedModuleNames.clear();
-    if (moduleNames != null) {
-      for (final String moduleName : moduleNames) {
-        if (moduleName.startsWith("-")) {
-          this.excludedModuleNames.add(moduleName.substring(1));
-        } else {
-          this.includedModuleNames.add(moduleName);
-        }
-      }
-    }
+    this.messageHandler.setModuleNames(moduleNames);
   }
 
   public void setPassword(final String password) {
@@ -827,28 +611,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     ((NamedThreadFactory)getThreadFactory()).setPriority(priority);
   }
 
-  /**
-   * @param processNetwork the processNetwork to set
-   */
-  @Override
-  public void setProcessNetwork(final ProcessNetwork processNetwork) {
-    this.processNetwork = processNetwork;
-    if (processNetwork != null) {
-      processNetwork.addProcess(this);
-      final ThreadFactory threadFactory = getThreadFactory();
-      if (threadFactory instanceof NamedThreadFactory) {
-        final NamedThreadFactory namedThreadFactory = (NamedThreadFactory)threadFactory;
-        namedThreadFactory.setParentGroup(processNetwork.getThreadGroup());
-      }
-    }
-  }
-
-  @Override
-  public void setServletContext(final ServletContext servletContext) {
-    this.id += ":" + servletContext.getContextPath().replaceFirst("^/", "").replaceAll("/", "-");
-    this.businessApplicationRegistry.setEnvironmentId("worker_" + this.id.replaceAll(":", "_"));
-  }
-
   public void setUsername(final String username) {
     this.username = username;
   }
@@ -857,41 +619,9 @@ public class WorkerScheduler extends ThreadPoolExecutor
     this.webServiceUrl = webServiceUrl;
   }
 
-  public void startApplications(final Module module) {
-    final String moduleName = module.getName();
-    Map<String, Object> message;
-    try {
-      module.loadApplications();
-      final String moduleError = module.getModuleError();
-      if (Property.hasValue(moduleError)) {
-        message = newModuleMessage(module, "moduleStartFailed");
-        message.put("moduleError", moduleError);
-        this.businessApplicationRegistry.unloadModule(module);
-      } else {
-        this.loadedModuleNames.add(moduleName);
-        message = newModuleMessage(module, "moduleStarted");
-      }
-    } catch (final Throwable e) {
-      final AppLog log = new AppLog(moduleName);
-      log.error("Unable to load module " + moduleName, e);
-      message = newModuleMessage(module, "moduleStartFailed");
-      message.put("moduleError", Exceptions.toString(e));
-      this.businessApplicationRegistry.unloadModule(module);
-    }
-    if (message != null) {
-      sendMessage(message);
-    }
-  }
-
   @Override
   public String toString() {
     return this.beanName;
   }
 
-  public void unloadModule(final ClassLoaderModule module) {
-    final long time = module.getStartedTime();
-    this.businessApplicationRegistry.unloadModule(module);
-    final File lastModuleDir = new File(this.tempDir, module.getName() + "-" + time);
-    FileUtil.deleteDirectory(lastModuleDir, true);
-  }
 }

@@ -24,8 +24,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 
 public abstract class AbstractSecurityServiceFactory implements SecurityServiceFactory {
-
-  private final Map<Module, Map<String, AbstractCachingSecurityService>> securityServicesByModuleAndUser = new WeakHashMap<Module, Map<String, AbstractCachingSecurityService>>();
+  private final Map<Module, Map<String, AbstractCachingSecurityService>> securityServicesByModuleAndUser = new WeakHashMap<>();
 
   private final Map<String, Long> securityServiceAges = new HashMap<String, Long>();
 

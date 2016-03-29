@@ -1017,10 +1017,8 @@ public class BatchJobService implements ModuleEventListener {
           }
           // TODO errors postProcessCreateResults(log, batchJob, batchJobId);
 
-          if (setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS,
-            BatchJobStatus.RESULTS_CREATED)
-            || setBatchJobStatus(batchJob, BatchJobStatus.CREATING_RESULTS,
-              BatchJobStatus.RESULTS_CREATED)) {
+          if (batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.RESULTS_CREATED)
+            || batchJob.setStatus(this, BatchJobStatus.CREATING_RESULTS, BatchJobStatus.RESULTS_CREATED)) {
 
             final Timestamp now = batchJob.getValue(BatchJob.WHEN_STATUS_CHANGED);
             batchJob.setValue(BatchJob.COMPLETED_TIMESTAMP, now);
@@ -1044,7 +1042,7 @@ public class BatchJobService implements ModuleEventListener {
                 final List<Object> values = batchJob.getValues(JOB_TSV_FIELD_NAMES);
                 jobsTsvWriter.write(values);
               } catch (final Throwable e) {
-                Exceptions.log(this, "Unable to log job to:" + jobsFile, e);
+                Exceptions.error(this, "Unable to log job to:" + jobsFile, e);
               }
             }
             batchJob.update();
@@ -1451,18 +1449,18 @@ public class BatchJobService implements ModuleEventListener {
                 numFailedRequests, maxGroupSize, numGroups)) {
                 postProcess(batchJobId);
               } else {
-                setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS,
-                  BatchJobStatus.SUBMITTED);
+                batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.SUBMITTED);
               }
-            } else if (setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS,
-              BatchJobStatus.PROCESSING)) {
-              final Timestamp now = batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP);
-              batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
-              batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, numSubmittedRequests);
-              batchJob.setValue(BatchJob.GROUP_SIZE, maxGroupSize);
-              batchJob.setGroupCount(numGroups);
-              batchJob.update();
-              scheduleJob(batchJob);
+            } else {
+              if (batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.PROCESSING)) {
+                final Timestamp now = batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP);
+                batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
+                batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, numSubmittedRequests);
+                batchJob.setValue(BatchJob.GROUP_SIZE, maxGroupSize);
+                batchJob.setGroupCount(numGroups);
+                batchJob.update();
+                scheduleJob(batchJob);
+              }
             }
             final Map<String, Object> preProcessStatistics = new HashMap<>();
             preProcessStatistics.put("preProcessedTime", stopWatch);
@@ -1500,7 +1498,8 @@ public class BatchJobService implements ModuleEventListener {
           this.preprocesedJobIds.remove(batchJobId);
         }
         if (batchJob != null) {
-          setBatchJobStatus(batchJob, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.SUBMITTED);
+          final BatchJob batchJob1 = batchJob;
+          batchJob1.setStatus(this, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.SUBMITTED);
         }
         error(log, "Error\tJob pre-process\tbatchJobId=" + batchJobId, e);
         throw transaction.setRollbackOnly(e);
@@ -1916,11 +1915,6 @@ public class BatchJobService implements ModuleEventListener {
     this.authorizationService = authorizationService;
   }
 
-  public boolean setBatchJobStatus(final BatchJob batchJob, final String oldJobStatus,
-    final String newJobStatus) {
-    return batchJob.setStatus(this, oldJobStatus, newJobStatus);
-  }
-
   public void setBusinessApplicationRegistry(
     final BusinessApplicationRegistry businessApplicationRegistry) {
     this.businessApplicationRegistry = businessApplicationRegistry;
@@ -2190,7 +2184,7 @@ public class BatchJobService implements ModuleEventListener {
         batchJob.addCompletedGroup(sequenceNumber);
       }
       if (batchJob.isCompleted()) {
-        setBatchJobStatus(batchJob, BatchJobStatus.PROCESSING, BatchJobStatus.PROCESSED);
+        batchJob.setStatus(this, BatchJobStatus.PROCESSING, BatchJobStatus.PROCESSED);
         postProcess(batchJobId);
       } else if (batchJob.hasAvailableGroup()) {
         scheduleJob(batchJob);

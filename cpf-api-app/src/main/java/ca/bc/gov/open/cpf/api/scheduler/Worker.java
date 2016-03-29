@@ -167,7 +167,9 @@ public class Worker {
 
   public synchronized void sendMessage(final Map<String, Object> message) {
     final JsonAsyncSender sender = this.messageSender;
-    sender.sendMessage(message);
+    if (sender != null) {
+      sender.sendMessage(message);
+    }
   }
 
   public void setLastConnectTime(final Timestamp lastConnectTime) {
