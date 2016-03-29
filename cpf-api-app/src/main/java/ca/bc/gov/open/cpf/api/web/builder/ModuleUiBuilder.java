@@ -157,10 +157,13 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     request.setAttribute("title", title);
 
     final Menu actionMenu = new Menu();
-    actionMenu.addMenuItem(new Menu("Cancel", getPageUrl("list", parameters)));
-    actionMenu.addMenuItem(new Menu("Refresh", getPageUrl("add", parameters)));
+    actionMenu.addMenuItem(
+      new Menu("Cancel", getPageUrl("list", parameters)).addProperty("buttonClass", "btn-danger"));
+    actionMenu.addMenuItem(new Menu("Refresh", getPageUrl("add", parameters)))
+      .addProperty("buttonClass", "btn-warning");
     final String name = form.getName();
-    actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
+    actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"))
+      .addProperty("buttonClass", "btn-primary");
 
     final ButtonsToolbarElement buttonsToolbar = new ButtonsToolbarElement(actionMenu);
     final ElementContainer view = new ElementContainer(form, buttonsToolbar);
@@ -219,10 +222,13 @@ public class ModuleUiBuilder extends CpfUiBuilder {
       request.setAttribute("title", title);
 
       final Menu actionMenu = new Menu();
-      addMenuItem(actionMenu, null, "view", "Cancel", "_top");
-      addMenuItem(actionMenu, null, "edit", "Revert to Saved", "_top");
+      addMenuItem(actionMenu, null, "view", "Cancel", "_top").addProperty("buttonClass",
+        "btn-danger");
+      addMenuItem(actionMenu, null, "edit", "Revert to Saved", "_top").addProperty("buttonClass",
+        "btn-warning");
       final String name = form.getName();
-      actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
+      actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()")
+        .addProperty("buttonClass", "btn-primary"));
 
       final ButtonsToolbarElement buttonsToolbar = new ButtonsToolbarElement(actionMenu);
       final ElementContainer view = new ElementContainer(form, buttonsToolbar);

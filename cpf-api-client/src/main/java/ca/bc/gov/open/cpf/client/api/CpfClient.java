@@ -864,7 +864,7 @@ public class CpfClient implements BaseCloseable {
    * <p>Each error record is a map containing the following fields.</p>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-striped table-bordered table-condensed">
    *     <caption>Error Result Fields</caption>
    *     <thead>
    *       <tr>
@@ -979,7 +979,7 @@ public class CpfClient implements BaseCloseable {
    * <p>Each result file description contains the following fields.</p>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-striped table-bordered table-condensed">
    *     <caption>Result Fields</caption>
    *     <thead>
    *       <tr>
@@ -1100,7 +1100,7 @@ public class CpfClient implements BaseCloseable {
    * <p>Each structured data record is a map containing the following fields.</p>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-striped table-bordered table-condensed">
    *     <caption>Result Fields</caption>
    *     <thead>
    *       <tr>
@@ -1335,7 +1335,7 @@ public class CpfClient implements BaseCloseable {
    * <p>Each error record is a map containing the following fields.</p>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-striped table-bordered table-condensed">
    *     <caption>Error Result Fields</caption>
    *     <thead>
    *       <tr>

@@ -151,7 +151,7 @@ import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.Dates;
 import com.revolsys.util.Exceptions;
-import com.revolsys.util.HtmlUtil;
+import com.revolsys.util.HtmlElem;
 import com.revolsys.util.Property;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -1216,7 +1216,7 @@ public class ConcurrentProcessingFramework {
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Business Application Fields</caption>
    *     <thead>
    *       <tr>
@@ -1281,7 +1281,7 @@ public class ConcurrentProcessingFramework {
    * which are the parameters to the execute instant request mode.</a>.</p>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Business Application Instant Fields</caption>
    *     <thead>
    *       <tr>
@@ -1315,7 +1315,7 @@ public class ConcurrentProcessingFramework {
    *         <td><p>The array of parameters that can be passed to the service. Each parameter is an object
    *         containing the following fields.</p>
    *           <div class="table-responsive">
-   *             <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *             <table class="table table-condensed table-striped tabled-bordered">
    *               <caption>Parameters</caption>
    *               <thead>
    *                 <tr>
@@ -1583,7 +1583,7 @@ public class ConcurrentProcessingFramework {
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Job Fields</caption>
    *     <thead>
    *       <tr>
@@ -1674,7 +1674,7 @@ public class ConcurrentProcessingFramework {
    * service.</a>.</p>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Business Application Fields</caption>
    *     <thead>
    *       <tr>
@@ -1708,7 +1708,7 @@ public class ConcurrentProcessingFramework {
    *         <td><p>The array of parameters that can be passed to the service. Each parameter is an object
    *         containing the following fields.</p>
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Parameters</caption>
    *               <thead>
    *                 <tr>
@@ -1898,7 +1898,7 @@ public class ConcurrentProcessingFramework {
    * which are the parameters to the <a href="#ca.bc.gov.open.cpf.api.web.rest.ConcurrentProcessingFramework.createJobWithSingleRequest">Create Job With Single Request</a> service.</a>.</p>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Business Application Single Request Fields</caption>
    *     <thead>
    *       <tr>
@@ -1932,7 +1932,7 @@ public class ConcurrentProcessingFramework {
    *         <td><p>The array of parameters that can be passed to the service. Each parameter is an object
    *         containing the following fields.</p>
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Patameters</caption>
    *               <thead>
    *                 <tr>
@@ -2040,7 +2040,7 @@ public class ConcurrentProcessingFramework {
     ElementContainer container = businessApplication.getProperty("specificationElement");
     if (container == null) {
       container = new ElementContainer();
-      container.add(new XmlTagElement(HtmlUtil.H1,
+      container.add(new XmlTagElement(HtmlElem.H1,
         businessApplication.getTitle() + " (" + businessApplication.getName() + ")"));
 
       final String description = businessApplication.getDescription();
@@ -2066,7 +2066,7 @@ public class ConcurrentProcessingFramework {
 
       addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/inputData.html");
       final Set<String> inputDataContentTypes = businessApplication.getInputDataContentTypes();
-      container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI, inputDataContentTypes));
+      container.add(new ListElement(HtmlElem.UL, HtmlElem.LI, inputDataContentTypes));
 
       if (businessApplication.isPerRequestInputData()) {
         addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/opaqueInputData.html");
@@ -2090,7 +2090,7 @@ public class ConcurrentProcessingFramework {
       serializers.add(new StringKeySerializer("minValue", "Min"));
       serializers.add(new StringKeySerializer("maxValue", "Max"));
       serializers.add(new StringKeySerializer("defaultValue", "Default"));
-      serializers.add(new ElementKeySerializer(HtmlUtil.P, "description"));
+      serializers.add(new ElementKeySerializer(HtmlElem.P, "description"));
 
       final FieldDefinition inputDataContentType = new FieldDefinition("inputDataContentType",
         DataTypes.STRING, false,
@@ -2123,28 +2123,26 @@ public class ConcurrentProcessingFramework {
 
       final RowsTableSerializer requestModel = new KeySerializerTableSerializer(serializers,
         requestAttributes);
-      final TableView requestAttributesTable = new TableView(requestModel,
-        "objectList resultAttributes");
+      final TableView requestAttributesTable = new TableView(requestModel);
       container.add(requestAttributesTable);
 
       addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/resultFiles.html");
       final Set<String> resultDataContentTypes = businessApplication.getResultDataContentTypes();
-      container.add(new ListElement(HtmlUtil.UL, HtmlUtil.LI, resultDataContentTypes));
+      container.add(new ListElement(HtmlElem.UL, HtmlElem.LI, resultDataContentTypes));
       if (businessApplication.isPerRequestResultData()) {
         addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/opaqueResults.html");
       } else {
-        container.add(new XmlTagElement(HtmlUtil.H2, "Result Fields"));
+        container.add(new XmlTagElement(HtmlElem.H2, "Result Fields"));
         final RecordDefinition resultRecordDefinition = businessApplication
           .getResultRecordDefinition();
         final List<FieldDefinition> resultAttributes = resultRecordDefinition.getFields();
         final List<KeySerializer> resultSerializers = new ArrayList<KeySerializer>();
         resultSerializers.add(new StringKeySerializer("name"));
         resultSerializers.add(new StringKeySerializer("typeDescription", "Type"));
-        resultSerializers.add(new ElementKeySerializer(HtmlUtil.P, "description"));
+        resultSerializers.add(new ElementKeySerializer(HtmlElem.P, "description"));
         final RowsTableSerializer resultModel = new KeySerializerTableSerializer(resultSerializers,
           resultAttributes);
-        final TableView resultAttributesTable = new TableView(resultModel,
-          "objectList resultAttributes");
+        final TableView resultAttributesTable = new TableView(resultModel);
         container.add(resultAttributesTable);
       }
       addRawContent(container, "ca/bc/gov/open/cpf/api/web/service/errorResults.html");
@@ -2470,7 +2468,7 @@ public class ConcurrentProcessingFramework {
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    *
     * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Job Fields</caption>
    *     <thead>
    *       <tr>
@@ -2541,7 +2539,7 @@ public class ConcurrentProcessingFramework {
    * <p>The method returns a BatchJob object with the following attributes.</a>
    *
    * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Job Fields</caption>
    *     <thead>
    *       <tr>
@@ -2702,7 +2700,7 @@ public class ConcurrentProcessingFramework {
    * <p>The method returns a <a href="../../resourceDescription.html">Resource Description</a> document. Each child resource supports following custom attributes.</a>
    *
     * <div class="table-responsive">
-   *   <table class="table table-striped tabled-bordered table-condensed table-hover">
+   *   <table class="table table-condensed table-striped tabled-bordered">
    *     <caption>Result Fields</caption>
    *     <thead>
    *       <tr>

@@ -5,7 +5,7 @@ are children of the resource.
 The document contains a single <code>resource</code> object with the following fields.
 
 <div class="table-responsive">
-<table class="table table-striped tabled-bordered table-condensed">
+<table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Attribute</th>

@@ -2,7 +2,7 @@
 The following status fields are returned with the job status.
 
 <div class="table-responsive">
-<table class="table table-striped tabled-bordered table-condensed">
+<table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Field Name</th>

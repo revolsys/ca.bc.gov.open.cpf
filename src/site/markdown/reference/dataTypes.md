@@ -25,7 +25,7 @@ Internally the CPF converts all values to the string encoded form.
 The table below shows the supported data types.
 
 <div class="table-responsive">
-<table class="table table-striped tabled-bordered table-condensed">
+<table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Data Type</th>

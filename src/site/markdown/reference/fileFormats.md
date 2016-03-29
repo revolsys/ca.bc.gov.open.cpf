@@ -8,7 +8,7 @@ encoding be used for all text files. This includes the text in a .dbf file for a
 unless a .cpg file is provided in the .shpz archive.
 
 <div class="table-responsive">
-<table class="table table-striped tabled-bordered table-condensed">
+<table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>File Extension</th>

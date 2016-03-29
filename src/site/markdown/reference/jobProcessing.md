@@ -22,7 +22,7 @@ NOTE:  to use the demo.
 2. Using a web browser go to (https://apps.gov.bc.ca/pub/cpf/secure/ws/apps/MapTileByTileId/1.0.0/multiple/).
 3. Enter the values for the following parameters.
 <div class="table-responsive">
-<table class="table table-striped tabled-bordered table-condensed">
+<table class="table table-condensed table-striped tabled-bordered">
 <tbody>
 <tr><th>Num Requests</th><td>3</td></tr>
 <tr><th>Input Data Content Type</th><td>text/csv</td></tr>

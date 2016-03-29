@@ -90,7 +90,7 @@ cp sample-db.properties db.properties
 
 Edit the `db.properties` file.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Property</th>
@@ -215,7 +215,7 @@ file in the tomcat conf directory.
 
 The CPF requires directories to be created on the server. The following directories must be created.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
   <tr>
     <th>Directory</th>
@@ -323,7 +323,7 @@ mvn ^
 > line continuation character that treats multiple lines as a single line. Therefore you can cut and
 > paste the above text into a command window.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
     <th>Parameter</th>
@@ -376,7 +376,7 @@ mvn ^
 
 The following directory structure would be created if the command were run using the parameters above.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
     <th>File/Directory</th>
@@ -491,7 +491,7 @@ Copy the `sample-config/cpf.properties` file to the `/apps/cpf/config/cpf.proper
 the server.
 
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
     <th>Property</th>

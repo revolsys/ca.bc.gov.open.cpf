@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -56,6 +55,7 @@ import com.revolsys.ui.html.form.UiBuilderObjectForm;
 import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.model.Menu;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
@@ -177,10 +177,13 @@ public class TuningUiBuilder extends CpfUiBuilder {
     request.setAttribute("title", title);
 
     final Menu actionMenu = new Menu();
-    addMenuItem(actionMenu, null, "list", "Cancel", "_top");
-    addMenuItem(actionMenu, null, "config", "Revert to Saved", "_top");
+    addMenuItem(actionMenu, null, "list", "Cancel", "_top").addProperty("buttonClass",
+      "btn-danger");
+    addMenuItem(actionMenu, null, "config", "Revert to Saved", "_top").addProperty("buttonClass",
+      "btn-warning");
     final String name = form.getName();
-    actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()"));
+    actionMenu.addMenuItem(new Menu("Save", "javascript:$('#" + name + "').submit()")
+      .addProperty("buttonClass", "btn-primary"));
 
     final ButtonsToolbarElement buttonsToolbar = new ButtonsToolbarElement(actionMenu);
     final ElementContainer view = new ElementContainer(form, buttonsToolbar);

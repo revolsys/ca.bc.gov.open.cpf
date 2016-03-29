@@ -65,7 +65,7 @@ the Ministry's server.
 
 Use the links in the following table to view the Plug-in API documentation or download the API libraries.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>API</th>
@@ -112,7 +112,7 @@ mvn \
   -Dplug-inAcronym=demo
 ```
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Parameter</th>
@@ -158,7 +158,7 @@ mvn \
 
 The following directory structure would be created if the command were run using the parameters above.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>File/Directory</th>
@@ -806,7 +806,7 @@ using the admin web application.
 The following customization properties are used to define the sections to group fields on the
 forms and the default values for fields on the job submission forms.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Name</th>
@@ -998,7 +998,7 @@ forms and the default values for fields on the job submission forms.
 
 The following customization properties are supported.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Name</th>
@@ -1132,7 +1132,7 @@ src/main/resources/META-INF/ca.bc.gov.open.cpf.plugin.ConfigProperties.json
 The configuration file is a JSON list containing JSON objects for each property. Each configuration
 JSON object represents one configuration property and must include the following attributes.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1230,7 +1230,7 @@ The <code>USER_TYPE</code> user groups are virtual groups that indicate the type
 In the BC Government infrastructure the following `USER_TYPE` groups are supported.
 
 <div class="simpleDataTable">
-  <div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+  <div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
     <thead>
       <tr>
         <th>Name</th>
@@ -1294,7 +1294,7 @@ The CPF allows security permissions to be granted to groups of users. Security p
 members of a group permission to perform a specified action on a resource. Negative permissions
 that deny access to a resource are not supported.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1353,7 +1353,7 @@ The User Groups config file is a JSON list of JSON objects. Each object represen
 be created or to create permissions for. Only groups starting with the {Module Name}_ prefix will
 be created. The USER_TYPE or GLOBAL groups must already exist for permissions to be added to them.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1375,7 +1375,7 @@ be created. The USER_TYPE or GLOBAL groups must already exist for permissions to
     
 The following table shows the JSON attributes for a permission object.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Attribute</th>
@@ -1472,7 +1472,7 @@ following page.
 Click on the link for a business application to get the list of resources for that application.
 Depending on the plug-in the following resources maybe available.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Resource</th>

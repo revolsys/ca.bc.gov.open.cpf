@@ -76,7 +76,7 @@ manage items related to a module.
 
 The following table summarizes the fields used for modules.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Field</th>
@@ -256,7 +256,7 @@ describe how to manage items related to a business application.
 
 The following table summarizes the fields used for business applications.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Name</th>
@@ -464,7 +464,7 @@ properties.
 
 The following table summarizes the fields used for configuration properties.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Field</th>
@@ -516,7 +516,7 @@ with the values 16 and 32 respectively.
 
 ##### Data Type
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <th>Type</th>
     <th>Description</th>
@@ -716,7 +716,7 @@ The CPF master web application requires the following properties to be defined i
 The master will ignore any other properties in this file. So where the master and worker are on
 the same machine they can share the same configuration file.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Property Name</th>
@@ -789,7 +789,7 @@ The CPF worker web application requires the following properties to be defined i
 The worker will ignore any other properties in this file. So where the worker and master are on
 the same machine they can share the same configuration file.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Property Name</th>
@@ -854,7 +854,7 @@ active threads or connections will still be used until they are returned to the 
 The table below shows the thread and database connection pools that can be configured
 to tune the system.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <th>Name</th>
     <th>Description</th>
@@ -981,7 +981,7 @@ to assign users to user groups.
 
 The following table summarizes the fields used for user accounts.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Field</th>
@@ -1041,7 +1041,7 @@ These are used by the user when authenticating using one of the following two au
 
 The CPF is installed with the following two accounts defined.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Consumer Key</th>
@@ -1146,7 +1146,7 @@ applications.
 
 The following table summarizes the fields used for user groups.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Field</th>
@@ -1188,7 +1188,7 @@ The following table summarizes the fields used for user groups.
 
 The following table describes the Module Name's that are used for User Groups.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Module Name</th>
@@ -1237,7 +1237,7 @@ The following table describes the Module Name's that are used for User Groups.
 The following table describes the user groups that are automatically created by the CPF. In
 addition to these new GLOBAL and plug-in module specific groups can be created. 
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Module Name</th>
@@ -1488,7 +1488,7 @@ correct permissions after a change.
 
 The following table summarizes the fields used for user group permissions.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Field</th>
@@ -1673,7 +1673,7 @@ and business application. Statistics are automatically rolled up for each day, m
 
 The following table shows the statistics that are displayed on the [View Statistics](#View_Statistics) pages.
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>Field</th>
@@ -1936,7 +1936,7 @@ The log files by default are stored in `/apps/logs/cpf/`.
 Each module and business application has separate directories for their log files. Log files will
 be rolled over once they reach 10MB. The last 7 log files will be retained with extensions `.{i}.log` (e.g. `.2.log`).
 
-<div class="table-responsive"><table class="table table-striped tabled-bordered table-condensed">
+<div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
     <tr>
       <th>File</th>
