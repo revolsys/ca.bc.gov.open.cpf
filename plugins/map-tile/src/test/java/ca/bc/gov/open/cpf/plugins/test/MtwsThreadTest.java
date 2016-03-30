@@ -19,14 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.revolsys.spring.resource.FileSystemResource;
-import com.revolsys.spring.resource.Resource;
-
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 
 import com.revolsys.io.map.MapReader;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
+import com.revolsys.spring.resource.FileSystemResource;
+import com.revolsys.spring.resource.Resource;
 
 public class MtwsThreadTest {
   private static final String BUSINESS_APPLICATION_NAME = "MapTileByTileId";
@@ -56,7 +55,7 @@ public class MtwsThreadTest {
   private List<Map<String, Object>> testData = new ArrayList<Map<String, Object>>();
 
   public MtwsThreadTest() {
-    executor.setTestModeEnabled("MapTileByTileId", Boolean.TRUE);
+    this.executor.setTestModeEnabled("MapTileByTileId", Boolean.TRUE);
   }
 
   public String getBusinessApplicationName() {
@@ -64,7 +63,7 @@ public class MtwsThreadTest {
   }
 
   public BusinessApplicationPluginExecutor getExecutor() {
-    return executor;
+    return this.executor;
   }
 
   public int getIterationCount() {
@@ -72,24 +71,23 @@ public class MtwsThreadTest {
   }
 
   public Map<String, Object> getTestData(final int index) {
-    final int i = index % testData.size();
-    return testData.get(i);
+    final int i = index % this.testData.size();
+    return this.testData.get(i);
   }
 
   public void run() {
-    testData = MapReader.newMapReader(inputDataResource).toList();
+    this.testData = MapReader.newMapReader(inputDataResource).toList();
     for (int i = 0; i < NUM_THREADS; i++) {
-      final MtwsThreadTestRunnable runnable = new MtwsThreadTestRunnable(this,
-        i);
+      final MtwsThreadTestRunnable runnable = new MtwsThreadTestRunnable(this, i);
       final Thread thread = new Thread(runnable, "Runner " + i);
       thread.start();
     }
 
     waitForAllThreadsToStart();
     waitForAllThreadsToStop();
-    executor.close();
-    executor = null;
-    testData.clear();
+    this.executor.close();
+    this.executor = null;
+    this.testData.clear();
     System.gc();
     System.gc();
     System.gc();
@@ -104,31 +102,31 @@ public class MtwsThreadTest {
   }
 
   public void threadStarted() {
-    startChannel.write(true);
-    synchronized (startSync) {
+    this.startChannel.write(true);
+    synchronized (this.startSync) {
       try {
-        startSync.wait();
+        this.startSync.wait();
       } catch (final InterruptedException e) {
       }
     }
   }
 
   public void threadStopped() {
-    stopChannel.write(true);
+    this.stopChannel.write(true);
   }
 
   protected void waitForAllThreadsToStart() {
     for (int i = 0; i < NUM_THREADS; i++) {
-      startChannel.read();
+      this.startChannel.read();
     }
-    synchronized (startSync) {
-      startSync.notifyAll();
+    synchronized (this.startSync) {
+      this.startSync.notifyAll();
     }
   }
 
   protected void waitForAllThreadsToStop() {
     for (int i = 0; i < NUM_THREADS; i++) {
-      stopChannel.read();
+      this.stopChannel.read();
     }
   }
 }

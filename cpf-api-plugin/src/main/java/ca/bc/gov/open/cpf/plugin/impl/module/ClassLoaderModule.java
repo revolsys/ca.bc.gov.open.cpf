@@ -499,7 +499,7 @@ public class ClassLoaderModule implements Module {
       final GeometryConfiguration geometryConfiguration = pluginClass
         .getAnnotation(GeometryConfiguration.class);
       if (geometryConfiguration != null) {
-        final GeometryFactory geometryFactory = getGeometryFactory(GeometryFactory.floating3(),
+        final GeometryFactory geometryFactory = getGeometryFactory(GeometryFactory.DEFAULT,
           className, geometryConfiguration);
         businessApplication.setGeometryFactory(geometryFactory);
         final boolean validateGeometry = geometryConfiguration.validate();

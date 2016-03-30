@@ -54,5 +54,5 @@ public @interface AllowedValues {
    *
    * @return The list of allowed values.
    */
-  String[]value();
+  String[] value();
 }

@@ -31,7 +31,6 @@ import com.revolsys.collection.set.Sets;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
 import com.revolsys.util.Dates;
-import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 
 public class BusinessApplicationStatistics {

@@ -36,11 +36,10 @@ import com.revolsys.geometry.precision.MinimumClearance;
  *
  * @author Paul Austin <paul.austin@revolsys.com>
  */
-@BusinessApplicationPlugin(
-  name = "GeometryValidator",
-  description = "The Geometry Validator takes your input geometry and determines if it is simple, valid, and robust. It will also compute the geometry's minimum clearance. The Validator converts your geometry to a coordinate system of your choice then applies a precision model before analysing it. The definition of terms such as simple, valid, robust, and minimum clearance can be found in the detailed service description.",
-  descriptionUrl = "http://www.data.gov.bc.ca/dbc/geo/geomark/index.page",
-  numRequestsPerWorker = 100, instantModePermission = "permitAll")
+@BusinessApplicationPlugin(name = "GeometryValidator",
+    description = "The Geometry Validator takes your input geometry and determines if it is simple, valid, and robust. It will also compute the geometry's minimum clearance. The Validator converts your geometry to a coordinate system of your choice then applies a precision model before analysing it. The definition of terms such as simple, valid, robust, and minimum clearance can be found in the detailed service description.",
+    descriptionUrl = "http://www.data.gov.bc.ca/dbc/geo/geomark/index.page",
+    numRequestsPerWorker = 100, instantModePermission = "permitAll")
 public class GeometryValidatorPlugin {
   /** The geometry to validate. */
   private Geometry geometry;
@@ -98,9 +97,8 @@ public class GeometryValidatorPlugin {
       if (this.resultScaleFactorZ == 0) {
         this.resultScaleFactorZ = sourceGeometryFactory.getScaleZ();
       }
-      final GeometryFactory geometryFactory = GeometryFactory.fixed(
-        this.resultSrid, this.resultNumAxis, this.resultScaleFactorXy,
-        this.resultScaleFactorZ);
+      final GeometryFactory geometryFactory = GeometryFactory.fixed(this.resultSrid,
+        this.resultNumAxis, this.resultScaleFactorXy, this.resultScaleFactorZ);
       this.geometry = geometryFactory.geometry(this.geometry);
 
       final IsValidOp validOp = new IsValidOp(this.geometry);
@@ -137,13 +135,11 @@ public class GeometryValidatorPlugin {
       }
 
       if (this.minimumClearance >= clearanceTolerance) {
-        this.minimumClearance = Math.ceil(this.minimumClearance
-          * clearanceScaleFactor)
-            / clearanceScaleFactor;
+        this.minimumClearance = Math.ceil(this.minimumClearance * clearanceScaleFactor)
+          / clearanceScaleFactor;
       }
-      if (Double.isNaN(this.minimumClearance)
-        || Double.isInfinite(this.minimumClearance)
-          || this.minimumClearance > 999999999) {
+      if (Double.isNaN(this.minimumClearance) || Double.isInfinite(this.minimumClearance)
+        || this.minimumClearance > 999999999) {
         this.minimumClearance = 999999999;
       }
     }
@@ -166,9 +162,8 @@ public class GeometryValidatorPlugin {
    *
    * @return The minimum clearance required for the geometry to still be valid.
    */
-  @ResultAttribute(
-    index = 6,
-    description = "The minimum clearance required for the geometry to still be valid.")
+  @ResultAttribute(index = 6,
+      description = "The minimum clearance required for the geometry to still be valid.")
   public double getMinimumClearance() {
     return this.minimumClearance;
   }
@@ -189,9 +184,8 @@ public class GeometryValidatorPlugin {
    *
    * @return The point location of the first geometry validation error.
    */
-  @ResultAttribute(
-    index = 4,
-    description = "The point location of the first geometry validation error.")
+  @ResultAttribute(index = 4,
+      description = "The point location of the first geometry validation error.")
   public Point getValidationLocation() {
     return this.validationLocation;
   }
@@ -201,9 +195,8 @@ public class GeometryValidatorPlugin {
    *
    * @return The flag indicating if the geometry minimum clearance is robust.
    */
-  @ResultAttribute(
-    index = 5,
-    description = "Flag indicating if the geometry minimum clearance is robust.")
+  @ResultAttribute(index = 5,
+      description = "Flag indicating if the geometry minimum clearance is robust.")
   public boolean isIsRobust() {
     return this.isRobust;
   }
@@ -224,8 +217,7 @@ public class GeometryValidatorPlugin {
    *
    * @return The flag indicating if the converted geometry was valid.
    */
-  @ResultAttribute(index = 2,
-      description = "Flag indicating if the converted geometry was valid.")
+  @ResultAttribute(index = 2, description = "Flag indicating if the converted geometry was valid.")
   public boolean isIsValid() {
     return this.isValid;
   }
@@ -237,7 +229,7 @@ public class GeometryValidatorPlugin {
    */
   @Required
   @RequestParameter(
-    description = "The geometry to validate. For single and instant requests enter a WKT encoded geometry or a Geomark URL.")
+      description = "The geometry to validate. For single and instant requests enter a WKT encoded geometry or a Geomark URL.")
   public void setGeometry(final Geometry geometry) {
     this.geometry = geometry;
   }

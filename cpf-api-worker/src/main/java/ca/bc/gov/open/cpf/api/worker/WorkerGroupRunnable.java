@@ -349,11 +349,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List<Map<String,Object>
    * logRecords List<Map<String,Object>
    * groupExecutionTime long
@@ -586,7 +586,7 @@ public class WorkerGroupRunnable implements Runnable {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
             GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
-            if (geometryFactory == GeometryFactory.floating3()) {
+            if (geometryFactory == GeometryFactory.DEFAULT) {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = Maps.getInteger(parameters, "resultSrid",

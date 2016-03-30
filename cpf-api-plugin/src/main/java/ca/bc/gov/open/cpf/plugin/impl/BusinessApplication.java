@@ -53,7 +53,6 @@ import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
-import com.revolsys.util.Debug;
 import com.revolsys.util.Property;
 
 /**
@@ -124,7 +123,7 @@ public class BusinessApplication extends BaseObjectWithProperties
    */
   private String descriptionUrl;
 
-  private GeometryFactory geometryFactory = GeometryFactory.floating3();
+  private GeometryFactory geometryFactory = GeometryFactory.DEFAULT;
 
   private boolean hasCustomizationProperties;
 
@@ -813,7 +812,6 @@ public class BusinessApplication extends BaseObjectWithProperties
   public Object pluginGetResultFieldValue(final Object plugin, final String fieldName) {
     final Method method = this.resultFieldMethodMap.get(fieldName);
     if (method == null) {
-      Debug.noOp();
       return null;
     } else {
       try {
@@ -843,7 +841,6 @@ public class BusinessApplication extends BaseObjectWithProperties
       try {
         final Method method = this.requestFieldMethodMap.get(parameterName);
         if (method == null) {
-          Debug.noOp();
         } else {
           method.invoke(plugin, parameterValue);
         }

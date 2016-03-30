@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -34,6 +33,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 
@@ -52,7 +52,7 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
   @ResponseBody
   public Element modulePageView(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-      throws ServletException {
+    throws ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();

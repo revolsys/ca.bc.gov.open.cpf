@@ -433,7 +433,7 @@ public class BatchJobService implements ModuleEventListener {
       if (jsonCallback == null) {
         response.setHeader("Accept-Ranges", "bytes");
         response.setHeader("Content-Length", Long.toString(size));
-        final java.util.Date lastModified = batchJobResult.getValue(BatchJobResult.WHEN_CREATED);
+        final java.util.Date lastModified = batchJobResult.getValue(Common.WHEN_CREATED);
 
         final String lastModifiedString = Dates.format("EEE, dd MMM yyyy HH:mm:ss z", lastModified);
         response.setHeader("Last-Modified", lastModifiedString);
@@ -1017,8 +1017,10 @@ public class BatchJobService implements ModuleEventListener {
           }
           // TODO errors postProcessCreateResults(log, batchJob, batchJobId);
 
-          if (batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.RESULTS_CREATED)
-            || batchJob.setStatus(this, BatchJobStatus.CREATING_RESULTS, BatchJobStatus.RESULTS_CREATED)) {
+          if (batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS,
+            BatchJobStatus.RESULTS_CREATED)
+            || batchJob.setStatus(this, BatchJobStatus.CREATING_RESULTS,
+              BatchJobStatus.RESULTS_CREATED)) {
 
             final Timestamp now = batchJob.getValue(BatchJob.WHEN_STATUS_CHANGED);
             batchJob.setValue(BatchJob.COMPLETED_TIMESTAMP, now);
@@ -1449,10 +1451,12 @@ public class BatchJobService implements ModuleEventListener {
                 numFailedRequests, maxGroupSize, numGroups)) {
                 postProcess(batchJobId);
               } else {
-                batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.SUBMITTED);
+                batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS,
+                  BatchJobStatus.SUBMITTED);
               }
             } else {
-              if (batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS, BatchJobStatus.PROCESSING)) {
+              if (batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS,
+                BatchJobStatus.PROCESSING)) {
                 final Timestamp now = batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP);
                 batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
                 batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, numSubmittedRequests);
@@ -2015,7 +2019,7 @@ public class BatchJobService implements ModuleEventListener {
             throw new IllegalArgumentException("invalid WKT geometry", t);
           }
         }
-        if (geometryFactory != GeometryFactory.floating3()) {
+        if (geometryFactory != GeometryFactory.DEFAULT) {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);

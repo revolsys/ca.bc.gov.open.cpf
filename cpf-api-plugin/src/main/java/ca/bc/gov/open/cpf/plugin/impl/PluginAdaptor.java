@@ -331,7 +331,7 @@ public class PluginAdaptor {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
             GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
-            if (geometryFactory == GeometryFactory.floating3()) {
+            if (geometryFactory == GeometryFactory.DEFAULT) {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = Maps.getInteger(this.parameters, "resultSrid",

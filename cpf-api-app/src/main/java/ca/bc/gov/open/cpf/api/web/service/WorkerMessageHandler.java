@@ -110,7 +110,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     message.put("moduleTime", moduleTime);
 
     final Module module = event.getModule();
-    int jarCount = module.getJarCount();
+    final int jarCount = module.getJarCount();
     message.put("moduleJarCount", jarCount);
 
     for (final Worker worker : this.batchJobService.getWorkers()) {

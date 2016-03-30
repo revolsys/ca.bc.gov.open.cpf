@@ -146,7 +146,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
         fail(request, response, new BadCredentialsException(
           this.messages.getMessage("DigestAuthenticationFilter.missingMandatory", new Object[] {
             section212response
-        }, "Missing mandatory digest value; received header {0}")));
+          }, "Missing mandatory digest value; received header {0}")));
 
         return;
       }
@@ -162,7 +162,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
           fail(request, response, new BadCredentialsException(
             this.messages.getMessage("DigestAuthenticationFilter.missingAuth", new Object[] {
               section212response
-          }, "Missing mandatory digest value; received header {0}")));
+            }, "Missing mandatory digest value; received header {0}")));
 
           return;
         }
@@ -173,7 +173,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
         fail(request, response, new BadCredentialsException(
           this.messages.getMessage("DigestAuthenticationFilter.incorrectRealm", new Object[] {
             realm, this.getAuthenticationEntryPoint().getRealmName()
-        }, "Response realm name '{0}' does not match system realm name of '{1}'")));
+          }, "Response realm name '{0}' does not match system realm name of '{1}'")));
 
         return;
       }
@@ -184,7 +184,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
         fail(request, response, new BadCredentialsException(
           this.messages.getMessage("DigestAuthenticationFilter.nonceEncoding", new Object[] {
             nonce
-        }, "Nonce is not encoded in Base64; received nonce {0}")));
+          }, "Nonce is not encoded in Base64; received nonce {0}")));
 
         return;
       }
@@ -199,7 +199,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
         fail(request, response, new BadCredentialsException(
           this.messages.getMessage("DigestAuthenticationFilter.nonceNotTwoTokens", new Object[] {
             nonceAsPlainText
-        }, "Nonce should have yielded two tokens but was {0}")));
+          }, "Nonce should have yielded two tokens but was {0}")));
 
         return;
       }
@@ -213,7 +213,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
         fail(request, response, new BadCredentialsException(
           this.messages.getMessage("DigestAuthenticationFilter.nonceNotNumeric", new Object[] {
             nonceAsPlainText
-        }, "Nonce token should have yielded a numeric first token, but was {0}")));
+          }, "Nonce token should have yielded a numeric first token, but was {0}")));
 
         return;
       }
@@ -226,7 +226,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
         fail(request, response, new BadCredentialsException(
           this.messages.getMessage("DigestAuthenticationFilter.nonceCompromised", new Object[] {
             nonceAsPlainText
-        }, "Nonce token compromised {0}")));
+          }, "Nonce token compromised {0}")));
 
         return;
       }
@@ -246,7 +246,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
           fail(request, response, new BadCredentialsException(
             this.messages.getMessage("DigestAuthenticationFilter.usernameNotFound", new Object[] {
               username
-          }, "Username {0} not found")));
+            }, "Username {0} not found")));
 
           return;
         }
@@ -280,7 +280,7 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
           fail(request, response, new BadCredentialsException(
             this.messages.getMessage("DigestAuthenticationFilter.usernameNotFound", new Object[] {
               username
-          }, "Username {0} not found")));
+            }, "Username {0} not found")));
         }
 
         this.userCache.putUserInCache(user);

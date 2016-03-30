@@ -25,7 +25,8 @@ public class WorkerSecurityServiceFactory extends AbstractSecurityServiceFactory
 
   public WorkerSecurityServiceFactory(final WorkerMessageHandler messageHandler) {
     this.messageHandler = messageHandler;
-    BusinessApplicationRegistry businessApplicationRegistry = this.messageHandler.getBusinessApplicationRegistry();
+    final BusinessApplicationRegistry businessApplicationRegistry = this.messageHandler
+      .getBusinessApplicationRegistry();
     businessApplicationRegistry.addModuleEventListener(this);
   }
 

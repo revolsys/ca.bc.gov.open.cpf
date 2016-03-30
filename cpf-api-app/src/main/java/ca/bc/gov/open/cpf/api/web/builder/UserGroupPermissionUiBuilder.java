@@ -25,7 +25,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import com.revolsys.ui.web.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -41,6 +40,7 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.annotation.RequestMapping;
 
 @Controller
 public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
@@ -60,7 +60,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   public Element pageModuleUserGroupPermissionAdd(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName)
-      throws ServletException, IOException {
+    throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -114,7 +114,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
-      throws ServletException, IOException {
+    throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -140,7 +140,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   public Object pageModuleUserGroupPermissionList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName)
-      throws IOException, ServletException {
+    throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);
@@ -168,7 +168,7 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
-      throws ServletException, IOException {
+    throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);

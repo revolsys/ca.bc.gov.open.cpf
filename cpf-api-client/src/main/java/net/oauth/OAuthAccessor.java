@@ -67,7 +67,7 @@ public class OAuthAccessor implements Cloneable, Serializable {
 
   public OAuthMessage newRequestMessage(final String method, final String url,
     final Collection<? extends Entry<String, String>> parameters)
-      throws OAuthException, IOException, URISyntaxException {
+    throws OAuthException, IOException, URISyntaxException {
     return newRequestMessage(method, url, parameters, null);
   }
 
@@ -83,7 +83,7 @@ public class OAuthAccessor implements Cloneable, Serializable {
    */
   public OAuthMessage newRequestMessage(String method, final String url,
     final Collection<? extends Entry<String, String>> parameters, final InputStream body)
-      throws OAuthException, IOException, URISyntaxException {
+    throws OAuthException, IOException, URISyntaxException {
     if (method == null) {
       method = (String)this.getProperty("httpMethod");
       if (method == null) {

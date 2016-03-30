@@ -30,9 +30,7 @@ import com.revolsys.gis.grid.RectangularMapGrid;
 import com.revolsys.gis.grid.RectangularMapGridFactory;
 import com.revolsys.gis.grid.RectangularMapTile;
 
-@BusinessApplicationPlugin(
-    numRequestsPerWorker = 100,
-    instantModePermission = "permitAll",
+@BusinessApplicationPlugin(numRequestsPerWorker = 100, instantModePermission = "permitAll",
     description = "The Map Tile by Location service returns the map tile id and polygon boundary for the map tile specified by latitude/longitude location.")
 public class MapTileByLocation {
 
@@ -49,79 +47,67 @@ public class MapTileByLocation {
   private short numBoundaryPoints = 50;
 
   public void execute() {
-    final RectangularMapGrid grid = RectangularMapGridFactory.getGrid(mapGridName);
+    final RectangularMapGrid grid = RectangularMapGridFactory.getGrid(this.mapGridName);
     if (grid == null) {
-      throw new IllegalArgumentException("Grid not supported " + mapGridName);
+      throw new IllegalArgumentException("Grid not supported " + this.mapGridName);
     } else {
-      final RectangularMapTile tile = grid.getTileByLocation(longitude,
-        latitude);
+      final RectangularMapTile tile = grid.getTileByLocation(this.longitude, this.latitude);
       if (tile == null) {
         throw new IllegalArgumentException("tile not found");
       } else {
-        mapTileId = tile.getFormattedName();
-        mapTileBoundary = tile.getPolygon(numBoundaryPoints);
+        this.mapTileId = tile.getFormattedName();
+        this.mapTileBoundary = tile.getPolygon(this.numBoundaryPoints);
       }
     }
   }
 
   @ResultAttribute()
   public double getLatitude() {
-    return latitude;
+    return this.latitude;
   }
 
   @ResultAttribute
   public double getLongitude() {
-    return longitude;
+    return this.longitude;
   }
 
   @ResultAttribute
   public String getMapGridName() {
-    return mapGridName;
+    return this.mapGridName;
   }
 
   @ResultAttribute(description = "The polygon boundary of the map tile.")
   public Polygon getMapTileBoundary() {
-    return mapTileBoundary;
+    return this.mapTileBoundary;
   }
 
-  @ResultAttribute(
-      description = "The identifier of the map tile (e.g. 92G025).")
+  @ResultAttribute(description = "The identifier of the map tile (e.g. 92G025).")
   public String getMapTileId() {
-    return mapTileId;
+    return this.mapTileId;
   }
 
   @Required
-  @RequestParameter(
-      index = 2,
-      minValue = "-180",
-      maxValue = "180",
-      units = "decimal degrees",
+  @RequestParameter(index = 2, minValue = "-180", maxValue = "180", units = "decimal degrees",
       description = "The latitude (decimal degrees) or the point to find the mapsheet for.")
   public void setLatitude(final double latitude) {
     this.latitude = latitude;
   }
 
   @Required
-  @RequestParameter(
-      index = 3,
-      minValue = "-180",
-      maxValue = "180",
-      units = "decimal degrees",
+  @RequestParameter(index = 3, minValue = "-180", maxValue = "180", units = "decimal degrees",
       description = "The longitude (decimal degrees) or the point to find the mapsheet for.")
   public void setLongitude(final double longitude) {
     this.longitude = longitude;
   }
 
   @AllowedValues(value = {
-    "NTS 1:1 000 000", "NTS 1:500 000", "NTS 1:250 000", "NTS 1:125 000",
-    "NTS 1:50 000", "NTS 1:25 000", "BCGS 1:20 000", "BCGS 1:10 000",
-    "BCGS 1:5 000", "BCGS 1:2 500", "BCGS 1:2 000", "BCGS 1:1250",
-    "BCGS 1:1 000", "BCGS 1:500", "MTO"
+    "NTS 1:1 000 000", "NTS 1:500 000", "NTS 1:250 000", "NTS 1:125 000", "NTS 1:50 000",
+    "NTS 1:25 000", "BCGS 1:20 000", "BCGS 1:10 000", "BCGS 1:5 000", "BCGS 1:2 500",
+    "BCGS 1:2 000", "BCGS 1:1250", "BCGS 1:1 000", "BCGS 1:500", "MTO"
   })
   @Required
   @JobParameter
-  @RequestParameter(
-      index = 1,
+  @RequestParameter(index = 1,
       description = "The name of the Map Grid the Map Tile ID is from (e.g. NTS 1:250 000).")
   @DefaultValue("NTS 1:250 000")
   public void setMapGridName(final String mapGridName) {
@@ -129,10 +115,7 @@ public class MapTileByLocation {
   }
 
   @JobParameter
-  @RequestParameter(
-      index = 4,
-      minValue = "1",
-      maxValue = "100",
+  @RequestParameter(index = 4, minValue = "1", maxValue = "100",
       description = "The number of points to include on each edge of the polygon created for the map tile's bounding box.")
   @DefaultValue("20")
   public void setNumBoundaryPoints(final short numBoundaryPoints) {

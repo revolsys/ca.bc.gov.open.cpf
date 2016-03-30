@@ -1,3 +1,4 @@
+
 /*
  * Copyright © 2008-2016, Province of British Columbia
  *
@@ -74,20 +75,6 @@ public class CreateTestFiles {
 
   }
 
-  private void createBcgs2000(final String parentTileName, final double parentLon,
-    final double parentLat) {
-    for (int number = 1; number <= 100; number++) {
-      final double lon = parentLon - GridUtil.getNumberCol100(number) * BcgsConstants.WIDTH_2000;
-      final double lat = parentLat + GridUtil.getNumberRow100(number) * BcgsConstants.HEIGHT_2000;
-
-      final String tileName = parentTileName + "." + GridUtil.formatSheetNumber100(number);
-
-      write("BCGS 1:2000", "csv", "text/csv", tileName, lon, lat);
-      createBcgs1000(tileName, lon, lat);
-    }
-
-  }
-
   private void createBcgs20000(final String parentTileName, final double parentLon,
     final double parentLat) {
     for (int number = 1; number <= 100; number++) {
@@ -99,20 +86,6 @@ public class CreateTestFiles {
       write("BCGS 1:20 000", "csv", "text/csv", tileName, lon, lat);
       createBcgs10000(tileName, lon, lat);
       // createBcgs2000(tileName, lon, lat);
-    }
-
-  }
-
-  private void createBcgs2500(final String parentTileName, final double parentLon,
-    final double parentLat) {
-    for (int number = 1; number <= 4; number++) {
-      final double lon = parentLon - GridUtil.getNumberCol4(number) * BcgsConstants.WIDTH_2500;
-      final double lat = parentLat + GridUtil.getNumberRow4(number) * BcgsConstants.HEIGHT_2500;
-
-      final String tileName = parentTileName + "." + number;
-
-      write("BCGS 1:2500", "csv", "text/csv", tileName, lon, lat);
-      createBcgs1250(tileName, lon, lat);
     }
 
   }

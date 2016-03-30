@@ -118,7 +118,7 @@ public class OAuthProcessingFilter extends AbstractAuthenticationProcessingFilte
   @Override
   public Authentication attemptAuthentication(final HttpServletRequest request,
     final HttpServletResponse response)
-      throws AuthenticationException, IOException, ServletException {
+    throws AuthenticationException, IOException, ServletException {
     final String requestUrl = getRequestURL(request);
     final OAuthMessage message = getMessage(request, requestUrl);
     final String consumerKey = message.getConsumerKey();

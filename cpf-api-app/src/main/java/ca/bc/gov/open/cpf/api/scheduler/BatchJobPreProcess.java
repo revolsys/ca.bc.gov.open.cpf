@@ -47,7 +47,8 @@ public class BatchJobPreProcess extends AbstractBatchJobChannelProcess {
     final BatchJob batchJob = batchJobService.getBatchJob(batchJobId);
     if (batchJob != null) {
       final long time = System.currentTimeMillis();
-      if (batchJob.setStatus(batchJobService, BatchJobStatus.SUBMITTED, BatchJobStatus.CREATING_REQUESTS) || batchJob.isStatus(BatchJobStatus.CREATING_REQUESTS)) {
+      if (batchJob.setStatus(batchJobService, BatchJobStatus.SUBMITTED,
+        BatchJobStatus.CREATING_REQUESTS) || batchJob.isStatus(BatchJobStatus.CREATING_REQUESTS)) {
         final long lastChangedTime = System.currentTimeMillis();
         return batchJobService.preProcessBatchJob(batchJobId, time, lastChangedTime);
       }
