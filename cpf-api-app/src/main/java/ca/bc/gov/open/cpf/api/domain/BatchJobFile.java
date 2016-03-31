@@ -26,7 +26,7 @@ public interface BatchJobFile {
 
   String DATA = "DATA";
 
-  String PATH = "PATH";
+  String FILE_TYPE = "FILE_TYPE";
 
   String SEQUENCE_NUMBER = "SEQUENCE_NUMBER";
 }

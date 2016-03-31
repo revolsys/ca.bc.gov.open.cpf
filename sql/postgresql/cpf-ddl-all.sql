@@ -13,4 +13,3 @@ CREATE SCHEMA CPF;
 
 \i 'cpf-ddl-grt.sql'
 \i 'cpf-ddl-data.sql'
-

@@ -57,7 +57,7 @@ public class DatabaseJobController extends AbstractJobController {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
     query.setFieldNames(BatchJobFile.CONTENT_TYPE);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
     final Record file = this.recordStore.getRecords(query).getFirst();
     if (file != null) {
@@ -71,7 +71,7 @@ public class DatabaseJobController extends AbstractJobController {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
     query.setFieldNames(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
     final Record file = this.recordStore.getRecords(query).getFirst();
     if (file != null) {
@@ -91,7 +91,7 @@ public class DatabaseJobController extends AbstractJobController {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
     query.setFieldNames(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
     final Record file = this.recordStore.getRecords(query).getFirst();
     if (file != null) {
@@ -111,7 +111,7 @@ public class DatabaseJobController extends AbstractJobController {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
     query.setFieldNames(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.PATH, path));
+    query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
     final Record file = this.recordStore.getRecords(query).getFirst();
     if (file != null) {
@@ -145,7 +145,7 @@ public class DatabaseJobController extends AbstractJobController {
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRED)) {
       final Record result = this.dataAccessObject.newRecord(BatchJobFile.BATCH_JOB_FILE);
       result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
-      result.setValue(BatchJobFile.PATH, path);
+      result.setValue(BatchJobFile.FILE_TYPE, path);
       result.setValue(BatchJobFile.CONTENT_TYPE, contentType);
       result.setValue(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber);
       result.setValue(BatchJobFile.DATA, data);

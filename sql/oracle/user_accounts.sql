@@ -1,13 +1,13 @@
 CREATE TABLE CPF_USER_ACCOUNTS (
-  USER_ACCOUNT_ID                 BIGINT          NOT NULL,
-  USER_ACCOUNT_CLASS              VARCHAR(255)    NOT NULL,
-  USER_NAME                       VARCHAR(255)    NOT NULL,
-  CONSUMER_KEY                    VARCHAR(36)     NOT NULL,
-  CONSUMER_SECRET                 VARCHAR(36)     NOT NULL,
-  ACTIVE_IND                      NUMERIC(1,0)    NOT NULL,
-  WHO_CREATED                     VARCHAR(255)    NOT NULL,
+  USER_ACCOUNT_ID                 NUMBER(19)          NOT NULL,
+  USER_ACCOUNT_CLASS              VARCHAR2(255)    NOT NULL,
+  USER_NAME                       VARCHAR2(255)    NOT NULL,
+  CONSUMER_KEY                    VARCHAR2(36)     NOT NULL,
+  CONSUMER_SECRET                 VARCHAR2(36)     NOT NULL,
+  ACTIVE_IND                      NUMBER(1,0)    NOT NULL,
+  WHO_CREATED                     VARCHAR2(255)    NOT NULL,
   WHEN_CREATED                    TIMESTAMP       NOT NULL,
-  WHO_UPDATED                     VARCHAR(255)    NOT NULL,
+  WHO_UPDATED                     VARCHAR2(255)    NOT NULL,
   WHEN_UPDATED                    TIMESTAMP       NOT NULL,
   
   CONSTRAINT USER_ACCOUNTS_PK PRIMARY KEY (USER_ACCOUNT_ID)

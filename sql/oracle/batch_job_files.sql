@@ -1,9 +1,9 @@
 CREATE TABLE CPF_BATCH_JOB_FILES (
-  BATCH_JOB_ID                    BIGINT          NOT NULL,
-  FILE_TYPE                       VARCHAR(20)     NOT NULL,
-  SEQUENCE_NUMBER                 BIGINT          NOT NULL,
-  CONTENT_TYPE                    VARCHAR(50)     NOT NULL,
-  DATA                            OID             NOT NULL,
+  BATCH_JOB_ID                    NUMBER(19)          NOT NULL,
+  FILE_TYPE                       VARCHAR2(20)     NOT NULL,
+  SEQUENCE_NUMBER                 NUMBER(19)          NOT NULL,
+  CONTENT_TYPE                    VARCHAR2(50)     NOT NULL,
+  DATA                            BLOB             NOT NULL,
   WHEN_CREATED                    TIMESTAMP       NOT NULL,
 
   CONSTRAINT BATCH_JOB_FILES_PK PRIMARY KEY (BATCH_JOB_ID, FILE_TYPE, SEQUENCE_NUMBER),

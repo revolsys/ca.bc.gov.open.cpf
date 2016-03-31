@@ -1,7 +1,7 @@
 CREATE TABLE CPF_USER_GROUP_ACCOUNT_XREF (
-  USER_ACCOUNT_ID                 BIGINT          NOT NULL,
-  USER_GROUP_ID                   BIGINT          NOT NULL,
-  WHO_CREATED                     VARCHAR(255)    NOT NULL,
+  USER_ACCOUNT_ID                 NUMBER(19)          NOT NULL,
+  USER_GROUP_ID                   NUMBER(19)          NOT NULL,
+  WHO_CREATED                     VARCHAR2(255)    NOT NULL,
   WHEN_CREATED                    TIMESTAMP       NOT NULL,
   
   CONSTRAINT USER_GROUP_ACCOUNT_XREF_PK PRIMARY KEY (USER_GROUP_ID, USER_ACCOUNT_ID),
