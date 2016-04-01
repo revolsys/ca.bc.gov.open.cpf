@@ -576,7 +576,7 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </snapshotRepository>
     <site>
-      <id>gh-pages</id>
+      <id>cpf-gh-pages</id>
       <name>Deployment through GitHub's site deployment plugin</name>
       <url>github:https://bcgov.github.io/cpf/</url>
     </site>
