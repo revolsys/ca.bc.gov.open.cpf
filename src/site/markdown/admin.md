@@ -746,7 +746,7 @@ the same machine they can share the same configuration file.
       <td>The password for the PROXY_CPF_WEB user account.</td>
       <td><img src="images/cross.png" alt="No" title="No" /></td>
       <td>String</td>
-      <td>cpf_2009</td>
+      <td>c0ncurr3n7</td>
     </tr>
     <tr>
       <td><code>batchJobService.maxWorkerWaitTime</code></td>
@@ -813,7 +813,7 @@ the same machine they can share the same configuration file.
       <td>The password for the cpf_worker user account.</td>
       <td><img src="images/cross.png" alt="No" title="No" /></td>
       <td>String</td>
-      <td>w0rk3r</td>
+      <td>cpf_w0rk3r</td>
     </tr>
     <tr>
       <td><code>cpfWorker.environmentName</code></td>

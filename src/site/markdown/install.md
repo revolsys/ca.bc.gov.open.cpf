@@ -115,13 +115,13 @@ Edit the `db.properties` file.
       <td>The PostgreSQL database name or Oracle TNSNAME, tnsnames.ora must be configured.</td>
     </tr>
     <tr>
-      <td><code>OWNER_PASSWORD</code></td>
-      <td><code>cpf_2009</code></td>
+      <td><code>CPF_PASSWORD</code></td>
+      <td><code>cpf_0wn3r</code></td>
       <td>The password to create the CPF database account with.</td>
     </tr>
     <tr>
-      <td><code>PROXY_WEB_PASSWORD</code></td>
-      <td><code>cpf_2009</code></td>
+      <td><code>PROXY_CPF_WEB_PASSWORD</code></td>
+      <td><code>c0ncurr3n7</code></td>
       <td>The password to create the PROXY_CPF_WEB database account with.</td>
     </tr>
     <tr>
@@ -143,7 +143,7 @@ file should look something like this.
 
 ```
 localhost:5432:*:postgres:postgres
-localhost:5432:*:cpf:cpf_2009
+localhost:5432:*:cpf:cpf_0wn3r
 ```
   
 ### CPF Database and schema install
@@ -509,7 +509,7 @@ the server.
     </tr>
     <tr>
     <td><code>cpfDataSource.password</code></td>
-    <td>The password for the CPF database (e.g. cpf_2009).</td>
+    <td>The password for the CPF database (e.g. c0ncurr3n7).</td>
     </tr>
     <tr>
     <td><code>cpfWorker.webServiceUrl</code></td>
@@ -517,7 +517,7 @@ the server.
     </tr>
     <tr>
     <td><code>cpfWorker.password</code></td>
-    <td>The password used in the internal web services (e.g. cpf_2009). Must be an
+    <td>The password used in the internal web services (e.g. cpf_w0rk3r). Must be an
      `http://open.gov.bc.ca/cpf/SystemUser` user in the cpf.cpf_user_accounts table.</td>
     </tr>
   </tbody>

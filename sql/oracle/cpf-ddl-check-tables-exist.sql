@@ -10,5 +10,4 @@ set colsep ""
 column num justify left
 column num format 9
 SELECT count(*) "num" FROM USER_TABLES,USER_SEQUENCES;
-/
 exit

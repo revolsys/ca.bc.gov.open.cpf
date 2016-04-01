@@ -11,6 +11,8 @@
   <requiredProperties>
     <requiredProperty key="modulePrefix" />
     <requiredProperty key="databaseVendor" />
+    <requiredProperty key="databasePassword" />
+    <requiredProperty key="workerPassword" />
     <requiredProperty key="cpfLogDirectory" />
     <requiredProperty key="cpfDirectoryUrl" />
     <requiredProperty key="mavenCacheDirectoryUrl" />

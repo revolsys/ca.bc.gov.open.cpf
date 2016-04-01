@@ -18,7 +18,7 @@
     class="com.revolsys.jdbc.io.JdbcDataSourceFactoryBean"
     p:url="jdbc:postgresql:cpf"
     p:username="proxy_cpf_web"
-    p:password="cpf_2009"
+    p:password="DUMMY_VALUE_MUST_BE_SET_IN_CONFIG"
     lazy-init="true"
   >
     <property name="config">

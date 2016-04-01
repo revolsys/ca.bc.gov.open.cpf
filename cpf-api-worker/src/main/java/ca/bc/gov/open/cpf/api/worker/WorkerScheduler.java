@@ -120,7 +120,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private final AtomicInteger taskCount = new AtomicInteger();
 
-  private String password = "w0rk3r";
+  private String password = "DUMMY_VALUE_MUST_BE_SET_IN_CONFIG";
 
   private boolean running;
 

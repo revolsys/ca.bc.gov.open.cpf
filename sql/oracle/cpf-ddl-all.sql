@@ -9,7 +9,6 @@
 @batch_job_files.sql
 @batch_job_results.sql
 
-@cpf-ddl-grt.sql
 @cpf-ddl-data.sql
 
 exit

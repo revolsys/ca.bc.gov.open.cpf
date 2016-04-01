@@ -15,6 +15,6 @@
     p:serverName="localhost"
     p:databaseName="cpf"
     p:user="proxy_cpf_web"
-    p:password="cpf_2009"
+    p:password="c0ncurr3n7"
   />
 </beans>

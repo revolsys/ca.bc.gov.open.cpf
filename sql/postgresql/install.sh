@@ -21,8 +21,10 @@ if [ -e ${DIR}/db.properties ]; then
   psql -h ${DB_HOSTNAME} -p ${DB_PORT} -U postgres -d postgres -f /tmp/cpf-dba-all.sql > cpf-dba.log 2>&1
   if [ "$?" != "0" ]; then
     echo ERROR: Psql executed with error code $?
+    rm /tmp/cpf-dba-all.sql
     exit
   fi
+  cat /tmp/cpf-dba-all.sql
   RESULT=`grep -e "(FATAL|ERROR)" cpf-dba.log`
   cat ${DIR}/cpf-dba.log
   if [ -n "${RESULT}" ]; then
