@@ -15,11 +15,24 @@
   "
 >
   <bean
+    class="com.revolsys.ui.model.Brand"
+    id="cpfCustomBrand"  
+  />
+
+  <bean
     id="mainMenu"
-    class="com.revolsys.ui.model.Menu"
-    p:title="CPF"
-    p:uri="/ws/"
+    class="com.revolsys.ui.model.Navbar"
+    p:navbarCssClass="navbar-fixed-top"
   >
+    <property name="brands">
+      <list>
+        <ref bean="cpfCustomBrand" />
+        <bean
+          class="com.revolsys.ui.model.Brand"
+          p:brandTitle="CPF"
+          p:brandUri="/" />
+      </list>
+    </property>
     <property name="menus">
       <list>
         <bean
@@ -57,29 +70,43 @@
 
   <bean
     id="footerMenu"
-    class="com.revolsys.ui.model.Menu"
-    p:title=""
-    p:uri=""
+    class="com.revolsys.ui.model.Navbar"
+    p:navbarCssClass="navbar-fixed-bottom"
   >
+  </bean>
+
+  <bean
+    id="cpfCustomCssUrl"
+    class="java.lang.String"
+  >
+    <constructor-arg>
+      <value></value>
+    </constructor-arg>
   </bean>
 
   <util:list id="cpfCssUrls">
     <value>https://code.jquery.com/ui/1.11.2/themes/cupertino/jquery-ui.css</value>
     <value>https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css</value>
-    <value>https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css</value>
-    <value>https://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css</value>
+    <value>https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css
+    </value>
+    <value>https://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css
+    </value>
     <value>https://cdn.datatables.net/scroller/1.2.2/css/dataTables.scroller.css</value>
-    <value>https://cdn.datatables.net/plug-ins/1.10.6/integration/bootstrap/3/dataTables.bootstrap.css</value>
+    <value>https://cdn.datatables.net/plug-ins/1.10.6/integration/bootstrap/3/dataTables.bootstrap.css
+    </value>
     <value>/css/rs.css</value>
     <value>/css/cpf.css</value>
+    <ref bean="cpfCustomCssUrl"/>
   </util:list>
 
   <util:list id="cpfJavaScriptUrls">
     <value>https://code.jquery.com/jquery-1.12.1.min.js</value>
     <value>https://code.jquery.com/ui/1.11.4/jquery-ui.min.js</value>
-    <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js</value>
+    <value>https://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js
+    </value>
     <value>https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js</value>
-    <value>https://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js</value>
+    <value>https://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js
+    </value>
     <value>https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js</value>
     <value>https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js</value>
     <value>https://cdn.datatables.net/scroller/1.2.2/js/dataTables.scroller.min.js</value>
@@ -91,10 +118,18 @@
 
   <bean
     id="adminMainMenu"
-    class="com.revolsys.ui.model.Menu"
-    p:title="CPF"
-    p:uri="/admin/"
+    class="com.revolsys.ui.model.Navbar"
+    p:navbarCssClass="navbar-fixed-top"
   >
+    <property name="brands">
+      <list>
+        <ref bean="cpfCustomBrand" />
+        <bean
+          class="com.revolsys.ui.model.Brand"
+          p:brandTitle="CPF Admin"
+          p:brandUri="/admin/" />
+      </list>
+    </property>
     <property name="menus">
       <list>
         <bean
@@ -180,6 +215,13 @@
             <entry
               key="mainMenu"
               value-ref="adminMainMenu" />
+          </map>
+        </entry>
+        <entry key="/ws/**">
+          <map>
+            <entry
+              key="breadcrumbHidePrefix"
+              value="/ws" />
           </map>
         </entry>
         <entry key="/**">

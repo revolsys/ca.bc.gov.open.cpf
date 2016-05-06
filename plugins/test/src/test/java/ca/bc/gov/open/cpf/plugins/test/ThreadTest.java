@@ -16,12 +16,13 @@
 package ca.bc.gov.open.cpf.plugins.test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 
+import com.revolsys.collection.map.LinkedHashMapEx;
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
@@ -53,7 +54,7 @@ public class ThreadTest {
   private final Channel<Boolean> stopChannel = new Channel<Boolean>(
     new Buffer<Boolean>(this.numThreads));
 
-  private List<Map<String, Object>> testData = new ArrayList<Map<String, Object>>();
+  private List<MapEx> testData = new ArrayList<>();
 
   public ThreadTest() {
     this.executor.setTestModeEnabled(this.businessApplicationName, Boolean.TRUE);
@@ -80,7 +81,7 @@ public class ThreadTest {
     if (this.inputDataResource.exists()) {
       this.testData = MapReader.newMapReader(this.inputDataResource).toList();
     } else {
-      this.testData.add(Collections.<String, Object> emptyMap());
+      this.testData.add(new LinkedHashMapEx());
     }
     for (int i = 0; i < this.numThreads; i++) {
       final ThreadTestRunnable runnable = new ThreadTestRunnable(this, i);

@@ -18,12 +18,11 @@ package ca.bc.gov.open.cpf.api.web.controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
 import com.revolsys.identifier.Identifier;
-import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.record.Record;
 import com.revolsys.record.schema.RecordDefinition;
 
@@ -49,7 +48,7 @@ public interface JobController {
 
   String getGroupInputString(Identifier batchJobId, int sequenceNumber);
 
-  Reader<Map<String, Object>> getGroupResultReader(Identifier batchJobId, int sequenceNumber);
+  MapReader getGroupResultReader(Identifier batchJobId, int sequenceNumber);
 
   InputStream getGroupResultStream(Identifier batchJobId, int sequenceNumber);
 

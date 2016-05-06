@@ -21,6 +21,7 @@ import java.util.Map;
 
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
@@ -52,7 +53,7 @@ public class MtwsThreadTest {
   private final Channel<Boolean> stopChannel = new Channel<Boolean>(
     new Buffer<Boolean>(NUM_THREADS));
 
-  private List<Map<String, Object>> testData = new ArrayList<Map<String, Object>>();
+  private List<MapEx> testData = new ArrayList<>();
 
   public MtwsThreadTest() {
     this.executor.setTestModeEnabled("MapTileByTileId", Boolean.TRUE);

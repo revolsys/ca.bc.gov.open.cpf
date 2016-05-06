@@ -56,7 +56,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.LoggerFactory;
 
 import com.revolsys.io.IoFactory;
-import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.json.JsonParser;
@@ -207,12 +207,12 @@ public class OAuthHttpClient extends DefaultHttpClient {
     }
   }
 
-  public Reader<Map<String, Object>> getMapReader(final String url) {
+  public MapReader getMapReader(final String url) {
     final String fileName = UrlUtil.getFileName(url);
     return getMapReader(fileName, url);
   }
 
-  public Reader<Map<String, Object>> getMapReader(final String fileName, final String url) {
+  public MapReader getMapReader(final String fileName, final String url) {
     try {
       final HttpGet request = new HttpGet(url);
       final HttpResponse response = execute(request, this.context);

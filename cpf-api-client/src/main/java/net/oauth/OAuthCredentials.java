@@ -38,7 +38,7 @@ public class OAuthCredentials extends UsernamePasswordCredentials {
   /**
    * Constructs a simple accessor, containing only a consumer key and secret.
    * This is useful for two-legged OAuth; that is interaction between a Consumer
-   * and Service Provider with no User involvement.
+   * and ArcGisRestService Provider with no User involvement.
    */
   public OAuthCredentials(final String consumerKey, final String consumerSecret) {
     this(new OAuthAccessor(new OAuthConsumer(null, consumerKey, consumerSecret, null)));

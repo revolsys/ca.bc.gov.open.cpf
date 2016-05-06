@@ -44,9 +44,9 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 
 import com.revolsys.collection.list.Lists;
 import com.revolsys.comparator.IgnoreCaseStringComparator;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
-import com.revolsys.util.Exceptions;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.LineString;
@@ -159,7 +159,7 @@ public final class BusinessApplicationRegistry
         try {
           module.stop();
         } catch (final Throwable e) {
-          Exceptions.error(getClass(), "Unable to stop " + module.getName(), e);
+          Logs.error(getClass(), "Unable to stop " + module.getName(), e);
         }
       }
 

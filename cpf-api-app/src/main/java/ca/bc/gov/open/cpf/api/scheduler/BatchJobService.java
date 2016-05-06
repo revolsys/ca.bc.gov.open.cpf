@@ -97,7 +97,9 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.collection.list.Lists;
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
+import com.revolsys.collection.map.NamedLinkedHashMap;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.Geometry;
@@ -107,11 +109,12 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactory;
-import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.io.map.MapWriterFactory;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.NamedChannelBundle;
@@ -1044,7 +1047,7 @@ public class BatchJobService implements ModuleEventListener {
                 final List<Object> values = batchJob.getValues(JOB_TSV_FIELD_NAMES);
                 jobsTsvWriter.write(values);
               } catch (final Throwable e) {
-                Exceptions.error(this, "Unable to log job to:" + jobsFile, e);
+                Logs.error(this, "Unable to log job to:" + jobsFile, e);
               }
             }
             batchJob.update();
@@ -1132,11 +1135,11 @@ public class BatchJobService implements ModuleEventListener {
           if (numSubmittedGroups > 0) {
             for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
               try (
-                final Reader<Map<String, Object>> resultDataReader = this.jobController
+                final MapReader resultDataReader = this.jobController
                   .getGroupResultReader(batchJobId, sequenceNumber);) {
                 if (resultDataReader != null) {
-                  for (final Map<String, Object> resultData : resultDataReader) {
-                    final Map<String, Object> resultMap = resultData;
+                  for (final MapEx resultData : resultDataReader) {
+                    final MapEx resultMap = resultData;
                     if (resultMap.containsKey("errorCode")) {
                       postProcessWriteError(errorResultWriter, resultMap);
                       hasErrors = true;
@@ -1219,10 +1222,10 @@ public class BatchJobService implements ModuleEventListener {
           if (numSubmittedGroups > 0) {
             for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
               try (
-                final Reader<Map<String, Object>> resultDataReader = this.jobController
+                final MapReader resultDataReader = this.jobController
                   .getGroupResultReader(batchJobId, sequenceNumber);) {
                 if (resultDataReader != null) {
-                  for (final Map<String, Object> resultData : resultDataReader) {
+                  for (final MapEx resultData : resultDataReader) {
                     postProcessWriteStructuredResult(structuredResultWriter, resultRecordDefinition,
                       defaultProperties, resultData);
                     hasResults = true;
@@ -1353,8 +1356,7 @@ public class BatchJobService implements ModuleEventListener {
                     final InputStreamResource resource = new InputStreamResource("in",
                       inputDataStream);
                     try (
-                      final Reader<Map<String, Object>> mapReader = factory
-                        .newMapreader(resource)) {
+                      final MapReader mapReader = factory.newMapreader(resource)) {
                       if (mapReader == null) {
                         valid = addJobValidationError(batchJobId, ErrorCode.INPUT_DATA_UNREADABLE,
                           inputContentType, "Media type not supported");

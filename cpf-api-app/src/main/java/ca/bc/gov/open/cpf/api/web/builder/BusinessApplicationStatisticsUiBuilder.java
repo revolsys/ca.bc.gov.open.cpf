@@ -48,7 +48,7 @@ import com.revolsys.ui.web.exception.PageNotFoundException;
 public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
 
   public BusinessApplicationStatisticsUiBuilder() {
-    super("statistic", "Business Application Statistic", "Business Application Statistics");
+    super("statistic", "Business Application Statistic", "Business Application LabelCountMap");
     setIdParameterName("statisticId");
     setIdPropertyName("id");
   }
@@ -127,7 +127,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   public ModelAndView newStatsViewPage(final String businessApplicationName,
     final BusinessApplicationStatistics stats) {
     final ModelMap model = new ModelMap();
-    model.put("title", businessApplicationName + " Statistics " + stats.getId());
+    model.put("title", businessApplicationName + " LabelCountMap " + stats.getId());
     model.put("statisitcs", stats);
     model.put("body", "/WEB-INF/jsp/builder/businessApplicationStatisticsView.jsp");
     return new ModelAndView("/jsp/template/page", model);

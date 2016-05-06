@@ -10,8 +10,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title><c:out value="${title}" /></title>
-<c:forEach var="cssUrl" items="${cssUrls}">
-  <link href="<c:url value="${cssUrl}" />" rel="stylesheet" type="text/css" /></c:forEach>
+<c:forEach var="cssUrl" items="${cssUrls}"><c:if test="${not empty cssUrl}">
+  <link href="<c:url value="${cssUrl}" />" rel="stylesheet" type="text/css" /></c:if></c:forEach>
 <c:forEach var="javascriptUrl" items="${javascriptUrls}">
   <script type="text/javascript" src="<c:url value="${javascriptUrl}" />">
   </script></c:forEach>
@@ -30,8 +30,10 @@
       </div>
     </c:when>
     <c:otherwise>
+  <header class="header">
 <c:import url="/view/header/mainMenu" charEncoding="UTF-8" />
-
+  </header>
+  
   <c:if test="${!empty(breadcrumbUrl)}">
     <c:import url="${breadcrumbUrl}" charEncoding="UTF-8" />
   </c:if>

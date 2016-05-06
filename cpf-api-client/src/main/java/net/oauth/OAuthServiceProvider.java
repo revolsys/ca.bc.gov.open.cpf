@@ -18,7 +18,7 @@ package net.oauth;
 import java.io.Serializable;
 
 /**
- * Properties of an OAuth Service Provider.
+ * Properties of an OAuth ArcGisRestService Provider.
  *
  * @author John Kristian
  */

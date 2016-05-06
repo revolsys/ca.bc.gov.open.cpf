@@ -45,7 +45,9 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
+import com.revolsys.collection.map.NamedLinkedHashMap;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.datatype.DataType;
 import com.revolsys.geometry.model.Geometry;
@@ -53,7 +55,6 @@ import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileBackedCache;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
-import com.revolsys.io.NamedLinkedHashMap;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.csv.CsvWriter;
@@ -418,14 +419,14 @@ public class WorkerGroupRunnable implements Runnable {
             }
             if (globalError.isEmpty()) {
               final Object requestsValue = group.get("requests");
-              Iterable<Map<String, Object>> requests;
+              Iterable<MapEx> requests;
               if (requestsValue instanceof String) {
                 final String requestsCsv = (String)requestsValue;
                 requests = Csv.mapReader(requestsCsv);
               } else {
-                requests = ((Map<String, List<Map<String, Object>>>)requestsValue).get("items");
+                requests = ((Map<String, List<MapEx>>)requestsValue).get("items");
               }
-              for (final Map<String, Object> requestParameters : requests) {
+              for (final MapEx requestParameters : requests) {
                 if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
                   this.scheduler.addFailedGroup(this.groupId);
                   return;

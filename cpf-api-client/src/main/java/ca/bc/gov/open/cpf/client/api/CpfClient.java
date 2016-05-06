@@ -39,7 +39,7 @@ import ca.bc.gov.open.cpf.client.httpclient.OAuthHttpClientPool;
 
 import com.revolsys.io.BaseCloseable;
 import com.revolsys.io.IoFactory;
-import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.io.map.MapWriterFactory;
 import com.revolsys.spring.resource.ByteArrayResource;
@@ -49,7 +49,7 @@ import com.revolsys.util.Property;
 /**
  * <p>
  * The CPF Java (6+) client allows applications to use the <a
- * href="../rest-api/">CPF Web Service REST API</a> to query the available
+ * href="../rest-api/">CPF Web ArcGisRestService REST API</a> to query the available
  * business applications, create jobs and download the results of
  * jobs on behalf of their users.
  * </p>
@@ -148,7 +148,7 @@ public class CpfClient implements BaseCloseable {
    * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
   String consumerKey = "cpftest";
   String consumerSecret = "cpftest";
-  
+
   try (CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
     // Use the client
   }</pre>
@@ -238,11 +238,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(new FileSystemResource(pathToFile));
-  
+
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -305,11 +305,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(Resource resource = new FileSystemResource(pathToFile));
-  
+
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -351,10 +351,10 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     &lt;Resource&gt; inputDataUrls = new Array&lt;Resource&gt;();
     inputDataUrls.add("https://apps.gov.bc.ca/pub/cpf/css/cpf.css");
-  
+
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrls);
     // Download the results of the job
@@ -412,9 +412,9 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/css/cpf.css";
-  
+
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrl);
     // Download the results of the job
@@ -460,11 +460,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "BCGS 1:20 000");
-  
+
     List&lt;Map&lt;String,?extends Object&gt;&gt; requests = new ArrayList&lt;Map&lt;String,?extends Object&gt;&gt;();
     requests.add(Collections.singletonMap("mapTileId", "92j025"));
     requests.add(Collections.singletonMap("mapTileId", "92j016"));
-  
+
     String jobId = client.createJobWithStructuredMultipleRequestsList(
       "MapTileByTileId", jobParameters, requests,"application/json");
     try {
@@ -533,11 +533,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-  
+
     int numRequests = 48;
     Resource inputData = new FileSystemResource(
       "../cpf-war-app/src/main/webapp/docs/sample/NTS-500000-by-name.csv");
-  
+
     String jobId = client.createJobWithStructuredMultipleRequestsResource(
       "MapTileByTileId", jobParameters, numRequests, inputData,
       "text/csv", "application/json");
@@ -606,9 +606,9 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-  
+
     int numRequests = 48;
-  
+
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/docs/sample/NTS-500000-by-name.csv";
     String jobId = client.createJobWithStructuredMultipleRequestsUrl(
       "MapTileByTileId", jobParameters, numRequests, inputDataUrl,
@@ -922,6 +922,9 @@ public class CpfClient implements BaseCloseable {
    * completed.
    * @return The reader maps containing the result fields.
    */
+  @SuppressWarnings({
+    "unchecked", "rawtypes"
+  })
   public List<Map<String, Object>> getJobErrorResults(final String jobIdUrl, final long maxWait) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
     try {
@@ -929,9 +932,9 @@ public class CpfClient implements BaseCloseable {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("errorResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          final Reader<Map<String, Object>> reader = httpClient.getMapReader("error", resultUrl);
+          final MapReader reader = httpClient.getMapReader("error", resultUrl);
           try {
-            return reader.toList();
+            return (List)reader.toList();
           } finally {
             reader.close();
           }
@@ -1157,6 +1160,9 @@ public class CpfClient implements BaseCloseable {
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
    * @return The list of results.
    */
+  @SuppressWarnings({
+    "unchecked", "rawtypes"
+  })
   public List<Map<String, Object>> getJobStructuredResults(final String jobIdUrl,
     final long maxWait) {
     final OAuthHttpClient httpClient = this.httpClientPool.getClient();
@@ -1165,11 +1171,9 @@ public class CpfClient implements BaseCloseable {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("structuredResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          final Reader<Map<String, Object>> reader = httpClient.getMapReader(resultUrl);
-          try {
-            return reader.toList();
-          } finally {
-            reader.close();
+          try (
+            final MapReader reader = httpClient.getMapReader(resultUrl)) {
+            return (List)reader.toList();
           }
         }
       }
@@ -1402,14 +1406,13 @@ public class CpfClient implements BaseCloseable {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("errorResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          final Reader<Map<String, Object>> reader = httpClient.getMapReader(resultUrl);
-          try {
+
+          try (
+            final MapReader reader = httpClient.getMapReader(resultUrl)) {
             for (final Map<String, Object> object : reader) {
               callback.process(object);
               i++;
             }
-          } finally {
-            reader.close();
           }
         }
         return i;
@@ -1472,14 +1475,12 @@ public class CpfClient implements BaseCloseable {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("structuredResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          final Reader<Map<String, Object>> reader = httpClient.getMapReader(resultUrl);
-          try {
+          try (
+            final MapReader reader = httpClient.getMapReader(resultUrl)) {
             for (final Map<String, Object> object : reader) {
               callback.process(object);
               i++;
             }
-          } finally {
-            reader.close();
           }
         }
         return i;

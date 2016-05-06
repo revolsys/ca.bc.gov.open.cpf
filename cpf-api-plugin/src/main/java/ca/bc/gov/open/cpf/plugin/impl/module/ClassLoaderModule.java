@@ -71,6 +71,7 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
@@ -80,7 +81,6 @@ import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
-import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.record.io.RecordWriterFactory;
@@ -596,7 +596,7 @@ public class ClassLoaderModule implements Module {
           for (final String contentType : inputDataContentTypes) {
             final MapReaderFactory factory = IoFactory.factoryByMediaType(MapReaderFactory.class,
               contentType);
-            if (factory.isSingleFile()) {
+            if (factory != null && factory.isSingleFile()) {
               if (factory.isCustomFieldsSupported()) {
                 final String fileExtension = factory.getFileExtension(contentType);
                 final String typeDescription = factory.getName() + " (" + fileExtension + ")";
@@ -641,7 +641,7 @@ public class ClassLoaderModule implements Module {
           for (final String contentType : resultDataContentTypes) {
             final RecordWriterFactory factory = IoFactory
               .factoryByMediaType(RecordWriterFactory.class, contentType);
-            if (factory.isSingleFile()) {
+            if (factory != null && factory.isSingleFile()) {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomFieldsSupported()) {
                   final String fileNameExtension = factory.getFileExtension(contentType);
@@ -863,7 +863,7 @@ public class ClassLoaderModule implements Module {
     return this.status;
   }
 
-  private List<Map<String, Object>> getUserGroupMaps() {
+  private List<MapEx> getUserGroupMaps() {
     try {
       final ClassLoader classLoader = getClassLoader();
       if (!isHasError()) {
@@ -874,7 +874,7 @@ public class ClassLoaderModule implements Module {
           final URL userGroups = urls.nextElement();
           if (userGroups.toString().startsWith(parentUrl)) {
             final Resource resource = new UrlResource(userGroups);
-            final Reader<Map<String, Object>> reader = MapReader.newMapReader(resource);
+            final MapReader reader = MapReader.newMapReader(resource);
             return reader.toList();
           }
         }
@@ -940,13 +940,13 @@ public class ClassLoaderModule implements Module {
       final Map<String, Set<ResourcePermission>> permissionsByGroupName = new HashMap<String, Set<ResourcePermission>>();
       final Set<String> groupNamesToDelete = new HashSet<String>();
       final Map<String, Map<String, Object>> groupsByName = new HashMap<String, Map<String, Object>>();
-      for (final Map<String, Object> pluginGroup : getUserGroupMaps()) {
-        String groupName = (String)pluginGroup.get("name");
+      for (final MapEx pluginGroup : getUserGroupMaps()) {
+        String groupName = pluginGroup.getString("name");
         if (groupName == null) {
           addModuleError("A UserGroup must have a name: " + pluginGroup);
         } else {
           groupName = groupName.toUpperCase();
-          final String action = (String)pluginGroup.get("action");
+          final String action = pluginGroup.getString("action");
           if (groupsByName.containsKey(groupName)) {
             addModuleError("A UserGroup must have a unique name: " + pluginGroup);
           } else if (groupNamesToDelete.contains(groupName)) {

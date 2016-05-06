@@ -62,11 +62,11 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 
 import com.revolsys.collection.map.Maps;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.Resource;
-import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 
 @WebListener
@@ -226,7 +226,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
       final String workerPath = getWorkerPath();
       this.nextIdPath = workerPath + "/jobs/groups/nextId";
     } catch (final Exception e) {
-      Exceptions.error(this, "Error initializing worker", e);
+      Logs.error(this, "Error initializing worker", e);
     }
     execute(this.messageHandler::connect);
     execute(this);
@@ -368,7 +368,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
             }
           }
         } catch (final Throwable e) {
-          Exceptions.error(this, "Error reading config:" + importResource, e);
+          Logs.error(this, "Error reading config:" + importResource, e);
         }
       }
       for (final Entry<String, Object> entry : config.entrySet()) {
@@ -380,7 +380,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
         }
       }
     } catch (final Throwable e) {
-      Exceptions.error(this, "Error reading config:" + configResource, e);
+      Logs.error(this, "Error reading config:" + configResource, e);
     }
   }
 
@@ -425,7 +425,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   protected void logError(final String message, final Throwable e) {
     if (isRunning()) {
-      Exceptions.error(this, message, e);
+      Logs.error(this, message, e);
     }
   }
 
@@ -546,7 +546,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
       }
 
     } catch (final Throwable e) {
-      Exceptions.error(this, e);
+      Logs.error(this, e);
     } finally {
       LoggerFactory.getLogger(getClass()).info("Stopped");
     }

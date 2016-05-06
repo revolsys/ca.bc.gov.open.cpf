@@ -18,13 +18,12 @@ package ca.bc.gov.open.cpf.api.web.controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.util.Exceptions;
 
@@ -61,8 +60,7 @@ public abstract class AbstractJobController implements JobController {
   }
 
   @Override
-  public Reader<Map<String, Object>> getGroupResultReader(final Identifier jobId,
-    final int sequenceNumber) {
+  public MapReader getGroupResultReader(final Identifier jobId, final int sequenceNumber) {
     final InputStream in = getGroupResultStream(jobId, sequenceNumber);
     if (in == null) {
       return null;

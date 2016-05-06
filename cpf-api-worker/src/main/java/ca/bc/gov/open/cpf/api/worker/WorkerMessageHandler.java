@@ -56,6 +56,7 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SignatureUtil;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.io.BaseCloseable;
 import com.revolsys.io.FileUtil;
+import com.revolsys.logging.Logs;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
@@ -132,9 +133,9 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
           LoggerFactory.getLogger(getClass()).info("Connected to server: " + webSocketUri);
           return;
         } catch (final URISyntaxException e) {
-          Exceptions.error(this, "cpfClient.webServiceUrl not valid", e);
+          Logs.error(this, "cpfClient.webServiceUrl not valid", e);
         } catch (final Throwable e) {
-          Exceptions.error(this, "Cannot connect to server: " + webSocketUrl, e);
+          Logs.error(this, "Cannot connect to server: " + webSocketUrl, e);
         }
         try {
           synchronized (this) {

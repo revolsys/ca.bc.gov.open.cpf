@@ -58,7 +58,7 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "instantModePermission", "testModeEnabled");
 
   public ConfigPropertyUiBuilder() {
-    super("configProperty", ConfigProperty.CONFIG_PROPERTY, "CONFIG_PROPERTY_ID", "Config Property",
+    super("configProperty", ConfigProperty.CONFIG_PROPERTY, "CONFIG_PROPERTY_ID", "Config WebProperty",
       "Config Properties");
   }
 

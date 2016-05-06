@@ -39,8 +39,8 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.datatype.DataTypes;
-import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.maven.MavenRepository;
 import com.revolsys.record.Record;
@@ -132,7 +132,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   }
 
   public Map<String, List<String>> getDeletePropertiesByEnvironment(
-    final ConfigPropertyModule module, final List<Map<String, Object>> pluginProperties) {
+    final ConfigPropertyModule module, final List<MapEx> pluginProperties) {
     final Map<String, List<String>> deletePropertiesByEnvironment = new HashMap<String, List<String>>();
     for (final Map<String, Object> property : pluginProperties) {
       final String action = (String)property.get(ACTION);
@@ -158,7 +158,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   }
 
   public Map<String, Map<String, Record>> getPropertiesByEnvironment(
-    final ConfigPropertyModule module, final List<Map<String, Object>> pluginProperties) {
+    final ConfigPropertyModule module, final List<MapEx> pluginProperties) {
     final Map<String, Map<String, Record>> propertiesByEnvironment = new HashMap<String, Map<String, Record>>();
     for (final Map<String, Object> property : pluginProperties) {
       final String action = (String)property.get(ACTION);
@@ -212,8 +212,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         .getResourceAsStream("META-INF/ca.bc.gov.open.cpf.plugin.ConfigProperties.json");
       if (in != null) {
         final InputStreamResource resource = new InputStreamResource("properties.json", in);
-        final Reader<Map<String, Object>> reader = MapReader.newMapReader(resource);
-        final List<Map<String, Object>> pluginProperties = reader.toList();
+        final MapReader reader = MapReader.newMapReader(resource);
+        final List<MapEx> pluginProperties = reader.toList();
 
         final Map<String, Map<String, Record>> propertiesByEnvironment = getPropertiesByEnvironment(
           module, pluginProperties);
