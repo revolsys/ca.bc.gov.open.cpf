@@ -39,6 +39,7 @@ import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.LoggerFactory;
@@ -86,14 +87,16 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactory;
+import com.revolsys.io.StringWriter;
 import com.revolsys.record.ArrayRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.RecordState;
 import com.revolsys.record.Records;
 import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.RecordWriterFactory;
+import com.revolsys.record.io.format.csv.Csv;
+import com.revolsys.record.io.format.csv.CsvRecordWriter;
 import com.revolsys.record.io.format.json.Json;
-import com.revolsys.record.io.format.json.JsonRecordIoFactory;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
@@ -876,7 +879,7 @@ public class ConcurrentProcessingFramework {
         "No batch mode permission for " + businessApplicationName);
 
       final BatchJob batchJob = this.dataAccessObject.newBatchJob();
-      final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
+      final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
       batchJob.setGroupCount(1);
 
       final AppLog log = businessApplication.getLog();
@@ -903,7 +906,7 @@ public class ConcurrentProcessingFramework {
             "inputDataContentType=" + inputDataContentType + " is not supported.");
         }
         inputDataIn = getResource("inputData");
-        final boolean hasInputDataIn = inputDataIn != null;
+        final boolean hasInputDataIn = inputDataIn != null && inputDataIn.contentLength() > 0;
         final boolean hasInputDataUrl = Property.hasValue(inputDataUrl);
         if (hasInputDataIn == hasInputDataUrl) {
           throw new HttpMessageNotReadableException(
@@ -952,7 +955,7 @@ public class ConcurrentProcessingFramework {
               businessApplicationParameters.put(parameterName, value);
             } else {
               try {
-                this.batchJobService.setStructuredInputDataValue(srid, inputData, attribute, value,
+                BatchJobService.setStructuredInputDataValue(srid, inputData, attribute, value,
                   true);
               } catch (final IllegalArgumentException e) {
                 throw new HttpMessageNotReadableException(
@@ -986,20 +989,21 @@ public class ConcurrentProcessingFramework {
       batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING, time + 2);
       batchJob.update();
       if (perRequestInputData) {
-        if (inputDataIn != null) {
-          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
-            inputDataContentType, inputDataIn);
+        if (Property.hasValue(inputDataUrl)) {
+          this.jobController.setGroupInput(batchJobId, 1, "url:" + inputDataContentType,
+            inputDataUrl);
         } else {
-          this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
-            inputDataContentType, inputDataUrl);
+          this.jobController.setGroupInput(batchJobId, 1, inputDataContentType, inputDataIn);
         }
       } else {
-
         inputData.put(BusinessApplication.SEQUENCE_NUMBER, 1);
-        final String inputDataString = JsonRecordIoFactory.toString(requestRecordDefinition,
-          Collections.singletonList(inputData));
-        this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId), 1,
-          "application/json", inputDataString);
+        final StringWriter writer = new StringWriter();
+        try (
+          RecordWriter groupWriter = new CsvRecordWriter(requestRecordDefinition, writer, ',', true,
+            false)) {
+          groupWriter.write(inputData);
+        }
+        this.jobController.setGroupInput(batchJobId, 1, Csv.MIME_TYPE, writer);
       }
       batchJob.setGroupCount(1);
       this.batchJobService.scheduleJob(batchJob);
@@ -1025,7 +1029,7 @@ public class ConcurrentProcessingFramework {
       if (MediaTypeUtil.isHtmlPage()) {
         this.batchJobUiBuilder.redirectPage("clientView");
       } else {
-        return getJobsInfo(batchJobId);
+        return getJobsInfo(batchJobId.getLong(0));
       }
     }
     return null;
@@ -1471,8 +1475,8 @@ public class ConcurrentProcessingFramework {
                 } else {
                   attribute.validate(value);
                   try {
-                    this.batchJobService.setStructuredInputDataValue(srid, requestParameters,
-                      attribute, value, true);
+                    BatchJobService.setStructuredInputDataValue(srid, requestParameters, attribute,
+                      value, true);
                   } catch (final IllegalArgumentException e) {
                     throw new IllegalArgumentException(
                       "Parameter value is not valid " + name + " " + value, e);
@@ -2413,11 +2417,11 @@ public class ConcurrentProcessingFramework {
     final String url = this.businessAppBuilder.getPageUrl("clientSingle");
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
-    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
-      final String name = attribute.getName();
+    for (final FieldDefinition field : requestRecordDefinition.getFields()) {
+      final String name = field.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name) || !perRequestInputData) {
-          addFieldRow(fieldSectionMap, panelGroup, attribute);
+          addFieldRow(fieldSectionMap, panelGroup, field);
         }
       }
     }
@@ -2432,6 +2436,9 @@ public class ConcurrentProcessingFramework {
     addTestFields(fieldSectionMap, panelGroup, businessApplication);
 
     final Form form = new Form("createSingle", url);
+    if (perRequestInputData) {
+      form.setEncType(Form.MULTIPART_FORM_DATA);
+    }
     addSections("Single", businessApplication, form, panelGroup);
 
     form.add(new DivElementContainer("btn-toolbar", Button.submit("createSingle", "Create Job"))
@@ -2819,13 +2826,16 @@ public class ConcurrentProcessingFramework {
   }
 
   private com.revolsys.spring.resource.Resource getResource(final String fieldName) {
-    final HttpServletRequest request = HttpServletUtils.getRequest();
-    if (request instanceof MultipartHttpServletRequest) {
-      final MultipartHttpServletRequest multiPartRequest = (MultipartHttpServletRequest)request;
-      final MultipartFile file = multiPartRequest.getFile(fieldName);
-      if (file != null) {
-        return new MultipartFileResource(file);
+    HttpServletRequest request = HttpServletUtils.getRequest();
+    while (request instanceof HttpServletRequestWrapper) {
+      if (request instanceof MultipartHttpServletRequest) {
+        final MultipartHttpServletRequest multiPartRequest = (MultipartHttpServletRequest)request;
+        final MultipartFile file = multiPartRequest.getFile(fieldName);
+        if (file != null) {
+          return new MultipartFileResource(file);
+        }
       }
+      request = (HttpServletRequest)((HttpServletRequestWrapper)request).getRequest();
     }
     final String value = HttpServletUtils.getParameter(fieldName);
     if (Property.hasValue(value)) {

@@ -23,18 +23,19 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
-import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
+import ca.bc.gov.open.cpf.api.scheduler.FilePreProcessGroup;
+import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
-import com.revolsys.record.Record;
-import com.revolsys.record.io.format.csv.CsvRecordWriter;
-import com.revolsys.record.schema.RecordDefinition;
+import com.revolsys.spring.resource.Resource;
 import com.revolsys.util.Exceptions;
 
 public class FileJobController extends AbstractJobController {
@@ -67,10 +68,8 @@ public class FileJobController extends AbstractJobController {
 
   private final File rootDirectory;
 
-  private final CpfDataAccessObject dataAccessObject;
-
   public FileJobController(final BatchJobService batchJobService, final File rootDirectory) {
-    this.dataAccessObject = batchJobService.getDataAccessObject();
+    super(batchJobService.getDataAccessObject());
     this.rootDirectory = rootDirectory;
   }
 
@@ -92,9 +91,12 @@ public class FileJobController extends AbstractJobController {
 
   @Override
   public void deleteJob(final Identifier jobId) {
-    this.dataAccessObject.deleteBatchJob(jobId);
-    final File jobDirectory = getJobDirectory(jobId);
-    deleteDirectory(jobId, jobDirectory);
+    try {
+      super.deleteJob(jobId);
+    } finally {
+      final File jobDirectory = getJobDirectory(jobId);
+      deleteDirectory(jobId, jobDirectory);
+    }
   }
 
   @Override
@@ -153,7 +155,7 @@ public class FileJobController extends AbstractJobController {
     return groupsFile;
   }
 
-  protected File getJobFile(final Identifier jobId, final String path, final long recordId) {
+  public File getJobFile(final Identifier jobId, final String path, final long recordId) {
     final File groupsFile = getJobDirectory(jobId, path);
     final File file = FileUtil.getFile(groupsFile, toPath(recordId) + ".json");
     return file;
@@ -181,6 +183,16 @@ public class FileJobController extends AbstractJobController {
     } else if (data instanceof String) {
       final String string = (String)data;
       FileUtil.copy(string, file);
+    } else if (data instanceof Resource) {
+      final Resource resource = (Resource)data;
+      try (
+        InputStream in = resource.newInputStream()) {
+        FileUtil.copy(in, file);
+      } catch (final IOException e) {
+        Exceptions.throwUncheckedException(e);
+      }
+    } else {
+      throw new IllegalArgumentException("Unsupported data: " + data.getClass());
     }
     final File contentTypeFile = getJobFile(jobId, path + "_content_type", sequenceNumber);
     contentTypeFile.getParentFile().mkdirs();
@@ -188,18 +200,10 @@ public class FileJobController extends AbstractJobController {
   }
 
   @Override
-  public void setGroupInput(final Identifier jobId, final int sequenceNumber,
-    final RecordDefinition recordDefinition, final List<Record> requests) {
-    if (!requests.isEmpty()) {
-      final File file = getJobFile(jobId, GROUP_INPUTS, sequenceNumber);
-      file.getParentFile().mkdirs();
-      try (
-        CsvRecordWriter writer = new CsvRecordWriter(recordDefinition, FileUtil.newUtf8Writer(file),
-          ',', true, false)) {
-        for (final Record record : requests) {
-          writer.write(record);
-        }
-      }
-    }
+  public PreProcessGroup newPreProcessGroup(final BusinessApplication businessApplication,
+    final BatchJob batchJob, final Map<String, String> jobParameters,
+    final int groupSequenceNumber) {
+    return new FilePreProcessGroup(this, businessApplication, batchJob, jobParameters,
+      groupSequenceNumber);
   }
 }

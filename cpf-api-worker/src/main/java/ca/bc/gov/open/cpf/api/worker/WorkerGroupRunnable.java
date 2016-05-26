@@ -25,14 +25,15 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.log4j.Logger;
 import org.springframework.util.StopWatch;
@@ -45,9 +46,9 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
+import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.collection.map.NamedLinkedHashMap;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.datatype.DataType;
 import com.revolsys.geometry.model.Geometry;
@@ -55,6 +56,7 @@ import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileBackedCache;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
+import com.revolsys.io.map.MapReader;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.csv.CsvWriter;
@@ -67,7 +69,7 @@ import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 
 public class WorkerGroupRunnable implements Runnable {
-  private final Map<String, Object> groupIdMap;
+  private final MapEx groupIdMap;
 
   private final WorkerHttpClient httpClient;
 
@@ -83,7 +85,7 @@ public class WorkerGroupRunnable implements Runnable {
 
   private final String businessApplicationName;
 
-  private final Number batchJobId;
+  private final long batchJobId;
 
   private final String userId;
 
@@ -105,18 +107,17 @@ public class WorkerGroupRunnable implements Runnable {
 
   private File errorFile;
 
-  public WorkerGroupRunnable(final WorkerScheduler scheduler,
-    final Map<String, Object> groupIdMap) {
+  public WorkerGroupRunnable(final WorkerScheduler scheduler, final MapEx groupIdMap) {
     this.scheduler = scheduler;
     this.httpClient = scheduler.getHttpClient();
     this.workerId = scheduler.getId();
     this.groupIdMap = groupIdMap;
-    this.groupId = (String)groupIdMap.get("groupId");
-    this.moduleName = (String)groupIdMap.get("moduleName");
-    this.businessApplicationName = (String)groupIdMap.get("businessApplicationName");
-    this.batchJobId = (Number)groupIdMap.get("batchJobId");
-    this.userId = (String)groupIdMap.get("consumerKey");
-    this.logLevel = (String)groupIdMap.get("logLevel");
+    this.groupId = groupIdMap.getString("groupId");
+    this.moduleName = groupIdMap.getString("moduleName");
+    this.businessApplicationName = groupIdMap.getString("businessApplicationName");
+    this.batchJobId = groupIdMap.getLong("batchJobId");
+    this.userId = groupIdMap.getString("consumerKey");
+    this.logLevel = groupIdMap.getString("logLevel");
     this.log = new AppLog(this.businessApplicationName, this.groupId, this.logLevel);
   }
 
@@ -143,8 +144,7 @@ public class WorkerGroupRunnable implements Runnable {
 
   @SuppressWarnings("unchecked")
   private void execute(final CsvWriter resultWriter, final AppLog appLog,
-    final Integer requestSequenceNumber, final Object plugin,
-    final Map<String, Object> parameters) {
+    final Integer requestSequenceNumber, final Object plugin, final MapEx parameters) {
     final String resultListProperty = this.businessApplication.getResultListProperty();
 
     final boolean testMode = this.businessApplication.isTestModeEnabled();
@@ -237,18 +237,18 @@ public class WorkerGroupRunnable implements Runnable {
    * @return The request map
    */
   protected void executeRequest(final CsvWriter resultWriter,
-    final RecordDefinition requestRecordDefinition, final Map<String, Object> applicationParameters,
-    final Map<String, Object> requestParameters) {
+    final RecordDefinition requestRecordDefinition, final MapEx applicationParameters,
+    final MapEx requestParameters) {
     final StopWatch requestStopWatch = new StopWatch("Request");
     requestStopWatch.start();
 
-    final Integer requestSequenceNumber = Maps.getInteger(requestParameters,
-      BusinessApplication.SEQUENCE_NUMBER);
+    final int requestSequenceNumber = requestParameters
+      .getInteger(BusinessApplication.SEQUENCE_NUMBER);
 
     boolean hasError = true;
     try {
-      final Map<String, Object> parameters = getParameters(this.businessApplication,
-        requestRecordDefinition, applicationParameters, requestParameters);
+      final MapEx parameters = getParameters(this.businessApplication, requestRecordDefinition,
+        applicationParameters, requestParameters);
       final Object plugin = this.module.getBusinessApplicationPlugin(this.businessApplicationName,
         this.groupId, this.logLevel);
       if (plugin == null) {
@@ -260,9 +260,8 @@ public class WorkerGroupRunnable implements Runnable {
         File resultFile = null;
         OutputStream resultData = null;
         if (this.businessApplication.isPerRequestInputData()) {
-          final String inputDataUrl = this.httpClient
-            .getUrl("/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId + "/groups/"
-              + this.groupId + "/requests/" + requestSequenceNumber + "/inputData", null);
+          final String inputDataUrl = this.httpClient.getUrl("/worker/workers/" + this.workerId
+            + "/jobs/" + this.batchJobId + "/groups/" + this.groupId + "/inputData", null);
           parameters.put("inputDataUrl", inputDataUrl);
         }
         if (this.businessApplication.isPerRequestResultData()) {
@@ -324,10 +323,10 @@ public class WorkerGroupRunnable implements Runnable {
     return this.groupId;
   }
 
-  protected Map<String, Object> getParameters(final BusinessApplication businessApplication,
+  protected MapEx getParameters(final BusinessApplication businessApplication,
     final RecordDefinition requestRecordDefinition, final Map<String, Object> applicationParameters,
-    final Map<String, Object> requestParameters) {
-    final Map<String, Object> parameters = new LinkedHashMap<String, Object>(applicationParameters);
+    final MapEx requestParameters) {
+    final MapEx parameters = new LinkedHashMapEx(applicationParameters);
     parameters.putAll(requestParameters);
     if (!businessApplication.isPerRequestInputData()) {
 
@@ -350,11 +349,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<Map<String,Object>
    * logRecords List<Map<String,Object>
    * groupExecutionTime long
@@ -363,18 +362,13 @@ public class WorkerGroupRunnable implements Runnable {
    * successCount long
    */
   @Override
-  @SuppressWarnings("unchecked")
   public void run() {
     this.log.info("Start\tGroup Execution\tgroupId=" + this.groupId);
     try (
       FileBackedCache resultCache = new FileBackedCache()) {
       final StopWatch groupStopWatch = new StopWatch("Group");
       groupStopWatch.start();
-
-      final Map<String, Object> groupResponse = new NamedLinkedHashMap<String, Object>(
-        "ExecutionGroupResults");
-
-      final Long moduleTime = ((Number)this.groupIdMap.get("moduleTime")).longValue();
+      final Long moduleTime = this.groupIdMap.getLong("moduleTime");
       this.businessApplication = this.scheduler.getBusinessApplication(this.log, this.moduleName,
         moduleTime, this.businessApplicationName);
       if (this.businessApplication == null) {
@@ -393,49 +387,42 @@ public class WorkerGroupRunnable implements Runnable {
               this.userId);
           }
 
-          final String groupPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-            + "/groups/" + this.groupId;
-          final Map<String, Object> group = this.httpClient.getJsonResource(groupPath);
-          if (!group.isEmpty()) {
-            final Map<String, Object> globalError = new LinkedHashMap<>();
+          final RecordDefinition requestRecordDefinition = this.businessApplication
+            .getRequestRecordDefinition();
+          final MapEx applicationParameters = this.groupIdMap.getValue("applicationParameters");
 
-            final RecordDefinition requestRecordDefinition = this.businessApplication
-              .getRequestRecordDefinition();
-            final Map<String, Object> applicationParameters = new HashMap<>(
-              (Map<String, Object>)group.get("applicationParameters"));
-            for (final String name : requestRecordDefinition.getFieldNames()) {
-              final Object value = applicationParameters.get(name);
-              if (value != null) {
-                try {
-                  final DataType dataType = requestRecordDefinition.getFieldType(name);
-                  final Object convertedValue = dataType.toObject(value);
-                  applicationParameters.put(name, convertedValue);
-                } catch (final Throwable e) {
-                  this.log.error("Error processing group", e);
-                  // TODO addError("Error processing group ",
-                  // "BAD_INPUT_DATA_VALUE", null);
-                }
+          for (final String name : requestRecordDefinition.getFieldNames()) {
+            final Object value = applicationParameters.get(name);
+            if (value != null) {
+              try {
+                final DataType dataType = requestRecordDefinition.getFieldType(name);
+                final Object convertedValue = dataType.toObject(value);
+                applicationParameters.put(name, convertedValue);
+              } catch (final Throwable e) {
+                this.log.error("Error processing group", e);
+                // TODO addError("Error processing group ",
+                // "BAD_INPUT_DATA_VALUE", null);
               }
             }
-            if (globalError.isEmpty()) {
-              final Object requestsValue = group.get("requests");
-              Iterable<MapEx> requests;
-              if (requestsValue instanceof String) {
-                final String requestsCsv = (String)requestsValue;
-                requests = Csv.mapReader(requestsCsv);
-              } else {
-                requests = ((Map<String, List<MapEx>>)requestsValue).get("items");
-              }
-              for (final MapEx requestParameters : requests) {
-                if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
-                  this.scheduler.addFailedGroup(this.groupId);
-                  return;
+          }
+          final String groupPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+            + "/groups/" + this.groupId;
+          try (
+            CloseableHttpResponse groupInputResponse = this.httpClient.execute(groupPath)) {
+            final HttpEntity entity = groupInputResponse.getEntity();
+            try (
+              InputStream requestIn = entity.getContent()) {
+              try (
+                MapReader requestReader = Csv.mapReader(requestIn)) {
+                for (final MapEx requestParameters : requestReader) {
+                  if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
+                    this.scheduler.addFailedGroup(this.groupId);
+                    return;
+                  }
+                  executeRequest(resultWriter, requestRecordDefinition, applicationParameters,
+                    requestParameters);
                 }
-                executeRequest(resultWriter, requestRecordDefinition, applicationParameters,
-                  requestParameters);
               }
-            } else {
-              groupResponse.putAll(globalError);
             }
           }
         }
@@ -482,14 +469,13 @@ public class WorkerGroupRunnable implements Runnable {
     }
   }
 
-  protected void sendResultData(final Integer requestSequenceNumber,
-    final Map<String, Object> requestResult, final Map<String, Object> parameters,
-    final File resultFile, final OutputStream resultData) {
+  protected void sendResultData(final Integer requestSequenceNumber, final MapEx requestResult,
+    final MapEx parameters, final File resultFile, final OutputStream resultData) {
     if (resultData != null) {
       try {
         resultData.flush();
         FileUtil.closeSilent(resultData);
-        final String resultDataContentType = (String)parameters.get("resultDataContentType");
+        final String resultDataContentType = parameters.getString("resultDataContentType");
         final String resultDataPath = "/worker/workers/" + this.workerId + "/jobs/"
           + this.batchJobId + "/groups/" + this.groupId + "/requests/" + requestSequenceNumber
           + "/resultData";
@@ -510,7 +496,7 @@ public class WorkerGroupRunnable implements Runnable {
     }
   }
 
-  public void setParameters(final Object plugin, final Map<String, ? extends Object> parameters) {
+  public void setParameters(final Object plugin, final MapEx parameters) {
     this.businessApplication.pluginSetParameters(plugin, parameters);
     if (this.businessApplication.isPerRequestInputData()) {
       for (final String parameterName : PluginAdaptor.INPUT_DATA_PARAMETER_NAMES) {
@@ -519,8 +505,8 @@ public class WorkerGroupRunnable implements Runnable {
       }
     }
     if (this.businessApplication.isPerRequestResultData()) {
-      final String resultDataContentType = (String)parameters.get("resultDataContentType");
-      final String resultDataUrl = (String)parameters.get("resultDataUrl");
+      final String resultDataContentType = parameters.getString("resultDataContentType");
+      final String resultDataUrl = parameters.getString("resultDataUrl");
       OutputStream resultData;
       if (resultDataUrl == null) {
         resultData = (OutputStream)parameters.get("resultData");
@@ -567,7 +553,7 @@ public class WorkerGroupRunnable implements Runnable {
   }
 
   private void writeResult(final CsvWriter resultWriter, final Object plugin,
-    final Map<String, Object> parameters, Map<String, Object> customizationProperties,
+    final MapEx parameters, Map<String, Object> customizationProperties,
     final Integer requestSequenceNumber, final int resultIndex, final boolean test) {
     final RecordDefinition resultRecordDefinition = this.businessApplication
       .getResultRecordDefinition();
@@ -590,9 +576,9 @@ public class WorkerGroupRunnable implements Runnable {
             if (geometryFactory == GeometryFactory.DEFAULT) {
               geometryFactory = geometry.getGeometryFactory();
             }
-            final int srid = Maps.getInteger(parameters, "resultSrid",
+            final int srid = parameters.getInteger("resultSrid",
               geometryFactory.getCoordinateSystemId());
-            final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
+            final int axisCount = parameters.getInteger("resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
               geometryFactory.getScaleXY());

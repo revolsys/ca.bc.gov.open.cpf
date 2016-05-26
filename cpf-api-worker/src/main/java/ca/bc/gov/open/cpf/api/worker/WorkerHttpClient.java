@@ -27,6 +27,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -45,6 +46,7 @@ import ca.bc.gov.open.cpf.client.httpclient.FunctionResponseHandler;
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.impl.security.SignatureUtil;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.io.FileUtil;
 import com.revolsys.parallel.ThreadInterruptedException;
 import com.revolsys.parallel.ThreadUtil;
@@ -68,19 +70,17 @@ public class WorkerHttpClient {
     return target;
   }
 
-  public static Map<String, Object> jsonToMap(final HttpResponse response) {
+  public static MapEx jsonToMap(final HttpResponse response) {
     final StatusLine statusLine = response.getStatusLine();
     final int httpStatusCode = statusLine.getStatusCode();
     final HttpEntity entity = response.getEntity();
 
     if (httpStatusCode == HttpStatus.SC_OK) {
       try {
-        final InputStream in = entity.getContent();
-        try {
-          final Map<String, Object> map = JsonParser.read(in);
+        try (
+          final InputStream in = entity.getContent()) {
+          final MapEx map = JsonParser.read(in);
           return map;
-        } finally {
-          FileUtil.closeSilent(in);
         }
       } catch (final Throwable e) {
         return Exceptions.throwUncheckedException(e);
@@ -106,7 +106,7 @@ public class WorkerHttpClient {
 
   private final DefaultHttpClient httpClient;
 
-  private final ResponseHandler<Map<String, Object>> jsonResponseHandler = new FunctionResponseHandler<>(
+  private final ResponseHandler<MapEx> jsonResponseHandler = new FunctionResponseHandler<>(
     WorkerHttpClient::jsonToMap);
 
   private final String webServiceUrl;
@@ -135,6 +135,22 @@ public class WorkerHttpClient {
     this.httpClient.close();
   }
 
+  public CloseableHttpResponse execute(final HttpUriRequest request) {
+    final BasicHttpContext context = new BasicHttpContext();
+
+    final HttpHost host = determineTarget(request);
+
+    try {
+      return this.httpClient.execute(host, request, context);
+    } catch (final Throwable e) {
+      if (ThreadUtil.isInterrupted()) {
+        throw new ThreadInterruptedException();
+      } else {
+        return Exceptions.throwUncheckedException(e);
+      }
+    }
+  }
+
   protected <V> V execute(final HttpUriRequest request, final ResponseHandler<V> responseHandler) {
     final BasicHttpContext context = new BasicHttpContext();
 
@@ -152,10 +168,16 @@ public class WorkerHttpClient {
     }
   }
 
-  private Map<String, Object> getJsonResource(final HttpUriRequest request) {
+  public CloseableHttpResponse execute(final String path) {
+    final String url = getUrl(path, null);
+    final HttpGet request = new HttpGet(url);
+    return execute(request);
+  }
+
+  private MapEx getJsonResource(final HttpUriRequest request) {
     request.addHeader("Accept", "application/json");
 
-    final Map<String, Object> response = execute(request, this.jsonResponseHandler);
+    final MapEx response = execute(request, this.jsonResponseHandler);
 
     return response;
   }
@@ -219,7 +241,7 @@ public class WorkerHttpClient {
     return url.toString();
   }
 
-  public Map<String, Object> postGetJsonResource(final String path,
+  public MapEx postGetJsonResource(final String path,
     final Map<String, ? extends Object> parameters) {
     final String url = getUrl(path, parameters);
     final HttpPost request = new HttpPost(url);

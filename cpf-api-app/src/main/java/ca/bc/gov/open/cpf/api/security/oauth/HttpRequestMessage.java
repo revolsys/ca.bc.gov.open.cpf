@@ -34,8 +34,6 @@ import net.oauth.OAuthMessage;
  * @author John Kristian
  */
 public class HttpRequestMessage extends OAuthMessage {
-
-  @SuppressWarnings("unchecked")
   private static void copyHeaders(final HttpServletRequest request,
     final Collection<Map.Entry<String, String>> into) {
     final Enumeration<String> names = request.getHeaderNames();

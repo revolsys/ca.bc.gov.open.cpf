@@ -66,10 +66,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
@@ -81,7 +77,7 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
+import ca.bc.gov.open.cpf.api.web.controller.FileJobController;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -214,6 +210,71 @@ public class BatchJobService implements ModuleEventListener {
       }
     }
     return false;
+  }
+
+  public static void setStructuredInputDataValue(final String sridString,
+    final Map<String, Object> requestParemeters, final FieldDefinition field, Object parameterValue,
+    final boolean setValue) {
+    final DataType dataType = field.getDataType();
+    final Class<?> dataClass = dataType.getJavaClass();
+    if (Geometry.class.isAssignableFrom(dataClass)) {
+      if (parameterValue != null) {
+        final GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
+        Geometry geometry;
+        if (parameterValue instanceof Geometry) {
+
+          geometry = (Geometry)parameterValue;
+          if (geometry.getCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
+            final int srid = Integer.parseInt(sridString);
+            final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
+            geometry = sourceGeometryFactory.geometry(geometry);
+          }
+        } else {
+          String wkt = parameterValue.toString();
+          if (Property.hasValue(wkt)) {
+            wkt = wkt.trim();
+          }
+          if (wkt.startsWith("http")) {
+            wkt = UrlUtil.getContent(wkt + "/feature.wkt?srid=3005");
+            if (!wkt.startsWith("SRID")) {
+              wkt = "SRID=3005;" + wkt;
+            }
+          }
+          try {
+            if (Property.hasValue(sridString)) {
+              final int srid = Integer.parseInt(sridString);
+              final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
+              geometry = sourceGeometryFactory.geometry(wkt, false);
+            } else {
+              geometry = geometryFactory.geometry(wkt, false);
+            }
+          } catch (final Throwable t) {
+            throw new IllegalArgumentException("invalid WKT geometry", t);
+          }
+        }
+        if (geometryFactory != GeometryFactory.DEFAULT) {
+          geometry = geometryFactory.geometry(geometry);
+        }
+        final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
+        if (geometry.getCoordinateSystemId() == 0) {
+          throw new IllegalArgumentException("does not have a coordinate system (SRID) specified");
+        }
+        if (validateGeometry == true) {
+          final IsValidOp validOp = new IsValidOp(geometry);
+          if (!validOp.isValid()) {
+            throw new IllegalArgumentException(validOp.getValidationError().getMessage());
+          }
+        }
+        parameterValue = geometry;
+      }
+    } else if (Number.class.isAssignableFrom(dataClass)) {
+      if (!(parameterValue instanceof Number)) {
+        parameterValue = new BigDecimal(parameterValue.toString().trim());
+      }
+    }
+    if (setValue) {
+      requestParemeters.put(field.getName(), parameterValue);
+    }
   }
 
   @Resource(name = "configPropertyLoader")
@@ -755,6 +816,10 @@ public class BatchJobService implements ModuleEventListener {
               response.put("batchJobId", batchJobId);
               response.put("baseId", baseId);
               response.put("groupId", groupId);
+              response.put("applicationParameters", group.getBusinessApplicationParameterMap());
+              if (businessApplication.isPerRequestResultData()) {
+                response.put("resultDataContentType", group.getResultDataContentType());
+              }
               final AppLog log = businessApplication.getLog();
               log.info("Start\tGroup execution\tgroupId=" + groupId + "\tworkerId=" + workerId);
               response.put("consumerKey", group.getconsumerKey());
@@ -764,22 +829,7 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
     }
-
     return response;
-  }
-
-  public Object getNonEmptyValue(final Map<String, ? extends Object> map, final String key) {
-    final Object value = map.get(key);
-    if (value == null) {
-      return null;
-    } else {
-      final String result = value.toString().trim();
-      if (Property.hasValue(result)) {
-        return value;
-      } else {
-        return null;
-      }
-    }
   }
 
   public BatchJobPostProcess getPostProcess() {
@@ -886,19 +936,6 @@ public class BatchJobService implements ModuleEventListener {
       }
     }
 
-  }
-
-  protected boolean newBatchJobExecutionGroup(final Identifier batchJobId, final int sequenceNumber,
-    final RecordDefinition requestRecordDefinition, final List<Record> requests) {
-    synchronized (this.preprocesedJobIds) {
-      if (this.preprocesedJobIds.contains(batchJobId)) {
-        this.jobController.setGroupInput(batchJobId, sequenceNumber, requestRecordDefinition,
-          requests);
-        return true;
-      } else {
-        return false;
-      }
-    }
   }
 
   public void newBatchJobResult(final Identifier batchJobId, final String resultDataType,
@@ -1330,9 +1367,9 @@ public class BatchJobService implements ModuleEventListener {
             Transaction.afterCommit(() -> this.statisticsService.addStatistics(businessApplication,
               preProcessScheduledStatistics));
 
-            final InputStream inputDataStream = getJobInputDataStream(batchJobId, batchJob);
             int numFailedRequests = batchJob.getNumFailedRequests();
-            try {
+            try (
+              final InputStream inputDataStream = getJobInputDataStream(batchJobId, batchJob)) {
               final Map<String, String> jobParameters = getBusinessApplicationParameters(batchJob);
 
               final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
@@ -1365,57 +1402,37 @@ public class BatchJobService implements ModuleEventListener {
                           final Reader<Record> inputDataReader = new MapReaderRecordReader(
                             requestRecordDefinition, mapReader)) {
 
-                          final int commitInterval = 100;
-                          final PlatformTransactionManager transactionManager = this.recordStore
-                            .getTransactionManager();
-                          final TransactionDefinition transactionDefinition = new DefaultTransactionDefinition(
-                            TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-                          TransactionStatus status = transactionManager
-                            .getTransaction(transactionDefinition);
+                          PreProcessGroup group = null;
                           try {
-                            List<Record> group = new ArrayList<>();
                             for (final Record inputDataRecord : inputDataReader) {
-                              if (group.size() == maxGroupSize) {
+                              if (!this.preprocesedJobIds.contains(batchJobId)) {
+                                group.cancel();
+                                return true;
+                              }
+                              if (group == null) {
+                                group = this.jobController.newPreProcessGroup(businessApplication,
+                                  batchJob, jobParameters, numGroups + 1);
                                 numGroups++;
-                                if (newBatchJobExecutionGroup(batchJobId, numGroups,
-                                  requestRecordDefinition, group)) {
-                                  group = new ArrayList<>();
-                                  if (numGroups % commitInterval == 0) {
-                                    transactionManager.commit(status);
-                                    status = transactionManager
-                                      .getTransaction(transactionDefinition);
-                                  }
-                                } else {
-                                  transactionManager.rollback(status);
-                                  return true;
-                                }
                               }
                               numSubmittedRequests++;
-                              final Record requestParameters = preProcessParameters(batchJob,
-                                businessApplication, numSubmittedRequests, jobParameters,
-                                inputDataRecord);
-                              if (requestParameters == null) {
+                              if (!group.addRequest(inputDataRecord, numSubmittedRequests)) {
                                 numFailedRequests++;
-                                batchJob.addFailedRequests(Integer.toString(numSubmittedRequests));
-                              } else {
-                                group.add(requestParameters);
+                              }
+                              if (group.getGroupSize() == maxGroupSize) {
+                                group.commit();
+                                group = null;
                               }
                             }
-                            numGroups++;
-                            if (newBatchJobExecutionGroup(batchJobId, numGroups,
-                              requestRecordDefinition, group)) {
-                            } else {
-                              transactionManager.rollback(status);
-                              return true;
+                            if (group != null) {
+                              group.commit();
                             }
                           } catch (final Throwable e) {
-                            transactionManager.rollback(status);
+                            if (group != null) {
+                              group.cancel();
+                            }
                             Exceptions.throwUncheckedException(e);
                           }
-                          transactionManager.commit(status);
                         }
-
-                        FileUtil.closeSilent(inputDataStream);
 
                         final int maxRequests = businessApplication.getMaxRequestsPerJob();
                         if (numSubmittedRequests == 0) {
@@ -1430,12 +1447,10 @@ public class BatchJobService implements ModuleEventListener {
                   }
                 } catch (final Throwable e) {
                   if (isDatabaseResourcesException(e)) {
-                    LoggerFactory.getLogger(getClass())
-                      .error("Tablespace error pre-processing job " + batchJobId, e);
+                    Logs.error(this, "Tablespace error pre-processing job " + batchJobId, e);
                     return false;
                   } else {
-                    LoggerFactory.getLogger(getClass())
-                      .error("Error pre-processing job " + batchJobId, e);
+                    Logs.error(this, "Error pre-processing job " + batchJobId, e);
                     final StringWriter errorDebugMessage = new StringWriter();
                     e.printStackTrace(new PrintWriter(errorDebugMessage));
                     valid = addJobValidationError(batchJobId, ErrorCode.ERROR_PROCESSING_REQUEST,
@@ -1443,8 +1458,10 @@ public class BatchJobService implements ModuleEventListener {
                   }
                 }
               }
-            } finally {
-              FileUtil.closeSilent(inputDataStream);
+            } catch (final IOException e) {
+              Logs.error(this, "Error reading input data or writing groups for " + batchJobId, e);
+              transaction.setRollbackOnly(e);
+              return false;
             }
 
             if (!valid || numSubmittedRequests == numFailedRequests) {
@@ -1512,71 +1529,6 @@ public class BatchJobService implements ModuleEventListener {
       }
     }
     return true;
-  }
-
-  private boolean preProcessParameter(final BusinessApplication businessApplication,
-    final Identifier batchJobId, final int sequenceNumber, final Map<String, String> jobParameters,
-    final Record requestParameters, final FieldDefinition field) {
-    boolean jobParameter = false;
-    final String parameterName = field.getName();
-    Object parameterValue = getNonEmptyValue(requestParameters, parameterName);
-    if (businessApplication.isJobParameter(parameterName)) {
-      jobParameter = true;
-      final Object jobValue = getNonEmptyValue(jobParameters, parameterName);
-      if (jobValue != null) {
-        if (parameterValue == null) {
-          parameterValue = jobValue;
-        } else if (DataType.equal(parameterValue, jobValue)) {
-          requestParameters.setValue(parameterName, null);
-          return true;
-        }
-      }
-    }
-    if (parameterValue == null) {
-      if (field.isRequired()) {
-        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
-          sequenceNumber, ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
-          ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " " + parameterName, null);
-        return false;
-      }
-    } else if (!jobParameter) {
-      try {
-        field.validate(parameterValue);
-      } catch (final IllegalArgumentException e) {
-        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
-          sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(), e.getMessage(), null);
-        return false;
-      }
-      try {
-        final String sridString = jobParameters.get("srid");
-        setStructuredInputDataValue(sridString, requestParameters, field, parameterValue, true);
-      } catch (final IllegalArgumentException e) {
-        final StringWriter errorOut = new StringWriter();
-        e.printStackTrace(new PrintWriter(errorOut));
-        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
-          sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
-          ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " " + parameterName + " "
-            + e.getMessage(),
-          errorOut.toString());
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private Record preProcessParameters(final Record batchJob,
-    final BusinessApplication businessApplication, final int requestSequenceNumber,
-    final Map<String, String> jobParameters, final Record requestRecord) {
-    final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
-    requestRecord.put(BusinessApplication.SEQUENCE_NUMBER, requestSequenceNumber);
-    final RecordDefinition recordDefinition = requestRecord.getRecordDefinition();
-    for (final FieldDefinition field : recordDefinition.getFields()) {
-      if (!preProcessParameter(businessApplication, batchJobId, requestSequenceNumber,
-        jobParameters, requestRecord, field)) {
-        return null;
-      }
-    }
-    return requestRecord;
   }
 
   public void rescheduleGroup(final BatchJobRequestExecutionGroup group) {
@@ -1932,9 +1884,8 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
-    this.jobController = new DatabaseJobController(dataAccessObject);
-    // this.jobController = new FileJobController(this, new
-    // File("/apps/data/cpf"));
+    // this.jobController = new DatabaseJobController(dataAccessObject);
+    this.jobController = new FileJobController(this, new File("/apps/data/cpf"));
   }
 
   public void setDaysToKeepOldJobs(final int daysToKeepOldJobs) {
@@ -1979,71 +1930,6 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setScheduler(final BatchJobScheduler scheduler) {
     this.scheduler = scheduler;
-  }
-
-  public void setStructuredInputDataValue(final String sridString,
-    final Map<String, Object> requestParemeters, final FieldDefinition field, Object parameterValue,
-    final boolean setValue) {
-    final DataType dataType = field.getDataType();
-    final Class<?> dataClass = dataType.getJavaClass();
-    if (Geometry.class.isAssignableFrom(dataClass)) {
-      if (parameterValue != null) {
-        final GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
-        Geometry geometry;
-        if (parameterValue instanceof Geometry) {
-
-          geometry = (Geometry)parameterValue;
-          if (geometry.getCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
-            final int srid = Integer.parseInt(sridString);
-            final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
-            geometry = sourceGeometryFactory.geometry(geometry);
-          }
-        } else {
-          String wkt = parameterValue.toString();
-          if (Property.hasValue(wkt)) {
-            wkt = wkt.trim();
-          }
-          if (wkt.startsWith("http")) {
-            wkt = UrlUtil.getContent(wkt + "/feature.wkt?srid=3005");
-            if (!wkt.startsWith("SRID")) {
-              wkt = "SRID=3005;" + wkt;
-            }
-          }
-          try {
-            if (Property.hasValue(sridString)) {
-              final int srid = Integer.parseInt(sridString);
-              final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
-              geometry = sourceGeometryFactory.geometry(wkt, false);
-            } else {
-              geometry = geometryFactory.geometry(wkt, false);
-            }
-          } catch (final Throwable t) {
-            throw new IllegalArgumentException("invalid WKT geometry", t);
-          }
-        }
-        if (geometryFactory != GeometryFactory.DEFAULT) {
-          geometry = geometryFactory.geometry(geometry);
-        }
-        final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
-        if (geometry.getCoordinateSystemId() == 0) {
-          throw new IllegalArgumentException("does not have a coordinate system (SRID) specified");
-        }
-        if (validateGeometry == true) {
-          final IsValidOp validOp = new IsValidOp(geometry);
-          if (!validOp.isValid()) {
-            throw new IllegalArgumentException(validOp.getValidationError().getMessage());
-          }
-        }
-        parameterValue = geometry;
-      }
-    } else if (Number.class.isAssignableFrom(dataClass)) {
-      if (!(parameterValue instanceof Number)) {
-        parameterValue = new BigDecimal(parameterValue.toString().trim());
-      }
-    }
-    if (setValue) {
-      requestParemeters.put(field.getName(), parameterValue);
-    }
   }
 
   public void setTimeoutForCapacityErrors(final long timeoutForCapacityErrors) {

@@ -19,11 +19,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,11 +56,12 @@ import com.revolsys.collection.map.NamedLinkedHashMap;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
-import com.revolsys.io.StringPrinter;
 import com.revolsys.record.Record;
+import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
+import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
 @Controller
@@ -91,90 +91,95 @@ public class WorkerWebService {
     this.jobController = null;
   }
 
-  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{sequenceNumber}/inputData")
+  @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/inputData")
   public void getBatchJobExecutionGroupOpaqueInputData(
     @PathVariable("workerId") final String workerId, final HttpServletResponse response,
-    @PathVariable("batchJobId") final Identifier batchJobId,
-    @PathVariable("sequenceNumber") final int sequenceNumber) throws IOException {
-    checkRunning();
-
-    try (
-      Transaction transaction = this.dataAccessObject.newTransaction();
-      InputStream in = this.jobController.getGroupInputStream(batchJobId, sequenceNumber)) {
-      if (in == null) {
-        throw new PageNotFoundException();
-      } else {
-        final String contentType = this.jobController.getGroupInputContentType(batchJobId,
-          sequenceNumber);
-        response.setContentType(contentType);
-        try (
-          final OutputStream out = response.getOutputStream()) {
-          FileUtil.copy(in, out);
-        }
-      }
-      // if (inputDataUrl != null) {
-      // response.setStatus(HttpServletResponse.SC_SEE_OTHER);
-      // response.setHeader("Location", inputDataUrl);
-      // return;
-
-    }
-  }
-
-  @RequestMapping(value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}")
-  @ResponseBody
-  public Map<String, Object> getBatchJobRequestExecutionGroup(final HttpServletRequest request,
-    @PathVariable("workerId") final String workerId,
-    @PathVariable("groupId") final String groupId) {
+    @PathVariable("groupId") final String groupId) throws IOException {
     checkRunning();
     final BatchJobRequestExecutionGroup group = this.batchJobService
       .getBatchJobRequestExecutionGroup(workerId, groupId);
-    if (group == null || group.isCancelled()) {
-      return Collections.emptyMap();
-    } else {
+    if (group != null && !group.isCancelled()) {
       final Identifier batchJobId = group.getBatchJobId();
-      final Map<String, Object> groupSpecification = new LinkedHashMap<>();
       final BusinessApplication businessApplication = group.getBusinessApplication();
-      groupSpecification.put("workerId", workerId);
-      groupSpecification.put("groupId", groupId);
-      groupSpecification.put("consumerKey", group.getconsumerKey());
-      groupSpecification.put("batchJobId", batchJobId);
+      final Module module = businessApplication.getModule();
+      if (module == null || !module.isStarted()) {
+        this.batchJobService.rescheduleGroup(group);
+      } else if (businessApplication.isPerRequestInputData()) {
+        final int groupSequenceNumber = group.getSequenceNumber();
+        try (
+          Transaction transaction = this.dataAccessObject.newTransaction()) {
+          final String contentType = this.jobController.getGroupInputContentType(batchJobId,
+            groupSequenceNumber);
+          if (contentType != null) {
+            if (contentType.startsWith("url:")) {
+              final String inputDataUrl = this.jobController.getGroupInputString(batchJobId,
+                groupSequenceNumber);
+              if (Property.hasValue(inputDataUrl)) {
+                response.setStatus(HttpServletResponse.SC_SEE_OTHER);
+                response.setHeader("Location", inputDataUrl);
+                return;
+              }
+            } else {
+              try (
+                InputStream in = this.jobController.getGroupInputStream(batchJobId,
+                  groupSequenceNumber)) {
+                if (in != null) {
+                  response.setContentType(contentType);
+                  try (
+                    final OutputStream out = response.getOutputStream()) {
+                    FileUtil.copy(in, out);
+                  }
+                  return;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    throw new PageNotFoundException();
+  }
+
+  @RequestMapping(value = "/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}")
+  public void getBatchJobRequestExecutionGroup(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("workerId") final String workerId,
+    @PathVariable("groupId") final String groupId) throws IOException {
+    checkRunning();
+    final BatchJobRequestExecutionGroup group = this.batchJobService
+      .getBatchJobRequestExecutionGroup(workerId, groupId);
+    if (group != null && !group.isCancelled()) {
+      final Identifier batchJobId = group.getBatchJobId();
+      final BusinessApplication businessApplication = group.getBusinessApplication();
       final Module module = businessApplication.getModule();
       if (module == null || !module.isStarted()) {
         this.batchJobService.rescheduleGroup(group);
       } else {
-        final String moduleName = module.getName();
-        groupSpecification.put("moduleName", moduleName);
-        if (module.isRemoteable()) {
-          groupSpecification.put("moduleTime", module.getStartedTime());
-        }
-        groupSpecification.put("businessApplicationName", businessApplication.getName());
-        groupSpecification.put("applicationParameters", group.getBusinessApplicationParameterMap());
-        if (businessApplication.isPerRequestResultData()) {
-          groupSpecification.put("resultDataContentType", group.getResultDataContentType());
-        }
-
         final int groupSequenceNumber = group.getSequenceNumber();
-        if (businessApplication.isPerRequestInputData()) {
-          final List<Map<String, Object>> requestParameterList = new ArrayList<>();
-          groupSpecification.put("requests",
-            Collections.singletonMap("items", requestParameterList));
-          final Map<String, Object> requestParameters = new HashMap<>();
-          requestParameters.put(BusinessApplication.SEQUENCE_NUMBER, groupSequenceNumber);
-          requestParameterList.add(requestParameters);
-        } else {
-          final String structuredInputData = this.jobController.getGroupInputString(batchJobId,
-            groupSequenceNumber);
-          if (structuredInputData == null) {
-            return Collections.emptyMap();
-          } else if (structuredInputData.charAt(0) == '{') {
-            groupSpecification.put("requests", new StringPrinter(structuredInputData));
+        response.setContentType(Csv.MIME_TYPE);
+        try (
+          final OutputStream out = response.getOutputStream()) {
+          if (businessApplication.isPerRequestInputData()) {
+            try (
+              PrintWriter printWriter = new PrintWriter(out)) {
+              printWriter.println(BusinessApplication.SEQUENCE_NUMBER);
+              printWriter.println(groupSequenceNumber);
+            }
+            return;
           } else {
-            groupSpecification.put("requests", structuredInputData);
+            try (
+              Transaction transaction = this.dataAccessObject.newTransaction();
+              InputStream in = this.jobController.getGroupInputStream(batchJobId,
+                groupSequenceNumber)) {
+              if (in != null) {
+                FileUtil.copy(in, out);
+                return;
+              }
+            }
           }
         }
       }
-      return groupSpecification;
     }
+    throw new PageNotFoundException();
   }
 
   @RequestMapping(value = {

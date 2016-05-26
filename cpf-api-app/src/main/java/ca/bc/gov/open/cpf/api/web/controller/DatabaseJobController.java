@@ -15,40 +15,34 @@
  */
 package ca.bc.gov.open.cpf.api.web.controller;
 
-import java.io.File;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.Map;
 
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.scheduler.DatabasePreProcessGroup;
+import ca.bc.gov.open.cpf.api.scheduler.DatabasePreProcessGroup;
+import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.identifier.Identifier;
-import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
-import com.revolsys.record.io.format.csv.CsvRecordWriter;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
-import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.util.WrappedException;
 
 public class DatabaseJobController extends AbstractJobController {
-  private final CpfDataAccessObject dataAccessObject;
-
   private final RecordStore recordStore;
 
   public DatabaseJobController(final CpfDataAccessObject dataAccessObject) {
-    this.dataAccessObject = dataAccessObject;
+    super(dataAccessObject);
     this.recordStore = dataAccessObject.getRecordStore();
-  }
-
-  @Override
-  public void deleteJob(final Identifier jobId) {
-    this.dataAccessObject.deleteBatchJob(jobId);
   }
 
   @Override
@@ -141,38 +135,26 @@ public class DatabaseJobController extends AbstractJobController {
   @Override
   public void newJobFile(final Identifier jobId, final String path, final long sequenceNumber,
     final String contentType, final Object data) {
+    final CpfDataAccessObject dataAccessObject = getDataAccessObject();
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRED)) {
-      final Record result = this.dataAccessObject.newRecord(BatchJobFile.BATCH_JOB_FILE);
+      Transaction transaction = dataAccessObject.newTransaction(Propagation.REQUIRED)) {
+      final Record result = dataAccessObject.newRecord(BatchJobFile.BATCH_JOB_FILE);
       result.setValue(BatchJobFile.BATCH_JOB_ID, jobId);
       result.setValue(BatchJobFile.FILE_TYPE, path);
       result.setValue(BatchJobFile.CONTENT_TYPE, contentType);
       result.setValue(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber);
       result.setValue(BatchJobFile.DATA, data);
-      this.dataAccessObject.write(result);
+      dataAccessObject.write(result);
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to create file", e);
     }
   }
 
   @Override
-  public void setGroupInput(final Identifier jobId, final int sequenceNumber,
-    final RecordDefinition recordDefinition, final List<Record> requests) {
-    if (!requests.isEmpty()) {
-      final File file = FileUtil.newTempFile("job", ".csv");
-      try {
-        try (
-          CsvRecordWriter writer = new CsvRecordWriter(recordDefinition,
-            FileUtil.newUtf8Writer(file), ',', true, false)) {
-          for (final Record record : requests) {
-            writer.write(record);
-          }
-        }
-        newJobFile(jobId, GROUP_INPUTS, sequenceNumber, "text/csv", file);
-      } finally {
-        FileUtil.delete(file);
-      }
-    }
+  public PreProcessGroup newPreProcessGroup(final BusinessApplication businessApplication,
+    final BatchJob batchJob, final Map<String, String> jobParameters,
+    final int groupSequenceNumber) {
+    return new DatabasePreProcessGroup(this, businessApplication, batchJob, jobParameters,
+      groupSequenceNumber);
   }
-
 }

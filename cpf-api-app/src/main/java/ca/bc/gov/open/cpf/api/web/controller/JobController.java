@@ -17,14 +17,17 @@ package ca.bc.gov.open.cpf.api.web.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.map.MapReader;
-import com.revolsys.record.Record;
-import com.revolsys.record.schema.RecordDefinition;
 
 public interface JobController {
   String GROUP_RESULTS = "groupResults";
@@ -40,7 +43,12 @@ public interface JobController {
   default void cancelJob(final Identifier batchJobId) {
   }
 
-  void deleteJob(Identifier batchJobId);
+  default void deleteJob(final Identifier jobId) {
+    final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+    dataAccessObject.deleteBatchJob(jobId);
+  }
+
+  CpfDataAccessObject getDataAccessObject();
 
   String getGroupInputContentType(Identifier batchJobId, int sequenceNumber);
 
@@ -68,10 +76,10 @@ public interface JobController {
 
   void newJobInputFile(Identifier batchJobId, String contentType, Object data);
 
-  void setGroupError(Identifier batchJobId, int sequenceNumber, Object data);
+  PreProcessGroup newPreProcessGroup(BusinessApplication businessApplication, BatchJob batchJob,
+    Map<String, String> jobParameters, int groupSequenceNumber);
 
-  void setGroupInput(Identifier batchJobId, int sequenceNumber, RecordDefinition recordDefinition,
-    List<Record> requests);
+  void setGroupError(Identifier batchJobId, int sequenceNumber, Object data);
 
   void setGroupInput(Identifier batchJobId, int sequenceNumber, String contentType, Object data);
 

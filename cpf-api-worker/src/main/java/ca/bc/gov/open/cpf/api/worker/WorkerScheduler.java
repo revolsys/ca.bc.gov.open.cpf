@@ -61,6 +61,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 
+import com.revolsys.collection.map.LinkedHashMapEx;
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.logging.Logs;
 import com.revolsys.parallel.NamedThreadFactory;
@@ -454,8 +456,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
       return false;
     } else {
       try {
-        final Map<String, Object> parameters = new HashMap<>();
-        Map<String, Object> response = null;
+        final MapEx parameters = new LinkedHashMapEx();
+        MapEx response = null;
         final Set<String> loadedModuleNames = this.messageHandler.getLoadedModuleNames();
         parameters.put("moduleName", loadedModuleNames);
 
@@ -465,7 +467,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
         if (!isRunning()) {
           return false;
         } else {
-
           if (response != null && !response.isEmpty()) {
             if (response.get("batchJobId") != null) {
               if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
@@ -552,14 +553,12 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
-  public boolean scheduleGroup(final Map<String, Object> group) {
+  public boolean scheduleGroup(final MapEx group) {
     if (isRunning()) {
       if (group != null && !group.isEmpty()) {
         if (group.get("batchJobId") != null) {
-          if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
-            LoggerFactory.getLogger(getClass()).debug("Scheduling group " + group);
-          }
-          final String groupId = (String)group.get("groupId");
+          Logs.debug(this, "Scheduling group " + group);
+          final String groupId = group.getString("groupId");
           this.addExecutingGroupId(groupId);
           try {
             final Runnable runnable = new WorkerGroupRunnable(this, group);
@@ -569,17 +568,14 @@ public class WorkerScheduler extends ThreadPoolExecutor
             return true;
           } catch (final Throwable e) {
             if (isRunning()) {
-              LoggerFactory.getLogger(getClass()).error("Unable to get execute group " + groupId,
-                e);
+              Logs.error(this, "Unable to get execute group " + groupId, e);
             }
             removeExecutingGroupId(groupId);
             addExecutingGroupsMessage();
           }
         }
       } else {
-        if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
-          LoggerFactory.getLogger(getClass()).debug("No group available");
-        }
+        Logs.debug(this, "No group available");
       }
     }
     return false;

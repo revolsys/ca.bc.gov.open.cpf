@@ -21,6 +21,8 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.map.MapReader;
@@ -28,6 +30,17 @@ import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.util.Exceptions;
 
 public abstract class AbstractJobController implements JobController {
+
+  private final CpfDataAccessObject dataAccessObject;
+
+  public AbstractJobController(final CpfDataAccessObject dataAccessObject) {
+    this.dataAccessObject = dataAccessObject;
+  }
+
+  public CpfDataAccessObject getDataAccessObject() {
+    return this.dataAccessObject;
+  }
+
   protected abstract String getFileContentType(Identifier jobId, String path, int sequenceNumber);
 
   protected abstract long getFileSize(Identifier jobId, String path, int sequenceNumber);
