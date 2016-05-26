@@ -24,8 +24,8 @@
     id="cpfCustomBrand"
     class="com.revolsys.ui.model.Brand"
     p:brandUri="http://www2.gov.bc.ca/"
-    p:brandImageSrc="/pub/geomark/images/gov3_bc_logo.png"
-    p:brandSmallImageSrc="/pub/geomark/images/gov3_bc_logo_mobile.png"
+    p:brandImageSrc="/pub/cpf/images/gov3_bc_logo.png"
+    p:brandSmallImageSrc="/pub/cpf/images/gov3_bc_logo_mobile.png"
   />
 
   <bean
