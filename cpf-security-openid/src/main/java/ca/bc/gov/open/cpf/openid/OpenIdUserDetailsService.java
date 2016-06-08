@@ -27,6 +27,7 @@ import org.springframework.security.authentication.AccountStatusUserDetailsCheck
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -120,8 +121,10 @@ public class OpenIdUserDetailsService implements UserDetailsService {
           } else {
             final String consumerKey = UUID.randomUUID().toString().toLowerCase();
             final String consumerSecret = UUID.randomUUID().toString().toLowerCase();
-            SecurityContextHolder.getContext().setAuthentication(
-              new UsernamePasswordAuthenticationToken(consumerKey, consumerSecret));
+            final SecurityContext context = SecurityContextHolder.getContext();
+            final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+              consumerKey, consumerSecret);
+            context.setAuthentication(authentication);
             user = this.dataAccessObject.newUserAccount(this.userAccountClass, userAccountName,
               consumerKey, consumerSecret);
           }

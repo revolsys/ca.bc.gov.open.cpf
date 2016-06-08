@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
@@ -58,7 +59,8 @@ public class BatchJobStatusChangeUiBuilder extends CpfUiBuilder {
     @PathVariable("batchJobId") final Long batchJobId) throws IOException {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
-    final Record batchJob = getBatchJobService().getBatchJob(batchJobIdentifier, consumerKey);
+    BatchJobService batchJobService = getBatchJobService();
+    final Record batchJob = batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobIdentifier + " does not exist.");
     } else {

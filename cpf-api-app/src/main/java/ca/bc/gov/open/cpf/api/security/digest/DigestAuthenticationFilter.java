@@ -33,7 +33,6 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,6 +48,8 @@ import org.springframework.security.web.authentication.www.NonceExpiredException
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
+
+import ca.bc.gov.open.cpf.api.security.UsernamePasswordAuthenticationToken;
 
 /**
  * Processes a HTTP request's Digest authorization headers, putting the result into the
@@ -318,13 +319,8 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
           + responseDigest + "'");
       }
 
-      UsernamePasswordAuthenticationToken authRequest;
-      if (this.createAuthenticatedToken) {
-        authRequest = new UsernamePasswordAuthenticationToken(user, user.getPassword(),
-          user.getAuthorities());
-      } else {
-        authRequest = new UsernamePasswordAuthenticationToken(user, user.getPassword());
-      }
+      final UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
+        user, user.getPassword(), user.getAuthorities());
 
       authRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
 

@@ -190,7 +190,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
           // <value>resultData</value>
           // <value>errorData</value>
 
-          for (int sequenceNumber = offset; sequenceNumber < maxRow; sequenceNumber++) {
+          for (int sequenceNumber = offset; sequenceNumber <= maxRow; sequenceNumber++) {
             data.put("sequenceNumber", sequenceNumber);
             final boolean completed = batchJob.isCompleted(sequenceNumber);
             data.put("completed", completed);

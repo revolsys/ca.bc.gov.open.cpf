@@ -15,7 +15,6 @@
  */
 package ca.bc.gov.open.cpf.api.web.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -58,6 +57,7 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.csv.Csv;
+import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
@@ -256,10 +256,10 @@ public class WorkerWebService {
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/requests/{sequenceNumber}/resultData")
   @ResponseBody
   public Map<String, ? extends Object> postBatchJobExecutionGroupOpaqueOutputData(
-    @PathVariable("workerId") final String workerId,
-    @PathVariable("batchJobId") final Long batchJobId,
+    final HttpServletRequest request, @PathVariable("workerId") final String workerId,
+    @PathVariable("batchJobId") final Identifier batchJobId,
     @PathVariable("groupId") final String groupId,
-    @PathVariable("sequenceNumber") final int sequenceNumber, final InputStream in) {
+    @PathVariable("sequenceNumber") final int sequenceNumber) throws IOException {
     checkRunning();
     final BatchJobRequestExecutionGroup group = this.batchJobService
       .getBatchJobRequestExecutionGroup(workerId, groupId);
@@ -267,8 +267,7 @@ public class WorkerWebService {
     if (group != null) {
       synchronized (group) {
         if (!group.isCancelled()) {
-          final Record batchJob = this.dataAccessObject
-            .getBatchJob(Identifier.newIdentifier(batchJobId));
+          final Record batchJob = this.dataAccessObject.getBatchJob(batchJobId);
           if (batchJob != null) {
             final String businessApplicationName = batchJob
               .getValue(BatchJob.BUSINESS_APPLICATION_NAME);
@@ -277,17 +276,18 @@ public class WorkerWebService {
             if (businessApplication != null && businessApplication.isPerRequestResultData()) {
               final String resultDataContentType = batchJob
                 .getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-              final File file = FileUtil.newTempFile("result", ".bin");
 
-              try {
-                FileUtil.copy(in, file);
+              try (
+                InputStream in = request.getInputStream()) {
+                final int conentLegth = request.getContentLength();
+                final com.revolsys.spring.resource.Resource resource = new InputStreamResource(in,
+                  conentLegth);
                 if (!group.isCancelled()) {
-                  this.batchJobService.newBatchJobResultOpaque(Identifier.newIdentifier(batchJobId),
-                    sequenceNumber, resultDataContentType, file);
+                  this.batchJobService.newBatchJobResultOpaque(batchJobId, sequenceNumber,
+                    resultDataContentType, resource);
                 }
-              } finally {
-                FileUtil.closeSilent(in);
-                FileUtil.deleteDirectory(file);
+              } catch (final IOException e) {
+                this.batchJobService.rescheduleGroup(group);
               }
             }
           }

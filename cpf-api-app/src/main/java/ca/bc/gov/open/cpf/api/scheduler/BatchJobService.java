@@ -2073,8 +2073,8 @@ public class BatchJobService implements ModuleEventListener {
       final BusinessApplication businessApplication = group.getBusinessApplication();
       if (!businessApplication.isPerRequestResultData()) {
         this.jobController.setGroupResult(batchJobId, sequenceNumber, in);
-        batchJob.addCompletedGroup(sequenceNumber);
       }
+      batchJob.addCompletedGroup(sequenceNumber);
       if (batchJob.isCompleted()) {
         batchJob.setStatus(this, BatchJobStatus.PROCESSING, BatchJobStatus.PROCESSED);
         postProcess(batchJobId);

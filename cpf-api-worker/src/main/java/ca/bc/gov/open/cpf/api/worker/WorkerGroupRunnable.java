@@ -282,8 +282,7 @@ public class WorkerGroupRunnable implements Runnable {
               appLog.debug("Request Execution End " + this.groupId + " " + requestSequenceNumber);
             }
           }
-          // TODO sendResultData(requestSequenceNumber, requestResult,
-          // parameters, resultFile, resultData);
+          sendResultData(requestSequenceNumber, parameters, resultFile, resultData);
 
         } catch (final IllegalArgumentException e) {
           addError(requestSequenceNumber, "Error processing request ", "BAD_INPUT_DATA_VALUE", e);
@@ -292,10 +291,8 @@ public class WorkerGroupRunnable implements Runnable {
           addError(requestSequenceNumber, "Error processing request ", "RECOVERABLE_EXCEPTION",
             null);
         } finally {
-          if (resultFile != null) {
-            FileUtil.closeSilent(resultData);
-            FileUtil.deleteDirectory(resultFile);
-          }
+          FileUtil.closeSilent(resultData);
+          FileUtil.deleteDirectory(resultFile);
         }
         try {
           if (requestStopWatch.isRunning()) {
@@ -469,8 +466,8 @@ public class WorkerGroupRunnable implements Runnable {
     }
   }
 
-  protected void sendResultData(final Integer requestSequenceNumber, final MapEx requestResult,
-    final MapEx parameters, final File resultFile, final OutputStream resultData) {
+  protected void sendResultData(final Integer requestSequenceNumber, final MapEx parameters,
+    final File resultFile, final OutputStream resultData) {
     if (resultData != null) {
       try {
         resultData.flush();

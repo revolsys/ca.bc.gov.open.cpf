@@ -512,6 +512,7 @@
     <module>plugins/test</module>
     <module>plugins/digest</module>
     <module>plugins/geometry-validation</module>
+    <module>plugins/mandelbrot</module>
     <module>plugins/map-tile</module>
   </modules>
 

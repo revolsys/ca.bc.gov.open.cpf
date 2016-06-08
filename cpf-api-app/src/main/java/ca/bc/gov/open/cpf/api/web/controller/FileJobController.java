@@ -183,6 +183,10 @@ public class FileJobController extends AbstractJobController {
     } else if (data instanceof String) {
       final String string = (String)data;
       FileUtil.copy(string, file);
+    } else if (data instanceof CharSequence) {
+      final CharSequence charcters = (CharSequence)data;
+      final String string = charcters.toString();
+      FileUtil.copy(string, file);
     } else if (data instanceof Resource) {
       final Resource resource = (Resource)data;
       try (
