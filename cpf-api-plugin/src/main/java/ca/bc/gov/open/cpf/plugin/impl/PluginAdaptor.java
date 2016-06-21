@@ -45,11 +45,11 @@ import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryCollection;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.geometry.model.LineString;
-import com.revolsys.geometry.model.MultiLineString;
-import com.revolsys.geometry.model.MultiPoint;
-import com.revolsys.geometry.model.MultiPolygon;
+import com.revolsys.geometry.model.Lineal;
 import com.revolsys.geometry.model.Point;
 import com.revolsys.geometry.model.Polygon;
+import com.revolsys.geometry.model.Polygonal;
+import com.revolsys.geometry.model.Punctual;
 import com.revolsys.geometry.model.impl.BoundingBoxDoubleGf;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.parallel.ThreadUtil;
@@ -105,20 +105,26 @@ public class PluginAdaptor {
         final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.0,
           53.0, -125.1, 53.0);
         value = boundingBox.toPolygon(10);
-      } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
-        final LineString line = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
-        value = GeometryFactory.wgs84().multiLineString(line);
-      } else if (MultiPolygon.class.isAssignableFrom(typeClass)) {
+      } else if (Lineal.class.isAssignableFrom(typeClass)) {
+        final LineString line1 = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
+        final LineString line2 = GeometryFactory.wgs84().lineString(2, -125.2, 53.0, -125.3, 53.0);
+        value = GeometryFactory.wgs84().lineal(line1, line2);
+      } else if (Polygonal.class.isAssignableFrom(typeClass)) {
         final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.0,
           53.0, -125.1, 53.0);
-        final Polygon polygon = boundingBox.toPolygon(10);
-        value = GeometryFactory.wgs84().multiPolygon(polygon);
+        final Polygon polygon1 = boundingBox.toPolygon(10);
+        final BoundingBox boundingBox2 = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.2,
+          53.0, -125.3, 53.0);
+        final Polygon polygon2 = boundingBox2.toPolygon(10);
+        value = GeometryFactory.wgs84().polygonal(polygon1, polygon2);
+      } else if (Point.class.isAssignableFrom(typeClass)) {
+        value = GeometryFactory.wgs84().point(-125, 53);
       } else if (GeometryCollection.class.isAssignableFrom(typeClass)
-        || MultiPoint.class.isAssignableFrom(typeClass)) {
-        final Point point = GeometryFactory.wgs84().point(-125, 53);
-        value = GeometryFactory.wgs84().multiPoint(point);
-      } else if (Geometry.class.isAssignableFrom(typeClass)
-        || Point.class.isAssignableFrom(typeClass)) {
+        || Punctual.class.isAssignableFrom(typeClass)) {
+        final Point point1 = GeometryFactory.wgs84().point(-125, 53);
+        final Point point2 = GeometryFactory.wgs84().point(-125, 53.1);
+        value = GeometryFactory.wgs84().punctual(point1, point2);
+      } else if (Geometry.class.isAssignableFrom(typeClass)) {
         value = GeometryFactory.wgs84().point(-125, 53);
       } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(typeClass)) {
         // JTS
@@ -142,7 +148,7 @@ public class PluginAdaptor {
           final com.vividsolutions.jts.geom.Polygon polygon = jtsGeometryFactory
             .createPolygon(points);
           value = polygon;
-        } else if (MultiLineString.class.isAssignableFrom(typeClass)) {
+        } else if (com.vividsolutions.jts.geom.MultiLineString.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
               -125, 53, -125.1, 53
