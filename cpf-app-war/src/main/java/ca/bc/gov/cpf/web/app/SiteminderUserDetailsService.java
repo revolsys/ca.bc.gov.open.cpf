@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -22,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
+import ca.bc.gov.open.cpf.api.security.UsernamePasswordAuthenticationToken;
 import ca.bc.gov.open.cpf.api.security.service.GroupNameService;
 import ca.bc.gov.open.cpf.api.security.service.UserAccountSecurityService;
 
@@ -124,11 +124,12 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
       try {
         Record user = this.dataAccessObject.getUserAccount(USER_ACCOUNT_CLASS, userGuid);
 
+        final SecurityContext context = SecurityContextHolder.getContext();
+        String consumerSecret = null;
         String username;
         if (user == null) {
           final HttpServletRequest request = HttpServletUtils.getRequest();
           final String userType = request.getHeader("SMGOV_USERTYPE");
-          final SecurityContext context = SecurityContextHolder.getContext();
           username = request.getHeader("SM_UNIVERSALID").toLowerCase();
           username = username.replace('\\', ':');
           final int index = username.indexOf(':');
@@ -144,10 +145,7 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
             }
           }
 
-          final String consumerSecret = UUID.randomUUID().toString().replaceAll("-", "");
-          final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            username, consumerSecret);
-          context.setAuthentication(authentication);
+          consumerSecret = UUID.randomUUID().toString().replaceAll("-", "");
 
           user = this.dataAccessObject.newUserAccount(USER_ACCOUNT_CLASS, userGuid, username,
             consumerSecret);
@@ -165,6 +163,11 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
           authorities.add(new SimpleGrantedAuthority("ROLE_" + groupName));
         }
 
+        if (consumerSecret != null) {
+          final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+            username, consumerSecret, authorities);
+          context.setAuthentication(authentication);
+        }
         final User userDetails = new User(username, userPassword, active, true, true, true,
           authorities);
 
