@@ -1393,7 +1393,7 @@ public class BatchJobService implements ModuleEventListener {
                     final InputStreamResource resource = new InputStreamResource("in",
                       inputDataStream);
                     try (
-                      final MapReader mapReader = factory.newMapreader(resource)) {
+                      final MapReader mapReader = factory.newMapReader(resource)) {
                       if (mapReader == null) {
                         valid = addJobValidationError(batchJobId, ErrorCode.INPUT_DATA_UNREADABLE,
                           inputContentType, "Media type not supported");

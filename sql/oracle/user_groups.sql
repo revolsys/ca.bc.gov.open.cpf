@@ -1,13 +1,13 @@
 CREATE TABLE CPF_USER_GROUPS (
-  USER_GROUP_ID                   NUMBER(19)          NOT NULL,
+  USER_GROUP_ID                   NUMBER(19)       NOT NULL,
   MODULE_NAME                     VARCHAR2(255)    NOT NULL,
   USER_GROUP_NAME                 VARCHAR2(255)    NOT NULL,
   DESCRIPTION                     VARCHAR2(4000),
-  ACTIVE_IND                      NUMBER(1,0)    NOT NULL,
+  ACTIVE_IND                      NUMBER(1,0)      NOT NULL,
   WHO_CREATED                     VARCHAR2(255)    NOT NULL,
-  WHEN_CREATED                    TIMESTAMP       NOT NULL,
+  WHEN_CREATED                    TIMESTAMP        NOT NULL,
   WHO_UPDATED                     VARCHAR2(255)    NOT NULL,
-  WHEN_UPDATED                    TIMESTAMP       NOT NULL,
+  WHEN_UPDATED                    TIMESTAMP        NOT NULL,
   CONSTRAINT USER_GROUPS_PK PRIMARY KEY (USER_GROUP_ID),
   CONSTRAINT USER_GROUPS_USER_GROUP_NAME_UK UNIQUE (USER_GROUP_NAME)
 );

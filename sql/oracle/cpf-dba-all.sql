@@ -3,9 +3,9 @@ set serveroutput on
 DECLARE
   C INTEGER;
 BEGIN
-	SELECT COUNT(*) INTO C FROM DBA_TABLESPACES WHERE TABLESPACE_NAME = 'CPF';
-	IF C = 0 THEN
-	  dbms_output.put_line('INFO: Created tablespace CPF');
+  SELECT COUNT(*) INTO C FROM DBA_TABLESPACES WHERE TABLESPACE_NAME = 'CPF';
+  IF C = 0 THEN
+    dbms_output.put_line('INFO: Created tablespace CPF');
     EXECUTE IMMEDIATE 'CREATE TABLESPACE CPF DATAFILE ''TABLESPACE_DIR/CPF_01.dbf'' SIZE 1G EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO';
   ELSE
     dbms_output.put_line('INFO: Tablespace CPF exists so no need to create');

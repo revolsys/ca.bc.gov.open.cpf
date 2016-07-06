@@ -1,4 +1,3 @@
-
 INSERT INTO cpf.cpf_user_accounts (user_account_id, user_account_class, user_name, consumer_key, consumer_secret, active_ind, who_created, when_created, who_updated, when_updated) VALUES 
   (cpf.cpf_ua_seq.NEXTVAL, 'CPF', 'cpftest', 'cpftest', 'cpftest', 1,USER, SYSDATE, USER, SYSDATE);
 

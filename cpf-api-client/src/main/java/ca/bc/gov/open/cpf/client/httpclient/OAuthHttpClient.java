@@ -232,7 +232,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
         }
 
         final InputStreamResource resource = new InputStreamResource(fileName, in);
-        return factory.newMapreader(resource);
+        return factory.newMapReader(resource);
       } else {
         throw newException(entity, statusLine);
       }
