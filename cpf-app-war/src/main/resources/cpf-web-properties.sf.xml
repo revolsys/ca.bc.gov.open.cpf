@@ -28,7 +28,6 @@
     <entry key="mavenRepository.repositoryLocations">
       <list>
         <value>${ca.bc.gov.cpf.repositoryServer}</value>
-        <value>https://oss.sonatype.org/content/repositories/snapshots/</value>
       </list>
     </entry>
 
