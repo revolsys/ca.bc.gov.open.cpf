@@ -79,7 +79,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
-import com.revolsys.collection.map.NamedLinkedHashMap;
+import com.revolsys.collection.map.MapEx;
+import com.revolsys.collection.map.NamedLinkedHashMapEx;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.GeometryFactory;
@@ -1137,7 +1138,7 @@ public class ConcurrentProcessingFramework {
   }, method = RequestMethod.GET)
   @ResponseBody
   public Map<String, ? extends Object> getAuthenticated() {
-    final Map<String, Object> map = new NamedLinkedHashMap<String, Object>("Authenticated");
+    final MapEx map = new NamedLinkedHashMapEx("Authenticated");
     map.put("authenticated", true);
     return map;
   }
@@ -1389,7 +1390,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.

@@ -51,7 +51,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.collection.map.NamedLinkedHashMap;
+import com.revolsys.collection.map.MapEx;
+import com.revolsys.collection.map.NamedLinkedHashMapEx;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
@@ -224,7 +225,7 @@ public class WorkerWebService {
       for (int i = 0; i < jarUrls.size(); i++) {
         jarPaths.add(path + i);
       }
-      final Map<String, Object> result = new NamedLinkedHashMap<String, Object>("ModuleUrls");
+      final MapEx result = new NamedLinkedHashMapEx("ModuleUrls");
       result.put("jarPaths", jarPaths);
       return result;
     }
@@ -294,8 +295,7 @@ public class WorkerWebService {
         }
       }
     }
-    final Map<String, Object> map = new NamedLinkedHashMap<String, Object>(
-      "OpaqueOutputDataResults");
+    final MapEx map = new NamedLinkedHashMapEx("OpaqueOutputDataResults");
     return map;
   }
 

@@ -95,7 +95,7 @@ import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 import com.revolsys.collection.list.Lists;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.collection.map.NamedLinkedHashMap;
+import com.revolsys.collection.map.NamedLinkedHashMapEx;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.Geometry;
@@ -2019,7 +2019,7 @@ public class BatchJobService implements ModuleEventListener {
   public Map<String, Object> toMap(final BatchJob batchJob, final String jobUrl,
     final long timeUntilNextCheck) {
     try {
-      final Map<String, Object> jobMap = new NamedLinkedHashMap<String, Object>("BatchJob");
+      final MapEx jobMap = new NamedLinkedHashMapEx("BatchJob");
       jobMap.put("id", new URI(jobUrl));
       jobMap.put("consumerKey", batchJob.getValue(BatchJob.USER_ID));
       jobMap.put("businessApplicationName", batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME));

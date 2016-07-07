@@ -1084,8 +1084,8 @@ wish to define per result configuration properties.
 **Example Plug-in Result Customization Properties**
 
 ```java
-public Map<String,Object> getCustomizationProperties() {
-  Map<String,Object> properties = new HashMap<>();
+public Map<String, Object> getCustomizationProperties() {
+  Map<String, Object> properties = new HashMap<>();
   properties.put("propertyName", "propertyValue");
   String styleId = "demo"; /** Calculated from some field on object */
   properties.put("kmlStyleUrl", "http://gov.bc.ca/kmlStyle.kml#" + styleId);

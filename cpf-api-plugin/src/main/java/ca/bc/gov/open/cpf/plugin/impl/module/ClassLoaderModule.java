@@ -1352,7 +1352,7 @@ public class ClassLoaderModule implements Module {
         }
       } else {
         throw new IllegalArgumentException(
-          "Method must have signature public Map<String,Object> getCustomizationProperties() not "
+          "Method must have signature public Map<String, Object> getCustomizationProperties() not "
             + method);
       }
 

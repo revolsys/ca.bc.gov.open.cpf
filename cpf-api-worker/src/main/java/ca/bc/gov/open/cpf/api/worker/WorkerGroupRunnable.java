@@ -227,8 +227,8 @@ public class WorkerGroupRunnable implements Runnable {
    * errorDebugMessage String
    *
    * pluginExecutionTime long
-   * results List<Map<String, Object>>
-   * logRecords List<Map<String,Object>>
+   * results List<MapEx>
+   * logRecords List<MapEx>
    * @param resultWriter
    *
    * @param requestRecordDefinition
@@ -351,8 +351,8 @@ public class WorkerGroupRunnable implements Runnable {
    * errorMessage String
    * errorDebugMessage String
 
-   * results List<Map<String,Object>
-   * logRecords List<Map<String,Object>
+   * results List<MapEx>
+   * logRecords List<MapEx>
    * groupExecutionTime long
    * applicationExecutionTime long
    * errorCount long
