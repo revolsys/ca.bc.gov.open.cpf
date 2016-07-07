@@ -221,7 +221,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
    *
    * @param geometry The geometry.
    * @return The copied geometry.
-   * @
+   *
    * @param <G> The class of geometry to cast the result to.
    */
   @SuppressWarnings("unchecked")
