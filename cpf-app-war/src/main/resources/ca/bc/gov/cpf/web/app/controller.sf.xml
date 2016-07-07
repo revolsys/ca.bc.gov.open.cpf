@@ -6,33 +6,60 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
     http://www.springframework.org/schema/mvc
-    http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+    http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
   "
 >
   <bean
+    id="cpfCustomCssUrl"
+    class="java.lang.String"
+  >
+    <constructor-arg>
+      <value>/css/bcgov.css</value>
+    </constructor-arg>
+  </bean>
+  
+  <bean
+    id="cpfCustomBrand"
+    class="com.revolsys.ui.model.Brand"
+    p:brandUri="http://www2.gov.bc.ca/"
+    p:brandImageSrc="/pub/cpf/images/gov3_bc_logo.png"
+    p:brandSmallImageSrc="/pub/cpf/images/gov3_bc_logo_mobile.png"
+  />
+
+  <bean
     id="footerMenu"
-    class="com.revolsys.ui.model.Menu"
+    p:id="footerMenu"
+    class="com.revolsys.ui.model.Navbar"
+    p:navbarCssClass="navbar-fixed-bottom"
   >
     <property name="menus">
       <list>
         <bean
+          p:title="About gov.bc.ca"
           class="com.revolsys.ui.model.Menu"
-          p:title="COPYRIGHT"
-          p:uri="http://www2.gov.bc.ca/gov/admin/copyright.page" />
+          p:uri="http://www2.gov.bc.ca/gov/content/about-gov-bc-ca" />
         <bean
+          p:title="Disclaimer"
           class="com.revolsys.ui.model.Menu"
-          p:title="DISCLAIMER"
-          p:uri="http://www2.gov.bc.ca/gov/admin/disclaimer.page" />
+          p:uri="http://www2.gov.bc.ca/gov/content/home/disclaimer" />
         <bean
+          p:title="Privacy"
           class="com.revolsys.ui.model.Menu"
-          p:title="PRIVACY"
-          p:uri="http://www2.gov.bc.ca/gov/admin/privacy.page" />
+          p:uri="http://www2.gov.bc.ca/gov/content/home/privacy" />
         <bean
+          p:title="Accessibility"
           class="com.revolsys.ui.model.Menu"
-          p:title="ACCESSIBILITY"
-          p:uri="http://www2.gov.bc.ca/gov/admin/accessibility.page" />
+          p:uri="http://www2.gov.bc.ca/gov/content/home/accessibility" />
+        <bean
+          p:title="Copyright"
+          class="com.revolsys.ui.model.Menu"
+          p:uri="http://www2.gov.bc.ca/gov/content/home/copyright" />
+        <bean
+          p:title="Contact Us"
+          class="com.revolsys.ui.model.Menu"
+          p:uri="http://www2.gov.bc.ca/gov/content/home/contact-us" />
       </list>
     </property>
   </bean>

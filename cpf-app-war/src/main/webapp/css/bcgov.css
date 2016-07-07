@@ -1,204 +1,65 @@
+@font-face {
+  font-family: 'Myriad-Web-Pro';
+  src: url("../fonts/MyriadWebPro.ttf");
+}
+
 body {
-  color: #333333;
-  font-size: 12px;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  margin: 0px 1em 0px 1em;
+  font-family: 'Myriad-Web-Pro', sans-serif;
+  padding-top: 105px;
+  padding-bottom:0px;
 }
 
-dt {
-  float: left;
-  font-weight: bold;
-  margin: 0px;
-  text-align: right;
-  width: 15em;
+.header .navbar-default {
+  border-bottom: 2px solid #fcba19;
 }
 
-dd {
-  border-left: 1px solid #aaaaaa;
-  margin: 0px 0px 3px 15.5em;
-  padding-left: 5px;
+.header .navbar-default .navbar-brand .navbar-brand-title {
+  font-size: 45px;
 }
 
-div.body {
-  min-width: 950px;
+.header .navbar-default .navbar-brand {
+  padding: 22px 0px 22px 8px;
 }
 
-div.header {
-  background-image: none;
+.header .navbar-default .navbar-brand a {
+  padding-right: 15px;
+}
+
+.header .navbar-default .navbar-collapse {
+  padding-top: 22px;
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-top: 60px;
+  }
+  .header .navbar-default .navbar-brand {
+    padding: 5px 0px 5px 8px;
+  }
+  .header .navbar-default .navbar-brand .navbar-brand-title {
+    font-size: 1.5em;
+  }
+  .header .navbar-default .navbar-brand img {
+    width: 50px;
+  }
+}
+
+#footerMenu {
   border-width: 0px;
-  margin: 0px;
-  padding: 0px;
-}
-
-div.headerContent {
-  background-image: url(../images/bc_sun_logo_horiz.gif);
-  background-repeat: no-repeat;
-  margin: 0px;
-  padding: 0px 0px 0px 18%;
-  background-color: #ffffff;
-  height: 50px;
-}
-
-div.headerContent div.title {
-  color: #039;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-weight: bold;
-  line-height: 1;
-  font-size: 26px;
-  padding-top: 12px;
-}
-
-div.columns_2_1 {
-  border-right: 1px solid #999999;
-  box-sizing: border-box;
-}
-
-div.breadcrumb {
-  border-top: 1px solid #999999;
-  border-bottom: 1px solid #999999;
-  padding: 9px 5px 0px 10px;
-  height: 20px;
-  margin-left: 0px;
-}
-
-div.bodyContainer {
-  margin: 0px 0px 0px 0px;
-}
-
-div.bodyContent {
-  padding: 5px 10px 5px 10px;
-  word-wrap: break-word;
-  margin-left: 0px;
-}
-
-a.help {
-  background-image: url(../images/icon_help.gif);
-  background-position: top right;
-  background-repeat: no-repeat;
-  color: #006666;
-  display: block;
-  float: right;
-  font-size: 1.2em;
-  font-weight: bold;
-  height: 30px;
-  padding: 2px 30px 0px 0px;
-  text-decoration: none;
-}
-
-div.buttons {
-  margin: 5px;
-}
-
-div.sideNav {
-  background-color: #cccccc;
-  width: 100%;
-  margin: 0px -10px 0px 1px;
-  padding: 0px 0px 5px 0px;
-  border-right: 1px solid #999999;
-  border-top: 1px solid #999999;
-  border-bottom: 1px solid #999999;
-  border-left: 1px solid #999999;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 0px;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 0px;
-  width: 100%;
-}
-
-div.sideMenu {
-  padding: 0px;
-  background-color: white;
-}
-
-div.sideMenu div.title {
-  background-image: none;
-  background-color: #6699CC;
-  border-top-right-radius: 0px;
-  color: #0066CC;
-  font: bold 11px Verdana, Arial, Helvetica, sans-serif;
-  padding: 10px 2px 5px 11px;
-  height: 15px;
-}
-
-div.sideMenu div.title a {
-  color: #000000;
-  text-decoration: none;
-}
-
-div.sideMenu > ul {
-  margin: 0px;
-  padding: 10px 5px 10px 15px;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-size: 10px;
-}
-
-div.sideMenu ul li {
-  list-style-image: url(../images/left_blue_arrow.gif);
-  padding: 2px 0px;
-  margin-left: 10px;
-}
-
-div.sideMenu ul li a {
-  color: #333333;
-}
-
-div.sideMenu ul li:nth-of-type(even) {
-  background-color: white;
-}
-
-div.sideMenu ul li:last-child {
-  border-bottom-right-radius: 0px;
-}
-
-div.sideMenu > ul ul {
-  padding: 0px 0px 0px 10px;
-}
-
-div.footnotes {
-  font-size: 0.7em;
-  margin: 0px;
-  padding: 4px 0px;
-  color: #666666;
-}
-
-div.footer {
-  background-image: none;
-  background-color: #ffffff;
-  border-width: 0px;
+  border-top: 2px solid #fcba19;
+  margin-bottom: 0px;
   border-radius: 0px;
-  border-top: 1px solid #999999;
-  clear: both;
-  color: #666666;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-weight: bold;
-  margin: 0px;
-  margin-left: 18%;
-  padding: 4px 0px 0px 4px;
-  background-color: #ffffff;
 }
-
-div.footer a {
-  border-left: 1px solid #999999;
-  color: #666666;
-}
-
-div.resources dt {
-  background: url(../images/left_blue_arrow.gif) no-repeat center left;
-  float: none;
-  padding: 0px 0px 0px 10px;
-  font-weight: bold;
-  margin: 0px;
-  width: 100%;
-  text-align: left;
-}
-
-div.resources dd {
-  border-left-width: 0px;
-  margin: 0px 0px 0px 10px;
-  padding-left: 0px;
-}
-
-div.objectView>table.data>tbody>tr>th {
+footer div.version {
+  margin-top: -1.5em;
+  bottom: auto;
+  position: relative;
   text-align: right;
-  max-width: 30%;
+}
+footer.footer {
+  margin-top: 5px;
+  position: relative;
+  bottom: auto;
+  width: 100%;
+  height:50px;
 }

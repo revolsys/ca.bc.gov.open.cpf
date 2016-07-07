@@ -6,32 +6,12 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
     http://www.springframework.org/schema/security
-    http://www.springframework.org/schema/security/spring-security-3.0.xsd
+    http://www.springframework.org/schema/security/spring-security-4.0.xsd
   "
 >
-  <bean
-    name="cpfSiteminderSecurityModule"
-    class="ca.bc.gov.open.cpf.api.security.CpfSecurityModuleImport"
-    p:resource="classpath:ca/bc/gov/cpf/web/app/security.sf.xml"
-  >
-    <property
-      name="paths"
-    >
-      <list>
-        <value>/secure/**</value>
-      </list>
-    </property>
-    <property
-      name="importBeanNames"
-    >
-      <list>
-        <value>ca.bc.gov.open.cpf.api.domain.UserAccount-dao</value>
-        <value>ca.bc.gov.open.cpf.api.domain.UserGroup-dao</value>
-        <value>ca.bc.gov.open.cpf.api.transactionManager</value>
-        <value>userAccountSecurityService</value>
-      </list>
-    </property>
-  </bean>
+  <import resource="classpath:ca/bc/gov/cpf/web/app/security.sf.xml" />
+
+  <bean class="com.revolsys.beans.propertyeditor.ResourceEditorRegistrar" />
 </beans>

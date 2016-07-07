@@ -2,12 +2,12 @@ Description
 -----------
 Project:           cpf
 Title:             Concurrent Processing Framework Web Application
-Version:           4.1.4
+Version:           4.1.0
 
 Software/Hardware Requirements
 ------------------------------
 Oracle:                       N/A
-Java:                         6+
+Java:                         7+
 Maven:                        3.0.3+
 App Server:                   Tomcat 7+
 App Server Additional Memory: 100MB
@@ -16,30 +16,46 @@ App Server Additional Memory: 100MB
 1. Database Installation
 ------------------------
 
-N/A
+Database:           
+          DBCDLV - Delivery
+          DBCTST - Test
+          DBCPRD - Production
 
+Script Files:
+
+sqlplus CPF@DBCDLV @scripts\update\cpf\main.sql
+  
 2. Configuration Files
 ----------------------
+
+NOTE: This release adds the following configuration property
+
+cpfSiteminderLogoutSuccess.logoutUrl
 
 CPF requires a configuration file on each server.
 
 Property                             Description
 -------------------------------      ------------------------------------------
-cpfConfig.baseUrl                    The HTTP URL to the server cpf is deployed to
-cpfConfig.secureBaseUrl              The HTTPS URL to the server cpf is deployed to
+ca.bc.gov.cpf.app.baseUrl            The HTTP URL to the server cpf is deployed to
+ca.bc.gov.cpf.app.secureBaseUrl      The HTTPS URL to the server cpf is deployed to
+ca.bc.gov.cpf.internal.webServiceUrl The HTTP URL to the internal web service for cpf
 cpfSiteminderLogoutSuccess.logoutUrl The URL to the siteminder logoff page:
                                      https://logontest.gov.bc.ca/clp-cgi/logoff.cgi
                                      https://logon.gov.bc.ca/clp-cgi/logoff.cgi
-cpfDataSource.url                    The JDBC URL to the cpf database
-cpfDataSource.password               The password for the PROXY_CPF_WEB user account
+ca.bc.gov.cpf.db.url                 The JDBC URL to the cpf database
+ca.bc.gov.cpf.db.password            The password for the PROXY_CPF_WEB user account
+ca.bc.gov.cpf.db.maxConnections      The maximum number of database connections
+batchJobService.maxWorkerWaitTime    The maximum time the worker will wait in a HTTP
+                                     request for group to process before trying a new
+                                     HTTP request. This limits the number of polling
+                                     requests to the server.
+cpfWorker.password                   The password for the internal web service user
+cpfWorker.maximumPoolSize            The maximum number of threads on the worker to
                                      execute requests.
 batchJobService.fromEmail            The email address any emails will be sent from
 mailSender.host                      The mail server to send emails via
 ca.bc.gov.cpf.repositoryServer       The maven repository to download plugins from
 ca.bc.gov.cpf.repositoryDirectory    The cache directory to store maven artifacts
-cpfWorker.webServiceUrl              The HTTP URL to the internal web service for cpf
-cpfWorker.password                   The password for the internal web service user
-cpfWorker.maximumPoolSize            The maximum number of threads on the worker to
 
 Create the directory and configuration file.
 
@@ -67,7 +83,7 @@ Integration System, use the Ministry Standards below as a Guide.
 
 http://apps.bcgov/standards/index.php/Migration_Task_with_CIS
 
-Create a new maven 2/3 job with the following parameters.
+Construct a new new maven 2/3 job with the following parameters.
 
 Project name:                       revolys-cpf-deploy
 Description:                        Build the CPF web application and deploy to Tomcat.
@@ -112,9 +128,14 @@ is complete.
 7. Perform Release 
 ------------------
 
-This step is performed during migration of an application to the production
-environment. The migration occurs after the developer has tested the application
-in the delivery environment and the business area have completed the UAT in the test environment.
- 
-Use the Ministry Continuous Integration System to tag the version in Subversion,
-build the release version and deploy it to the Ministry Artifacts Repository.
+This step is performed before migration of an application to the test or
+production environment.
+
+The migration to test occurs after the developer has tested the application in
+the delivery environment. The migration to production occurs after the business
+area has tested the application in the test environment.
+
+Perform a Maven release using the following settings.
+
+Update property dependencies to latest RC or release version:
+  ca.bc.gov.open.cpf.version: 4.1.0+
