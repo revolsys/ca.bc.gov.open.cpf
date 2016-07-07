@@ -96,10 +96,10 @@ COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.DOWNLOAD_TIMESTAMP IS 'This is the times
 COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.SEQUENCE_NUMBER IS 'This is the REQUEST SEQUENCE NUMBER of the BATCH JOB REQUEST if the BATCH JOB RESULT is of type opaqueResultData.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.RESULT_DATA IS 'This is the byte content of the result file for the BATCH JOB RESULT. Either this or the RESULT DATA URL must be specfied.'
+COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.RESULT_DATA IS 'This is the byte content of the result file for the BATCH JOB RESULT. Either this or the RESULT DATA URL must be specified.'
 /
 
-COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.RESULT_DATA_URL IS 'This is the URL to the byte content of the result file for the BATCH JOB RESULT. Either this or the RESULT DATA must be specfied.'
+COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.RESULT_DATA_URL IS 'This is the URL to the byte content of the result file for the BATCH JOB RESULT. Either this or the RESULT DATA must be specified.'
 /
 
 COMMENT ON COLUMN CPF_BATCH_JOB_RESULTS.WHO_CREATED IS 'This is the database or web user that created the object.'
