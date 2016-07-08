@@ -17,17 +17,15 @@ package ca.bc.gov.open.cpf.plugin.impl.module;
 
 import java.util.Map;
 
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.process.AbstractProcess;
 
 public class ModuleControlProcess extends AbstractProcess {
-
   private Channel<Map<String, Object>> in;
 
   private BusinessApplicationRegistry businessApplicationRegistry;
@@ -63,8 +61,7 @@ public class ModuleControlProcess extends AbstractProcess {
               }
             }
           } catch (final Throwable t) {
-            LoggerFactory.getLogger(getClass()).error("Unable to perform module action: " + control,
-              t);
+            Logs.error(this, "Unable to perform module action: " + control, t);
           }
         }
       }

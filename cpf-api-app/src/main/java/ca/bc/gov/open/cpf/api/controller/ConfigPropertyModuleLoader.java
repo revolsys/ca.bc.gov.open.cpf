@@ -26,8 +26,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
@@ -42,6 +40,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.io.map.MapReader;
+import com.revolsys.logging.Logs;
 import com.revolsys.maven.MavenRepository;
 import com.revolsys.record.Record;
 import com.revolsys.spring.resource.InputStreamResource;
@@ -50,7 +49,6 @@ import com.revolsys.transaction.Transaction;
 import com.revolsys.util.Property;
 
 public class ConfigPropertyModuleLoader implements ModuleLoader {
-
   private static final String ACTION = "action";
 
   private static final String DELETE = "delete";
@@ -273,8 +271,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       }
     } catch (final Throwable e) {
       if (module == null) {
-        LoggerFactory.getLogger(ConfigPropertyModuleLoader.class)
-          .error("Unable to load module " + moduleName, e);
+        Logs.error(this, "Unable to load module " + moduleName, e);
       } else {
         module.addModuleError(e);
       }

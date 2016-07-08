@@ -33,7 +33,6 @@ import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
 public class ConfigPropertyModule extends ClassLoaderModule {
-
   private final MavenRepository mavenRepository;
 
   private String mavenModuleId;
@@ -125,7 +124,6 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   @Override
   public void startDo() {
-
     if (isEnabled()) {
       if (!isStarted()) {
         try (
