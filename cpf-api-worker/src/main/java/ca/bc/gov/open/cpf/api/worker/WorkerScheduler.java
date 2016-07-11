@@ -74,8 +74,6 @@ import com.revolsys.util.Property;
 public class WorkerScheduler extends ThreadPoolExecutor
   implements Runnable, ServletContextListener {
 
-  private static final org.slf4j.Logger LOG = Logs.logger(WorkerScheduler.class);
-
   private static Integer getPortNumber() {
     try {
       final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -470,9 +468,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
         } else {
           if (response != null && !response.isEmpty()) {
             if (response.get("batchJobId") != null) {
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Scheduling group " + response);
-              }
+              Logs.debug(this, "Scheduling group " + response);
               final String groupId = (String)response.get("groupId");
               addExecutingGroupId(groupId);
               try {
@@ -489,9 +485,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
               }
             }
           } else {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("No group available");
-            }
+            Logs.debug(this, "No group available");
           }
         }
         return true;
@@ -534,7 +528,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
           }
           if (isRunning() && this.timeout != 0) {
             synchronized (this.monitor) {
-              LOG.debug("Waiting " + this.timeout + " seconds before getting next task");
+              Logs.debug(this, "Waiting " + this.timeout + " seconds before getting next task");
               this.monitor.wait(this.timeout * 1000);
             }
           }

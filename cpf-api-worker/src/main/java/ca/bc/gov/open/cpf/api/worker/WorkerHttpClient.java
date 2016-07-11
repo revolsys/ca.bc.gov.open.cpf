@@ -39,7 +39,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
 
 import ca.bc.gov.open.cpf.client.httpclient.FunctionResponseHandler;
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
@@ -92,13 +91,14 @@ public class WorkerHttpClient {
 
   public static HttpStatusCodeException newException(final HttpEntity entity,
     final StatusLine statusLine) {
-    final Logger log = Logs.logger(WorkerHttpClient.class);
-    if (log.isDebugEnabled()) {
+    if (Logs.isDebugEnabled(WorkerHttpClient.class)) {
       try {
         final String errorBody = EntityUtils.toString(entity);
-        log.debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
+        Logs.debug(WorkerHttpClient.class,
+          "Unable to get message from server: " + statusLine + "\n" + errorBody);
       } catch (final Throwable e) {
-        log.error("Unable to get error message server: " + statusLine + "\n");
+        Logs.error(WorkerHttpClient.class,
+          "Unable to get error message server: " + statusLine + "\n");
       }
     }
     return new HttpStatusCodeException(statusLine.getStatusCode(), statusLine.getReasonPhrase());

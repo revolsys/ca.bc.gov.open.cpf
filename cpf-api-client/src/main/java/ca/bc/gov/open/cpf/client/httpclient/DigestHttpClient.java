@@ -46,7 +46,6 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
 
 import com.revolsys.io.FileUtil;
 import com.revolsys.logging.Logs;
@@ -209,13 +208,12 @@ public class DigestHttpClient {
 
   protected HttpStatusCodeException newException(final HttpEntity entity,
     final StatusLine statusLine) {
-    final Logger log = Logs.logger(this);
-    if (log.isDebugEnabled()) {
+    if (Logs.isDebugEnabled(this)) {
       try {
         final String errorBody = EntityUtils.toString(entity);
-        log.debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
+        Logs.debug(this, "Unable to get message from server: " + statusLine + "\n" + errorBody);
       } catch (final Throwable e) {
-        log.error("Unable to get error message server: " + statusLine + "\n");
+        Logs.error(this, "Unable to get error message server: " + statusLine + "\n");
       }
     }
     return new HttpStatusCodeException(statusLine.getStatusCode(), statusLine.getReasonPhrase());

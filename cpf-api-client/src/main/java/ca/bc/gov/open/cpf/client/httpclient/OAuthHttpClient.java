@@ -262,14 +262,12 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   protected IOException newException(final HttpEntity entity, final StatusLine statusLine) {
-    if (Logs.logger(OAuthHttpClient.class).isDebugEnabled()) {
+    if (Logs.isDebugEnabled(this)) {
       try {
         final String errorBody = EntityUtils.toString(entity);
-        Logs.logger(OAuthHttpClient.class)
-          .debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
+        Logs.debug(this, "Unable to get message from server: " + statusLine + "\n" + errorBody);
       } catch (final Throwable e) {
-        Logs.logger(OAuthHttpClient.class)
-          .error("Unable to get error message server: " + statusLine + "\n");
+        Logs.error(this, "Unable to get error message server: " + statusLine + "\n");
       }
     }
     return new IOException("Unable to get message from server: " + statusLine);
