@@ -92,6 +92,7 @@ public abstract class PreProcessGroup {
   }
 
   public void commit() {
+    this.writer.close();
     final Identifier batchJobId = getBatchJobId();
     this.jobController.setGroupInput(batchJobId, this.groupSequenceNumber, Csv.MIME_TYPE,
       this.groupFile);

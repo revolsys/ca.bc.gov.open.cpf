@@ -729,8 +729,8 @@ public class BatchJobService implements ModuleEventListener {
    * @return BufferedReader or null if unable to connect to data
    */
   private InputStream getJobInputDataStream(final Identifier batchJobId, final Record batchJob) {
-    final String inputDataUrlString = batchJob.getValue(BatchJob.STRUCTURED_INPUT_DATA_URL);
-    if (inputDataUrlString != null && !inputDataUrlString.equals("")) {
+    final String inputDataUrlString = batchJob.getString(BatchJob.STRUCTURED_INPUT_DATA_URL);
+    if (Property.hasValue(inputDataUrlString)) {
       try {
         final URL inputDataUrl = new URL(inputDataUrlString);
         return inputDataUrl.openStream();

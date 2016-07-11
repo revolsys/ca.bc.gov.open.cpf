@@ -39,8 +39,10 @@ public class DatabasePreProcessGroup extends PreProcessGroup {
   @Override
   public void cancel() {
     super.cancel();
-    this.transaction.setRollbackOnly();
-    this.transaction.close();
+    if (this.transaction != null) {
+      this.transaction.setRollbackOnly();
+      this.transaction.close();
+    }
   }
 
   @Override
@@ -48,9 +50,13 @@ public class DatabasePreProcessGroup extends PreProcessGroup {
     try {
       super.commit();
     } catch (final Throwable e) {
-      this.transaction.setRollbackOnly(e);
+      if (this.transaction != null) {
+        this.transaction.setRollbackOnly(e);
+      }
     } finally {
-      this.transaction.close();
+      if (this.transaction != null) {
+        this.transaction.close();
+      }
     }
 
   }

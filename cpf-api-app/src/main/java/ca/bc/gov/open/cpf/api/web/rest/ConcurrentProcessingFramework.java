@@ -750,8 +750,12 @@ public class ConcurrentProcessingFramework {
           }
           this.batchJobService.scheduleJob(batchJob);
         } else {
+          this.dataAccessObject.write(batchJob.getRecord());
           createStructuredJob(Identifier.newIdentifier(batchJobId), batchJob, inputDataFiles,
             inputDataUrls, inputDataContentType);
+          final long time = System.currentTimeMillis();
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
+          batchJob.update();
         }
       } catch (final IOException e) {
         try {
@@ -763,7 +767,6 @@ public class ConcurrentProcessingFramework {
         }
         throw new HttpMessageNotReadableException(e.getMessage(), e);
       } catch (final Throwable e) {
-        this.dataAccessObject.delete(batchJob);
         if (BatchJobService.isDatabaseResourcesException(e)) {
           throw new HttpMessageNotReadableException(
             "The system is at capacity and cannot accept more jobs at this time. Try again in 1 hour.");
@@ -1390,7 +1393,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.

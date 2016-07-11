@@ -347,9 +347,13 @@ public class BatchJob extends DelegatingRecord implements Common {
     setValue(COMPLETED_GROUP_RANGE, this.completedGroups.toString());
     setValue(FAILED_REQUEST_RANGE, this.failedRequests.toString());
     setValue(COMPLETED_REQUEST_RANGE, this.completedRequests.toString());
-    if (getState() == RecordState.MODIFIED) {
+    final RecordState state = getState();
+    if (state == RecordState.MODIFIED) {
       final RecordStore recordStore = getRecordStore();
       recordStore.updateRecord(this);
+    } else if (state == RecordState.NEW) {
+      final RecordStore recordStore = getRecordStore();
+      recordStore.insertRecord(this);
     }
   }
 }

@@ -232,8 +232,7 @@ public class ClassLoaderModule implements Module {
     final List<Map<String, Object>> permissions = Maps.get(pluginGroup, "permissions");
     final List<ResourcePermission> resourcePermissions = ResourcePermission
       .getPermissions(permissions);
-    resourcePermissionsByGroupName.put(groupName,
-      new HashSet<>(resourcePermissions));
+    resourcePermissionsByGroupName.put(groupName, new HashSet<>(resourcePermissions));
   }
 
   private void checkStandardMethod(final Method method, final Class<?>[] standardMethodParameters) {
@@ -585,9 +584,11 @@ public class ClassLoaderModule implements Module {
               if (factory.isCustomFieldsSupported()) {
                 for (final String contentType : factory.getMediaTypes()) {
                   final String fileExtension = factory.getFileExtension(contentType);
-                  final String typeDescription = factory.getName() + " (" + fileExtension + ")";
-                  businessApplication.addInputDataContentType(contentType, typeDescription,
-                    fileExtension);
+                  if (fileExtension != null) {
+                    final String typeDescription = factory.getName() + " (" + fileExtension + ")";
+                    businessApplication.addInputDataContentType(contentType, typeDescription,
+                      fileExtension);
+                  }
                 }
               }
             }
@@ -599,9 +600,11 @@ public class ClassLoaderModule implements Module {
             if (factory != null && factory.isSingleFile()) {
               if (factory.isCustomFieldsSupported()) {
                 final String fileExtension = factory.getFileExtension(contentType);
-                final String typeDescription = factory.getName() + " (" + fileExtension + ")";
-                businessApplication.addInputDataContentType(contentType, typeDescription,
-                  fileExtension);
+                if (fileExtension != null) {
+                  final String typeDescription = factory.getName() + " (" + fileExtension + ")";
+                  businessApplication.addInputDataContentType(contentType, typeDescription,
+                    fileExtension);
+                }
               }
             }
           }
