@@ -600,7 +600,7 @@ public class ConcurrentProcessingFramework {
       addTestParameters(businessApplication, businessApplicationParameters);
 
       final BatchJob batchJob = this.dataAccessObject.newBatchJob();
-      final Long batchJobId = batchJob.getValue(BatchJob.BATCH_JOB_ID);
+      final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
 
       final AppLog log = businessApplication.getLog();
       log.info("Start\tJob submit multiple\tbatchJobId=" + batchJobId);
@@ -785,7 +785,7 @@ public class ConcurrentProcessingFramework {
       if (MediaTypeUtil.isHtmlPage()) {
         this.batchJobUiBuilder.redirectPage("clientView");
       } else {
-        return getJobsInfo(batchJobId);
+        return getJobsInfo(batchJobId.getLong(0));
       }
     }
     return null;
@@ -1390,7 +1390,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
