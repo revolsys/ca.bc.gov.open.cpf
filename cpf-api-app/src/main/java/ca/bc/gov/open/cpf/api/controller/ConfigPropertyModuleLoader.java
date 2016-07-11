@@ -61,13 +61,13 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   private CpfDataAccessObject dataAccessObject;
 
-  private final Set<String> excludeMavenIds = new LinkedHashSet<String>();
+  private final Set<String> excludeMavenIds = new LinkedHashSet<>();
 
   private BatchJobService batchJobService;
 
   private MavenRepository mavenRepository;
 
-  private final Map<String, ConfigPropertyModule> modulesByName = new LinkedHashMap<String, ConfigPropertyModule>();
+  private final Map<String, ConfigPropertyModule> modulesByName = new LinkedHashMap<>();
 
   private StatisticsService statisticsService;
 
@@ -131,7 +131,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   public Map<String, List<String>> getDeletePropertiesByEnvironment(
     final ConfigPropertyModule module, final List<MapEx> pluginProperties) {
-    final Map<String, List<String>> deletePropertiesByEnvironment = new HashMap<String, List<String>>();
+    final Map<String, List<String>> deletePropertiesByEnvironment = new HashMap<>();
     for (final Map<String, Object> property : pluginProperties) {
       final String action = (String)property.get(ACTION);
       if (DELETE.equals(action)) {
@@ -141,7 +141,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         }
         List<String> propertyNames = deletePropertiesByEnvironment.get(environmentName);
         if (propertyNames == null) {
-          propertyNames = new ArrayList<String>();
+          propertyNames = new ArrayList<>();
           deletePropertiesByEnvironment.put(environmentName, propertyNames);
         }
         final String propertyName = (String)property.get("name");
@@ -157,7 +157,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   public Map<String, Map<String, Record>> getPropertiesByEnvironment(
     final ConfigPropertyModule module, final List<MapEx> pluginProperties) {
-    final Map<String, Map<String, Record>> propertiesByEnvironment = new HashMap<String, Map<String, Record>>();
+    final Map<String, Map<String, Record>> propertiesByEnvironment = new HashMap<>();
     for (final Map<String, Object> property : pluginProperties) {
       final String action = (String)property.get(ACTION);
       if (!DELETE.equals(action)) {
@@ -165,7 +165,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
         final String environmentName = configProperty.getValue(ConfigProperty.ENVIRONMENT_NAME);
         Map<String, Record> propertiesByName = propertiesByEnvironment.get(environmentName);
         if (propertiesByName == null) {
-          propertiesByName = new HashMap<String, Record>();
+          propertiesByName = new HashMap<>();
           propertiesByEnvironment.put(environmentName, propertiesByName);
         }
         final String propertyName = configProperty.getValue(ConfigProperty.PROPERTY_NAME);
@@ -284,12 +284,10 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       try (
         Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
         try {
-          final Map<String, Module> modulesToDelete = new HashMap<String, Module>(
-            this.modulesByName);
-          final Map<String, Module> modulesToUnload = new HashMap<String, Module>(
-            this.modulesByName);
+          final Map<String, Module> modulesToDelete = new HashMap<>(this.modulesByName);
+          final Map<String, Module> modulesToUnload = new HashMap<>(this.modulesByName);
 
-          final Map<String, String> modulesToRefresh = new HashMap<String, String>();
+          final Map<String, String> modulesToRefresh = new HashMap<>();
 
           for (final Record property : this.dataAccessObject.getConfigPropertiesForAllModules(
             ConfigProperty.DEFAULT, ConfigProperty.MODULE_CONFIG, MAVEN_MODULE_ID)) {
@@ -338,7 +336,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
       final Set<String> groupNamesToDelete = module.getGroupNamesToDelete();
 
       if (!module.isHasError()) {
-        final Set<String> existingGroupNames = new HashSet<String>();
+        final Set<String> existingGroupNames = new HashSet<>();
         // Exclude or delete user groups that already exist in the database
         for (final Record userGroup : this.dataAccessObject.getUserGroupsForModule(moduleName)) {
           final String groupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
@@ -363,7 +361,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
             if (group == null) {
               module.getLog().error("Group not found " + groupName);
             } else {
-              final Set<ResourcePermission> newPermissions = new HashSet<ResourcePermission>(
+              final Set<ResourcePermission> newPermissions = new HashSet<>(
                 groupPermissions.getValue());
               if (newPermissions != null && !newPermissions.isEmpty()) {
                 for (final Record userGroupPermission : this.dataAccessObject

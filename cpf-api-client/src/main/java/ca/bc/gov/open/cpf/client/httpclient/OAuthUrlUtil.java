@@ -96,7 +96,7 @@ public class OAuthUrlUtil {
   public static Collection<Entry<String, String>> getParameters(final String uri)
     throws URISyntaxException {
     final List<NameValuePair> parameters = URLEncodedUtils.parse(new URI(uri), null);
-    final List<Entry<String, String>> parameterEntries = new ArrayList<Entry<String, String>>();
+    final List<Entry<String, String>> parameterEntries = new ArrayList<>();
     for (final NameValuePair parameter : parameters) {
       final String name = parameter.getName();
       final String value = parameter.getValue();

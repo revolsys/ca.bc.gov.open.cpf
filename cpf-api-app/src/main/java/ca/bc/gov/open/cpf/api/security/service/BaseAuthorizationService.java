@@ -52,7 +52,7 @@ public class BaseAuthorizationService implements AuthorizationService {
     if (userAccount == null || !Records.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
       return false;
     } else {
-      final List<String> groupNames = new ArrayList<String>();
+      final List<String> groupNames = new ArrayList<>();
       for (final String groupName : this.userAccountSecurityService.getGroupNames(userAccount)) {
         groupNames.add(groupName);
       }

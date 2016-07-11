@@ -67,13 +67,13 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
     synchronized (this.resourceActions) {
       Map<String, Map<String, Boolean>> actionsForClass = this.resourceActions.get(resourceClass);
       if (actionsForClass == null) {
-        actionsForClass = new HashMap<String, Map<String, Boolean>>();
+        actionsForClass = new HashMap<>();
         this.resourceActions.put(resourceClass, actionsForClass);
       }
 
       Map<String, Boolean> actionsForResource = actionsForClass.get(resourceId);
       if (actionsForResource == null) {
-        actionsForResource = new HashMap<String, Boolean>();
+        actionsForResource = new HashMap<>();
         actionsForClass.put(resourceId, actionsForResource);
       }
       Boolean actionPermission = actionsForResource.get(actionName);
@@ -204,13 +204,13 @@ public abstract class AbstractCachingSecurityService implements SecurityService 
 
       Map<String, Map<String, Boolean>> actionsForClass = this.resourceActions.get(resourceClass);
       if (actionsForClass == null) {
-        actionsForClass = new HashMap<String, Map<String, Boolean>>();
+        actionsForClass = new HashMap<>();
         this.resourceActions.put(resourceClass, actionsForClass);
       }
 
       Map<String, Boolean> actionsForResource = actionsForClass.get(resourceId);
       if (actionsForResource == null) {
-        actionsForResource = new HashMap<String, Boolean>();
+        actionsForResource = new HashMap<>();
         actionsForClass.put(resourceId, actionsForResource);
       }
       actionsForResource.put(actionName, accessPermission);

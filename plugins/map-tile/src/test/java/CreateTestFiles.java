@@ -34,20 +34,7 @@ public class CreateTestFiles {
     new CreateTestFiles().run();
   }
 
-  private final Map<String, MapWriter> writers = new HashMap<String, MapWriter>();
-
-  private void createBcgs1000(final String parentTileName, final double parentLon,
-    final double parentLat) {
-    for (int number = 1; number <= 4; number++) {
-      final double lon = parentLon - GridUtil.getNumberCol4(number) * BcgsConstants.WIDTH_1000;
-      final double lat = parentLat + GridUtil.getNumberRow4(number) * BcgsConstants.HEIGHT_1000;
-
-      final String tileName = parentTileName + "." + number;
-      write("BCGS 1:1000", "csv", "text/csv", tileName, lon, lat);
-      createBcgs500(tileName, lon, lat);
-    }
-
-  }
+  private final Map<String, MapWriter> writers = new HashMap<>();
 
   private void createBcgs10000(final String parentTileName, final double parentLon,
     final double parentLat) {
@@ -63,18 +50,6 @@ public class CreateTestFiles {
 
   }
 
-  private void createBcgs1250(final String parentTileName, final double parentLon,
-    final double parentLat) {
-    for (int number = 1; number <= 4; number++) {
-      final double lon = parentLon - GridUtil.getNumberCol4(number) * BcgsConstants.HEIGHT_1250;
-      final double lat = parentLat + GridUtil.getNumberRow4(number) * BcgsConstants.WIDTH_1250;
-
-      final String tileName = parentTileName + "." + number;
-      write("BCGS 1:1250", "csv", "text/csv", tileName, lon, lat);
-    }
-
-  }
-
   private void createBcgs20000(final String parentTileName, final double parentLon,
     final double parentLat) {
     for (int number = 1; number <= 100; number++) {
@@ -86,19 +61,6 @@ public class CreateTestFiles {
       write("BCGS 1:20 000", "csv", "text/csv", tileName, lon, lat);
       createBcgs10000(tileName, lon, lat);
       // createBcgs2000(tileName, lon, lat);
-    }
-
-  }
-
-  private void createBcgs500(final String parentTileName, final double parentLon,
-    final double parentLat) {
-    for (int number = 1; number <= 4; number++) {
-      final double lon = parentLon - GridUtil.getNumberCol4(number) * BcgsConstants.WIDTH_500;
-      final double lat = parentLat + GridUtil.getNumberRow4(number) * BcgsConstants.HEIGHT_500;
-
-      final String tileName = parentTileName + "." + number;
-
-      write("BCGS 1:500", "csv", "text/csv", tileName, lon, lat);
     }
 
   }
@@ -256,14 +218,14 @@ public class CreateTestFiles {
 
   private void write(final String gridName, final String type, final String mimeType,
     final String tileName, final double lon, final double lat) {
-    final Map<String, String> locationValues = new LinkedHashMap<String, String>();
+    final Map<String, String> locationValues = new LinkedHashMap<>();
     locationValues.put("mapGridName", gridName);
     locationValues.put("numBoundaryPoints", "20");
     locationValues.put("latitude", String.valueOf(lat));
     locationValues.put("longitude", String.valueOf(lon));
     write(gridName, type, mimeType, "by-location", locationValues);
 
-    final Map<String, String> nameValues = new LinkedHashMap<String, String>();
+    final Map<String, String> nameValues = new LinkedHashMap<>();
     nameValues.put("mapGridName", gridName);
     nameValues.put("numBoundaryPoints", "20");
     nameValues.put("mapTileId", tileName);

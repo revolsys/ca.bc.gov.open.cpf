@@ -690,7 +690,7 @@ public class BusinessApplicationStatistics {
   }
 
   public Map<String, Long> toMap() {
-    final Map<String, Long> statistics = new TreeMap<String, Long>();
+    final Map<String, Long> statistics = new TreeMap<>();
     for (final String name : STATISTIC_NAMES) {
       final Long value = Property.getSimple(this, name);
       if (value > 0) {

@@ -66,7 +66,7 @@ public class OAuthMessage {
    * start with "OAuth ", return an empty list.
    */
   public static List<OAuth.Parameter> decodeAuthorization(final String authorization) {
-    final List<OAuth.Parameter> into = new ArrayList<OAuth.Parameter>();
+    final List<OAuth.Parameter> into = new ArrayList<>();
     if (authorization != null) {
       Matcher m = AUTHORIZATION.matcher(authorization);
       if (m.matches()) {
@@ -114,7 +114,7 @@ public class OAuthMessage {
 
   private final InputStream bodyAsStream;
 
-  private final List<Entry<String, String>> headers = new ArrayList<Entry<String, String>>();
+  private final List<Entry<String, String>> headers = new ArrayList<>();
 
   public String method;
 
@@ -137,9 +137,9 @@ public class OAuthMessage {
     this.URL = URL;
     this.bodyAsStream = bodyAsStream;
     if (parameters == null) {
-      this.parameters = new ArrayList<Entry<String, String>>();
+      this.parameters = new ArrayList<>();
     } else {
-      this.parameters = new ArrayList<Entry<String, String>>(parameters.size());
+      this.parameters = new ArrayList<>(parameters.size());
       for (final Entry<String, String> p : parameters) {
         this.parameters.add(new OAuth.Parameter(toString(p.getKey()), toString(p.getValue())));
       }
@@ -362,7 +362,7 @@ public class OAuthMessage {
    */
   public void requireParameters(final String... names) throws OAuthProblemException, IOException {
     final Set<String> present = getParameterMap().keySet();
-    final List<String> absent = new ArrayList<String>();
+    final List<String> absent = new ArrayList<>();
     for (final String required : names) {
       if (!present.contains(required)) {
         absent.add(required);

@@ -47,9 +47,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.revolsys.io.FileUtil;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadInterruptedException;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.io.format.json.Json;
@@ -209,7 +209,7 @@ public class DigestHttpClient {
 
   protected HttpStatusCodeException newException(final HttpEntity entity,
     final StatusLine statusLine) {
-    final Logger log = LoggerFactory.getLogger(getClass());
+    final Logger log = Logs.logger(this);
     if (log.isDebugEnabled()) {
       try {
         final String errorBody = EntityUtils.toString(entity);

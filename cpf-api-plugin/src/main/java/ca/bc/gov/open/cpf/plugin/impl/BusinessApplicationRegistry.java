@@ -30,7 +30,6 @@ import java.util.TreeMap;
 
 import javax.annotation.PreDestroy;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
@@ -72,21 +71,21 @@ public final class BusinessApplicationRegistry
     new JtsGeometryDataType("JtsMultiPolygon", MultiPolygon.class);
   }
 
-  private final Map<String, Module> modulesByName = new TreeMap<String, Module>();
+  private final Map<String, Module> modulesByName = new TreeMap<>();
 
   private Map<String, String> moduleNamesByBusinessApplicationName;
 
-  private List<ModuleLoader> moduleLoaders = new ArrayList<ModuleLoader>();
+  private List<ModuleLoader> moduleLoaders = new ArrayList<>();
 
   private ConfigPropertyLoader configPropertyLoader;
 
-  private final Set<ModuleEventListener> listeners = new LinkedHashSet<ModuleEventListener>();
+  private final Set<ModuleEventListener> listeners = new LinkedHashSet<>();
 
   private File logDirectory;
 
   private File appLogDirectory;
 
-  private Channel<Map<String, Object>> moduleControlChannel = new Channel<Map<String, Object>>(
+  private Channel<Map<String, Object>> moduleControlChannel = new Channel<>(
     "moduleControlChannel", new Buffer<Map<String, Object>>(10000));
 
   private Thread moduleControlThread;
@@ -159,7 +158,7 @@ public final class BusinessApplicationRegistry
         try {
           module.stop();
         } catch (final Throwable e) {
-          Logs.error(getClass(), "Unable to stop " + module.getName(), e);
+          Logs.error(this, "Unable to stop " + module.getName(), e);
         }
       }
 
@@ -211,7 +210,7 @@ public final class BusinessApplicationRegistry
   }
 
   public synchronized List<String> getBusinessApplicationNames() {
-    final List<String> names = new ArrayList<String>();
+    final List<String> names = new ArrayList<>();
     for (final Module module : this.modulesByName.values()) {
       if (module.isEnabled()) {
         final List<String> businessApplicationNames = module.getBusinessApplicationNames();
@@ -258,7 +257,7 @@ public final class BusinessApplicationRegistry
   }
 
   public List<BusinessApplication> getBusinessApplications() {
-    final List<BusinessApplication> businessApplications = new ArrayList<BusinessApplication>();
+    final List<BusinessApplication> businessApplications = new ArrayList<>();
     final List<String> businessApplicationNames = getBusinessApplicationNames();
     for (final String businessApplicationName : businessApplicationNames) {
       final BusinessApplication businessApplication = getBusinessApplication(
@@ -303,8 +302,8 @@ public final class BusinessApplicationRegistry
   private synchronized Module getModuleForBusinessApplication(
     final String businessApplicationName) {
     if (this.moduleNamesByBusinessApplicationName == null) {
-      this.moduleNamesByBusinessApplicationName = new HashMap<String, String>();
-      final Map<BusinessApplication, Module> businessApplicationModuleMap = new TreeMap<BusinessApplication, Module>();
+      this.moduleNamesByBusinessApplicationName = new HashMap<>();
+      final Map<BusinessApplication, Module> businessApplicationModuleMap = new TreeMap<>();
       for (final Module module : this.modulesByName.values()) {
         for (final BusinessApplication application : module.getBusinessApplications()) {
           businessApplicationModuleMap.put(application, module);
@@ -335,12 +334,12 @@ public final class BusinessApplicationRegistry
   }
 
   public List<String> getModuleNames() {
-    return new ArrayList<String>(this.modulesByName.keySet());
+    return new ArrayList<>(this.modulesByName.keySet());
   }
 
   public synchronized List<Module> getModules() {
     final Collection<Module> modules = this.modulesByName.values();
-    return new ArrayList<Module>(modules);
+    return new ArrayList<>(modules);
   }
 
   public boolean hasBusinessApplication(final String moduleName,
@@ -362,8 +361,7 @@ public final class BusinessApplicationRegistry
       try {
         listener.moduleChanged(event);
       } catch (final Throwable t) {
-        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error("Error invoking listener",
-          t);
+        Logs.error(BusinessApplicationRegistry.class, "Error invoking listener", t);
       }
     }
   }
@@ -376,8 +374,7 @@ public final class BusinessApplicationRegistry
       try {
         listener.moduleChanged(event);
       } catch (final Throwable t) {
-        LoggerFactory.getLogger(BusinessApplicationRegistry.class).error("Error invoking listener",
-          t);
+        Logs.error(BusinessApplicationRegistry.class, "Error invoking listener", t);
       }
     }
   }
@@ -457,8 +454,7 @@ public final class BusinessApplicationRegistry
   }
 
   public synchronized void unloadModule(final Module module) {
-    LoggerFactory.getLogger(BusinessApplicationRegistry.class)
-      .debug("Unloading module " + module.toString());
+    Logs.debug(BusinessApplicationRegistry.class, "Unloading module " + module.toString());
     clearModuleToAppCache();
     final String moduleName = module.getName();
     if (module == this.modulesByName.get(moduleName)) {

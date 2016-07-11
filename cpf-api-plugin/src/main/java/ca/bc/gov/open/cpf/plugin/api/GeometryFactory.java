@@ -49,7 +49,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   private static final long serialVersionUID = 1L;
 
   /** The cached geometry factories. */
-  private static Map<String, GeometryFactory> factories = new HashMap<String, GeometryFactory>();
+  private static Map<String, GeometryFactory> factories = new HashMap<>();
 
   /**
    * <p>Get a GeometryFactory with no coordinate system, 3D axis (x, y &amp; z) and a floating precision model.</p>
@@ -420,7 +420,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   private LineString[] getLineStringArray(final Collection<?> lines) {
-    final List<LineString> lineStrings = new ArrayList<LineString>();
+    final List<LineString> lineStrings = new ArrayList<>();
     for (final Object value : lines) {
       LineString lineString;
       if (value instanceof LineString) {
@@ -469,7 +469,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   private Point[] getPointArray(final Collection<?> pointsList) {
-    final List<Point> points = new ArrayList<Point>();
+    final List<Point> points = new ArrayList<>();
     for (final Object object : pointsList) {
       final Point point = createPoint(object);
       if (point != null && !point.isEmpty()) {
@@ -480,7 +480,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
   }
 
   public Polygon[] getPolygonArray(final Collection<?> polygonList) {
-    final List<Polygon> polygons = new ArrayList<Polygon>();
+    final List<Polygon> polygons = new ArrayList<>();
     for (final Object value : polygonList) {
       Polygon polygon;
       if (value instanceof Polygon) {
@@ -568,7 +568,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
     char c = text.charAt(0);
     if (c == '(') {
       text.delete(0, 1);
-      final List<Double> coordinates = new ArrayList<Double>();
+      final List<Double> coordinates = new ArrayList<>();
       int axisNum = 0;
       boolean finished = false;
       while (!finished) {
@@ -745,7 +745,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
     }
     final List<CoordinateSequence> lines;
     if (isEmpty(text)) {
-      lines = new ArrayList<CoordinateSequence>();
+      lines = new ArrayList<>();
     } else {
       lines = parseParts(geometryFactory, text, axisCount);
     }
@@ -766,7 +766,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
 
     final List<CoordinateSequence> pointsList;
     if (isEmpty(text)) {
-      pointsList = new ArrayList<CoordinateSequence>();
+      pointsList = new ArrayList<>();
     } else {
       pointsList = parseParts(geometryFactory, text, axisCount);
     }
@@ -787,7 +787,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
 
     final List<List<CoordinateSequence>> polygons;
     if (isEmpty(text)) {
-      polygons = new ArrayList<List<CoordinateSequence>>();
+      polygons = new ArrayList<>();
     } else {
       polygons = parsePartsList(geometryFactory, text, axisCount);
     }
@@ -796,7 +796,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
 
   private List<CoordinateSequence> parseParts(final GeometryFactory geometryFactory,
     final StringBuilder text, final int axisCount) {
-    final List<CoordinateSequence> parts = new ArrayList<CoordinateSequence>();
+    final List<CoordinateSequence> parts = new ArrayList<>();
     final char firstChar = text.charAt(0);
     switch (firstChar) {
       case '(':
@@ -823,7 +823,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
 
   private List<List<CoordinateSequence>> parsePartsList(final GeometryFactory geometryFactory,
     final StringBuilder text, final int axisCount) {
-    final List<List<CoordinateSequence>> partsList = new ArrayList<List<CoordinateSequence>>();
+    final List<List<CoordinateSequence>> partsList = new ArrayList<>();
     final char firstChar = text.charAt(0);
     switch (firstChar) {
       case '(':
@@ -886,7 +886,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
 
     final List<CoordinateSequence> parts;
     if (isEmpty(text)) {
-      parts = new ArrayList<CoordinateSequence>();
+      parts = new ArrayList<>();
     } else {
       parts = parseParts(geometryFactory, text, axisCount);
     }

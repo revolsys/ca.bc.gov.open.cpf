@@ -17,9 +17,9 @@ package ca.bc.gov.open.cpf.plugins.test;
 
 import java.util.Map;
 
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
+
+import com.revolsys.logging.Logs;
 
 public class MtwsThreadTestRunnable implements Runnable {
   private final MtwsThreadTest test;
@@ -47,8 +47,7 @@ public class MtwsThreadTestRunnable implements Runnable {
         } else {
           results = executor.execute(businessApplicationName, inputData);
         }
-        LoggerFactory.getLogger(getClass())
-          .info("Request " + requestSequenceNumber + "\n" + results);
+        Logs.info(this, "Request " + requestSequenceNumber + "\n" + results);
       }
     } finally {
       this.test.threadStopped();

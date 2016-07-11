@@ -102,7 +102,7 @@ public class ClassLoaderModule implements Module {
   private static final Class<? extends Annotation>[] STANDARD_METHOD_EXCLUDE_ANNOTATIONS = ArrayUtil
     .newArray(JobParameter.class, RequestParameter.class, Required.class);
 
-  private static final Map<String, Class<?>[]> STANDARD_METHODS = new HashMap<String, Class<?>[]>();
+  private static final Map<String, Class<?>[]> STANDARD_METHODS = new HashMap<>();
 
   private GenericApplicationContext applicationContext;
 
@@ -139,7 +139,7 @@ public class ClassLoaderModule implements Module {
 
   private final String name;
 
-  private Map<String, Set<ResourcePermission>> permissionsByGroupName = new HashMap<String, Set<ResourcePermission>>();
+  private Map<String, Set<ResourcePermission>> permissionsByGroupName = new HashMap<>();
 
   private boolean remoteable;
 
@@ -233,7 +233,7 @@ public class ClassLoaderModule implements Module {
     final List<ResourcePermission> resourcePermissions = ResourcePermission
       .getPermissions(permissions);
     resourcePermissionsByGroupName.put(groupName,
-      new HashSet<ResourcePermission>(resourcePermissions));
+      new HashSet<>(resourcePermissions));
   }
 
   private void checkStandardMethod(final Method method, final Class<?>[] standardMethodParameters) {
@@ -419,7 +419,7 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public List<BusinessApplication> getBusinessApplications() {
-    final List<BusinessApplication> businessApplications = new ArrayList<BusinessApplication>();
+    final List<BusinessApplication> businessApplications = new ArrayList<>();
     for (final String businessApplicationName : getBusinessApplicationNames()) {
       final BusinessApplication businessApplication = getBusinessApplication(
         businessApplicationName);
@@ -797,7 +797,7 @@ public class ClassLoaderModule implements Module {
         @SuppressWarnings("resource")
         final URLClassLoader urlClassLoader = (URLClassLoader)classLoader;
         final URL[] urls = urlClassLoader.getURLs();
-        final List<URL> jarUrls = new ArrayList<URL>();
+        final List<URL> jarUrls = new ArrayList<>();
         for (final URL url : urls) {
           jarUrls.add(url);
         }
@@ -937,9 +937,9 @@ public class ClassLoaderModule implements Module {
 
   private void initializeGroupPermissions() {
     try {
-      final Map<String, Set<ResourcePermission>> permissionsByGroupName = new HashMap<String, Set<ResourcePermission>>();
-      final Set<String> groupNamesToDelete = new HashSet<String>();
-      final Map<String, Map<String, Object>> groupsByName = new HashMap<String, Map<String, Object>>();
+      final Map<String, Set<ResourcePermission>> permissionsByGroupName = new HashMap<>();
+      final Set<String> groupNamesToDelete = new HashSet<>();
+      final Map<String, Map<String, Object>> groupsByName = new HashMap<>();
       for (final MapEx pluginGroup : getUserGroupMaps()) {
         String groupName = pluginGroup.getString("name");
         if (groupName == null) {
@@ -1081,10 +1081,10 @@ public class ClassLoaderModule implements Module {
   @SuppressWarnings("unchecked")
   private void loadBusinessApplications() {
     final Date date = new Date(System.currentTimeMillis());
-    final Set<String> businessApplicationNames = new TreeSet<String>();
-    final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<BusinessApplication, String>();
+    final Set<String> businessApplicationNames = new TreeSet<>();
+    final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<>();
     clearModuleError();
-    final Map<String, BusinessApplication> businessApplicationsByName = new HashMap<String, BusinessApplication>();
+    final Map<String, BusinessApplication> businessApplicationsByName = new HashMap<>();
     this.log.debug("Loading spring config file " + this.configUrl);
     final GenericApplicationContext applicationContext = new GenericApplicationContext();
     try {
@@ -1159,7 +1159,7 @@ public class ClassLoaderModule implements Module {
     if (isHasError()) {
       stop();
     } else {
-      this.businessApplicationNames = new ArrayList<String>(businessApplicationNames);
+      this.businessApplicationNames = new ArrayList<>(businessApplicationNames);
       if (this.startedDate == null) {
         this.startedDate = date;
       }

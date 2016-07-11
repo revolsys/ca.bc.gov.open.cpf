@@ -71,7 +71,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
     final BusinessApplicationUiBuilder appBuilder = getBuilder(BusinessApplication.class);
-    final Map<String, String> parameterKeys = new HashMap<String, String>();
+    final Map<String, String> parameterKeys = new HashMap<>();
     parameterKeys.put("moduleName", "moduleName");
     parameterKeys.put("businessApplicationName", "name");
     appBuilder.serializeLink(out, businessApplication, "name", "moduleView", parameterKeys);
@@ -270,7 +270,7 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final Module module = businessApplication.getModule();
     final CpfUiBuilder appBuilder = getBuilder(Module.class);
 
-    final Map<String, String> parameterKeys = new HashMap<String, String>();
+    final Map<String, String> parameterKeys = new HashMap<>();
     parameterKeys.put("moduleName", "name");
     appBuilder.serializeLink(out, module, "name", "view", parameterKeys);
   }

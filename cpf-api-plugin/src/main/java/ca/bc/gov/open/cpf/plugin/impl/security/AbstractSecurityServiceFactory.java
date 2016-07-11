@@ -26,7 +26,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 public abstract class AbstractSecurityServiceFactory implements SecurityServiceFactory {
   private final Map<Module, Map<String, AbstractCachingSecurityService>> securityServicesByModuleAndUser = new WeakHashMap<>();
 
-  private final Map<String, Long> securityServiceAges = new HashMap<String, Long>();
+  private final Map<String, Long> securityServiceAges = new HashMap<>();
 
   private final int maxAge = 5 * 60 * 1000;
 
@@ -37,7 +37,7 @@ public abstract class AbstractSecurityServiceFactory implements SecurityServiceF
       Map<String, AbstractCachingSecurityService> securityServicesByUser = this.securityServicesByModuleAndUser
         .get(module);
       if (securityServicesByUser == null) {
-        securityServicesByUser = new HashMap<String, AbstractCachingSecurityService>();
+        securityServicesByUser = new HashMap<>();
         this.securityServicesByModuleAndUser.put(module, securityServicesByUser);
       }
       AbstractCachingSecurityService securityService = securityServicesByUser.get(consumerKey);

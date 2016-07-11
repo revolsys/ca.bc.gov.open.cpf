@@ -53,11 +53,11 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.LoggerFactory;
 
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.logging.Logs;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.json.JsonParser;
 import com.revolsys.spring.resource.InputStreamResource;
@@ -262,13 +262,13 @@ public class OAuthHttpClient extends DefaultHttpClient {
   }
 
   protected IOException newException(final HttpEntity entity, final StatusLine statusLine) {
-    if (LoggerFactory.getLogger(OAuthHttpClient.class).isDebugEnabled()) {
+    if (Logs.logger(OAuthHttpClient.class).isDebugEnabled()) {
       try {
         final String errorBody = EntityUtils.toString(entity);
-        LoggerFactory.getLogger(OAuthHttpClient.class)
+        Logs.logger(OAuthHttpClient.class)
           .debug("Unable to get message from server: " + statusLine + "\n" + errorBody);
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(OAuthHttpClient.class)
+        Logs.logger(OAuthHttpClient.class)
           .error("Unable to get error message server: " + statusLine + "\n");
       }
     }

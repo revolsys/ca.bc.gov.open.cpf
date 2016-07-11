@@ -32,9 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
@@ -42,6 +39,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.SetQueue;
 import com.revolsys.collection.map.Maps;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
@@ -201,7 +199,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor
         this.batchJobService.scheduleGroup(group);
       }
     } catch (final Throwable t) {
-      LoggerFactory.getLogger(BatchJobScheduler.class).error(t.getMessage(), t);
+      Logs.error(BatchJobScheduler.class, t.getMessage(), t);
     }
   }
 
@@ -217,16 +215,15 @@ public class BatchJobScheduler extends ThreadPoolExecutor
   @Override
   public final void run() {
     boolean hasError = false;
-    final Logger log = LoggerFactory.getLogger(getClass());
     try {
-      log.debug("Start");
+      Logs.debug(this, "Start");
       run(this.in);
     } catch (final ClosedException e) {
-      log.debug("Shutdown");
+      Logs.debug(this, "Shutdown");
     } catch (final ThreadDeath e) {
-      log.debug("Shutdown");
+      Logs.debug(this, "Shutdown");
     } catch (final Throwable e) {
-      log.error(e.getMessage(), e);
+      Logs.error(e.getMessage(), e);
       hasError = true;
     } finally {
       if (this.in != null) {
@@ -239,8 +236,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor
   }
 
   protected void run(final Channel<BatchJob> in) {
-    final Logger log = LoggerFactory.getLogger(getClass());
-    log.info("Started");
+    Logs.info(this, "Started");
     init();
     final long timeout = this.timeout;
     final LoadJobIdsToScheduleFromDatabase loadJobIds = new LoadJobIdsToScheduleFromDatabase(
@@ -267,10 +263,10 @@ public class BatchJobScheduler extends ThreadPoolExecutor
         }
         scheduleQueuedJobs();
       } catch (final ClosedException e) {
-        log.info("Stopped");
+        Logs.info(this, "Stopped");
         return;
       } catch (final Throwable t) {
-        LoggerFactory.getLogger(BatchJobScheduler.class).error("Error scheduling jobs", t);
+        Logs.error(this, "Error scheduling jobs", t);
       }
     }
   }

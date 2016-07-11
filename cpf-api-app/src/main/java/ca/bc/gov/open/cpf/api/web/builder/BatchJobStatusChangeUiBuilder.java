@@ -59,7 +59,7 @@ public class BatchJobStatusChangeUiBuilder extends CpfUiBuilder {
     @PathVariable("batchJobId") final Long batchJobId) throws IOException {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
-    BatchJobService batchJobService = getBatchJobService();
+    final BatchJobService batchJobService = getBatchJobService();
     final Record batchJob = batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobIdentifier + " does not exist.");

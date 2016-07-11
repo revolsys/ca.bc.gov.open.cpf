@@ -82,7 +82,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
       // writeOpaqueData(response, contentType, baseName, inputData);
       // } catch (final SQLException e) {
       // final String message = "Unable to get data for " + baseName;
-      // LoggerFactory.getLogger(getClass()).error(message, e);
+      // Logs.error(this,message, e);
       // throw new HttpMessageNotWritableException(message, e);
       // }
       // }

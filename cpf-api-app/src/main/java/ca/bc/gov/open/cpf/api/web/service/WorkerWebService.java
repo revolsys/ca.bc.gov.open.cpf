@@ -30,7 +30,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,6 +55,7 @@ import com.revolsys.collection.map.NamedLinkedHashMapEx;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
+import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.spring.resource.InputStreamResource;
@@ -359,7 +359,7 @@ public class WorkerWebService {
         response = batchJobService.getNextBatchJobRequestExecutionGroup(workerId, maxMessageId,
           moduleNames);
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(WorkerWebService.class).error(e.getMessage(), e);
+        Logs.error(WorkerWebService.class, e.getMessage(), e);
         throw new HttpMessageNotWritableException("Unable to get execution group id", e);
       } finally {
         batchJobService.setWorkerConnectTime(workerId, workerStartTime);

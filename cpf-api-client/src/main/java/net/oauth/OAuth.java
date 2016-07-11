@@ -173,7 +173,7 @@ public class OAuth {
       final Integer badRequest = new Integer(400);
       final Integer unauthorized = new Integer(401);
       final Integer serviceUnavailable = new Integer(503);
-      final Map<String, Integer> map = new HashMap<String, Integer>();
+      final Map<String, Integer> map = new HashMap<>();
 
       map.put(Problems.VERSION_REJECTED, badRequest);
       map.put(Problems.PARAMETER_ABSENT, badRequest);
@@ -269,7 +269,7 @@ public class OAuth {
 
   /** Parse a form-urlencoded document. */
   public static List<Parameter> decodeForm(final String form) {
-    final List<Parameter> list = new ArrayList<Parameter>();
+    final List<Parameter> list = new ArrayList<>();
     if (!isEmpty(form)) {
       for (final String nvp : form.split("\\&")) {
         final int equals = nvp.indexOf('=');
@@ -359,7 +359,7 @@ public class OAuth {
 
   /** Construct a list of Parameters from name, value, name, value... */
   public static List<Parameter> newList(final String... parameters) {
-    final List<Parameter> list = new ArrayList<Parameter>(parameters.length / 2);
+    final List<Parameter> list = new ArrayList<>(parameters.length / 2);
     for (int p = 0; p + 1 < parameters.length; p += 2) {
       list.add(new Parameter(parameters[p], parameters[p + 1]));
     }
@@ -372,7 +372,7 @@ public class OAuth {
    * first value, only.
    */
   public static Map<String, String> newMap(final Iterable<? extends Entry<String, String>> from) {
-    final Map<String, String> map = new HashMap<String, String>();
+    final Map<String, String> map = new HashMap<>();
     if (from != null) {
       for (final Entry<String, String> f : from) {
         final String key = toString(f.getKey());

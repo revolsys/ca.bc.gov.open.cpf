@@ -21,12 +21,11 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
 import com.revolsys.identifier.Identifier;
+import com.revolsys.logging.Logs;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.util.Dates;
@@ -64,15 +63,13 @@ public class RemoveOldBatchJobs {
             this.batchJobService.deleteJob(batchJobId);
             numberJobsDeleted++;
           } catch (final Throwable t) {
-            LoggerFactory.getLogger(getClass()).error("Unable to delete Batch Job " + batchJobId,
-              t);
+            Logs.error(this, "Unable to delete Batch Job " + batchJobId, t);
           }
         }
 
         if (numberJobsDeleted > 0) {
-          LoggerFactory.getLogger(getClass())
-            .info(numberJobsDeleted + " old batch jobs deleted for jobs prior to "
-              + Dates.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
+          Logs.info(this, numberJobsDeleted + " old batch jobs deleted for jobs prior to "
+            + Dates.format("yyyy-MMM-dd HH:mm:ss", cal.getTime()));
         }
       } catch (final Throwable e) {
         throw transaction.setRollbackOnly(e);

@@ -146,9 +146,9 @@ public class BusinessApplication extends BaseObjectWithProperties
    */
   private final Set<String> inputDataContentTypes = new LinkedHashSet<>();
 
-  private Map<String, String> inputDataFileExtensions = new LinkedHashMap<String, String>();
+  private Map<String, String> inputDataFileExtensions = new LinkedHashMap<>();
 
-  private final Map<String, String> inputFileExtensionToContentType = new LinkedHashMap<String, String>();
+  private final Map<String, String> inputFileExtensionToContentType = new LinkedHashMap<>();
 
   private Expression instantModeExpression;
 
@@ -203,11 +203,11 @@ public class BusinessApplication extends BaseObjectWithProperties
    * The resultDataContentTypes is the list of supported MIME content types the
    * BusinessApplication can accept for result data.
    */
-  private final Set<String> resultDataContentTypes = new LinkedHashSet<String>();
+  private final Set<String> resultDataContentTypes = new LinkedHashSet<>();
 
-  private final Map<String, String> resultDataFileExtensions = new LinkedHashMap<String, String>();
+  private final Map<String, String> resultDataFileExtensions = new LinkedHashMap<>();
 
-  private final Map<String, String> resultFileExtensionToContentType = new LinkedHashMap<String, String>();
+  private final Map<String, String> resultFileExtensionToContentType = new LinkedHashMap<>();
 
   private String resultListProperty;
 

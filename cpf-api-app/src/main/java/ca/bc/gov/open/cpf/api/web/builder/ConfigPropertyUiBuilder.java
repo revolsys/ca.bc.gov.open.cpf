@@ -58,8 +58,8 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
     "instantModePermission", "testModeEnabled");
 
   public ConfigPropertyUiBuilder() {
-    super("configProperty", ConfigProperty.CONFIG_PROPERTY, "CONFIG_PROPERTY_ID", "Config WebProperty",
-      "Config Properties");
+    super("configProperty", ConfigProperty.CONFIG_PROPERTY, "CONFIG_PROPERTY_ID",
+      "Config WebProperty", "Config Properties");
   }
 
   private String getAppComponentName(final String businessApplicationName) {

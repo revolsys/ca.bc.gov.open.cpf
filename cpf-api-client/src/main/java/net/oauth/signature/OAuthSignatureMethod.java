@@ -88,7 +88,7 @@ public abstract class OAuthSignatureMethod {
    */
   private static final String BASE64_ENCODING = "ISO-8859-1";
 
-  private static final Map<String, Class<?>> NAME_TO_CLASS = new ConcurrentHashMap<String, Class<?>>();
+  private static final Map<String, Class<?>> NAME_TO_CLASS = new ConcurrentHashMap<>();
 
   static {
     registerMethodClass("HMAC-SHA1", HMAC_SHA1.class);
@@ -174,7 +174,7 @@ public abstract class OAuthSignatureMethod {
       parameters = message.getParameters();
     } else {
       // Combine the URL query string with the other parameters:
-      parameters = new ArrayList<Map.Entry<String, String>>();
+      parameters = new ArrayList<>();
       parameters.addAll(OAuth.decodeForm(message.URL.substring(q + 1)));
       parameters.addAll(message.getParameters());
       url = url.substring(0, q);
@@ -190,8 +190,7 @@ public abstract class OAuthSignatureMethod {
     if (parameters == null) {
       return null;
     }
-    final List<Entry<String, String>> list = new ArrayList<Entry<String, String>>(
-      parameters.size());
+    final List<Entry<String, String>> list = new ArrayList<>(parameters.size());
     for (final ComparableParameter parameter : parameters) {
       list.add(parameter.value);
     }
@@ -235,7 +234,7 @@ public abstract class OAuthSignatureMethod {
     if (parameters == null) {
       return "";
     }
-    final List<ComparableParameter> p = new ArrayList<ComparableParameter>(parameters.size());
+    final List<ComparableParameter> p = new ArrayList<>(parameters.size());
     for (final Entry<String, String> parameter : parameters) {
       if (!"oauth_signature".equals(parameter.getKey())) {
         p.add(new ComparableParameter(parameter));

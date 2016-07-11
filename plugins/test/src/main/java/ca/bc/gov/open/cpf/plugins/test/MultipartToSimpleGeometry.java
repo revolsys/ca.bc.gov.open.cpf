@@ -34,7 +34,7 @@ public class MultipartToSimpleGeometry {
 
   private Geometry geometry;
 
-  private final List<GeometryResult> results = new ArrayList<GeometryResult>();
+  private final List<GeometryResult> results = new ArrayList<>();
 
   private AppLog appLog;
 

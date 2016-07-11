@@ -53,7 +53,6 @@ import org.apache.log4j.rolling.FixedWindowRollingPolicy;
 import org.apache.log4j.rolling.RollingFileAppender;
 import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
 import org.glassfish.tyrus.client.ClientManager;
-import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -74,6 +73,8 @@ import com.revolsys.util.Property;
 @WebListener
 public class WorkerScheduler extends ThreadPoolExecutor
   implements Runnable, ServletContextListener {
+
+  private static final org.slf4j.Logger LOG = Logs.logger(WorkerScheduler.class);
 
   private static Integer getPortNumber() {
     try {
@@ -106,7 +107,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private String environmentName = "default";
 
-  private final Set<String> executingGroupIds = new LinkedHashSet<String>();
+  private final Set<String> executingGroupIds = new LinkedHashSet<>();
 
   private WorkerHttpClient httpClient;
 
@@ -422,7 +423,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   public void logError(final String message) {
-    LoggerFactory.getLogger(getClass()).error(message);
+    Logs.error(this, message);
   }
 
   protected void logError(final String message, final Throwable e) {
@@ -436,7 +437,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
     message.put("type", "executingGroupIds");
     message.put("workerId", this.id);
     synchronized (this.executingGroupIds) {
-      message.put("executingGroupIds", new ArrayList<String>(this.executingGroupIds));
+      message.put("executingGroupIds", new ArrayList<>(this.executingGroupIds));
     }
     this.lastPingTime = System.currentTimeMillis();
     return message;
@@ -469,8 +470,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
         } else {
           if (response != null && !response.isEmpty()) {
             if (response.get("batchJobId") != null) {
-              if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
-                LoggerFactory.getLogger(getClass()).debug("Scheduling group " + response);
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Scheduling group " + response);
               }
               final String groupId = (String)response.get("groupId");
               addExecutingGroupId(groupId);
@@ -481,16 +482,15 @@ public class WorkerScheduler extends ThreadPoolExecutor
                 this.groupIdByFutureTask.put(future, groupId);
               } catch (final Throwable e) {
                 if (isRunning()) {
-                  LoggerFactory.getLogger(getClass())
-                    .error("Unable to get execute group " + groupId, e);
+                  Logs.error(this, "Unable to get execute group " + groupId, e);
                 }
                 removeExecutingGroupId(groupId);
                 addExecutingGroupsMessage();
               }
             }
           } else {
-            if (LoggerFactory.getLogger(getClass()).isDebugEnabled()) {
-              LoggerFactory.getLogger(getClass()).debug("No group available");
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("No group available");
             }
           }
         }
@@ -501,7 +501,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
         } else {
           if (isRunning()) {
-            LoggerFactory.getLogger(getClass()).error("Unable to get group", t);
+            Logs.error(this, "Unable to get group", t);
           }
         }
       } catch (final Throwable t) {
@@ -520,7 +520,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   @Override
   public void run() {
-    LoggerFactory.getLogger(getClass()).info("Started");
+    Logs.info(this, "Started");
     try {
       this.running = true;
       while (isRunning()) {
@@ -534,8 +534,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
           }
           if (isRunning() && this.timeout != 0) {
             synchronized (this.monitor) {
-              LoggerFactory.getLogger(getClass())
-                .debug("Waiting " + this.timeout + " seconds before getting next task");
+              LOG.debug("Waiting " + this.timeout + " seconds before getting next task");
               this.monitor.wait(this.timeout * 1000);
             }
           }
@@ -549,7 +548,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
     } catch (final Throwable e) {
       Logs.error(this, e);
     } finally {
-      LoggerFactory.getLogger(getClass()).info("Stopped");
+      Logs.info(this, "Stopped");
     }
   }
 

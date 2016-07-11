@@ -28,13 +28,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.Reader;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.process.BaseInProcess;
 import com.revolsys.record.Record;
@@ -50,7 +49,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
 
   public static final String SAVE = "SAVE";
 
-  private Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
+  private Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<>();
 
   private RecordStore recordStore;
 
@@ -124,7 +123,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<String, Map<String, BusinessApplicationStatistics>>();
+        final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<>();
 
         collateInMemoryStatistics(statisticsByAppAndId);
 
@@ -137,7 +136,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
         throw transaction.setRollbackOnly(e);
       }
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error("Unable to collate statistics", e);
+      Logs.error(this, "Unable to collate statistics", e);
     }
   }
 
@@ -234,7 +233,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
     Map<String, BusinessApplicationStatistics> statistics = statisticsByAppAndId
       .get(businessApplicationName);
     if (statistics == null) {
-      statistics = new HashMap<String, BusinessApplicationStatistics>();
+      statistics = new HashMap<>();
       statisticsByAppAndId.put(businessApplicationName, statistics);
     }
     return statistics;
@@ -269,7 +268,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
     synchronized (this.statisticsByAppAndId) {
       final Map<String, BusinessApplicationStatistics> statisticsById = getStatistics(
         this.statisticsByAppAndId, businessApplicationName);
-      return new ArrayList<BusinessApplicationStatistics>(statisticsById.values());
+      return new ArrayList<>(statisticsById.values());
     }
   }
 
@@ -308,7 +307,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
         }
       }
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error("Unable to save statistics:" + values, e);
+      Logs.error(this, "Unable to save statistics:" + values, e);
 
     }
   }
@@ -316,7 +315,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
   protected void saveAllStatistics() {
     List<String> businessApplicationNames;
     synchronized (this.statisticsByAppAndId) {
-      businessApplicationNames = new ArrayList<String>(this.statisticsByAppAndId.keySet());
+      businessApplicationNames = new ArrayList<>(this.statisticsByAppAndId.keySet());
     }
     saveStatistics(businessApplicationNames);
   }

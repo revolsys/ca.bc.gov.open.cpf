@@ -40,7 +40,7 @@ public class Worker {
 
   private Timestamp lastConnectTime;
 
-  private final Map<String, WorkerModuleState> moduleStates = new TreeMap<String, WorkerModuleState>();
+  private final Map<String, WorkerModuleState> moduleStates = new TreeMap<>();
 
   private Session session;
 
@@ -106,7 +106,7 @@ public class Worker {
 
   public List<BatchJobRequestExecutionGroup> getExecutingGroups() {
     synchronized (this.executingGroupsById) {
-      return new ArrayList<BatchJobRequestExecutionGroup>(this.executingGroupsById.values());
+      return new ArrayList<>(this.executingGroupsById.values());
     }
   }
 

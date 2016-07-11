@@ -808,7 +808,7 @@ public class CpfClient implements BaseCloseable {
       @SuppressWarnings("unchecked")
       final List<Map<String, Object>> items = (List<Map<String, Object>>)result.get("resources");
       if (items != null && !items.isEmpty()) {
-        final List<String> businessApplicationNames = new ArrayList<String>();
+        final List<String> businessApplicationNames = new ArrayList<>();
         for (final Map<String, Object> item : items) {
           final String businessApplicationName = (String)item.get("businessApplicationName");
           if (Property.hasValue(businessApplicationName)) {
@@ -960,7 +960,7 @@ public class CpfClient implements BaseCloseable {
       final Map<String, Object> jobs = httpClient.getJsonResource(url);
       @SuppressWarnings("unchecked")
       final List<Map<String, Object>> resources = (List<Map<String, Object>>)jobs.get("resources");
-      final List<String> jobIdUrls = new ArrayList<String>();
+      final List<String> jobIdUrls = new ArrayList<>();
       if (resources != null) {
         for (final Map<String, Object> jobResource : resources) {
           final String jobIdUrl = (String)jobResource.get("batchJobUrl");

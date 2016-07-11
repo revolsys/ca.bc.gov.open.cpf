@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -47,6 +46,7 @@ import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.PathName;
+import com.revolsys.logging.Logs;
 import com.revolsys.record.ArrayRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.ListRecordReader;
@@ -84,7 +84,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     recordDefinition.addField("buffer", DataTypes.DOUBLE);
     recordDefinition.addField("geometry", DataTypes.GEOMETRY);
 
-    final List<Record> objects = new ArrayList<Record>();
+    final List<Record> objects = new ArrayList<>();
 
     final Record object1 = new ArrayRecord(recordDefinition);
     object1.setValue("title", "Buffered centroid of BC");
@@ -115,7 +115,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     recordDefinition.addField("buffer", DataTypes.DOUBLE);
     recordDefinition.addField("geometry", DataTypes.GEOMETRY);
 
-    final List<Record> objects = new ArrayList<Record>();
+    final List<Record> objects = new ArrayList<>();
 
     final Record object1 = new ArrayRecord(recordDefinition);
     object1.setValue("sequenceNumber", 1);
@@ -211,8 +211,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
                   configProperty = dataAccessObject.newConfigProperty(ConfigProperty.DEFAULT,
                     moduleName, componentName, propertyName, newValue, valueType);
                 } catch (final Throwable e) {
-                  LoggerFactory.getLogger(getClass())
-                    .error("Unable to set property " + propertyName, e);
+                  Logs.error(this, "Unable to set property " + propertyName, e);
                 }
               }
             } else {

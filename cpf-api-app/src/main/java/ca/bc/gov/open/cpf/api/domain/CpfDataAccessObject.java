@@ -590,7 +590,7 @@ public class CpfDataAccessObject implements Transactionable {
     final Reader<Record> reader = this.recordStore.getRecords(query);
     try {
       final List<Record> groups = reader.toList();
-      return new LinkedHashSet<Record>(groups);
+      return new LinkedHashSet<>(groups);
     } finally {
       reader.close();
     }
@@ -630,7 +630,7 @@ public class CpfDataAccessObject implements Transactionable {
     record.setIdentifier(batchJobId);
     final String prefix = PathAliasController.getAlias();
     if (prefix != null) {
-      final Map<String, String> properties = new HashMap<String, String>();
+      final Map<String, String> properties = new HashMap<>();
       properties.put("webServicePrefix", prefix);
       record.setValue(BatchJob.PROPERTIES, Json.toString(properties));
     }

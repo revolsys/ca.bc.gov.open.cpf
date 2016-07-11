@@ -24,7 +24,6 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.DatabasePreProcessGroup;
-import ca.bc.gov.open.cpf.api.scheduler.DatabasePreProcessGroup;
 import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 

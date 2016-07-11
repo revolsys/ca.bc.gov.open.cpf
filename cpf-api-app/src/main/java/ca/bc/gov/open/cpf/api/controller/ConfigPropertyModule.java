@@ -61,7 +61,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   public ClassLoader getClassLoader() {
     ClassLoader classLoader = super.getClassLoader();
     if (classLoader == null) {
-      final Set<String> excludeIds = new HashSet<String>(this.excludeMavenIds);
+      final Set<String> excludeIds = new HashSet<>(this.excludeMavenIds);
       for (final String excludeId : this.excludeMavenIds) {
         try {
           excludeIds.add(MavenPom.getGroupAndArtifactId(excludeId));

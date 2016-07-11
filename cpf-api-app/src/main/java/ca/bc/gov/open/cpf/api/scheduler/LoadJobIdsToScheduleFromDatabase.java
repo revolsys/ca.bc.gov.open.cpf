@@ -15,8 +15,7 @@
  */
 package ca.bc.gov.open.cpf.api.scheduler;
 
-import org.slf4j.LoggerFactory;
-
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.channel.ClosedException;
 
 public class LoadJobIdsToScheduleFromDatabase implements Runnable {
@@ -39,8 +38,8 @@ public class LoadJobIdsToScheduleFromDatabase implements Runnable {
       this.batchJobService.scheduleFromDatabase();
     } catch (final ClosedException e) {
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(LoadJobIdsToScheduleFromDatabase.class)
-        .error("Unable to schedule from database", e);
+      Logs.error(LoadJobIdsToScheduleFromDatabase.class, "Unable to schedule from database",
+        e);
     } finally {
       this.running = false;
     }

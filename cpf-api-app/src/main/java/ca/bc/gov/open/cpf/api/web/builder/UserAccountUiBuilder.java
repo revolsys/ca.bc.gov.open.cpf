@@ -185,7 +185,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     final CpfDataAccessObject cpfDataAccessObject = getDataAccessObject();
     final List<Record> userAccounts = cpfDataAccessObject.getUserAccountsLikeName(term);
 
-    final ArrayListOfMap<Object> results = new ArrayListOfMap<Object>();
+    final ArrayListOfMap<Object> results = new ArrayListOfMap<>();
     for (final Record userAccount : userAccounts) {
       final String accountClass = userAccount.getValue(USER_ACCOUNT_CLASS);
       final String accountName = userAccount.getValue(USER_NAME);

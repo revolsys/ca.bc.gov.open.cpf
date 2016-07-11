@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
@@ -29,6 +28,7 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
+import com.revolsys.logging.Logs;
 import com.revolsys.spring.config.BeanConfigurrer;
 import com.revolsys.util.Property;
 import com.revolsys.websocket.AsyncResult;
@@ -92,8 +92,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
         });
       }
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error("Unable to get config properties for " + moduleName,
-        e);
+      Logs.error(this, "Unable to get config properties for " + moduleName, e);
     }
     return Collections.emptyMap();
   }
@@ -111,7 +110,7 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
       setAttributes(attributes);
       super.postProcessBeanFactory(beanFactory);
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error("Unable to load config", e.getCause());
+      Logs.error(this, "Unable to load config", e.getCause());
     }
   }
 }

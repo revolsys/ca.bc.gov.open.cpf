@@ -243,7 +243,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public List<String> getBusinessApplicationNames() {
-    final List<String> businessApplicationNames = new ArrayList<String>();
+    final List<String> businessApplicationNames = new ArrayList<>();
     final List<Module> modules = getModules();
     for (final Module module : modules) {
       final List<String> moduleAppNames = module.getBusinessApplicationNames();
@@ -257,7 +257,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public List<BusinessApplication> getBusinessApplications() {
-    final List<BusinessApplication> businessApplications = new ArrayList<BusinessApplication>();
+    final List<BusinessApplication> businessApplications = new ArrayList<>();
     final List<Module> modules = getModules();
     for (final Module module : modules) {
       final List<BusinessApplication> moduleApps = module.getBusinessApplications();
@@ -307,7 +307,7 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
   }
 
   public List<String> getModuleNames() {
-    final List<String> moduleNames = new ArrayList<String>();
+    final List<String> moduleNames = new ArrayList<>();
     final List<Module> modules = getModules();
     for (final Module module : modules) {
       final String moduleName = module.getName();

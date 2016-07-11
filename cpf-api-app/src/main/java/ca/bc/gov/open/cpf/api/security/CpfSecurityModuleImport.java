@@ -33,7 +33,7 @@ import org.springframework.security.config.BeanIds;
 import com.revolsys.spring.ModuleImport;
 
 public class CpfSecurityModuleImport extends ModuleImport {
-  private List<String> paths = new ArrayList<String>();
+  private List<String> paths = new ArrayList<>();
 
   @SuppressWarnings("unchecked")
   @Override
@@ -50,7 +50,7 @@ public class CpfSecurityModuleImport extends ModuleImport {
       final Filter moduleFilterChainProxy = beanFactory.getBean(BeanIds.FILTER_CHAIN_PROXY,
         Filter.class);
       if (moduleFilterChainProxy != null) {
-        final Map<String, List<?>> mergedFilterMap = new ManagedMap<String, List<?>>();
+        final Map<String, List<?>> mergedFilterMap = new ManagedMap<>();
 
         final MutablePropertyValues propertyValues = filterChainProxy.getPropertyValues();
         final PropertyValue filterChainMap = propertyValues.getPropertyValue("filterChainMap");

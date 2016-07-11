@@ -68,7 +68,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
   public void adminUserGroupLink(final XmlWriter out, final Object object) {
     final Record userGroup = (Record)object;
 
-    final Map<String, String> parameterNames = new HashMap<String, String>();
+    final Map<String, String> parameterNames = new HashMap<>();
     parameterNames.put("userGroupName", "userGroupName");
 
     final Map<String, Object> linkObject = new HashMap<>();

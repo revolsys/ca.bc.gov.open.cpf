@@ -41,7 +41,6 @@ import org.glassfish.tyrus.client.auth.AuthConfig.Builder;
 import org.glassfish.tyrus.client.auth.AuthenticationException;
 import org.glassfish.tyrus.client.auth.Authenticator;
 import org.glassfish.tyrus.client.auth.Credentials;
-import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
@@ -114,7 +113,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     this.messageSender = null;
     if (this.tempDir != null) {
       if (!FileUtil.deleteDirectory(this.tempDir)) {
-        LoggerFactory.getLogger(getClass()).error("Unable to delete jar cache " + this.tempDir);
+        Logs.error(this, "Unable to delete jar cache " + this.tempDir);
       }
       this.tempDir = null;
     }
@@ -130,7 +129,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
         try {
           final URI webSocketUri = new URI(webSocketUrl);
           this.session = this.client.connectToServer(this, webSocketUri);
-          LoggerFactory.getLogger(getClass()).info("Connected to server: " + webSocketUri);
+          Logs.info(this, "Connected to server: " + webSocketUri);
           return;
         } catch (final URISyntaxException e) {
           Logs.error(this, "cpfClient.webServiceUrl not valid", e);

@@ -46,13 +46,11 @@ public class ThreadTest {
 
   private BusinessApplicationPluginExecutor executor = new BusinessApplicationPluginExecutor();
 
-  private final Channel<Boolean> startChannel = new Channel<Boolean>(
-    new Buffer<Boolean>(this.numThreads));
+  private final Channel<Boolean> startChannel = new Channel<>(new Buffer<Boolean>(this.numThreads));
 
   private final Object startSync = new Object();
 
-  private final Channel<Boolean> stopChannel = new Channel<Boolean>(
-    new Buffer<Boolean>(this.numThreads));
+  private final Channel<Boolean> stopChannel = new Channel<>(new Buffer<Boolean>(this.numThreads));
 
   private List<MapEx> testData = new ArrayList<>();
 

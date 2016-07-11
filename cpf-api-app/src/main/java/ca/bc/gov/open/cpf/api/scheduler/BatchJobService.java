@@ -62,7 +62,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -302,7 +301,7 @@ public class BatchJobService implements ModuleEventListener {
   /** The email address messages are sent from. */
   private String fromEmail;
 
-  private NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = new NamedChannelBundle<BatchJobRequestExecutionGroup>();
+  private NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = new NamedChannelBundle<>();
 
   /** The class used to send email. */
   private JavaMailSender mailSender;
@@ -321,11 +320,11 @@ public class BatchJobService implements ModuleEventListener {
 
   private Map<String, String> userClassBaseUrls;
 
-  private final Map<String, Integer> connectedWorkerCounts = new HashMap<String, Integer>();
+  private final Map<String, Integer> connectedWorkerCounts = new HashMap<>();
 
   private CpfDataAccessObject dataAccessObject;
 
-  private final Map<String, Worker> workersById = new TreeMap<String, Worker>();
+  private final Map<String, Worker> workersById = new TreeMap<>();
 
   private final Set<Identifier> preprocesedJobIds = new HashSet<>();
 
@@ -360,7 +359,7 @@ public class BatchJobService implements ModuleEventListener {
       }
       try (
         final MapWriter errorMapWriter = new CsvMapWriter(errorWriter)) {
-        final Map<String, String> errorResultMap = new HashMap<String, String>();
+        final Map<String, String> errorResultMap = new HashMap<>();
         errorResultMap.put("Code", validationErrorCode.name());
         errorResultMap.put("Message", newErrorMessage);
         errorMapWriter.write(errorResultMap);
@@ -372,7 +371,7 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
       this.dataAccessObject.setBatchJobFailed(batchJobId);
-      LoggerFactory.getLogger(BatchJobService.class).debug(validationErrorDebugMessage);
+      Logs.debug(BatchJobService.class, validationErrorDebugMessage);
     }
     return false;
   }
@@ -409,7 +408,7 @@ public class BatchJobService implements ModuleEventListener {
     if (groupId != null) {
       final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
       if (group != null) {
-        LoggerFactory.getLogger(BatchJobService.class).info("Reschedule Group\tgroupId" + groupId);
+        Logs.info(BatchJobService.class, "Reschedule Group\tgroupId" + groupId);
         group.resetId();
         rescheduleGroup(group);
       }
@@ -535,7 +534,7 @@ public class BatchJobService implements ModuleEventListener {
 
   private void error(final AppLog log, final String message, final Throwable e) {
     if (log == null) {
-      LoggerFactory.getLogger(getClass()).error(message, e);
+      Logs.error(this, message, e);
     } else {
       log.error(message, e);
     }
@@ -736,8 +735,7 @@ public class BatchJobService implements ModuleEventListener {
         final URL inputDataUrl = new URL(inputDataUrlString);
         return inputDataUrl.openStream();
       } catch (final IOException e) {
-        LoggerFactory.getLogger(BatchJobService.class)
-          .error("Unable to open stream: " + inputDataUrlString, e);
+        Logs.error(BatchJobService.class, "Unable to open stream: " + inputDataUrlString, e);
       }
     } else {
       return getJobController().getJobInputStream(batchJobId);
@@ -864,7 +862,7 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public List<Worker> getWorkers() {
-    return new ArrayList<Worker>(this.workersById.values());
+    return new ArrayList<>(this.workersById.values());
   }
 
   @PostConstruct
@@ -874,7 +872,7 @@ public class BatchJobService implements ModuleEventListener {
       this.authorizationService);
     this.businessApplicationRegistry.addModuleEventListener(this.securityServiceFactory);
     this.recordStore = this.dataAccessObject.getRecordStore();
-    LoggerFactory.getLogger(getClass()).info("Started");
+    Logs.info(this, "Started");
   }
 
   public boolean isCompressData() {
@@ -1198,16 +1196,14 @@ public class BatchJobService implements ModuleEventListener {
             try {
               structuredResultWriter.close();
             } catch (final Throwable e) {
-              LoggerFactory.getLogger(BatchJobService.class)
-                .error("Unable to close structured result writer", e);
+              Logs.error(BatchJobService.class, "Unable to close structured result writer", e);
             }
           }
           if (errorResultWriter != null) {
             try {
               errorResultWriter.close();
             } catch (final Throwable e) {
-              LoggerFactory.getLogger(BatchJobService.class)
-                .error("Unable to close error result writer", e);
+              Logs.error(BatchJobService.class, "Unable to close error result writer", e);
             }
           }
           FileUtil.closeSilent(errorWriter);
@@ -1293,7 +1289,7 @@ public class BatchJobService implements ModuleEventListener {
     final String errorCode = (String)resultMap.get("errorCode");
     final Number requestSequenceNumber = (Number)resultMap.get(BusinessApplication.SEQUENCE_NUMBER);
     final String errorMessage = (String)resultMap.get("errorMessage");
-    final Map<String, String> errorMap = new LinkedHashMap<String, String>();
+    final Map<String, String> errorMap = new LinkedHashMap<>();
     errorMap.put("sequenceNumber", DataTypes.toString(requestSequenceNumber));
     errorMap.put("errorCode", errorCode);
     errorMap.put("errorMessage", errorMessage);
@@ -1596,7 +1592,7 @@ public class BatchJobService implements ModuleEventListener {
       System.currentTimeMillis() - this.maxWorkerWaitTime * 2);
     ArrayList<String> workerIds;
     synchronized (this.workersById) {
-      workerIds = new ArrayList<String>(this.workersById.keySet());
+      workerIds = new ArrayList<>(this.workersById.keySet());
     }
     for (final String workerId : workerIds) {
       if (!this.connectedWorkerCounts.containsKey(workerId)) {
@@ -1614,10 +1610,7 @@ public class BatchJobService implements ModuleEventListener {
                 for (final BatchJobRequestExecutionGroup group : new ArrayList<>(
                   groupsById.values())) {
                   final String groupId = group.getId();
-                  if (LoggerFactory.getLogger(BatchJobService.class).isDebugEnabled()) {
-                    LoggerFactory.getLogger(BatchJobService.class)
-                      .debug("Rescheduling group " + groupId + " from worker " + workerId);
-                  }
+                  Logs.debug(this, "Rescheduling group " + groupId + " from worker " + workerId);
                   worker.removeExecutingGroup(groupId);
                   group.resetId();
                   rescheduleGroup(group);
@@ -1815,8 +1808,8 @@ public class BatchJobService implements ModuleEventListener {
             final MapWriterFactory writerFactory = IoFactory
               .factoryByMediaType(MapWriterFactory.class, contentType);
             if (writerFactory == null) {
-              LoggerFactory.getLogger(BatchJobService.class)
-                .error("Media type not supported for Record #" + batchJobId + " to " + contentType);
+              Logs.error(this,
+                "Media type not supported for Record #" + batchJobId + " to " + contentType);
             } else {
               final MapWriter writer = writerFactory.newMapWriter(bodyOut);
               writer.setProperty("title", subject);
@@ -1834,9 +1827,8 @@ public class BatchJobService implements ModuleEventListener {
                 try {
                   final StatusLine statusLine = response.getStatusLine();
                   if (statusLine.getStatusCode() >= 400) {
-                    LoggerFactory.getLogger(BatchJobService.class)
-                      .error("Unable to send notification for Record #" + batchJobId + " to "
-                        + notificationUrl + " response=" + statusLine);
+                    Logs.error(this, "Unable to send notification for Record #" + batchJobId
+                      + " to " + notificationUrl + " response=" + statusLine);
                   }
                 } finally {
                   final InputStream content = entity.getContent();
@@ -1847,7 +1839,7 @@ public class BatchJobService implements ModuleEventListener {
           }
         }
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(BatchJobService.class).error(
+        Logs.error(BatchJobService.class,
           "Unable to send notification for Record #" + batchJobId + " to " + notificationUrl, e);
       }
     }
@@ -2085,10 +2077,9 @@ public class BatchJobService implements ModuleEventListener {
       this.scheduler.groupFinished(group);
     } catch (final Throwable e) {
       if (isDatabaseResourcesException(e)) {
-        LoggerFactory.getLogger(getClass())
-          .error("Tablespace error saving group results: " + groupId);
+        Logs.error(this, "Tablespace error saving group results: " + groupId);
       } else {
-        LoggerFactory.getLogger(getClass()).error("Error saving group results: " + groupId, e);
+        Logs.error(this, "Error saving group results: " + groupId, e);
       }
       cancelGroup(worker, groupId);
     }
@@ -2112,8 +2103,7 @@ public class BatchJobService implements ModuleEventListener {
     final long currentTime = System.currentTimeMillis();
     final long waitTime = capacityErrorTime + this.timeoutForCapacityErrors - currentTime;
     if (waitTime > 0) {
-      LoggerFactory.getLogger(logClass)
-        .error("Waiting " + waitTime / 1000 + " seconds for tablespace error");
+      Logs.error(logClass, "Waiting " + waitTime / 1000 + " seconds for tablespace error");
       ThreadUtil.pause(waitTime);
     }
   }

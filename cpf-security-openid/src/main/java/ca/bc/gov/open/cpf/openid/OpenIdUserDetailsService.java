@@ -133,7 +133,7 @@ public class OpenIdUserDetailsService implements UserDetailsService {
         final String userPassword = user.getValue(UserAccount.CONSUMER_SECRET);
         final boolean active = Records.getBoolean(user, UserAccount.ACTIVE_IND);
         final List<String> groupNames = this.userAccountSecurityService.getGroupNames(user);
-        final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        final List<GrantedAuthority> authorities = new ArrayList<>();
         for (final String groupName : groupNames) {
           authorities.add(new SimpleGrantedAuthority(groupName));
           authorities.add(new SimpleGrantedAuthority("ROLE_" + groupName));

@@ -52,7 +52,7 @@ public class HttpRequestMessage extends OAuthMessage {
 
   @SuppressWarnings("unchecked")
   public static List<OAuth.Parameter> getParameters(final HttpServletRequest request) {
-    final List<OAuth.Parameter> list = new ArrayList<OAuth.Parameter>();
+    final List<OAuth.Parameter> list = new ArrayList<>();
     for (final Enumeration<String> headers = request.getHeaders("Authorization"); headers != null
       && headers.hasMoreElements();) {
       final String header = headers.nextElement();

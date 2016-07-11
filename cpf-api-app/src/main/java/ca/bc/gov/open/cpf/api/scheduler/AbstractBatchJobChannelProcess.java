@@ -27,12 +27,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 
 import com.revolsys.identifier.Identifier;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
@@ -133,16 +131,15 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
   @Override
   public final void run() {
     boolean hasError = false;
-    final Logger log = LoggerFactory.getLogger(getClass());
     try {
-      log.debug("Start");
+      Logs.debug(this, "Start");
       run(this.in);
     } catch (final ClosedException e) {
-      log.debug("Shutdown");
+      Logs.debug(this, "Shutdown");
     } catch (final ThreadDeath e) {
-      log.debug("Shutdown");
+      Logs.debug(this, "Shutdown");
     } catch (final Throwable e) {
-      log.error(e.getMessage(), e);
+      Logs.error(this, e.getMessage(), e);
       hasError = true;
     } finally {
       if (this.in != null) {
@@ -155,8 +152,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
   }
 
   protected void run(final Channel<Identifier> in) {
-    final Logger log = LoggerFactory.getLogger(getClass());
-    log.info("Started");
+    Logs.info(this, "Started");
     try {
       scheduleFromDatabase();
       while (true) {
@@ -173,15 +169,15 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
         } catch (final ClosedException e) {
           throw e;
         } catch (final Throwable e) {
-          log.error("Waiting 60 seconds due to unexpected error", e);
+          Logs.error(this, "Waiting 60 seconds due to unexpected error", e);
           ThreadUtil.pause(60 * 1000);
         }
       }
     } catch (final ClosedException e) {
     } catch (final Throwable e) {
-      log.error("Shutting down due to unexpected error", e);
+      Logs.error(this, "Shutting down due to unexpected error", e);
     }
-    log.info("Stopped");
+    Logs.info(this, "Stopped");
   }
 
   public void schedule(final Identifier batchJobId) {
@@ -206,8 +202,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     try {
       this.batchJobService.scheduleFromDatabase(this.jobStatusToProcess);
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass())
-        .error("Waiting 60 seconds due to: Unable to schedule from database", e);
+      Logs.error(this, "Waiting 60 seconds due to: Unable to schedule from database", e);
       ThreadUtil.pause(60 * 1000);
     }
   }

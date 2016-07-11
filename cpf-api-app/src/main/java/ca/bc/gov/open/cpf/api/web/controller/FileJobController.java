@@ -25,8 +25,6 @@ import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.FilePreProcessGroup;
@@ -35,6 +33,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
+import com.revolsys.logging.Logs;
 import com.revolsys.spring.resource.Resource;
 import com.revolsys.util.Exceptions;
 
@@ -84,8 +83,7 @@ public class FileJobController extends AbstractJobController {
 
   protected void deleteDirectory(final Identifier jobId, final File directory) {
     if (!FileUtil.deleteDirectory(directory)) {
-      LoggerFactory.getLogger(getClass())
-        .error("Unable to delete  " + directory + " for jobId=" + jobId);
+      Logs.error(this, "Unable to delete  " + directory + " for jobId=" + jobId);
     }
   }
 

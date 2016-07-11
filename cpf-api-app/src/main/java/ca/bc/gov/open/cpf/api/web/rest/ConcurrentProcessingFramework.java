@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -89,6 +88,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.StringWriter;
+import com.revolsys.logging.Logs;
 import com.revolsys.record.ArrayRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.RecordState;
@@ -232,7 +232,7 @@ public class ConcurrentProcessingFramework {
 
   private CpfDataAccessObject dataAccessObject;
 
-  private Map<String, RawContent> rawContent = new HashMap<String, RawContent>();
+  private Map<String, RawContent> rawContent = new HashMap<>();
 
   private JobController jobController;
 
@@ -596,7 +596,7 @@ public class ConcurrentProcessingFramework {
       final String defaultResultDataContentType = businessApplication
         .getDefaultResultDataContentType();
 
-      final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
+      final Map<String, String> businessApplicationParameters = new HashMap<>();
       addTestParameters(businessApplication, businessApplicationParameters);
 
       final BatchJob batchJob = this.dataAccessObject.newBatchJob();
@@ -698,7 +698,7 @@ public class ConcurrentProcessingFramework {
       try {
 
         if (inputDataUrls == null) {
-          inputDataUrls = new ArrayList<String>();
+          inputDataUrls = new ArrayList<>();
         } else {
           for (final Iterator<String> iterator = inputDataUrls.iterator(); iterator.hasNext();) {
             final String inputDataUrl = iterator.next();
@@ -708,7 +708,7 @@ public class ConcurrentProcessingFramework {
           }
         }
         if (inputDataFiles == null) {
-          inputDataFiles = new ArrayList<MultipartFile>();
+          inputDataFiles = new ArrayList<>();
         } else {
           for (final Iterator<MultipartFile> iterator = inputDataFiles.iterator(); iterator
             .hasNext();) {
@@ -759,7 +759,7 @@ public class ConcurrentProcessingFramework {
             this.dataAccessObject.delete(batchJob);
           }
         } catch (final Throwable e2) {
-          LoggerFactory.getLogger(getClass()).error("Unable to delete job: " + batchJobId, e2);
+          Logs.error(this, "Unable to delete job: " + batchJobId, e2);
         }
         throw new HttpMessageNotReadableException(e.getMessage(), e);
       } catch (final Throwable e) {
@@ -892,7 +892,7 @@ public class ConcurrentProcessingFramework {
       final String defaultResultDataContentType = businessApplication
         .getDefaultResultDataContentType();
 
-      final Map<String, String> businessApplicationParameters = new HashMap<String, String>();
+      final Map<String, String> businessApplicationParameters = new HashMap<>();
       addTestParameters(businessApplication, businessApplicationParameters);
 
       if (!Property.hasValue(inputDataContentType)) {
@@ -1390,7 +1390,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -2083,7 +2083,7 @@ public class ConcurrentProcessingFramework {
       final List<FieldDefinition> requestAttributes = new ArrayList<>(
         requestRecordDefinition.getFields());
       requestAttributes.remove(0);
-      final List<KeySerializer> serializers = new ArrayList<KeySerializer>();
+      final List<KeySerializer> serializers = new ArrayList<>();
       serializers.add(new StringKeySerializer("name"));
       serializers.add(new BooleanImageKeySerializer(
         "properties." + BusinessApplication.JOB_PARAMETER, "Job Parameter"));
@@ -2141,7 +2141,7 @@ public class ConcurrentProcessingFramework {
         final RecordDefinition resultRecordDefinition = businessApplication
           .getResultRecordDefinition();
         final List<FieldDefinition> resultAttributes = resultRecordDefinition.getFields();
-        final List<KeySerializer> resultSerializers = new ArrayList<KeySerializer>();
+        final List<KeySerializer> resultSerializers = new ArrayList<>();
         resultSerializers.add(new StringKeySerializer("name"));
         resultSerializers.add(new StringKeySerializer("typeDescription", "Type"));
         resultSerializers.add(new ElementKeySerializer(HtmlElem.P, "description"));
@@ -2794,7 +2794,7 @@ public class ConcurrentProcessingFramework {
 
   private List<Map<String, Object>> getRequestAttributeList(
     final BusinessApplication businessApplication) {
-    final List<Map<String, Object>> parameters = new ArrayList<Map<String, Object>>();
+    final List<Map<String, Object>> parameters = new ArrayList<>();
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
     addParameter(parameters, "inputDataContentType", "string", null,
@@ -2848,7 +2848,7 @@ public class ConcurrentProcessingFramework {
 
   private List<Map<String, Object>> getResultAttributeList(
     final BusinessApplication businessApplication) {
-    final List<Map<String, Object>> resultAttributes = new ArrayList<Map<String, Object>>();
+    final List<Map<String, Object>> resultAttributes = new ArrayList<>();
 
     final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
     for (final FieldDefinition attribute : resultRecordDefinition.getFields()) {

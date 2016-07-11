@@ -19,19 +19,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.LoggerFactory;
-
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
 
+import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
 import com.revolsys.record.Records;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 
 public class UserAccountSecurityService {
-  private final List<GroupNameService> grantedAuthorityServices = new ArrayList<GroupNameService>();
+  private final List<GroupNameService> grantedAuthorityServices = new ArrayList<>();
 
   private CpfDataAccessObject dataAccessObject;
 
@@ -47,7 +46,7 @@ public class UserAccountSecurityService {
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
-        final List<String> groupNames = new ArrayList<String>();
+        final List<String> groupNames = new ArrayList<>();
         try {
           if (userAccount != null && Records.getBoolean(userAccount, UserAccount.ACTIVE_IND)) {
             final String userType = userAccount.getValue(UserAccount.USER_ACCOUNT_CLASS);
@@ -69,7 +68,7 @@ public class UserAccountSecurityService {
             }
           }
         } catch (final Throwable t) {
-          LoggerFactory.getLogger(UserAccountSecurityService.class).error(
+          Logs.error(UserAccountSecurityService.class, 
             "Unable to load authorities for user " + userAccount.getValue(UserAccount.CONSUMER_KEY),
             t);
         }

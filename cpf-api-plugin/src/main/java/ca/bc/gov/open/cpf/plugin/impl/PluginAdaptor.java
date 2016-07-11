@@ -197,7 +197,7 @@ public class PluginAdaptor {
 
   private Map<String, Object> testParameters = new HashMap<>();
 
-  private final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
+  private final List<Map<String, Object>> results = new ArrayList<>();
 
   private final Map<String, Object> parameters = new HashMap<>();
 
@@ -370,7 +370,7 @@ public class PluginAdaptor {
 
       }
     }
-    final Map<String, Object> customizationProperties = new LinkedHashMap<String, Object>(
+    final Map<String, Object> customizationProperties = new LinkedHashMap<>(
       this.customizationProperties);
     if (resultList && this.application.isHasResultListCustomizationProperties()) {
       final Map<String, Object> resultListProperties = Property.get(resultObject,

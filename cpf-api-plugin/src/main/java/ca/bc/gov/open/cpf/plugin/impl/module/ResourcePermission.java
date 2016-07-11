@@ -28,7 +28,7 @@ public class ResourcePermission {
 
   public static List<ResourcePermission> getPermissions(
     final List<Map<String, Object>> permissions) {
-    final List<ResourcePermission> resourcePermissions = new ArrayList<ResourcePermission>();
+    final List<ResourcePermission> resourcePermissions = new ArrayList<>();
     if (permissions != null) {
       for (final Map<String, Object> permission : permissions) {
         final ResourcePermission resourcePermission = new ResourcePermission(permission);

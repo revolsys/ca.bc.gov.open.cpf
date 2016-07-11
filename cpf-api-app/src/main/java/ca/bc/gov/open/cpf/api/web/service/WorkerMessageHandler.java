@@ -28,7 +28,6 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
@@ -45,6 +44,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
 import com.revolsys.collection.map.Maps;
+import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.util.Property;
@@ -86,7 +86,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
 
   private Collection<Map<String, Object>> getConfigProperties(final String environmentName,
     final String moduleName, final String componentName) {
-    final Map<String, Map<String, Object>> configProperties = new HashMap<String, Map<String, Object>>();
+    final Map<String, Map<String, Object>> configProperties = new HashMap<>();
     addConfigProperties(configProperties, ConfigProperty.DEFAULT, moduleName, componentName);
     addConfigProperties(configProperties, environmentName, moduleName, componentName);
     return configProperties.values();
@@ -122,7 +122,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     final String moduleName = Maps.getString(message, "moduleName");
     final String environmentName = Maps.getString(message, "environmentName");
     final String componentName = Maps.getString(message, "componentName");
-    final Collection<Map<String, Object>> applicationConfigProperties = new ArrayList<Map<String, Object>>();
+    final Collection<Map<String, Object>> applicationConfigProperties = new ArrayList<>();
     final Collection<Map<String, Object>> configProperties = getConfigProperties(environmentName,
       moduleName, componentName);
     if (configProperties != null) {
@@ -197,7 +197,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
       try {
         Property.invoke(this, type, message, worker);
       } catch (final Throwable e) {
-        LoggerFactory.getLogger(getClass()).error("Unable to handle message: " + message, e);
+        Logs.error(this, "Unable to handle message: " + message, e);
       }
     }
   }

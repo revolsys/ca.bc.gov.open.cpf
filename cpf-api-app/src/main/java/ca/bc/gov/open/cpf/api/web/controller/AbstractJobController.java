@@ -37,6 +37,7 @@ public abstract class AbstractJobController implements JobController {
     this.dataAccessObject = dataAccessObject;
   }
 
+  @Override
   public CpfDataAccessObject getDataAccessObject() {
     return this.dataAccessObject;
   }

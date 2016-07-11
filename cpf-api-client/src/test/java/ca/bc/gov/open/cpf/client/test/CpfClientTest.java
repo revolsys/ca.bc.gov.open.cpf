@@ -109,7 +109,7 @@ public class CpfClientTest {
       final Map<String, Object> jobParameters = new HashMap<>();
       jobParameters.put("mapGridName", "BCGS 1:20 000");
 
-      final List<Map<String, ? extends Object>> requests = new ArrayList<Map<String, ? extends Object>>();
+      final List<Map<String, ? extends Object>> requests = new ArrayList<>();
       requests.add(Collections.singletonMap("mapTileId", "92j025"));
       requests.add(Collections.singletonMap("mapTileId", "92j016"));
 

@@ -45,13 +45,11 @@ public class MtwsThreadTest {
 
   private BusinessApplicationPluginExecutor executor = new BusinessApplicationPluginExecutor();
 
-  private final Channel<Boolean> startChannel = new Channel<Boolean>(
-    new Buffer<Boolean>(NUM_THREADS));
+  private final Channel<Boolean> startChannel = new Channel<>(new Buffer<Boolean>(NUM_THREADS));
 
   private final Object startSync = new Object();
 
-  private final Channel<Boolean> stopChannel = new Channel<Boolean>(
-    new Buffer<Boolean>(NUM_THREADS));
+  private final Channel<Boolean> stopChannel = new Channel<>(new Buffer<Boolean>(NUM_THREADS));
 
   private List<MapEx> testData = new ArrayList<>();
 

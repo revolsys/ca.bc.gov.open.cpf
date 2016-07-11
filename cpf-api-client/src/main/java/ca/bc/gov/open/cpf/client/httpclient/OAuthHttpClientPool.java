@@ -21,7 +21,7 @@ import java.util.Set;
 @SuppressWarnings("javadoc")
 public class OAuthHttpClientPool {
 
-  private Set<OAuthHttpClient> clients = new HashSet<OAuthHttpClient>();
+  private Set<OAuthHttpClient> clients = new HashSet<>();
 
   private String consumerKey;
 

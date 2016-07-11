@@ -23,10 +23,9 @@ import java.sql.ResultSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
-import org.slf4j.LoggerFactory;
-
 import com.revolsys.beans.PropertyChangeSupportProxy;
 import com.revolsys.jdbc.io.DataSourceImpl;
+import com.revolsys.logging.Logs;
 import com.revolsys.util.Property;
 
 public class CpfConfig implements PropertyChangeSupportProxy {
@@ -99,7 +98,7 @@ public class CpfConfig implements PropertyChangeSupportProxy {
         Property.setSimple(this, propertyName, propertyValue);
       }
     } catch (final Throwable e) {
-      LoggerFactory.getLogger(getClass()).error("Unable to load configuration", e);
+      Logs.error(this, "Unable to load configuration", e);
     }
   }
 

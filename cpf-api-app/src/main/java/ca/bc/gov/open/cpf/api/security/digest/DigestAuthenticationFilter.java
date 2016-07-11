@@ -98,8 +98,6 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
 
   private boolean passwordAlreadyEncoded = false;
 
-  private boolean createAuthenticatedToken = false;
-
   // ~ Methods
   // ========================================================================================================
 
@@ -379,7 +377,6 @@ public class DigestAuthenticationFilter extends GenericFilterBean implements Mes
    * @param createAuthenticatedToken default is false
    */
   public void setCreateAuthenticatedToken(final boolean createAuthenticatedToken) {
-    this.createAuthenticatedToken = createAuthenticatedToken;
   }
 
   @Override

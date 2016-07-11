@@ -59,7 +59,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
 
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
     final BusinessApplicationUiBuilder appBuilder = getBuilder(BusinessApplication.class);
-    final Map<String, String> parameterKeys = new HashMap<String, String>();
+    final Map<String, String> parameterKeys = new HashMap<>();
     parameterKeys.put("moduleName", "moduleName");
     parameterKeys.put("businessApplicationName", "name");
     appBuilder.serializeLink(out, businessApplication, "name", "moduleView", parameterKeys);
@@ -113,7 +113,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
   public List<BusinessApplicationStatistics> getSummaryStatistics(final String durationType) {
     final String statisticId = BusinessApplicationStatistics.getId(durationType);
     final List<BusinessApplication> apps = getBusinessApplications();
-    final List<BusinessApplicationStatistics> statistics = new ArrayList<BusinessApplicationStatistics>();
+    final List<BusinessApplicationStatistics> statistics = new ArrayList<>();
     for (final BusinessApplication businessApplication : apps) {
       final String businessApplicationName = businessApplication.getName();
       final StatisticsService statisticsService = getStatisticsService();

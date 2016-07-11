@@ -91,7 +91,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
   public static final Set<String> SINGLE_PARAMETERS = constructSingleParameters();
 
   private static Set<String> constructSingleParameters() {
-    final Set<String> s = new HashSet<String>();
+    final Set<String> s = new HashSet<>();
     for (final String p : new String[] {
       OAuth.OAUTH_CONSUMER_KEY, OAuth.OAUTH_TOKEN, OAuth.OAUTH_TOKEN_SECRET, OAuth.OAUTH_CALLBACK,
       OAuth.OAUTH_SIGNATURE_METHOD, OAuth.OAUTH_SIGNATURE, OAuth.OAUTH_TIMESTAMP, OAuth.OAUTH_NONCE,
@@ -108,7 +108,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
 
   protected final double minVersion = 1.0;
 
-  private final Set<UsedNonce> usedNonces = new TreeSet<UsedNonce>();
+  private final Set<UsedNonce> usedNonces = new TreeSet<>();
 
   public SimpleOAuthValidator() {
     this(DEFAULT_TIMESTAMP_WINDOW, Double.parseDouble(OAuth.VERSION_1_0));
@@ -123,13 +123,13 @@ public class SimpleOAuthValidator implements OAuthValidator {
     throws IOException, OAuthException {
     // Check for repeated oauth_ parameters:
     boolean repeated = false;
-    final Map<String, Collection<String>> nameToValues = new HashMap<String, Collection<String>>();
+    final Map<String, Collection<String>> nameToValues = new HashMap<>();
     for (final Map.Entry<String, String> parameter : message.getParameters()) {
       final String name = parameter.getKey();
       if (SINGLE_PARAMETERS.contains(name)) {
         Collection<String> values = nameToValues.get(name);
         if (values == null) {
-          values = new ArrayList<String>();
+          values = new ArrayList<>();
           nameToValues.put(name, values);
         } else {
           repeated = true;
@@ -138,7 +138,7 @@ public class SimpleOAuthValidator implements OAuthValidator {
       }
     }
     if (repeated) {
-      final Collection<OAuth.Parameter> rejected = new ArrayList<OAuth.Parameter>();
+      final Collection<OAuth.Parameter> rejected = new ArrayList<>();
       for (final Map.Entry<String, Collection<String>> p : nameToValues.entrySet()) {
         final String name = p.getKey();
         final Collection<String> values = p.getValue();
