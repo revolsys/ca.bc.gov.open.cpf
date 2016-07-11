@@ -77,7 +77,7 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
 import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.FileJobController;
+import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -1884,8 +1884,9 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setDataAccessObject(final CpfDataAccessObject dataAccessObject) {
     this.dataAccessObject = dataAccessObject;
-    // this.jobController = new DatabaseJobController(dataAccessObject);
-    this.jobController = new FileJobController(this, new File("/apps/data/cpf"));
+    this.jobController = new DatabaseJobController(dataAccessObject);
+    // this.jobController = new FileJobController(this, new
+    // File("/apps/data/cpf"));
   }
 
   public void setDaysToKeepOldJobs(final int daysToKeepOldJobs) {
