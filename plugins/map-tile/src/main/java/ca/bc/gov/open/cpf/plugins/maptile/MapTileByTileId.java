@@ -61,18 +61,18 @@ public class MapTileByTileId {
     }
   }
 
-  @ResultAttribute
+  @ResultAttribute(index = 1)
   public String getMapGridName() {
     return this.mapGridName;
   }
 
-  @ResultAttribute(description = "The polygon boundary of the map tile.")
+  @ResultAttribute(index = 3, description = "The polygon boundary of the map tile.")
   @GeometryConfiguration(srid = 4326, numAxis = 2)
   public Polygon getMapTileBoundary() {
     return this.mapTileBoundary;
   }
 
-  @ResultAttribute
+  @ResultAttribute(index = 2)
   public String getMapTileId() {
     return this.mapTileId;
   }

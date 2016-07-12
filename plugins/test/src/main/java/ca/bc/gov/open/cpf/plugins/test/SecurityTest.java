@@ -24,9 +24,8 @@ import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
-@BusinessApplicationPlugin
+@BusinessApplicationPlugin(description = "Test plug-in to test the security API")
 public class SecurityTest {
-
   private String resourceClass;
 
   private String resourceId;
