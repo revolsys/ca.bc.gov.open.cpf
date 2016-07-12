@@ -61,27 +61,27 @@ public class MapTileByLocation {
     }
   }
 
-  @ResultAttribute(index = 3)
+  @ResultAttribute(index = 2)
   public double getLatitude() {
     return this.latitude;
   }
 
-  @ResultAttribute(index = 4)
+  @ResultAttribute(index = 3)
   public double getLongitude() {
     return this.longitude;
   }
 
-  @ResultAttribute(index = 5)
+  @ResultAttribute(index = 1)
   public String getMapGridName() {
     return this.mapGridName;
   }
 
-  @ResultAttribute(index = 3, description = "The polygon boundary of the map tile.")
+  @ResultAttribute(index = 5, description = "The polygon boundary of the map tile.")
   public Polygon getMapTileBoundary() {
     return this.mapTileBoundary;
   }
 
-  @ResultAttribute(index = 2, description = "The identifier of the map tile (e.g. 92G025).")
+  @ResultAttribute(index = 4, description = "The identifier of the map tile (e.g. 92G025).")
   public String getMapTileId() {
     return this.mapTileId;
   }
