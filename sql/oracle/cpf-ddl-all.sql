@@ -1,3 +1,4 @@
+SPOOL cpf-ddl.log
 @config_properties.sql
 @user_groups.sql
 @user_group_permissions.sql
