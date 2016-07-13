@@ -98,11 +98,23 @@ import com.revolsys.util.UrlUtil;
 
 public class ClassLoaderModule implements Module {
 
+  protected static final String STOPPING = "Stopping";
+
+  private static final String ENABLED = "Enabled";
+
+  protected static final String STARTING = "Starting";
+
+  protected static final String STARTED = "Started";
+
   @SuppressWarnings("unchecked")
   private static final Class<? extends Annotation>[] STANDARD_METHOD_EXCLUDE_ANNOTATIONS = ArrayUtil
     .newArray(JobParameter.class, RequestParameter.class, Required.class);
 
   private static final Map<String, Class<?>[]> STANDARD_METHODS = new HashMap<>();
+
+  protected static final String STOPPED = "Stopped";
+
+  protected static final String DISABLED = "Disabled";
 
   private GenericApplicationContext applicationContext;
 
@@ -298,7 +310,7 @@ public class ClassLoaderModule implements Module {
       stop();
     }
     this.initialized = false;
-    setStatus("Disabled");
+    setStatus(DISABLED);
   }
 
   @Override
@@ -307,7 +319,7 @@ public class ClassLoaderModule implements Module {
       this.enabled = true;
     }
     if (!isInitialized()) {
-      setStatus("enabled");
+      setStatus(ENABLED);
       this.initialized = true;
       start();
     }
@@ -1473,12 +1485,18 @@ public class ClassLoaderModule implements Module {
 
   @Override
   public void restart() {
-    getBusinessApplicationRegistry().restartModule(this.name);
+    final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
+    if (businessApplicationRegistry != null) {
+      businessApplicationRegistry.restartModule(this.name);
+    }
   }
 
   public void restartDo() {
-    stop();
-    start();
+    try {
+      stopDo();
+    } finally {
+      startDo();
+    }
   }
 
   public void setClassLoader(final ClassLoader classLoader) {
@@ -1520,12 +1538,12 @@ public class ClassLoaderModule implements Module {
   public void startDo() {
     if (isEnabled()) {
       if (isStarted()) {
-        setStatus("Started");
+        setStatus(STARTED);
       } else {
+        setStatus(STARTING);
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         initAppLogAppender(null);
-        setStatus("Starting");
         this.log.info("Start\tModule Start\tmoduleName=" + this.name);
         clearModuleError();
         try {
@@ -1541,7 +1559,7 @@ public class ClassLoaderModule implements Module {
             if (isHasError()) {
               this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.START_FAILED);
             } else {
-              setStatus("Started");
+              setStatus(STARTED);
               this.businessApplicationRegistry.moduleEvent(this, ModuleEvent.START);
             }
           }
@@ -1551,7 +1569,7 @@ public class ClassLoaderModule implements Module {
         AppLogUtil.info(this.log, "End\tModule Start\tmoduleName=" + this.name, stopWatch);
       }
     } else {
-      setStatus("Disabled");
+      setStatus(DISABLED);
     }
   }
 
@@ -1565,7 +1583,7 @@ public class ClassLoaderModule implements Module {
   }
 
   public void stopDo() {
-    setStatus("Stopping");
+    setStatus(STOPPING);
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
     this.log.info("Start\tModule Stop\tmoduleName=" + this.name);
@@ -1593,9 +1611,9 @@ public class ClassLoaderModule implements Module {
       AppLogUtil.info(this.log, "End\tModule Stop\tmoduleName=" + this.name, stopWatch);
       closeAppLogAppender(this.name);
       if (isEnabled()) {
-        setStatus("Stopped");
+        setStatus(STOPPED);
       } else {
-        setStatus("Disabled");
+        setStatus(DISABLED);
       }
     }
   }

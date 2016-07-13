@@ -125,7 +125,10 @@ public class ConfigPropertyModule extends ClassLoaderModule {
   @Override
   public void startDo() {
     if (isEnabled()) {
-      if (!isStarted()) {
+      if (isStarted()) {
+        setStatus(STARTED);
+      } else {
+        setStatus(STARTING);
         try (
           Transaction transaction = this.dataAccessObject
             .newTransaction(Propagation.REQUIRES_NEW)) {
@@ -166,13 +169,14 @@ public class ConfigPropertyModule extends ClassLoaderModule {
         }
       }
     } else {
-      setStatus("Disabled");
+      setStatus(DISABLED);
     }
   }
 
   @Override
   public void stopDo() {
     if (isStarted()) {
+      setStatus(STOPPING);
       try (
         Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
         try {
@@ -189,9 +193,9 @@ public class ConfigPropertyModule extends ClassLoaderModule {
         }
       }
     } else if (isEnabled()) {
-      setStatus("Stopped");
+      setStatus(STOPPED);
     } else {
-      setStatus("Disabled");
+      setStatus(DISABLED);
     }
   }
 
