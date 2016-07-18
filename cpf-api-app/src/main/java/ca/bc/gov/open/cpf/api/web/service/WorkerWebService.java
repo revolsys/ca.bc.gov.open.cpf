@@ -236,9 +236,10 @@ public class WorkerWebService {
   }
 
   @RequestMapping("/worker/workers/{workerId}/jobs/{batchJobId}/groups/{groupId}/error")
-  public void postBatchJobExecutionGroupError(@PathVariable("workerId") final String workerId,
-    @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("groupId") final String groupId, final InputStream in) {
+  public void postBatchJobExecutionGroupError(@PathVariable final String workerId, //
+    @PathVariable final Identifier batchJobId, //
+    @PathVariable final String groupId, //
+    final InputStream in) {
     checkRunning();
     final BatchJobRequestExecutionGroup group = this.batchJobService
       .getBatchJobRequestExecutionGroup(workerId, groupId);
@@ -247,8 +248,7 @@ public class WorkerWebService {
       synchronized (group) {
         if (!group.isCancelled()) {
           final int sequenceNumber = group.getSequenceNumber();
-          this.jobController.setGroupError(Identifier.newIdentifier(batchJobId), sequenceNumber,
-            in);
+          this.jobController.setGroupError(batchJobId, sequenceNumber, in);
         }
       }
     }

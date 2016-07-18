@@ -36,6 +36,8 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.PathName;
+import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
+import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
 import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -48,6 +50,18 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
     super("executionGroup", PathName.newPathName("ExecutionGroup"), "sequenceNumber",
       "Execution Group", "Execution Groups");
     setIdParameterName("sequenceNumber");
+    addLabel("sequenceNumber", "#");
+  }
+
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+    addKeySerializer(new BooleanImageKeySerializer("completed"));
+
+    final ActionFormKeySerializer actionDownload = new ActionFormKeySerializer("inputData",
+      "Input Data", "fa fa-download");
+    actionDownload.setTarget("_top");
+    addKeySerializer(actionDownload);
   }
 
   @RequestMapping(value = {
@@ -56,8 +70,8 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
     RequestMethod.GET, RequestMethod.POST
   })
   @ResponseBody
-  public void downloadInputData(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+  public void inputData(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId,
     @PathVariable("sequenceNumber") final Integer sequenceNumber) throws IOException {
@@ -93,54 +107,12 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
   }
 
   @RequestMapping(value = {
-    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/resultData"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups"
+  }, method = RequestMethod.GET, title = "Group Input", fieldNames = {
+    "sequenceNumber", "inputData", "completed", "completedRequests", "failedRequests"
   })
   @ResponseBody
-  public void downloadResultData(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws IOException {
-    checkAdminOrModuleAdmin(moduleName);
-    final BusinessApplication businessApplication = getModuleBusinessApplication(moduleName,
-      businessApplicationName);
-    getBatchJob(businessApplicationName, batchJobId);
-    // final Record batchJobExecutionGroup =
-    // getBatchJobExecutionGroup(batchJobId, sequenceNumber);
-    // final String contentType =
-    // batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-    // final String baseName = "job-" + batchJobId + "-group-" + sequenceNumber
-    // + "-result";
-    if (businessApplication.isPerRequestResultData()) {
-      // final String resultDataUrl =
-      // batchJobExecutionGroup.getValue(BatchJobExecutionGroup.RESULT_DATA_URL);
-      // if (resultDataUrl != null) {
-      // response.setStatus(HttpServletResponse.SC_SEE_OTHER);
-      // response.setHeader("Location", resultDataUrl);
-      // } else {
-      // try {
-      // final Blob data =
-      // batchJobExecutionGroup.getValue(BatchJobExecutionGroup.RESULT_DATA);
-      // writeOpaqueData(response, contentType, baseName, data);
-      // } catch (final SQLException e) {
-      // final String message = "Unable to get data for " + baseName;
-      // Logger.getLogger(getClass()).error(message, e);
-      // throw new HttpMessageNotWritableException(message, e);
-      // }
-      // }
-    } else {
-      getJobController().writeGroupResult(response, Identifier.newIdentifier(batchJobId),
-        sequenceNumber);
-    }
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Object pageModuleAppJobList(final HttpServletRequest request,
+  public Object moduleAppJobList(final HttpServletRequest request,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("businessApplicationName") final String businessApplicationName,
     @PathVariable("batchJobId") final Long batchJobId) throws IOException {
@@ -184,19 +156,11 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
           final List<KeySerializer> serializers = getSerializers("moduleAppJobList", "list");
           final Map<String, Object> data = new HashMap<>();
           data.put("inputData", "");
-          // <value>inputData</value>
-          // <value>completedRequests</value>
-          // <value>failedRequests</value>
-          // <value>resultData</value>
-          // <value>errorData</value>
 
           for (int sequenceNumber = offset; sequenceNumber <= maxRow; sequenceNumber++) {
             data.put("sequenceNumber", sequenceNumber);
             final boolean completed = batchJob.isCompleted(sequenceNumber);
             data.put("completed", completed);
-            if (completed) {
-              data.put("resultData", "");
-            }
             final List<String> row = new ArrayList<>();
             for (final KeySerializer serializer : serializers) {
               final String key = serializer.getKey();

@@ -26,7 +26,7 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.map.MapReader;
-import com.revolsys.record.io.format.csv.Csv;
+import com.revolsys.record.io.format.tsv.Tsv;
 import com.revolsys.util.Exceptions;
 
 public abstract class AbstractJobController implements JobController {
@@ -51,6 +51,16 @@ public abstract class AbstractJobController implements JobController {
 
   protected abstract InputStream getFileStream(final Identifier jobId, String path,
     int sequenceNumber, long fromIndex, long toIndex);
+
+  @Override
+  public MapReader getGroupErrorReader(final Identifier jobId, final int sequenceNumber) {
+    final InputStream in = getFileStream(jobId, GROUP_ERRORS, sequenceNumber);
+    if (in == null) {
+      return null;
+    } else {
+      return Tsv.mapReader(in);
+    }
+  }
 
   @Override
   public String getGroupInputContentType(final Identifier batchJobId, final int sequenceNumber) {
@@ -79,7 +89,7 @@ public abstract class AbstractJobController implements JobController {
     if (in == null) {
       return null;
     } else {
-      return Csv.mapReader(in);
+      return Tsv.mapReader(in);
     }
   }
 
@@ -116,7 +126,7 @@ public abstract class AbstractJobController implements JobController {
 
   @Override
   public void setGroupError(final Identifier jobId, final int sequenceNumber, final Object data) {
-    newJobFile(jobId, GROUP_ERRORS, sequenceNumber, "text/csv", data);
+    newJobFile(jobId, GROUP_ERRORS, sequenceNumber, Tsv.MIME_TYPE, data);
   }
 
   @Override
@@ -128,7 +138,7 @@ public abstract class AbstractJobController implements JobController {
   @Override
   public void setGroupResult(final Identifier jobId, final int sequenceNumber,
     final InputStream in) {
-    newJobFile(jobId, GROUP_RESULTS, sequenceNumber, "text/csv", in);
+    newJobFile(jobId, GROUP_RESULTS, sequenceNumber, Tsv.MIME_TYPE, in);
   }
 
   @Override
@@ -137,34 +147,25 @@ public abstract class AbstractJobController implements JobController {
     newJobFile(jobId, JOB_RESULTS, sequenceNumber, contentType, data);
   }
 
-  protected void writeFile(final HttpServletResponse response, final Identifier jobId,
+  @Override
+  public void writeFile(final HttpServletResponse response, final Identifier jobId,
     final String path, final int sequenceNumber) throws IOException {
-    final String baseName = "job-" + jobId + "-" + sequenceNumber + "-" + path;
-
-    response.setContentType("application/csv");
-    response.setHeader("Content-disposition", "attachment; filename=" + baseName + ".csv");
     try (
-      OutputStream out = response.getOutputStream()) {
-      try (
-        final InputStream in = getFileStream(jobId, path, sequenceNumber)) {
-        if (in != null) {
+      final InputStream in = getFileStream(jobId, path, sequenceNumber)) {
+      if (in == null) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      } else {
+        final String baseName = "job-" + jobId + "-" + sequenceNumber + "-" + path;
+
+        response.setContentType(Tsv.MIME_TYPE);
+        response.setHeader("Content-disposition", "attachment; filename=" + baseName + ".tsv");
+        try (
+          OutputStream out = response.getOutputStream()) {
           FileUtil.copy(in, out);
         }
-      } catch (final Throwable e) {
-        Exceptions.throwUncheckedException(e);
       }
+    } catch (final Throwable e) {
+      Exceptions.throwUncheckedException(e);
     }
-  }
-
-  @Override
-  public void writeGroupInput(final HttpServletResponse response, final Identifier jobId,
-    final int sequenceNumber) throws IOException {
-    writeFile(response, jobId, GROUP_INPUTS, sequenceNumber);
-  }
-
-  @Override
-  public void writeGroupResult(final HttpServletResponse response, final Identifier jobId,
-    final int sequenceNumber) throws IOException {
-    writeFile(response, jobId, GROUP_RESULTS, sequenceNumber);
   }
 }

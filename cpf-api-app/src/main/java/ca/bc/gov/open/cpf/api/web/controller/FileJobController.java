@@ -22,18 +22,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.FilePreProcessGroup;
 import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.logging.Logs;
+import com.revolsys.record.query.Q;
+import com.revolsys.record.query.Query;
 import com.revolsys.spring.resource.Resource;
 import com.revolsys.util.Exceptions;
 
@@ -105,6 +111,23 @@ public class FileJobController extends AbstractJobController {
       return FileUtil.getFileAsString(contentTypeFile);
     }
     return null;
+  }
+
+  @Override
+  public List<MapEx> getFiles(final Identifier jobId, final String path) {
+    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.setFieldNames(BatchJobFile.SEQUENCE_NUMBER);
+    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
+    query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
+    final List<MapEx> sequenceNumbers = new ArrayList<>();
+    // try (
+    // RecordReader records = this.recordStore.getRecords(query)) {
+    // for (final Record record : records) {
+    // final Integer sequenceNumber = record.getInteger(BatchJobFile.SEQUENCE_NUMBER);
+    // sequenceNumbers.add(sequenceNumber);
+    // }
+    // }
+    return sequenceNumbers;
   }
 
   @Override

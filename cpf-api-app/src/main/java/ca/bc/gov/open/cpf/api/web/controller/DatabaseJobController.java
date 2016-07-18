@@ -18,6 +18,8 @@ package ca.bc.gov.open.cpf.api.web.controller;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
@@ -27,8 +29,12 @@ import ca.bc.gov.open.cpf.api.scheduler.DatabasePreProcessGroup;
 import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
+import com.revolsys.collection.map.LinkedHashMapEx;
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.identifier.Identifier;
+import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
+import com.revolsys.record.io.RecordReader;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.RecordStore;
@@ -57,6 +63,34 @@ public class DatabaseJobController extends AbstractJobController {
       return file.getValue(BatchJobFile.CONTENT_TYPE);
     }
     return null;
+  }
+
+  @Override
+  public List<MapEx> getFiles(final Identifier jobId, final String path) {
+    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
+    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
+    query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
+    final List<MapEx> files = new ArrayList<>();
+    try (
+      RecordReader records = this.recordStore.getRecords(query)) {
+      for (final Record record : records) {
+        final MapEx result = new LinkedHashMapEx();
+        final Blob resultData = record.getValue(BatchJobFile.DATA);
+        result.put("batchJobId", jobId);
+        result.put("filePath", path);
+        result.put("sequenceNumber", record.getInteger(BatchJobFile.SEQUENCE_NUMBER));
+        result.put("contentType", record.getString(BatchJobFile.CONTENT_TYPE));
+        if (resultData == null) {
+          result.put("size", "0");
+        } else {
+          result.put("size", resultData.length());
+        }
+        files.add(result);
+      }
+    } catch (final SQLException e) {
+      Logs.error(this, "Unable to list files: " + jobId + " " + path, e);
+    }
+    return files;
   }
 
   @Override

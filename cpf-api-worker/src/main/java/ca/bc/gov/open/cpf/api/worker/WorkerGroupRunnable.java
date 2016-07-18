@@ -58,9 +58,9 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.parallel.ThreadUtil;
-import com.revolsys.record.io.format.csv.Csv;
-import com.revolsys.record.io.format.csv.CsvWriter;
 import com.revolsys.record.io.format.json.Json;
+import com.revolsys.record.io.format.tsv.Tsv;
+import com.revolsys.record.io.format.tsv.TsvWriter;
 import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
@@ -103,7 +103,7 @@ public class WorkerGroupRunnable implements Runnable {
 
   private SecurityService securityService;
 
-  private CsvWriter errorWriter;
+  private TsvWriter errorWriter;
 
   private File errorFile;
 
@@ -125,8 +125,8 @@ public class WorkerGroupRunnable implements Runnable {
     final Throwable e) {
     this.log.error(logPrefix + errorCode, e);
     if (this.errorWriter == null) {
-      this.errorFile = FileUtil.newTempFile(this.groupId, "csv");
-      this.errorWriter = new CsvWriter(FileUtil.newUtf8Writer(this.errorFile));
+      this.errorFile = FileUtil.newTempFile(this.groupId, "tsv");
+      this.errorWriter = Tsv.plainWriter(this.errorFile);
       this.errorWriter.write("sequenceNumber", "errorCode", "message", "trace");
     }
     String message;
@@ -143,7 +143,7 @@ public class WorkerGroupRunnable implements Runnable {
   }
 
   @SuppressWarnings("unchecked")
-  private void execute(final CsvWriter resultWriter, final AppLog appLog,
+  private void execute(final TsvWriter resultWriter, final AppLog appLog,
     final Integer requestSequenceNumber, final Object plugin, final MapEx parameters) {
     final String resultListProperty = this.businessApplication.getResultListProperty();
 
@@ -236,7 +236,7 @@ public class WorkerGroupRunnable implements Runnable {
    * @param requestParameters
    * @return The request map
    */
-  protected void executeRequest(final CsvWriter resultWriter,
+  protected void executeRequest(final TsvWriter resultWriter,
     final RecordDefinition requestRecordDefinition, final MapEx applicationParameters,
     final MapEx requestParameters) {
     final StopWatch requestStopWatch = new StopWatch("Request");
@@ -346,11 +346,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
@@ -373,7 +373,7 @@ public class WorkerGroupRunnable implements Runnable {
         return;
       } else {
         try (
-          final CsvWriter resultWriter = new CsvWriter(resultCache.getWriter())) {
+          final TsvWriter resultWriter = Tsv.plainWriter(resultCache.getWriter())) {
           resultWriter.write(this.businessApplication.getResultFieldNames());
           this.businessApplication.setLogLevel(this.logLevel);
           this.module = this.businessApplication.getModule();
@@ -410,7 +410,7 @@ public class WorkerGroupRunnable implements Runnable {
             try (
               InputStream requestIn = entity.getContent()) {
               try (
-                MapReader requestReader = Csv.mapReader(requestIn)) {
+                MapReader requestReader = Tsv.mapReader(requestIn)) {
                 for (final MapEx requestParameters : requestReader) {
                   if (ThreadUtil.isInterrupted() || !this.module.isStarted()) {
                     this.scheduler.addFailedGroup(this.groupId);
@@ -435,6 +435,16 @@ public class WorkerGroupRunnable implements Runnable {
         }
         final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
 
+        if (this.errorWriter != null) {
+          this.errorWriter.close();
+          this.errorWriter = null;
+          final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+            + "/groups/" + this.groupId + "/error";
+          final HttpResponse errorResponse = this.httpClient.postResource(errorPath, Tsv.MIME_TYPE,
+            this.errorFile);
+          HttpClientUtils.closeQuietly(errorResponse);
+          this.errorFile = null;
+        }
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("groupExecutedTime", groupExecutionTime);
         parameters.put("applicationExecutedTime", this.applicationExecutionTime);
@@ -444,16 +454,10 @@ public class WorkerGroupRunnable implements Runnable {
           + "/groups/" + this.groupId + "/results";
         try (
           InputStream inputStream = resultCache.getInputStream()) {
-          final HttpResponse response = this.httpClient.postResource(path, "text/csv", inputStream,
-            parameters);
+          final HttpResponse response = this.httpClient.postResource(path, Tsv.MIME_TYPE,
+            inputStream, parameters);
           HttpClientUtils.closeQuietly(response);
-          if (this.errorWriter != null) {
-            final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-              + "/groups/" + this.groupId + "/error";
-            final HttpResponse errorResponse = this.httpClient.postResource(errorPath, "text/csv",
-              this.errorFile);
-            HttpClientUtils.closeQuietly(errorResponse);
-          }
+
         }
       }
     } catch (final Throwable e) {
@@ -549,7 +553,7 @@ public class WorkerGroupRunnable implements Runnable {
     }
   }
 
-  private void writeResult(final CsvWriter resultWriter, final Object plugin,
+  private void writeResult(final TsvWriter resultWriter, final Object plugin,
     final MapEx parameters, Map<String, Object> customizationProperties,
     final Integer requestSequenceNumber, final int resultIndex, final boolean test) {
     final RecordDefinition resultRecordDefinition = this.businessApplication

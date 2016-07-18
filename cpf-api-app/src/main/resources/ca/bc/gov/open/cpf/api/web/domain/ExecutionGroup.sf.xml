@@ -8,79 +8,8 @@
     http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
   "
 >
-
   <bean
     name="ExecutionGroup-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.ExecutionGroupUiBuilder"
-    p:batchJobService-ref="batchJobService"
-  >
-    <property name="pages">
-      <list>
-        <bean
-          p:name="moduleAppJobList"
-          class="com.revolsys.ui.web.config.Page"
-          p:title="Group Input"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/" />
-        <bean
-          p:name="inputData"
-          class="com.revolsys.ui.web.config.Page"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/inputData" />
-        <bean
-          p:name="resultData"
-          class="com.revolsys.ui.web.config.Page"
-          p:path="/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groups/{sequenceNumber}/resultData" />
-      </list>
-    </property>
-
-    <property name="labels">
-      <map>
-        <entry
-          key="SEQUENCE_NUMBER"
-          value="#" />
-      </map>
-    </property>
-
-    <property name="serializers">
-      <list>
-        <bean
-          class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-          p:name="inputData"
-          p:label="Input"
-          p:iconName="fa fa-download"
-          p:target="_top" />
-        <bean
-          class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-          p:name="resultData"
-          p:label="Result"
-          p:iconName="fa fa-download"
-          p:target="_top" />
-        <bean
-          class="com.revolsys.ui.html.serializer.key.ActionFormKeySerializer"
-          p:name="errorData"
-          p:label="Error"
-          p:iconName="fa fa-download"
-          p:target="_top" />
-        <bean
-          p:name="completed"
-          class="com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer" />
-      </list>
-    </property>
-
-    <property name="views">
-      <map>
-        <entry key="moduleAppJobList">
-          <list>
-            <value>sequenceNumber</value>
-            <value>inputData</value>
-            <value>completed</value>
-            <value>completedRequests</value>
-            <value>failedRequests</value>
-            <value>resultData</value>
-            <value>errorData</value>
-          </list>
-        </entry>
-      </map>
-    </property>
-  </bean>
-
+  />  
 </beans>

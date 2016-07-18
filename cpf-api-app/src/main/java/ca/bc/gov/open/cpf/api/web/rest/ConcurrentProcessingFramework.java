@@ -95,9 +95,8 @@ import com.revolsys.record.RecordState;
 import com.revolsys.record.Records;
 import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.RecordWriterFactory;
-import com.revolsys.record.io.format.csv.Csv;
-import com.revolsys.record.io.format.csv.CsvRecordWriter;
 import com.revolsys.record.io.format.json.Json;
+import com.revolsys.record.io.format.tsv.Tsv;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
@@ -1003,11 +1002,11 @@ public class ConcurrentProcessingFramework {
         inputData.put(BusinessApplication.SEQUENCE_NUMBER, 1);
         final StringWriter writer = new StringWriter();
         try (
-          RecordWriter groupWriter = new CsvRecordWriter(requestRecordDefinition, writer, ',', true,
+          RecordWriter groupWriter = Tsv.newRecordWriter(requestRecordDefinition, writer, false,
             false)) {
           groupWriter.write(inputData);
         }
-        this.jobController.setGroupInput(batchJobId, 1, Csv.MIME_TYPE, writer);
+        this.jobController.setGroupInput(batchJobId, 1, Tsv.MIME_TYPE, writer);
       }
       batchJob.setGroupCount(1);
       this.batchJobService.scheduleJob(batchJob);
@@ -1393,7 +1392,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.

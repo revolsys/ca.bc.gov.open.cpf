@@ -74,8 +74,12 @@ public class ConfigPropertyModule extends ClassLoaderModule {
       }
 
       final MavenPom pom = this.mavenRepository.getPom(this.mavenModuleId);
-      classLoader = pom.newClassLoader(excludeIds);
-      setClassLoader(classLoader);
+      if (pom == null) {
+        throw new IllegalArgumentException("Unable to find Maven module: " + this.mavenModuleId);
+      } else {
+        classLoader = pom.newClassLoader(excludeIds);
+        setClassLoader(classLoader);
+      }
     }
     return classLoader;
   }

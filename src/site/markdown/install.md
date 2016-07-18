@@ -20,8 +20,8 @@ scope of the CPF.
 The CPF requires a database to store the CPF configuration, Job requests and Job results. The
 following databases are currently supported.
 
-* PostgreSQL 9.1.x
-* Oracle 10g or 11g
+* PostgreSQL 9.1+
+* Oracle 10g, 11g, or 12c 
 
 A developer may also require additional databases for use by their plug-in. They must deliver all
 required SQL scripts and instructions on how to install these databases.
@@ -31,7 +31,7 @@ required SQL scripts and instructions on how to install these databases.
 
 ### Download SQL Scripts
 
-The SQL scripts to install the database can be downloaded from the CITZ BC Government subversion
+The SQL scripts to install the database can be downloaded from the https://github.com/bcgov/cpf
 repository.
 
 The following scripts will download the Oracle and PostgreSQL scripts. 
@@ -67,12 +67,12 @@ svn up
 ### CPF Database Install Configuration
 
 The database install scripts require a configuration file to avoid manually entering configuration
-parameters while executing the script. DB_VENDOR can be either postgresql or oracle.
+parameters while executing the script.
 
 **UNIX/Mac**
 
 ```bash
-DB_VENDOR=...
+DB_VENDOR={postgresql|oracle}
 cd cpf/sql/${DB_VENDOR}
 cp sample-db.properties db.properties
 ```
@@ -80,7 +80,7 @@ cp sample-db.properties db.properties
 **Windows**
 
 ```winbatch
-set DB_VENDOR=...
+set DB_VENDOR={postgresql|oracle}
 cd cpf\sql\%DB_VENDOR%
 cp sample-db.properties db.properties
 ```
@@ -127,7 +127,7 @@ Edit the `db.properties` file.
     <tr>
       <td><code>TABLESPACE_DIR</code></td>
       <td><code>/data/postgres/cpf
-c:/data/postgres/cpf</code></td>
+c:\data\postgres\cpf</code></td>
       <td>The directory to create the database tablespace in. The directory must exist on the
       **server** and the PostgreSQL or Oracle process must have write permissions on this
       directory.</td>
@@ -166,7 +166,7 @@ prompted to enter this in the script.
 
 **Unix/Mac**
 ```
-DB_VENDOR={postgresql|oracle}</b>
+DB_VENDOR={postgresql|oracle}
 cd cpf/sql/${DB_VENDOR}
 ./install.sh
 ```
@@ -199,10 +199,10 @@ container on each developer's workstation and one on a central integration test 
 The CPF applications are deployed to a J2EE application server or servlet container. To deploy to a
 J2EE Servlet container the individual wars are deployed to the J2EE Servlet container.
 
-Deployment is currently supported on [Tomcat &gt; 7.x](http://tomcat.apache.org). CPF may work with
+Deployment is currently supported on [Tomcat > 8.x](http://tomcat.apache.org). CPF may work with
 other J2EE Servlet or application contains but this has not been tested.
 
-For Tomcat 7.x you will need to add a user account in the manager-script role to deploy the web
+For Tomcat 8.x you will need to add a user account in the manager-script role to deploy the web
 applications to the tomcat contained. If a user does not exist edit the `tomcat-users.xml`
 file in the tomcat conf directory.
 

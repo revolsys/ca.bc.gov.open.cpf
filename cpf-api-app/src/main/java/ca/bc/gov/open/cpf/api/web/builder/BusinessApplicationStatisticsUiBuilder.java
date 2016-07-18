@@ -145,7 +145,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     final BusinessApplication businessApplication = getBusinessApplicationRegistry()
       .getModuleBusinessApplication(moduleName, businessApplicationName);
     if (businessApplication != null) {
-      return newDataTableHandlerOrRedirect(request, response, "moduleAppList", () -> {
+      return newDataTableHandlerOrRedirect(request, "moduleAppList", () -> {
         return getStatistics(businessApplication);
       }, BusinessApplication.class, "moduleView");
     }
@@ -212,7 +212,7 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     final HttpServletResponse response, @PathVariable("durationType") final String durationType)
     throws IOException {
     checkAdminOrAnyModuleAdminExceptSecurity();
-    return newDataTableHandlerOrRedirect(request, response, durationType + "List", () -> {
+    return newDataTableHandlerOrRedirect(request, durationType + "List", () -> {
       return getSummaryStatistics(durationType);
     }, this, "summary");
   }

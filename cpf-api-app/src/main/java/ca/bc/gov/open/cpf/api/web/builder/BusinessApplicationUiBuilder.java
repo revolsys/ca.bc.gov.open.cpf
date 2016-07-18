@@ -264,8 +264,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     final @PathVariable("moduleName") String moduleName) throws IOException {
     final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
-    return newDataTableHandlerOrRedirect(request, response, "moduleList",
-      module::getBusinessApplications, Module.class, "view");
+    return newDataTableHandlerOrRedirect(request, "moduleList", module::getBusinessApplications,
+      Module.class, "view");
   }
 
   @RequestMapping(value = {

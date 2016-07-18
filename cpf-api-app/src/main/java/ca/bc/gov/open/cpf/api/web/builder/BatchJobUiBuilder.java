@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
@@ -331,6 +332,14 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
       parameters.put("dom", "rtiS");
       parameters.put("ordering", false);
       addTabDataTable(tabs, "ExecutionGroup", "moduleAppJobList", parameters);
+    }
+    {
+      final Map<String, Object> parameters = new HashMap<>();
+      parameters.put("serverSide", Boolean.TRUE);
+      parameters.put("dom", "rtiS");
+      parameters.put("ordering", false);
+      addTabDataTable(tabs, BatchJobFile.BATCH_JOB_FILE, "moduleAppJobGroupResultList", parameters);
+      addTabDataTable(tabs, BatchJobFile.BATCH_JOB_FILE, "moduleAppJobGroupErrorList", parameters);
     }
     {
       final Map<String, Object> parameters = new HashMap<>();

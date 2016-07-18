@@ -80,6 +80,9 @@
       key="shpz"
       value="application/x-shp+zip" />
     <entry
+      key="tsv"
+      value="text/tab-separated-values" />
+    <entry
       key="uri-list"
       value="text/uri-list" />
     <entry
@@ -148,4 +151,12 @@
     p:alwaysInclude="true"
     p:prefix="/WEB-INF"
     p:suffix=".jsp" />
+
+  <bean
+    name="/CPF/CPF_BATCH_JOB_FILES-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobFileUiBuilder" />
+  <!--  
+  <context:component-scan
+    base-package="ca.bc.gov.open.cpf.api.web"
+    annotation-config="false" />-->
 </beans>

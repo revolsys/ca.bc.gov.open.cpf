@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-fragment
+  xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://xmlns.jcp.org/xml/ns/javaee
+    http://xmlns.jcp.org/xml/ns/javaee/web-fragment_3_1.xsd
+  "
+  version="3.1"
+>
+  <name>ca_bc_gov_open_cpf_security_openid</name>
+
+  <ordering>
+    <after>
+      <name>ca_bc_gov_open_cpf_web_app</name>
+    </after>
+  </ordering>
+  
+  <servlet-mapping>
+    <servlet-name>cpf</servlet-name>
+    <url-pattern>/j_spring_openid_security_check/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>cpf</servlet-name>
+    <url-pattern>/openid/*</url-pattern>
+  </servlet-mapping>  
+</web-fragment>

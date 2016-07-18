@@ -17,6 +17,7 @@ package ca.bc.gov.open.cpf.api.web.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +27,7 @@ import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.map.MapReader;
 
@@ -49,6 +51,10 @@ public interface JobController {
   }
 
   CpfDataAccessObject getDataAccessObject();
+
+  List<MapEx> getFiles(final Identifier jobId, final String path);
+
+  MapReader getGroupErrorReader(Identifier batchJobId, int sequenceNumber);
 
   String getGroupInputContentType(Identifier batchJobId, int sequenceNumber);
 
@@ -87,9 +93,11 @@ public interface JobController {
 
   void setJobResult(Identifier batchJobId, int sequenceNumber, String contentType, Object data);
 
-  void writeGroupInput(HttpServletResponse response, Identifier batchJobId, int sequenceNumber)
-    throws IOException;
+  void writeFile(final HttpServletResponse response, final Identifier jobId, final String path,
+    final int sequenceNumber) throws IOException;
 
-  void writeGroupResult(HttpServletResponse response, Identifier batchJobId, int sequenceNumber)
-    throws IOException;
+  default void writeGroupInput(final HttpServletResponse response, final Identifier jobId,
+    final int sequenceNumber) throws IOException {
+    writeFile(response, jobId, GROUP_INPUTS, sequenceNumber);
+  }
 }

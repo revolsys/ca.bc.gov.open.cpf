@@ -118,6 +118,7 @@ import com.revolsys.record.Records;
 import com.revolsys.record.io.MapReaderRecordReader;
 import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.RecordWriterFactory;
+import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.csv.CsvMapWriter;
 import com.revolsys.record.io.format.html.XhtmlMapWriter;
 import com.revolsys.record.io.format.json.Json;
@@ -350,7 +351,6 @@ public class BatchJobService implements ModuleEventListener {
     final String validationErrorMessage) {
     if (this.dataAccessObject != null) {
 
-      final String errorFormat = "text/csv";
       final StringWriter errorWriter = new StringWriter();
 
       String newErrorMessage = validationErrorMessage;
@@ -365,7 +365,7 @@ public class BatchJobService implements ModuleEventListener {
         errorMapWriter.write(errorResultMap);
         try {
           final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
-          newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, errorFormat, errorBytes,
+          newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE, errorBytes,
             0);
         } catch (final UnsupportedEncodingException e) {
         }
@@ -1053,7 +1053,7 @@ public class BatchJobService implements ModuleEventListener {
           } else {
             postProcessCreateStructuredResults(businessApplication, log, batchJob, batchJobId);
           }
-          // TODO errors postProcessCreateResults(log, batchJob, batchJobId);
+          postProcessCreateErrorResults(log, batchJob, batchJobId);
 
           if (batchJob.setStatus(this, BatchJobStatus.CREATING_REQUESTS,
             BatchJobStatus.RESULTS_CREATED)
@@ -1135,91 +1135,33 @@ public class BatchJobService implements ModuleEventListener {
    *
    * @param batchJobId The Record identifier.
    */
-  protected void postProcessCreateResults(final AppLog log, final BatchJob batchJob,
+  protected void postProcessCreateErrorResults(final AppLog log, final BatchJob batchJob,
     final Identifier batchJobId) {
     synchronized (batchJob) {
-      final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-
-      final String businessApplicationName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
-      final BusinessApplication application = getBusinessApplication(businessApplicationName);
-      final RecordDefinition resultRecordDefinition = application.getResultRecordDefinition();
-
-      final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
-      File structuredResultFile = null;
-
-      File errorFile = null;
-      Writer errorWriter = null;
-      MapWriter errorResultWriter = null;
-      com.revolsys.io.Writer<Record> structuredResultWriter = null;
-      try {
-        errorFile = FileUtil.newTempFile("errors", ".csv");
-        errorWriter = new FileWriter(errorFile);
-        errorResultWriter = new CsvMapWriter(errorWriter);
-
-        structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
-        structuredResultWriter = newStructuredResultWriter(batchJob, batchJobId, application,
-          structuredResultFile, resultRecordDefinition, resultFormat);
-        structuredResultWriter.open();
-        final Map<String, Object> defaultProperties = new HashMap<>(
-          structuredResultWriter.getProperties());
-
-        boolean hasErrors = false;
-        boolean hasResults = false;
+      final List<MapEx> files = this.jobController.getFiles(batchJobId, JobController.GROUP_ERRORS);
+      if (!files.isEmpty()) {
+        final File errorFile = FileUtil.newTempFile("errors", ".csv");
         try {
-          final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
-          if (numSubmittedGroups > 0) {
-            for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
+          try (
+            MapWriter errorWriter = MapWriter.newMapWriter(errorFile)) {
+            for (final MapEx errorFileProperties : files) {
+              final int sequenceNumber = errorFileProperties.getInteger("sequenceNumber");
               try (
-                final MapReader resultDataReader = this.jobController
-                  .getGroupResultReader(batchJobId, sequenceNumber);) {
-                if (resultDataReader != null) {
-                  for (final MapEx resultData : resultDataReader) {
-                    final MapEx resultMap = resultData;
-                    if (resultMap.containsKey("errorCode")) {
-                      postProcessWriteError(errorResultWriter, resultMap);
-                      hasErrors = true;
-                    } else if (!application.isPerRequestResultData()) {
-                      postProcessWriteStructuredResult(structuredResultWriter,
-                        resultRecordDefinition, defaultProperties, resultData);
-                      hasResults = true;
-                    }
-                  }
+                MapReader errorReader = this.jobController.getGroupErrorReader(batchJobId,
+                  sequenceNumber)) {
+                for (final MapEx error : errorReader) {
+                  errorWriter.write(error);
                 }
-              } catch (final Throwable e) {
-                throw new RuntimeException("Unable to read results. batchJobId=" + batchJobId + "\t"
-                  + " <= SEQUENCE_NUMBER = " + sequenceNumber, e);
               }
             }
           }
+          newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE, errorFile,
+            0);
+        } catch (final Throwable e) {
+          throw new RuntimeException("Unable to save errors", e);
         } finally {
-          if (structuredResultWriter != null) {
-            try {
-              structuredResultWriter.close();
-            } catch (final Throwable e) {
-              Logs.error(BatchJobService.class, "Unable to close structured result writer", e);
-            }
-          }
-          if (errorResultWriter != null) {
-            try {
-              errorResultWriter.close();
-            } catch (final Throwable e) {
-              Logs.error(BatchJobService.class, "Unable to close error result writer", e);
-            }
-          }
-          FileUtil.closeSilent(errorWriter);
+          Transaction.afterCommit(errorFile::delete);
         }
-        if (hasResults) {
-          newBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
-            structuredResultFile, 1);
-        }
-        if (hasErrors) {
-          newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, "text/csv", errorFile, 0);
-        }
-      } catch (final Throwable e) {
-        throw new RuntimeException("Unable to save results", e);
-      } finally {
-        Transaction.afterCommit(errorFile::delete);
-        Transaction.afterCommit(structuredResultFile::delete);
       }
     }
   }
