@@ -66,6 +66,7 @@ import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.model.Menu;
 import com.revolsys.ui.web.annotation.RequestMapping;
+import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Booleans;
@@ -80,6 +81,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
     super("userAccount", USER_ACCOUNT, CONSUMER_KEY, "User Account", "User Accounts");
     setIdParameterName("consumerKey");
     newKeyList("activeEdit", Collections.singletonList(ACTIVE_IND));
+    addPage(new Page("searchLikeName", "/admin/userAccounts/searchLikeName.json"));
   }
 
   @RequestMapping(value = "/admin/userAccounts/add", method = {

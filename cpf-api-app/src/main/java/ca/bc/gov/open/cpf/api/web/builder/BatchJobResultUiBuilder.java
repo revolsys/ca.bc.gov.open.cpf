@@ -33,13 +33,17 @@ import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
 import ca.bc.gov.open.cpf.api.domain.Common;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
+import com.revolsys.collection.list.Lists;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.record.query.And;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
+import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
+import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
 import com.revolsys.ui.web.annotation.RequestMapping;
+import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.util.Dates;
 
@@ -50,6 +54,39 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     super("batchJobResult", BatchJobResult.BATCH_JOB_RESULT, BatchJobResult.SEQUENCE_NUMBER,
       "Batch Job Result", "Batch Job Results");
     setIdParameterName("sequenceNumber");
+    addLabel("SEQUENCE_NUMBER", "#");
+    addLabel("BATCH_JOB_RESULT_TYPE", "Result Type");
+    addLabel("RESULT_DATA_CONTENT_TYPE", "Content Type");
+
+    addPage(new Page("clientList", "Results", "/ws/jobs/{batchJobId}/results/"));
+    addPage(
+      new Page("clientDownload", "Download", "/ws/jobs/{batchJobId}/results/{sequenceNumber}/"));
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{sequenceNumber}/download"
+  }, title = "Download", method = {
+    RequestMethod.GET, RequestMethod.POST
+  })
+  @ResponseBody
+  public void download(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
+    @PathVariable("businessApplicationName") final String businessApplicationName,
+    @PathVariable("batchJobId") final Long batchJobId,
+    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws IOException {
+    checkAdminOrModuleAdmin(moduleName);
+    getModuleBusinessApplication(moduleName, businessApplicationName);
+    getBatchJob(businessApplicationName, batchJobId);
+    final Identifier jobId = Identifier.newIdentifier(batchJobId);
+
+    final Record batchJobResult = getBatchJobResult(jobId, sequenceNumber);
+    final BatchJobService batchJobService = getBatchJobService();
+    if (batchJobResult == null) {
+      throw new PageNotFoundException("Batch Job result " + sequenceNumber + " does not exist.");
+    } else {
+      batchJobService.downloadBatchJobResult(request, response, jobId, sequenceNumber,
+        batchJobResult);
+    }
   }
 
   public void expiryDate(final XmlWriter out, final Object object) throws IOException {
@@ -76,40 +113,36 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
       "Job " + batchJobId + " or result " + sequenceNumber + " does not exist");
   }
 
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results/{sequenceNumber}/download"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
-  })
-  @ResponseBody
-  public void getModuleAppJobDownload(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId,
-    @PathVariable("sequenceNumber") final Integer sequenceNumber) throws IOException {
-    checkAdminOrModuleAdmin(moduleName);
-    getModuleBusinessApplication(moduleName, businessApplicationName);
-    getBatchJob(businessApplicationName, batchJobId);
-    final Identifier jobId = Identifier.newIdentifier(batchJobId);
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
 
-    final Record batchJobResult = getBatchJobResult(jobId, sequenceNumber);
-    final BatchJobService batchJobService = getBatchJobService();
-    if (batchJobResult == null) {
-      throw new PageNotFoundException("Batch Job result " + sequenceNumber + " does not exist.");
-    } else {
-      batchJobService.downloadBatchJobResult(request, response, jobId, sequenceNumber,
-        batchJobResult);
-    }
+    addKeySerializer(new DateFormatKeySerializer("DOWNLOAD_TIMESTAMP", "Download Time"));
+    addKeySerializer(new DateFormatKeySerializer("WHEN_CREATED", "Creation Time"));
+    addKeySerializer(new ActionFormKeySerializer("download", "Download", "fa fa-download")//
+      .setCssClass("ui-auto-button-disk") //
+      .setTarget("_top")//
+    );
+
+    newView("clientList",
+      Lists.newArray("SEQUENCE_NUMBER", "BATCH_JOB_RESULT_TYPE", "RESULT_DATA_CONTENT_TYPE",
+        "expiryDate",
+        new ActionFormKeySerializer("clientDownload", "Download", "fa fa-download") //
+          .setCssClass("ui-auto-button-disk") //
+          .setTarget("_top")));
   }
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results"
-  }, method = RequestMethod.GET)
+  }, title = "Result Files", method = RequestMethod.GET, fieldNames = {
+    "SEQUENCE_NUMBER", "BATCH_JOB_RESULT_TYPE", "RESULT_DATA_CONTENT_TYPE", "expiryDate",
+    "download", "WHEN_CREATED", "DOWNLOAD_TIMESTAMP"
+  })
   @ResponseBody
-  public Object pageModuleAppJobList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("businessApplicationName") final String businessApplicationName,
-    @PathVariable("batchJobId") final Long batchJobId) throws IOException {
+  public Object moduleAppJobList(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable final String moduleName,
+    @PathVariable final String businessApplicationName, @PathVariable final Long batchJobId)
+    throws IOException {
     checkAdminOrModuleAdmin(moduleName);
     getModuleBusinessApplication(moduleName, businessApplicationName);
     getBatchJob(businessApplicationName, batchJobId);

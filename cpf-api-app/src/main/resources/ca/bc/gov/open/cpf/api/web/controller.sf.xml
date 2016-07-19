@@ -157,13 +157,31 @@
     class="ca.bc.gov.open.cpf.api.web.builder.BatchJobFileUiBuilder" />
 
   <bean
+    name="/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobResultUiBuilder"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
+    name="/CPF/CPF_CONFIG_PROPERTIES-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.ConfigPropertyUiBuilder"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
+    name="/CPF/CPF_USER_ACCOUNTS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.UserAccountUiBuilder" />
+
+  <bean
     id="ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.BatchJobRequestExecutionGroupUiBuilder"
     p:batchJobService-ref="batchJobService" />
-    
+
   <bean
     name="ExecutionGroup-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.ExecutionGroupUiBuilder" />
+
+  <bean
+    id="ca.bc.gov.open.cpf.api.scheduler.Tuning-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.TuningUiBuilder" />
 
   <bean
     id="ca.bc.gov.open.cpf.api.scheduler.Worker-htmlbuilder"

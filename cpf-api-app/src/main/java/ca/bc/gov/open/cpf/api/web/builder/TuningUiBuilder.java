@@ -55,6 +55,7 @@ import com.revolsys.ui.html.form.UiBuilderObjectForm;
 import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.model.Menu;
+import com.revolsys.ui.web.annotation.ColumnSortOrder;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.utils.HttpServletUtils;
@@ -81,6 +82,10 @@ public class TuningUiBuilder extends CpfUiBuilder {
   public TuningUiBuilder() {
     setTypeName("tuning");
     setTableName(ConfigProperty.CONFIG_PROPERTY);
+    addLabel("preProcessPoolSize", "Pre-Process Thread Pool Size");
+    addLabel("postProcessPoolSize", "Post-Process Thread Pool Size");
+    addLabel("schedulerPoolSize", "Scheduler Thread Pool Size");
+    addLabel("groupResultPoolSize", "Group Result Thread Pool Size");
   }
 
   private void addCounts(final List<Object> rows, final String name, final int active,
@@ -110,11 +115,14 @@ public class TuningUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/tuning/config"
-  }, method = {
+  }, title = "Config Tuning Parameters", method = {
     RequestMethod.GET, RequestMethod.POST
-  })
+  }, fieldNames = {
+    "preProcessPoolSize", "schedulerPoolSize", "groupResultPoolSize", "postProcessPoolSize",
+    "databaseConnectionPoolSize"
+  }, permission = "hasRole('ROLE_ADMIN')")
   @ResponseBody
-  public Object newPageConfig(final HttpServletRequest request, final HttpServletResponse response)
+  public Object config(final HttpServletRequest request, final HttpServletResponse response)
     throws IOException {
     checkHasAnyRole(ADMIN);
     final List<String> fieldNames = getKeyList("config");
@@ -193,9 +201,11 @@ public class TuningUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/tuning"
-  }, method = RequestMethod.GET)
+  }, title = "Tuning Parameters", method = RequestMethod.GET, fieldNames = {
+    "name", "activeCount", "currentSize", "largestSize", "maxSize"
+  }, columnSortOrder = @ColumnSortOrder("name"))
   @ResponseBody
-  public Object newPageList(final HttpServletRequest request, final HttpServletResponse response)
+  public Object list(final HttpServletRequest request, final HttpServletResponse response)
     throws IOException {
     checkAdminOrAnyModuleAdmin();
     HttpServletUtils.setAttribute("title", "Tuning");

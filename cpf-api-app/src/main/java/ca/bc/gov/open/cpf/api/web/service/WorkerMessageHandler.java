@@ -15,11 +15,10 @@
  */
 package ca.bc.gov.open.cpf.api.web.service;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -43,6 +42,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
@@ -62,7 +62,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
   public WorkerMessageHandler() {
   }
 
-  private void addConfigProperties(final Map<String, Map<String, Object>> configProperties,
+  private void addConfigProperties(final Map<String, MapEx> configProperties,
     final String environmentName, final String moduleName, final String componentName) {
     final CpfDataAccessObject dataAccessObject = this.batchJobService.getDataAccessObject();
     final List<Record> properties = dataAccessObject.getConfigPropertiesForModule(environmentName,
@@ -84,12 +84,12 @@ public class WorkerMessageHandler implements ModuleEventListener {
     this.batchJobService.cancelGroup(worker, groupId);
   }
 
-  private Collection<Map<String, Object>> getConfigProperties(final String environmentName,
+  private Collection<MapEx> getConfigProperties(final String environmentName,
     final String moduleName, final String componentName) {
-    final Map<String, Map<String, Object>> configProperties = new HashMap<>();
-    addConfigProperties(configProperties, ConfigProperty.DEFAULT, moduleName, componentName);
-    addConfigProperties(configProperties, environmentName, moduleName, componentName);
-    return configProperties.values();
+    final Map<String, MapEx> configProperiesByName = new TreeMap<>();
+    addConfigProperties(configProperiesByName, ConfigProperty.DEFAULT, moduleName, componentName);
+    addConfigProperties(configProperiesByName, environmentName, moduleName, componentName);
+    return configProperiesByName.values();
   }
 
   public boolean isModuleEnabled(final String moduleName) {
@@ -122,14 +122,10 @@ public class WorkerMessageHandler implements ModuleEventListener {
     final String moduleName = Maps.getString(message, "moduleName");
     final String environmentName = Maps.getString(message, "environmentName");
     final String componentName = Maps.getString(message, "componentName");
-    final Collection<Map<String, Object>> applicationConfigProperties = new ArrayList<>();
-    final Collection<Map<String, Object>> configProperties = getConfigProperties(environmentName,
-      moduleName, componentName);
-    if (configProperties != null) {
-      applicationConfigProperties.addAll(configProperties);
-    }
+    final Collection<MapEx> configProperties = getConfigProperties(environmentName, moduleName,
+      componentName);
     final Map<String, Object> resultMessage = newResultMessage(message);
-    resultMessage.put("properties", applicationConfigProperties);
+    resultMessage.put("properties", configProperties);
     worker.sendMessage(resultMessage);
   }
 
