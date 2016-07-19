@@ -47,9 +47,6 @@ public class MapTileByTileId {
   private short numBoundaryPoints = 20;
 
   public void execute() {
-    if ("exception".equals(this.mapTileId)) {
-      throw new RuntimeException("Cannot run");
-    }
     final RectangularMapGrid grid = RectangularMapGridFactory.getGrid(this.mapGridName);
     if (grid == null) {
       throw new IllegalArgumentException("Grid not supported " + this.mapGridName);

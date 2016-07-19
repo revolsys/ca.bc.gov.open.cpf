@@ -327,6 +327,8 @@ public class BatchJobService implements ModuleEventListener {
 
   private final Map<String, Worker> workersById = new TreeMap<>();
 
+  private final Map<String, Worker> workersByKey = new TreeMap<>();
+
   private final Set<Identifier> preprocesedJobIds = new HashSet<>();
 
   private long timeoutForCapacityErrors = 5 * 60 * 1000;
@@ -408,7 +410,10 @@ public class BatchJobService implements ModuleEventListener {
     if (groupId != null) {
       final BatchJobRequestExecutionGroup group = worker.removeExecutingGroup(groupId);
       if (group != null) {
-        Logs.info(BatchJobService.class, "Reschedule Group\tgroupId" + groupId);
+        final BusinessApplication businessApplication = group.getBusinessApplication();
+        final AppLog log = businessApplication.getLog();
+        log.info("Reschedule\tGroup execution\tgroupId=" + groupId);
+
         group.resetId();
         rescheduleGroup(group);
       }
@@ -861,8 +866,15 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public Worker getWorkerByKey(final String workerKey) {
+    synchronized (this.workersByKey) {
+      final Worker worker = this.workersByKey.get(workerKey);
+      return worker;
+    }
+  }
+
   public List<Worker> getWorkers() {
-    return new ArrayList<>(this.workersById.values());
+    return new ArrayList<>(this.workersByKey.values());
   }
 
   @PostConstruct
@@ -1544,6 +1556,7 @@ public class BatchJobService implements ModuleEventListener {
           if (workerTimestamp == null || workerTimestamp.before(lastIdleTime)) {
             synchronized (this.workersById) {
               worker = this.workersById.remove(workerId);
+              this.workersByKey.remove(worker.getKey());
             }
             final Map<String, BatchJobRequestExecutionGroup> groupsById = worker
               .getExecutingGroupsById();
@@ -1886,6 +1899,7 @@ public class BatchJobService implements ModuleEventListener {
           worker = new Worker(workerId, workerStartTime);
           worker.setSession(session);
           this.workersById.put(workerId, worker);
+          this.workersByKey.put(worker.getKey(), worker);
           for (final Module module : this.businessApplicationRegistry.getModules()) {
             if (module.isStarted()) {
               final LinkedHashMap<String, Object> message = new LinkedHashMap<>();
@@ -1943,6 +1957,7 @@ public class BatchJobService implements ModuleEventListener {
       synchronized (this.workersById) {
         final Worker worker = this.workersById.get(workerId);
         if (worker != null) {
+          this.workersByKey.remove(worker.getKey());
           if (worker.getSession() == session) {
             worker.setSession(null);
           }

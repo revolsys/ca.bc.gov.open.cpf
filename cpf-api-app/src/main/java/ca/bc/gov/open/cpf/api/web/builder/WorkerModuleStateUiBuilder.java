@@ -29,13 +29,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.api.scheduler.WorkerModuleState;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
+import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
-import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
 public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
@@ -46,37 +47,66 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
     setIdPropertyName("name");
   }
 
-  @RequestMapping(value = {
-    "/admin/workers/{workerId}/modules/{moduleName}"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Element modulePageView(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    final Module module = getModule(request, moduleName);
-    final TabElementContainer tabs = new TabElementContainer();
-    addObjectViewPage(tabs, module, "worker");
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+    addKeySerializer(new PageLinkKeySerializer("name_link", "name", "Name", "workerView"));
 
-    return tabs;
+    addKeySerializer(new BooleanImageKeySerializer("enabled"));
+
+    addKeySerializer(new BooleanImageKeySerializer("started"));
+
+    addKeySerializer(new DateFormatKeySerializer("startedDate", "Start Time"));
   }
 
   @RequestMapping(value = {
-    "/admin/workers/{workerId}/modules"
-  }, method = RequestMethod.GET)
+    "/admin/workers/{workerKey}/modules"
+  }, title = "Modules", method = RequestMethod.GET, fieldNames = {
+    "name_link", "status", "enabled", "started", "startedDate"
+  })
   @ResponseBody
-  public Object pageWorkerList(@PathVariable("workerId") final String workerId) {
+  public Object workerList(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable final String workerKey) {
     checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
+    final Worker worker = batchJobService.getWorkerByKey(workerKey);
     if (worker == null) {
       throw new PageNotFoundException(
-        "The worker " + workerId + " could not be found. It may no longer be connected.");
+        "The worker " + workerKey + " could not be found. It may no longer be connected.");
     } else {
       final List<WorkerModuleState> modules = worker.getModules();
-      return newDataTableHandlerOrRedirect(getRequest(), HttpServletUtils.getResponse(),
-        "workerList", modules, Worker.class, "view");
+      return newDataTableHandlerOrRedirect(request, response, "workerList", modules, Worker.class,
+        "view");
     }
   }
 
+  @RequestMapping(value = {
+    "/admin/workers/{workerKey}/modules/{moduleName}"
+  }, title = "Module {moduleName}", method = RequestMethod.GET, fieldNames = {
+    "name", "status", "enabled", "started", "startedDate", "moduleError"
+  })
+  @ResponseBody
+  public Element workerView(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable final String workerKey, @PathVariable final String moduleName)
+    throws ServletException {
+    checkHasAnyRole(ADMIN);
+    final BatchJobService batchJobService = getBatchJobService();
+    final Worker worker = batchJobService.getWorkerByKey(workerKey);
+    checkAdminOrModuleAdmin(moduleName);
+    if (worker == null) {
+      throw new PageNotFoundException(
+        "The worker " + workerKey + " could not be found. It may no longer be connected.");
+    } else {
+      final WorkerModuleState module = worker.getModuleState(moduleName);
+      if (module == null) {
+        throw new PageNotFoundException(
+          "The module " + moduleName + " is not running on worker " + workerKey);
+      } else {
+        final TabElementContainer tabs = new TabElementContainer();
+        addObjectViewPage(tabs, module, "workerView");
+
+        return tabs;
+      }
+    }
+  }
 }

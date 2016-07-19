@@ -15,9 +15,13 @@
  */
 package ca.bc.gov.open.cpf.api.web.builder;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,14 +33,17 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.api.scheduler.Worker;
 import ca.bc.gov.open.cpf.api.scheduler.WorkerModuleState;
 
+import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.ElementContainer;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
-import com.revolsys.ui.web.utils.HttpServletUtils;
 
 @Controller
 public class WorkerUiBuilder extends CpfUiBuilder {
+
+  private final Callable<Collection<? extends Object>> workersCallable = this::getWorkers;
 
   public WorkerUiBuilder() {
     super("worker", "Worker", "Workers");
@@ -47,27 +54,42 @@ public class WorkerUiBuilder extends CpfUiBuilder {
     return batchJobService.getWorkers();
   }
 
-  @RequestMapping(value = {
-    "/admin/workers"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Object pageList() {
-    checkHasAnyRole(ADMIN);
-    HttpServletUtils.setAttribute("title", "Workers");
-    return newDataTableHandler(getRequest(), "list", this::getWorkers);
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+
+    final PageLinkKeySerializer idLink = new PageLinkKeySerializer("id_link", "id", "ID", "view");
+    idLink.addParameterKey("workerKey", "key");
+    addKeySerializer(idLink);
+
+    addKeySerializer(new DateFormatKeySerializer("lastConnectTime"));
   }
 
   @RequestMapping(value = {
-    "/admin/workers/{workerId}"
-  }, method = RequestMethod.GET)
+    "/admin/workers"
+  }, title = "Workers", method = RequestMethod.GET, fieldNames = {
+    "id_link", "lastConnectTime"
+  }, permission = "hasRole('ROLE_ADMIN')")
   @ResponseBody
-  public ElementContainer pageView(@PathVariable("workerId") final String workerId) {
+  public Object list(final HttpServletRequest request) {
+    checkHasAnyRole(ADMIN);
+    request.setAttribute("title", "Workers");
+    return newDataTableHandler(request, "list", this.workersCallable);
+  }
+
+  @RequestMapping(value = {
+    "/admin/workers/{workerKey}"
+  }, title = "Worker {workerKey}", method = RequestMethod.GET, fieldNames = {
+    "id", "lastConnectTime"
+  }, permission = "hasRole('ROLE_ADMIN')")
+  @ResponseBody
+  public ElementContainer view(@PathVariable final String workerKey) {
     checkHasAnyRole(ADMIN);
     final BatchJobService batchJobService = getBatchJobService();
-    final Worker worker = batchJobService.getWorker(workerId);
+    final Worker worker = batchJobService.getWorkerByKey(workerKey);
     if (worker == null) {
       throw new PageNotFoundException(
-        "The worker " + workerId + " could not be found. It may no longer be connected.");
+        "The worker " + workerKey + " could not be found. It may no longer be connected.");
     } else {
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, worker, null);

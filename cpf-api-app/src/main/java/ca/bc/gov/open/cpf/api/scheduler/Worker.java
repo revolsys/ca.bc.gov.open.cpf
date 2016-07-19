@@ -48,8 +48,11 @@ public class Worker {
 
   private JsonAsyncSender messageSender;
 
+  private final String key;
+
   public Worker(final String id, final long startTime) {
     this.id = id;
+    this.key = id.toLowerCase().replaceAll("[^0-9a-z]+", "_");
     this.startTime = startTime;
   }
 
@@ -116,6 +119,10 @@ public class Worker {
 
   public String getId() {
     return this.id;
+  }
+
+  public String getKey() {
+    return this.key;
   }
 
   public Timestamp getLastConnectTime() {

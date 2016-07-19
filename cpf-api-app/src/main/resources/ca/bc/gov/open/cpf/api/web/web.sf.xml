@@ -29,16 +29,12 @@
   </security:global-method-security>
 
   <import resource="domain/BatchJob.sf.xml" />
-  <import resource="domain/BatchJobRequestExecutionGroup.sf.xml" />
   <import resource="domain/BatchJobResult.sf.xml" />
   <import resource="domain/BusinessApplication.sf.xml" />
   <import resource="domain/BusinessApplicationStatistics.sf.xml" />
   <import resource="domain/ConfigProperty.sf.xml" />
-  <import resource="domain/ExecutionGroup.sf.xml" />
   <import resource="domain/Module.sf.xml" />
   <import resource="domain/Tuning.sf.xml" />
-  <import resource="domain/Worker.sf.xml" />
-  <import resource="domain/WorkerModuleState.sf.xml" />
   <import resource="domain/UserAccount.sf.xml" />
   <import resource="domain/UserGroup.sf.xml" />
   <import resource="domain/UserGroupPermission.sf.xml" />

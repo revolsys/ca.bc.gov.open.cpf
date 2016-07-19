@@ -57,6 +57,7 @@ import com.revolsys.io.FileBackedCache;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.map.MapReader;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.tsv.Tsv;
@@ -369,6 +370,8 @@ public class WorkerGroupRunnable implements Runnable {
       this.businessApplication = this.scheduler.getBusinessApplication(this.log, this.moduleName,
         moduleTime, this.businessApplicationName);
       if (this.businessApplication == null) {
+        Logs.error(this, "Business application " + this.moduleName + "."
+          + this.businessApplicationName + " is not loaded groupId=" + this.groupId);
         this.scheduler.addFailedGroup(this.groupId);
         return;
       } else {
@@ -461,6 +464,8 @@ public class WorkerGroupRunnable implements Runnable {
         }
       }
     } catch (final Throwable e) {
+      Logs.error(this, "Error processing group " + this.moduleName + "."
+        + this.businessApplicationName + " is not loaded groupId=" + this.groupId, e);
       this.log.error("Unable to process group " + this.groupId, e);
       this.scheduler.addFailedGroup(this.groupId);
     } finally {
