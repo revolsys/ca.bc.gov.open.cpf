@@ -153,8 +153,17 @@
     p:suffix=".jsp" />
 
   <bean
+    name="/CPF/CPF_BATCH_JOBS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobUiBuilder"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
     name="/CPF/CPF_BATCH_JOB_FILES-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.BatchJobFileUiBuilder" />
+
+  <bean
+    name="/CPF/CPF_BATCH_JOB_STATUS_CHANGE-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobStatusChangeUiBuilder" />
 
   <bean
     name="/CPF/CPF_BATCH_JOB_RESULTS-htmlbuilder"
@@ -171,13 +180,40 @@
     class="ca.bc.gov.open.cpf.api.web.builder.UserAccountUiBuilder" />
 
   <bean
+    name="/CPF/CPF_USER_GROUPS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.UserGroupUiBuilder"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
+    name="/CPF/CPF_USER_GROUP_PERMISSIONS-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.UserGroupPermissionUiBuilder"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
     id="ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.BatchJobRequestExecutionGroupUiBuilder"
     p:batchJobService-ref="batchJobService" />
 
   <bean
+    id="ca.bc.gov.open.cpf.plugin.impl.BusinessApplication-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationUiBuilder"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
+    id="ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationStatisticsUiBuilder"
+    p:batchJobService-ref="batchJobService" />
+
+  <bean
     name="ExecutionGroup-htmlbuilder"
     class="ca.bc.gov.open.cpf.api.web.builder.ExecutionGroupUiBuilder" />
+
+  <bean
+    id="ca.bc.gov.open.cpf.plugin.impl.module.Module-htmlbuilder"
+    class="ca.bc.gov.open.cpf.api.web.builder.ModuleUiBuilder"
+    p:mavenRepository-ref="mavenRepository"
+    p:moduleLoader-ref="configPropertyModuleLoader"
+    p:batchJobService-ref="batchJobService" />
 
   <bean
     id="ca.bc.gov.open.cpf.api.scheduler.Tuning-htmlbuilder"

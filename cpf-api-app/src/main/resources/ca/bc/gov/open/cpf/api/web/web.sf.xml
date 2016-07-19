@@ -28,13 +28,6 @@
     <security:expression-handler ref="methodSecurityHandler" />
   </security:global-method-security>
 
-  <import resource="domain/BatchJob.sf.xml" />
-  <import resource="domain/BusinessApplication.sf.xml" />
-  <import resource="domain/BusinessApplicationStatistics.sf.xml" />
-  <import resource="domain/Module.sf.xml" />
-  <import resource="domain/UserGroup.sf.xml" />
-  <import resource="domain/UserGroupPermission.sf.xml" />
-
   <import resource="controller.sf.xml" />
 
   <import resource="pages.sf.xml" />
@@ -48,10 +41,5 @@
   <import resource="classpath*:META-INF/ca/bc/gov/open/cpf/web-module.sf.xml" />
 
   <import resource="classpath:com/revolsys/parallel/processNetworkStart.sf.xml" />
-
-  <bean
-    name="/CPF/CPF_BATCH_JOB_STATUS_CHANGE-htmlbuilder"
-    class="ca.bc.gov.open.cpf.api.web.builder.BatchJobStatusChangeUiBuilder"
-  />
 </beans>
 

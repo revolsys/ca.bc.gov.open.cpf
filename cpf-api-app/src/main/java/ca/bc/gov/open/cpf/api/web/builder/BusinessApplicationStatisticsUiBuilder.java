@@ -38,10 +38,14 @@ import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.api.scheduler.StatisticsService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
+import com.revolsys.collection.list.Lists;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.TabElementContainer;
+import com.revolsys.ui.web.annotation.ColumnSortOrder;
 import com.revolsys.ui.web.annotation.RequestMapping;
+import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 
 @Controller
@@ -51,6 +55,26 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     super("statistic", "Business Application Statistic", "Business Application LabelCountMap");
     setIdParameterName("statisticId");
     setIdPropertyName("id");
+    addLabel("module.started", "Module Started");
+    addLabel("submittedJobsCount", "# Jobs Submitted");
+    addLabel("completedJobsCount", "# Jobs Completed");
+    addLabel("completedRequestsCount", "# Requests Completed");
+    addLabel("applicationExecutedGroupsCount", "# App Groups Executed");
+    addLabel("applicationExecutedRequestsCount", "# App Requests Completed");
+    addLabel("applicationExecutedFailedRequestsCount", "# App Requests Failed");
+
+    for (final String key : Lists.newArray("hourList", "dayList", "monthList", "yearList")) {
+      newView(key,
+        Lists.newArray("moduleAppViewLink", "module.name_link", "module.started",
+          "businessApplication.name_link", "submittedJobsCount", "completedJobsCount",
+          "applicationExecutedGroupsCount", "applicationExecutedRequestsCount",
+          "applicationExecutedFailedRequestsCount"));
+    }
+
+    addPage(new Page("hourList", "Hour", "/admin/dashboard/hour/"));
+    addPage(new Page("dayList", "Today", "/admin/dashboard/day/"));
+    addPage(new Page("monthList", "Month", "/admin/dashboard/month/"));
+    addPage(new Page("yearList", "Year", "/admin/dashboard/year/"));
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
@@ -63,6 +87,31 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     parameterKeys.put("moduleName", "moduleName");
     parameterKeys.put("businessApplicationName", "name");
     appBuilder.serializeLink(out, businessApplication, "name", "moduleView", parameterKeys);
+  }
+
+  @RequestMapping(value = {
+    "/admin/dashboard"
+  }, title = "Dashboard", method = RequestMethod.GET,
+      permission = "hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*_ADMIN')")
+  @ResponseBody
+  public Object dashboard(final HttpServletRequest request) {
+    checkAdminOrAnyModuleAdminExceptSecurity();
+    setPageTitle(request, "summary");
+
+    final TabElementContainer tabs = new TabElementContainer();
+
+    final Map<String, Object> parameters = new HashMap<>();
+    parameters.put("serverSide", Boolean.FALSE);
+
+    addTabDataTable(tabs, this, "hourList", parameters);
+
+    addTabDataTable(tabs, this, "dayList", parameters);
+
+    addTabDataTable(tabs, this, "monthList", parameters);
+
+    addTabDataTable(tabs, this, "yearList", parameters);
+
+    return tabs;
   }
 
   @Override
@@ -124,21 +173,27 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     return statistics;
   }
 
-  public ModelAndView newStatsViewPage(final String businessApplicationName,
-    final BusinessApplicationStatistics stats) {
-    final ModelMap model = new ModelMap();
-    model.put("title", businessApplicationName + " LabelCountMap " + stats.getId());
-    model.put("statisitcs", stats);
-    model.put("body", "/WEB-INF/jsp/builder/businessApplicationStatisticsView.jsp");
-    return new ModelAndView("/jsp/template/page", model);
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+    addKeySerializer(new PageLinkKeySerializer("moduleAppViewLink", "id", "ID", "moduleAppView")
+      .addParameterKey("moduleName", "moduleName") //
+      .addParameterKey("businessApplicationName", "businessApplicationName") //
+      .addParameterKey("statisticId", "id"));
+    addKeySerializer(
+      new PageLinkKeySerializer("listModuleAppViewLink", "id", "ID", "moduleAppView"));
   }
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard"
-  }, method = RequestMethod.GET)
+  }, title = "Dashboard", method = RequestMethod.GET, fieldNames = {
+    "listModuleAppViewLink", "durationType", "submittedJobsCount", "completedJobsCount",
+    "applicationExecutedGroupsCount", "applicationExecutedRequestsCount",
+    "applicationExecutedFailedRequestsCount"
+  }, columnSortOrder = @ColumnSortOrder("listModuleAppViewLink"))
   @ResponseBody
-  public Object pageBusinessApplicationList(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
+  public Object moduleAppList(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
     throws IOException {
     checkAdminOrModuleAdmin(moduleName);
@@ -155,8 +210,8 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/dashboard/{statisticId}"
-  }, method = RequestMethod.GET)
-  public ModelAndView pageBusinessApplicationView(final HttpServletRequest request,
+  }, title = "Dashboard for {businessApplicationName}", method = RequestMethod.GET)
+  public ModelAndView moduleAppView(final HttpServletRequest request,
     final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName,
     final @PathVariable("statisticId") String statisticId) throws IOException, ServletException {
@@ -180,37 +235,25 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     throw new PageNotFoundException();
   }
 
-  @RequestMapping(value = {
-    "/admin/dashboard"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Object pageIndex(final HttpServletRequest request) {
-    checkAdminOrAnyModuleAdminExceptSecurity();
-    setPageTitle(request, "summary");
-
-    final TabElementContainer tabs = new TabElementContainer();
-
-    final Map<String, Object> parameters = new HashMap<>();
-    parameters.put("serverSide", Boolean.FALSE);
-
-    addTabDataTable(tabs, this, "hourList", parameters);
-
-    addTabDataTable(tabs, this, "dayList", parameters);
-
-    addTabDataTable(tabs, this, "monthList", parameters);
-
-    addTabDataTable(tabs, this, "yearList", parameters);
-
-    return tabs;
+  public ModelAndView newStatsViewPage(final String businessApplicationName,
+    final BusinessApplicationStatistics stats) {
+    final ModelMap model = new ModelMap();
+    model.put("title", businessApplicationName + " LabelCountMap " + stats.getId());
+    model.put("statisitcs", stats);
+    model.put("body", "/WEB-INF/jsp/builder/businessApplicationStatisticsView.jsp");
+    return new ModelAndView("/jsp/template/page", model);
   }
 
   @RequestMapping(value = {
     "/admin/dashboard/{durationType}"
-  }, method = RequestMethod.GET)
+  }, method = RequestMethod.GET, fieldNames = {
+    "moduleAppViewLink", "module.name_link", "module.started", "businessApplication.name_link",
+    "submittedJobsCount", "completedJobsCount", "applicationExecutedGroupsCount",
+    "applicationExecutedRequestsCount", "applicationExecutedFailedRequestsCount"
+  })
   @ResponseBody
-  public Object pageSummaryList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("durationType") final String durationType)
-    throws IOException {
+  public Object summaryList(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("durationType") final String durationType) throws IOException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     return newDataTableHandlerOrRedirect(request, durationType + "List", () -> {
       return getSummaryStatistics(durationType);

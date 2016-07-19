@@ -42,6 +42,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
+import com.revolsys.collection.list.Lists;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.GeometryFactory;
@@ -52,7 +53,14 @@ import com.revolsys.record.Record;
 import com.revolsys.record.io.ListRecordReader;
 import com.revolsys.record.io.RecordReader;
 import com.revolsys.record.schema.RecordDefinitionImpl;
+import com.revolsys.ui.html.fields.CheckBoxField;
+import com.revolsys.ui.html.fields.IntegerField;
+import com.revolsys.ui.html.fields.SelectField;
+import com.revolsys.ui.html.fields.SpelExpressionField;
 import com.revolsys.ui.html.form.Form;
+import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
+import com.revolsys.ui.html.serializer.key.BulletListKeySerializer;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -71,6 +79,16 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     super("businessApplication", "Business Application", "Business Applications");
     setIdParameterName("businessApplicationName");
     setIdPropertyName("name");
+
+    addPage(new Page("clientList", "Business Applications", "/ws/apps"));
+    addPage(new Page("clientView", "/ws/apps/{businessApplicationName}/"));
+    addPage(new Page("clientInstant", "/ws/apps/{businessApplicationName}/instant/"));
+    addPage(new Page("clientSingle", "/ws/apps/{businessApplicationName}/single/"));
+    addPage(new Page("clientMultiple", "/ws/apps/{businessApplicationName}/multiple/"));
+
+    newView("clientList",
+      Lists.newArray(new PageLinkKeySerializer("clientView", "title", "Name", "clientView") //
+        .addParameterKey("businessApplicationName", "name"), "description"));
   }
 
   @RequestMapping("/ws/sample/input")
@@ -137,11 +155,42 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     return reader;
   }
 
+  @Override
+  protected void initFields() {
+    super.initFields();
+    addField(new SelectField("logLevel", true) //
+      .addOption("ERROR") //
+      .addOption("INFO") //
+      .addOption("DEBUG"));
+    addField(new CheckBoxField("testModeEnabled"));
+    addField(new SpelExpressionField("batchModePermission", true));
+    addField(new SpelExpressionField("instantModePermission", true));
+    addField(new IntegerField("maxRequestsPerJob", true));
+    addField(new IntegerField("maxConcurrentRequests", true));
+    addField(new IntegerField("numRequestsPerWorker", true));
+  }
+
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+
+    addKeySerializer(
+      new PageLinkKeySerializer("module_name_link", "module.name", "Module", "view"));
+    addKeySerializer(new PageLinkKeySerializer("name_link", "name", "Name", "moduleView") //
+      .addParameterKey("businessApplicationName", "name") //
+      .addParameterKey("moduleName", "module.name"));
+    addKeySerializer(new BulletListKeySerializer("inputDataContentTypes"));
+    addKeySerializer(new BulletListKeySerializer("resultDataContentTypes"));
+    addKeySerializer(new BooleanImageKeySerializer("testModeEnabled"));
+  }
+
   @RequestMapping(value = {
     "/admin/apps"
-  }, method = RequestMethod.GET)
+  }, title = "Business Applications", method = RequestMethod.GET, fieldNames = {
+    "name_link", "module_name_link", "title",
+  }, permission = "hasRole('ROLE_ADMIN') or hasRoleRegex('ROLE_ADMIN_MODULE_.*_ADMIN')")
   @ResponseBody
-  public Object pageList(final HttpServletRequest request, final HttpServletResponse response)
+  public Object list(final HttpServletRequest request, final HttpServletResponse response)
     throws IOException {
     checkAdminOrAnyModuleAdminExceptSecurity();
     HttpServletUtils.setAttribute("title", "Business Applications");
@@ -159,10 +208,13 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/edit"
   }, method = {
     RequestMethod.GET, RequestMethod.POST
-  })
+  }, fieldNames = {
+    "logLevel", "testModeEnabled", "batchModePermission", "instantModePermission",
+    "maxRequestsPerJob", "maxConcurrentRequests", "numRequestsPerWorker",
+  }, title = "Edit Business Application {businessApplicationName}")
   @ResponseBody
-  public Element pageModuleEdit(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
+  public Element moduleEdit(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
@@ -258,9 +310,13 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps"
-  }, method = RequestMethod.GET)
+  }, title = "Business Applications", method = RequestMethod.GET,
+      permission = "hasRole('ROLE_ADMIN')  or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')",
+      fieldNames = {
+        "name_link", "module_name_link", "title",
+      })
   @ResponseBody
-  public Object pageModuleList(final HttpServletRequest request, final HttpServletResponse response,
+  public Object moduleList(final HttpServletRequest request, final HttpServletResponse response,
     final @PathVariable("moduleName") String moduleName) throws IOException {
     final Module module = getModule(request, moduleName);
     checkAdminOrModuleAdmin(moduleName);
@@ -270,10 +326,18 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}"
-  }, method = RequestMethod.GET)
+  }, title = "Business Application {businessApplicationName}", method = RequestMethod.GET,
+      fieldNames = {
+        "name", "module_name_link", "title", "descriptionUrl", "logLevel", "testModeEnabled",
+        "batchModePermission", "instantModePermission", "geometryFactory", "validateGeometry",
+        "perRequestInputData", "inputDataContentTypes", "hasGeometryRequestAttribute",
+        "perRequestResultData", "resultDataContentTypes", "hasCustomizationProperties",
+        "resultListProperty", "hasResultListCustomizationProperties", "hasGeometryResultAttribute",
+        "maxRequestsPerJob", "maxConcurrentRequests", "numRequestsPerWorker",
+      })
   @ResponseBody
-  public Element pageModuleView(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("moduleName") String moduleName,
+  public Element moduleView(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("moduleName") String moduleName,
     final @PathVariable("businessApplicationName") String businessApplicationName)
     throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);

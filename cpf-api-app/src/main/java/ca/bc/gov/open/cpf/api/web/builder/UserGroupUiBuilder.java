@@ -43,6 +43,8 @@ import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
 import com.revolsys.ui.html.fields.Field;
+import com.revolsys.ui.html.fields.TextAreaField;
+import com.revolsys.ui.html.fields.TextField;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
 import com.revolsys.ui.html.serializer.key.MultipleKeySerializer;
@@ -56,7 +58,7 @@ import com.revolsys.util.Booleans;
 
 @Controller
 public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
-  private static final List<String> GLOBAL_GROUP_NAMES = Arrays.asList("ADMIN", "USER_TYPE",
+  public static final List<String> GLOBAL_GROUP_NAMES = Arrays.asList("ADMIN", "USER_TYPE",
     "GLOBAL", "WORKER");
 
   public UserGroupUiBuilder() {
@@ -97,6 +99,90 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
     return Arrays.asList(moduleName, "USER_TYPE", "GLOBAL");
   }
 
+  @RequestMapping(value = {
+    "/admin/userGroups/add"
+  }, title = "Add User Group", method = {
+    RequestMethod.GET, RequestMethod.POST
+  }, fieldNames = {
+    "USER_GROUP_NAME", "DESCRIPTION", "ACTIVE_IND",
+  })
+  @ResponseBody
+  public Element groupAdd(final HttpServletRequest request, final HttpServletResponse response)
+    throws IOException, ServletException {
+    final Map<String, Object> defaultValues = new HashMap<>();
+    defaultValues.put(UserGroup.ACTIVE_IND, 1);
+    defaultValues.put(UserGroup.MODULE_NAME, "GLOBAL");
+    defaultValues.put(UserGroup.USER_GROUP_NAME, "GLOBAL_");
+    return super.newObjectAddPage(defaultValues, "group", "preInsert");
+  }
+
+  @RequestMapping(value = {
+    "/admin/userGroups/{userGroupName}/delete"
+  }, title = "Delete User Group", method = RequestMethod.POST,
+      permission = "#userGroupName.startsWith('GLOBAL_')")
+  public void groupDelete(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("userGroupName") final String userGroupName)
+    throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
+
+    final Record userGroup = getUserGroup(userGroupName);
+    if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals("GLOBAL")) {
+      final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+      dataAccessObject.deleteUserGroup(userGroup);
+      redirectPage("groupList");
+    }
+  }
+
+  @RequestMapping(value = {
+    "/admin/userGroups/{userGroupName}/edit"
+  }, title = "Edit User Group {userGroupName}", method = {
+    RequestMethod.GET, RequestMethod.POST
+  }, fieldNames = {
+    "USER_GROUP_NAME", "DESCRIPTION", "ACTIVE_IND",
+  }, permission = "#userGroupName.startsWith('GLOBAL_')")
+  @ResponseBody
+  public Element groupEdit(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("userGroupName") String userGroupName)
+    throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
+    final Record userGroup = getUserGroup(userGroupName);
+    return super.newObjectEditPage(userGroup, "group");
+  }
+
+  @RequestMapping(value = {
+    "/admin/userGroups"
+  }, title = "User Groups", method = RequestMethod.GET, fieldNames = {
+    "adminUserGroupLink", "MODULE_NAME", "DESCRIPTION", "ACTIVE_IND", "globalActions",
+  }, permission = "hasRole('ROLE_ADMIN')")
+  @ResponseBody
+  public Object groupList(final HttpServletRequest request, final HttpServletResponse response)
+    throws IOException {
+    checkHasAnyRole(ADMIN);
+    HttpServletUtils.setAttribute("title", "User Groups");
+    return newDataTableHandler(request, "groupList");
+  }
+
+  @RequestMapping(value = {
+    "/admin/userGroups/{userGroupName}"
+  }, title = "User Group {userGroupName}", method = RequestMethod.GET, fieldNames = {
+    "USER_GROUP_ID", "MODULE_NAME", "USER_GROUP_NAME", "DESCRIPTION", "ACTIVE_IND", "WHO_CREATED",
+    "WHEN_CREATED", "WHO_UPDATED", "WHEN_UPDATED", "globalActions",
+  })
+  @ResponseBody
+  public Element groupView(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("userGroupName") String userGroupName)
+    throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
+    return newUserGroupView(request, response, "group", "group", null, userGroupName, null);
+  }
+
+  @Override
+  protected void initFields() {
+    super.initFields();
+    addField(new TextField("USER_GROUP_NAME", true));
+    addField(new TextAreaField("DESCRIPTION", false));
+  }
+
   @Override
   protected void initSerializers() {
     super.initSerializers();
@@ -110,12 +196,165 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
     addKeySerializer(
       new PageLinkKeySerializer("adminGroupView", USER_GROUP_NAME, "Group", "groupView"));
 
+    addKeySerializer(new PageLinkKeySerializer("moduleAdminViewLink", USER_GROUP_NAME,
+      "User Group Name", "moduleAdminView"));
+
+    addKeySerializer(new PageLinkKeySerializer("moduleViewLink", USER_GROUP_NAME, "User Group Name",
+      "moduleView"));
+
     final MultipleKeySerializer userAccountActions = new MultipleKeySerializer("userAccountActions",
       "Actions");
     userAccountActions
-      .addSerializer(new ActionFormKeySerializer("userAccountDelete", "Delete", "fa fa-trash")
+      .addSerializer(new ActionFormKeySerializer("userAccountMemberDelete", "Delete", "fa fa-trash")
         .addParameterName("userGroupName", "USER_GROUP_NAME"));
     addKeySerializer(userAccountActions);
+
+    final MultipleKeySerializer moduleActions = new MultipleKeySerializer("moduleViewActions",
+      "Actions");
+    moduleActions.addSerializer(new ActionFormKeySerializer("moduleDelete", "Delete", "fa fa-trash")
+      .addParameterName("userGroupName", "USER_GROUP_NAME"));
+    addKeySerializer(moduleActions);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups/add"
+  }, title = "User Group Add", method = {
+    RequestMethod.GET, RequestMethod.POST
+  }, fieldNames = {
+    "USER_GROUP_NAME", "DESCRIPTION", "ACTIVE_IND",
+  })
+  @ResponseBody
+  public Element moduleAdd(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrAnyModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final Map<String, Object> parameters = new HashMap<>();
+    parameters.put(UserGroup.ACTIVE_IND, 1);
+    parameters.put(UserGroup.MODULE_NAME, moduleName);
+    parameters.put(UserGroup.USER_GROUP_NAME, moduleName + "_");
+    return newObjectAddPage(parameters, "module", "preInsert");
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/adminUserGroups"
+  }, title = "Module Admin User Groups", method = RequestMethod.GET, fieldNames = {
+    "moduleAdminViewLink", "DESCRIPTION", "ACTIVE_IND",
+  }, permission = "hasRole('ROLE_ADMIN')  or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')")
+  @ResponseBody
+  public Object moduleAdminList(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
+    throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final Map<String, Object> parameters = new HashMap<>();
+
+    final Map<String, Object> filter = new HashMap<>();
+    filter.put(UserGroup.MODULE_NAME, "ADMIN_MODULE_" + moduleName);
+
+    parameters.put("filter", filter);
+
+    return newDataTableHandlerOrRedirect(request, response, "moduleAdminList", Module.class, "view",
+      parameters);
+
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}"
+  }, method = RequestMethod.GET, fieldNames = {
+    "USER_GROUP_ID", "MODULE_NAME", "USER_GROUP_NAME", "DESCRIPTION", "ACTIVE_IND", "WHO_CREATED",
+    "WHEN_CREATED", "WHO_UPDATED", "WHEN_UPDATED",
+  }, title = "Admin User Group {userGroupName}")
+  @ResponseBody
+  public Element moduleAdminView(final HttpServletRequest request,
+    final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    return newUserGroupView(request, response, "moduleAdmin", "moduleGroupAdmin", moduleName,
+      userGroupName, Arrays.asList("ADMIN_MODULE_" + moduleName));
+
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups/{userGroupName}/delete"
+  }, title = "User Group Delete", method = RequestMethod.POST,
+      permission = "#userGroupName.startsWith(#moduleName) and (hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '.*'))")
+  public void moduleDelete(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
+    @PathVariable("userGroupName") final String userGroupName)
+    throws IOException, ServletException {
+    checkAdminOrAnyModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final Record userGroup = getUserGroup(userGroupName);
+    if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
+      final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+      dataAccessObject.deleteUserGroup(userGroup);
+      redirectPage("moduleList");
+    }
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups/{userGroupName}/edit"
+  }, title = "User Group {userGroupName} Edit", method = {
+    RequestMethod.GET, RequestMethod.POST
+  }, fieldNames = {
+    "USER_GROUP_NAME", "DESCRIPTION", "ACTIVE_IND",
+  }, permission = "#userGroupName.startsWith(#moduleName)")
+  @ResponseBody
+  public Element moduleEdit(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("userGroupName") String userGroupName,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrAnyModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final Map<String, Object> parameters = new HashMap<>();
+    parameters.put("moduleName", moduleName);
+
+    final Record userGroup = getUserGroup(userGroupName);
+    if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
+      return newObjectEditPage(userGroup, "module");
+    }
+    throw new PageNotFoundException();
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups"
+  }, title = "User Groups", method = RequestMethod.GET, fieldNames = {
+    "moduleViewLink", "DESCRIPTION", "ACTIVE_IND", "moduleViewActions"
+  })
+  @ResponseBody
+  public Object moduleList(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrAnyModuleAdmin(moduleName);
+    hasModule(request, moduleName);
+
+    final Map<String, Object> parameters = new HashMap<>();
+
+    final Map<String, Object> filter = new HashMap<>();
+    final List<String> moduleNames = getUserGroupModuleNames(moduleName);
+    filter.put("MODULE_NAME", moduleNames);
+
+    parameters.put("filter", filter);
+
+    return newDataTableHandlerOrRedirect(request, response, "moduleList", Module.class, "view",
+      parameters);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/userGroups/{userGroupName}"
+  }, title = "User Group {userGroupName}", method = RequestMethod.GET, fieldNames = {
+    "USER_GROUP_ID", "MODULE_NAME", "USER_GROUP_NAME", "DESCRIPTION", "ACTIVE_IND", "WHO_CREATED",
+    "WHEN_CREATED", "WHO_UPDATED", "WHEN_UPDATED", "moduleViewActions"
+  })
+  @ResponseBody
+  public Element moduleView(final HttpServletRequest request, final HttpServletResponse response,
+    final @PathVariable("userGroupName") String userGroupName,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrAnyModuleAdmin(moduleName);
+    return newUserGroupView(request, response, "module", "moduleGroup", moduleName, userGroupName,
+      getUserGroupModuleNames(moduleName));
   }
 
   public Element newUserGroupView(final HttpServletRequest request,
@@ -144,225 +383,6 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
       return tabs;
     }
     throw new PageNotFoundException();
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/adminUserGroups"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Object pageModuleAdminList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    hasModule(request, moduleName);
-
-    final Map<String, Object> parameters = new HashMap<>();
-
-    final Map<String, Object> filter = new HashMap<>();
-    filter.put(UserGroup.MODULE_NAME, "ADMIN_MODULE_" + moduleName);
-
-    parameters.put("filter", filter);
-
-    return newDataTableHandlerOrRedirect(request, response, "moduleAdminList", Module.class, "view",
-      parameters);
-
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/adminUserGroups/{userGroupName}"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Element pageModuleAdminView(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName,
-    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    return newUserGroupView(request, response, "moduleAdmin", "moduleGroupAdmin", moduleName,
-      userGroupName, Arrays.asList("ADMIN_MODULE_" + moduleName));
-
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups/add"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
-  })
-  @ResponseBody
-  public Element pageModuleUserGroupAdd(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
-    checkAdminOrAnyModuleAdmin(moduleName);
-    hasModule(request, moduleName);
-
-    final Map<String, Object> parameters = new HashMap<>();
-    parameters.put(UserGroup.ACTIVE_IND, 1);
-    parameters.put(UserGroup.MODULE_NAME, moduleName);
-    parameters.put(UserGroup.USER_GROUP_NAME, moduleName + "_");
-    return newObjectAddPage(parameters, "module", "preInsert");
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups/{userGroupName}/delete"
-  }, method = RequestMethod.POST)
-  public void pageModuleUserGroupDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
-    @PathVariable("userGroupName") final String userGroupName)
-    throws IOException, ServletException {
-    checkAdminOrAnyModuleAdmin(moduleName);
-    hasModule(request, moduleName);
-
-    final Record userGroup = getUserGroup(userGroupName);
-    if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
-      final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-      dataAccessObject.deleteUserGroup(userGroup);
-      redirectPage("moduleList");
-    }
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups/{userGroupName}/edit"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
-  })
-  @ResponseBody
-  public Element pageModuleUserGroupEdit(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName,
-    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
-    checkAdminOrAnyModuleAdmin(moduleName);
-    hasModule(request, moduleName);
-
-    final Map<String, Object> parameters = new HashMap<>();
-    parameters.put("moduleName", moduleName);
-
-    final Record userGroup = getUserGroup(userGroupName);
-    if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals(moduleName)) {
-      return newObjectEditPage(userGroup, "module");
-    }
-    throw new PageNotFoundException();
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Object pageModuleUserGroupList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
-    checkAdminOrAnyModuleAdmin(moduleName);
-    hasModule(request, moduleName);
-
-    final Map<String, Object> parameters = new HashMap<>();
-
-    final Map<String, Object> filter = new HashMap<>();
-    final List<String> moduleNames = getUserGroupModuleNames(moduleName);
-    filter.put("MODULE_NAME", moduleNames);
-
-    parameters.put("filter", filter);
-
-    return newDataTableHandlerOrRedirect(request, response, "moduleList", Module.class, "view",
-      parameters);
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/userGroups/{userGroupName}"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Element pageModuleUserGroupView(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName,
-    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
-    checkAdminOrAnyModuleAdmin(moduleName);
-    return newUserGroupView(request, response, "module", "moduleGroup", moduleName, userGroupName,
-      getUserGroupModuleNames(moduleName));
-  }
-
-  @RequestMapping(value = {
-    "/admin/userGroups/add"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
-  })
-  @ResponseBody
-  public Element pageUserGroupAdd(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException, ServletException {
-    final Map<String, Object> defaultValues = new HashMap<>();
-    defaultValues.put(UserGroup.ACTIVE_IND, 1);
-    defaultValues.put(UserGroup.MODULE_NAME, "GLOBAL");
-    defaultValues.put(UserGroup.USER_GROUP_NAME, "GLOBAL_");
-    return super.newObjectAddPage(defaultValues, "group", "preInsert");
-  }
-
-  @RequestMapping(value = {
-    "/admin/userGroups/{userGroupName}/delete"
-  }, method = RequestMethod.POST)
-  public void pageUserGroupDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName)
-    throws IOException, ServletException {
-    checkHasAnyRole(ADMIN);
-
-    final Record userGroup = getUserGroup(userGroupName);
-    if (userGroup != null && userGroup.getValue(UserGroup.MODULE_NAME).equals("GLOBAL")) {
-      final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-      dataAccessObject.deleteUserGroup(userGroup);
-      redirectPage("groupList");
-    }
-  }
-
-  @RequestMapping(value = {
-    "/admin/userGroups/{userGroupName}/edit"
-  }, method = {
-    RequestMethod.GET, RequestMethod.POST
-  })
-  @ResponseBody
-  public Element pageUserGroupEdit(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName)
-    throws IOException, ServletException {
-    checkHasAnyRole(ADMIN);
-    final Record userGroup = getUserGroup(userGroupName);
-    return super.newObjectEditPage(userGroup, "group");
-  }
-
-  @RequestMapping(value = {
-    "/admin/userGroups"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Object pageUserGroupList(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException {
-    checkHasAnyRole(ADMIN);
-    HttpServletUtils.setAttribute("title", "User Groups");
-    return newDataTableHandler(request, "groupList");
-  }
-
-  @RequestMapping(value = {
-    "/admin/userAccounts/{consumerKey}/userGroups/{userGroupName}/delete"
-  }, method = RequestMethod.POST)
-  public void pageUserGroupMemberDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName,
-    @PathVariable("consumerKey") final String consumerKey,
-    @RequestParam("confirm") final Boolean confirm) throws ServletException {
-    checkHasAnyRole(ADMIN);
-    final Record userGroup = getUserGroup(userGroupName);
-    if (userGroup != null) {
-
-      final Record userAccount = getUserAccount(consumerKey);
-      if (userAccount != null) {
-        if (Booleans.getBoolean(confirm)) {
-          final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-          dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
-        }
-        redirectToTab(UserAccount.USER_ACCOUNT, "view", "userAccountList");
-        return;
-      }
-    }
-
-  }
-
-  @RequestMapping(value = {
-    "/admin/userGroups/{userGroupName}"
-  }, method = RequestMethod.GET)
-  @ResponseBody
-  public Element pageUserGroupView(final HttpServletRequest request,
-    final HttpServletResponse response, final @PathVariable("userGroupName") String userGroupName)
-    throws IOException, ServletException {
-    checkHasAnyRole(ADMIN);
-    return newUserGroupView(request, response, "group", "group", null, userGroupName, null);
   }
 
   @Override
@@ -463,6 +483,30 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
 
     }
     throw new PageNotFoundException("User Account " + consumerKey + " does not exist");
+  }
+
+  @RequestMapping(value = {
+    "/admin/userAccounts/{consumerKey}/userGroups/{userGroupName}/delete"
+  }, method = RequestMethod.POST)
+  public void userAccountMemberDelete(final HttpServletRequest request,
+    final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName,
+    @PathVariable("consumerKey") final String consumerKey,
+    @RequestParam("confirm") final Boolean confirm) throws ServletException {
+    checkHasAnyRole(ADMIN);
+    final Record userGroup = getUserGroup(userGroupName);
+    if (userGroup != null) {
+
+      final Record userAccount = getUserAccount(consumerKey);
+      if (userAccount != null) {
+        if (Booleans.getBoolean(confirm)) {
+          final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+          dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
+        }
+        redirectToTab(UserAccount.USER_ACCOUNT, "view", "userAccountList");
+        return;
+      }
+    }
+
   }
 
   public void userGroupName(final XmlWriter out, final Object object) {

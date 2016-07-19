@@ -55,6 +55,7 @@ import com.revolsys.record.Record;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;
 import com.revolsys.ui.html.builder.RecordHtmlUiBuilder;
+import com.revolsys.ui.html.fields.CheckBox01Field;
 import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
 import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
 import com.revolsys.ui.html.serializer.key.StringKeySerializer;
@@ -400,6 +401,12 @@ public class CpfUiBuilder extends RecordHtmlUiBuilder {
     } else {
       throw new PageNotFoundException("Module " + moduleName + " does not exist");
     }
+  }
+
+  @Override
+  protected void initFields() {
+    super.initFields();
+    addField(new CheckBox01Field("ACTIVE_IND"));
   }
 
   @Override

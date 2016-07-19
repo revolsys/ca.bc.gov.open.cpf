@@ -43,6 +43,11 @@ import com.revolsys.ui.html.decorator.TableBody;
 import com.revolsys.ui.html.fields.CheckBoxField;
 import com.revolsys.ui.html.fields.TextField;
 import com.revolsys.ui.html.form.Form;
+import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
+import com.revolsys.ui.html.serializer.key.BooleanImageKeySerializer;
+import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
+import com.revolsys.ui.html.serializer.key.MultipleKeySerializer;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.ButtonsToolbarElement;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
@@ -64,32 +69,18 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     super("module", "Business Application Module", "Business Application Modules");
     setIdParameterName("moduleName");
     setIdPropertyName("name");
-  }
 
-  @Override
-  @PreDestroy
-  public void close() {
-    super.close();
-    this.mavenRepository = null;
-    this.moduleLoader = null;
-  }
-
-  public MavenRepository getMavenRepository() {
-    return this.mavenRepository;
-  }
-
-  public ConfigPropertyModuleLoader getModuleLoader() {
-    return this.moduleLoader;
+    addLabel("moduleDescriptor", "Maven Module Id");
   }
 
   @RequestMapping(value = {
     "/admin/modules/add"
-  }, method = {
+  }, title = "Add Module", method = {
     RequestMethod.GET, RequestMethod.POST
-  })
+  }, permission = "hasRole('ROLE_ADMIN')  or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')")
   @ResponseBody
-  public Element newModulePageAdd(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException, ServletException {
+  public Element add(final HttpServletRequest request, final HttpServletResponse response)
+    throws IOException, ServletException {
     checkHasAnyRole(ADMIN);
     final Map<String, Object> parameters = new HashMap<>();
 
@@ -172,15 +163,33 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     return tabs;
   }
 
+  @Override
+  @PreDestroy
+  public void close() {
+    super.close();
+    this.mavenRepository = null;
+    this.moduleLoader = null;
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/delete"
+  }, title = "Delete Module", method = RequestMethod.POST, permission = "hasRole('ROLE_ADMIN')")
+  public void delete(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkHasAnyRole(ADMIN);
+    final Module module = getModule(request, moduleName);
+    this.moduleLoader.deleteModule(module);
+    redirectPage("list");
+  }
+
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/edit"
-  }, method = {
+  }, title = "Edit Module", method = {
     RequestMethod.GET, RequestMethod.POST
-  })
+  }, permission = "hasRole('ROLE_ADMIN')  or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')")
   @ResponseBody
-  public Element newModulePageEdit(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+  public Element edit(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
@@ -240,24 +249,104 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
   }
 
+  public MavenRepository getMavenRepository() {
+    return this.mavenRepository;
+  }
+
+  public ConfigPropertyModuleLoader getModuleLoader() {
+    return this.moduleLoader;
+  }
+
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+    addKeySerializer(new BooleanImageKeySerializer("enabled"));
+    addKeySerializer(new BooleanImageKeySerializer("started"));
+    addKeySerializer(new BooleanImageKeySerializer("applicationsLoaded"));
+
+    addKeySerializer(new PageLinkKeySerializer("name_link", "name", "Name", "view"));
+    addKeySerializer(new DateFormatKeySerializer("startedDate", "Start Time"));
+
+    addKeySerializer(new MultipleKeySerializer("actions") //
+      .addSerializer(new ActionFormKeySerializer("start", "Start", "fa fa-play") //
+        .setEnabledExpression("enabled and !started") //
+        .addParameterName("moduleName", "name")) //
+      .addSerializer(new ActionFormKeySerializer("restart", "Restart", "fa fa-repeat") //
+        .setEnabledExpression("enabled and started") //
+        .addParameterName("moduleName", "name"))
+      .addSerializer(new ActionFormKeySerializer("stop", "Stop", "fa fa-stop") //
+        .setEnabledExpression("enabled and started") //
+        .addParameterName("moduleName", "name")) //
+      .addSerializer(new ActionFormKeySerializer("delete", "Delete", "fa fa-trash") //
+        .addParameterName("moduleName", "name")));
+  }
+
   @RequestMapping(value = {
     "/admin/modules"
-  }, method = RequestMethod.GET)
+  }, title = "Modules", method = RequestMethod.GET, fieldNames = {
+    "name_link", "moduleDescriptor", "status", "enabled", "started", "startedDate", "actions"
+  })
   @ResponseBody
-  public Object newModulePageList(final HttpServletRequest request,
-    final HttpServletResponse response) throws IOException {
+  public Object list(final HttpServletRequest request, final HttpServletResponse response)
+    throws IOException {
     HttpServletUtils.setAttribute("title", "Modules");
     checkAdminOrAnyModuleAdmin();
     return newDataTableHandler(request, "list", this::getModules);
   }
 
   @RequestMapping(value = {
+    "/admin/modules/{moduleName}/restart"
+  }, title = "Restart Module", method = RequestMethod.POST,
+      permission = "hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')")
+  public void restart(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    final Module module = getModule(request, moduleName);
+    module.restart();
+    referrerRedirect(request);
+  }
+
+  public void setMavenRepository(final MavenRepository mavenRepository) {
+    this.mavenRepository = mavenRepository;
+  }
+
+  public void setModuleLoader(final ConfigPropertyModuleLoader moduleLoader) {
+    this.moduleLoader = moduleLoader;
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/start"
+  }, title = "Start Module", method = RequestMethod.POST,
+      permission = "hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')")
+  public void start(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    final Module module = getModule(request, moduleName);
+    module.start();
+    referrerRedirect(request);
+  }
+
+  @RequestMapping(value = {
+    "/admin/modules/{moduleName}/stop"
+  }, title = "Stop Module", method = RequestMethod.POST,
+      permission = "hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN_MODULE_' + #moduleName + '_ADMIN')")
+  public void stop(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
+    checkAdminOrModuleAdmin(moduleName);
+    final Module module = getModule(request, moduleName);
+    module.stop();
+    referrerRedirect(request);
+  }
+
+  @RequestMapping(value = {
     "/admin/modules/{moduleName}"
-  }, method = RequestMethod.GET)
+  }, title = "Module {moduleName}", method = RequestMethod.GET, fieldNames = {
+    "name", "moduleDescriptor", "status", "enabled", "started", "startedDate", "moduleError",
+    "actions"
+  })
   @ResponseBody
-  public Element newModulePageView(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
+  public Element view(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     final TabElementContainer tabs = new TabElementContainer();
@@ -279,58 +368,5 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     addTabDataTable(tabs, UserGroup.USER_GROUP, "moduleAdminList", parameters);
 
     return tabs;
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/delete"
-  }, method = RequestMethod.POST)
-  public void postModuleDelete(final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
-    checkHasAnyRole(ADMIN);
-    final Module module = getModule(request, moduleName);
-    this.moduleLoader.deleteModule(module);
-    redirectPage("list");
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/restart"
-  }, method = RequestMethod.POST)
-  public void postModuleRestart(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName)
-    throws IOException, ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    final Module module = getModule(request, moduleName);
-    module.restart();
-    referrerRedirect(request);
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/start"
-  }, method = RequestMethod.POST)
-  public void postModuleStart(final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    final Module module = getModule(request, moduleName);
-    module.start();
-    referrerRedirect(request);
-  }
-
-  @RequestMapping(value = {
-    "/admin/modules/{moduleName}/stop"
-  }, method = RequestMethod.POST)
-  public void postModuleStop(final HttpServletRequest request, final HttpServletResponse response,
-    @PathVariable("moduleName") final String moduleName) throws IOException, ServletException {
-    checkAdminOrModuleAdmin(moduleName);
-    final Module module = getModule(request, moduleName);
-    module.stop();
-    referrerRedirect(request);
-  }
-
-  public void setMavenRepository(final MavenRepository mavenRepository) {
-    this.mavenRepository = mavenRepository;
-  }
-
-  public void setModuleLoader(final ConfigPropertyModuleLoader moduleLoader) {
-    this.moduleLoader = moduleLoader;
   }
 }

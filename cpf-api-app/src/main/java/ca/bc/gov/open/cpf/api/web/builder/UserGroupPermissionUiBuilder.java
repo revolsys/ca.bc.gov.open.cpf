@@ -38,6 +38,11 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 
 import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
+import com.revolsys.record.io.format.xml.XmlWriter;
+import com.revolsys.ui.html.fields.TextField;
+import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
+import com.revolsys.ui.html.serializer.key.MultipleKeySerializer;
+import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.annotation.RequestMapping;
@@ -51,14 +56,63 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
       "User Group Permissions");
   }
 
+  public void adminUserGroupLink(final XmlWriter out, final Object object) {
+    final Record userGroup = (Record)object;
+
+    final Map<String, String> parameterNames = new HashMap<>();
+    parameterNames.put("userGroupName", "userGroupName");
+
+    final Map<String, Object> linkObject = new HashMap<>();
+    final Object userGroupName = userGroup.getValue(UserGroup.USER_GROUP_NAME);
+    linkObject.put(UserGroup.USER_GROUP_NAME, userGroupName);
+    linkObject.put("userGroupName", userGroupName);
+
+    final String moduleName = userGroup.getValue(UserGroup.MODULE_NAME);
+    String pageName;
+    if (UserGroupUiBuilder.GLOBAL_GROUP_NAMES.contains(moduleName)) {
+      pageName = "groupView";
+    } else if (moduleName.startsWith("ADMIN_MODULE_")) {
+      pageName = "moduleAdminView";
+      linkObject.put("moduleName", moduleName.substring(13));
+      parameterNames.put("moduleName", "moduleName");
+    } else {
+      pageName = "moduleView";
+      linkObject.put("moduleName", moduleName);
+      parameterNames.put("moduleName", "moduleName");
+    }
+
+    serializeLink(out, linkObject, UserGroup.USER_GROUP_NAME, pageName, parameterNames);
+  }
+
+  @Override
+  protected void initFields() {
+    super.initFields();
+    addField(new TextField("RESOURCE_CLASS", 70, 255, true));
+    addField(new TextField("RESOURCE_ID", 70, 255, true));
+    addField(new TextField("ACTION_NAME", 70, 255, true));
+  }
+
+  @Override
+  protected void initSerializers() {
+    super.initSerializers();
+
+    addKeySerializer(
+      new PageLinkKeySerializer("ID_LINK", "USER_GROUP_PERMISSION_ID", "ID", "moduleView"));
+    addKeySerializer(new MultipleKeySerializer("moduleActions", "Actions") //
+      .addSerializer(new ActionFormKeySerializer("moduleDelete", "Delete", "fa fa-trash") //
+        .addParameterName("userGroupPermissionId", "USER_GROUP_PERMISSION_ID")));
+  }
+
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/add"
-  }, method = {
+  }, title = "Add User Group Permission", method = {
     RequestMethod.GET, RequestMethod.POST
+  }, fieldNames = {
+    "RESOURCE_CLASS", "RESOURCE_ID", "ACTION_NAME", "ACTIVE_IND"
   })
   @ResponseBody
-  public Element pageModuleUserGroupPermissionAdd(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+  public Element moduleAdd(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName)
     throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
@@ -78,9 +132,9 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/delete"
-  }, method = RequestMethod.POST)
-  public void pageModuleUserGroupPermissionDelete(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+  }, title = "Delete User Group Permission {userGroupPermissionId}", method = RequestMethod.POST)
+  public void moduleDelete(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("userGroupPermissionId") final Long userGroupPermissionId,
     @RequestParam("confirm") final Boolean confirm) throws ServletException, IOException {
@@ -106,12 +160,14 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}/edit"
-  }, method = {
+  }, title = "Edit User Group Permission {userGroupPermissionId}", method = {
     RequestMethod.GET, RequestMethod.POST
+  }, fieldNames = {
+    "RESOURCE_CLASS", "RESOURCE_ID", "ACTION_NAME", "ACTIVE_IND"
   })
   @ResponseBody
-  public Element pageModuleUserGroupPermissionEdit(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+  public Element moduleEdit(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
     throws ServletException, IOException {
@@ -135,10 +191,12 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions"
-  }, method = RequestMethod.GET)
+  }, title = "User Group Permissions", method = RequestMethod.GET, fieldNames = {
+    "ID_LINK", "RESOURCE_CLASS", "RESOURCE_ID", "ACTION_NAME", "ACTIVE_IND", "moduleActions"
+  })
   @ResponseBody
-  public Object pageModuleUserGroupPermissionList(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+  public Object moduleList(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName)
     throws IOException, ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
@@ -162,10 +220,15 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/userGroups/{userGroupName}/permissions/{userGroupPermissionId}"
-  }, method = RequestMethod.GET)
+  }, title = "User Group Permission {userGroupPermissionId}", method = RequestMethod.GET,
+      fieldNames = {
+        "USER_GROUP_PERMISSION_ID", "MODULE_NAME", "adminUserGroupLink", "RESOURCE_CLASS",
+        "RESOURCE_ID", "ACTION_NAME", "ACTIVE_IND", "WHO_CREATED", "WHEN_CREATED", "WHO_UPDATED",
+        "WHEN_UPDATED", "moduleActions"
+      })
   @ResponseBody
-  public Element pageModuleUserGroupPermissionView(final HttpServletRequest request,
-    final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
+  public Element moduleView(final HttpServletRequest request, final HttpServletResponse response,
+    @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
     @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
     throws ServletException, IOException {
