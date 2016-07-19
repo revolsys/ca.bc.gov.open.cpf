@@ -103,7 +103,7 @@ public class WorkerModuleStateUiBuilder extends CpfUiBuilder {
           "The module " + moduleName + " is not running on worker " + workerKey);
       } else {
         final TabElementContainer tabs = new TabElementContainer();
-        addObjectViewPage(tabs, module, "workerView");
+        addObjectViewPage(tabs, module, "worker");
 
         return tabs;
       }
