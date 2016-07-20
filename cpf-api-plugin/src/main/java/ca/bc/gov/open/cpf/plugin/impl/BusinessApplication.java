@@ -193,6 +193,8 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   private final Map<Integer, FieldDefinition> requestFieldMap = new TreeMap<>();
 
+  private boolean requestFieldMapInitialized = false;
+
   private RecordDefinitionImpl requestRecordDefinition;
 
   private RecordDefinitionImpl internalRequestRecordDefinition;
@@ -538,7 +540,7 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public synchronized RecordDefinitionImpl getInternalRequestRecordDefinition() {
     if (this.internalRequestRecordDefinition.getFieldCount() == 0) {
-      if (this.requestFieldMap.size() > 0) {
+      if (isRequestFieldMapInitialized()) {
         final FieldDefinition requestSequenceNumber = this.internalRequestRecordDefinition
           .addField(SEQUENCE_NUMBER, DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER, true);
@@ -597,7 +599,7 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public synchronized RecordDefinitionImpl getRequestRecordDefinition() {
     if (this.requestRecordDefinition.getFieldCount() == 0) {
-      if (this.requestFieldMap.size() > 0) {
+      if (isRequestFieldMapInitialized()) {
         final FieldDefinition requestSequenceNumber = this.requestRecordDefinition
           .addField(SEQUENCE_NUMBER, DataTypes.INT);
         requestSequenceNumber.setProperty(BusinessApplication.CORE_PARAMETER, true);
@@ -765,6 +767,10 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public boolean isPerRequestResultData() {
     return this.perRequestResultData;
+  }
+
+  public boolean isRequestFieldMapInitialized() {
+    return this.requestFieldMapInitialized;
   }
 
   public boolean isRequestParameter(final String fieldName) {
@@ -968,6 +974,10 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public void setPerRequestResultData(final boolean perRequestResultData) {
     this.perRequestResultData = perRequestResultData;
+  }
+
+  public void setRequestFieldMapInitialized(final boolean requestFieldMapInitialized) {
+    this.requestFieldMapInitialized = requestFieldMapInitialized;
   }
 
   public void setResultListProperty(final String resultListProperty) {

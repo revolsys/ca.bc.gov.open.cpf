@@ -193,6 +193,8 @@ public class ClassLoaderModule implements Module {
 
   private final String environmentId;
 
+  private List<String> beanImports = Collections.emptyList();
+
   public ClassLoaderModule(final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName) {
     this.businessApplicationRegistry = businessApplicationRegistry;
@@ -539,6 +541,7 @@ public class ClassLoaderModule implements Module {
           }
         }
       }
+      businessApplication.setRequestFieldMapInitialized(true);
       if (perRequestResultData) {
         final RecordDefinition resultRecordDefinition = businessApplication
           .getResultRecordDefinition();
@@ -1031,34 +1034,34 @@ public class ClassLoaderModule implements Module {
         this.applicationContext.setClassLoader(classLoader);
 
         AnnotationConfigUtils.registerAnnotationConfigProcessors(this.applicationContext, null);
+        final Map<String, Object> configProperties = getConfigProperties(this.name,
+          "MODULE_BEAN_PROPERTY");
+
         final AttributesBeanConfigurer attributesConfig = new AttributesBeanConfigurer(
-          this.applicationContext);
+          this.applicationContext, configProperties);
         this.applicationContext.addBeanFactoryPostProcessor(attributesConfig);
-        registerConfigPropertyBeans(this.name, this.applicationContext, this.configUrl);
+        registerConfigPropertyBeans(this.name, this.applicationContext);
 
         final XmlBeanDefinitionReader beanReader = new XmlBeanDefinitionReader(
           this.applicationContext);
         beanReader.setBeanClassLoader(classLoader);
         beanReader.loadBeanDefinitions(new UrlResource(this.configUrl));
         if (!isHasError()) {
-          this.applicationContext.refresh();
-          if (this.applicationContext.containsBeanDefinition("beanImports")) {
-            @SuppressWarnings("unchecked")
-            final List<String> beanImports = (List<String>)this.applicationContext
-              .getBean("beanImports");
-            for (final String beanImport : beanImports) {
-              try {
-                final org.springframework.core.io.Resource[] resources = this.applicationContext
-                  .getResources(beanImport);
-                for (final org.springframework.core.io.Resource resource : resources) {
-                  beanReader.loadBeanDefinitions(resource);
-                }
-              } catch (final Throwable e) {
-                addModuleError(
-                  "Error loading bean import " + beanImport + " from " + this.configUrl, e);
+          for (final String beanImport : this.beanImports) {
+            try {
+              final org.springframework.core.io.Resource[] resources = this.applicationContext
+                .getResources(beanImport);
+              for (final org.springframework.core.io.Resource resource : resources) {
+                beanReader.loadBeanDefinitions(resource);
               }
+            } catch (final Throwable e) {
+              addModuleError("Error loading bean import " + beanImport + " from " + this.configUrl,
+                e);
             }
           }
+        }
+        if (!isHasError()) {
+          this.applicationContext.refresh();
         }
         if (!isHasError()) {
           this.applicationsLoaded = true;
@@ -1117,6 +1120,9 @@ public class ClassLoaderModule implements Module {
       } else {
         propertiesByName = Collections.emptyMap();
       }
+      if (applicationContext.containsBeanDefinition("beanImports")) {
+        this.beanImports = (List<String>)applicationContext.getBean("beanImports");
+      }
       for (final String beanName : applicationContext.getBeanDefinitionNames()) {
         try {
           final BeanDefinition beanDefinition = applicationContext.getBeanDefinition(beanName);
@@ -1167,7 +1173,7 @@ public class ClassLoaderModule implements Module {
           addModuleError("Error loading plugin " + beanName + " from " + this.configUrl, e);
         }
       }
-      registerConfigPropertyBeans(this.name, applicationContext, this.configUrl);
+      registerConfigPropertyBeans(this.name, applicationContext);
     } finally {
       applicationContext.close();
     }
@@ -1467,7 +1473,7 @@ public class ClassLoaderModule implements Module {
   }
 
   private void registerConfigPropertyBeans(final String moduleName,
-    final GenericApplicationContext applicationContext, final URL url) {
+    final GenericApplicationContext applicationContext) {
     final Map<String, Object> configProperties = getConfigProperties(moduleName,
       "MODULE_BEAN_PROPERTY");
 

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "jdbcConfig.url",
+    "type": "string",
+    "value": "jdbc:postgresql:cpf"
+  },
+  {
+    "name": "jdbcConfig.username",
+    "type": "string",
+    "value": "proxy_cpf_web"
+  },{
+    "name": "jdbcConfig.password",
+    "type": "string",
+    "value": "c0ncurr3n7"
+  }
+]
