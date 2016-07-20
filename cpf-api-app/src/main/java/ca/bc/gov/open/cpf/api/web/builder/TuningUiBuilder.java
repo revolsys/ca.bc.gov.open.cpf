@@ -82,10 +82,6 @@ public class TuningUiBuilder extends CpfUiBuilder {
   public TuningUiBuilder() {
     setTypeName("tuning");
     setTableName(ConfigProperty.CONFIG_PROPERTY);
-    addLabel("preProcessPoolSize", "Pre-Process Thread Pool Size");
-    addLabel("postProcessPoolSize", "Post-Process Thread Pool Size");
-    addLabel("schedulerPoolSize", "Scheduler Thread Pool Size");
-    addLabel("groupResultPoolSize", "Group Result Thread Pool Size");
   }
 
   private void addCounts(final List<Object> rows, final String name, final int active,
@@ -197,6 +193,15 @@ public class TuningUiBuilder extends CpfUiBuilder {
     final ElementContainer view = new ElementContainer(form, buttonsToolbar);
     view.setDecorator(new CollapsibleBox(title, true));
     return view;
+  }
+
+  @Override
+  protected void initLabels() {
+    super.initLabels();
+    addLabel("preProcessPoolSize", "Pre-Process Thread Pool Size");
+    addLabel("postProcessPoolSize", "Post-Process Thread Pool Size");
+    addLabel("schedulerPoolSize", "Scheduler Thread Pool Size");
+    addLabel("groupResultPoolSize", "Group Result Thread Pool Size");
   }
 
   @RequestMapping(value = {

@@ -42,6 +42,7 @@ import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
 import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
 import com.revolsys.ui.html.serializer.key.DateFormatKeySerializer;
+import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.exception.PageNotFoundException;
@@ -54,13 +55,6 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
     super("batchJobResult", BatchJobResult.BATCH_JOB_RESULT, BatchJobResult.SEQUENCE_NUMBER,
       "Batch Job Result", "Batch Job Results");
     setIdParameterName("sequenceNumber");
-    addLabel("SEQUENCE_NUMBER", "#");
-    addLabel("BATCH_JOB_RESULT_TYPE", "Result Type");
-    addLabel("RESULT_DATA_CONTENT_TYPE", "Content Type");
-
-    addPage(new Page("clientList", "Results", "/ws/jobs/{batchJobId}/results/"));
-    addPage(
-      new Page("clientDownload", "Download", "/ws/jobs/{batchJobId}/results/{sequenceNumber}/"));
   }
 
   @RequestMapping(value = {
@@ -114,29 +108,43 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   }
 
   @Override
+  protected void initLabels() {
+    addLabel("SEQUENCE_NUMBER", "#");
+    addLabel("BATCH_JOB_RESULT_TYPE", "Result Type");
+    addLabel("RESULT_DATA_CONTENT_TYPE", "Content Type");
+  }
+
+  @Override
+  protected void initPages() {
+    super.initPages();
+    addPage(new Page("clientList", "Results", "/ws/jobs/{batchJobId}/results/"));
+    addPage(
+      new Page("clientDownload", "Download", "/ws/jobs/{batchJobId}/results/{sequenceNumber}/"));
+  }
+
+  @Override
   protected void initSerializers() {
     super.initSerializers();
 
     addKeySerializer(new DateFormatKeySerializer("DOWNLOAD_TIMESTAMP", "Download Time"));
     addKeySerializer(new DateFormatKeySerializer("WHEN_CREATED", "Creation Time"));
     addKeySerializer(new ActionFormKeySerializer("download", "Download", "fa fa-download")//
-      .setCssClass("ui-auto-button-disk") //
-      .setTarget("_top")//
-    );
+      .setTarget("_top"));
 
     newView("clientList",
       Lists.newArray("SEQUENCE_NUMBER", "BATCH_JOB_RESULT_TYPE", "RESULT_DATA_CONTENT_TYPE",
-        "expiryDate",
-        new ActionFormKeySerializer("clientDownload", "Download", "fa fa-download") //
-          .setCssClass("ui-auto-button-disk") //
+        "expiryDate", new ActionFormKeySerializer("clientDownload", "Download", "fa fa-download") //
           .setTarget("_top")));
+    final KeySerializer expiryDateSerializer = getKeySerializer("expiryDate");
+    expiryDateSerializer.setProperty("sortable", false);
+    expiryDateSerializer.setProperty("searchable", false);
   }
 
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/results"
   }, title = "Result Files", method = RequestMethod.GET, fieldNames = {
-    "SEQUENCE_NUMBER", "BATCH_JOB_RESULT_TYPE", "RESULT_DATA_CONTENT_TYPE", "expiryDate",
-    "download", "WHEN_CREATED", "DOWNLOAD_TIMESTAMP"
+    "SEQUENCE_NUMBER", "download", "BATCH_JOB_RESULT_TYPE", "RESULT_DATA_CONTENT_TYPE",
+    "expiryDate", "WHEN_CREATED", "DOWNLOAD_TIMESTAMP"
   })
   @ResponseBody
   public Object moduleAppJobList(final HttpServletRequest request,

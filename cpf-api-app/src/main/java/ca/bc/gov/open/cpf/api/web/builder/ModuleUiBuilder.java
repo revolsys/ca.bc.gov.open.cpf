@@ -69,8 +69,6 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     super("module", "Business Application Module", "Business Application Modules");
     setIdParameterName("moduleName");
     setIdPropertyName("name");
-
-    addLabel("moduleDescriptor", "Maven Module Id");
   }
 
   @RequestMapping(value = {
@@ -255,6 +253,12 @@ public class ModuleUiBuilder extends CpfUiBuilder {
 
   public ConfigPropertyModuleLoader getModuleLoader() {
     return this.moduleLoader;
+  }
+
+  @Override
+  protected void initLabels() {
+    super.initLabels();
+    addLabel("moduleDescriptor", "Maven Module Id");
   }
 
   @Override

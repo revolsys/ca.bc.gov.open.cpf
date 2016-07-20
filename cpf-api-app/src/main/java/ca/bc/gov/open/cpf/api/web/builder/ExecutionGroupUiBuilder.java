@@ -50,6 +50,11 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
     super("executionGroup", PathName.newPathName("ExecutionGroup"), "sequenceNumber",
       "Execution Group", "Execution Groups");
     setIdParameterName("sequenceNumber");
+  }
+
+  @Override
+  protected void initLabels() {
+    super.initLabels();
     addLabel("sequenceNumber", "#");
   }
 
@@ -59,7 +64,7 @@ public class ExecutionGroupUiBuilder extends CpfUiBuilder {
     addKeySerializer(new BooleanImageKeySerializer("completed"));
 
     final ActionFormKeySerializer actionDownload = new ActionFormKeySerializer("inputData",
-      "Input Data", "fa fa-download");
+      "Download", "fa fa-download");
     actionDownload.setTarget("_top");
     addKeySerializer(actionDownload);
   }

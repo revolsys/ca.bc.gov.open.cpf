@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
@@ -136,8 +135,8 @@ public class UserGroupPermissionUiBuilder extends CpfUiBuilder {
   public void moduleDelete(final HttpServletRequest request, final HttpServletResponse response,
     @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
-    @PathVariable("userGroupPermissionId") final Long userGroupPermissionId,
-    @RequestParam("confirm") final Boolean confirm) throws ServletException, IOException {
+    @PathVariable("userGroupPermissionId") final Long userGroupPermissionId)
+    throws ServletException, IOException {
     checkAdminOrAnyModuleAdmin(moduleName);
     hasModule(request, moduleName);
     final Record group = getUserGroup(userGroupName);

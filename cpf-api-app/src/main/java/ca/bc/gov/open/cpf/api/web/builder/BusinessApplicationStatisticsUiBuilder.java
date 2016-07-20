@@ -55,26 +55,6 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
     super("statistic", "Business Application Statistic", "Business Application LabelCountMap");
     setIdParameterName("statisticId");
     setIdPropertyName("id");
-    addLabel("module.started", "Module Started");
-    addLabel("submittedJobsCount", "# Jobs Submitted");
-    addLabel("completedJobsCount", "# Jobs Completed");
-    addLabel("completedRequestsCount", "# Requests Completed");
-    addLabel("applicationExecutedGroupsCount", "# App Groups Executed");
-    addLabel("applicationExecutedRequestsCount", "# App Requests Completed");
-    addLabel("applicationExecutedFailedRequestsCount", "# App Requests Failed");
-
-    for (final String key : Lists.newArray("hourList", "dayList", "monthList", "yearList")) {
-      newView(key,
-        Lists.newArray("moduleAppViewLink", "module.name_link", "module.started",
-          "businessApplication.name_link", "submittedJobsCount", "completedJobsCount",
-          "applicationExecutedGroupsCount", "applicationExecutedRequestsCount",
-          "applicationExecutedFailedRequestsCount"));
-    }
-
-    addPage(new Page("hourList", "Hour", "/admin/dashboard/hour/"));
-    addPage(new Page("dayList", "Today", "/admin/dashboard/day/"));
-    addPage(new Page("monthList", "Month", "/admin/dashboard/month/"));
-    addPage(new Page("yearList", "Year", "/admin/dashboard/year/"));
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
@@ -171,6 +151,35 @@ public class BusinessApplicationStatisticsUiBuilder extends CpfUiBuilder {
       statistics.add(statistic);
     }
     return statistics;
+  }
+
+  @Override
+  protected void initLabels() {
+    super.initLabels();
+    addLabel("module.started", "Module Started");
+    addLabel("submittedJobsCount", "# Jobs Submitted");
+    addLabel("completedJobsCount", "# Jobs Completed");
+    addLabel("completedRequestsCount", "# Requests Completed");
+    addLabel("applicationExecutedGroupsCount", "# App Groups Executed");
+    addLabel("applicationExecutedRequestsCount", "# App Requests Completed");
+    addLabel("applicationExecutedFailedRequestsCount", "# App Requests Failed");
+  }
+
+  @Override
+  protected void initPages() {
+    super.initPages();
+    for (final String key : Lists.newArray("hourList", "dayList", "monthList", "yearList")) {
+      newView(key,
+        Lists.newArray("moduleAppViewLink", "module.name_link", "module.started",
+          "businessApplication.name_link", "submittedJobsCount", "completedJobsCount",
+          "applicationExecutedGroupsCount", "applicationExecutedRequestsCount",
+          "applicationExecutedFailedRequestsCount"));
+    }
+
+    addPage(new Page("hourList", "Hour", "/admin/dashboard/hour/"));
+    addPage(new Page("dayList", "Today", "/admin/dashboard/day/"));
+    addPage(new Page("monthList", "Month", "/admin/dashboard/month/"));
+    addPage(new Page("yearList", "Year", "/admin/dashboard/year/"));
   }
 
   @Override

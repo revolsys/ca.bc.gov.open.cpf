@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
@@ -47,6 +46,7 @@ import com.revolsys.ui.html.fields.TextAreaField;
 import com.revolsys.ui.html.fields.TextField;
 import com.revolsys.ui.html.form.Form;
 import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
+import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.html.serializer.key.MultipleKeySerializer;
 import com.revolsys.ui.html.serializer.key.PageLinkKeySerializer;
 import com.revolsys.ui.html.view.Element;
@@ -54,7 +54,6 @@ import com.revolsys.ui.html.view.TabElementContainer;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
-import com.revolsys.util.Booleans;
 
 @Controller
 public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
@@ -214,6 +213,10 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
     moduleActions.addSerializer(new ActionFormKeySerializer("moduleDelete", "Delete", "fa fa-trash")
       .addParameterName("userGroupName", "USER_GROUP_NAME"));
     addKeySerializer(moduleActions);
+
+    final KeySerializer keySerializer = getKeySerializer("adminUserGroupLink");
+    keySerializer.setKey(UserGroup.USER_GROUP_NAME);
+    keySerializer.setLabel("Name");
   }
 
   @RequestMapping(value = {
@@ -490,23 +493,19 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
   }, method = RequestMethod.POST)
   public void userAccountMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName,
-    @PathVariable("consumerKey") final String consumerKey,
-    @RequestParam("confirm") final Boolean confirm) throws ServletException {
+    @PathVariable("consumerKey") final String consumerKey) throws ServletException {
     checkHasAnyRole(ADMIN);
     final Record userGroup = getUserGroup(userGroupName);
     if (userGroup != null) {
 
       final Record userAccount = getUserAccount(consumerKey);
       if (userAccount != null) {
-        if (Booleans.getBoolean(confirm)) {
-          final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-          dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
-        }
+        final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+        dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
         redirectToTab(UserAccount.USER_ACCOUNT, "view", "userAccountList");
         return;
       }
     }
-
   }
 
   public void userGroupName(final XmlWriter out, final Object object) {

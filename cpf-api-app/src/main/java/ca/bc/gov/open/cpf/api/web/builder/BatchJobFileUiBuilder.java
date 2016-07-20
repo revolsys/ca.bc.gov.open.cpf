@@ -38,7 +38,6 @@ public class BatchJobFileUiBuilder extends CpfUiBuilder {
 
   public BatchJobFileUiBuilder() {
     super("batchJobFile", BatchJobFile.BATCH_JOB_FILE, "sequenceNumber", "Job File", "Job Files");
-    addLabel("sequenceNumber", "#");
   }
 
   @RequestMapping(value = {
@@ -57,6 +56,12 @@ public class BatchJobFileUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     final JobController jobController = getJobController();
     jobController.writeFile(response, batchJobId, filePath, sequenceNumber);
+  }
+
+  @Override
+  protected void initLabels() {
+    super.initLabels();
+    addLabel("sequenceNumber", "#");
   }
 
   @Override
@@ -88,7 +93,7 @@ public class BatchJobFileUiBuilder extends CpfUiBuilder {
   @RequestMapping(value = {
     "/admin/modules/{moduleName}/apps/{businessApplicationName}/jobs/{batchJobId}/groupResults"
   }, method = RequestMethod.GET, title = "Group Results", fieldNames = {
-    "sequenceNumber", "contentType", "size", "download"
+    "sequenceNumber", "download", "contentType", "size"
   })
   @ResponseBody
   public Object moduleAppJobGroupResultList(final HttpServletRequest request, //

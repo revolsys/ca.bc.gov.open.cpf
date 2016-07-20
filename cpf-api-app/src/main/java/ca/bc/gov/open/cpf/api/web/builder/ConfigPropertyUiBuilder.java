@@ -197,14 +197,15 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
 
     final MultipleKeySerializer moduleActions = new MultipleKeySerializer("moduleActions",
       "Actions");
-    cpfActions.addSerializer(new ActionFormKeySerializer("moduleDelete", "Delete", "fa fa-trash")//
+    moduleActions.addSerializer(new ActionFormKeySerializer("moduleDelete", "Delete", "fa fa-trash")//
       .addParameterName("configPropertyId", "CONFIG_PROPERTY_ID"));
     addKeySerializer(moduleActions);
 
     final MultipleKeySerializer moduleAppActions = new MultipleKeySerializer("moduleAppActions",
       "Actions");
-    cpfActions.addSerializer(new ActionFormKeySerializer("moduleAppDelete", "Delete", "fa fa-trash")//
-      .addParameterName("configPropertyId", "CONFIG_PROPERTY_ID"));
+    moduleAppActions
+      .addSerializer(new ActionFormKeySerializer("moduleAppDelete", "Delete", "fa fa-trash")//
+        .addParameterName("configPropertyId", "CONFIG_PROPERTY_ID"));
     addKeySerializer(moduleAppActions);
   }
 

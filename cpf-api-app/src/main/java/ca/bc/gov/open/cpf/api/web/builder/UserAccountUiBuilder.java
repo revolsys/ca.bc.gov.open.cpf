@@ -69,7 +69,6 @@ import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.exception.PageNotFoundException;
 import com.revolsys.ui.web.utils.HttpServletUtils;
-import com.revolsys.util.Booleans;
 import com.revolsys.util.Property;
 
 @Controller
@@ -270,10 +269,9 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
       method = RequestMethod.POST)
   public void groupMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("userGroupName") final String userGroupName,
-    @PathVariable("consumerKey") final String consumerKey,
-    @RequestParam("confirm") final Boolean confirm) throws ServletException {
+    @PathVariable("consumerKey") final String consumerKey) throws ServletException {
     checkHasAnyRole(ADMIN);
-    removeUserGroupMembership(request, response, null, userGroupName, null, consumerKey, confirm,
+    removeUserGroupMembership(request, response, null, userGroupName, null, consumerKey,
       "groupView", "groupList");
 
   }
@@ -369,12 +367,10 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public void moduleGroupAdminMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
-    @PathVariable("consumerKey") final String consumerKey,
-    @RequestParam("confirm") final Boolean confirm) throws ServletException {
+    @PathVariable("consumerKey") final String consumerKey) throws ServletException {
     checkAdminOrModuleAdmin(moduleName);
     removeUserGroupMembership(request, response, moduleName, userGroupName,
-      "ADMIN_MODULE_" + moduleName, consumerKey, confirm, "moduleAdminView",
-      "moduleGroupAdminList");
+      "ADMIN_MODULE_" + moduleName, consumerKey, "moduleAdminView", "moduleGroupAdminList");
 
   }
 
@@ -410,11 +406,10 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
   public void moduleGroupMemberDelete(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,
     @PathVariable("userGroupName") final String userGroupName,
-    @PathVariable("consumerKey") final String consumerKey,
-    @RequestParam("confirm") final Boolean confirm) throws ServletException {
+    @PathVariable("consumerKey") final String consumerKey) throws ServletException {
     checkAdminOrAnyModuleAdmin(moduleName);
     removeUserGroupMembership(request, response, moduleName, userGroupName, moduleName, consumerKey,
-      confirm, "moduleView", "moduleGroupList");
+      "moduleView", "moduleGroupList");
   }
 
   public Object newUserGroupMembersList(final HttpServletRequest request,
@@ -512,8 +507,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
   protected void removeUserGroupMembership(final HttpServletRequest request,
     final HttpServletResponse response, final String moduleName, final String userGroupName,
-    final String moduleGroupName, final String consumerKey, final Boolean confirm,
-    final String parentPageName, final String tabName) throws ServletException {
+    final String moduleGroupName, final String consumerKey, final String parentPageName,
+    final String tabName) throws ServletException {
     if (moduleName != null) {
       hasModule(request, moduleName);
     }
@@ -523,10 +518,8 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
 
       final Record userAccount = getUserAccount(consumerKey);
       if (userAccount != null) {
-        if (Booleans.getBoolean(confirm)) {
-          final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-          dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
-        }
+        final CpfDataAccessObject dataAccessObject = getDataAccessObject();
+        dataAccessObject.deleteUserGroupAccountXref(userGroup, userAccount);
         redirectToTab(UserGroup.USER_GROUP, parentPageName, tabName);
         return;
       }

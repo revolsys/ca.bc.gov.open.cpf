@@ -66,30 +66,6 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
 
   public BatchJobUiBuilder() {
     super("batchJob", BatchJob.BATCH_JOB, BatchJob.BATCH_JOB_ID, "Batch Job", "Batch Jobs");
-    addLabel("jobStatusDate", "Job Status as of");
-
-    newView("clientView", "BATCH_JOB_ID_CLIENT_LINK", "CLIENT_BUSINESS_APPLICATION_NAME_LINK",
-      "USER_ID", "JOB_STATUS", "jobStatusDate", "businessApplicationParameterMap",
-      "INPUT_DATA_CONTENT_TYPE", "STRUCTURED_INPUT_DATA_URL", "RESULT_DATA_CONTENT_TYPE",
-      "WHEN_CREATED", "WHEN_UPDATED", "LAST_SCHEDULED_TIMESTAMP", "COMPLETED_TIMESTAMP",
-      "expiryDate", "NOTIFICATION_URL", "NUM_SUBMITTED_REQUESTS", "completedRequests",
-      "failedRequests", "GROUP_SIZE", "NUM_SUBMITTED_GROUPS", "completedGroups", "WHO_CREATED",
-      "WHO_UPDATED", "clientActions");
-    newView("clientAppList", "BATCH_JOB_ID_CLIENT_LINK", "WHEN_CREATED", "WHEN_UPDATED",
-      "JOB_STATUS", "NUM_SUBMITTED_REQUESTS", "completedCount", "failedCount", "clientActions");
-
-    newView("clientList", "BATCH_JOB_ID_CLIENT_LINK", "CLIENT_BUSINESS_APPLICATION_NAME_LINK",
-      "WHEN_CREATED", "WHEN_UPDATED", "JOB_STATUS", "NUM_SUBMITTED_REQUESTS", "completedCount",
-      "failedCount", "clientActions");
-
-    setListSortOrder("clientList", Collections.singletonList(Arrays.asList(0, "desc")));
-    setListSortOrder("clientAppList", Collections.singletonList(Arrays.asList(0, "desc")));
-
-    addPage(new Page("clientList", "Batch Jobs", "/ws/jobs/"));
-    addPage(new Page("clientView", "Batch Job {batchJobId}", "/ws/jobs/{batchJobId}/"));
-    addPage(new Page("clientCancel", "Job", "/ws/jobs/{batchJobId}/cancel/"));
-    addPage(new Page("clientDelete", "Job", "/ws/jobs/{batchJobId}/delete/"));
-    addPage(new Page("clientAppList", "Batch Jobs", "/ws/apps/{businessApplicationName}/jobs/"));
   }
 
   public void businessApplication(final XmlWriter out, final Object object) {
@@ -222,6 +198,39 @@ public class BatchJobUiBuilder extends CpfUiBuilder {
     final BatchJob batchJob = (BatchJob)object;
     final String text = batchJob.getGroupsToProcess();
     out.text(text);
+  }
+
+  @Override
+  protected void initLabels() {
+    super.initLabels();
+    addLabel("jobStatusDate", "Job Status as of");
+  }
+
+  @Override
+  protected void initPages() {
+    super.initPages();
+    newView("clientView", "BATCH_JOB_ID_CLIENT_LINK", "CLIENT_BUSINESS_APPLICATION_NAME_LINK",
+      "USER_ID", "JOB_STATUS", "jobStatusDate", "businessApplicationParameterMap",
+      "INPUT_DATA_CONTENT_TYPE", "STRUCTURED_INPUT_DATA_URL", "RESULT_DATA_CONTENT_TYPE",
+      "WHEN_CREATED", "WHEN_UPDATED", "LAST_SCHEDULED_TIMESTAMP", "COMPLETED_TIMESTAMP",
+      "expiryDate", "NOTIFICATION_URL", "NUM_SUBMITTED_REQUESTS", "completedRequests",
+      "failedRequests", "GROUP_SIZE", "NUM_SUBMITTED_GROUPS", "completedGroups", "WHO_CREATED",
+      "WHO_UPDATED", "clientActions");
+    newView("clientAppList", "BATCH_JOB_ID_CLIENT_LINK", "WHEN_CREATED", "WHEN_UPDATED",
+      "JOB_STATUS", "NUM_SUBMITTED_REQUESTS", "completedCount", "failedCount", "clientActions");
+
+    newView("clientList", "BATCH_JOB_ID_CLIENT_LINK", "CLIENT_BUSINESS_APPLICATION_NAME_LINK",
+      "WHEN_CREATED", "WHEN_UPDATED", "JOB_STATUS", "NUM_SUBMITTED_REQUESTS", "completedCount",
+      "failedCount", "clientActions");
+
+    setListSortOrder("clientList", Collections.singletonList(Arrays.asList(0, "desc")));
+    setListSortOrder("clientAppList", Collections.singletonList(Arrays.asList(0, "desc")));
+
+    addPage(new Page("clientList", "Batch Jobs", "/ws/jobs/"));
+    addPage(new Page("clientView", "Batch Job {batchJobId}", "/ws/jobs/{batchJobId}/"));
+    addPage(new Page("clientCancel", "Job", "/ws/jobs/{batchJobId}/cancel/"));
+    addPage(new Page("clientDelete", "Job", "/ws/jobs/{batchJobId}/delete/"));
+    addPage(new Page("clientAppList", "Batch Jobs", "/ws/apps/{businessApplicationName}/jobs/"));
   }
 
   @Override
