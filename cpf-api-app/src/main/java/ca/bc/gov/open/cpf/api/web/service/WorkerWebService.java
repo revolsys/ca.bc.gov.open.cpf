@@ -197,10 +197,12 @@ public class WorkerWebService {
       throw new PageNotFoundException();
     } else {
       final URL url = module.getJarUrl(jarIndex);
-      try (
-        final InputStream in = UrlUtil.getInputStream(url);
-        final OutputStream out = response.getOutputStream()) {
-        FileUtil.copy(in, out);
+      if (url != null) {
+        try (
+          final InputStream in = UrlUtil.getInputStream(url);
+          final OutputStream out = response.getOutputStream()) {
+          FileUtil.copy(in, out);
+        }
       }
     }
   }
