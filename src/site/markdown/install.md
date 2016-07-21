@@ -12,8 +12,8 @@ A local copy of the CPF databases should be deployed at a developer's site. For 
 multiple developers it is recommended to install a local database on each developer's workstation
 and one on a central integration test server.
 
-NOTE: Installation of database for any business application plug-ins is outside the
-scope of the CPF.
+> **NOTE:** Installation of database for any business application plug-ins is outside the
+> scope of the CPF.
 
 ### Requirements
 
@@ -34,31 +34,24 @@ required SQL scripts and instructions on how to install these databases.
 The SQL scripts to install the database can be downloaded from the https://github.com/bcgov/cpf
 repository.
 
-The following scripts will download the Oracle and PostgreSQL scripts. 
-
-The following scripts download the SQL into the directory `/apps/cpf/sql`. This can be
-changed to any directory as required as the SQL scripts are not location specific.
+Use the following scripts will download the CPF Oracle and PostgreSQL scripts.
 
 **UNIX/Mac**
 
 ```bash
-mkdir cpf
-cd cpf
-svn co https://github.com/bcgov/cpf/trunk/sql sql
+svn co https://github.com/bcgov/cpf/trunk/sql
 cd sql
 ```
   
 **Windows**
 
 ```winbatch
-md cpf
-cd cpf
-svn co https://github.com/bcgov/cpf/trunk/sql sql
+svn co https://github.com/bcgov/cpf/trunk/sql
 cd sql
 ```
 
-> **NOTE:** If you have previously downloaded the SQL the following command can be used to ensure that 
-> you have the latest version.
+> **NOTE:** If you have previously downloaded the SQL use the following command from the sql
+directory to ensure that you have the latest version.
 
 ```
 svn up
@@ -66,24 +59,9 @@ svn up
 
 ### CPF Database Install Configuration
 
-The database install scripts require a configuration file to avoid manually entering configuration
-parameters while executing the script.
-
-**UNIX/Mac**
-
-```bash
-DB_VENDOR={postgresql|oracle}
-cd cpf/sql/${DB_VENDOR}
-cp sample-db.properties db.properties
-```
- 
-**Windows**
-
-```winbatch
-set DB_VENDOR={postgresql|oracle}
-cd cpf\sql\%DB_VENDOR%
-cp sample-db.properties db.properties
-```
+The database install scripts use the db.properties configuration file for database connection
+and configuration parameters. Copy the db-sample.properties file from the postgresql or oracle
+directory to use as a template.
 
 > **NOTE:** Change permissions on the `db.properties` so that only you have read/write permissions on
 > the file to keep the passwords secret.
@@ -157,7 +135,7 @@ that the existing tables should be deleted.
 * Create a `CPF_WEB_PROXY` database role that will have CRUD permission on the tables.
 * Create a `CPF` database user account that this the owner of all the CPF tables. **NOTE:**
   This account must not be used for any other purpose than managing the table definitions.
-* Create a `PROXY_CPF_WE`B user account that is used by the CPF web application to access the database.
+* Create a `PROXY_CPF_WEB` user account that is used by the CPF web application to access the database.
 * Create a `CPF` schema for all of the CPF tables, sequences and indexes.
 * Create all the CPF tables, sequences and indexes and grant appropriate permissions for these tables.
 
@@ -174,7 +152,7 @@ cd cpf/sql/${DB_VENDOR}
 **Windows**
 ```
 set DB_VENDOR={postgresql|oracle}
-cd  cpf\sql\${DB_VENDOR}
+cd  cpf\sql\%DB_VENDOR%
 install.cmd
 ```
   
@@ -194,13 +172,13 @@ During the installation script you may be prompted for the following information
 
 A local copy of the CPF web applications and databases should be deployed at the developer's site.
 For projects with multiple developers it is recommended to install a local database and J2EE servlet
-container on each developer's workstation and one on a central integration test server.
+container (Apached Tomcat) on each developer's workstation and one on a central integration test server.
 
 The CPF applications are deployed to a J2EE application server or servlet container. To deploy to a
 J2EE Servlet container the individual wars are deployed to the J2EE Servlet container.
 
-Deployment is currently supported on [Tomcat > 8.x](http://tomcat.apache.org). CPF may work with
-other J2EE Servlet or application contains but this has not been tested.
+Deployment is currently supported on [Apache Tomcat > 8.x](http://tomcat.apache.org). CPF may work
+withother J2EE Servlet or application containers but this has not been tested.
 
 For Tomcat 8.x you will need to add a user account in the manager-script role to deploy the web
 applications to the tomcat contained. If a user does not exist edit the `tomcat-users.xml`
@@ -208,12 +186,15 @@ file in the tomcat conf directory.
 
 ```xml
 <role rolename="manager-script"/>
-<user username="admin" password="manager" roles="manager-script"/>
+<user username="admin" password="*****" roles="manager-script"/>
 ```
 
 ### Create CPF directories
 
 The CPF requires directories to be created on the server. The following directories must be created.
+
+> **NOTE**: This assumes the CPF home directory is /apps/cpf. Modify the commands and configuration
+> below if a different directory is used.
 
 <div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
@@ -275,53 +256,28 @@ The CPF application can be configured to connect to different types of database 
 extended in other ways. Therefore instead of delivering a pre-packaged war file a maven project is
 created for each installation that contains the configuration for that environment.
 
-Create the maven project using the following maven archetype command.
+Create the maven project using the following maven archetype commands. Replace any values in
+**bold** with the correct values for your environment.
+
+> **NOTE:** Java 1.8.0 and Maven 3.3+ must be install. JAVA_HOME and M2_HOME must be set and the
+> bin directories from both must be in the PATH.
 
 **UNIX/Mac**
 ```bash
-cd ~/projects
-mvn \
-  archetype:generate \
-  -DinteractiveMode=false \
-  -DarchetypeGroupId=ca.bc.gov.open.cpf \
-  -DarchetypeArtifactId=cpf-archetype-web \
-  -DarchetypeVersion=${project.version} \
-  -DgroupId=com.mycompany \
-  -DartifactId=cpf \
-  -Dversion=1.0.0-SNAPSHOT \
-  -DmodulePrefix=cpf \
-  -DdatabaseVendor=postgresql \
-  -DcpfLogDirectory=/apps/cpf/log \
-  -DcpfDirectoryUrl=file:///apps/cpf \
-  -DmavenCacheDirectoryUrl=file:///home/$USER/.m2/repository
-```
-
-> **NOTE:** UNIX requires commands to be entered on a single line. The \ character is a
-> line continuation character that treats multiple lines as a single line. Therefore you can cut and
-> paste the above text into a command window.
+CPF_VERSION=**5.0.0-SNAPSHOT**
+cd **~/projects**
+mvn archetype:generate -DinteractiveMode=false -DarchetypeGroupId=ca.bc.gov.open.cpf -DarchetypeArtifactId=cpf-archetype-web-DarchetypeVersion=${CPF_VERSION} -DgroupId=**com.mycompany** -DartifactId=**cpf* -Dversion=**1.0.0-SNAPSHOT** -DmodulePrefix=**cpf** -DdatabaseVendor=**postgresql** -DdatabasePassword=**c0ncurr3n7** -DworkerPassword=**cpf_w0rk3r** -DcpfLogDirectory=**/apps/cpf/log** -DcpfDirectoryUrl=**file:///apps/cpf** -DmavenCacheDirectoryUrl=**file:///home/$USER/.m2/repository**```
 
 **Windows**
 ```winbatch
-cd %HOME%\projects
-mvn ^
-  archetype:generate ^
-  -DinteractiveMode=false ^
-  -DarchetypeGroupId=ca.bc.gov.open.cpf ^
-  -DarchetypeArtifactId=cpf-archetype-web ^
-  -DarchetypeVersion=${project.version} ^
-  -DgroupId=com.mycompany ^
-  -DartifactId=cpf ^
-  -Dversion=1.0.0-SNAPSHOT ^
-  -DmodulePrefix=cpf ^
-  -DdatabaseVendorpostgresql ^
-  -DcpfLogDirectory=C:/apps/cpf/log ^
-  -DcpfDirectoryUrl=file:///apps/cpf ^
-  -DmavenCacheDirectoryUrl=file:///%HOME:\=/%/.m2/repository
+set CPF_VERSION=**5.0.0-SNAPSHOT**
+cd **%HOMEDRIVE%%HOMEPATH%\projects**
+mvn archetype:generate -DinteractiveMode=false -DarchetypeGroupId=ca.bc.gov.open.cpf -DarchetypeArtifactId=cpf-archetype-web -DarchetypeVersion=%CPF_VERSION% -DgroupId=**com.mycompany** -DartifactId=**cpf** -Dversion=**1.0.0-SNAPSHOT** -DmodulePrefix=**cpf** -DdatabaseVendor=**postgresql** -DdatabasePassword=**c0ncurr3n7** -DworkerPassword=**cpf_w0rk3r** -DcpfLogDirectory=**C:/apps/cpf/log** -DcpfDirectoryUrl=**file:/C:/apps/cpf** -DmavenCacheDirectoryUrl=**file:/C:/apps/cpf/repository**
 ```
 
-> **NOTE:** Windows requires commands to be entered on a single line. The ^ character is a
-> line continuation character that treats multiple lines as a single line. Therefore you can cut and
-> paste the above text into a command window.
+> **NOTE:** Windows and Unix require commands to be entered on a single line. The \ or ^ character
+> are line continuation character that treats multiple lines as a single line. Therefore you can cut
+and paste the above text into a command window.
 
 <div class="table-responsive"><table class="table table-condensed table-striped tabled-bordered">
   <thead>
@@ -344,7 +300,7 @@ mvn ^
       <td>The base maven artifact identifier used for the maven modules created in the project.</td>
     </tr>
     <tr>
-      <td><code>verstion</code></td>
+      <td><code>version</code></td>
       <td>The version identifier you’d like to give to your plug-in.</td>
     </tr>
     <tr>
@@ -356,17 +312,26 @@ mvn ^
       <td>The database type that the CPF uses for its data. Supported values include postgresql and oracle.</td>
     </tr>
     <tr>
-      <td><code>cpfDirectory</code></td>
-      <td>The root directory the CPF configuration file and log files will be stored in (e.g. `/apps/cpf` or `C:\apps\cpf`).</td>
+      <td><code>databasePassword</code></td>
+      <td>The password for the PROXY_CPF_WEB user (PROXY_CPF_WEB_PASSWORD from db.properties). </td>
+    </tr>
+    <tr>
+      <td><code>workerPassword</code></td>
+      <td>The password for the cpf_worker CPF user account. Default is cpf_w0rk3r. Change if required
+      using the CPF admin application.</td>
+    </tr>
+    <tr>
+      <td><code>cpfLogDirectory</code></td>
+      <td>The directory for the CPF log files will be stored in (e.g. `/apps/cpf/log` or `C:\apps\cpf\log`).</td>
     </tr>
     <tr>
       <td><code>cpfDirectoryUrl</code></td>
-      <td>The root directory the CPF configuration file and log files will be stored in (e.g. `/apps/cpf` or `C:\apps\cpf`).</td>
+      <td>The root directory the CPF configuration file and log files will be stored in (e.g. `file:///apps/cpf` or `file:/C:\apps\cpf`).</td>
     </tr>
     <tr>
-      <td><code>mavenCacheDirectoryURL</code></td>
-      <td>The file URL to local Maven repository cache. <b>NOTE: Must start with file:/// and use web
-      slashes / instead of windows slashes \</b>. If the J2EE server is on the developers workstation
+      <td><code>mavenCacheDirectoryUrl</code></td>
+      <td>The file URL to local Maven repository cache. <b>NOTE:</b> Must start with file:/// or file:/ and use web
+      slashes / instead of windows slashes \. If the J2EE server is on the developers workstation
       use the user's local maven repository cache. Otherwise use the repository directory below the
       `cpfDirectory` defined above (e.g. `file:///apps/cpf/repository` or
       `file:///C:/apps/cpf/repository`).</td>
@@ -408,12 +373,12 @@ The following directory structure would be created if the command were run using
     <td>The configuration file for the CPF web components.</td>
     </tr>
     <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log4j.xml</code></td>
-    <td>The log4j configuration.</td>
-    </tr>
-    <tr>
     <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/webapp/META-INF/context.xml</code></td>
     <td>Tomcat context configuration.</td>
+    </tr>
+    <tr>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/webapp/web.xml</code></td>
+    <td>The web.xml file.</td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;cpf.worker</code></td>
@@ -428,12 +393,8 @@ The following directory structure would be created if the command were run using
     <td>The resources to be included in the web applications jar file.</td>
     </tr>
     <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpf-worker-properties.sf.xml</code></td>
+    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpfWorker.json</code></td>
     <td>The configuration file for the worker.</td>
-    </tr>
-    <tr>
-    <td><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;log4j.xml</code></td>
-    <td>The log4j configuration.</td>
     </tr>
     <tr>
     <td><code>&nbsp;&nbsp;&nbsp;&nbsp;src/main/webapp/META-INF/context.xml</code></td>
@@ -471,10 +432,10 @@ example the following shows a profile for the localhost.
   <profile>
     <id><b>localhost</b></id>
     <properties>
-      <!-- Include the following for Tomcat 7 deployment -->
-      <tomcat7ManagerUrl><b>http://localhost:8080/manager/text</b></tomcat7ManagerUrl>
-      <tomcat7ManagerUsername><b>admin</b></tomcat7ManagerUsername>
-      <tomcat7ManagerPassword><b>********</b></tomcat7ManagerPassword>
+      <!-- Include the following for Tomcat deployment -->
+      <tomcatManagerUrl><b>http://localhost:8080/manager/text</b></tomcatManagerUrl>
+      <tomcatManagerUsername><b>admin</b></tomcatManagerUsername>
+      <tomcatManagerPassword><b>********</b></tomcatManagerPassword>
     </properties>
   </profile>
 </settings>
@@ -513,7 +474,8 @@ the server.
     </tr>
     <tr>
     <td><code>cpfWorker.webServiceUrl</code></td>
-    <td>The base url to the internal web services (e.g. `http://localhost/pub/cpf`).</td>
+    <td>The base url to the internal web services (e.g. `http://localhost:8080/pub/cpf`). Must be the
+    direct tomcat HTTP port and not behind an Apache reverse proxy.</td>
     </tr>
     <tr>
     <td><code>cpfWorker.password</code></td>
@@ -553,15 +515,15 @@ a maven repository.
 </entry>
 ```
 
-### Deploy to Tomcat 7
+### Deploy to Tomcat 8
 
 The plug-in project web services &amp; scheduler war and worker war files can be deployed to a
-Tomcat 7 server.
+Tomcat 8 server.
 
 Use the following command to compile and deploy to Tomcat.
 
 ```
-mvn -p tomcat7Deploy,**localhost** clean install
+mvn -P tomcat8Deploy,**localhost** clean install
 ```
 
 If you created multiple profiles use the profile name of the server you wish to deploy to.

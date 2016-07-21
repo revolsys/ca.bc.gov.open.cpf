@@ -521,7 +521,7 @@
 
   <profiles>
     <profile>
-      <id>tomcat7Deploy</id>
+      <id>tomcat8Deploy</id>
       <build>
         <plugins>
           <plugin>
@@ -539,15 +539,15 @@
             </executions>
             <configuration>
               <container>
-                <containerId>tomcat7x</containerId>
+                <containerId>tomcat8x</containerId>
                 <type>remote</type>
               </container>
               <configuration>
                 <type>runtime</type>
                 <properties>
-                  <cargo.remote.uri>${tomcat7ManagerUrl}</cargo.remote.uri>
-                  <cargo.remote.username>${tomcat7ManagerUsername}</cargo.remote.username>
-                  <cargo.remote.password>${tomcat7ManagerPassword}</cargo.remote.password>
+                  <cargo.remote.uri>${tomcatManagerUrl}</cargo.remote.uri>
+                  <cargo.remote.username>${tomcatManagerUsername}</cargo.remote.username>
+                  <cargo.remote.password>${tomcatManagerPassword}</cargo.remote.password>
                 </properties>
               </configuration>
               <deployer>
