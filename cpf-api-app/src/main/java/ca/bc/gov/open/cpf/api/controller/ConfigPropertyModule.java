@@ -66,8 +66,10 @@ public class ConfigPropertyModule extends ClassLoaderModule {
         try {
           excludeIds.add(MavenPom.getGroupAndArtifactId(excludeId));
           final MavenPom pom = this.mavenRepository.getPom(excludeId);
-          for (final String dependencyId : pom.getDependencyIds(excludeIds)) {
-            excludeIds.add(MavenPom.getGroupAndArtifactId(dependencyId));
+          if (pom != null) {
+            for (final String dependencyId : pom.getDependencyIds(excludeIds)) {
+              excludeIds.add(MavenPom.getGroupAndArtifactId(dependencyId));
+            }
           }
         } catch (final IllegalArgumentException e) {
         }
