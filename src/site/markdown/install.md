@@ -249,8 +249,8 @@ mvn ^
   -DdatabasePassword=c0ncurr3n7 ^
   -DworkerPassword=cpf_w0rk3r ^
   -DcpfLogDirectory=C:/apps/cpf/log ^
-  -DcpfDirectoryUrl=file:/C:/apps/cpf ^
-  -DmavenCacheDirectoryUrl=file:/C:/apps/cpf/repository
+  -DcpfDirectoryUrl=file:///C:/apps/cpf ^
+  -DmavenCacheDirectoryUrl=file:///C:/apps/cpf/repository
 ```
 
 > **NOTE:** Windows and Unix require commands to be entered on a single line. The \ or ^ character
@@ -353,7 +353,7 @@ Edit the following configuration file. You will need to re-build and deploy if t
 ~/projects/cpf/cpf.app/src/main/resources/cpf-web-properties.sf.xml
 ```
 
-Add the following entries to the cpfWorkerProperties map. The first entry must be modified to the
+Add the following entries to the cpfWebProperties map. The first entry must be modified to the
 value used for the mavenCacheDirectory specified above. The second entry value must be the local
 file URL or remote http URL to a shared maven repository that you will deploy the plug-ins to.
 See [Maven Deploy Plug-in](http://maven.apache.org/plug-ins/maven-deploy-plug-in/) for deploying to

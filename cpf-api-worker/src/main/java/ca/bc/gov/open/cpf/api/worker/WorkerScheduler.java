@@ -133,7 +133,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private String username = "cpf_worker";
 
-  private String webServiceUrl = "http://localhost/cpf";
+  private String webServiceUrl = "http://localhost:8080/cpf";
 
   private final long startTime = System.currentTimeMillis();
 

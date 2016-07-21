@@ -27,5 +27,11 @@
     <entry
       key="mavenRepository.root"
       value="${mavenCacheDirectoryUrl}/" />
+
+    <entry key="mavenRepository.repositoryLocations">
+      <list>
+        <value>http://repo1.maven.org/maven2/</value>
+      </list>
+    </entry>
   </util:map>
 </beans>
