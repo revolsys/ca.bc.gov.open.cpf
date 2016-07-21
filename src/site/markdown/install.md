@@ -107,7 +107,7 @@ Edit the `db.properties` file.
       <td><code>/data/postgres/cpf
 c:\data\postgres\cpf</code></td>
       <td>The directory to create the database tablespace in. The directory must exist on the
-      **server** and the PostgreSQL or Oracle process must have write permissions on this
+      server and the PostgreSQL or Oracle process must have write permissions on this
       directory.</td>
     </tr>
   </tbody>
@@ -235,7 +235,7 @@ Create the directories using the following commands. Make sure the directory per
 as shown in the table above.
 
 **UNIX/Mac**
-```bash
+```
 mkdir -p /apps/cpf
 mkdir -p /apps/cpf/config
 mkdir -p /apps/cpf/log
@@ -243,7 +243,7 @@ mkdir -p /apps/cpf/repository
 ```
 
 **Windows**
-```winbatch
+```
 md \apps\cpf
 md \apps\cpf\config
 md \apps\cpf\log
@@ -256,23 +256,23 @@ The CPF application can be configured to connect to different types of database 
 extended in other ways. Therefore instead of delivering a pre-packaged war file a maven project is
 created for each installation that contains the configuration for that environment.
 
-Create the maven project using the following maven archetype commands. Replace any values in
-**bold** with the correct values for your environment.
+Create the maven project using the following maven archetype commands. Replace any parameters
+with the correct values for your environment.
 
 > **NOTE:** Java 1.8.0 and Maven 3.3+ must be install. JAVA_HOME and M2_HOME must be set and the
 > bin directories from both must be in the PATH.
 
 **UNIX/Mac**
 ```bash
-CPF_VERSION=**5.0.0-SNAPSHOT**
-cd **~/projects**
-mvn archetype:generate -DinteractiveMode=false -DarchetypeGroupId=ca.bc.gov.open.cpf -DarchetypeArtifactId=cpf-archetype-web-DarchetypeVersion=${CPF_VERSION} -DgroupId=**com.mycompany** -DartifactId=**cpf* -Dversion=**1.0.0-SNAPSHOT** -DmodulePrefix=**cpf** -DdatabaseVendor=**postgresql** -DdatabasePassword=**c0ncurr3n7** -DworkerPassword=**cpf_w0rk3r** -DcpfLogDirectory=**/apps/cpf/log** -DcpfDirectoryUrl=**file:///apps/cpf** -DmavenCacheDirectoryUrl=**file:///home/$USER/.m2/repository**```
+CPF_VERSION=5.0.0-SNAPSHOT
+cd ~/projects
+mvn archetype:generate -DinteractiveMode=false -DarchetypeGroupId=ca.bc.gov.open.cpf -DarchetypeArtifactId=cpf-archetype-web-DarchetypeVersion=${CPF_VERSION} -DgroupId=com.mycompany -DartifactId=cpf* -Dversion=1.0.0-SNAPSHOT -DmodulePrefix=cpf -DdatabaseVendor=postgresql -DdatabasePassword=c0ncurr3n7 -DworkerPassword=cpf_w0rk3r -DcpfLogDirectory=/apps/cpf/log -DcpfDirectoryUrl=file:///apps/cpf -DmavenCacheDirectoryUrl=file:///home/$USER/.m2/repository```
 
 **Windows**
-```winbatch
-set CPF_VERSION=**5.0.0-SNAPSHOT**
-cd **%HOMEDRIVE%%HOMEPATH%\projects**
-mvn archetype:generate -DinteractiveMode=false -DarchetypeGroupId=ca.bc.gov.open.cpf -DarchetypeArtifactId=cpf-archetype-web -DarchetypeVersion=%CPF_VERSION% -DgroupId=**com.mycompany** -DartifactId=**cpf** -Dversion=**1.0.0-SNAPSHOT** -DmodulePrefix=**cpf** -DdatabaseVendor=**postgresql** -DdatabasePassword=**c0ncurr3n7** -DworkerPassword=**cpf_w0rk3r** -DcpfLogDirectory=**C:/apps/cpf/log** -DcpfDirectoryUrl=**file:/C:/apps/cpf** -DmavenCacheDirectoryUrl=**file:/C:/apps/cpf/repository**
+```
+set CPF_VERSION=5.0.0-SNAPSHOT
+cd %HOMEDRIVE%%HOMEPATH%\projects
+mvn archetype:generate -DinteractiveMode=false -DarchetypeGroupId=ca.bc.gov.open.cpf -DarchetypeArtifactId=cpf-archetype-web -DarchetypeVersion=%CPF_VERSION% -DgroupId=com.mycompany -DartifactId=cpf -Dversion=1.0.0-SNAPSHOT -DmodulePrefix=cpf -DdatabaseVendor=postgresql -DdatabasePassword=c0ncurr3n7 -DworkerPassword=cpf_w0rk3r -DcpfLogDirectory=C:/apps/cpf/log -DcpfDirectoryUrl=file:/C:/apps/cpf -DmavenCacheDirectoryUrl=file:/C:/apps/cpf/repository
 ```
 
 > **NOTE:** Windows and Unix require commands to be entered on a single line. The \ or ^ character
@@ -430,12 +430,12 @@ example the following shows a profile for the localhost.
 ```xml
 <settings>
   <profile>
-    <id><b>localhost</b></id>
+    <id>localhost</id>
     <properties>
       <!-- Include the following for Tomcat deployment -->
-      <tomcatManagerUrl><b>http://localhost:8080/manager/text</b></tomcatManagerUrl>
-      <tomcatManagerUsername><b>admin</b></tomcatManagerUsername>
-      <tomcatManagerPassword><b>********</b></tomcatManagerPassword>
+      <tomcatManagerUrl>http://localhost:8080/manager/text</tomcatManagerUrl>
+      <tomcatManagerUsername>admin</tomcatManagerUsername>
+      <tomcatManagerPassword>********</tomcatManagerPassword>
     </properties>
   </profile>
 </settings>
@@ -523,7 +523,7 @@ Tomcat 8 server.
 Use the following command to compile and deploy to Tomcat.
 
 ```
-mvn -P tomcat8Deploy,**localhost** clean install
+mvn -P tomcat8Deploy,localhost clean install
 ```
 
 If you created multiple profiles use the profile name of the server you wish to deploy to.
