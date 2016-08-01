@@ -54,11 +54,12 @@ public class AppLog {
     setLogLevel(logLevel);
   }
 
-  public AppLog(final String businessApplicationName, String groupId, final String logLevel) {
+  public AppLog(final String moduleName, final String businessApplicationName, String groupId,
+    final String logLevel) {
     if (groupId == null || groupId.trim().length() == 0) {
       groupId = String.valueOf(System.currentTimeMillis());
     }
-    this.log = Logger.getLogger(businessApplicationName + "." + groupId);
+    this.log = Logger.getLogger(moduleName + "." + businessApplicationName + "." + groupId);
     setLogLevel(logLevel);
   }
 

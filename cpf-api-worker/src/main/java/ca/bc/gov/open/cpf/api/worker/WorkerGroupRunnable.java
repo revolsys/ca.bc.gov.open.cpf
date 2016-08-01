@@ -119,7 +119,8 @@ public class WorkerGroupRunnable implements Runnable {
     this.batchJobId = groupIdMap.getLong("batchJobId");
     this.userId = groupIdMap.getString("consumerKey");
     this.logLevel = groupIdMap.getString("logLevel");
-    this.log = new AppLog(this.businessApplicationName, this.groupId, this.logLevel);
+    this.log = new AppLog(this.moduleName, this.businessApplicationName, this.groupId,
+      this.logLevel);
   }
 
   public void addError(final Integer sequenceNumber, final String logPrefix, final String errorCode,
@@ -257,7 +258,8 @@ public class WorkerGroupRunnable implements Runnable {
           "Unable to create plugin " + this.businessApplicationName + " ",
           "ERROR_PROCESSING_REQUEST", null);
       } else {
-        final AppLog appLog = new AppLog(this.businessApplicationName, this.groupId, this.logLevel);
+        final AppLog appLog = new AppLog(this.moduleName, this.businessApplicationName,
+          this.groupId, this.logLevel);
         File resultFile = null;
         OutputStream resultData = null;
         if (this.businessApplication.isPerRequestInputData()) {
@@ -286,11 +288,14 @@ public class WorkerGroupRunnable implements Runnable {
           sendResultData(requestSequenceNumber, parameters, resultFile, resultData);
 
         } catch (final IllegalArgumentException e) {
-          addError(requestSequenceNumber, "Error processing request ", "BAD_INPUT_DATA_VALUE", e);
+          addError(requestSequenceNumber, "Invalid value " + e.getMessage(), "BAD_INPUT_DATA_VALUE",
+            e);
+        } catch (final NullPointerException e) {
+          addError(requestSequenceNumber, "Invalid value, null not allowed", "BAD_INPUT_DATA_VALUE",
+            e);
         } catch (final RecoverableException e) {
-          this.log.error("Error processing request " + requestSequenceNumber, e);
-          addError(requestSequenceNumber, "Error processing request ", "RECOVERABLE_EXCEPTION",
-            null);
+          addError(requestSequenceNumber, "Error processing request " + e.getMessage(),
+            "RECOVERABLE_EXCEPTION", e);
         } finally {
           FileUtil.closeSilent(resultData);
           FileUtil.deleteDirectory(resultFile);
@@ -304,9 +309,7 @@ public class WorkerGroupRunnable implements Runnable {
       }
       hasError = false;
     } catch (final Throwable e) {
-      this.log.error("Error processing request " + requestSequenceNumber, e);
-      addError(requestSequenceNumber, "Error processing request ", "ERROR_PROCESSING_REQUEST",
-        null);
+      addError(requestSequenceNumber, "Error processing request", "ERROR_PROCESSING_REQUEST", e);
     }
 
     if (hasError) {
@@ -347,11 +350,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
@@ -399,9 +402,8 @@ public class WorkerGroupRunnable implements Runnable {
                 final Object convertedValue = dataType.toObject(value);
                 applicationParameters.put(name, convertedValue);
               } catch (final Throwable e) {
-                this.log.error("Error processing group", e);
-                // TODO addError("Error processing group ",
-                // "BAD_INPUT_DATA_VALUE", null);
+                addError(0, "Invalid application parameter " + name + "=" + value,
+                  "BAD_INPUT_DATA_VALUE", e);
               }
             }
           }
@@ -497,7 +499,8 @@ public class WorkerGroupRunnable implements Runnable {
         }
       } catch (final Throwable e) {
         this.log.error("Error sending result data", e);
-        addError(requestSequenceNumber, "Error processing request", "RECOVERABLE_EXCEPTION", null);
+        addError(requestSequenceNumber, "Unable to send result data", "RECOVERABLE_EXCEPTION",
+          null);
       }
     }
   }

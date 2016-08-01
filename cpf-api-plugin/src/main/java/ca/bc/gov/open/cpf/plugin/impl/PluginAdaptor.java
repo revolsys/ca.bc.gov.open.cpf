@@ -212,7 +212,8 @@ public class PluginAdaptor {
     if (!Property.hasValue(logLevel)) {
       executionId = String.valueOf(System.currentTimeMillis());
     }
-    this.appLog = new AppLog(application.getName(), executionId, logLevel);
+    this.appLog = new AppLog(application.getModuleName(), application.getName(), executionId,
+      logLevel);
     try {
       final Class<? extends Object> pluginClass = plugin.getClass();
       final Method setAppLogMethod = pluginClass.getMethod("setAppLog", AppLog.class);
