@@ -268,8 +268,8 @@ mvn ^
 |`databasePassword`      |The password for the PROXY_CPF_WEB user (PROXY_CPF_WEB_PASSWORD from db.properties). |
 |`workerPassword`        |The password for the cpf_worker CPF user account. Default is cpf_w0rk3r. Change if required using the CPF admin application.|
 |`cpfLogDirectory`       |The directory for the CPF log files will be stored in (e.g. `/apps/cpf/log` or `C:\apps\cpf\log`).|
-|`cpfDirectoryUrl`       |The root directory the CPF configuration file and log files will be stored in (e.g. `file:///apps/cpf` or `file:/C:\apps\cpf`).|
-|`mavenCacheDirectoryUrl`|The file URL to local Maven repository cache. **NOTE:** Must start with file:/// or file:/ and use web slashes / instead of windows slashes \. If the J2EE server is on the developers workstation use the user's local maven repository cache. Otherwise use the repository directory below the `cpfDirectory` defined above (e.g. `file:///apps/cpf/repository` or `file:///C:/apps/cpf/repository`).|
+|`cpfDirectoryUrl`       |The root directory the CPF configuration file and log files will be stored in (e.g. `file:///apps/cpf` or `file:///C:/apps/cpf`).|
+|`mavenCacheDirectoryUrl`|The file URL to local Maven repository cache. **NOTE:** Must start with file:/// and use web slashes / instead of windows slashes \. If the J2EE server is on the developers workstation use the user's local maven repository cache. Otherwise use the repository directory below the `cpfDirectory` defined above (e.g. `file:///apps/cpf/repository` or `file:///C:/apps/cpf/repository`).|
 
 
 The following directory structure would be created if the command were run using the parameters above.
