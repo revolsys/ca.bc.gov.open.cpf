@@ -11,12 +11,12 @@
     http://www.springframework.org/schema/tx
     http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
     http://www.springframework.org/schema/security
-    http://www.springframework.org/schema/security/spring-security-4.0.xsd
+    http://www.springframework.org/schema/security/spring-security-4.1.xsd
   "
 >
   <security:http
     pattern="(/openid/.*|/j_spring_openid_security_check)"
-    path-type="regex"
+    request-matcher="regex"
     realm="CPF OpenID"
     use-expressions="true"
     auto-config="false"
@@ -30,15 +30,19 @@
       ref="cpfOpenIdFilter" />
 
     <security:intercept-url
-      pattern="/openid/login/**"
+      pattern="/openid/login"
       access="permitAll" />
 
     <security:intercept-url
-      pattern="/openid/worker/**"
+      pattern="/openid/login/.*"
+      access="permitAll" />
+
+    <security:intercept-url
+      pattern="/openid/worker/.*"
       access="denyAll" />
 
     <security:intercept-url
-      pattern="/openid/**"
+      pattern="/openid/.*"
       access="isFullyAuthenticated() and hasRole('ROLE_USER')" />
 
     <security:intercept-url
@@ -104,7 +108,9 @@
   <bean
     id="cpfOpenIdFilterEntryPoint"
     class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint"
-    p:loginFormUrl="/openid/login" />
+  >
+    <constructor-arg value="/openid/login" />
+  </bean>
 
   <bean
     id="cpfOpenIdUserDetailsService"
