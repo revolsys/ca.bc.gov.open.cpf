@@ -34,8 +34,8 @@
     </dependency>
     <dependency>
       <groupId>org.openid4java</groupId>
-      <artifactId>openid4java-xri</artifactId>
-      <version>0.9.5</version>
+      <artifactId>openid4java</artifactId>
+      <version>${org.openid4java.version}</version>
       <type>jar</type>
       <scope>compile</scope>
       <exclusions>
@@ -94,7 +94,14 @@
           <artifactId>xercesImpl</artifactId>
           <groupId>xerces</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.openid4java</groupId>
+          <artifactId>openid4java-nodeps</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
   </dependencies>
+  <properties>
+    <org.openid4java.version>1.0.0</org.openid4java.version>
+  </properties>
 </project>
