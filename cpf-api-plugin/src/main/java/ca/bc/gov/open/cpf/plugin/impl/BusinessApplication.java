@@ -399,7 +399,9 @@ public class BusinessApplication extends BaseObjectWithProperties
       throw new IllegalArgumentException("Business Application " + getName()
         + " Duplicate index for " + RequestParameter.class + " on " + fieldName);
     } else {
-      if (Geometry.class.isAssignableFrom(field.getDataType().getJavaClass())) {
+      final Class<?> fieldClass = field.getTypeClass();
+      if (Geometry.class.isAssignableFrom(fieldClass)
+        || com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(fieldClass)) {
         this.hasGeometryRequestAttribute = true;
       } else {
         this.hasNonGeometryRequestAttribute = true;
@@ -434,7 +436,9 @@ public class BusinessApplication extends BaseObjectWithProperties
       throw new IllegalArgumentException("Business Application " + getName()
         + " Duplicate index for " + ResultAttribute.class + " on " + fieldName);
     } else {
-      if (Geometry.class.isAssignableFrom(field.getDataType().getJavaClass())) {
+      final Class<?> fieldClass = field.getTypeClass();
+      if (Geometry.class.isAssignableFrom(fieldClass)
+        || com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(fieldClass)) {
         this.hasGeometryResultAttribute = true;
       }
       this.resultFieldMap.put(index, field);
