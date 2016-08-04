@@ -509,8 +509,8 @@
     <module>cpf-api-client</module>
     <module>cpf-api-app</module>
     <module>cpf-api-worker</module>
-    <module>cpf-security-openid</module>
-    <module>cpf-war-app</module>
+<!--     <module>cpf-security-openid</module>
+ -->    <module>cpf-war-app</module>
     <module>cpf-war-worker</module>
     <module>cpf-archetype-plugin</module>
     <module>cpf-archetype-web</module>
@@ -592,7 +592,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
     <org.springframework.version>4.1.9.RELEASE</org.springframework.version>
-    <org.springframework.security.version>4.1.1.RELEASE</org.springframework.security.version>
+    <org.springframework.security.version>4.0.4.RELEASE</org.springframework.security.version>
     <org.apache.httpcomponents.version>4.4.1</org.apache.httpcomponents.version>
     <org.slf4j.version>1.7.21</org.slf4j.version>
     <skipWebDeploy>true</skipWebDeploy>
