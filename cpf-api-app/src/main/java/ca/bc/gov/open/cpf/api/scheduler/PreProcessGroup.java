@@ -33,6 +33,7 @@ import com.revolsys.record.Record;
 import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.csv.CsvRecordWriter;
+import com.revolsys.record.io.format.tsv.Tsv;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.util.Property;
@@ -140,7 +141,7 @@ public abstract class PreProcessGroup {
     if (this.writer == null) {
       this.groupFile = newGroupFile();
       this.writer = new CsvRecordWriter(this.recordDefinition,
-        FileUtil.newUtf8Writer(this.groupFile), ',', true, false);
+        FileUtil.newUtf8Writer(this.groupFile), Tsv.FIELD_SEPARATOR, false, false);
     }
     return this.writer;
   }

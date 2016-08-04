@@ -350,11 +350,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
@@ -453,8 +453,8 @@ public class WorkerGroupRunnable implements Runnable {
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("groupExecutedTime", groupExecutionTime);
         parameters.put("applicationExecutedTime", this.applicationExecutionTime);
-        parameters.put("completedRequestRange", this.successRequests);
-        parameters.put("failedRequestRange", this.errorRequests);
+        parameters.put("completedRequestRange", this.successRequests.toString());
+        parameters.put("failedRequestRange", this.errorRequests.toString());
         final String path = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
           + "/groups/" + this.groupId + "/results";
         try (
