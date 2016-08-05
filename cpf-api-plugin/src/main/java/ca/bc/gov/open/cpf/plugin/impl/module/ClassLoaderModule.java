@@ -328,7 +328,7 @@ public class ClassLoaderModule implements Module {
   }
 
   private synchronized GenericApplicationContext getApplicationContext() {
-    loadApplications();
+    loadApplications(true);
     return this.applicationContext;
   }
 
@@ -1024,8 +1024,8 @@ public class ClassLoaderModule implements Module {
   }
 
   @Override
-  public synchronized void loadApplications() {
-    if (isStarted() && !isApplicationsLoaded()) {
+  public synchronized void loadApplications(final boolean requireStarted) {
+    if ((!requireStarted || isStarted()) && !isApplicationsLoaded()) {
 
       this.log.debug("Loading spring config file " + this.configUrl);
       try {

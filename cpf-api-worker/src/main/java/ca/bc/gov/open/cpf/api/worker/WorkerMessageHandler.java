@@ -206,7 +206,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
       message.put("moduleError", moduleError);
     } else if (action.equals(ModuleEvent.STOP)) {
       message = newModuleMessage(module, "moduleStopped");
-      this.loadedModuleNames.add(moduleName);
+      this.loadedModuleNames.remove(moduleName);
     }
     if (message != null) {
       sendMessage(message);
@@ -387,7 +387,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     final String moduleName = module.getName();
     Map<String, Object> message;
     try {
-      module.loadApplications();
+      module.loadApplications(false);
       final String moduleError = module.getModuleError();
       if (Property.hasValue(moduleError)) {
         message = newModuleMessage(module, "moduleStartFailed");
