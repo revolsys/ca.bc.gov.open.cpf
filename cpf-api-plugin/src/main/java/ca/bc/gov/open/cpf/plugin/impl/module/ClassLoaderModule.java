@@ -69,6 +69,7 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
+import com.revolsys.beans.Classes;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.MapEx;
@@ -1362,7 +1363,7 @@ public class ClassLoaderModule implements Module {
     final BusinessApplication businessApplication, final Method method, final boolean resultList) {
     final String methodName = method.getName();
 
-    final ResultAttribute fieldMetadata = method.getAnnotation(ResultAttribute.class);
+    final ResultAttribute resultAttributeMetaData = method.getAnnotation(ResultAttribute.class);
     if (methodName.equals("getCustomizationProperties")) {
       if (method.getParameterTypes().length == 0 && method.getReturnType() == Map.class
         && Modifier.isPublic(method.getModifiers())) {
@@ -1377,22 +1378,28 @@ public class ClassLoaderModule implements Module {
             + method);
       }
 
-    } else if (fieldMetadata != null) {
+    } else if (resultAttributeMetaData != null) {
       if (methodName.startsWith("get") && methodName.length() > 3
         || methodName.startsWith("is") && methodName.length() > 2) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length == 0) {
           final String fieldName = JavaBeanUtil.getPropertyName(methodName);
-          final String description = fieldMetadata.description();
+          final String description = resultAttributeMetaData.description();
           final Class<?> returnType = method.getReturnType();
-          final DataType dataType = DataTypes.getDataType(returnType);
+          final DataType dataType;
+          if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(returnType)) {
+            final String className = Classes.className(returnType);
+            dataType = DataTypes.getDataType(className);
+          } else {
+            dataType = DataTypes.getDataType(returnType);
+          }
           if (dataType == null) {
             throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
               + " has an unsupported return type " + returnType);
           } else {
-            final int index = fieldMetadata.index();
-            final int length = fieldMetadata.length();
-            final int scale = fieldMetadata.scale();
+            final int index = resultAttributeMetaData.index();
+            final int length = resultAttributeMetaData.length();
+            final int scale = resultAttributeMetaData.scale();
             final boolean required = method.getAnnotation(Required.class) != null;
             final FieldDefinition field = new FieldDefinition(fieldName, dataType, length, scale,
               required, description);

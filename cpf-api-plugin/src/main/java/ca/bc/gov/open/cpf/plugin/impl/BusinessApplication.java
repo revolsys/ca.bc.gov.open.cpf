@@ -668,23 +668,23 @@ public class BusinessApplication extends BaseObjectWithProperties
           this.resultRecordDefinition.addField(new FieldDefinition("resultNumber", DataTypes.INT,
             true, "The index of the result record within the result for a request."));
         }
-        for (final FieldDefinition attribute : this.resultFieldMap.values()) {
-          final String name = attribute.getName();
+        for (final FieldDefinition fieldDefinition : this.resultFieldMap.values()) {
+          final String name = fieldDefinition.getName();
           final FieldDefinition requestAttribute = this.requestFieldByNameMap.get(name);
           if (requestAttribute != null) {
-            String description = attribute.getDescription();
+            String description = fieldDefinition.getDescription();
             if (!Property.hasValue(description)) {
               description = requestAttribute.getDescription();
-              attribute.setDescription(description);
+              fieldDefinition.setDescription(description);
             }
-            Object defaultValue = attribute.getDefaultValue();
+            Object defaultValue = fieldDefinition.getDefaultValue();
             if (defaultValue == null) {
               defaultValue = requestAttribute.getDefaultValue();
-              attribute.setDefaultValue(defaultValue);
+              fieldDefinition.setDefaultValue(defaultValue);
             }
           }
 
-          this.resultRecordDefinition.addField(attribute);
+          this.resultRecordDefinition.addField(fieldDefinition);
         }
         this.resultFieldNames.addAll(this.resultRecordDefinition.getFieldNames());
         if (isHasCustomizationProperties() || isHasResultListCustomizationProperties()) {
