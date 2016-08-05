@@ -16,6 +16,7 @@
 package ca.bc.gov.open.cpf.api.worker;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +54,6 @@ import com.revolsys.collection.range.RangeSet;
 import com.revolsys.datatype.DataType;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.io.FileBackedCache;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.map.MapReader;
@@ -350,11 +350,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
@@ -365,8 +365,8 @@ public class WorkerGroupRunnable implements Runnable {
   @Override
   public void run() {
     this.log.info("Start\tGroup Execution\tgroupId=" + this.groupId);
-    try (
-      FileBackedCache resultCache = new FileBackedCache()) {
+    try {
+      final File resultFile = FileUtil.newTempFile(this.groupId, ".tsv");
       final StopWatch groupStopWatch = new StopWatch("Group");
       groupStopWatch.start();
       final Long moduleTime = this.groupIdMap.getLong("moduleTime");
@@ -379,7 +379,8 @@ public class WorkerGroupRunnable implements Runnable {
         return;
       } else {
         try (
-          final TsvWriter resultWriter = Tsv.plainWriter(resultCache.getWriter())) {
+          FileOutputStream resultOut = new FileOutputStream(resultFile);
+          final TsvWriter resultWriter = Tsv.plainWriter(resultOut);) {
           resultWriter.write(this.businessApplication.getResultFieldNames());
           this.businessApplication.setLogLevel(this.logLevel);
           this.module = this.businessApplication.getModule();
@@ -450,22 +451,26 @@ public class WorkerGroupRunnable implements Runnable {
           HttpClientUtils.closeQuietly(errorResponse);
           this.errorFile = null;
         }
-        final Map<String, Object> parameters = new HashMap<>();
-        parameters.put("groupExecutedTime", groupExecutionTime);
-        parameters.put("applicationExecutedTime", this.applicationExecutionTime);
-        parameters.put("completedRequestRange", this.successRequests.toString());
-        parameters.put("failedRequestRange", this.errorRequests.toString());
-        final String path = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-          + "/groups/" + this.groupId + "/results";
-        try (
-          InputStream inputStream = resultCache.getInputStream()) {
-          final HttpResponse response = this.httpClient.postResource(path, Tsv.MIME_TYPE,
-            inputStream, parameters);
-          HttpClientUtils.closeQuietly(response);
+        if (resultFile.exists()) {
+          final Map<String, Object> parameters = new HashMap<>();
+          parameters.put("groupExecutedTime", groupExecutionTime);
+          parameters.put("applicationExecutedTime", this.applicationExecutionTime);
+          parameters.put("completedRequestRange", this.successRequests.toString());
+          parameters.put("failedRequestRange", this.errorRequests.toString());
+          final String path = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+            + "/groups/" + this.groupId + "/results";
+          try (
+            InputStream inputStream = new FileInputStream(resultFile)) {
+            final HttpResponse response = this.httpClient.postResource(path, Tsv.MIME_TYPE,
+              inputStream, parameters);
+            HttpClientUtils.closeQuietly(response);
 
+          }
         }
       }
-    } catch (final Throwable e) {
+    } catch (
+
+    final Throwable e) {
       Logs.error(this, "Error processing group " + this.moduleName + "."
         + this.businessApplicationName + " is not loaded groupId=" + this.groupId, e);
       this.log.error("Unable to process group " + this.groupId, e);

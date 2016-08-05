@@ -1030,26 +1030,25 @@ public class ClassLoaderModule implements Module {
       this.log.debug("Loading spring config file " + this.configUrl);
       try {
         final ClassLoader classLoader = getClassLoader();
-        this.applicationContext = new GenericApplicationContext();
-        this.applicationContext.setClassLoader(classLoader);
+        final GenericApplicationContext applicationContext = new GenericApplicationContext();
+        applicationContext.setClassLoader(classLoader);
 
-        AnnotationConfigUtils.registerAnnotationConfigProcessors(this.applicationContext, null);
+        AnnotationConfigUtils.registerAnnotationConfigProcessors(applicationContext, null);
         final Map<String, Object> configProperties = getConfigProperties(this.name,
           "MODULE_BEAN_PROPERTY");
 
         final AttributesBeanConfigurer attributesConfig = new AttributesBeanConfigurer(
-          this.applicationContext, configProperties);
-        this.applicationContext.addBeanFactoryPostProcessor(attributesConfig);
-        registerConfigPropertyBeans(this.name, this.applicationContext);
+          applicationContext, configProperties);
+        applicationContext.addBeanFactoryPostProcessor(attributesConfig);
+        registerConfigPropertyBeans(this.name, applicationContext);
 
-        final XmlBeanDefinitionReader beanReader = new XmlBeanDefinitionReader(
-          this.applicationContext);
+        final XmlBeanDefinitionReader beanReader = new XmlBeanDefinitionReader(applicationContext);
         beanReader.setBeanClassLoader(classLoader);
         beanReader.loadBeanDefinitions(new UrlResource(this.configUrl));
         if (!isHasError()) {
           for (final String beanImport : this.beanImports) {
             try {
-              final org.springframework.core.io.Resource[] resources = this.applicationContext
+              final org.springframework.core.io.Resource[] resources = applicationContext
                 .getResources(beanImport);
               for (final org.springframework.core.io.Resource resource : resources) {
                 beanReader.loadBeanDefinitions(resource);
@@ -1061,7 +1060,8 @@ public class ClassLoaderModule implements Module {
           }
         }
         if (!isHasError()) {
-          this.applicationContext.refresh();
+          applicationContext.refresh();
+          this.applicationContext = applicationContext;
         }
         if (!isHasError()) {
           this.applicationsLoaded = true;
@@ -1595,8 +1595,9 @@ public class ClassLoaderModule implements Module {
     this.log.info("Start\tModule Stop\tmoduleName=" + this.name);
     this.started = false;
     this.applicationsLoaded = false;
-    if (this.applicationContext != null && this.applicationContext.isActive()) {
-      this.applicationContext.close();
+    final GenericApplicationContext applicationContext = this.applicationContext;
+    if (applicationContext != null && applicationContext.isActive()) {
+      applicationContext.close();
     }
     final List<String> names = this.businessApplicationNames;
     this.applicationContext = null;
