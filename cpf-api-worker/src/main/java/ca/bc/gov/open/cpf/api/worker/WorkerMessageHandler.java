@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -233,7 +232,8 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
       && !this.excludedModuleNames.contains(moduleName)) {
       final AppLog log = new AppLog(moduleName);
 
-      ClassLoaderModule module = (ClassLoaderModule)this.getBusinessApplicationRegistry()
+      final BusinessApplicationRegistry businessApplicationRegistry = getBusinessApplicationRegistry();
+      ClassLoaderModule module = (ClassLoaderModule)businessApplicationRegistry
         .getModule(moduleName);
       if (module != null) {
         final long lastStartedTime = module.getStartedTime();
@@ -279,14 +279,12 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
           responseMessage.put("moduleError", urlsMessage);
           sendMessage(responseMessage);
           if (module != null) {
-            this.getBusinessApplicationRegistry().unloadModule(module);
+            businessApplicationRegistry.unloadModule(module);
           }
         } else {
-          module = new ClassLoaderModule(this.getBusinessApplicationRegistry(), moduleName,
-            classLoader, this.configPropertyLoader, configUrls.get(0));
-          this.getBusinessApplicationRegistry().addModule(module);
-          module.setStartedDate(new Date(moduleTime));
-          module.enable();
+          module = new ClassLoaderModule(businessApplicationRegistry, moduleName, classLoader,
+            this.configPropertyLoader, configUrls.get(0));
+          businessApplicationRegistry.addModule(module);
           final Module startModule = module;
           this.scheduler.execute(() -> startApplications(startModule));
         }
@@ -299,7 +297,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
         responseMessage.put("moduleError", Exceptions.toString(e));
         sendMessage(responseMessage);
         if (module != null) {
-          this.getBusinessApplicationRegistry().unloadModule(module);
+          businessApplicationRegistry.unloadModule(module);
         }
       }
     } else {
@@ -387,6 +385,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     final String moduleName = module.getName();
     Map<String, Object> message;
     try {
+      module.enable();
       module.loadApplications(false);
       final String moduleError = module.getModuleError();
       if (Property.hasValue(moduleError)) {

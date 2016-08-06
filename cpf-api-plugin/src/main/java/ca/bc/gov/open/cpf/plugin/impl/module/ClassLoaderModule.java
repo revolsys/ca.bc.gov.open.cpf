@@ -1030,7 +1030,7 @@ public class ClassLoaderModule implements Module {
   public synchronized void loadApplications(final boolean requireStarted) {
     if ((!requireStarted || isStarted()) && !isApplicationsLoaded()) {
 
-      this.log.debug("Loading spring config file " + this.configUrl);
+      this.log.info("Start\tLoad plugin beans\t" + this.configUrl);
       try {
         final ClassLoader classLoader = getClassLoader();
         final GenericApplicationContext applicationContext = new GenericApplicationContext();
@@ -1054,7 +1054,9 @@ public class ClassLoaderModule implements Module {
               final org.springframework.core.io.Resource[] resources = applicationContext
                 .getResources(beanImport);
               for (final org.springframework.core.io.Resource resource : resources) {
+                this.log.info("Start\tImport beans\t" + resource);
                 beanReader.loadBeanDefinitions(resource);
+                this.log.info("End\tImport beans\t" + resource);
               }
             } catch (final Throwable e) {
               addModuleError("Error loading bean import " + beanImport + " from " + this.configUrl,
@@ -1072,6 +1074,7 @@ public class ClassLoaderModule implements Module {
       } catch (final Throwable t) {
         addModuleError(t);
       } finally {
+        this.log.info("End\tLoad plugin beans\t" + this.configUrl);
       }
     }
   }
@@ -1106,7 +1109,7 @@ public class ClassLoaderModule implements Module {
     final Map<BusinessApplication, String> businessApplicationsToBeanNames = new HashMap<>();
     clearModuleError();
     final Map<String, BusinessApplication> businessApplicationsByName = new HashMap<>();
-    this.log.debug("Loading spring config file " + this.configUrl);
+    this.log.info("Start\tLoad plugin metadata\t" + this.configUrl);
     final GenericApplicationContext applicationContext = new GenericApplicationContext();
     try {
       final ClassLoader classLoader = getClassLoader();
@@ -1179,6 +1182,7 @@ public class ClassLoaderModule implements Module {
       registerConfigPropertyBeans(this.name, applicationContext);
     } finally {
       applicationContext.close();
+      this.log.info("End\tLoad plugin metadata\t" + this.configUrl);
     }
     if (isHasError()) {
       stop();

@@ -101,7 +101,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private String beanName;
 
-  private BusinessApplicationRegistry businessApplicationRegistry = new BusinessApplicationRegistry();
+  private BusinessApplicationRegistry businessApplicationRegistry = new BusinessApplicationRegistry(
+    false);
 
   private String environmentName = "default";
 
