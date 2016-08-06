@@ -329,7 +329,7 @@ public class ClassLoaderModule implements Module {
   }
 
   private synchronized GenericApplicationContext getApplicationContext() {
-    loadApplications(true);
+    loadApplications();
     return this.applicationContext;
   }
 
@@ -1027,9 +1027,8 @@ public class ClassLoaderModule implements Module {
   }
 
   @Override
-  public synchronized void loadApplications(final boolean requireStarted) {
-    if ((!requireStarted || isStarted()) && !isApplicationsLoaded()) {
-
+  public synchronized void loadApplications() {
+    if (isStarted() && !isApplicationsLoaded()) {
       this.log.info("Start\tLoad plugin beans\t" + this.configUrl);
       try {
         final ClassLoader classLoader = getClassLoader();

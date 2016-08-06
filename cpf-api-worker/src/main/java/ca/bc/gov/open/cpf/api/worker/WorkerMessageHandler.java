@@ -386,7 +386,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     Map<String, Object> message;
     try {
       module.enable();
-      module.loadApplications(false);
+      module.loadApplications();
       final String moduleError = module.getModuleError();
       if (Property.hasValue(moduleError)) {
         message = newModuleMessage(module, "moduleStartFailed");

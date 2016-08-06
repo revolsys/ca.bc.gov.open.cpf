@@ -97,7 +97,7 @@ public interface Module {
 
   boolean isStarted();
 
-  void loadApplications(boolean requireStarted);
+  void loadApplications();
 
   void restart();
 
