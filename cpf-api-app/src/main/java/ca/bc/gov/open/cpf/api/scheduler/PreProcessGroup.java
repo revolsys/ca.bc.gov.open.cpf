@@ -59,9 +59,12 @@ public abstract class PreProcessGroup {
 
   private File groupFile;
 
-  public PreProcessGroup(final JobController jobController,
+  private final JobPreProcessTask preProcess;
+
+  public PreProcessGroup(final JobPreProcessTask preProcess, final JobController jobController,
     final BusinessApplication businessApplication, final BatchJob batchJob,
     final Map<String, String> jobParameters, final int groupSequenceNumber) {
+    this.preProcess = preProcess;
     this.jobController = jobController;
     this.dataAccessObject = jobController.getDataAccessObject();
     this.businessApplication = businessApplication;
@@ -170,17 +173,17 @@ public abstract class PreProcessGroup {
     }
     if (parameterValue == null) {
       if (field.isRequired()) {
-        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
-          sequenceNumber, ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
-          ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " " + parameterName, null);
+        this.preProcess.addRequestError(sequenceNumber, ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
+          ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " " + parameterName,
+          null);
         return false;
       }
     } else if (!jobParameter) {
       try {
         field.validate(parameterValue);
       } catch (final IllegalArgumentException e) {
-        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
-          sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(), e.getMessage(), null);
+        this.preProcess.addRequestError(sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
+          e.getMessage(), null);
         return false;
       }
       try {
@@ -190,8 +193,7 @@ public abstract class PreProcessGroup {
       } catch (final IllegalArgumentException e) {
         final StringWriter errorOut = new StringWriter();
         e.printStackTrace(new PrintWriter(errorOut));
-        this.dataAccessObject.newBatchJobExecutionGroup(this.jobController, batchJobId,
-          sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
+        this.preProcess.addRequestError(sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
           ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " " + parameterName + " "
             + e.getMessage(),
           errorOut.toString());

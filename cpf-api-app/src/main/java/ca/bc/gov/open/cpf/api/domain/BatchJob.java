@@ -203,8 +203,7 @@ public class BatchJob extends DelegatingRecord implements Common {
 
       final String userId = getString(USER_ID);
 
-      final Map<String, String> businessApplicationParameterMap = BatchJobService
-        .getBusinessApplicationParameters(this);
+      final Map<String, String> businessApplicationParameterMap = this.getBusinessApplicationParameters();
       final String resultDataContentType = getString(RESULT_DATA_CONTENT_TYPE);
 
       final Timestamp now = new Timestamp(System.currentTimeMillis());

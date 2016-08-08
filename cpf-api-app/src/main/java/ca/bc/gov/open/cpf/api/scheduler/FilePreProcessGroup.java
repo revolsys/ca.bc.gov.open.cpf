@@ -26,10 +26,12 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import com.revolsys.identifier.Identifier;
 
 public class FilePreProcessGroup extends PreProcessGroup {
-  public FilePreProcessGroup(final FileJobController jobController,
-    final BusinessApplication businessApplication, final BatchJob batchJob,
-    final Map<String, String> jobParameters, final int groupSequenceNumber) {
-    super(jobController, businessApplication, batchJob, jobParameters, groupSequenceNumber);
+  public FilePreProcessGroup(final JobPreProcessTask preProcess,
+    final FileJobController jobController, final BusinessApplication businessApplication,
+    final BatchJob batchJob, final Map<String, String> jobParameters,
+    final int groupSequenceNumber) {
+    super(preProcess, jobController, businessApplication, batchJob, jobParameters,
+      groupSequenceNumber);
   }
 
   @Override

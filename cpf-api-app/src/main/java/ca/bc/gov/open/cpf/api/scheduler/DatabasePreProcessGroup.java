@@ -30,10 +30,12 @@ import com.revolsys.transaction.Transaction;
 public class DatabasePreProcessGroup extends PreProcessGroup {
   private Transaction transaction;
 
-  public DatabasePreProcessGroup(final JobController jobController,
-    final BusinessApplication businessApplication, final BatchJob batchJob,
-    final Map<String, String> jobParameters, final int groupSequenceNumber) {
-    super(jobController, businessApplication, batchJob, jobParameters, groupSequenceNumber);
+  public DatabasePreProcessGroup(final JobPreProcessTask preProcess,
+    final JobController jobController, final BusinessApplication businessApplication,
+    final BatchJob batchJob, final Map<String, String> jobParameters,
+    final int groupSequenceNumber) {
+    super(preProcess, jobController, businessApplication, batchJob, jobParameters,
+      groupSequenceNumber);
   }
 
   @Override

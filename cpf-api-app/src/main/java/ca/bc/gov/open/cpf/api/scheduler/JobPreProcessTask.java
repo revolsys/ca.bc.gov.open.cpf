@@ -1,0 +1,380 @@
+/*
+ * Copyright © 2008-2016, Province of British Columbia
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package ca.bc.gov.open.cpf.api.scheduler;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.util.StopWatch;
+
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.Common;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.web.controller.JobController;
+import ca.bc.gov.open.cpf.client.api.ErrorCode;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
+
+import com.revolsys.identifier.Identifier;
+import com.revolsys.io.FileUtil;
+import com.revolsys.io.IoFactory;
+import com.revolsys.io.Reader;
+import com.revolsys.io.map.MapReader;
+import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.io.map.MapWriter;
+import com.revolsys.logging.Logs;
+import com.revolsys.record.Record;
+import com.revolsys.record.io.MapReaderRecordReader;
+import com.revolsys.record.io.format.csv.Csv;
+import com.revolsys.record.io.format.csv.CsvMapWriter;
+import com.revolsys.record.io.format.tsv.Tsv;
+import com.revolsys.record.io.format.tsv.TsvWriter;
+import com.revolsys.record.schema.RecordDefinition;
+import com.revolsys.spring.resource.InputStreamResource;
+import com.revolsys.transaction.Propagation;
+import com.revolsys.transaction.Transaction;
+import com.revolsys.util.Exceptions;
+import com.revolsys.util.Property;
+
+public class JobPreProcessTask {
+
+  private final Identifier batchJobId;
+
+  private final long time;
+
+  private final long lastChangedTime;
+
+  private final BatchJobService batchJobService;
+
+  private final JobController jobController;
+
+  private final CpfDataAccessObject dataAccessObject;
+
+  private TsvWriter errorWriter;
+
+  private File errorFile;
+
+  public JobPreProcessTask(final BatchJobService batchJobService, final Identifier batchJobId,
+    final long time, final long lastChangedTime) {
+    this.batchJobService = batchJobService;
+    this.jobController = batchJobService.getJobController();
+    this.dataAccessObject = batchJobService.getDataAccessObject();
+    this.batchJobId = batchJobId;
+    this.time = time;
+    this.lastChangedTime = lastChangedTime;
+  }
+
+  /**
+   * Generate an error result for the job, update the job counts and status, and
+   * back out any add job requests that have already been added.
+   *
+   * @param validationErrorCode The failure error code.
+   */
+  private boolean addJobValidationError(final Identifier batchJobId,
+    final ErrorCode validationErrorCode, final String validationErrorDebugMessage,
+    final String validationErrorMessage) {
+    final CpfDataAccessObject dataAccessObject = this.batchJobService.getDataAccessObject();
+    if (dataAccessObject != null) {
+
+      final StringWriter errorWriter = new StringWriter();
+
+      String newErrorMessage = validationErrorMessage;
+      if (validationErrorMessage.equals("")) {
+        newErrorMessage = validationErrorCode.getDescription();
+      }
+      try (
+        final MapWriter errorMapWriter = new CsvMapWriter(errorWriter)) {
+        final Map<String, String> errorResultMap = new HashMap<>();
+        errorResultMap.put("Code", validationErrorCode.name());
+        errorResultMap.put("Message", newErrorMessage);
+        errorMapWriter.write(errorResultMap);
+        try {
+          final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
+          this.batchJobService.newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
+            Csv.MIME_TYPE, errorBytes, 0);
+        } catch (final UnsupportedEncodingException e) {
+        }
+      }
+      dataAccessObject.setBatchJobFailed(batchJobId);
+      Logs.debug(BatchJobService.class, validationErrorDebugMessage);
+    }
+    return false;
+  }
+
+  public void addRequestError(final int sequenceNumber, final String errorCode,
+    final String message, final String trace) {
+    if (this.errorWriter == null) {
+      this.errorFile = FileUtil.newTempFile(this.batchJobId.toString(), "tsv");
+      this.errorWriter = Tsv.plainWriter(this.errorFile);
+      this.errorWriter.write("sequenceNumber", "errorCode", "message", "trace");
+    }
+
+    this.errorWriter.write(sequenceNumber, errorCode, message, trace);
+    this.errorWriter.flush();
+  }
+
+  /**
+   * Get a buffered reader for the job's input data. The input Data may be a
+   * remote URL or a CLOB field.
+   * @param batchJobId
+   *
+   * @return BufferedReader or null if unable to connect to data
+   */
+  private InputStream getJobInputDataStream(final Identifier batchJobId, final Record batchJob) {
+    final String inputDataUrlString = batchJob.getString(BatchJob.STRUCTURED_INPUT_DATA_URL);
+    if (Property.hasValue(inputDataUrlString)) {
+      try {
+        final URL inputDataUrl = new URL(inputDataUrlString);
+        return inputDataUrl.openStream();
+      } catch (final IOException e) {
+        Logs.error(BatchJobService.class, "Unable to open stream: " + inputDataUrlString, e);
+      }
+    } else {
+      return this.jobController.getJobInputStream(batchJobId);
+    }
+
+    return null;
+  }
+
+  public boolean process() {
+    this.batchJobService.addPreProcessedJobId(this.batchJobId);
+    AppLog log = null;
+    BatchJob batchJob = null;
+    try (
+      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      try {
+        final StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        batchJob = this.dataAccessObject.getBatchJob(this.batchJobId);
+        if (batchJob != null) {
+          int numSubmittedRequests = 0;
+          final String businessApplicationName = batchJob
+            .getValue(BatchJob.BUSINESS_APPLICATION_NAME);
+          final BusinessApplication businessApplication = this.batchJobService
+            .getBusinessApplication(businessApplicationName);
+          if (businessApplication == null) {
+            throw new IllegalArgumentException(
+              "Cannot find business application: " + businessApplicationName);
+          }
+          log = businessApplication.getLog();
+          if (log.isInfoEnabled()) {
+            log.info("Start\tJob pre-process\tbatchJobId=" + this.batchJobId);
+          }
+          try {
+            final int maxGroupSize = businessApplication.getNumRequestsPerWorker();
+            int numGroups = 0;
+            boolean valid = true;
+            final Map<String, Object> preProcessScheduledStatistics = new HashMap<>();
+            preProcessScheduledStatistics.put("preProcessScheduledJobsCount", 1);
+            preProcessScheduledStatistics.put("preProcessScheduledJobsTime",
+              this.time - this.lastChangedTime);
+            final StatisticsService statisticsService = this.batchJobService.getStatisticsService();
+
+            Transaction.afterCommit(() -> {
+              statisticsService.addStatistics(businessApplication, preProcessScheduledStatistics);
+            });
+
+            int numFailedRequests = batchJob.getNumFailedRequests();
+            try (
+              final InputStream inputDataStream = getJobInputDataStream(this.batchJobId,
+                batchJob)) {
+              final Map<String, String> jobParameters = batchJob.getBusinessApplicationParameters();
+
+              final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
+              final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+              if (!businessApplication.isInputContentTypeSupported(inputContentType)) {
+                valid = addJobValidationError(this.batchJobId, ErrorCode.BAD_INPUT_DATA_TYPE, "",
+                  "");
+              } else if (!businessApplication.isResultContentTypeSupported(resultContentType)) {
+                valid = addJobValidationError(this.batchJobId, ErrorCode.BAD_RESULT_DATA_TYPE, "",
+                  "");
+              } else if (inputDataStream == null) {
+                valid = addJobValidationError(this.batchJobId, ErrorCode.INPUT_DATA_UNREADABLE, "",
+                  "");
+              } else {
+                final RecordDefinition requestRecordDefinition = businessApplication
+                  .getInternalRequestRecordDefinition();
+                try {
+                  final MapReaderFactory factory = IoFactory
+                    .factoryByMediaType(MapReaderFactory.class, inputContentType);
+                  if (factory == null) {
+                    valid = addJobValidationError(this.batchJobId, ErrorCode.INPUT_DATA_UNREADABLE,
+                      inputContentType, "Media type not supported");
+                  } else {
+                    final InputStreamResource resource = new InputStreamResource("in",
+                      inputDataStream);
+                    try (
+                      final MapReader mapReader = factory.newMapReader(resource)) {
+                      if (mapReader == null) {
+                        valid = addJobValidationError(this.batchJobId,
+                          ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
+                          "Media type not supported");
+                      } else {
+                        try (
+                          final Reader<Record> inputDataReader = new MapReaderRecordReader(
+                            requestRecordDefinition, mapReader)) {
+
+                          PreProcessGroup group = null;
+                          try {
+                            for (final Record inputDataRecord : inputDataReader) {
+                              if (!this.batchJobService
+                                .containsPreProcessedJobId(this.batchJobId)) {
+                                group.cancel();
+                                return true;
+                              }
+                              if (group == null) {
+                                group = this.jobController.newPreProcessGroup(this,
+                                  businessApplication, batchJob, jobParameters, numGroups + 1);
+                                numGroups++;
+                              }
+                              numSubmittedRequests++;
+                              if (!group.addRequest(inputDataRecord, numSubmittedRequests)) {
+                                numFailedRequests++;
+                              }
+                              if (group.getGroupSize() == maxGroupSize) {
+                                group.commit();
+                                group = null;
+                              }
+                            }
+                            if (group != null) {
+                              group.commit();
+                            }
+                          } catch (final Throwable e) {
+                            if (group != null) {
+                              group.cancel();
+                            }
+                            Exceptions.throwUncheckedException(e);
+                          }
+                        }
+
+                        final int maxRequests = businessApplication.getMaxRequestsPerJob();
+                        if (numSubmittedRequests == 0) {
+                          valid = addJobValidationError(this.batchJobId,
+                            ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
+                            String.valueOf(numSubmittedRequests));
+                        } else if (numSubmittedRequests > maxRequests) {
+                          valid = addJobValidationError(this.batchJobId,
+                            ErrorCode.TOO_MANY_REQUESTS, null,
+                            String.valueOf(numSubmittedRequests));
+                        }
+                      }
+                    }
+                  }
+                } catch (final Throwable e) {
+                  if (BatchJobService.isDatabaseResourcesException(e)) {
+                    Logs.error(this, "Tablespace error pre-processing job " + this.batchJobId, e);
+                    return false;
+                  } else {
+                    Logs.error(this, "Error pre-processing job " + this.batchJobId, e);
+                    final StringWriter errorDebugMessage = new StringWriter();
+                    e.printStackTrace(new PrintWriter(errorDebugMessage));
+                    valid = addJobValidationError(this.batchJobId,
+                      ErrorCode.ERROR_PROCESSING_REQUEST, errorDebugMessage.toString(),
+                      e.getMessage());
+                  }
+                }
+              }
+            } catch (final IOException e) {
+              Logs.error(this, "Error reading input data or writing groups for " + this.batchJobId,
+                e);
+              transaction.setRollbackOnly(e);
+              return false;
+            }
+
+            if (this.errorWriter != null) {
+              this.errorWriter.close();
+              this.jobController.setGroupError(this.batchJobId, 0, this.errorFile);
+            }
+
+            if (!valid || numSubmittedRequests == numFailedRequests) {
+              valid = false;
+              if (this.dataAccessObject.setBatchJobRequestsFailed(this.batchJobId,
+                numSubmittedRequests, numFailedRequests, maxGroupSize, numGroups)) {
+                this.batchJobService.postProcess(this.batchJobId);
+              } else {
+                batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS,
+                  BatchJobStatus.SUBMITTED);
+              }
+            } else {
+              if (batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS,
+                BatchJobStatus.PROCESSING)) {
+                final Timestamp now = batchJob.getValue(BatchJob.LAST_SCHEDULED_TIMESTAMP);
+                batchJob.setValue(BatchJob.LAST_SCHEDULED_TIMESTAMP, now);
+                batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, numSubmittedRequests);
+                batchJob.setValue(BatchJob.GROUP_SIZE, maxGroupSize);
+                batchJob.setGroupCount(numGroups);
+                batchJob.update();
+                this.batchJobService.scheduleJob(batchJob);
+              }
+            }
+            final Map<String, Object> preProcessStatistics = new HashMap<>();
+            preProcessStatistics.put("preProcessedTime", stopWatch);
+            preProcessStatistics.put("preProcessedJobsCount", 1);
+            preProcessStatistics.put("preProcessedRequestsCount", numSubmittedRequests);
+
+            Transaction.afterCommit(
+              () -> statisticsService.addStatistics(businessApplication, preProcessStatistics));
+
+            if (!valid) {
+              final Timestamp whenCreated = batchJob.getValue(Common.WHEN_CREATED);
+
+              final Map<String, Object> jobCompletedStatistics = new HashMap<>();
+
+              jobCompletedStatistics.put("completedJobsCount", 1);
+              jobCompletedStatistics.put("completedRequestsCount", numFailedRequests);
+              jobCompletedStatistics.put("completedFailedRequestsCount", numFailedRequests);
+              jobCompletedStatistics.put("completedTime",
+                System.currentTimeMillis() - whenCreated.getTime());
+
+              Transaction.afterCommit(() -> {
+                statisticsService.addStatistics(businessApplication, jobCompletedStatistics);
+                if (this.errorFile != null) {
+                  FileUtil.delete(this.errorFile);
+                }
+              });
+            }
+          } finally {
+            if (log.isInfoEnabled()) {
+              AppLogUtil.infoAfterCommit(log,
+                "End\tJob pre-process\tbatchJobId=" + this.batchJobId);
+            }
+          }
+          this.batchJobService.removePreProcessedJobId(this.batchJobId);
+        }
+      } catch (final Throwable e) {
+        this.batchJobService.removePreProcessedJobId(this.batchJobId);
+        if (batchJob != null) {
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS,
+            BatchJobStatus.SUBMITTED);
+        }
+        BatchJobService.error(log, "Error\tJob pre-process\tbatchJobId=" + this.batchJobId, e);
+        throw transaction.setRollbackOnly(e);
+      }
+    }
+    return true;
+  }
+}

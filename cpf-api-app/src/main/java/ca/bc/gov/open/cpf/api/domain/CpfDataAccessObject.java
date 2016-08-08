@@ -37,8 +37,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
-import ca.bc.gov.open.cpf.api.web.controller.JobController;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.list.Lists;
@@ -665,25 +663,6 @@ public class CpfDataAccessObject implements Transactionable {
     final BatchJob batchJob = new BatchJob(record);
     this.batchJobById.put(batchJobId, batchJob);
     return batchJob;
-  }
-
-  public void newBatchJobExecutionGroup(final JobController jobController,
-    final Identifier batchJobId, final int groupSequenceNumber, final String errorCode,
-    final String errorMessage, final String errorDebugMessage) {
-    final Map<String, Object> error = new HashMap<>();
-    error.put(BusinessApplication.SEQUENCE_NUMBER, 1);
-    error.put("errorCode", errorCode);
-    error.put("errorMessage", errorMessage);
-    error.put("errorDebugMessage", errorDebugMessage);
-    final List<Map<String, Object>> resultDataItems = Collections.singletonList(error);
-
-    final Map<String, Object> resultData = Collections.<String, Object> singletonMap("items",
-      resultDataItems);
-    final String resultDataString = Json.toString(resultData);
-
-    // TODO errors jobController.setStructuredResultData(batchJobId,
-    // groupSequenceNumber, batchJobExecutionGroup,
-    // resultDataString);
   }
 
   public Record newConfigProperty(final String environmentName, final String moduleName,

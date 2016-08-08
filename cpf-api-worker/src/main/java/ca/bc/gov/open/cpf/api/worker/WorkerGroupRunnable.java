@@ -70,43 +70,43 @@ import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 
 public class WorkerGroupRunnable implements Runnable {
+  private long applicationExecutionTime = 0;
+
+  private final long batchJobId;
+
+  private BusinessApplication businessApplication;
+
+  private final String businessApplicationName;
+
+  private File errorFile;
+
+  private final RangeSet errorRequests = new RangeSet();
+
+  private TsvWriter errorWriter;
+
+  private final String groupId;
+
   private final MapEx groupIdMap;
 
   private final WorkerHttpClient httpClient;
 
-  private final String workerId;
-
-  private final WorkerScheduler scheduler;
-
-  private final String groupId;
-
-  private final String moduleName;
+  private final AppLog log;
 
   private final String logLevel;
 
-  private final String businessApplicationName;
-
-  private final long batchJobId;
-
-  private final String userId;
-
-  private final AppLog log;
-
-  private final RangeSet errorRequests = new RangeSet();
-
-  private final RangeSet successRequests = new RangeSet();
-
-  private long applicationExecutionTime = 0;
-
-  private BusinessApplication businessApplication;
-
   private Module module;
+
+  private final String moduleName;
+
+  private final WorkerScheduler scheduler;
 
   private SecurityService securityService;
 
-  private TsvWriter errorWriter;
+  private final RangeSet successRequests = new RangeSet();
 
-  private File errorFile;
+  private final String userId;
+
+  private final String workerId;
 
   public WorkerGroupRunnable(final WorkerScheduler scheduler, final MapEx groupIdMap) {
     this.scheduler = scheduler;
@@ -142,6 +142,7 @@ public class WorkerGroupRunnable implements Runnable {
       trace = errorOut.toString();
     }
     this.errorWriter.write(sequenceNumber, errorCode, message, trace);
+    this.errorWriter.flush();
   }
 
   @SuppressWarnings("unchecked")
@@ -276,13 +277,15 @@ public class WorkerGroupRunnable implements Runnable {
           setParameters(plugin, parameters);
 
           if (appLog.isDebugEnabled()) {
-            appLog.debug("Request Execution Start " + this.groupId + " " + requestSequenceNumber);
+            appLog
+              .debug("Start\tRequest Execution\t" + this.groupId + "\t" + requestSequenceNumber);
           }
           try {
             execute(resultWriter, appLog, requestSequenceNumber, plugin, parameters);
           } finally {
             if (appLog.isDebugEnabled()) {
-              appLog.debug("Request Execution End " + this.groupId + " " + requestSequenceNumber);
+              appLog
+                .debug("End\tRequest Execution\t" + this.groupId + "\t" + requestSequenceNumber);
             }
           }
           sendResultData(requestSequenceNumber, parameters, resultFile, resultData);
@@ -364,7 +367,7 @@ public class WorkerGroupRunnable implements Runnable {
    */
   @Override
   public void run() {
-    this.log.info("Start\tGroup Execution\tgroupId=" + this.groupId);
+    this.log.info("Start\tGroup Execution\t" + this.groupId);
     try {
       final File resultFile = FileUtil.newTempFile(this.groupId, ".tsv");
       final StopWatch groupStopWatch = new StopWatch("Group");
@@ -441,13 +444,18 @@ public class WorkerGroupRunnable implements Runnable {
         }
         final long groupExecutionTime = groupStopWatch.getTotalTimeMillis();
 
-        if (this.errorWriter != null) {
-          this.errorWriter.close();
-          this.errorWriter = null;
+        final TsvWriter errorWriter = this.errorWriter;
+        this.errorWriter = null;
+        if (errorWriter != null) {
+          errorWriter.close();
           final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
             + "/groups/" + this.groupId + "/error";
           final HttpResponse errorResponse = this.httpClient.postResource(errorPath, Tsv.MIME_TYPE,
             this.errorFile);
+          if (errorResponse.getStatusLine().getStatusCode() != 200) {
+            this.log.error("Error writing errors:\n" + FileUtil.getString(this.errorFile));
+            this.scheduler.addFailedGroup(this.groupId);
+          }
           HttpClientUtils.closeQuietly(errorResponse);
           this.errorFile = null;
         }
@@ -477,7 +485,7 @@ public class WorkerGroupRunnable implements Runnable {
       this.scheduler.addFailedGroup(this.groupId);
     } finally {
       this.scheduler.removeExecutingGroupId(this.groupId);
-      this.log.info("End\tGroup execution\tgroupId=" + this.groupId);
+      this.log.info("End\tGroup execution\t" + this.groupId);
       FileUtil.delete(this.errorFile);
     }
   }

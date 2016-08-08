@@ -26,6 +26,7 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobFile;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.DatabasePreProcessGroup;
+import ca.bc.gov.open.cpf.api.scheduler.JobPreProcessTask;
 import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
@@ -184,10 +185,10 @@ public class DatabaseJobController extends AbstractJobController {
   }
 
   @Override
-  public PreProcessGroup newPreProcessGroup(final BusinessApplication businessApplication,
-    final BatchJob batchJob, final Map<String, String> jobParameters,
-    final int groupSequenceNumber) {
-    return new DatabasePreProcessGroup(this, businessApplication, batchJob, jobParameters,
-      groupSequenceNumber);
+  public PreProcessGroup newPreProcessGroup(final JobPreProcessTask preProcess,
+    final BusinessApplication businessApplication, final BatchJob batchJob,
+    final Map<String, String> jobParameters, final int groupSequenceNumber) {
+    return new DatabasePreProcessGroup(preProcess, this, businessApplication, batchJob,
+      jobParameters, groupSequenceNumber);
   }
 }

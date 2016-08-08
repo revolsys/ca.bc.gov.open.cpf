@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.scheduler.JobPreProcessTask;
 import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
@@ -82,8 +83,9 @@ public interface JobController {
 
   void newJobInputFile(Identifier batchJobId, String contentType, Object data);
 
-  PreProcessGroup newPreProcessGroup(BusinessApplication businessApplication, BatchJob batchJob,
-    Map<String, String> jobParameters, int groupSequenceNumber);
+  PreProcessGroup newPreProcessGroup(JobPreProcessTask preProcess,
+    BusinessApplication businessApplication, BatchJob batchJob, Map<String, String> jobParameters,
+    int groupSequenceNumber);
 
   void setGroupError(Identifier batchJobId, int sequenceNumber, Object data);
 
