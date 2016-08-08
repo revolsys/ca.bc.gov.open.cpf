@@ -37,6 +37,11 @@
     scope="prototype" />
 
 
+  <bean
+    id="randomFailure"
+    class="ca.bc.gov.open.cpf.plugins.test.RandomFailure"
+    scope="prototype" />
+
   <util:map id="properties">
     <entry key="default">
       <map>
