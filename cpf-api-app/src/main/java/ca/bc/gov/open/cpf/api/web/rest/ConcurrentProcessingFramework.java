@@ -938,12 +938,12 @@ public class ConcurrentProcessingFramework {
       final RecordDefinitionImpl requestRecordDefinition = businessApplication
         .getRequestRecordDefinition();
       final Record inputData = new ArrayRecord(requestRecordDefinition);
-      for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
-        final String parameterName = attribute.getName();
+      for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
+        final String parameterName = fieldDefinition.getName();
         String value = HttpServletUtils.getParameter(parameterName);
-        final boolean required = attribute.isRequired();
+        final boolean required = fieldDefinition.isRequired();
         boolean hasValue = value != null && value.trim().length() > 0;
-        if (attribute.getDataType() == DataTypes.BOOLEAN) {
+        if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
           if ("on".equals(value)) {
             value = "true";
           } else {
@@ -953,12 +953,12 @@ public class ConcurrentProcessingFramework {
         }
         if (hasValue) {
           try {
-            attribute.validate(value);
+            fieldDefinition.validate(value);
             if (businessApplication.isJobParameter(parameterName)) {
               businessApplicationParameters.put(parameterName, value);
             } else {
               try {
-                BatchJobService.setStructuredInputDataValue(srid, inputData, attribute, value,
+                BatchJobService.setStructuredInputDataValue(srid, inputData, fieldDefinition, value,
                   true);
               } catch (final IllegalArgumentException e) {
                 throw new HttpMessageNotReadableException(
@@ -1388,7 +1388,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.

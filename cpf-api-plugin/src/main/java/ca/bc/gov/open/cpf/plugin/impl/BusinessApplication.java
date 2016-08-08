@@ -552,7 +552,7 @@ public class BusinessApplication extends BaseObjectWithProperties
 
         for (final FieldDefinition field : this.requestFieldMap.values()) {
           if (Booleans.getBoolean(field.getProperty(BusinessApplication.REQUEST_PARAMETER))) {
-            this.internalRequestRecordDefinition.addField(field);
+            this.internalRequestRecordDefinition.addField(field.clone());
           }
         }
       }
@@ -627,8 +627,8 @@ public class BusinessApplication extends BaseObjectWithProperties
           addFieldScaleFactorXy();
           addFieldScaleFactorZ();
         }
-        for (final FieldDefinition attribute : this.requestFieldMap.values()) {
-          this.requestRecordDefinition.addField(attribute);
+        for (final FieldDefinition fieldDefinition : this.requestFieldMap.values()) {
+          this.requestRecordDefinition.addField(fieldDefinition.clone());
         }
       }
     }
