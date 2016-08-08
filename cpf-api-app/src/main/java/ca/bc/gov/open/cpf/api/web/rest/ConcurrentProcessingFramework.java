@@ -2239,18 +2239,19 @@ public class ConcurrentProcessingFramework {
 
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
-    final RecordDefinitionImpl requestRecordDefinition = businessApplication
-      .getRequestRecordDefinition();
-    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
-      final String name = attribute.getName();
-      if (!businessApplication.isCoreParameter(name)) {
-        if (businessApplication.isJobParameter(name) || !perRequestInputData) {
-          addFieldRow(fieldSectionMap, panelGroup, attribute);
-        }
-      }
-    }
     if (perRequestInputData) {
       addInputDataFields(fieldSectionMap, panelGroup, businessApplication);
+    }
+
+    final RecordDefinitionImpl requestRecordDefinition = businessApplication
+      .getRequestRecordDefinition();
+    for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
+      final String name = fieldDefinition.getName();
+      if (!businessApplication.isCoreParameter(name)) {
+        if (businessApplication.isJobParameter(name) || !perRequestInputData) {
+          addFieldRow(fieldSectionMap, panelGroup, fieldDefinition);
+        }
+      }
     }
     addGeometryFields(fieldSectionMap, panelGroup, businessApplication);
     addResultDataFields(fieldSectionMap, panelGroup, businessApplication, "format");
@@ -2277,15 +2278,16 @@ public class ConcurrentProcessingFramework {
     final Form form = new Form("clientMultiple", url);
     form.setEncType(Form.MULTIPART_FORM_DATA);
 
-    for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
-      final String name = attribute.getName();
+    addMultiInputDataFields(fieldSectionMap, panelGroup, businessApplication);
+
+    for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
+      final String name = fieldDefinition.getName();
       if (!businessApplication.isCoreParameter(name)) {
         if (businessApplication.isJobParameter(name)) {
-          addFieldRow(fieldSectionMap, panelGroup, attribute);
+          addFieldRow(fieldSectionMap, panelGroup, fieldDefinition);
         }
       }
     }
-    addMultiInputDataFields(fieldSectionMap, panelGroup, businessApplication);
 
     addGeometryFields(fieldSectionMap, panelGroup, businessApplication);
 
@@ -2381,7 +2383,7 @@ public class ConcurrentProcessingFramework {
       final Map<String, List<String>> formSectionsMap = getFormSectionsMap(businessApplication,
         formName);
       sectionNames.addAll(formSectionsMap.keySet());
-      for (final String sectionName : Arrays.asList("applicationParameters", "inputData",
+      for (final String sectionName : Arrays.asList("inputData", "applicationParameters",
         "resultFormat", "resultFormatAdvanced", "notification", "testParameters")) {
         if (!sectionNames.contains(sectionName)) {
           sectionNames.add(sectionName);
@@ -2416,6 +2418,10 @@ public class ConcurrentProcessingFramework {
     final String url = this.businessAppBuilder.getPageUrl("clientSingle");
     final boolean perRequestInputData = businessApplication.isPerRequestInputData();
 
+    if (perRequestInputData) {
+      addInputDataFields(fieldSectionMap, panelGroup, businessApplication);
+    }
+
     for (final FieldDefinition field : requestRecordDefinition.getFields()) {
       final String name = field.getName();
       if (!businessApplication.isCoreParameter(name)) {
@@ -2425,9 +2431,6 @@ public class ConcurrentProcessingFramework {
       }
     }
     addGeometryFields(fieldSectionMap, panelGroup, businessApplication);
-    if (perRequestInputData) {
-      addInputDataFields(fieldSectionMap, panelGroup, businessApplication);
-    }
     addResultDataFields(fieldSectionMap, panelGroup, businessApplication, "resultDataContentType");
 
     addNotificationFields(fieldSectionMap, panelGroup);

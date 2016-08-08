@@ -15,8 +15,10 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
+import java.sql.Clob;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,12 +46,14 @@ import com.revolsys.collection.map.Maps;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.identifier.Identifier;
+import com.revolsys.io.FileUtil;
 import com.revolsys.io.PathName;
 import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
 import com.revolsys.jdbc.JdbcUtils;
 import com.revolsys.jdbc.io.JdbcRecordStore;
 import com.revolsys.record.Record;
+import com.revolsys.record.RecordState;
 import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.query.And;
@@ -108,6 +112,24 @@ public class CpfDataAccessObject implements Transactionable {
   private BatchJob addBatchJob(final Record record, final Identifier batchJobId) {
     BatchJob batchJob;
     batchJob = new BatchJob(record);
+    for (final String fieldName : Arrays.asList(BatchJob.BUSINESS_APPLICATION_PARAMS,
+      BatchJob.PROPERTIES, BatchJob.COMPLETED_GROUP_RANGE, BatchJob.COMPLETED_GROUP_RANGE,
+      BatchJob.FAILED_REQUEST_RANGE)) {
+      Object value = record.get(fieldName);
+      if (value instanceof Clob) {
+        final Clob clob = (Clob)value;
+        final RecordState state = record.getState();
+        try (
+          java.io.Reader reader = clob.getCharacterStream()) {
+          value = FileUtil.getString(reader);
+          record.setState(RecordState.INITIALIZING);
+          record.setValue(fieldName, value);
+        } catch (final Throwable e) {
+        } finally {
+          record.setState(state);
+        }
+      }
+    }
     this.batchJobById.put(batchJobId, batchJob);
     final String businessApplicationName = batchJob.getString(BatchJob.BUSINESS_APPLICATION_NAME);
     Maps.addToSet(this.batchJobIdsByBusinessApplication, businessApplicationName, batchJobId);
