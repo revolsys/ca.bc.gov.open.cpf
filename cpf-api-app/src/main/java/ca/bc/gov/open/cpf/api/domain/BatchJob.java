@@ -150,6 +150,13 @@ public class BatchJob extends DelegatingRecord implements Common {
     return cancelled;
   }
 
+  public void cancelScheduledGroup(final long groupSequenceNumber) {
+    if (this.scheduledGroups.contains(groupSequenceNumber)) {
+      this.groupsToProcess.add(groupSequenceNumber);
+      this.scheduledGroups.remove(groupSequenceNumber);
+    }
+  }
+
   public Map<String, String> getBusinessApplicationParameters() {
     final String jobParameters = getString(BUSINESS_APPLICATION_PARAMS);
     final Map<String, String> parameters = Json.toMap(jobParameters);
@@ -203,7 +210,8 @@ public class BatchJob extends DelegatingRecord implements Common {
 
       final String userId = getString(USER_ID);
 
-      final Map<String, String> businessApplicationParameterMap = this.getBusinessApplicationParameters();
+      final Map<String, String> businessApplicationParameterMap = this
+        .getBusinessApplicationParameters();
       final String resultDataContentType = getString(RESULT_DATA_CONTENT_TYPE);
 
       final Timestamp now = new Timestamp(System.currentTimeMillis());

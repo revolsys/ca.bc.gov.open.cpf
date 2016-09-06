@@ -150,9 +150,9 @@ public class WorkerGroupRunnable implements Runnable {
     final Integer requestSequenceNumber, final Object plugin, final MapEx parameters) {
     final String resultListProperty = this.businessApplication.getResultListProperty();
 
-    final boolean testMode = this.businessApplication.isTestModeEnabled();
     final Map<String, Object> testParameters = null;
-    if (testMode && Maps.getBool(parameters, "cpfPluginTest")) {
+    boolean testMode = Maps.getBool(parameters, "cpfPluginTest");
+    if (testMode) {
       double testMinTime = Maps.getDouble(parameters, "cpfMinExecutionTime", -1.0);
       double testMaxTime = Maps.getDouble(parameters, "cpfMaxExecutionTime", -1.0);
       final double testMeanTime = Maps.getDouble(parameters, "cpfMeanExecutionTime", -1.0);
@@ -353,11 +353,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long

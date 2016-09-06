@@ -76,6 +76,8 @@ public class BatchJobRequestExecutionGroup {
   }
 
   public void cancel() {
+    this.batchJob.removeGroup(this);
+    this.batchJob.cancelScheduledGroup(this.sequenceNumber);
     this.cancelled = true;
   }
 
