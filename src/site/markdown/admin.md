@@ -375,24 +375,24 @@ Permissions are defined using a
 that if evaluated to true will grant the user permission.
 
 The simplest permission is uses the `hasRole` function to see if the user is a member of a CPF
-group. The function takes a single argument that is the CPF group name prefixed by `ROLE_`. The
+group. The function takes a single argument that is the CPF group name. The
 following example grants access to all internal users.
 
 ```
-hasRole('ROLE_BCGOV_INTERNAL')
+hasRole('BCGOV_INTERNAL')
 ```
 
 The `hasAnyRole` function will allow access if the user is a member of any of the listed groups. The
 following example grants access to all internal and business users.
   
 ```
-hasAnyRole('ROLE_BCGOV_INTERNAL','ROLE_BCGOV_BUSINESS')
+hasAnyRole('BCGOV_INTERNAL','BCGOV_BUSINESS')
 ```
 
 This could also be written using the `or` operator.
     
 ```
-hasRole('ROLE_BCGOV_INTERNAL') or hasRole('ROLE_BCGOV_BUSINESS')
+hasRole('BCGOV_INTERNAL') or hasRole('BCGOV_BUSINESS')
 ```
 
 The `hasRoleRegex` will allow users who have a CPF group that matches the
@@ -400,7 +400,7 @@ The `hasRoleRegex` will allow users who have a CPF group that matches the
 The following example matches all CPF groups that start with BCGOV
 
 ```
-hasRoleRegex('ROLE_BCGOV_.*')
+hasRoleRegex('BCGOV_.*')
 ```
 
 The permission `permitAll` grants all users permission.
