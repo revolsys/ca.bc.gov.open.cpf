@@ -156,9 +156,6 @@
         name="GitHub Project"
         href="${gitHubUrl}" />
       <item
-        name="Issues (Waffle)"
-        href="https://waffle.io/bcgov/cpf" />
-      <item
         name="Issues (GitHub)"
         href="${gitHubUrl}/issues/" />
     </menu>

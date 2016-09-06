@@ -1,4 +1,4 @@
-[![Stories in Ready](https://badge.waffle.io/bcgov/cpf.png?label=ready&title=Issues)](https://waffle.io/bcgov/cpf) [![License](https://img.shields.io/badge/Apache%202.0-License-blue.svg)](https://raw.githubusercontent.com/bcgov/cpf/gh-pages/LICENSE)
+[![License](https://img.shields.io/badge/Apache%202.0-License-blue.svg)](https://raw.githubusercontent.com/bcgov/cpf/gh-pages/LICENSE)
 
 # Concurrent Processing Framework (CPF)
 
@@ -24,7 +24,7 @@ developing custom plug-ins.
 
 ## Issues
 
-Issues with the library or documentation can be submitted using the [GitHub Issues List](https://github.com/bcgov/cpf/issues). Alternatively  [Waffle](https://waffle.io/bcgov/cpf) can be used to add issues to the [GitHub Issues List](https://github.com/bcgov/cpf/issues).
+Issues with the library or documentation can be submitted using the [GitHub Issues List](https://github.com/bcgov/cpf/issues).
 
 ## License
 
