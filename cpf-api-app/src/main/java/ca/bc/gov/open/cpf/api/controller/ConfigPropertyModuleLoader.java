@@ -82,8 +82,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     final String moduleName = module.getName();
     this.modulesByName.remove(moduleName);
     this.businessApplicationRegistry.unloadModule(module);
-    this.dataAccessObject.deleteUserGroupsForModule(moduleName);
-    this.dataAccessObject.deleteUserGroupsForModule("ADMIM_" + moduleName);
+    this.dataAccessObject.deleteUserGroupsForModule("ADMIN_MODULE_" + moduleName);
     this.dataAccessObject.deleteConfigPropertiesForModule(moduleName);
   }
 
