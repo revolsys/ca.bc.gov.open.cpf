@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 
@@ -94,8 +93,7 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
     return this.userDetailsChecker;
   }
 
-  @PostConstruct
-  public void init() {
+  private void init() {
     try (
       Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
       try {
@@ -186,6 +184,7 @@ public class SiteminderUserDetailsService implements UserDetailsService, GroupNa
     final UserAccountSecurityService userAccountSecurityService) {
     this.userAccountSecurityService = userAccountSecurityService;
     this.dataAccessObject = userAccountSecurityService.getDataAccessObject();
+    init();
   }
 
   public void setUserDetailsChecker(final UserDetailsChecker userDetailsChecker) {

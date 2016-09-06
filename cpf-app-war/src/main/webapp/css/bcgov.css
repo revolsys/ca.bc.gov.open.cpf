@@ -50,11 +50,17 @@ body {
   margin-bottom: 0px;
   border-radius: 0px;
 }
-footer div.version {
+footer.footer div.version {
   margin-top: -1.5em;
-  bottom: auto;
-  position: relative;
+  bottom: 2px;
+  position: fixed;
   text-align: right;
+}
+@media (max-width: 767px) {
+  footer.footer div.version {
+    padding-left: 5px;
+    text-align: left;
+  }
 }
 footer.footer {
   margin-top: 5px;
