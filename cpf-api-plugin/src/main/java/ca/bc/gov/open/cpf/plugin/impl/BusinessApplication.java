@@ -688,7 +688,7 @@ public class BusinessApplication extends BaseObjectWithProperties
         }
         this.resultFieldNames.addAll(this.resultRecordDefinition.getFieldNames());
         if (isHasCustomizationProperties() || isHasResultListCustomizationProperties()) {
-          this.resultFieldNames.add("c");
+          this.resultFieldNames.add("customizationProperties");
         }
       }
     }
