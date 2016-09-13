@@ -2,15 +2,15 @@ Description
 -----------
 Project:           cpf
 Title:             Concurrent Processing Framework Web Application
-Version:           4.1.0
+Version:           5.0.0
 
 Software/Hardware Requirements
 ------------------------------
-Oracle:                       N/A
-Java:                         7+
-Maven:                        3.0.3+
-App Server:                   Tomcat 7+
-App Server Additional Memory: 100MB
+Oracle:                       10g+
+Java:                         8+
+Maven:                        3.3+
+App Server:                   Tomcat 8+
+App Server Additional Memory: 100MB + Memory for each plugin
 
 
 1. Database Installation
@@ -28,34 +28,46 @@ sqlplus CPF@DBCDLV @scripts\update\cpf\main.sql
 2. Configuration Files
 ----------------------
 
-NOTE: This release adds the following configuration property
+NOTE: This release renames the following configuration property
 
-cpfSiteminderLogoutSuccess.logoutUrl
+ca.bc.gov.cpf.internal.webServiceUrl rename to 
+
+| Old Name                             | New Name                            |
+|--------------------------------------|-------------------------------------|
+| ca.bc.gov.cpf.internal.webServiceUrl | cpfWorker.webServiceUrl             |
+| ca.bc.gov.cpf.db.url | cpfDataSource.url             |
+| ca.bc.gov.cpf.db.password | cpfDataSource.password             |
+|--------------------------------------|-------------------------------------|
+
+NOTE: This release removes the following configuration property
+
+| Old Name                             | Comment                                                |
+|--------------------------------------|--------------------------------------------------------|
+| ca.bc.gov.cpf.db.maxConnections      | Now editable on the admin app under the tuning section |
+|--------------------------------------|--------------------------------------------------------|
 
 CPF requires a configuration file on each server.
 
-Property                             Description
--------------------------------      ------------------------------------------
-ca.bc.gov.cpf.app.baseUrl            The HTTP URL to the server cpf is deployed to
-ca.bc.gov.cpf.app.secureBaseUrl      The HTTPS URL to the server cpf is deployed to
-ca.bc.gov.cpf.internal.webServiceUrl The HTTP URL to the internal web service for cpf
-cpfSiteminderLogoutSuccess.logoutUrl The URL to the siteminder logoff page:
-                                     https://logontest.gov.bc.ca/clp-cgi/logoff.cgi
-                                     https://logon.gov.bc.ca/clp-cgi/logoff.cgi
-ca.bc.gov.cpf.db.url                 The JDBC URL to the cpf database
-ca.bc.gov.cpf.db.password            The password for the PROXY_CPF_WEB user account
-ca.bc.gov.cpf.db.maxConnections      The maximum number of database connections
-batchJobService.maxWorkerWaitTime    The maximum time the worker will wait in a HTTP
-                                     request for group to process before trying a new
-                                     HTTP request. This limits the number of polling
-                                     requests to the server.
-cpfWorker.password                   The password for the internal web service user
-cpfWorker.maximumPoolSize            The maximum number of threads on the worker to
-                                     execute requests.
-batchJobService.fromEmail            The email address any emails will be sent from
-mailSender.host                      The mail server to send emails via
-ca.bc.gov.cpf.repositoryServer       The maven repository to download plugins from
-ca.bc.gov.cpf.repositoryDirectory    The cache directory to store maven artifacts
+| Property                             | Description                                      |
+|--------------------------------------|--------------------------------------------------|
+| ca.bc.gov.cpf.app.baseUrl            | The HTTP URL to the server cpf is deployed to    |
+| ca.bc.gov.cpf.app.secureBaseUrl      | The HTTPS URL to the server cpf is deployed to   |
+| cpfSiteminderLogoutSuccess.logoutUrl | The URL to the siteminder logoff page:```
+https://logontest.gov.bc.ca/clp-cgi/logoff.cgi
+https://logon.gov.bc.ca/clp-cgi/logoff.cgi```|
+| cpfDataSource.url                    | The JDBC URL to the cpf database                 |
+| cpfDataSource.password               | The password for the PROXY_CPF_WEB user account  |
+| batchJobService.maxWorkerWaitTime    | The maximum time the worker will wait in a HTTP
+request for group to process before trying a new HTTP request. This limits the number of
+polling requests to the server. |
+| batchJobService.fromEmail            | The email address any emails will be sent from   |
+| mailSender.host                      | The mail server to send emails via               |
+| ca.bc.gov.cpf.repositoryServer       | The maven repository to download plugins from    |
+| ca.bc.gov.cpf.repositoryDirectory    | The cache directory to store maven artifacts     |
+| cpfWorker.webServiceUrl              | The HTTP URL to the internal web service for cpf |
+| cpfWorker.password                   | The password for the internal web service user   |
+| cpfWorker.maximumPoolSize            | The maximum number of threads on the worker to execute requests. |
+|--------------------------------------|--------------------------------------------------|
 
 Create the directory and configuration file.
 
@@ -83,10 +95,11 @@ Integration System, use the Ministry Standards below as a Guide.
 
 http://apps.bcgov/standards/index.php/Migration_Task_with_CIS
 
-Construct a new new maven 2/3 job with the following parameters.
+Construct a new new maven 3 job with the following parameters.
 
 Project name:                       revolys-cpf-deploy
 Description:                        Build the CPF web application and deploy to Tomcat.
+JDK:                                jdk8
 Source Code Management: 
   (*) Subversion:
     Repository URL:                 http://apps.bcgov/svn/cpf/source/trunk/
@@ -104,7 +117,7 @@ Post-build Actions:
       Manager user name:            catbot
       Manager password:             ********
       Tomcat URL:                   http://localhost:9501/
-  Build other projects:              # Other than in delivery leave blank. 
+  Build other projects:             # Other than in delivery leave blank. 
                                     # Manually build other projects.
                                     # Do not allow other projects to be auto
                                     # built when this project is built.
@@ -138,4 +151,4 @@ area has tested the application in the test environment.
 Perform a Maven release using the following settings.
 
 Update property dependencies to latest RC or release version:
-  ca.bc.gov.open.cpf.version: 4.1.0+
+  ca.bc.gov.open.cpf.version: 5.0.0+
