@@ -603,6 +603,7 @@
     <gitHubProject>cpf</gitHubProject>
     <siteUrl>https://${gitHubUser}.github.io/${gitHubProject}/</siteUrl>
     <gitHubUrl>https://github.com/${gitHubUser}/${gitHubProject}/</gitHubUrl>
+    <skipTests>true</skipTests>
   </properties>
 </project>
 
