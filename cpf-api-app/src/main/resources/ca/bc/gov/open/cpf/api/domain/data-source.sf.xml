@@ -20,15 +20,7 @@
     p:username="proxy_cpf_web"
     p:password="DUMMY_VALUE_MUST_BE_SET_IN_CONFIG"
     lazy-init="true"
-  >
-    <property name="config">
-      <map>
-        <entry
-          key="maxConnections"
-          value="50" />
-      </map>
-    </property>
-  </bean>
+  />
 
   <bean
     id="cpfRecordStore"
