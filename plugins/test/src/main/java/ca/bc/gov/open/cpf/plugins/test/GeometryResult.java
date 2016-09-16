@@ -39,7 +39,7 @@ public class GeometryResult {
     final Map<String, Object> properties = new HashMap<>();
     final String styleId = this.geometry.getGeometryType();
     properties.put("kmlStyleUrl", "http://gov.bc.ca/kmlStyle.kml#" + styleId);
-    properties.put("kmlWriteNulls", true);
+    properties.put("writeNulls", true);
     return properties;
   }
 

@@ -68,7 +68,7 @@ public class TestAllDataTypes {
 
   public Map<String, Object> getCustomizationProperties() {
     final Map<String, Object> properties = new HashMap<>();
-    properties.put("kmlWriteNulls", true);
+    properties.put("writeNulls", true);
     return properties;
   }
 
