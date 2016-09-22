@@ -167,13 +167,15 @@
         <version>2.10.3</version>
         <configuration>
           <failOnError>false</failOnError>
+          <quiet>yes</quiet>
           <additionalparam>-Xdoclint:none</additionalparam>
+          <skip>${maven.javadoc.skip}</skip>
         </configuration>
         <executions>
           <execution>
-            <id>javadoc-html</id>
-            <phase>install</phase>
+            <id>attach-javadocs</id>
             <configuration>
+              <skip>${maven.javadoc.skip}</skip>
               <quiet>true</quiet>
               <show>public</show>
               <additionalparam>-Xdoclint:none</additionalparam>
