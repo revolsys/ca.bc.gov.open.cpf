@@ -12,6 +12,7 @@
   <artifactId>cpf-war-app</artifactId>
   <packaging>war</packaging>
   <name>Concurrent Processing Framework Base WAR Web Application</name>
+  <description>Concurrent Processing Framework Base WAR Web Application</description>
 
   <build>
     <plugins>

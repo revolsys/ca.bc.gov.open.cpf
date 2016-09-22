@@ -9,6 +9,7 @@
   <artifactId>cpf-parent</artifactId>
   <packaging>pom</packaging>
   <name>Concurrent Processing Framework</name>
+  <description>The parent module of the Concurrent Processing Framework Library.</description>
   <version>5.0.0-SNAPSHOT</version>
   <inceptionYear>2008</inceptionYear>
   <url>https://bcgov.github.io/cpf/</url>
@@ -187,79 +188,6 @@
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>com.mycila</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>2.9</version>
-        <inherited>false</inherited>
-        <configuration>
-          <aggregate>true</aggregate>
-          <header>src/license/APACHE-2.txt</header>
-          <properties>
-            <owner>Province of British Columbia</owner>
-            <year>2016</year>
-          </properties>
-          <includes>
-            <include>**/*.java</include>
-            <include>**/*.java</include>
-          </includes>
-          <mapping>
-            <java>SLASHSTAR_STYLE</java>
-          </mapping>
-        </configuration>
-        <executions>
-          <execution>
-            <id>format-header</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>format</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>license-maven-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <phase>deploy</phase>
-            <id>aggregate-add-third-party</id>
-            <inherited>true</inherited>
-            <configuration>
-              <skipAggregateAddThirdParty>${license.skipAggregateAddThirdParty}</skipAggregateAddThirdParty>
-              <force>true</force>
-              <outputDirectory>src/license/</outputDirectory>
-              <useMissingFile>true</useMissingFile>
-              <licenseMerges>
-                <licenseMerge>apache_2_0|apache_v2</licenseMerge>
-                <licenseMerge>apache_2_0|The Apache Software License, Version 2.0</licenseMerge>
-                <licenseMerge>apache_2_0|Apache License, Version 2.0</licenseMerge>
-                <licenseMerge>apache_2_0|Apache License 2.0</licenseMerge>
-                <licenseMerge>apache_2_0|Apache License</licenseMerge>
-                <licenseMerge>apache_2_0|Apache 2.0 License</licenseMerge>
-                <licenseMerge>apache_2_0|Apache 2</licenseMerge>
-                <licenseMerge>apache_2_0|ASF 2.0</licenseMerge>
-                <licenseMerge>bsd_2|The BSD License</licenseMerge>
-                <licenseMerge>bsd_2|BSD License</licenseMerge>
-                <licenseMerge>cddl_1_0|Common Development and Distribution License (CDDL)
-                  v1.0</licenseMerge>
-                <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)
-                  Version 1.0</licenseMerge>
-                <licenseMerge>epl_1|Eclipse Public License - v 1.0</licenseMerge>
-                <licenseMerge>lgpl_2_1|LGPL 2.1</licenseMerge>
-                <licenseMerge>lgpl_2_1|GNU Lesser General Public License</licenseMerge>
-                <licenseMerge>lgpl_2_1|Lesser General Public License (LGPL)</licenseMerge>
-                <licenseMerge>mit|MIT License</licenseMerge>
-                <licenseMerge>mpl_1_1|MPL 1.1</licenseMerge>
-              </licenseMerges>
-            </configuration>
-            <goals>
-              <goal>aggregate-add-third-party</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -509,8 +437,8 @@
     <module>cpf-api-client</module>
     <module>cpf-api-app</module>
     <module>cpf-api-worker</module>
-<!--     <module>cpf-security-openid</module>
- -->    <module>cpf-war-app</module>
+<!--     <module>cpf-security-openid</module> -->
+    <module>cpf-war-app</module>
     <module>cpf-war-worker</module>
     <module>cpf-archetype-plugin</module>
     <module>cpf-archetype-web</module>
@@ -564,6 +492,87 @@
               </deployables>
               <skip>${skipWebDeploy}</skip>
             </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  
+    <profile>
+      <id>license-update</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.mycila</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <version>2.9</version>
+            <inherited>false</inherited>
+            <configuration>
+              <aggregate>true</aggregate>
+              <header>src/license/APACHE-2.txt</header>
+              <properties>
+                <owner>Province of British Columbia</owner>
+                <year>2016</year>
+              </properties>
+              <includes>
+                <include>**/*.java</include>
+                <include>**/*.java</include>
+              </includes>
+              <mapping>
+                <java>SLASHSTAR_STYLE</java>
+              </mapping>
+            </configuration>
+            <executions>
+              <execution>
+                <id>format-header</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>format</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <phase>deploy</phase>
+                <id>aggregate-add-third-party</id>
+                <inherited>true</inherited>
+                <configuration>
+                  <skipAggregateAddThirdParty>${license.skipAggregateAddThirdParty}</skipAggregateAddThirdParty>
+                  <force>true</force>
+                  <outputDirectory>src/license/</outputDirectory>
+                  <useMissingFile>true</useMissingFile>
+                  <licenseMerges>
+                    <licenseMerge>apache_2_0|apache_v2</licenseMerge>
+                    <licenseMerge>apache_2_0|The Apache Software License, Version 2.0</licenseMerge>
+                    <licenseMerge>apache_2_0|Apache License, Version 2.0</licenseMerge>
+                    <licenseMerge>apache_2_0|Apache License 2.0</licenseMerge>
+                    <licenseMerge>apache_2_0|Apache License</licenseMerge>
+                    <licenseMerge>apache_2_0|Apache 2.0 License</licenseMerge>
+                    <licenseMerge>apache_2_0|Apache 2</licenseMerge>
+                    <licenseMerge>apache_2_0|ASF 2.0</licenseMerge>
+                    <licenseMerge>bsd_2|The BSD License</licenseMerge>
+                    <licenseMerge>bsd_2|BSD License</licenseMerge>
+                    <licenseMerge>cddl_1_0|Common Development and Distribution License (CDDL)
+                      v1.0</licenseMerge>
+                    <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)
+                      Version 1.0</licenseMerge>
+                    <licenseMerge>epl_1|Eclipse Public License - v 1.0</licenseMerge>
+                    <licenseMerge>lgpl_2_1|LGPL 2.1</licenseMerge>
+                    <licenseMerge>lgpl_2_1|GNU Lesser General Public License</licenseMerge>
+                    <licenseMerge>lgpl_2_1|Lesser General Public License (LGPL)</licenseMerge>
+                    <licenseMerge>mit|MIT License</licenseMerge>
+                    <licenseMerge>mpl_1_1|MPL 1.1</licenseMerge>
+                  </licenseMerges>
+                </configuration>
+                <goals>
+                  <goal>aggregate-add-third-party</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>

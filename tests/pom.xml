@@ -15,6 +15,7 @@
   </parent>
   <artifactId>tests</artifactId>
   <name>CPF Unit Tests</name>
+  <description>CPF Unit Tests</description>
 
   <dependencies>
     <dependency>

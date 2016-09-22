@@ -12,7 +12,7 @@
   </parent>
   <artifactId>cpf-api-plugin</artifactId>
   <name>Concurrent Processing Framework Business Application Plugin API</name>
-  
+  <description>Concurrent Processing Framework Business Application Plugin API</description>
   
   <build>
     <plugins>
