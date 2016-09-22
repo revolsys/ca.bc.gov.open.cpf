@@ -173,7 +173,7 @@
         </configuration>
         <executions>
           <execution>
-            <id>attach-javadocs</id>
+            <id>javadoc-html</id>
             <configuration>
               <skip>${maven.javadoc.skip}</skip>
               <quiet>true</quiet>

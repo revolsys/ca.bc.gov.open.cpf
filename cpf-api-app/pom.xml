@@ -26,8 +26,8 @@
         <executions>
           <execution>
             <id>javadoc-html</id>
-            <phase>install</phase>
             <configuration>
+              <skip>${maven.javadoc.skip}</skip>
               <quiet>true</quiet>
               <show>public</show>
               <tags>
