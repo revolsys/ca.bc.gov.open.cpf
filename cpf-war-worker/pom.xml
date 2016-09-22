@@ -8,6 +8,7 @@
   <artifactId>cpf-war-worker</artifactId>
   <packaging>war</packaging>
   <name>Concurrent Processing Framework Base WAR Worker</name>
+  <description>Concurrent Processing Framework Base WAR Worker</description>
   <parent>
     <groupId>ca.bc.gov.open.cpf</groupId>
     <artifactId>cpf-parent</artifactId>

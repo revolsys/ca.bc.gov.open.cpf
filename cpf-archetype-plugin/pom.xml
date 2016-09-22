@@ -11,5 +11,6 @@
   </parent>
   <artifactId>cpf-archetype-plugin</artifactId>
   <name>CPF Plug-in Maven Arechtype</name>
+  <description>CPF Plug-in Maven Arechtype</description>
   <packaging>maven-archetype</packaging>
 </project>

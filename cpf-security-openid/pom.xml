@@ -25,6 +25,7 @@
   </parent>
   <artifactId>cpf-security-openid</artifactId>
   <name>Concurrent Processing Framework OpenID Security</name>
+  <description>Concurrent Processing Framework OpenID Security</description>
 
   <dependencies>
     <dependency>

@@ -14,5 +14,6 @@
   </parent>
   <artifactId>cpf-archetype-web</artifactId>
   <name>Concurrent Processing Framework Archetype Web</name>
+  <description>Concurrent Processing Framework Archetype Web</description>
   <packaging>maven-archetype</packaging>
 </project>

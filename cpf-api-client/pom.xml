@@ -15,6 +15,7 @@
   </parent>
   <artifactId>cpf-api-client</artifactId>
   <name>Concurrent Processing Framework Client Java API</name>
+  <description>Concurrent Processing Framework Client Java API</description>
 
   <build>
     <plugins>
@@ -25,10 +26,11 @@
         <executions>
           <execution>
             <id>javadoc-html</id>
-            <phase>install</phase>
             <configuration>
+              <skip>${maven.javadoc.skip}</skip>
               <quiet>true</quiet>
               <show>public</show>
+              <additionalparam>-Xdoclint:none</additionalparam>
             </configuration>
             <goals>
               <goal>jar</goal>

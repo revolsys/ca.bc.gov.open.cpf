@@ -17,6 +17,7 @@
   <groupId>ca.bc.gov.open.cpf.plugins</groupId>
   <artifactId>test</artifactId>
   <name>CPF Test Plugins</name>
+  <description>CPF Test Plugins</description>
   <packaging>jar</packaging>
 
   <dependencies>

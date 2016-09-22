@@ -17,6 +17,7 @@
   <groupId>ca.bc.gov.open.cpf.plugins</groupId>
   <artifactId>map-tile</artifactId>
   <name>Map Tile Plug-in</name>
+  <description>Map Tile Plug-in</description>
   <packaging>jar</packaging>
 
   <dependencies>
