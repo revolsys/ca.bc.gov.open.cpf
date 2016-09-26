@@ -175,6 +175,11 @@
           p:pageName="list"
           class="com.revolsys.ui.html.builder.HtmlUiBuilderMenu" />
         <bean
+          p:title="Dashboard"
+          p:iconName="fa fa-bar-chart fa-lg"
+          class="com.revolsys.ui.model.Menu"
+          p:uri="/admin/dashboard/" />
+        <bean
           p:title="Tuning"
           p:iconName="fa fa-sliders fa-lg"
           class="com.revolsys.ui.model.Menu"
