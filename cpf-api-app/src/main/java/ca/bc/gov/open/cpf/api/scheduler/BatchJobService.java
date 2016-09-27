@@ -350,7 +350,7 @@ public class BatchJobService implements ModuleEventListener {
     final BatchJob batchJob = getBatchJob(batchJobId);
     if (batchJob != null) {
       synchronized (batchJob) {
-        final Set<BatchJobRequestExecutionGroup> groups = batchJob.getGroups();
+        final List<BatchJobRequestExecutionGroup> groups = batchJob.getGroups();
         for (final BatchJobRequestExecutionGroup group : groups) {
           group.cancel();
         }
