@@ -292,11 +292,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
           for (final Record property : this.dataAccessObject.getConfigPropertiesForAllModules(
             ConfigProperty.DEFAULT, ConfigProperty.MODULE_CONFIG, MAVEN_MODULE_ID)) {
             final String moduleName = property.getValue(ConfigProperty.MODULE_NAME);
-            String mavenModuleId = property.getValue(ConfigProperty.PROPERTY_VALUE);
-            if (mavenModuleId.endsWith("{cpfVersion}")) {
-              mavenModuleId = mavenModuleId.substring(0, mavenModuleId.length() - 12)
-                + this.cpfVersion;
-            }
+            final String mavenModuleId = property.getValue(ConfigProperty.PROPERTY_VALUE);
+
             final ConfigPropertyModule module = this.modulesByName.get(moduleName);
             if (module != null && mavenModuleId.equals(module.getMavenModuleId())) {
               modulesToUnload.remove(moduleName);

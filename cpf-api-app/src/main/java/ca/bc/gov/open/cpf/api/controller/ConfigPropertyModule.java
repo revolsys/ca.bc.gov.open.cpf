@@ -37,6 +37,8 @@ public class ConfigPropertyModule extends ClassLoaderModule {
 
   private String mavenModuleId;
 
+  private final String configMavenModuleId;
+
   private final Set<String> excludeMavenIds;
 
   private final ConfigPropertyModuleLoader moduleLoader;
@@ -50,7 +52,13 @@ public class ConfigPropertyModule extends ClassLoaderModule {
     super(businessApplicationRegistry, moduleName);
     this.moduleLoader = moduleLoader;
     this.mavenRepository = mavenRepository;
-    this.mavenModuleId = mavenModuleId;
+    this.configMavenModuleId = mavenModuleId;
+    if (mavenModuleId.endsWith("{cpfVersion}")) {
+      final String cpfVersion = getClass().getPackage().getImplementationVersion();
+      this.mavenModuleId = mavenModuleId.substring(0, mavenModuleId.length() - 12) + cpfVersion;
+    } else {
+      this.mavenModuleId = mavenModuleId;
+    }
     this.excludeMavenIds = excludeMavenIds;
     this.dataAccessObject = moduleLoader.getDataAccessObject();
     setConfigPropertyLoader(configPropertyLoader);
@@ -84,6 +92,10 @@ public class ConfigPropertyModule extends ClassLoaderModule {
       }
     }
     return classLoader;
+  }
+
+  public String getConfigMavenModuleId() {
+    return this.configMavenModuleId;
   }
 
   public String getMavenModuleId() {
