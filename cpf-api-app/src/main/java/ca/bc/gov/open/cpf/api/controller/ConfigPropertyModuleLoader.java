@@ -57,13 +57,15 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
 
   private static final String MAVEN_MODULE_ID = "mavenModuleId";
 
+  private BatchJobService batchJobService;
+
   private BusinessApplicationRegistry businessApplicationRegistry;
+
+  private final String cpfVersion = getClass().getPackage().getImplementationVersion();
 
   private CpfDataAccessObject dataAccessObject;
 
   private final Set<String> excludeMavenIds = new LinkedHashSet<>();
-
-  private BatchJobService batchJobService;
 
   private MavenRepository mavenRepository;
 
@@ -72,10 +74,9 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   private StatisticsService statisticsService;
 
   public ConfigPropertyModuleLoader() {
-    final String cpfVersion = getClass().getPackage().getImplementationVersion();
-    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-app:" + cpfVersion);
-    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-plugin:" + cpfVersion);
-    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-client:" + cpfVersion);
+    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-app:" + this.cpfVersion);
+    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-plugin:" + this.cpfVersion);
+    this.excludeMavenIds.add("ca.bc.gov.open.cpf:cpf-api-client:" + this.cpfVersion);
   }
 
   public void deleteModule(final Module module) {
@@ -291,7 +292,11 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
           for (final Record property : this.dataAccessObject.getConfigPropertiesForAllModules(
             ConfigProperty.DEFAULT, ConfigProperty.MODULE_CONFIG, MAVEN_MODULE_ID)) {
             final String moduleName = property.getValue(ConfigProperty.MODULE_NAME);
-            final String mavenModuleId = property.getValue(ConfigProperty.PROPERTY_VALUE);
+            String mavenModuleId = property.getValue(ConfigProperty.PROPERTY_VALUE);
+            if (mavenModuleId.endsWith("{cpfVersion}")) {
+              mavenModuleId = mavenModuleId.substring(0, mavenModuleId.length() - 12)
+                + this.cpfVersion;
+            }
             final ConfigPropertyModule module = this.modulesByName.get(moduleName);
             if (module != null && mavenModuleId.equals(module.getMavenModuleId())) {
               modulesToUnload.remove(moduleName);
