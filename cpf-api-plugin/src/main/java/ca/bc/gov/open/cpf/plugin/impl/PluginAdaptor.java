@@ -50,7 +50,6 @@ import com.revolsys.geometry.model.Point;
 import com.revolsys.geometry.model.Polygon;
 import com.revolsys.geometry.model.Polygonal;
 import com.revolsys.geometry.model.Punctual;
-import com.revolsys.geometry.model.impl.BoundingBoxDoubleGf;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.property.FieldProperties;
@@ -102,19 +101,19 @@ public class PluginAdaptor {
       } else if (LineString.class.isAssignableFrom(typeClass)) {
         value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
       } else if (Polygon.class.isAssignableFrom(typeClass)) {
-        final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.0,
-          53.0, -125.1, 53.0);
+        final BoundingBox boundingBox = GeometryFactory.wgs84().newBoundingBox(-125.0, 53.0, -125.1,
+          53.0);
         value = boundingBox.toPolygon(10);
       } else if (Lineal.class.isAssignableFrom(typeClass)) {
         final LineString line1 = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
         final LineString line2 = GeometryFactory.wgs84().lineString(2, -125.2, 53.0, -125.3, 53.0);
         value = GeometryFactory.wgs84().lineal(line1, line2);
       } else if (Polygonal.class.isAssignableFrom(typeClass)) {
-        final BoundingBox boundingBox = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.0,
-          53.0, -125.1, 53.0);
+        final BoundingBox boundingBox = GeometryFactory.wgs84().newBoundingBox(-125.0, 53.0, -125.1,
+          53.0);
         final Polygon polygon1 = boundingBox.toPolygon(10);
-        final BoundingBox boundingBox2 = new BoundingBoxDoubleGf(GeometryFactory.wgs84(), 2, -125.2,
-          53.0, -125.3, 53.0);
+        final BoundingBox boundingBox2 = GeometryFactory.wgs84().newBoundingBox(-125.2, 53.0,
+          -125.3, 53.0);
         final Polygon polygon2 = boundingBox2.toPolygon(10);
         value = GeometryFactory.wgs84().polygonal(polygon1, polygon2);
       } else if (Point.class.isAssignableFrom(typeClass)) {
