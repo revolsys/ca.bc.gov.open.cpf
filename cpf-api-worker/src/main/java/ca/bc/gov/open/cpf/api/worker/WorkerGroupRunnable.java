@@ -52,6 +52,7 @@ import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.datatype.DataType;
+import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
@@ -353,11 +354,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
@@ -592,6 +593,11 @@ public class WorkerGroupRunnable implements Runnable {
         if (value == null && test) {
           value = PluginAdaptor.getTestValue(field);
         } else {
+          if (value instanceof com.vividsolutions.jts.geom.Geometry) {
+            final com.vividsolutions.jts.geom.Geometry jtsGeometry = (com.vividsolutions.jts.geom.Geometry)value;
+            final String wkt = DataTypes.toString(jtsGeometry);
+            value = DataTypes.GEOMETRY.toObject(wkt);
+          }
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
             GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
