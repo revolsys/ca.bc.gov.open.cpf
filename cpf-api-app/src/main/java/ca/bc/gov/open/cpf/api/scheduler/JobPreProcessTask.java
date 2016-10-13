@@ -128,7 +128,7 @@ public class JobPreProcessTask {
   public void addRequestError(final int sequenceNumber, final String errorCode,
     final String message, final String trace) {
     if (this.errorWriter == null) {
-      this.errorFile = FileUtil.newTempFile(this.batchJobId.toString(), "tsv");
+      this.errorFile = FileUtil.newTempFile("job-" + this.batchJobId.toString(), "tsv");
       this.errorWriter = Tsv.plainWriter(this.errorFile);
       this.errorWriter.write("sequenceNumber", "errorCode", "message", "trace");
     }

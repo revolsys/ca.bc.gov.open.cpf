@@ -127,7 +127,7 @@ public class WorkerGroupRunnable implements Runnable {
     final Throwable e) {
     this.log.error(logPrefix + errorCode, e);
     if (this.errorWriter == null) {
-      this.errorFile = FileUtil.newTempFile(this.groupId, "tsv");
+      this.errorFile = FileUtil.newTempFile("group-" + this.groupId, "tsv");
       this.errorWriter = Tsv.plainWriter(this.errorFile);
       this.errorWriter.write("sequenceNumber", "errorCode", "message", "trace");
     }
@@ -151,7 +151,7 @@ public class WorkerGroupRunnable implements Runnable {
     final String resultListProperty = this.businessApplication.getResultListProperty();
 
     final Map<String, Object> testParameters = null;
-    boolean testMode = Maps.getBool(parameters, "cpfPluginTest");
+    final boolean testMode = Maps.getBool(parameters, "cpfPluginTest");
     if (testMode) {
       double testMinTime = Maps.getDouble(parameters, "cpfMinExecutionTime", -1.0);
       double testMaxTime = Maps.getDouble(parameters, "cpfMaxExecutionTime", -1.0);
@@ -269,7 +269,7 @@ public class WorkerGroupRunnable implements Runnable {
           parameters.put("inputDataUrl", inputDataUrl);
         }
         if (this.businessApplication.isPerRequestResultData()) {
-          resultFile = FileUtil.newTempFile(this.businessApplicationName, ".bin");
+          resultFile = FileUtil.newTempFile("app-" + this.businessApplicationName, ".bin");
           resultData = new FileOutputStream(resultFile);
           parameters.put("resultData", resultData);
         }
@@ -353,11 +353,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
@@ -369,7 +369,7 @@ public class WorkerGroupRunnable implements Runnable {
   public void run() {
     this.log.info("Start\tGroup Execution\t" + this.groupId);
     try {
-      final File resultFile = FileUtil.newTempFile(this.groupId, ".tsv");
+      final File resultFile = FileUtil.newTempFile("group-" + this.groupId, ".tsv");
       final StopWatch groupStopWatch = new StopWatch("Group");
       groupStopWatch.start();
       final Long moduleTime = this.groupIdMap.getLong("moduleTime");
