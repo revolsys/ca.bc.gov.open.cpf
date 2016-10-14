@@ -10,7 +10,7 @@
   <artifactId>cpf</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Concurrent Processing Framework</name>
-  <version>5.0.0-SNAPSHOT</version>
+  <version>5.0.1-SNAPSHOT</version>
 
   <developers>
     <developer>
@@ -21,6 +21,35 @@
       <timezone>PST</timezone>
     </developer>
   </developers>
+
+  <contributors>
+    <contributor>
+      <name>Bob Nicholson</name>
+      <email>Bob.Nicholson@gov.bc.ca</email>
+      <organization>The Province of British Columbia</organization>
+      <organizationUrl>http://www.gov.bc.ca</organizationUrl>
+      <roles>
+        <role>businessAnalyst</role>
+      </roles>
+      <timezone>PST</timezone>
+      <properties>
+        <phoneNumber>+1 (250) 387-3966</phoneNumber>
+      </properties>
+    </contributor>
+    <contributor>
+      <name>Michael Ross</name>
+      <email>Michael.RA.Ross@gov.bc.ca</email>
+      <organization>The Province of British Columbia</organization>
+      <organizationUrl>http://www.gov.bc.ca</organizationUrl>
+      <roles>
+        <role>businessArchitect</role>
+      </roles>
+      <timezone>PST</timezone>
+      <properties>
+        <phoneNumber>+1 (250) 387-3995</phoneNumber>
+      </properties>
+    </contributor>
+  </contributors>
 
   <scm>
     <connection>scm:svn:http://apps.bcgov/svn/cpf/source/trunk/</connection>
@@ -135,6 +164,7 @@
   <modules>
     <module>cpf-app-war</module>
     <module>cpf-worker-war</module>
+    <module>bsoe</module>
   </modules>
 
   <profiles>
@@ -217,6 +247,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <skipWebDeploy>true</skipWebDeploy>
-    <ca.bc.gov.open.cpf.version>5.0.0-RELEASE</ca.bc.gov.open.cpf.version>
+    <ca.bc.gov.open.cpf.version>${project.version}</ca.bc.gov.open.cpf.version>
   </properties>
 </project>

@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Concurrent Processing Framework Web Application
-Version:           5.0.0
+Version:           5.0.1
 
 Software/Hardware Requirements
 ------------------------------
@@ -148,7 +148,4 @@ The migration to test occurs after the developer has tested the application in
 the delivery environment. The migration to production occurs after the business
 area has tested the application in the test environment.
 
-Perform a Maven release using the following settings.
-
-Update property dependencies to latest RC or release version:
-  ca.bc.gov.open.cpf.version: 5.0.0+
+Perform a Maven release.
