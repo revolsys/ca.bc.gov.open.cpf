@@ -191,13 +191,14 @@ public class ModuleUiBuilder extends CpfUiBuilder {
     checkAdminOrModuleAdmin(moduleName);
     final Module module = getModule(request, moduleName);
     if (module instanceof ConfigPropertyModule) {
+      final ConfigPropertyModule configModule = (ConfigPropertyModule)module;
       final String typeName = getTypeName();
       final Form form = new Form(typeName);
 
       final ElementContainer fields = new ElementContainer(new TableBody());
 
       final TextField mavenModuleIdField = new TextField("mavenModuleId", 70, true);
-      mavenModuleIdField.setInitialValue(module.getModuleDescriptor());
+      mavenModuleIdField.setInitialValue(configModule.getConfigMavenModuleId());
       FormGroupDecorator.decorate(fields, mavenModuleIdField, "Maven Module ID", null);
 
       final CheckBoxField enabledField = new CheckBoxField("enabled");

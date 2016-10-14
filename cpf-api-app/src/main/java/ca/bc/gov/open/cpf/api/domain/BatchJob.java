@@ -18,6 +18,7 @@ package ca.bc.gov.open.cpf.api.domain;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,6 +26,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
+import com.revolsys.collection.list.Lists;
 import com.revolsys.collection.range.AbstractRange;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.datatype.DataType;
@@ -183,8 +185,8 @@ public class BatchJob extends DelegatingRecord implements Common {
     return this.failedRequests.toString();
   }
 
-  public Set<BatchJobRequestExecutionGroup> getGroups() {
-    return this.groups;
+  public synchronized List<BatchJobRequestExecutionGroup> getGroups() {
+    return Lists.toArray(this.groups);
   }
 
   public String getGroupsToProcess() {

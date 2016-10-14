@@ -34,7 +34,7 @@ import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityServiceFactory;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.record.Record;
-import com.revolsys.record.io.format.json.JsonRecordIoFactory;
+import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.schema.RecordDefinition;
 
 /**
@@ -329,8 +329,8 @@ public class BusinessApplicationPluginExecutor {
     final Map<String, ? extends Object> parameters) {
     final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName);
     final RecordDefinition recordDefinition = businessApplication.getRequestRecordDefinition();
-    final String jsonString = JsonRecordIoFactory.toString(recordDefinition, parameters);
-    return JsonRecordIoFactory.toRecord(recordDefinition, jsonString);
+    final String jsonString = Json.toString(recordDefinition, parameters);
+    return Json.toRecord(recordDefinition, jsonString);
   }
 
   @SuppressWarnings({
@@ -342,16 +342,16 @@ public class BusinessApplicationPluginExecutor {
       final List results = list;
       return results;
     } else {
-      final String jsonString = JsonRecordIoFactory.toString(recordDefinition, list);
-      final List results = JsonRecordIoFactory.toRecordList(recordDefinition, jsonString);
+      final String jsonString = Json.toString(recordDefinition, list);
+      final List results = Json.toRecordList(recordDefinition, jsonString);
       return results;
     }
   }
 
   protected Record getResultRecord(final RecordDefinition recordDefinition,
     final Map<String, Object> object) {
-    final String jsonString = JsonRecordIoFactory.toString(recordDefinition, object);
-    return JsonRecordIoFactory.toRecord(recordDefinition, jsonString);
+    final String jsonString = Json.toString(recordDefinition, object);
+    return Json.toRecord(recordDefinition, jsonString);
   }
 
   public MockSecurityService getSecurityService(final String businessApplicationName) {
