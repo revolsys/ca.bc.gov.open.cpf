@@ -114,7 +114,7 @@
       <dependency>
         <groupId>ca.bc.gov.open.cpf</groupId>
         <artifactId>cpf-api-plugin</artifactId>
-        <version>${ca.bc.gov.open.cpf.version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>ca.bc.gov.geomark</groupId>
@@ -126,7 +126,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ca.bc.gov.open.cpf.version>5.0.1-SNAPSHOT</ca.bc.gov.open.cpf.version>
-    <ca.bc.gov.geomark.version>5.0.1-SNAPSHOT</ca.bc.gov.geomark.version>
+    <ca.bc.gov.geomark.version>5.0.0</ca.bc.gov.geomark.version>
   </properties>
 </project>
