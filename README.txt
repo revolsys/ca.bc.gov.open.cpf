@@ -23,28 +23,10 @@ Database:
 
 Script Files:
 
-sqlplus CPF@DBCDLV @scripts\update\cpf\main.sql
+N/A
   
 2. Configuration Files
 ----------------------
-
-NOTE: This release renames the following configuration property
-
-ca.bc.gov.cpf.internal.webServiceUrl rename to 
-
-| Old Name                             | New Name                            |
-|--------------------------------------|-------------------------------------|
-| ca.bc.gov.cpf.internal.webServiceUrl | cpfWorker.webServiceUrl             |
-| ca.bc.gov.cpf.db.url | cpfDataSource.url             |
-| ca.bc.gov.cpf.db.password | cpfDataSource.password             |
-|--------------------------------------|-------------------------------------|
-
-NOTE: This release removes the following configuration property
-
-| Old Name                             | Comment                                                |
-|--------------------------------------|--------------------------------------------------------|
-| ca.bc.gov.cpf.db.maxConnections      | Now editable on the admin app under the tuning section |
-|--------------------------------------|--------------------------------------------------------|
 
 CPF requires a configuration file on each server.
 
