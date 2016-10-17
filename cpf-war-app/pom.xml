@@ -7,7 +7,7 @@
   <parent>
     <groupId>ca.bc.gov.open.cpf</groupId>
     <artifactId>cpf-parent</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>cpf-war-app</artifactId>
   <packaging>war</packaging>
@@ -19,7 +19,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.3</version>
+        <version>2.6</version>
         <configuration>
           <webResources>
             <resource>
