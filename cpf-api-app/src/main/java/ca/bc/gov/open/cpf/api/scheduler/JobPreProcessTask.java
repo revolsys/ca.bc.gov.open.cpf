@@ -18,12 +18,12 @@ package ca.bc.gov.open.cpf.api.scheduler;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.springframework.util.StopWatch;
@@ -47,6 +47,7 @@ import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.logging.Logs;
+import com.revolsys.record.FieldValueInvalidException;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.MapReaderRecordReader;
 import com.revolsys.record.io.format.csv.Csv;
@@ -57,7 +58,6 @@ import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.spring.resource.InputStreamResource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
-import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 
 public class JobPreProcessTask {
@@ -89,14 +89,13 @@ public class JobPreProcessTask {
   }
 
   /**
-   * Generate an error result for the job, update the job counts and status, and
-   * back out any add job requests that have already been added.
-   *
-   * @param validationErrorCode The failure error code.
-   */
+  * Generate an error result for the job, update the job counts and status, and
+  * back out any add job requests that have already been added.
+  *
+  * @param validationErrorCode The failure error code.
+  */
   private boolean addJobValidationError(final Identifier batchJobId,
-    final ErrorCode validationErrorCode, final String validationErrorDebugMessage,
-    final String validationErrorMessage) {
+    final ErrorCode validationErrorCode, final String validationErrorMessage) {
     final CpfDataAccessObject dataAccessObject = this.batchJobService.getDataAccessObject();
     if (dataAccessObject != null) {
 
@@ -120,13 +119,18 @@ public class JobPreProcessTask {
       } catch (final UnsupportedEncodingException e) {
       }
       dataAccessObject.setBatchJobFailed(batchJobId);
-      Logs.debug(BatchJobService.class, validationErrorDebugMessage);
     }
     return false;
   }
 
-  public void addRequestError(final int sequenceNumber, final String errorCode,
-    final String message, final String trace) {
+  private boolean addJobValidationError(final Identifier batchJobId,
+    final ErrorCode validationErrorCode, final Throwable exception) {
+    Logs.debug(BatchJobService.class, exception);
+    return addJobValidationError(batchJobId, validationErrorCode, exception.getMessage());
+  }
+
+  public void addRequestError(final int sequenceNumber, final Object errorCode,
+    final String message, final CharSequence trace) {
     if (this.errorWriter == null) {
       this.errorFile = FileUtil.newTempFile("job-" + this.batchJobId.toString(), "tsv");
       this.errorWriter = Tsv.plainWriter(this.errorFile);
@@ -207,14 +211,11 @@ public class JobPreProcessTask {
               final String inputContentType = batchJob.getValue(BatchJob.INPUT_DATA_CONTENT_TYPE);
               final String resultContentType = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
               if (!businessApplication.isInputContentTypeSupported(inputContentType)) {
-                valid = addJobValidationError(this.batchJobId, ErrorCode.BAD_INPUT_DATA_TYPE, "",
-                  "");
+                valid = addJobValidationError(this.batchJobId, ErrorCode.BAD_INPUT_DATA_TYPE, "");
               } else if (!businessApplication.isResultContentTypeSupported(resultContentType)) {
-                valid = addJobValidationError(this.batchJobId, ErrorCode.BAD_RESULT_DATA_TYPE, "",
-                  "");
+                valid = addJobValidationError(this.batchJobId, ErrorCode.BAD_RESULT_DATA_TYPE, "");
               } else if (inputDataStream == null) {
-                valid = addJobValidationError(this.batchJobId, ErrorCode.INPUT_DATA_UNREADABLE, "",
-                  "");
+                valid = addJobValidationError(this.batchJobId, ErrorCode.INPUT_DATA_UNREADABLE, "");
               } else {
                 final RecordDefinition requestRecordDefinition = businessApplication
                   .getInternalRequestRecordDefinition();
@@ -223,24 +224,27 @@ public class JobPreProcessTask {
                     .factoryByMediaType(MapReaderFactory.class, inputContentType);
                   if (factory == null) {
                     valid = addJobValidationError(this.batchJobId, ErrorCode.INPUT_DATA_UNREADABLE,
-                      inputContentType, "Media type not supported");
+                      "Media type not supported:" + inputContentType);
                   } else {
+                    PreProcessGroup group = null;
                     final InputStreamResource resource = new InputStreamResource("in",
                       inputDataStream);
                     try (
                       final MapReader mapReader = factory.newMapReader(resource)) {
                       if (mapReader == null) {
                         valid = addJobValidationError(this.batchJobId,
-                          ErrorCode.INPUT_DATA_UNREADABLE, inputContentType,
-                          "Media type not supported");
+                          ErrorCode.INPUT_DATA_UNREADABLE,
+                          "Media type not supported: " + inputContentType);
                       } else {
                         try (
                           final Reader<Record> inputDataReader = new MapReaderRecordReader(
                             requestRecordDefinition, mapReader)) {
 
-                          PreProcessGroup group = null;
-                          try {
-                            for (final Record inputDataRecord : inputDataReader) {
+                          for (final Iterator<Record> iterator = inputDataReader
+                            .iterator(); iterator.hasNext();) {
+                            numSubmittedRequests++;
+                            try {
+                              final Record inputDataRecord = iterator.next();
                               if (!this.batchJobService
                                 .containsPreProcessedJobId(this.batchJobId)) {
                                 group.cancel();
@@ -251,7 +255,6 @@ public class JobPreProcessTask {
                                   businessApplication, batchJob, jobParameters, numGroups + 1);
                                 numGroups++;
                               }
-                              numSubmittedRequests++;
                               if (!group.addRequest(inputDataRecord, numSubmittedRequests)) {
                                 numFailedRequests++;
                               }
@@ -259,29 +262,33 @@ public class JobPreProcessTask {
                                 group.commit();
                                 group = null;
                               }
+                            } catch (final FieldValueInvalidException e) {
+                              numFailedRequests++;
+                              addRequestError(numFailedRequests, ErrorCode.BAD_INPUT_DATA_VALUE,
+                                e.getMessage(), "");
                             }
-                            if (group != null) {
-                              group.commit();
-                            }
-                          } catch (final Throwable e) {
-                            if (group != null) {
-                              group.cancel();
-                            }
-                            Exceptions.throwUncheckedException(e);
+                          }
+                          if (group != null) {
+                            group.commit();
                           }
                         }
 
                         final int maxRequests = businessApplication.getMaxRequestsPerJob();
                         if (numSubmittedRequests == 0) {
                           valid = addJobValidationError(this.batchJobId,
-                            ErrorCode.INPUT_DATA_UNREADABLE, "No records specified",
-                            String.valueOf(numSubmittedRequests));
+                            ErrorCode.INPUT_DATA_UNREADABLE, "No records specified");
                         } else if (numSubmittedRequests > maxRequests) {
                           valid = addJobValidationError(this.batchJobId,
-                            ErrorCode.TOO_MANY_REQUESTS, null,
-                            String.valueOf(numSubmittedRequests));
+                            ErrorCode.TOO_MANY_REQUESTS, String.valueOf(numSubmittedRequests));
                         }
                       }
+                    } catch (final Throwable e) {
+                      if (group != null) {
+                        group.cancel();
+                      }
+                      Logs.error(this, "Error pre-processing job " + this.batchJobId, e);
+                      valid = addJobValidationError(this.batchJobId,
+                        ErrorCode.ERROR_PROCESSING_REQUEST, e);
                     }
                   }
                 } catch (final Throwable e) {
@@ -290,11 +297,8 @@ public class JobPreProcessTask {
                     return false;
                   } else {
                     Logs.error(this, "Error pre-processing job " + this.batchJobId, e);
-                    final StringWriter errorDebugMessage = new StringWriter();
-                    e.printStackTrace(new PrintWriter(errorDebugMessage));
                     valid = addJobValidationError(this.batchJobId,
-                      ErrorCode.ERROR_PROCESSING_REQUEST, errorDebugMessage.toString(),
-                      e.getMessage());
+                      ErrorCode.ERROR_PROCESSING_REQUEST, e);
                   }
                 }
               }

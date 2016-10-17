@@ -62,7 +62,6 @@ import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
-import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.transaction.Transactionable;
 import com.revolsys.ui.web.controller.PathAliasController;
@@ -801,30 +800,23 @@ public class CpfDataAccessObject implements Transactionable {
   public boolean setBatchJobRequestsFailed(final Identifier batchJobId,
     final int numSubmittedRequests, final int numFailedRequests, final int groupSize,
     final int numGroups) {
-    try (
-      Transaction transaction = newTransaction(Propagation.REQUIRES_NEW)) {
-      try {
-        final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
-        final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " //
-          + "NUM_SUBMITTED_REQUESTS = ?, "//
-          + "FAILED_REQUEST_RANGE = ?, "//
-          + "GROUP_SIZE = ?, "//
-          + "NUM_SUBMITTED_GROUPS = ?, "//
-          + "JOB_STATUS = 'processed', "//
-          + "LAST_SCHEDULED_TIMESTAMP = ?, "//
-          + "WHEN_STATUS_CHANGED = ?, "//
-          + "WHEN_UPDATED = ?, "//
-          + "WHO_UPDATED = ? "//
-          + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
-        final Timestamp now = new Timestamp(System.currentTimeMillis());
-        final boolean result = JdbcUtils.executeUpdate(jdbcRecordStore, sql, numSubmittedRequests,
-          numFailedRequests, groupSize, numGroups, now, now, now, getUsername(),
-          batchJobId.getLong(0)) == 1;
-        return result;
-      } catch (final Throwable e) {
-        throw transaction.setRollbackOnly(e);
-      }
-    }
+    final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
+    final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " //
+      + "NUM_SUBMITTED_REQUESTS = ?, "//
+      + "FAILED_REQUEST_RANGE = ?, "//
+      + "GROUP_SIZE = ?, "//
+      + "NUM_SUBMITTED_GROUPS = ?, "//
+      + "JOB_STATUS = 'processed', "//
+      + "LAST_SCHEDULED_TIMESTAMP = ?, "//
+      + "WHEN_STATUS_CHANGED = ?, "//
+      + "WHEN_UPDATED = ?, "//
+      + "WHO_UPDATED = ? "//
+      + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
+    final Timestamp now = new Timestamp(System.currentTimeMillis());
+    final boolean result = JdbcUtils.executeUpdate(jdbcRecordStore, sql, numSubmittedRequests,
+      numFailedRequests, groupSize, numGroups, now, now, now, getUsername(),
+      batchJobId.getLong(0)) == 1;
+    return result;
   }
 
   public void setConfigPropertyValue(final Record object, final Object value) {
