@@ -515,13 +515,17 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
 
   private boolean hasText(final StringBuilder text, final String expected) {
     skipWhitespace(text);
-    final int length = expected.length();
-    final CharSequence subText = text.subSequence(0, length);
-    if (subText.equals(expected)) {
-      text.delete(0, length);
-      return true;
-    } else {
+    final int expectedLength = expected.length();
+    if (expectedLength > text.length()) {
       return false;
+    } else {
+      final CharSequence subText = text.subSequence(0, expectedLength);
+      if (subText.equals(expected)) {
+        text.delete(0, expectedLength);
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 

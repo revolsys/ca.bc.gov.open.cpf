@@ -112,12 +112,12 @@ public class JobPreProcessTask {
         errorResultMap.put("Code", validationErrorCode.name());
         errorResultMap.put("Message", newErrorMessage);
         errorMapWriter.write(errorResultMap);
-        try {
-          final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
-          this.batchJobService.newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
-            Csv.MIME_TYPE, errorBytes, 0);
-        } catch (final UnsupportedEncodingException e) {
-        }
+      }
+      try {
+        final byte[] errorBytes = errorWriter.toString().getBytes("UTF-8");
+        this.batchJobService.newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA,
+          Csv.MIME_TYPE, errorBytes, 0);
+      } catch (final UnsupportedEncodingException e) {
       }
       dataAccessObject.setBatchJobFailed(batchJobId);
       Logs.debug(BatchJobService.class, validationErrorDebugMessage);
