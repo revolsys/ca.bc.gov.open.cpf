@@ -10,7 +10,7 @@
   <artifactId>cpf</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Concurrent Processing Framework</name>
-  <version>5.0.1-SNAPSHOT</version>
+  <version>5.0.2-SNAPSHOT</version>
 
   <developers>
     <developer>
@@ -78,6 +78,14 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.4</version>
         <configuration>
@@ -136,14 +144,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
-        <configuration>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
-        </configuration>
       </plugin>
     </plugins>
   </build>
@@ -234,6 +234,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <skipWebDeploy>true</skipWebDeploy>
-    <ca.bc.gov.open.cpf.version>5.0.1-RELEASE</ca.bc.gov.open.cpf.version>
+    <ca.bc.gov.open.cpf.version>${project.version}</ca.bc.gov.open.cpf.version>
   </properties>
 </project>
