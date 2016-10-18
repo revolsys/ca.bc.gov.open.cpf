@@ -10,7 +10,7 @@
   <artifactId>cpf</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Concurrent Processing Framework</name>
-  <version>5.0.2-SNAPSHOT</version>
+  <version>5.0.3-SNAPSHOT</version>
 
   <developers>
     <developer>
