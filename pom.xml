@@ -10,7 +10,7 @@
   <packaging>pom</packaging>
   <name>Concurrent Processing Framework</name>
   <description>The parent module of the Concurrent Processing Framework Library.</description>
-  <version>5.0.1-SNAPSHOT</version>
+  <version>5.0.2-SNAPSHOT</version>
   <inceptionYear>2008</inceptionYear>
   <url>https://bcgov.github.io/cpf/</url>
 
@@ -189,7 +189,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
+        <version>2.6</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
         </configuration>
