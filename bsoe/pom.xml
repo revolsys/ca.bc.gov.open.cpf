@@ -126,6 +126,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ca.bc.gov.geomark.version>5.0.1-SNAPSHOT</ca.bc.gov.geomark.version>
+    <ca.bc.gov.geomark.version>5.0.0</ca.bc.gov.geomark.version>
   </properties>
 </project>
