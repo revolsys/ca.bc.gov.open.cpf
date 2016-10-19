@@ -132,24 +132,27 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public synchronized boolean cancelJob(final BatchJobService batchJobService) {
-    final boolean cancelled = !isCancelled();
-    final Identifier batchJobId = getIdentifier();
-    batchJobService.getDataAccessObject().clearBatchJob(batchJobId);
-    setStatus(batchJobService, BatchJobStatus.CANCELLED);
-    this.completedRequests.clear();
-    this.completedGroups.clear();
-    final int numSubmittedRequests = getInteger(NUM_SUBMITTED_REQUESTS, 0);
-    if (numSubmittedRequests == 0) {
-      this.failedRequests.clear();
+    if (isCancelled()) {
+      return false;
     } else {
-      this.failedRequests.addRange(1, numSubmittedRequests);
+      final Identifier batchJobId = getIdentifier();
+      batchJobService.getDataAccessObject().clearBatchJob(batchJobId);
+      setStatus(batchJobService, BatchJobStatus.CANCELLED);
+      this.completedRequests.clear();
+      this.completedGroups.clear();
+      final int numSubmittedRequests = getInteger(NUM_SUBMITTED_REQUESTS, 0);
+      if (numSubmittedRequests == 0) {
+        this.failedRequests.clear();
+      } else {
+        this.failedRequests.addRange(1, numSubmittedRequests);
+      }
+      this.groups.clear();
+      this.groupsToProcess.clear();
+      this.resheduledGroups.clear();
+      this.scheduledGroups.clear();
+      update();
+      return true;
     }
-    this.groups.clear();
-    this.groupsToProcess.clear();
-    this.resheduledGroups.clear();
-    this.scheduledGroups.clear();
-    update();
-    return cancelled;
   }
 
   public void cancelScheduledGroup(final long groupSequenceNumber) {
@@ -278,7 +281,7 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   public boolean isStatus(final String status) {
     final String jobStatus = getStatus();
-    return jobStatus.equals(jobStatus);
+    return jobStatus.equals(status);
   }
 
   public synchronized void removeGroup(final BatchJobRequestExecutionGroup group) {

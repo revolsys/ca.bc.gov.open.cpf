@@ -343,18 +343,17 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public boolean cancelBatchJob(final Identifier batchJobId) {
-    boolean cancelled = false;
+    final boolean cancelled = false;
     synchronized (this.preprocesedJobIds) {
       this.preprocesedJobIds.remove(batchJobId);
     }
     final BatchJob batchJob = getBatchJob(batchJobId);
     if (batchJob != null) {
-      synchronized (batchJob) {
+      if (batchJob.cancelJob(this)) {
         final List<BatchJobRequestExecutionGroup> groups = batchJob.getGroups();
         for (final BatchJobRequestExecutionGroup group : groups) {
           group.cancel();
         }
-        cancelled = batchJob.cancelJob(this);
         this.jobController.cancelJob(batchJobId);
         synchronized (this.workersById) {
           for (final Worker worker : this.workersById.values()) {
@@ -365,6 +364,7 @@ public class BatchJobService implements ModuleEventListener {
             groupsToSchedule.notifyReaders();
           }
         }
+        return true;
       }
     }
     return cancelled;
@@ -979,7 +979,7 @@ public class BatchJobService implements ModuleEventListener {
       try (
         RecordWriter writer = this.recordStore.newRecordWriter();) {
         final BatchJob batchJob = getBatchJob(batchJobId);
-        if (batchJob != null) {
+        if (batchJob != null && !batchJob.isCancelled()) {
           final StopWatch stopWatch = new StopWatch();
           stopWatch.start();
 
@@ -989,7 +989,7 @@ public class BatchJobService implements ModuleEventListener {
           final BusinessApplication businessApplication = getBusinessApplication(
             businessApplicationName);
           if (businessApplication == null) {
-            log = getAppLog(businessApplicationName);
+            return false;
           } else {
             log = businessApplication.getLog();
           }
@@ -1002,9 +1002,7 @@ public class BatchJobService implements ModuleEventListener {
           postProcessScheduledStatistics.put("postProcessScheduledJobsCount", 1);
           this.statisticsService.addStatistics(businessApplication, postProcessScheduledStatistics);
 
-          if (businessApplication.isPerRequestResultData()) {
-
-          } else {
+          if (!businessApplication.isPerRequestResultData()) {
             postProcessCreateStructuredResults(businessApplication, log, batchJob, batchJobId);
           }
           postProcessCreateErrorResults(log, batchJob, batchJobId);
@@ -1091,7 +1089,7 @@ public class BatchJobService implements ModuleEventListener {
    */
   protected void postProcessCreateErrorResults(final AppLog log, final BatchJob batchJob,
     final Identifier batchJobId) {
-    synchronized (batchJob) {
+    if (!batchJob.isCancelled()) {
       final List<MapEx> files = this.jobController.getFiles(batchJobId, JobController.GROUP_ERRORS);
       if (!files.isEmpty()) {
         final File errorFile = FileUtil.newTempFile("errors", ".csv");
@@ -1109,8 +1107,10 @@ public class BatchJobService implements ModuleEventListener {
               }
             }
           }
-          newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE, errorFile,
-            0);
+          if (!batchJob.isCancelled()) {
+            newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE,
+              errorFile, 0);
+          }
         } catch (final Throwable e) {
           throw new RuntimeException("Unable to save errors", e);
         } finally {
@@ -1129,7 +1129,7 @@ public class BatchJobService implements ModuleEventListener {
    */
   protected void postProcessCreateStructuredResults(final BusinessApplication businessApplication,
     final AppLog log, final BatchJob batchJob, final Identifier batchJobId) {
-    synchronized (batchJob) {
+    if (!batchJob.isCancelled()) {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
 
       final RecordDefinition resultRecordDefinition = businessApplication
@@ -1155,9 +1155,13 @@ public class BatchJobService implements ModuleEventListener {
                   .getGroupResultReader(batchJobId, sequenceNumber);) {
                 if (resultDataReader != null) {
                   for (final MapEx resultData : resultDataReader) {
-                    postProcessWriteStructuredResult(structuredResultWriter, resultRecordDefinition,
-                      defaultProperties, resultData);
-                    hasResults = true;
+                    if (batchJob.isCancelled()) {
+                      return;
+                    } else {
+                      postProcessWriteStructuredResult(structuredResultWriter,
+                        resultRecordDefinition, defaultProperties, resultData);
+                      hasResults = true;
+                    }
                   }
                 }
               } catch (final Throwable e) {
@@ -1167,7 +1171,7 @@ public class BatchJobService implements ModuleEventListener {
             }
           }
         }
-        if (hasResults) {
+        if (hasResults && !batchJob.isCancelled()) {
           newBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
             structuredResultFile, 1);
         }

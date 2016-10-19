@@ -102,7 +102,7 @@ public class JobPreProcessTask {
       final StringWriter errorWriter = new StringWriter();
 
       String newErrorMessage = validationErrorMessage;
-      if (validationErrorMessage.equals("")) {
+      if (Property.isEmpty(validationErrorMessage)) {
         newErrorMessage = validationErrorCode.getDescription();
       }
       try (
@@ -169,12 +169,13 @@ public class JobPreProcessTask {
     AppLog log = null;
     BatchJob batchJob = null;
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      final Transaction transaction = this.dataAccessObject
+        .newTransaction(Propagation.REQUIRES_NEW)) {
       try {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         batchJob = this.dataAccessObject.getBatchJob(this.batchJobId);
-        if (batchJob != null) {
+        if (batchJob != null && batchJob.isStatus(BatchJobStatus.CREATING_REQUESTS)) {
           int numSubmittedRequests = 0;
           final String businessApplicationName = batchJob
             .getValue(BatchJob.BUSINESS_APPLICATION_NAME);
@@ -247,7 +248,9 @@ public class JobPreProcessTask {
                               final Record inputDataRecord = iterator.next();
                               if (!this.batchJobService
                                 .containsPreProcessedJobId(this.batchJobId)) {
-                                group.cancel();
+                                if (group != null) {
+                                  group.cancel();
+                                }
                                 return true;
                               }
                               if (group == null) {
@@ -259,7 +262,13 @@ public class JobPreProcessTask {
                                 numFailedRequests++;
                               }
                               if (group.getGroupSize() == maxGroupSize) {
-                                group.commit();
+                                if (this.batchJobService
+                                  .containsPreProcessedJobId(this.batchJobId)) {
+                                  group.commit();
+                                } else {
+                                  group.cancel();
+                                  return true;
+                                }
                                 group = null;
                               }
                             } catch (final FieldValueInvalidException e) {
@@ -269,7 +278,12 @@ public class JobPreProcessTask {
                             }
                           }
                           if (group != null) {
-                            group.commit();
+                            if (this.batchJobService.containsPreProcessedJobId(this.batchJobId)) {
+                              group.commit();
+                            } else {
+                              group.cancel();
+                              return true;
+                            }
                           }
                         }
 
@@ -367,16 +381,16 @@ public class JobPreProcessTask {
                 "End\tJob pre-process\tbatchJobId=" + this.batchJobId);
             }
           }
-          this.batchJobService.removePreProcessedJobId(this.batchJobId);
         }
       } catch (final Throwable e) {
-        this.batchJobService.removePreProcessedJobId(this.batchJobId);
         if (batchJob != null) {
           batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS,
             BatchJobStatus.SUBMITTED);
         }
         BatchJobService.error(log, "Error\tJob pre-process\tbatchJobId=" + this.batchJobId, e);
         throw transaction.setRollbackOnly(e);
+      } finally {
+        this.batchJobService.removePreProcessedJobId(this.batchJobId);
       }
     }
     return true;

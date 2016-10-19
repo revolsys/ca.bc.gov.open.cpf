@@ -40,6 +40,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.list.Lists;
+import com.revolsys.collection.map.LruMap;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
@@ -99,7 +100,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   private RecordDefinition userGroupPermissionRecordDefinition;
 
-  private Map<Identifier, BatchJob> batchJobById = new HashMap<>();
+  private Map<Identifier, BatchJob> batchJobById = new LruMap<>(1000);
 
   private final Map<String, Set<Identifier>> batchJobIdsByBusinessApplication = new HashMap<>();
 
@@ -127,9 +128,11 @@ public class CpfDataAccessObject implements Transactionable {
         }
       }
     }
-    this.batchJobById.put(batchJobId, batchJob);
-    final String businessApplicationName = batchJob.getString(BatchJob.BUSINESS_APPLICATION_NAME);
-    Maps.addToSet(this.batchJobIdsByBusinessApplication, businessApplicationName, batchJobId);
+    if (!batchJob.isCancelled()) {
+      this.batchJobById.put(batchJobId, batchJob);
+      final String businessApplicationName = batchJob.getString(BatchJob.BUSINESS_APPLICATION_NAME);
+      Maps.addToSet(this.batchJobIdsByBusinessApplication, businessApplicationName, batchJobId);
+    }
     return batchJob;
   }
 
@@ -660,7 +663,9 @@ public class CpfDataAccessObject implements Transactionable {
     record.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
 
     final BatchJob batchJob = new BatchJob(record);
-    this.batchJobById.put(batchJobId, batchJob);
+    if (!batchJob.isCancelled()) {
+      this.batchJobById.put(batchJobId, batchJob);
+    }
     return batchJob;
   }
 

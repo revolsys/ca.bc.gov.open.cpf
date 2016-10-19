@@ -185,12 +185,16 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
       if (batchJobId != null && !this.scheduledIds.contains(batchJobId)) {
         this.scheduledIds.add(batchJobId);
         final Runnable runnable = () -> {
-          synchronized (this.scheduledIds) {
-            this.scheduledIds.remove(batchJobId);
-          }
-          final boolean success = processJob(batchJobId);
-          if (!success) {
-            schedule(batchJobId);
+          try {
+            synchronized (this.scheduledIds) {
+              this.scheduledIds.remove(batchJobId);
+            }
+            final boolean success = processJob(batchJobId);
+            if (!success) {
+              schedule(batchJobId);
+            }
+          } catch (final Throwable e) {
+            Logs.error(this, "Error processing jobId=" + batchJobId);
           }
         };
         execute(runnable);
