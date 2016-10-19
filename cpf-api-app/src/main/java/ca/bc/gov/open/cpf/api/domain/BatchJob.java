@@ -16,18 +16,16 @@
 package ca.bc.gov.open.cpf.api.domain;
 
 import java.sql.Timestamp;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobRequestExecutionGroup;
+import ca.bc.gov.open.cpf.api.scheduler.BatchJobScheduler;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.collection.list.Lists;
-import com.revolsys.collection.range.AbstractRange;
 import com.revolsys.collection.range.RangeSet;
 import com.revolsys.datatype.DataType;
 import com.revolsys.identifier.Identifier;
@@ -87,7 +85,7 @@ public class BatchJob extends DelegatingRecord implements Common {
 
   private final RangeSet failedRequests;
 
-  private final Set<BatchJobRequestExecutionGroup> groups = new HashSet<>();
+  private final Set<BatchJobRequestExecutionGroup> groups = new LinkedHashSet<>();
 
   private final RangeSet groupsToProcess = new RangeSet();
 
@@ -131,13 +129,30 @@ public class BatchJob extends DelegatingRecord implements Common {
     return rangeSet;
   }
 
-  public synchronized boolean cancelJob(final BatchJobService batchJobService) {
+  public synchronized boolean cancelJob(final BatchJobService batchJobService,
+    final BatchJobScheduler scheduler) {
     if (isCancelled()) {
       return false;
     } else {
       final Identifier batchJobId = getIdentifier();
       batchJobService.getDataAccessObject().clearBatchJob(batchJobId);
-      setStatus(batchJobService, BatchJobStatus.CANCELLED);
+      try (
+        Transaction transaction = batchJobService.newTransaction(Propagation.REQUIRES_NEW)) {
+        setStatus(batchJobService, BatchJobStatus.CANCELLED);
+      }
+
+      synchronized (this.groups) {
+        for (final BatchJobRequestExecutionGroup group : this.groups) {
+          scheduler.removeScheduledGroup(group);
+          group.cancelInternal();
+        }
+        this.groups.clear();
+      }
+      for (final BatchJobRequestExecutionGroup group : this.resheduledGroups) {
+        scheduler.removeScheduledGroup(group);
+        group.cancelInternal();
+      }
+      this.resheduledGroups.clear();
       this.completedRequests.clear();
       this.completedGroups.clear();
       final int numSubmittedRequests = getInteger(NUM_SUBMITTED_REQUESTS, 0);
@@ -146,11 +161,12 @@ public class BatchJob extends DelegatingRecord implements Common {
       } else {
         this.failedRequests.addRange(1, numSubmittedRequests);
       }
-      this.groups.clear();
       this.groupsToProcess.clear();
-      this.resheduledGroups.clear();
       this.scheduledGroups.clear();
-      update();
+      try (
+        Transaction transaction = batchJobService.newTransaction(Propagation.REQUIRES_NEW)) {
+        update();
+      }
       return true;
     }
   }
@@ -188,10 +204,6 @@ public class BatchJob extends DelegatingRecord implements Common {
     return this.failedRequests.toString();
   }
 
-  public synchronized List<BatchJobRequestExecutionGroup> getGroups() {
-    return Lists.toArray(this.groups);
-  }
-
   public String getGroupsToProcess() {
     return this.groupsToProcess.toString();
   }
@@ -224,7 +236,11 @@ public class BatchJob extends DelegatingRecord implements Common {
       final BatchJobRequestExecutionGroup group = new BatchJobRequestExecutionGroup(userId, this,
         businessApplication, businessApplicationParameterMap, resultDataContentType, now,
         sequenceNumber);
-      this.groups.add(group);
+      synchronized (this.groups) {
+        if (!isCancelled()) {
+          this.groups.add(group);
+        }
+      }
       return group;
     } else {
       return null;
@@ -284,21 +300,16 @@ public class BatchJob extends DelegatingRecord implements Common {
     return jobStatus.equals(status);
   }
 
-  public synchronized void removeGroup(final BatchJobRequestExecutionGroup group) {
-    this.groups.remove(group);
-  }
-
-  public void rescheduleGroup(final BatchJobRequestExecutionGroup group) {
-    this.resheduledGroups.add(group);
-  }
-
-  public synchronized void reset() {
-    this.resheduledGroups.clear();
-    this.groups.clear();
-    for (final AbstractRange<?> range : this.scheduledGroups.getRanges()) {
-      this.groupsToProcess.addRange(range);
+  public void removeGroup(final BatchJobRequestExecutionGroup group) {
+    synchronized (this.groups) {
+      this.groups.remove(group);
     }
-    this.scheduledGroups.clear();
+  }
+
+  public synchronized void rescheduleGroup(final BatchJobRequestExecutionGroup group) {
+    if (!isCancelled()) {
+      this.resheduledGroups.add(group);
+    }
   }
 
   public synchronized void setGroupCount(final int groupCount) {
@@ -368,4 +379,5 @@ public class BatchJob extends DelegatingRecord implements Common {
       recordStore.insertRecord(this);
     }
   }
+
 }
