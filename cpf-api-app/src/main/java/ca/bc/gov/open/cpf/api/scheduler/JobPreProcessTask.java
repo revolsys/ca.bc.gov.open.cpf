@@ -102,7 +102,7 @@ public class JobPreProcessTask {
       final StringWriter errorWriter = new StringWriter();
 
       String newErrorMessage = validationErrorMessage;
-      if (validationErrorMessage.equals("")) {
+      if (Property.isEmpty(validationErrorMessage)) {
         newErrorMessage = validationErrorCode.getDescription();
       }
       try (
@@ -247,7 +247,9 @@ public class JobPreProcessTask {
                               final Record inputDataRecord = iterator.next();
                               if (!this.batchJobService
                                 .containsPreProcessedJobId(this.batchJobId)) {
-                                group.cancel();
+                                if (group != null) {
+                                  group.cancel();
+                                }
                                 return true;
                               }
                               if (group == null) {
