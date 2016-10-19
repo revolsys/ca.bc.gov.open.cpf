@@ -194,7 +194,7 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
               schedule(batchJobId);
             }
           } catch (final Throwable e) {
-            Logs.error(this, "Error pre-processing jobId=" + batchJobId);
+            Logs.error(this, "Error processing jobId=" + batchJobId);
           }
         };
         execute(runnable);
