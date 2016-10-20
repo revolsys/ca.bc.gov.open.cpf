@@ -172,14 +172,20 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   public void addExecutingGroupsMessage() {
     final Map<String, Object> message = newExecutingGroupsMessage();
-    this.messageHandler.sendMessage(message);
+    final WorkerMessageHandler messageHandler = this.messageHandler;
+    if (messageHandler != null) {
+      messageHandler.sendMessage(message);
+    }
   }
 
   public void addFailedGroup(final String groupId) {
     final Map<String, Object> message = new LinkedHashMap<>();
     message.put("type", "failedGroupId");
     message.put("groupId", groupId);
-    this.messageHandler.sendMessage(message);
+    final WorkerMessageHandler messageHandler = this.messageHandler;
+    if (messageHandler != null) {
+      messageHandler.sendMessage(message);
+    }
   }
 
   @SuppressWarnings("rawtypes")
@@ -230,7 +236,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
     } catch (final Exception e) {
       Logs.error(this, "Error initializing worker", e);
     }
-    execute(this.messageHandler::connect);
+    final WorkerMessageHandler messageHandler = this.messageHandler;
+    if (messageHandler != null) {
+      execute(messageHandler::connect);
+    }
     execute(this);
   }
 
@@ -239,9 +248,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
     if (this.running) {
       this.running = false;
     }
-    if (this.messageHandler != null) {
-      this.messageHandler.close();
-      this.messageHandler = null;
+    final WorkerMessageHandler messageHandler = this.messageHandler;
+    this.messageHandler = null;
+    if (messageHandler != null) {
+      messageHandler.close();
     }
     if (this.securityServiceFactory != null) {
       this.securityServiceFactory.close();
@@ -458,7 +468,11 @@ public class WorkerScheduler extends ThreadPoolExecutor
       try {
         final MapEx parameters = new LinkedHashMapEx();
         MapEx response = null;
-        final Set<String> loadedModuleNames = this.messageHandler.getLoadedModuleNames();
+        final WorkerMessageHandler messageHandler = this.messageHandler;
+        if (messageHandler == null) {
+          return false;
+        }
+        final Set<String> loadedModuleNames = messageHandler.getLoadedModuleNames();
         parameters.put("moduleName", loadedModuleNames);
 
         if (isRunning()) {
@@ -590,7 +604,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   public void setModuleNames(final List<String> moduleNames) {
-    this.messageHandler.setModuleNames(moduleNames);
+    final WorkerMessageHandler messageHandler = this.messageHandler;
+    if (messageHandler != null) {
+      messageHandler.setModuleNames(moduleNames);
+    }
   }
 
   public void setPassword(final String password) {
