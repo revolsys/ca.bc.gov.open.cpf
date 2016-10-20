@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>cpf-app-war</artifactId>
+  <packaging>war</packaging>
+  <name>BCGOV Concurrent Processing Framework WAR APP</name>
+  <parent>
+    <groupId>ca.bc.gov.cpf</groupId>
+    <artifactId>cpf</artifactId>
+    <version>5.0.3-SNAPSHOT</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>cpf-war-app</artifactId>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>ca.bc.gov.open.cpf</groupId>
+      <artifactId>cpf-api-app</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <webContextPath>/pub/cpf</webContextPath>
+    <skipWebDeploy>false</skipWebDeploy>
+  </properties>
+</project>

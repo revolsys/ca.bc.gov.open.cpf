@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-4.1.xsd
+  "
+>
+  <bean
+    id="cpfDefaultProperties"
+    class="com.revolsys.collection.map.AttributeMap"
+    p:properties="file:///apps/config/cpf/cpf.properties" />
+
+  <util:map
+    id="cpfWebProperties"
+    map-class="com.revolsys.collection.map.AttributeMap"
+  >
+     
+    <entry
+      key="mavenRepository.root"
+      value="file://${ca.bc.gov.cpf.repositoryDirectory}" />
+
+    <entry key="mavenRepository.repositoryLocations">
+      <list>
+        <value>${ca.bc.gov.cpf.repositoryServer}</value>
+      </list>
+    </entry>
+
+    <entry key="batchJobService.userClassBaseUrls">
+      <map>
+        <entry
+          key="http://gov.bc.ca/"
+          value="${cpfConfig.secureBaseUrl}" />
+      </map>
+    </entry>
+
+    <entry
+      key="footerMenu.title"
+      value="B.C. Home" />
+
+    <entry
+      key="footerMenu.uri"
+      value="http://www.gov.bc.ca/" />
+
+    <entry
+      key="cpfSiteminderLogoutSuccess.logoutUrl"
+      value="https://logon.gov.bc.ca/clp-cgi/logoff.cgi" />
+  </util:map>
+</beans>

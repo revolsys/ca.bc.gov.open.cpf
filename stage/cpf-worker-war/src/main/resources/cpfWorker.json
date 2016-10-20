@@ -1,0 +1,4 @@
+{
+  "j:import": "file:///apps/config/cpf/cpf.properties",
+  "cpfWorker.appLogDirectory": "/apps/logs/cpf"
+}
