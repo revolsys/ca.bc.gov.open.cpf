@@ -1,1 +1,0 @@
-Full SQL scripts can be found at https://github.com/bcgov/cpf/tree/5.0.x/sql/oracle
