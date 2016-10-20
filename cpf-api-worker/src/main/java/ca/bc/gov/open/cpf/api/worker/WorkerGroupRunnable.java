@@ -247,79 +247,81 @@ public class WorkerGroupRunnable implements Runnable {
     requestStopWatch.start();
 
     final int requestSequenceNumber = requestParameters
-      .getInteger(BusinessApplication.SEQUENCE_NUMBER);
+      .getInteger(BusinessApplication.SEQUENCE_NUMBER, -1);
 
-    boolean hasError = true;
-    try {
-      final MapEx parameters = getParameters(this.businessApplication, requestRecordDefinition,
-        applicationParameters, requestParameters);
-      final Object plugin = this.module.getBusinessApplicationPlugin(this.businessApplicationName,
-        this.groupId, this.logLevel);
-      if (plugin == null) {
-        addError(requestSequenceNumber,
-          "Unable to create plugin " + this.businessApplicationName + " ",
-          "ERROR_PROCESSING_REQUEST", null);
-      } else {
-        final AppLog appLog = new AppLog(this.moduleName, this.businessApplicationName,
+    if (requestSequenceNumber > -1) {
+      boolean hasError = true;
+      try {
+        final MapEx parameters = getParameters(this.businessApplication, requestRecordDefinition,
+          applicationParameters, requestParameters);
+        final Object plugin = this.module.getBusinessApplicationPlugin(this.businessApplicationName,
           this.groupId, this.logLevel);
-        File resultFile = null;
-        OutputStream resultData = null;
-        if (this.businessApplication.isPerRequestInputData()) {
-          final String inputDataUrl = this.httpClient.getUrl("/worker/workers/" + this.workerId
-            + "/jobs/" + this.batchJobId + "/groups/" + this.groupId + "/inputData", null);
-          parameters.put("inputDataUrl", inputDataUrl);
-        }
-        if (this.businessApplication.isPerRequestResultData()) {
-          resultFile = FileUtil.newTempFile("app-" + this.businessApplicationName, ".bin");
-          resultData = new FileOutputStream(resultFile);
-          parameters.put("resultData", resultData);
-        }
-        try {
-          setParameters(plugin, parameters);
-
-          if (appLog.isDebugEnabled()) {
-            appLog
-              .debug("Start\tRequest Execution\t" + this.groupId + "\t" + requestSequenceNumber);
+        if (plugin == null) {
+          addError(requestSequenceNumber,
+            "Unable to create plugin " + this.businessApplicationName + " ",
+            "ERROR_PROCESSING_REQUEST", null);
+        } else {
+          final AppLog appLog = new AppLog(this.moduleName, this.businessApplicationName,
+            this.groupId, this.logLevel);
+          File resultFile = null;
+          OutputStream resultData = null;
+          if (this.businessApplication.isPerRequestInputData()) {
+            final String inputDataUrl = this.httpClient.getUrl("/worker/workers/" + this.workerId
+              + "/jobs/" + this.batchJobId + "/groups/" + this.groupId + "/inputData", null);
+            parameters.put("inputDataUrl", inputDataUrl);
+          }
+          if (this.businessApplication.isPerRequestResultData()) {
+            resultFile = FileUtil.newTempFile("app-" + this.businessApplicationName, ".bin");
+            resultData = new FileOutputStream(resultFile);
+            parameters.put("resultData", resultData);
           }
           try {
-            execute(resultWriter, appLog, requestSequenceNumber, plugin, parameters);
-          } finally {
+            setParameters(plugin, parameters);
+
             if (appLog.isDebugEnabled()) {
               appLog
-                .debug("End\tRequest Execution\t" + this.groupId + "\t" + requestSequenceNumber);
+                .debug("Start\tRequest Execution\t" + this.groupId + "\t" + requestSequenceNumber);
             }
-          }
-          sendResultData(requestSequenceNumber, parameters, resultFile, resultData);
+            try {
+              execute(resultWriter, appLog, requestSequenceNumber, plugin, parameters);
+            } finally {
+              if (appLog.isDebugEnabled()) {
+                appLog
+                  .debug("End\tRequest Execution\t" + this.groupId + "\t" + requestSequenceNumber);
+              }
+            }
+            sendResultData(requestSequenceNumber, parameters, resultFile, resultData);
 
-        } catch (final IllegalArgumentException e) {
-          addError(requestSequenceNumber, "Invalid value " + e.getMessage(), "BAD_INPUT_DATA_VALUE",
-            e);
-        } catch (final NullPointerException e) {
-          addError(requestSequenceNumber, "Invalid value, null not allowed", "BAD_INPUT_DATA_VALUE",
-            e);
-        } catch (final RecoverableException e) {
-          addError(requestSequenceNumber, "Error processing request " + e.getMessage(),
-            "RECOVERABLE_EXCEPTION", e);
-        } finally {
-          FileUtil.closeSilent(resultData);
-          FileUtil.deleteDirectory(resultFile);
-        }
-        try {
-          if (requestStopWatch.isRunning()) {
-            requestStopWatch.stop();
+          } catch (final IllegalArgumentException e) {
+            addError(requestSequenceNumber, "Invalid value " + e.getMessage(),
+              "BAD_INPUT_DATA_VALUE", e);
+          } catch (final NullPointerException e) {
+            addError(requestSequenceNumber, "Invalid value, null not allowed",
+              "BAD_INPUT_DATA_VALUE", e);
+          } catch (final RecoverableException e) {
+            addError(requestSequenceNumber, "Error processing request " + e.getMessage(),
+              "RECOVERABLE_EXCEPTION", e);
+          } finally {
+            FileUtil.closeSilent(resultData);
+            FileUtil.deleteDirectory(resultFile);
           }
-        } catch (final IllegalStateException e) {
+          try {
+            if (requestStopWatch.isRunning()) {
+              requestStopWatch.stop();
+            }
+          } catch (final IllegalStateException e) {
+          }
         }
+        hasError = false;
+      } catch (final Throwable e) {
+        addError(requestSequenceNumber, "Error processing request", "ERROR_PROCESSING_REQUEST", e);
       }
-      hasError = false;
-    } catch (final Throwable e) {
-      addError(requestSequenceNumber, "Error processing request", "ERROR_PROCESSING_REQUEST", e);
-    }
 
-    if (hasError) {
-      this.errorRequests.add(requestSequenceNumber);
-    } else {
-      this.successRequests.add(requestSequenceNumber);
+      if (hasError) {
+        this.errorRequests.add(requestSequenceNumber);
+      } else {
+        this.successRequests.add(requestSequenceNumber);
+      }
     }
     this.applicationExecutionTime = requestStopWatch.getTotalTimeMillis();
   }
@@ -354,11 +356,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
