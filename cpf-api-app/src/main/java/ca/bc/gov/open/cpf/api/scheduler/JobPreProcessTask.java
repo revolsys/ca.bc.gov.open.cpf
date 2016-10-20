@@ -332,6 +332,8 @@ public class JobPreProcessTask {
               valid = false;
               if (this.dataAccessObject.setBatchJobRequestsFailed(this.batchJobId,
                 numSubmittedRequests, numFailedRequests, maxGroupSize, numGroups)) {
+                batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS,
+                  BatchJobStatus.PROCESSED);
                 this.batchJobService.postProcess(this.batchJobId);
               } else {
                 batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS,

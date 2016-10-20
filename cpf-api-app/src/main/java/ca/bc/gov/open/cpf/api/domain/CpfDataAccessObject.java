@@ -811,7 +811,6 @@ public class CpfDataAccessObject implements Transactionable {
       + "FAILED_REQUEST_RANGE = ?, "//
       + "GROUP_SIZE = ?, "//
       + "NUM_SUBMITTED_GROUPS = ?, "//
-      + "JOB_STATUS = 'processed', "//
       + "LAST_SCHEDULED_TIMESTAMP = ?, "//
       + "WHEN_STATUS_CHANGED = ?, "//
       + "WHEN_UPDATED = ?, "//
