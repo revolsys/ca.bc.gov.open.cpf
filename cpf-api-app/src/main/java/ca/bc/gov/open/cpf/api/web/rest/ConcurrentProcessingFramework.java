@@ -2567,7 +2567,7 @@ public class ConcurrentProcessingFramework {
    *       </tr>
    *       <tr>
    *         <td><b>&lt;parameter&gt;</b></td>
-   *         <td>The the job parameters.</td>
+   *         <td>the job parameters.</td>
    *       </tr>
    *       <tr>
    *         <td>resultSrid</td>
