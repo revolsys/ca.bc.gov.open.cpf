@@ -246,7 +246,7 @@ public class BatchJobService implements ModuleEventListener {
             throw new IllegalArgumentException("invalid WKT geometry", t);
           }
         }
-        if (geometryFactory != GeometryFactory.DEFAULT) {
+        if (geometryFactory != GeometryFactory.DEFAULT_3D) {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);

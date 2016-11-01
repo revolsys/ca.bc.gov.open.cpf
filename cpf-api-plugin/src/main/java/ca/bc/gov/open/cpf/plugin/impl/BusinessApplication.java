@@ -123,7 +123,7 @@ public class BusinessApplication extends BaseObjectWithProperties
    */
   private String descriptionUrl;
 
-  private GeometryFactory geometryFactory = GeometryFactory.DEFAULT;
+  private GeometryFactory geometryFactory = GeometryFactory.DEFAULT_3D;
 
   private boolean hasCustomizationProperties;
 
