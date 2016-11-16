@@ -665,7 +665,7 @@ public class BatchJobService implements ModuleEventListener {
       final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
         geometryFactory.getAxisCount());
       final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
-        geometryFactory.getScaleXY());
+        geometryFactory.getScaleXy());
       final double scaleZ = Maps.getDouble(parameters, "resultScaleFactorZ",
         geometryFactory.getScaleZ());
       return GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);

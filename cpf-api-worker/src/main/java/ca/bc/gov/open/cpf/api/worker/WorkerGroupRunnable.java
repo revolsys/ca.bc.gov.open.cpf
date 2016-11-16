@@ -611,7 +611,7 @@ public class WorkerGroupRunnable implements Runnable {
             final int axisCount = parameters.getInteger("resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
-              geometryFactory.getScaleXY());
+              geometryFactory.getScaleXy());
             final double scaleZ = Maps.getDouble(parameters, "resultScaleFactorZ",
               geometryFactory.getScaleZ());
 
