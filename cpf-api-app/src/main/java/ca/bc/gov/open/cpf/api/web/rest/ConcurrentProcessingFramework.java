@@ -660,13 +660,13 @@ public class ConcurrentProcessingFramework {
 
       final RecordDefinitionImpl requestRecordDefinition = businessApplication
         .getRequestRecordDefinition();
-      for (final FieldDefinition parameter : requestRecordDefinition.getFields()) {
-        final String parameterName = parameter.getName();
+      for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
+        final String parameterName = fieldDefinition.getName();
         String value = HttpServletUtils.getParameter(parameterName);
         final boolean jobParameter = businessApplication.isJobParameter(parameterName);
         final boolean requestParameter = businessApplication.isRequestParameter(parameterName);
         boolean hasValue = Property.hasValue(value);
-        if (parameter.getDataType() == DataTypes.BOOLEAN) {
+        if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
           if ("on".equals(value)) {
             value = "true";
           } else {
@@ -674,18 +674,25 @@ public class ConcurrentProcessingFramework {
           }
           hasValue = true;
         }
+        if (!hasValue && jobParameter) {
+          final Object defaultValue = fieldDefinition.getDefaultValue();
+          if (Property.hasValue(defaultValue)) {
+            value = fieldDefinition.toString(defaultValue);
+            hasValue = true;
+          }
+        }
         if (hasValue) {
           if (jobParameter) {
             businessApplicationParameters.put(parameterName, value);
           } else if (requestParameter) {
-            if (parameter.getDataType() != DataTypes.BOOLEAN
+            if (fieldDefinition.getDataType() != DataTypes.BOOLEAN
               || Property.hasValue(HttpServletUtils.getParameter(parameterName))) {
               throw new HttpMessageNotReadableException("Parameter " + parameterName
                 + " cannot be specified on a job. It can only be specified as a field in the input data.");
             }
           }
         } else {
-          if (jobParameter && !requestParameter && parameter.isRequired()) {
+          if (jobParameter && !requestParameter && fieldDefinition.isRequired()) {
             throw new HttpMessageNotReadableException(
               "Parameter " + parameterName + " is required");
           }
@@ -943,6 +950,13 @@ public class ConcurrentProcessingFramework {
         String value = HttpServletUtils.getParameter(parameterName);
         final boolean required = fieldDefinition.isRequired();
         boolean hasValue = value != null && value.trim().length() > 0;
+        if (!hasValue) {
+          final Object defaultValue = fieldDefinition.getDefaultValue();
+          if (Property.hasValue(defaultValue)) {
+            value = fieldDefinition.toString(defaultValue);
+            hasValue = true;
+          }
+        }
         if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
           if ("on".equals(value)) {
             value = "true";

@@ -41,7 +41,7 @@ unless a .cpg file is provided in the .shpz archive.
     </tr>
     <tr id="geojson">
       <td>geojson</td>
-      <td>application/x-geo+json</td>
+      <td>application/vnd.geo+json<br/>(was application/x-geo+json)</td>
       <td><img src="../images/cross.png" alt="No" /></td>
       <td><img src="../images/cross.png" alt="No" /></td>
       <td><img src="../images/tick.png" alt="Yes" /><br />

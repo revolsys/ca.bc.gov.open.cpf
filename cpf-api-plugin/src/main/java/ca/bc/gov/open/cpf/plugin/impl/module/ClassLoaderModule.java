@@ -600,7 +600,9 @@ public class ClassLoaderModule implements Module {
               if (factory.isCustomFieldsSupported()) {
                 for (final String contentType : factory.getMediaTypes()) {
                   final String fileExtension = factory.getFileExtension(contentType);
-                  if (fileExtension != null) {
+                  if (fileExtension == null) {
+                    businessApplication.addInputDataContentType(contentType);
+                  } else {
                     final String typeDescription = factory.getName() + " (" + fileExtension + ")";
                     businessApplication.addInputDataContentType(contentType, typeDescription,
                       fileExtension);
@@ -647,7 +649,9 @@ public class ClassLoaderModule implements Module {
                 if (factory.isCustomFieldsSupported()) {
                   for (final String contentType : factory.getMediaTypes()) {
                     final String fileNameExtension = factory.getFileExtension(contentType);
-                    if (fileNameExtension != null && !"xlsx".equals(fileNameExtension)) {
+                    if (fileNameExtension == null) {
+                      businessApplication.addResultDataContentType(contentType);
+                    } else if (fileNameExtension != null && !"xlsx".equals(fileNameExtension)) {
                       final String typeDescription = factory.getName() + " (" + fileNameExtension
                         + ")";
                       businessApplication.addResultDataContentType(contentType, fileNameExtension,
