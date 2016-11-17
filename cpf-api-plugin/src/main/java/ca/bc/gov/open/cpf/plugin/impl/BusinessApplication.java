@@ -123,7 +123,7 @@ public class BusinessApplication extends BaseObjectWithProperties
    */
   private String descriptionUrl;
 
-  private GeometryFactory geometryFactory = GeometryFactory.DEFAULT;
+  private GeometryFactory geometryFactory = GeometryFactory.DEFAULT_3D;
 
   private boolean hasCustomizationProperties;
 
@@ -370,6 +370,10 @@ public class BusinessApplication extends BaseObjectWithProperties
     this.requestRecordDefinition.addField(resultScaleFactorZ);
   }
 
+  public void addInputDataContentType(final String contentType) {
+    this.inputDataContentTypes.add(contentType);
+  }
+
   public void addInputDataContentType(final String contentType, final String description,
     final String fileExtension) {
     final String inputDataContentType = Property.getString(this, "inputDataContentType");
@@ -410,6 +414,10 @@ public class BusinessApplication extends BaseObjectWithProperties
     }
     this.requestFieldByNameMap.put(fieldName, field);
     this.requestFieldMethodMap.put(fieldName, method);
+  }
+
+  public void addResultDataContentType(final String contentType) {
+    this.resultDataContentTypes.add(contentType);
   }
 
   public void addResultDataContentType(final String contentType, final String fileExtension,

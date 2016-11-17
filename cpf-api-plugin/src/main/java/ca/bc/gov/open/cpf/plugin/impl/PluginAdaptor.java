@@ -337,7 +337,7 @@ public class PluginAdaptor {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
             GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
-            if (geometryFactory == GeometryFactory.DEFAULT) {
+            if (geometryFactory == GeometryFactory.DEFAULT_3D) {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = Maps.getInteger(this.parameters, "resultSrid",
@@ -345,7 +345,7 @@ public class PluginAdaptor {
             final int axisCount = Maps.getInteger(this.parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(this.parameters, "resultScaleFactorXy",
-              geometryFactory.getScaleXY());
+              geometryFactory.getScaleXy());
             final double scaleZ = Maps.getDouble(this.parameters, "resultScaleFactorZ",
               geometryFactory.getScaleZ());
 

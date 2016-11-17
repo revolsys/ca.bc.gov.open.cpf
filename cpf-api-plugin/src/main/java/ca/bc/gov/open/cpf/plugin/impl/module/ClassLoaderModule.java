@@ -513,7 +513,7 @@ public class ClassLoaderModule implements Module {
       final GeometryConfiguration geometryConfiguration = pluginClass
         .getAnnotation(GeometryConfiguration.class);
       if (geometryConfiguration != null) {
-        final GeometryFactory geometryFactory = getGeometryFactory(GeometryFactory.DEFAULT,
+        final GeometryFactory geometryFactory = getGeometryFactory(GeometryFactory.DEFAULT_3D,
           className, geometryConfiguration);
         businessApplication.setGeometryFactory(geometryFactory);
         final boolean validateGeometry = geometryConfiguration.validate();
@@ -600,7 +600,9 @@ public class ClassLoaderModule implements Module {
               if (factory.isCustomFieldsSupported()) {
                 for (final String contentType : factory.getMediaTypes()) {
                   final String fileExtension = factory.getFileExtension(contentType);
-                  if (fileExtension != null) {
+                  if (fileExtension == null) {
+                    businessApplication.addInputDataContentType(contentType);
+                  } else {
                     final String typeDescription = factory.getName() + " (" + fileExtension + ")";
                     businessApplication.addInputDataContentType(contentType, typeDescription,
                       fileExtension);
@@ -647,7 +649,9 @@ public class ClassLoaderModule implements Module {
                 if (factory.isCustomFieldsSupported()) {
                   for (final String contentType : factory.getMediaTypes()) {
                     final String fileNameExtension = factory.getFileExtension(contentType);
-                    if (fileNameExtension != null && !"xlsx".equals(fileNameExtension)) {
+                    if (fileNameExtension == null) {
+                      businessApplication.addResultDataContentType(contentType);
+                    } else if (fileNameExtension != null && !"xlsx".equals(fileNameExtension)) {
                       final String typeDescription = factory.getName() + " (" + fileNameExtension
                         + ")";
                       businessApplication.addResultDataContentType(contentType, fileNameExtension,
@@ -761,10 +765,10 @@ public class ClassLoaderModule implements Module {
     }
     double scaleXy = geometryConfiguration.scaleFactorXy();
     if (scaleXy == 0) {
-      scaleXy = geometryFactory.getScaleXY();
+      scaleXy = geometryFactory.getScaleXy();
     } else if (scaleXy < 0) {
       this.log.warn(message + " scaleXy must be >= 0");
-      scaleXy = geometryFactory.getScaleXY();
+      scaleXy = geometryFactory.getScaleXy();
     }
     double scaleZ = geometryConfiguration.scaleFactorZ();
     if (scaleXy == 0) {

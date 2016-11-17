@@ -279,7 +279,7 @@ class Base64 {
    * Returns whether or not the <code>octet</code> is in the base 64 alphabet.
    *
    * @param octet The value to test
-   * @return <code>true</code> if the value is defined in the the base 64
+   * @return <code>true</code> if the value is defined in the base 64
    *         alphabet, <code>false</code> otherwise.
    */
   public static boolean isBase64(final byte octet) {

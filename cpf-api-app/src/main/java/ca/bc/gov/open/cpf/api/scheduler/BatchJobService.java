@@ -246,7 +246,7 @@ public class BatchJobService implements ModuleEventListener {
             throw new IllegalArgumentException("invalid WKT geometry", t);
           }
         }
-        if (geometryFactory != GeometryFactory.DEFAULT) {
+        if (geometryFactory != GeometryFactory.DEFAULT_3D) {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
@@ -665,7 +665,7 @@ public class BatchJobService implements ModuleEventListener {
       final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
         geometryFactory.getAxisCount());
       final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
-        geometryFactory.getScaleXY());
+        geometryFactory.getScaleXy());
       final double scaleZ = Maps.getDouble(parameters, "resultScaleFactorZ",
         geometryFactory.getScaleZ());
       return GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);

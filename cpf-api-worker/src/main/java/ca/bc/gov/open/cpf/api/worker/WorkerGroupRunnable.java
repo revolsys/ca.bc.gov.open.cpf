@@ -603,7 +603,7 @@ public class WorkerGroupRunnable implements Runnable {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
             GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
-            if (geometryFactory == GeometryFactory.DEFAULT) {
+            if (geometryFactory == GeometryFactory.DEFAULT_3D) {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = parameters.getInteger("resultSrid",
@@ -611,7 +611,7 @@ public class WorkerGroupRunnable implements Runnable {
             final int axisCount = parameters.getInteger("resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
-              geometryFactory.getScaleXY());
+              geometryFactory.getScaleXy());
             final double scaleZ = Maps.getDouble(parameters, "resultScaleFactorZ",
               geometryFactory.getScaleZ());
 
