@@ -1402,7 +1402,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -1468,11 +1468,13 @@ public class ConcurrentProcessingFramework {
             final RecordDefinitionImpl requestRecordDefinition = businessApplication
               .getRequestRecordDefinition();
             final Record requestParameters = new ArrayRecord(requestRecordDefinition);
-            for (final FieldDefinition attribute : requestRecordDefinition.getFields()) {
-              final String name = attribute.getName();
+            for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
+              final String name = fieldDefinition.getName();
+
               String value = HttpServletUtils.getParameter(name);
+
               boolean hasValue = Property.hasValue(value);
-              if (attribute.getDataType() == DataTypes.BOOLEAN) {
+              if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
                 if ("on".equals(value)) {
                   value = "true";
                 } else {
@@ -1480,21 +1482,29 @@ public class ConcurrentProcessingFramework {
                 }
                 hasValue = true;
               }
-              if (hasValue) {
-                if (value == null) {
-                  if (attribute.isRequired()) {
-                    throw new IllegalArgumentException("Parameter is required " + name);
-                  }
-                } else {
-                  attribute.validate(value);
-                  try {
-                    BatchJobService.setStructuredInputDataValue(srid, requestParameters, attribute,
-                      value, true);
-                  } catch (final IllegalArgumentException e) {
-                    throw new IllegalArgumentException(
-                      "Parameter value is not valid " + name + " " + value, e);
+              if (!hasValue) {
+                if ("resultDataContentType".equals(name)) {
+                  value = format;
+                  hasValue = Property.hasValue(format);
+                } else if (!hasValue) {
+                  final Object defaultValue = fieldDefinition.getDefaultValue();
+                  if (Property.hasValue(defaultValue)) {
+                    value = fieldDefinition.toString(defaultValue);
+                    hasValue = true;
                   }
                 }
+              }
+              if (hasValue) {
+                fieldDefinition.validate(value);
+                try {
+                  BatchJobService.setStructuredInputDataValue(srid, requestParameters,
+                    fieldDefinition, value, true);
+                } catch (final IllegalArgumentException e) {
+                  throw new IllegalArgumentException(
+                    "Parameter value is not valid " + name + " " + value, e);
+                }
+              } else if (fieldDefinition.isRequired()) {
+                throw new IllegalArgumentException("Parameter is required " + name);
               }
             }
             final Map<String, Object> parameters = new LinkedHashMap<>(requestParameters);
