@@ -180,7 +180,7 @@ public class OAuthHttpClient extends DefaultHttpClient {
         throw newException(entity, statusLine);
       }
     } catch (final IOException e) {
-      throw new WrappedException(e);
+      throw Exceptions.wrap(e);
     }
   }
 

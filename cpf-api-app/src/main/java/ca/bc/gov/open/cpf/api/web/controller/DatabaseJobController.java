@@ -41,7 +41,7 @@ import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
-import com.revolsys.util.WrappedException;
+import com.revolsys.util.Exceptions;
 
 public class DatabaseJobController extends AbstractJobController {
   private final RecordStore recordStore;
@@ -107,7 +107,7 @@ public class DatabaseJobController extends AbstractJobController {
         final Blob resultData = file.getValue(BatchJobFile.DATA);
         return resultData.length();
       } catch (final SQLException e) {
-        throw new WrappedException(e);
+        throw Exceptions.wrap(e);
       }
     }
     return 0;
@@ -127,7 +127,7 @@ public class DatabaseJobController extends AbstractJobController {
         final Blob resultData = file.getValue(BatchJobFile.DATA);
         return resultData.getBinaryStream();
       } catch (final SQLException e) {
-        throw new WrappedException(e);
+        throw Exceptions.wrap(e);
       }
     }
     return null;
@@ -147,7 +147,7 @@ public class DatabaseJobController extends AbstractJobController {
         final Blob resultData = file.getValue(BatchJobFile.DATA);
         return resultData.getBinaryStream(fromIndex, toIndex - fromIndex);
       } catch (final SQLException e) {
-        throw new WrappedException(e);
+        throw Exceptions.wrap(e);
       }
     }
     return null;
