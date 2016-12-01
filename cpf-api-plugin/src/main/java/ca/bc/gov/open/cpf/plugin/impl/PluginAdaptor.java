@@ -345,7 +345,7 @@ public class PluginAdaptor {
             final int axisCount = Maps.getInteger(this.parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(this.parameters, "resultScaleFactorXy",
-              geometryFactory.getScaleXy());
+              geometryFactory.getScaleXY());
             final double scaleZ = Maps.getDouble(this.parameters, "resultScaleFactorZ",
               geometryFactory.getScaleZ());
 

@@ -92,7 +92,7 @@ public class GeometryValidatorPlugin {
         this.resultNumAxis = sourceGeometryFactory.getAxisCount();
       }
       if (this.resultScaleFactorXy == 0) {
-        this.resultScaleFactorXy = sourceGeometryFactory.getScaleXy();
+        this.resultScaleFactorXy = sourceGeometryFactory.getScaleXY();
       }
       if (this.resultScaleFactorZ == 0) {
         this.resultScaleFactorZ = sourceGeometryFactory.getScaleZ();

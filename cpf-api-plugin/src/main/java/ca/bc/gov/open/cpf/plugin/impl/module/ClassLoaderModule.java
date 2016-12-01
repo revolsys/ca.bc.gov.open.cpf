@@ -765,10 +765,10 @@ public class ClassLoaderModule implements Module {
     }
     double scaleXy = geometryConfiguration.scaleFactorXy();
     if (scaleXy == 0) {
-      scaleXy = geometryFactory.getScaleXy();
+      scaleXy = geometryFactory.getScaleXY();
     } else if (scaleXy < 0) {
       this.log.warn(message + " scaleXy must be >= 0");
-      scaleXy = geometryFactory.getScaleXy();
+      scaleXy = geometryFactory.getScaleXY();
     }
     double scaleZ = geometryConfiguration.scaleFactorZ();
     if (scaleXy == 0) {
