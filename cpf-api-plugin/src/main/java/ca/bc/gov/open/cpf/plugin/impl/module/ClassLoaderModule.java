@@ -74,6 +74,7 @@ import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
+import com.revolsys.collection.set.Sets;
 import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.cs.CoordinateSystem;
@@ -116,6 +117,13 @@ public class ClassLoaderModule implements Module {
   protected static final String STOPPED = "Stopped";
 
   protected static final String DISABLED = "Disabled";
+
+  private static Set<String> SUPPORTED_MIME_TYPES = Sets.newHash("application/dbase",
+    "application/dbf", "application/gml+xml", "application/gpx+xml", "application/json",
+    "application/vnd.geo+json", "application/vnd.google-earth.kml+xml",
+    "application/vnd.google-earth.kmz", "application/x-geo+json", "application/x-shp",
+    "application/x-shp+zip", "application/xhtml+xml", "text/csv", "text/html",
+    "text/tab-separated-values", "text/x-wkt", "text/xml");
 
   private GenericApplicationContext applicationContext;
 
@@ -599,13 +607,15 @@ public class ClassLoaderModule implements Module {
             if (factory.isSingleFile()) {
               if (factory.isCustomFieldsSupported()) {
                 for (final String contentType : factory.getMediaTypes()) {
-                  final String fileExtension = factory.getFileExtension(contentType);
-                  if (fileExtension == null) {
-                    businessApplication.addInputDataContentType(contentType);
-                  } else {
-                    final String typeDescription = factory.getName() + " (" + fileExtension + ")";
-                    businessApplication.addInputDataContentType(contentType, typeDescription,
-                      fileExtension);
+                  if (SUPPORTED_MIME_TYPES.contains(contentType)) {
+                    final String fileExtension = factory.getFileExtension(contentType);
+                    if (fileExtension == null) {
+                      businessApplication.addInputDataContentType(contentType);
+                    } else {
+                      final String typeDescription = factory.getName() + " (" + fileExtension + ")";
+                      businessApplication.addInputDataContentType(contentType, typeDescription,
+                        fileExtension);
+                    }
                   }
                 }
               }
@@ -613,15 +623,17 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           for (final String contentType : inputDataContentTypes) {
-            final MapReaderFactory factory = IoFactory.factoryByMediaType(MapReaderFactory.class,
-              contentType);
-            if (factory != null && factory.isSingleFile()) {
-              if (factory.isCustomFieldsSupported()) {
-                final String fileExtension = factory.getFileExtension(contentType);
-                if (fileExtension != null) {
-                  final String typeDescription = factory.getName() + " (" + fileExtension + ")";
-                  businessApplication.addInputDataContentType(contentType, typeDescription,
-                    fileExtension);
+            if (SUPPORTED_MIME_TYPES.contains(contentType)) {
+              final MapReaderFactory factory = IoFactory.factoryByMediaType(MapReaderFactory.class,
+                contentType);
+              if (factory != null && factory.isSingleFile()) {
+                if (factory.isCustomFieldsSupported()) {
+                  final String fileExtension = factory.getFileExtension(contentType);
+                  if (fileExtension != null) {
+                    final String typeDescription = factory.getName() + " (" + fileExtension + ")";
+                    businessApplication.addInputDataContentType(contentType, typeDescription,
+                      fileExtension);
+                  }
                 }
               }
             }
@@ -648,14 +660,16 @@ public class ClassLoaderModule implements Module {
               if (!hasResultGeometry || factory.isGeometrySupported()) {
                 if (factory.isCustomFieldsSupported()) {
                   for (final String contentType : factory.getMediaTypes()) {
-                    final String fileNameExtension = factory.getFileExtension(contentType);
-                    if (fileNameExtension == null) {
-                      businessApplication.addResultDataContentType(contentType);
-                    } else if (fileNameExtension != null && !"xlsx".equals(fileNameExtension)) {
-                      final String typeDescription = factory.getName() + " (" + fileNameExtension
-                        + ")";
-                      businessApplication.addResultDataContentType(contentType, fileNameExtension,
-                        typeDescription);
+                    if (SUPPORTED_MIME_TYPES.contains(contentType)) {
+                      final String fileNameExtension = factory.getFileExtension(contentType);
+                      if (fileNameExtension == null) {
+                        businessApplication.addResultDataContentType(contentType);
+                      } else if (fileNameExtension != null && !"xlsx".equals(fileNameExtension)) {
+                        final String typeDescription = factory.getName() + " (" + fileNameExtension
+                          + ")";
+                        businessApplication.addResultDataContentType(contentType, fileNameExtension,
+                          typeDescription);
+                      }
                     }
                   }
                 }
@@ -664,15 +678,18 @@ public class ClassLoaderModule implements Module {
           }
         } else {
           for (final String contentType : resultDataContentTypes) {
-            final RecordWriterFactory factory = IoFactory
-              .factoryByMediaType(RecordWriterFactory.class, contentType);
-            if (factory != null && factory.isSingleFile()) {
-              if (!hasResultGeometry || factory.isGeometrySupported()) {
-                if (factory.isCustomFieldsSupported()) {
-                  final String fileNameExtension = factory.getFileExtension(contentType);
-                  final String typeDescription = factory.getName() + " (" + fileNameExtension + ")";
-                  businessApplication.addResultDataContentType(contentType, fileNameExtension,
-                    typeDescription);
+            if (SUPPORTED_MIME_TYPES.contains(contentType)) {
+              final RecordWriterFactory factory = IoFactory
+                .factoryByMediaType(RecordWriterFactory.class, contentType);
+              if (factory != null && factory.isSingleFile()) {
+                if (!hasResultGeometry || factory.isGeometrySupported()) {
+                  if (factory.isCustomFieldsSupported()) {
+                    final String fileNameExtension = factory.getFileExtension(contentType);
+                    final String typeDescription = factory.getName() + " (" + fileNameExtension
+                      + ")";
+                    businessApplication.addResultDataContentType(contentType, fileNameExtension,
+                      typeDescription);
+                  }
                 }
               }
             }
