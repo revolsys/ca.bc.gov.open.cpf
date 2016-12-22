@@ -11,7 +11,7 @@
   <parent>
     <groupId>ca.bc.gov.cpf</groupId>
     <artifactId>cpf</artifactId>
-    <version>5.0.4-SNAPSHOT</version>
+    <version>5.0.5-SNAPSHOT</version>
   </parent>
   <artifactId>bsoe</artifactId>
   <packaging>jar</packaging>
@@ -114,7 +114,7 @@
       <dependency>
         <groupId>ca.bc.gov.open.cpf</groupId>
         <artifactId>cpf-api-plugin</artifactId>
-        <version>${project.version}</version>
+        <version>${ca.bc.gov.open.cpf.version}</version>
       </dependency>
       <dependency>
         <groupId>ca.bc.gov.geomark</groupId>
