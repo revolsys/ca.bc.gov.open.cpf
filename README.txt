@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Concurrent Processing Framework Web Application
-Version:           5.0.2
+Version:           5.0.4
 
 Software/Hardware Requirements
 ------------------------------
@@ -23,28 +23,12 @@ Database:
 
 Script Files:
 
-sqlplus CPF@DBCDLV @scripts\update\cpf\main.sql
+N/A
   
 2. Configuration Files
 ----------------------
 
-NOTE: This release renames the following configuration property
-
-ca.bc.gov.cpf.internal.webServiceUrl rename to 
-
-| Old Name                             | New Name                            |
-|--------------------------------------|-------------------------------------|
-| ca.bc.gov.cpf.internal.webServiceUrl | cpfWorker.webServiceUrl             |
-| ca.bc.gov.cpf.db.url                 | cpfDataSource.url                   |
-| ca.bc.gov.cpf.db.password            | cpfDataSource.password              |
-|--------------------------------------|-------------------------------------|
-
-NOTE: This release removes the following configuration property
-
-| Old Name                             | Comment                                                |
-|--------------------------------------|--------------------------------------------------------|
-| ca.bc.gov.cpf.db.maxConnections      | Now editable on the admin app under the tuning section |
-|--------------------------------------|--------------------------------------------------------|
+NOTE: There are no changes in this release. This section is for reference only
 
 CPF requires a configuration file on each server.
 
@@ -113,7 +97,7 @@ Post-build Actions:
      Target snapshots repository:   libs-snapshot-local
   Deploy war/ear to a container:
     WAR/EAR files:                  **/*.war
-    Container:                      Tomcat 7.x
+    Container:                      Tomcat 8.x
       Manager user name:            catbot
       Manager password:             ********
       Tomcat URL:                   http://localhost:9501/
