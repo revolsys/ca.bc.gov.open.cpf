@@ -2,7 +2,7 @@ Description
 -----------
 Project:           cpf
 Title:             Concurrent Processing Framework Web Application
-Version:           5.0.4
+Version:           5.0.5
 
 Software/Hardware Requirements
 ------------------------------
