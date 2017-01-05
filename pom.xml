@@ -10,7 +10,7 @@
   <packaging>pom</packaging>
   <name>Concurrent Processing Framework</name>
   <description>The parent module of the Concurrent Processing Framework Library.</description>
-  <version>5.0.4-SNAPSHOT</version>
+  <version>5.0.6-SNAPSHOT</version>
   <inceptionYear>2008</inceptionYear>
   <url>https://bcgov.github.io/cpf/</url>
 
