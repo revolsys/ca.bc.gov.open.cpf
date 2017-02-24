@@ -29,6 +29,7 @@ import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityServiceFactory;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
@@ -53,7 +54,7 @@ public class BusinessApplicationPluginExecutor {
 
   public BusinessApplicationPluginExecutor() {
     final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    final ClassLoaderModuleLoader moduleLoader = new ClassLoaderModuleLoader(classLoader);
+    final ModuleLoader moduleLoader = new ClassLoaderModuleLoader(classLoader);
     this.businessApplicationRegistry = new BusinessApplicationRegistry(false, moduleLoader);
   }
 

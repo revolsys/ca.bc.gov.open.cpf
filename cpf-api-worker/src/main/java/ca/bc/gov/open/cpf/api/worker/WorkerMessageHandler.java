@@ -45,10 +45,10 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
-import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import ca.bc.gov.open.cpf.plugin.impl.security.SignatureUtil;
 
 import com.revolsys.collection.map.Maps;
@@ -268,7 +268,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
         final ClassLoader parentClassLoader = getClass().getClassLoader();
         final ClassLoader classLoader = ClassLoaderFactoryBean.newClassLoader(parentClassLoader,
           urls);
-        final List<URL> configUrls = ClassLoaderModuleLoader.getConfigUrls(classLoader, false);
+        final List<URL> configUrls = ModuleLoader.getConfigUrls(classLoader, false);
         if (configUrls.isEmpty()) {
           final String urlsMessage = "Cannot load classes for module " + moduleName;
           log.error(urlsMessage);
@@ -283,7 +283,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
           }
         } else {
           module = new ClassLoaderModule(businessApplicationRegistry, moduleName, classLoader,
-            this.configPropertyLoader, configUrls.get(0));
+            this.configPropertyLoader, configUrls.get(0), "INFO");
           businessApplicationRegistry.addModule(module);
           final Module startModule = module;
           this.scheduler.execute(() -> startApplications(startModule));

@@ -205,17 +205,17 @@ public class ClassLoaderModule implements Module {
   private List<String> beanImports = Collections.emptyList();
 
   public ClassLoaderModule(final BusinessApplicationRegistry businessApplicationRegistry,
-    final String moduleName) {
+    final String moduleName, String logLevel) {
     this.businessApplicationRegistry = businessApplicationRegistry;
     this.name = moduleName;
-    this.log = new AppLog(moduleName, "INFO");
+    this.log = new AppLog(moduleName, logLevel);
     this.environmentId = businessApplicationRegistry.getEnvironmentId();
   }
 
   public ClassLoaderModule(final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName, final ClassLoader classLoader,
-    final ConfigPropertyLoader configPropertyLoader, final URL configUrl) {
-    this(businessApplicationRegistry, moduleName);
+    final ConfigPropertyLoader configPropertyLoader, final URL configUrl, String logLevel) {
+    this(businessApplicationRegistry, moduleName, logLevel);
     this.classLoader = classLoader;
     this.configPropertyLoader = configPropertyLoader;
     this.configUrl = configUrl;
