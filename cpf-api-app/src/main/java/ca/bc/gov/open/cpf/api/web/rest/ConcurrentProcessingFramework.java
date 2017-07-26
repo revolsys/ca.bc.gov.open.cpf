@@ -744,21 +744,21 @@ public class ConcurrentProcessingFramework {
                 final InputStream in = file.getInputStream()) {
                 final com.revolsys.spring.resource.Resource resource = new InputStreamResource("in",
                   in, file.getSize());
-                this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId),
-                  ++requestSequenceNumber, inputDataContentType, resource);
+                this.jobController.setGroupInput(batchJobId, ++requestSequenceNumber,
+                  inputDataContentType, resource);
               }
             }
           } else {
             for (final String inputDataUrl : inputDataUrls) {
-              this.jobController.setGroupInput(Identifier.newIdentifier(batchJobId),
-                ++requestSequenceNumber, inputDataContentType, inputDataUrl.trim());
+              this.jobController.setGroupInput(batchJobId, ++requestSequenceNumber,
+                inputDataContentType, inputDataUrl.trim());
             }
           }
           this.batchJobService.scheduleJob(batchJob);
         } else {
           this.dataAccessObject.write(batchJob.getRecord());
-          createStructuredJob(Identifier.newIdentifier(batchJobId), batchJob, inputDataFiles,
-            inputDataUrls, inputDataContentType);
+          createStructuredJob(batchJobId, batchJob, inputDataFiles, inputDataUrls,
+            inputDataContentType);
           final long time = System.currentTimeMillis();
           batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
           batchJob.update();
@@ -1402,7 +1402,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
