@@ -85,6 +85,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.open.compiler.annotation.Documentation;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
@@ -205,20 +206,20 @@ public class ClassLoaderModule implements Module {
   private List<String> beanImports = Collections.emptyList();
 
   public ClassLoaderModule(final BusinessApplicationRegistry businessApplicationRegistry,
-    final String moduleName, String logLevel) {
-    this.businessApplicationRegistry = businessApplicationRegistry;
-    this.name = moduleName;
-    this.log = new AppLog(moduleName, logLevel);
-    this.environmentId = businessApplicationRegistry.getEnvironmentId();
-  }
-
-  public ClassLoaderModule(final BusinessApplicationRegistry businessApplicationRegistry,
     final String moduleName, final ClassLoader classLoader,
-    final ConfigPropertyLoader configPropertyLoader, final URL configUrl, String logLevel) {
+    final ConfigPropertyLoader configPropertyLoader, final URL configUrl, final String logLevel) {
     this(businessApplicationRegistry, moduleName, logLevel);
     this.classLoader = classLoader;
     this.configPropertyLoader = configPropertyLoader;
     this.configUrl = configUrl;
+  }
+
+  public ClassLoaderModule(final BusinessApplicationRegistry businessApplicationRegistry,
+    final String moduleName, final String logLevel) {
+    this.businessApplicationRegistry = businessApplicationRegistry;
+    this.name = moduleName;
+    this.log = new AppLog(moduleName, logLevel);
+    this.environmentId = businessApplicationRegistry.getEnvironmentId();
   }
 
   @Override
@@ -483,6 +484,14 @@ public class ClassLoaderModule implements Module {
       final String description = pluginAnnotation.description();
       businessApplication.setDescription(description);
 
+      final Documentation detailedDescriptionAnnotation = pluginClass
+        .getAnnotation(Documentation.class);
+      if (detailedDescriptionAnnotation != null) {
+        final String detailedDescription = detailedDescriptionAnnotation.value();
+        if (Property.hasValue(detailedDescription)) {
+          businessApplication.setDetailedDescription(detailedDescription);
+        }
+      }
       final String title = pluginAnnotation.title();
       if (title != null && title.trim().length() > 0) {
         businessApplication.setTitle(title);

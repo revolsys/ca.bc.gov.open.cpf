@@ -103,6 +103,8 @@ public class BusinessApplication extends BaseObjectWithProperties
     return defaultValue;
   }
 
+  private String detailedDescription;
+
   private final List<String> resultFieldNames = new ArrayList<>();
 
   private String packageName;
@@ -508,6 +510,10 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public String getDescriptionUrl() {
     return this.descriptionUrl;
+  }
+
+  public String getDetailedDescription() {
+    return this.detailedDescription;
   }
 
   public GeometryFactory getGeometryFactory() {
@@ -917,6 +923,10 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public void setDescriptionUrl(final String descriptionUrl) {
     this.descriptionUrl = descriptionUrl;
+  }
+
+  public void setDetailedDescription(final String detailedDescription) {
+    this.detailedDescription = detailedDescription;
   }
 
   public void setExecuteMethod(final Method method) {
