@@ -124,7 +124,7 @@ import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
-import com.revolsys.spring.resource.FileSystemResource;
+import com.revolsys.spring.resource.PathResource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.transaction.Transaction;
@@ -930,7 +930,7 @@ public class BatchJobService implements ModuleEventListener {
       resultRecordDefinition.getGeometryFactory(), businessApplicationParameters);
     final String title = "Job " + batchJobId + " Result";
 
-    final FileSystemResource resource = new FileSystemResource(structuredResultFile);
+    final PathResource resource = new PathResource(structuredResultFile);
     return newStructuredResultWriter(resource, application, resultRecordDefinition, resultFormat,
       title, geometryFactory);
   }

@@ -28,7 +28,7 @@ import java.util.Map;
 import ca.bc.gov.open.cpf.client.api.Callback;
 import ca.bc.gov.open.cpf.client.api.CpfClient;
 
-import com.revolsys.spring.resource.FileSystemResource;
+import com.revolsys.spring.resource.PathResource;
 import com.revolsys.spring.resource.Resource;
 
 @SuppressWarnings("javadoc")
@@ -134,7 +134,7 @@ public class CpfClientTest {
       jobParameters.put("mapGridName", "NTS 1:500 000");
 
       final int numRequests = 48;
-      final Resource inputData = new FileSystemResource(
+      final Resource inputData = new PathResource(
         "../cpf-war-app/src/main/webapp/docs/sample/NTS-500000-by-name.csv");
 
       final String batchJobId = client.createJobWithStructuredMultipleRequestsResource(

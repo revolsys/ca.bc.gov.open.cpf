@@ -85,6 +85,7 @@ public class BusinessApplicationPluginExecutor {
    */
   public Map<String, Object> execute(final String businessApplicationName,
     final Map<String, ? extends Object> inputParameters) {
+    final Object sequenceNumber = inputParameters.get("sequenceNumber");
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final StopWatch stopWatch = new StopWatch();
     stopWatch.start();
@@ -115,6 +116,8 @@ public class BusinessApplicationPluginExecutor {
     final RecordDefinition resultRecordDefinition = businessApplication.getResultRecordDefinition();
     final Map<String, Object> response = plugin.getResponseFields();
     final Record result = getResultRecord(resultRecordDefinition, response);
+    result.setValue("sequenceNumber", sequenceNumber);
+
     AppLogUtil.info(log, "End\tExecution", stopWatch);
     return result;
   }
