@@ -572,9 +572,8 @@ public class ClassLoaderModule implements Module {
         try {
           pluginClass.getMethod("setResultDataContentType", String.class);
         } catch (final Throwable e) {
-          throw new IllegalArgumentException(
-            "Business Application " + businessApplicationName
-              + " must have a public voud setResultDataContentType(String resultContentType) method",
+          throw new IllegalArgumentException("Business Application " + businessApplicationName
+            + " must have a public voud setResultDataContentType(String resultContentType) method",
             e);
         }
         businessApplication.setPerRequestResultData(true);
@@ -724,9 +723,8 @@ public class ClassLoaderModule implements Module {
         businessApplication.setSecurityServiceRequired(true);
       } catch (final NoSuchMethodException e) {
       } catch (final Throwable e) {
-        throw new IllegalArgumentException(
-          "Business Application " + businessApplicationName
-            + " has a setSecurityService(SecurityService) method but there was an error accessing it",
+        throw new IllegalArgumentException("Business Application " + businessApplicationName
+          + " has a setSecurityService(SecurityService) method but there was an error accessing it",
           e);
       }
 
@@ -803,7 +801,7 @@ public class ClassLoaderModule implements Module {
       this.log.warn(message + " scaleZ must be >= 0");
       scaleZ = geometryFactory.getScaleZ();
     }
-    return GeometryFactory.fixed(srid, axisCount, scaleXy, scaleZ);
+    return GeometryFactory.fixed(srid, axisCount, scaleXy, scaleXy, scaleZ);
   }
 
   public Set<String> getGroupNamesToDelete() {

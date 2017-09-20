@@ -220,7 +220,7 @@ public class BatchJobService implements ModuleEventListener {
           geometry = (Geometry)parameterValue;
           if (geometry.getCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
             final int srid = Integer.parseInt(sridString);
-            final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
+            final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3d(srid);
             geometry = sourceGeometryFactory.geometry(geometry);
           }
         } else {
@@ -237,7 +237,7 @@ public class BatchJobService implements ModuleEventListener {
           try {
             if (Property.hasValue(sridString)) {
               final int srid = Integer.parseInt(sridString);
-              final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3(srid);
+              final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3d(srid);
               geometry = sourceGeometryFactory.geometry(wkt, false);
             } else {
               geometry = geometryFactory.geometry(wkt, false);
@@ -668,7 +668,7 @@ public class BatchJobService implements ModuleEventListener {
         geometryFactory.getScaleXY());
       final double scaleZ = Maps.getDouble(parameters, "resultScaleFactorZ",
         geometryFactory.getScaleZ());
-      return GeometryFactory.fixed(srid, axisCount, scaleXY, scaleZ);
+      return GeometryFactory.fixed(srid, axisCount, scaleXY, scaleXY, scaleZ);
     }
   }
 

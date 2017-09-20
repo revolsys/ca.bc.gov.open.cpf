@@ -96,7 +96,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public RecordReader getSampleInputData() {
     final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
       PathName.newPathName("/Buffer"));
-    final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
+    final GeometryFactory factory = GeometryFactory.fixed2d(3005, 1000.0, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addField("title", DataTypes.STRING);
     recordDefinition.addField("buffer", DataTypes.DOUBLE);
@@ -125,7 +125,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
   public RecordReader getSampleResultData() {
     final RecordDefinitionImpl recordDefinition = new RecordDefinitionImpl(
       PathName.newPathName("/Buffer"));
-    final GeometryFactory factory = GeometryFactory.fixed(3005, 1000.0);
+    final GeometryFactory factory = GeometryFactory.fixed2d(3005, 1000.0, 1000.0);
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addField("sequenceNumber", DataTypes.INTEGER);
     recordDefinition.addField("resultNumber", DataTypes.INTEGER);
