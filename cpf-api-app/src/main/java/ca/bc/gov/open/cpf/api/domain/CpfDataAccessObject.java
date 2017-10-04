@@ -411,13 +411,15 @@ public class CpfDataAccessObject implements Transactionable {
     filter.put(ConfigProperty.ENVIRONMENT_NAME, environmentName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     filter.put(ConfigProperty.PROPERTY_NAME, propertyName);
-    final Query query = Query.and(this.configPropertyRecordDefinition, filter);
+    if (this.configPropertyRecordDefinition == null) {
+      return Collections.emptyList();
+    } else {
+      final Query query = Query.and(this.configPropertyRecordDefinition, filter);
 
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
-      return reader.toList();
-    } finally {
-      reader.close();
+      try (
+        final Reader<Record> reader = this.recordStore.getRecords(query)) {
+        return reader.toList();
+      }
     }
   }
 

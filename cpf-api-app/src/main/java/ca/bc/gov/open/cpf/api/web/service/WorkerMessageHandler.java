@@ -42,6 +42,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 
+import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.logging.Logs;
@@ -73,13 +74,13 @@ public class WorkerMessageHandler implements ModuleEventListener {
     }
   }
 
-  public void executingGroupIds(final Map<String, Object> message, final Worker worker) {
+  public void executingGroupIds(final MapEx message, final Worker worker) {
     @SuppressWarnings("unchecked")
     final List<String> executingGroupIds = (List<String>)message.get("executingGroupIds");
     this.batchJobService.updateWorkerExecutingGroups(worker, executingGroupIds);
   }
 
-  public void failedGroupId(final Map<String, Object> message, final Worker worker) {
+  public void failedGroupId(final MapEx message, final Worker worker) {
     final String groupId = (String)message.get("groupId");
     this.batchJobService.cancelGroup(worker, groupId);
   }
@@ -101,7 +102,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
   @Override
   public void moduleChanged(final ModuleEvent event) {
     final String type = event.getAction();
-    final Map<String, Object> message = Maps.newLinkedHash("type", type);
+    final MapEx message = new LinkedHashMapEx("type", type);
 
     final String moduleName = event.getModuleName();
     message.put("moduleName", moduleName);
@@ -118,18 +119,18 @@ public class WorkerMessageHandler implements ModuleEventListener {
     }
   }
 
-  public void moduleConfigLoad(final Map<String, Object> message, final Worker worker) {
+  public void moduleConfigLoad(final MapEx message, final Worker worker) {
     final String moduleName = Maps.getString(message, "moduleName");
     final String environmentName = Maps.getString(message, "environmentName");
     final String componentName = Maps.getString(message, "componentName");
     final Collection<MapEx> configProperties = getConfigProperties(environmentName, moduleName,
       componentName);
-    final Map<String, Object> resultMessage = newResultMessage(message);
+    final MapEx resultMessage = newResultMessage(message);
     resultMessage.put("properties", configProperties);
     worker.sendMessage(resultMessage);
   }
 
-  public void moduleDisabled(final Map<String, Object> message, final Worker worker) {
+  public void moduleDisabled(final MapEx message, final Worker worker) {
     final String moduleName = (String)message.get("moduleName");
     final boolean enabled = isModuleEnabled(moduleName);
     final WorkerModuleState moduleState = worker.getModuleState(moduleName);
@@ -138,7 +139,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     moduleState.setStartedTime(0);
   }
 
-  public void moduleStarted(final Map<String, Object> message, final Worker worker) {
+  public void moduleStarted(final MapEx message, final Worker worker) {
     final String moduleName = Maps.getString(message, "moduleName");
     final boolean enabled = isModuleEnabled(moduleName);
     final WorkerModuleState moduleState = worker.getModuleState(moduleName);
@@ -148,7 +149,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     moduleState.setStartedTime(moduleTime);
   }
 
-  public void moduleStartFailed(final Map<String, Object> message, final Worker worker) {
+  public void moduleStartFailed(final MapEx message, final Worker worker) {
     final String moduleName = (String)message.get("moduleName");
     final boolean enabled = isModuleEnabled(moduleName);
     final WorkerModuleState moduleState = worker.getModuleState(moduleName);
@@ -159,7 +160,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
     moduleState.setStartedTime(0);
   }
 
-  public void moduleStopped(final Map<String, Object> message, final Worker worker) {
+  public void moduleStopped(final MapEx message, final Worker worker) {
     final String moduleName = (String)message.get("moduleName");
     final boolean enabled = isModuleEnabled(moduleName);
     final WorkerModuleState moduleState = worker.getModuleState(moduleName);
@@ -172,9 +173,9 @@ public class WorkerMessageHandler implements ModuleEventListener {
     moduleState.setStartedTime(0);
   }
 
-  private Map<String, Object> newResultMessage(final Map<String, Object> message) {
+  private MapEx newResultMessage(final MapEx message) {
     final String messageId = Maps.getString(message, "messageId");
-    final Map<String, Object> resultMessage = Maps.newLinkedHash("messageId", messageId);
+    final MapEx resultMessage = new LinkedHashMapEx("messageId", messageId);
     return resultMessage;
   }
 
@@ -185,8 +186,7 @@ public class WorkerMessageHandler implements ModuleEventListener {
   }
 
   @OnMessage
-  public void onMessage(@PathParam("workerId") final String workerId,
-    final Map<String, Object> message) {
+  public void onMessage(@PathParam("workerId") final String workerId, final MapEx message) {
     final Worker worker = this.batchJobService.getWorker(workerId);
     if (worker != null) {
       final String type = Maps.getString(message, "type");
@@ -203,8 +203,9 @@ public class WorkerMessageHandler implements ModuleEventListener {
     @PathParam("startTime") final long workerStartTime, final Session session) {
     if (this.businessApplicationRegistry == null) {
       final WebApplicationContext wac = (WebApplicationContext)ContextLoader
-        .getCurrentWebApplicationContext().getServletContext().getAttribute(
-          "org.springframework.web.servlet.FrameworkServlet.CONTEXT.cpf");
+        .getCurrentWebApplicationContext()
+        .getServletContext()
+        .getAttribute("org.springframework.web.servlet.FrameworkServlet.CONTEXT.cpf");
       this.businessApplicationRegistry = wac.getBean(BusinessApplicationRegistry.class);
       this.businessApplicationRegistry.addModuleEventListener(this);
       this.batchJobService = wac.getBean(BatchJobService.class);
@@ -214,14 +215,14 @@ public class WorkerMessageHandler implements ModuleEventListener {
 
   @RequestMapping(value = "/worker/modules/{moduleName}/users/{consumerKey}/resourcePermission")
   @ResponseBody
-  public void securityCanAccessResource(final Map<String, Object> message, final Worker worker) {
+  public void securityCanAccessResource(final MapEx message, final Worker worker) {
     final String moduleName = Maps.getString(message, "moduleName");
     final String consumerKey = Maps.getString(message, "consumerKey");
     final String resourceClass = Maps.getString(message, "resourceClass");
     final String resourceId = Maps.getString(message, "resourceId");
     final String actionName = Maps.getString(message, "actionName");
 
-    final Map<String, Object> resultMessage = newResultMessage(message);
+    final MapEx resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,
@@ -236,12 +237,12 @@ public class WorkerMessageHandler implements ModuleEventListener {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{consumerKey}/actions/{actionName}/hasAccess")
   @ResponseBody
-  public void securityCanPerformAction(final Map<String, Object> message, final Worker worker) {
+  public void securityCanPerformAction(final MapEx message, final Worker worker) {
     final String moduleName = Maps.getString(message, "moduleName");
     final String consumerKey = Maps.getString(message, "consumerKey");
     final String actionName = Maps.getString(message, "actionName");
 
-    final Map<String, Object> resultMessage = newResultMessage(message);
+    final MapEx resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,
@@ -255,12 +256,12 @@ public class WorkerMessageHandler implements ModuleEventListener {
   @RequestMapping(
       value = "/worker/modules/{moduleName}/users/{consumerKey}/groups/{groupName}/memberOf")
   @ResponseBody
-  public void securityIsMemberOfGroup(final Map<String, Object> message, final Worker worker) {
+  public void securityIsMemberOfGroup(final MapEx message, final Worker worker) {
     final String moduleName = Maps.getString(message, "moduleName");
     final String consumerKey = Maps.getString(message, "consumerKey");
     final String groupName = Maps.getString(message, "groupName");
 
-    final Map<String, Object> resultMessage = newResultMessage(message);
+    final MapEx resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,
@@ -271,11 +272,11 @@ public class WorkerMessageHandler implements ModuleEventListener {
     worker.sendMessage(resultMessage);
   }
 
-  public void securityUserAttributes(final Map<String, Object> message, final Worker worker) {
+  public void securityUserAttributes(final MapEx message, final Worker worker) {
     final String moduleName = Maps.getString(message, "moduleName");
     final String consumerKey = Maps.getString(message, "consumerKey");
 
-    final Map<String, Object> resultMessage = newResultMessage(message);
+    final MapEx resultMessage = newResultMessage(message);
     final Module module = this.batchJobService.getModule(moduleName);
     if (module != null) {
       final SecurityService securityService = this.batchJobService.getSecurityService(module,
