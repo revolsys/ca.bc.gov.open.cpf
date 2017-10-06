@@ -88,6 +88,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 import com.revolsys.collection.list.Lists;
+import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.collection.map.NamedLinkedHashMapEx;
@@ -1553,7 +1554,7 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public void sendWorkerMessage(final Map<String, Object> message) {
+  public void sendWorkerMessage(final MapEx message) {
     synchronized (this.workersById) {
       for (final Worker worker : this.workersById.values()) {
         worker.sendMessage(message);
@@ -1655,7 +1656,7 @@ public class BatchJobService implements ModuleEventListener {
           this.workersByKey.put(worker.getKey(), worker);
           for (final Module module : this.businessApplicationRegistry.getModules()) {
             if (module.isStarted()) {
-              final LinkedHashMap<String, Object> message = new LinkedHashMap<>();
+              final MapEx message = new LinkedHashMapEx();
               message.put("type", "moduleStart");
 
               final String name = module.getName();
