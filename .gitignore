@@ -6,3 +6,5 @@ target
 *.log
 *.stackdump
 .DS_Store
+
+hs_err_pid*
