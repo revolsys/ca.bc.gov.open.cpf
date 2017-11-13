@@ -17,6 +17,7 @@ package ca.bc.gov.open.cpf.api.web.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Writer;
 import java.net.URL;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -477,6 +478,49 @@ public class ConcurrentProcessingFramework {
           parameters.put(name, value);
         }
       }
+    }
+  }
+
+  /**
+   * <p>
+   * Cancel the user's job. This will mark the job as cancelled and remove all requests
+   * and results from the job. The job will be removed after a few days.
+   * </p>
+   * <p>
+   * This service should be invoked after the results from the job are
+   * downloaded. If this method is not called the job will automatically
+   * be deleted 7 days after the result download was started.
+   * </p>
+   * <p>
+   * This method can also be used to cancel a job before it was finished.
+   * If a job was submitted in error or no longer required use this method
+   * to cancel the job to help free resources on the system to process
+   * other jobs.
+   * </p>
+   *
+   * @param batchJobId The job identifier.
+   * @web.response.status 200
+   * <p>
+   * <b>OK</b>
+   * </p>
+   * <p>The method always returns the JSON {"cancelled":true}</p>
+   */
+  @RequestMapping(value = {
+    "/ws/jobs/{batchJobId}/cancel"
+  }, method = RequestMethod.POST)
+  public void cancelJob(@PathVariable("batchJobId") final Long batchJobId) throws IOException {
+    final String consumerKey = getConsumerKey();
+    final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
+    final Record batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
+    if (batchJob != null) {
+      this.batchJobService.cancelBatchJob(batchJobIdentifier);
+    }
+    final HttpServletResponse response = HttpServletUtils.getResponse();
+    response.setStatus(HttpServletResponse.SC_OK);
+    response.setContentType(Json.MIME_TYPE);
+    try (
+      Writer writer = response.getWriter()) {
+      writer.write("{\"cancelled\":true}");
     }
   }
 
@@ -1119,19 +1163,19 @@ public class ConcurrentProcessingFramework {
   @RequestMapping(value = {
     "/ws/jobs/{batchJobId}"
   }, method = RequestMethod.DELETE)
-  public void deleteJob(@PathVariable("batchJobId") final Long batchJobId) {
+  public void deleteJob(@PathVariable("batchJobId") final Long batchJobId) throws IOException {
     final String consumerKey = getConsumerKey();
-    final Record batchJob = this.batchJobService.getBatchJob(Identifier.newIdentifier(batchJobId),
-      consumerKey);
-    if (batchJob == null) {
-      throw new PageNotFoundException("The job " + batchJobId + " does not exist");
-    } else {
-      if (this.batchJobService.cancelBatchJob(Identifier.newIdentifier(batchJobId))) {
-        throw new PageNotFoundException("The job " + batchJobId + " does not exist");
-      } else {
-        final HttpServletResponse response = HttpServletUtils.getResponse();
-        response.setStatus(HttpServletResponse.SC_OK);
-      }
+    final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
+    final Record batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
+    if (batchJob != null) {
+      this.batchJobService.deleteJob(batchJobIdentifier);
+    }
+    final HttpServletResponse response = HttpServletUtils.getResponse();
+    response.setStatus(HttpServletResponse.SC_OK);
+    response.setContentType(Json.MIME_TYPE);
+    try (
+      Writer writer = response.getWriter()) {
+      writer.write("{\"deleted\":true}");
     }
   }
 
@@ -1402,7 +1446,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.

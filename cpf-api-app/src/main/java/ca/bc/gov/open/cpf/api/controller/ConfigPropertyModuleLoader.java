@@ -48,6 +48,7 @@ import com.revolsys.record.Record;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.InputStreamResource;
+import com.revolsys.spring.resource.NoSuchResourceException;
 import com.revolsys.spring.resource.Resource;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
@@ -199,6 +200,8 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
           this.defaultMavenModuleIds.put(name, mavenModuleId);
         }
       }
+    } catch (final NoSuchResourceException e) {
+      // Ignore missing resource
     } catch (final Throwable e) {
       Logs.error(this, "Error reading config:" + configResource, e);
     }

@@ -374,7 +374,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
           if (importResource.exists()) {
             final String importExtension = importResource.getFileNameExtension();
             if ("json".equals(importExtension)) {
-              final MapEx importConfig = Json.toMap(configResource);
+              final MapEx importConfig = Json.toMap(importResource);
               config.putAll(importConfig);
             } else if ("properties".equals(importExtension)) {
               final Properties properties = new Properties();
