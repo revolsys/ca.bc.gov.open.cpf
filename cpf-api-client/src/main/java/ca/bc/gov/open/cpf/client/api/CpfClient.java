@@ -42,6 +42,7 @@ import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.io.map.MapWriterFactory;
+import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ByteArrayResource;
 import com.revolsys.spring.resource.Resource;
 import com.revolsys.util.Property;
@@ -180,7 +181,7 @@ public class CpfClient implements BaseCloseable {
    * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
   String consumerKey = "cpftest";
   String consumerSecret = "cpftest";
-
+  
   try (CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
     // Use the client
   }</pre>
@@ -247,11 +248,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(new FileSystemResource(pathToFile));
-
+  
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -314,11 +315,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(Resource resource = new FileSystemResource(pathToFile));
-
+  
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -360,10 +361,10 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     &lt;Resource&gt; inputDataUrls = new Array&lt;Resource&gt;();
     inputDataUrls.add("https://apps.gov.bc.ca/pub/cpf/css/cpf.css");
-
+  
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrls);
     // Download the results of the job
@@ -421,9 +422,9 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-
+  
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/css/cpf.css";
-
+  
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrl);
     // Download the results of the job
@@ -469,11 +470,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "BCGS 1:20 000");
-
+  
     List&lt;Map&lt;String,?extends Object&gt;&gt; requests = new ArrayList&lt;Map&lt;String,?extends Object&gt;&gt;();
     requests.add(Collections.singletonMap("mapTileId", "92j025"));
     requests.add(Collections.singletonMap("mapTileId", "92j016"));
-
+  
     String jobId = client.createJobWithStructuredMultipleRequestsList(
       "MapTileByTileId", jobParameters, requests,"application/json");
     try {
@@ -500,7 +501,7 @@ public class CpfClient implements BaseCloseable {
   public String createJobWithStructuredMultipleRequestsList(final String businessApplicationName,
     final Map<String, ? extends Object> jobParameters,
     final List<Map<String, ? extends Object>> requests, final String resultContentType) {
-    final String inputDataType = "application/json";
+    final String inputDataType = Json.MIME_TYPE;
     final int numRequests = requests.size();
 
     final MapWriterFactory factory = IoFactory.factoryByMediaType(MapWriterFactory.class,
@@ -542,11 +543,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-
+  
     int numRequests = 48;
     Resource inputData = new FileSystemResource(
       "../cpf-war-app/src/main/webapp/docs/sample/NTS-500000-by-name.csv");
-
+  
     String jobId = client.createJobWithStructuredMultipleRequestsResource(
       "MapTileByTileId", jobParameters, numRequests, inputData,
       "text/csv", "application/json");
@@ -615,9 +616,9 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-
+  
     int numRequests = 48;
-
+  
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/docs/sample/NTS-500000-by-name.csv";
     String jobId = client.createJobWithStructuredMultipleRequestsUrl(
       "MapTileByTileId", jobParameters, numRequests, inputDataUrl,
@@ -1346,7 +1347,7 @@ public class CpfClient implements BaseCloseable {
       while (currentTime < maxEnd) {
         final Map<String, Object> jobStatusMap = getJobStatus(jobIdUrl);
         final String jobStatus = (String)jobStatusMap.get("jobStatus");
-        if ("resultsCreated".equals(jobStatus)) {
+        if ("resultsCreated".equals(jobStatus) || "downloadInitiated".equals(jobStatus)) {
           return true;
         }
         long sleepTime = ((Number)jobStatusMap.get("secondsToWaitForStatusCheck")).intValue()

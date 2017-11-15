@@ -54,6 +54,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
+import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
@@ -307,30 +308,42 @@ public class CpfHttpClient {
     try {
       final int statusCode = postResource(request);
       final HttpResponse response = request.getResponse();
-      try {
-        if (statusCode >= HttpStatus.SC_BAD_REQUEST) {
-          final StatusLine statusLine = response.getStatusLine();
-          final String statusMessage = statusLine.getReasonPhrase();
-          throw new RuntimeException(statusCode + " " + statusMessage);
-        } else if (statusCode == HttpStatus.SC_OK) {
-          final HttpEntity entity = response.getEntity();
-          try (
-            final InputStream in = entity.getContent()) {
+      if (response == null) {
+        return null;
+      } else {
+        try {
+          if (statusCode >= HttpStatus.SC_BAD_REQUEST) {
+            final StatusLine statusLine = response.getStatusLine();
+            final String statusMessage = statusLine.getReasonPhrase();
+            final HttpEntity entity = response.getEntity();
+            String body = "";
+            try (
+              final InputStream in = entity.getContent()) {
 
-            final Map<String, Object> map = JsonParser.read(in);
-            return (String)map.get("id");
-          }
-        } else {
-          final Header[] header = response.getHeaders("Location");
-          if (header.length > 0) {
-            final String jobIdUrl = header[0].getValue();
-            return jobIdUrl;
+              body = FileUtil.getString(in);
+            } catch (final Throwable e) {
+            }
+            throw new RuntimeException(statusCode + " " + statusMessage + "\n" + body);
+          } else if (statusCode == HttpStatus.SC_OK) {
+            final HttpEntity entity = response.getEntity();
+            try (
+              final InputStream in = entity.getContent()) {
+
+              final Map<String, Object> map = JsonParser.read(in);
+              return (String)map.get("id");
+            }
           } else {
-            throw new RuntimeException("Unable to get location header for " + request.getUrl());
+            final Header[] header = response.getHeaders("Location");
+            if (header.length > 0) {
+              final String jobIdUrl = header[0].getValue();
+              return jobIdUrl;
+            } else {
+              throw new RuntimeException("Unable to get location header for " + request.getUrl());
+            }
           }
+        } finally {
+          request.close();
         }
-      } finally {
-        request.close();
       }
     } catch (final IOException e) {
       throw new RuntimeException("Unable to send POST request " + request.getUrl(), e);
