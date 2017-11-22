@@ -28,6 +28,7 @@ import java.util.Set;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.OnClose;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -137,8 +138,8 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
         }
         try {
           synchronized (this) {
-            // Wait 2 minutes before trying again
-            wait(1000 * 60 * 2);
+            // Wait 1 minutes before trying again
+            wait(1000 * 60);
           }
         } catch (final InterruptedException e) {
         }
@@ -333,6 +334,11 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
   @OnClose
   public void onClose(final Session session) {
     this.messageSender = null;
+  }
+
+  @OnError
+  public void onError(final Session session, final Throwable e) {
+    Logs.error(this, "Websocket error: " + session, e);
   }
 
   @OnMessage

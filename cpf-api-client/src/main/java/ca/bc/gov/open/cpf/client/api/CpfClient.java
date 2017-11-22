@@ -36,6 +36,7 @@ import org.apache.http.util.EntityUtils;
 import ca.bc.gov.open.cpf.client.httpclient.CpfHttpClient;
 import ca.bc.gov.open.cpf.client.httpclient.CpfHttpClientPool;
 import ca.bc.gov.open.cpf.client.httpclient.HttpMultipartPost;
+import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 
 import com.revolsys.io.BaseCloseable;
 import com.revolsys.io.IoFactory;
@@ -470,11 +471,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "BCGS 1:20 000");
-  
+
     List&lt;Map&lt;String,?extends Object&gt;&gt; requests = new ArrayList&lt;Map&lt;String,?extends Object&gt;&gt;();
     requests.add(Collections.singletonMap("mapTileId", "92j025"));
     requests.add(Collections.singletonMap("mapTileId", "92j016"));
-  
+
     String jobId = client.createJobWithStructuredMultipleRequestsList(
       "MapTileByTileId", jobParameters, requests,"application/json");
     try {
@@ -500,7 +501,7 @@ public class CpfClient implements BaseCloseable {
    */
   public String createJobWithStructuredMultipleRequestsList(final String businessApplicationName,
     final Map<String, ? extends Object> jobParameters,
-    final List<Map<String, ? extends Object>> requests, final String resultContentType) {
+    final List<? extends Map<String, ? extends Object>> requests, final String resultContentType) {
     final String inputDataType = Json.MIME_TYPE;
     final int numRequests = requests.size();
 
@@ -1129,8 +1130,13 @@ public class CpfClient implements BaseCloseable {
   public Map<String, Object> getJobStatus(final String jobUrl) {
     final CpfHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final Map<String, Object> jobStatusMap = httpClient.getJsonResource(jobUrl);
-      return jobStatusMap;
+      return httpClient.getJsonResource(jobUrl);
+    } catch (final HttpStatusCodeException e) {
+      if (e.getStatusCode() == 404) {
+        return Collections.emptyMap();
+      } else {
+        throw e;
+      }
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }

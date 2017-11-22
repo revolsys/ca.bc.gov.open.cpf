@@ -167,7 +167,8 @@ public class CpfHttpClient {
           return map;
         }
       } else {
-        throw newException(entity, statusLine);
+        logException(entity, statusLine);
+        throw new HttpStatusCodeException(httpStatusCode, statusLine.getReasonPhrase());
       }
     } catch (final IOException e) {
       throw Exceptions.wrap(e);
@@ -225,7 +226,8 @@ public class CpfHttpClient {
         final InputStreamResource resource = new InputStreamResource(fileName, in);
         return factory.newMapReader(resource);
       } else {
-        throw newException(entity, statusLine);
+        logException(entity, statusLine);
+        throw new HttpStatusCodeException(httpStatusCode, statusLine.getReasonPhrase());
       }
     } catch (final Throwable e) {
       return Exceptions.throwUncheckedException(e);
@@ -246,7 +248,7 @@ public class CpfHttpClient {
     return this.webServiceUrl + path.replaceAll("/+", "/");
   }
 
-  protected IOException newException(final HttpEntity entity, final StatusLine statusLine) {
+  private void logException(final HttpEntity entity, final StatusLine statusLine) {
     if (Logs.isDebugEnabled(this)) {
       try {
         final String errorBody = EntityUtils.toString(entity);
@@ -255,7 +257,6 @@ public class CpfHttpClient {
         Logs.error(this, "Unable to get error message server: " + statusLine + "\n");
       }
     }
-    return new IOException("Unable to get message from server: " + statusLine);
   }
 
   public Map<String, Object> postJsonResource(final String url)

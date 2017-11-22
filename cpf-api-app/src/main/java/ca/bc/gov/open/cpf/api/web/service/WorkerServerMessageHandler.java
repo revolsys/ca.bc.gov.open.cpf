@@ -15,12 +15,15 @@
  */
 package ca.bc.gov.open.cpf.api.web.service;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import javax.websocket.OnClose;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -54,13 +57,13 @@ import com.revolsys.websocket.json.JsonEncoder;
 
 @ServerEndpoint(value = "/worker/workers/{workerId}/{startTime}/message",
     encoders = JsonEncoder.class, decoders = JsonDecoder.class)
-public class WorkerMessageHandler implements ModuleEventListener {
+public class WorkerServerMessageHandler implements ModuleEventListener {
 
   private BusinessApplicationRegistry businessApplicationRegistry;
 
   private BatchJobService batchJobService;
 
-  public WorkerMessageHandler() {
+  public WorkerServerMessageHandler() {
   }
 
   private void addConfigProperties(final Map<String, MapEx> configProperties,
@@ -183,6 +186,21 @@ public class WorkerMessageHandler implements ModuleEventListener {
   public void onClose(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
     this.batchJobService.setWorkerDisconnected(workerId, workerStartTime, session);
+  }
+
+  @OnError
+  public void onError(final Session session, final Throwable e) {
+    if (e instanceof SocketTimeoutException) {
+      Logs.warn(this, "Websocket timeout: " + session);
+      try {
+        session.close();
+      } catch (final IOException ioe) {
+        Logs.error(this, "Error closing: " + session, e);
+
+      }
+    } else {
+      Logs.error(this, "Websocket error: " + session, e);
+    }
   }
 
   @OnMessage
