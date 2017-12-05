@@ -73,10 +73,7 @@ public class ClassLoaderModuleLoader implements ModuleLoader {
             moduleName = moduleName.replaceAll(".*/", "");
             moduleName = moduleName.replaceAll(".jar", "");
             if (moduleName.indexOf('.') == -1) {
-              final int dashIndex = moduleName.lastIndexOf('-');
-              if (dashIndex != -1) {
-                moduleName = moduleName.substring(dashIndex + 1);
-              }
+              moduleName = moduleName.replace('-', '_');
             } else {
               moduleName = FileUtil.getFileNameExtension(PathUtil.getName(moduleName));
             }

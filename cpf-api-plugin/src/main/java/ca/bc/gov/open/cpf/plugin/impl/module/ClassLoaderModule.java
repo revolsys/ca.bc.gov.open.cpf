@@ -1665,4 +1665,9 @@ public class ClassLoaderModule implements Module {
     }
   }
 
+  @Override
+  public String toString() {
+    return this.configUrl.toString();
+  }
+
 }
