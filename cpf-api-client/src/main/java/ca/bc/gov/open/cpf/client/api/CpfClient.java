@@ -38,6 +38,7 @@ import ca.bc.gov.open.cpf.client.httpclient.CpfHttpClientPool;
 import ca.bc.gov.open.cpf.client.httpclient.HttpMultipartPost;
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 
+import com.revolsys.collection.map.MapEx;
 import com.revolsys.io.BaseCloseable;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
@@ -1133,7 +1134,7 @@ public class CpfClient implements BaseCloseable {
       return httpClient.getJsonResource(jobUrl);
     } catch (final HttpStatusCodeException e) {
       if (e.getStatusCode() == 404) {
-        return Collections.emptyMap();
+        return MapEx.EMPTY;
       } else {
         throw e;
       }
@@ -1530,8 +1531,8 @@ public class CpfClient implements BaseCloseable {
               i++;
             }
           }
+          return i;
         }
-        return i;
       }
       throw new IllegalStateException("Cannot find structured result file for " + jobIdUrl);
     } finally {
@@ -1606,4 +1607,5 @@ public class CpfClient implements BaseCloseable {
       this.httpClientPool.releaseClient(httpClient);
     }
   }
+
 }
