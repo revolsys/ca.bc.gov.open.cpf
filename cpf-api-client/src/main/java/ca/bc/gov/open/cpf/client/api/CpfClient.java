@@ -183,7 +183,7 @@ public class CpfClient implements BaseCloseable {
    * <pre class="prettyprint language-java">  String url = "https://apps.gov.bc.ca/pub/cpf";
   String consumerKey = "cpftest";
   String consumerSecret = "cpftest";
-  
+
   try (CpfClient client = new CpfClient(url, consumerKey, consumerSecret)) {
     // Use the client
   }</pre>
@@ -250,11 +250,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(new FileSystemResource(pathToFile));
-  
+
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -317,11 +317,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     List&lt;Resource&gt; requests = new ArrayList&lt;Resource&gt;();
     requests.add(new ByteArrayResource("Test string".getBytes()));
     // requests.add(Resource resource = new FileSystemResource(pathToFile));
-  
+
     String jobId = client.createJobWithOpaqueResourceRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", requests);
     // Download the results of the job
@@ -363,10 +363,10 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     &lt;Resource&gt; inputDataUrls = new Array&lt;Resource&gt;();
     inputDataUrls.add("https://apps.gov.bc.ca/pub/cpf/css/cpf.css");
-  
+
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrls);
     // Download the results of the job
@@ -424,9 +424,9 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; parameters = new HashMap&lt;String, Object&gt;();
     parameters.put("algorithmName", "MD5");
-  
+
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/css/cpf.css";
-  
+
     String jobId = client.createJobWithOpaqueUrlRequests("Digest",
       "1.0.0", parameters, "text/plain", "application/json", inputDataUrl);
     // Download the results of the job
@@ -545,11 +545,11 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-  
+
     int numRequests = 48;
     Resource inputData = new FileSystemResource(
       "../cpf-war-app/src/main/webapp/docs/sample/NTS-500000-by-name.csv");
-  
+
     String jobId = client.createJobWithStructuredMultipleRequestsResource(
       "MapTileByTileId", jobParameters, numRequests, inputData,
       "text/csv", "application/json");
@@ -618,9 +618,9 @@ public class CpfClient implements BaseCloseable {
   try {
     Map&lt;String, Object&gt; jobParameters = new HashMap&lt;String, Object&gt;();
     jobParameters.put("mapGridName", "NTS 1:500 000");
-  
+
     int numRequests = 48;
-  
+
     String inputDataUrl = "https://apps.gov.bc.ca/pub/cpf/docs/sample/NTS-500000-by-name.csv";
     String jobId = client.createJobWithStructuredMultipleRequestsUrl(
       "MapTileByTileId", jobParameters, numRequests, inputDataUrl,
@@ -1448,25 +1448,28 @@ public class CpfClient implements BaseCloseable {
    */
   public int processJobErrorResults(final String jobIdUrl, final long maxWait,
     final Callback<Map<String, Object>> callback) {
-    int i = 0;
     final CpfHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
-        final String resultType = (String)resultFile.get("batchJobResultType");
-        if ("errorResultData".equals(resultType)) {
-          final String resultUrl = (String)resultFile.get("resourceUri");
-
-          try (
-            final MapReader reader = httpClient.getMapReader(resultUrl)) {
-            for (final Map<String, Object> object : reader) {
-              callback.process(object);
-              i++;
+      final List<Map<String, Object>> jobResultFileList = getJobResultFileList(jobIdUrl, maxWait);
+      if (jobResultFileList.isEmpty()) {
+        throw new IllegalStateException("Cannot find error result file for " + jobIdUrl);
+      } else {
+        int i = 0;
+        for (final Map<String, Object> resultFile : jobResultFileList) {
+          final String resultType = (String)resultFile.get("batchJobResultType");
+          if ("errorResultData".equals(resultType)) {
+            final String resultUrl = (String)resultFile.get("resourceUri");
+            try (
+              final MapReader reader = httpClient.getMapReader(resultUrl)) {
+              for (final Map<String, Object> object : reader) {
+                callback.process(object);
+                i++;
+              }
             }
           }
         }
         return i;
       }
-      throw new IllegalStateException("Cannot find error result file for " + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
@@ -1517,24 +1520,28 @@ public class CpfClient implements BaseCloseable {
    */
   public int processJobStructuredResults(final String jobIdUrl, final long maxWait,
     final Callback<Map<String, Object>> callback) {
-    int i = 0;
     final CpfHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
-        final String resultType = (String)resultFile.get("batchJobResultType");
-        if ("structuredResultData".equals(resultType)) {
-          final String resultUrl = (String)resultFile.get("resourceUri");
-          try (
-            final MapReader reader = httpClient.getMapReader(resultUrl)) {
-            for (final Map<String, Object> object : reader) {
-              callback.process(object);
-              i++;
+      final List<Map<String, Object>> jobResultFileList = getJobResultFileList(jobIdUrl, maxWait);
+      if (jobResultFileList.isEmpty()) {
+        throw new IllegalStateException("Cannot find structured result file for " + jobIdUrl);
+      } else {
+        int i = 0;
+        for (final Map<String, Object> resultFile : jobResultFileList) {
+          final String resultType = (String)resultFile.get("batchJobResultType");
+          if ("structuredResultData".equals(resultType)) {
+            final String resultUrl = (String)resultFile.get("resourceUri");
+            try (
+              final MapReader reader = httpClient.getMapReader(resultUrl)) {
+              for (final Map<String, Object> object : reader) {
+                callback.process(object);
+                i++;
+              }
             }
           }
-          return i;
         }
+        return i;
       }
-      throw new IllegalStateException("Cannot find structured result file for " + jobIdUrl);
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
