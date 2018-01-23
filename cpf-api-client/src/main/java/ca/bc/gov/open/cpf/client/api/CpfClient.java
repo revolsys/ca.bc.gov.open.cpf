@@ -226,7 +226,7 @@ public class CpfClient implements BaseCloseable {
    */
   @Deprecated
   public void closeJob(final String jobUrl) {
-    cancelJob(jobUrl);
+    deleteJob(jobUrl);
   }
 
   /**
