@@ -37,6 +37,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import ca.bc.gov.open.cpf.api.scheduler.BusinessApplicationStatistics;
+import ca.bc.gov.open.cpf.api.scheduler.DurationType;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.list.Lists;
@@ -630,7 +631,7 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   private void insertStatistics(final BusinessApplicationStatistics statistics,
-    final String businessApplicationName, final String durationType, final Date startTime,
+    final String businessApplicationName, final DurationType durationType, final Date startTime,
     final String valuesString) {
     final Record applicationStatistics;
     final Identifier databaseId = this.recordStore
@@ -642,7 +643,7 @@ public class CpfDataAccessObject implements Transactionable {
     applicationStatistics.setValue(BusinessApplicationStatistics.BUSINESS_APPLICATION_NAME,
       businessApplicationName);
     applicationStatistics.setValue(BusinessApplicationStatistics.START_TIMESTAMP, startTime);
-    applicationStatistics.setValue(BusinessApplicationStatistics.DURATION_TYPE, durationType);
+    durationType.setValue(applicationStatistics);
     applicationStatistics.setValue(BusinessApplicationStatistics.STATISTIC_VALUES, valuesString);
     this.recordStore.insertRecord(applicationStatistics);
     statistics.setDatabaseId(databaseId);
@@ -755,7 +756,7 @@ public class CpfDataAccessObject implements Transactionable {
   public void saveStatistics(final BusinessApplicationStatistics statistics) {
     final Identifier databaseId = statistics.getDatabaseId();
     final String businessApplicationName = statistics.getBusinessApplicationName();
-    final String durationType = statistics.getDurationType();
+    final DurationType durationType = statistics.getDurationType();
     final Date startTime = statistics.getStartTime();
 
     final Map<String, Long> values = statistics.toMap();
