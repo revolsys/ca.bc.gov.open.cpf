@@ -45,7 +45,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.expression.EvaluationContext;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.ExpressionUtils;
@@ -73,12 +72,14 @@ import ca.bc.gov.open.cpf.api.web.builder.BatchJobResultUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BatchJobUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.BusinessApplicationUiBuilder;
 import ca.bc.gov.open.cpf.api.web.builder.CpfUiBuilder;
+import ca.bc.gov.open.cpf.api.web.builder.ErrorsTableSerializer;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
+import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.NamedLinkedHashMapEx;
 import com.revolsys.datatype.DataType;
@@ -139,6 +140,7 @@ import com.revolsys.ui.html.serializer.key.StringKeySerializer;
 import com.revolsys.ui.html.view.DivElementContainer;
 import com.revolsys.ui.html.view.Element;
 import com.revolsys.ui.html.view.ElementContainer;
+import com.revolsys.ui.html.view.ErrorWithBackButton;
 import com.revolsys.ui.html.view.ListElement;
 import com.revolsys.ui.html.view.PanelGroup;
 import com.revolsys.ui.html.view.RawContent;
@@ -157,6 +159,7 @@ import com.revolsys.util.Dates;
 import com.revolsys.util.Exceptions;
 import com.revolsys.util.HtmlElem;
 import com.revolsys.util.Property;
+import com.revolsys.util.Strings;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
@@ -524,6 +527,35 @@ public class ConcurrentProcessingFramework {
     }
   }
 
+  private List<MultipartFile> cleanInputDataFiles(List<MultipartFile> inputDataFiles) {
+    if (inputDataFiles == null) {
+      inputDataFiles = new ArrayList<>();
+    } else {
+      for (final Iterator<MultipartFile> iterator = inputDataFiles.iterator(); iterator
+        .hasNext();) {
+        final MultipartFile multipartFile = iterator.next();
+        if (multipartFile.getSize() == 0) {
+          iterator.remove();
+        }
+      }
+    }
+    return inputDataFiles;
+  }
+
+  private List<String> cleanInputDataUrls(List<String> inputDataUrls) {
+    if (inputDataUrls == null) {
+      inputDataUrls = new ArrayList<>();
+    } else {
+      for (final Iterator<String> iterator = inputDataUrls.iterator(); iterator.hasNext();) {
+        final String inputDataUrl = iterator.next();
+        if (!Property.hasValue(inputDataUrl)) {
+          iterator.remove();
+        }
+      }
+    }
+    return inputDataUrls;
+  }
+
   @PreDestroy
   public void close() {
     this.batchJobService = null;
@@ -625,155 +657,110 @@ public class ConcurrentProcessingFramework {
         defaultValue = "-1") final int resultScaleFactorZ, //
     @RequestParam(value = "notificationUrl", required = false) String notificationUrl,
     @RequestParam(value = "notificationEmail", required = false) final String notificationEmail) {
-    try {
-      final StopWatch stopWatch = new StopWatch();
-      stopWatch.start();
-      final BusinessApplication businessApplication = getBusinessApplication(
-        businessApplicationName, "clientMultiple");
-      if (businessApplication != null) {
-        CpfUiBuilder.checkPermission(businessApplication.getBatchModeExpression(),
-          "No batch mode permission for " + businessApplication.getName());
-        final String consumerKey = getConsumerKey();
+    final StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+    final BusinessApplication businessApplication = getBusinessApplication(businessApplicationName,
+      "clientMultiple");
+    if (businessApplication != null) {
+      CpfUiBuilder.checkPermission(businessApplication.getBatchModeExpression(),
+        "No batch mode permission for " + businessApplication.getName());
 
-        final String defaultInputDataContentType = businessApplication
-          .getDefaultInputDataContentType();
-        final String defaultResultDataContentType = businessApplication
-          .getDefaultResultDataContentType();
+      final List<List<String>> parameterErrors = new ArrayList<>();
 
-        final Map<String, String> businessApplicationParameters = new HashMap<>();
-        addTestParameters(businessApplication, businessApplicationParameters);
+      final String consumerKey = getConsumerKey();
 
-        final BatchJob batchJob = this.dataAccessObject.newBatchJob();
-        final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
+      final String defaultInputDataContentType = businessApplication
+        .getDefaultInputDataContentType();
+      final String defaultResultDataContentType = businessApplication
+        .getDefaultResultDataContentType();
 
-        final AppLog log = businessApplication.getLog();
-        log.info("Start\tJob submit multiple\tbatchJobId=" + batchJobId);
+      final Map<String, String> businessApplicationParameters = new HashMap<>();
+      addTestParameters(businessApplication, businessApplicationParameters);
 
-        batchJob.setValue(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-        batchJob.setValue(BatchJob.USER_ID, consumerKey);
-        batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 0);
+      final BatchJob batchJob = this.dataAccessObject.newBatchJob();
+      final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
 
-        batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, defaultResultDataContentType);
-        String inputDataContentType = defaultInputDataContentType;
-        final List<String> inputContentTypes = new ArrayList<>();
-        if (inputDataContentTypes == null) {
+      final AppLog log = businessApplication.getLog();
+      log.info("Start\tJob submit multiple\tbatchJobId=" + batchJobId);
+
+      batchJob.setValue(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+      batchJob.setValue(BatchJob.USER_ID, consumerKey);
+      batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 0);
+
+      batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, defaultResultDataContentType);
+      String inputDataContentType = defaultInputDataContentType;
+      final List<String> inputContentTypes = new ArrayList<>();
+      if (inputDataContentTypes == null) {
+      } else {
+        inputContentTypes.addAll(Arrays.asList(inputDataContentTypes));
+        for (final ListIterator<String> iterator = inputContentTypes.listIterator(); iterator
+          .hasNext();) {
+          final String inputContentType = iterator.next();
+          final String contentType = getInputMediaType(businessApplication, inputContentType);
+          if (contentType == null) {
+            parameterErrors
+              .add(Arrays.asList("inputDataContentType", inputDataContentType, "Invalid value"));
+          } else {
+            iterator.set(contentType);
+          }
+        }
+        if (!businessApplication.isPerRequestInputData()) {
+          if (inputContentTypes.size() == 1) {
+            inputDataContentType = inputContentTypes.get(0);
+            batchJob.setValue(BatchJob.INPUT_DATA_CONTENT_TYPE, inputDataContentType);
+          } else {
+            this.dataAccessObject.delete(batchJob);
+            parameterErrors.add(Arrays.asList("inputDataContentType",
+              Strings.toString(inputContentTypes), "Only one value allowed"));
+          }
+        }
+      }
+      if (resultDataContentType != null) {
+        final String resultType = businessApplication.getResultContentType(resultDataContentType);
+        if (resultType == null) {
+          parameterErrors
+            .add(Arrays.asList("resultDataContentType", resultDataContentType, "Invalid value"));
         } else {
-          inputContentTypes.addAll(Arrays.asList(inputDataContentTypes));
-          for (final ListIterator<String> iterator = inputContentTypes.listIterator(); iterator
-            .hasNext();) {
-            final String inputContentType = iterator.next();
-            final String contentType = getInputMediaType(businessApplication, inputContentType);
-            if (contentType == null) {
-              throw new HttpMessageNotReadableException(
-                "inputDataContentType=" + inputContentType + " is not supported.");
-            } else {
-              iterator.set(contentType);
-            }
-          }
-          if (!businessApplication.isPerRequestInputData()) {
-            if (inputContentTypes.size() == 1) {
-              inputDataContentType = inputContentTypes.get(0);
-              batchJob.setValue(BatchJob.INPUT_DATA_CONTENT_TYPE, inputDataContentType);
-            } else {
-              this.dataAccessObject.delete(batchJob);
-              throw new HttpMessageNotReadableException(
-                "inputDataContentType can only have one value.");
-            }
-          }
+          batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultType);
         }
-        if (resultDataContentType != null) {
-          final String resultType = businessApplication.getResultContentType(resultDataContentType);
-          if (resultType == null) {
-            throw new HttpMessageNotReadableException(
-              "resultDataContentType=" + resultType + " is not supported.");
-          } else {
-            batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultType);
-          }
-        }
+      }
 
-        if (Property.hasValue(notificationEmail)) {
-          if (Property.hasValue(notificationUrl)) {
-            throw new HttpMessageNotReadableException(
-              "Both notificationUrl and notificationEmail cannot be specified. Enter a value in one or the other but not both.");
-          } else {
-            notificationUrl = "mailto:" + notificationEmail;
-          }
-        }
+      if (Property.hasValue(notificationEmail)) {
         if (Property.hasValue(notificationUrl)) {
-          batchJob.setValue(BatchJob.NOTIFICATION_URL, notificationUrl);
+          parameterErrors.add(Arrays.asList("notificationUrl", notificationUrl,
+            "Either a notificationUrl or notificationEmail parameter can be specified, but not both"));
+          parameterErrors.add(Arrays.asList("notificationEmail", notificationEmail,
+            "Either a notificationUrl or notificationEmail parameter can be specified, but not both"));
+        } else {
+          notificationUrl = "mailto:" + notificationEmail;
         }
+      }
+      if (Property.hasValue(notificationUrl)) {
+        batchJob.setValue(BatchJob.NOTIFICATION_URL, notificationUrl);
+      }
 
-        final RecordDefinitionImpl requestRecordDefinition = businessApplication
-          .getRequestRecordDefinition();
-        for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
-          final String parameterName = fieldDefinition.getName();
-          String value = HttpServletUtils.getParameter(parameterName);
-          final boolean jobParameter = businessApplication.isJobParameter(parameterName);
-          final boolean requestParameter = businessApplication.isRequestParameter(parameterName);
-          boolean hasValue = Property.hasValue(value);
-          if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
-            if ("on".equals(value)) {
-              value = "true";
-            } else {
-              value = "false";
-            }
-            hasValue = true;
-          }
-          if (!hasValue && jobParameter) {
-            final Object defaultValue = fieldDefinition.getDefaultValue();
-            if (Property.hasValue(defaultValue)) {
-              value = fieldDefinition.toString(defaultValue);
-              hasValue = true;
-            }
-          }
-          if (hasValue) {
-            if (jobParameter) {
-              businessApplicationParameters.put(parameterName, value);
-            } else if (requestParameter) {
-              if (fieldDefinition.getDataType() != DataTypes.BOOLEAN
-                || Property.hasValue(HttpServletUtils.getParameter(parameterName))) {
-                throw new HttpMessageNotReadableException("Parameter " + parameterName
-                  + " cannot be specified on a job. It can only be specified as a field in the input data.");
-              }
-            }
+      validateJobParameters(parameterErrors, businessApplication, businessApplicationParameters);
+
+      batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
+        Json.toString(businessApplicationParameters));
+
+      try {
+
+        inputDataUrls = cleanInputDataUrls(inputDataUrls);
+        inputDataFiles = cleanInputDataFiles(inputDataFiles);
+
+        if (inputDataUrls.isEmpty() == inputDataFiles.isEmpty()) {
+          final String inputDataMessage = "The inputData file or inputDataUrl parameter must be specified, but not both";
+          if (inputDataUrls.isEmpty()) {
+            parameterErrors.add(Arrays.asList("inputData", "[binary content]", inputDataMessage));
+            parameterErrors.add(
+              Arrays.asList("inputDataUrl", Strings.toString(inputDataUrls), inputDataMessage));
           } else {
-            if (jobParameter && !requestParameter && fieldDefinition.isRequired()) {
-              throw new HttpMessageNotReadableException(
-                "Parameter " + parameterName + " is required");
-            }
+            parameterErrors.add(Arrays.asList("inputData", "-", inputDataMessage));
+            parameterErrors.add(Arrays.asList("inputDataUrl", "-", inputDataMessage));
           }
-        }
-        batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
-          Json.toString(businessApplicationParameters));
-
-        try {
-
-          if (inputDataUrls == null) {
-            inputDataUrls = new ArrayList<>();
-          } else {
-            for (final Iterator<String> iterator = inputDataUrls.iterator(); iterator.hasNext();) {
-              final String inputDataUrl = iterator.next();
-              if (!Property.hasValue(inputDataUrl)) {
-                iterator.remove();
-              }
-            }
-          }
-          if (inputDataFiles == null) {
-            inputDataFiles = new ArrayList<>();
-          } else {
-            for (final Iterator<MultipartFile> iterator = inputDataFiles.iterator(); iterator
-              .hasNext();) {
-              final MultipartFile multipartFile = iterator.next();
-              if (multipartFile.getSize() == 0) {
-                iterator.remove();
-              }
-            }
-          }
-
-          if (inputDataUrls.isEmpty() == inputDataFiles.isEmpty()) {
-            throw new HttpMessageNotReadableException(
-              "Either inputData files or inputDataUrl(s) must be specified but not both");
-          } else if (businessApplication.isPerRequestInputData()) {
+        } else if (businessApplication.isPerRequestInputData()) {
+          if (parameterErrors.isEmpty()) {
             batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS,
               inputDataFiles.size() + inputDataUrls.size());
             this.dataAccessObject.write(batchJob.getRecord());
@@ -800,31 +787,28 @@ public class ConcurrentProcessingFramework {
               }
             }
             this.batchJobService.scheduleJob(batchJob);
-          } else {
-            this.dataAccessObject.write(batchJob.getRecord());
-            createStructuredJob(batchJobId, batchJob, inputDataFiles, inputDataUrls,
-              inputDataContentType);
-            final long time = System.currentTimeMillis();
-            batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
-            batchJob.update();
           }
-        } catch (final IOException e) {
-          try {
-            if (batchJob.getState() == RecordState.PERSISTED) {
-              this.dataAccessObject.delete(batchJob);
-            }
-          } catch (final Throwable e2) {
-            Logs.error(this, "Unable to delete job: " + batchJobId, e2);
-          }
-          throw new HttpMessageNotReadableException(e.getMessage(), e);
-        } catch (final Throwable e) {
-          if (BatchJobService.isDatabaseResourcesException(e)) {
-            throw new HttpMessageNotReadableException(
-              "The system is at capacity and cannot accept more jobs at this time. Try again in 1 hour.");
-          } else {
-            throw new HttpMessageNotReadableException(e.getMessage(), e);
-          }
+        } else {
+          createStructuredJob(parameterErrors, batchJobId, batchJob, inputDataFiles, inputDataUrls,
+            inputDataContentType);
         }
+      } catch (final IOException e) {
+        Logs.error(this, "Error creating job: ", e);
+        deleteJob(batchJob);
+        return newErrorView("Error reading or writing data for job",
+          HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      } catch (final Throwable e) {
+        Logs.error(this, "Error creating job: ", e);
+        deleteJob(batchJob);
+        if (BatchJobService.isDatabaseResourcesException(e)) {
+          return newErrorView(
+            "The system is at capacity and cannot accept more jobs at this time. Try again in 1 hour.",
+            HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } else {
+          return newErrorView("Error creating job", HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+      }
+      if (parameterErrors.isEmpty()) {
         HttpServletUtils.setPathVariable("batchJobId", batchJobId);
 
         if (businessApplication.isInfoLogEnabled()) {
@@ -841,23 +825,18 @@ public class ConcurrentProcessingFramework {
         } else {
           return getJobsInfo(batchJobId.getLong(0));
         }
-      }
-      return null;
-    } catch (final HttpMessageNotReadableException e) {
-      if (MediaTypeUtil.isHtmlPage()) {
-        throw e;
       } else {
-        final HttpServletResponse response = HttpServletUtils.getResponse();
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        final Map<String, Object> errorMap = Collections.singletonMap("error", e.getMessage());
-        try (
-          Writer responseWriter = response.getWriter()) {
-          Json.writeMap(responseWriter, errorMap);
-        } catch (final IOException ioe) {
+        try {
+          if (batchJob.getState() == RecordState.PERSISTED) {
+            this.dataAccessObject.delete(batchJob);
+          }
+        } catch (final Throwable e2) {
+          Logs.error(this, "Unable to delete job: " + batchJobId, e2);
         }
-        return null;
+        return newErrorView(parameterErrors);
       }
     }
+    return null;
   }
 
   /**
@@ -948,6 +927,8 @@ public class ConcurrentProcessingFramework {
       CpfUiBuilder.checkPermission(businessApplication.getBatchModeExpression(),
         "No batch mode permission for " + businessApplicationName);
 
+      final List<List<String>> parameterErrors = new ArrayList<>();
+
       final BatchJob batchJob = this.dataAccessObject.newBatchJob();
       final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
       batchJob.setGroupCount(1);
@@ -970,17 +951,20 @@ public class ConcurrentProcessingFramework {
       final boolean perRequestInputData = businessApplication.isPerRequestInputData();
       com.revolsys.spring.resource.Resource inputDataIn = null;
       if (perRequestInputData) {
-        if (!businessApplication.isInputContentTypeSupported(inputDataContentType)
-          && !businessApplication.isInputContentTypeSupported("*/*")) {
-          throw new HttpMessageNotReadableException(
-            "inputDataContentType=" + inputDataContentType + " is not supported.");
-        }
-        inputDataIn = getResource("inputData");
-        final boolean hasInputDataIn = inputDataIn != null && inputDataIn.contentLength() > 0;
-        final boolean hasInputDataUrl = Property.hasValue(inputDataUrl);
-        if (hasInputDataIn == hasInputDataUrl) {
-          throw new HttpMessageNotReadableException(
-            "Either an inputData file or inputDataUrl parameter must be specified, but not both");
+        if (businessApplication.isInputContentTypeSupported(inputDataContentType)
+          || businessApplication.isInputContentTypeSupported("*/*")) {
+          inputDataIn = getResource("inputData");
+          final boolean hasInputDataIn = inputDataIn != null && inputDataIn.contentLength() > 0;
+          final boolean hasInputDataUrl = Property.hasValue(inputDataUrl);
+          if (hasInputDataIn == hasInputDataUrl) {
+            parameterErrors.add(Arrays.asList("inputData", "[binary content]",
+              "Either an inputData file or inputDataUrl parameter must be specified, but not both"));
+            parameterErrors.add(Arrays.asList("inputDataUrl", inputDataUrl,
+              "Either an inputData file or inputDataUrl parameter must be specified, but not both"));
+          }
+        } else {
+          parameterErrors
+            .add(Arrays.asList("inputDataContentType", inputDataContentType, "Invalid value"));
         }
       }
       if (!Property.hasValue(resultDataContentType)) {
@@ -989,15 +973,17 @@ public class ConcurrentProcessingFramework {
       final String resultContentType = businessApplication
         .getResultContentType(resultDataContentType);
       if (resultContentType == null) {
-        throw new HttpMessageNotReadableException(
-          "resultDataContentType=" + resultDataContentType + " is not supported.");
+        parameterErrors
+          .add(Arrays.asList("resultDataContentType", resultDataContentType, "Invalid value"));
       } else {
         resultDataContentType = resultContentType;
       }
       if (Property.hasValue(notificationEmail)) {
         if (Property.hasValue(notificationUrl)) {
-          throw new HttpMessageNotReadableException(
-            "Both notificationUrl and notificationEmail cannot be specified. Enter a value in one or the other but not both.");
+          parameterErrors.add(Arrays.asList("notificationUrl", notificationUrl,
+            "Either a notificationUrl or notificationEmail parameter can be specified, but not both"));
+          parameterErrors.add(Arrays.asList("notificationEmail", notificationEmail,
+            "Either a notificationUrl or notificationEmail parameter can be specified, but not both"));
         } else {
           notificationUrl = "mailto:" + notificationEmail;
         }
@@ -1007,116 +993,121 @@ public class ConcurrentProcessingFramework {
       final Record inputData = new ArrayRecord(requestRecordDefinition);
       for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
         final String parameterName = fieldDefinition.getName();
-        String value = HttpServletUtils.getParameter(parameterName);
-        final boolean required = fieldDefinition.isRequired();
-        boolean hasValue = value != null && value.trim().length() > 0;
-        if (!hasValue) {
-          final Object defaultValue = fieldDefinition.getDefaultValue();
-          if (Property.hasValue(defaultValue)) {
-            value = fieldDefinition.toString(defaultValue);
+        if (!"resultDataContentType".equals(parameterName)) {
+          String value = HttpServletUtils.getParameter(parameterName);
+          final boolean required = fieldDefinition.isRequired();
+          boolean hasValue = value != null && value.trim().length() > 0;
+          if (!hasValue) {
+            final Object defaultValue = fieldDefinition.getDefaultValue();
+            if (Property.hasValue(defaultValue)) {
+              value = fieldDefinition.toString(defaultValue);
+              hasValue = true;
+            }
+          }
+          if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
+            if ("on".equals(value)) {
+              value = "true";
+            } else {
+              value = "false";
+            }
             hasValue = true;
           }
-        }
-        if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
-          if ("on".equals(value)) {
-            value = "true";
-          } else {
-            value = "false";
-          }
-          hasValue = true;
-        }
-        if (hasValue) {
-          try {
-            fieldDefinition.validate(value);
-            if (businessApplication.isJobParameter(parameterName)) {
-              businessApplicationParameters.put(parameterName, value);
-            } else {
-              try {
-                BatchJobService.setStructuredInputDataValue(srid, inputData, fieldDefinition, value,
-                  true);
-              } catch (final IllegalArgumentException e) {
-                throw new HttpMessageNotReadableException(
-                  "Parameter " + parameterName + " cannot be set", e);
+          if (hasValue) {
+            try {
+              fieldDefinition.validate(value);
+              if (businessApplication.isJobParameter(parameterName)) {
+                businessApplicationParameters.put(parameterName, value);
+              } else {
+                try {
+                  BatchJobService.setStructuredInputDataValue(srid, inputData, fieldDefinition,
+                    value, true);
+                } catch (final IllegalArgumentException e) {
+                  parameterErrors.add(Arrays.asList(parameterName, value, e.getMessage()));
+                }
               }
+            } catch (final IllegalArgumentException e) {
+              parameterErrors.add(Arrays.asList(parameterName, value, e.getMessage()));
             }
-          } catch (final IllegalArgumentException e) {
-            throw new HttpMessageNotReadableException(
-              "Parameter " + parameterName + " cannot be set", e);
+          } else if (required) {
+            parameterErrors.add(Arrays.asList(parameterName, "-", "Required"));
           }
-        } else if (required) {
-          throw new HttpMessageNotReadableException("Parameter " + parameterName + " is required");
         }
-
       }
-      batchJob.setValue(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-      batchJob.setValue(BatchJob.USER_ID, consumerKey);
+      if (parameterErrors.isEmpty()) {
+        batchJob.setValue(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
+        batchJob.setValue(BatchJob.USER_ID, consumerKey);
 
-      batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
-        Json.toString(businessApplicationParameters));
+        batchJob.setValue(BatchJob.BUSINESS_APPLICATION_PARAMS,
+          Json.toString(businessApplicationParameters));
 
-      if (Property.hasValue(notificationUrl)) {
-        batchJob.setValue(BatchJob.NOTIFICATION_URL, notificationUrl);
-      }
-      batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultDataContentType);
-      batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
-      this.dataAccessObject.write(batchJob.getRecord());
-      final long time = System.currentTimeMillis();
-      batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
-      batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS, time + 1);
-      batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING, time + 2);
-      batchJob.update();
-      if (perRequestInputData) {
-        if (Property.hasValue(inputDataUrl)) {
-          this.jobController.setGroupInput(batchJobId, 1, "url:" + inputDataContentType,
-            inputDataUrl);
+        if (Property.hasValue(notificationUrl)) {
+          batchJob.setValue(BatchJob.NOTIFICATION_URL, notificationUrl);
+        }
+        batchJob.setValue(BatchJob.RESULT_DATA_CONTENT_TYPE, resultDataContentType);
+        batchJob.setValue(BatchJob.NUM_SUBMITTED_REQUESTS, 1);
+        this.dataAccessObject.write(batchJob.getRecord());
+        final long time = System.currentTimeMillis();
+        batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
+        batchJob.setStatus(this.batchJobService, BatchJobStatus.CREATING_REQUESTS, time + 1);
+        batchJob.setStatus(this.batchJobService, BatchJobStatus.PROCESSING, time + 2);
+        batchJob.update();
+        if (perRequestInputData) {
+          if (Property.hasValue(inputDataUrl)) {
+            this.jobController.setGroupInput(batchJobId, 1, "url:" + inputDataContentType,
+              inputDataUrl);
+          } else {
+            this.jobController.setGroupInput(batchJobId, 1, inputDataContentType, inputDataIn);
+          }
         } else {
-          this.jobController.setGroupInput(batchJobId, 1, inputDataContentType, inputDataIn);
+          inputData.put(BusinessApplication.SEQUENCE_NUMBER, 1);
+          final StringWriter writer = new StringWriter();
+          try (
+            RecordWriter groupWriter = Tsv.newRecordWriter(requestRecordDefinition, writer, false,
+              false)) {
+            groupWriter.write(inputData);
+          }
+          this.jobController.setGroupInput(batchJobId, 1, Tsv.MIME_TYPE, writer);
+        }
+        batchJob.setGroupCount(1);
+        this.batchJobService.scheduleJob(batchJob);
+
+        HttpServletUtils.setPathVariable("batchJobId", batchJobId);
+
+        AppLogUtil.infoAfterCommit(log, "End\tJob submit single\tbatchJobId=" + batchJobId,
+          stopWatch);
+        final Map<String, Object> statistics = new HashMap<>();
+        statistics.put("submittedJobsTime", stopWatch);
+        statistics.put("submittedJobsCount", 1);
+
+        statistics.put("preProcessScheduledJobsCount", 1);
+        statistics.put("preProcessScheduledJobsTime", 0);
+
+        statistics.put("preProcessedTime", 0);
+        statistics.put("preProcessedJobsCount", 1);
+        statistics.put("preProcessedRequestsCount", 1);
+
+        Transaction
+          .afterCommit(() -> this.statisticsService.addStatistics(businessApplication, statistics));
+
+        if (MediaTypeUtil.isHtmlPage()) {
+          this.batchJobUiBuilder.redirectPage("clientView");
+        } else {
+          return getJobsInfo(batchJobId.getLong(0));
         }
       } else {
-        inputData.put(BusinessApplication.SEQUENCE_NUMBER, 1);
-        final StringWriter writer = new StringWriter();
-        try (
-          RecordWriter groupWriter = Tsv.newRecordWriter(requestRecordDefinition, writer, false,
-            false)) {
-          groupWriter.write(inputData);
-        }
-        this.jobController.setGroupInput(batchJobId, 1, Tsv.MIME_TYPE, writer);
-      }
-      batchJob.setGroupCount(1);
-      this.batchJobService.scheduleJob(batchJob);
-
-      HttpServletUtils.setPathVariable("batchJobId", batchJobId);
-
-      AppLogUtil.infoAfterCommit(log, "End\tJob submit single\tbatchJobId=" + batchJobId,
-        stopWatch);
-      final Map<String, Object> statistics = new HashMap<>();
-      statistics.put("submittedJobsTime", stopWatch);
-      statistics.put("submittedJobsCount", 1);
-
-      statistics.put("preProcessScheduledJobsCount", 1);
-      statistics.put("preProcessScheduledJobsTime", 0);
-
-      statistics.put("preProcessedTime", 0);
-      statistics.put("preProcessedJobsCount", 1);
-      statistics.put("preProcessedRequestsCount", 1);
-
-      Transaction
-        .afterCommit(() -> this.statisticsService.addStatistics(businessApplication, statistics));
-
-      if (MediaTypeUtil.isHtmlPage()) {
-        this.batchJobUiBuilder.redirectPage("clientView");
-      } else {
-        return getJobsInfo(batchJobId.getLong(0));
+        return newErrorView(parameterErrors);
       }
     }
     return null;
   }
 
-  private void createStructuredJob(final Identifier batchJobId, final BatchJob batchJob,
-    final List<MultipartFile> inputDataFiles, final List<String> inputDataUrls,
-    final String contentType) throws IOException {
+  private boolean createStructuredJob(final List<List<String>> parameterErrors,
+    final Identifier batchJobId, final BatchJob batchJob, final List<MultipartFile> inputDataFiles,
+    final List<String> inputDataUrls, final String contentType) throws IOException {
     if (!inputDataFiles.isEmpty()) {
       if (inputDataFiles.size() == 1) {
+        this.dataAccessObject.write(batchJob.getRecord());
+
         final MultipartFile file = inputDataFiles.get(0);
         final InputStream in = file.getInputStream();
         try {
@@ -1125,21 +1116,40 @@ public class ConcurrentProcessingFramework {
         } finally {
           Transaction.afterCommit(() -> FileUtil.closeSilent(in));
         }
-
       } else {
-        throw new HttpMessageNotReadableException("inputData can only be specified once");
+        parameterErrors.add(Arrays.asList("inputData", "count=" + inputDataFiles.size(),
+          "Must only be specified once"));
       }
     } else {
       if (inputDataUrls.size() == 1) {
         final String inputDataUrl = inputDataUrls.get(0);
         batchJob.setValue(BatchJob.STRUCTURED_INPUT_DATA_URL, inputDataUrl.trim());
       } else {
-        throw new HttpMessageNotReadableException("inputDataUrl must only be specified onces");
+        parameterErrors.add(Arrays.asList("inputDataUrl", Strings.toString(inputDataUrls),
+          "Must only be specified once"));
       }
     }
-    this.dataAccessObject.write(batchJob);
-    batchJob.update();
-    this.batchJobService.preProcess(batchJobId);
+    if (parameterErrors.isEmpty()) {
+      this.dataAccessObject.write(batchJob);
+      batchJob.update();
+      this.batchJobService.preProcess(batchJobId);
+      final long time = System.currentTimeMillis();
+      batchJob.setStatus(this.batchJobService, BatchJobStatus.SUBMITTED, time);
+      batchJob.update();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private void deleteJob(final BatchJob batchJob) {
+    try {
+      if (batchJob.getState() == RecordState.PERSISTED) {
+        this.dataAccessObject.delete(batchJob);
+      }
+    } catch (final Throwable e2) {
+      Logs.error(this, "Unable to delete job: " + batchJob.getIdentifier(), e2);
+    }
   }
 
   /**
@@ -1462,7 +1472,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-  
+
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -2994,6 +3004,31 @@ public class ConcurrentProcessingFramework {
     }
   }
 
+  private Object newErrorView(final List<List<String>> parameterErrors) {
+    if (MediaTypeUtil.isHtmlPage()) {
+      final TableView table = new TableView(new ErrorsTableSerializer(parameterErrors));
+
+      return new ElementContainer(//
+        new XmlTagElement(HtmlElem.H1, "Form Errors"), //
+        new ErrorWithBackButton(
+          "The form contained errors for the following fields. Click the back button to return to the form"), //
+        table//
+      );
+    } else {
+      HttpServletUtils.getResponse().setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      return new LinkedHashMapEx("errors", parameterErrors);
+    }
+  }
+
+  private Object newErrorView(final String message, final int statusCode) {
+    HttpServletUtils.getResponse().setStatus(statusCode);
+    if (MediaTypeUtil.isHtmlPage()) {
+      return new XmlTagElement(HtmlElem.H1, "Error");
+    } else {
+      return new LinkedHashMapEx("error", message);
+    }
+  }
+
   public void setBatchJobResultUiBuilder(final BatchJobResultUiBuilder batchJobResultUiBuilder) {
     this.batchJobResultUiBuilder = batchJobResultUiBuilder;
   }
@@ -3030,6 +3065,50 @@ public class ConcurrentProcessingFramework {
     }
     page.setHtmlDescription(description);
     page.setAttribute("businessApplicationName", businessApplication.getName());
+  }
+
+  private void validateJobParameters(final List<List<String>> parameterErrors,
+    final BusinessApplication businessApplication,
+    final Map<String, String> businessApplicationParameters) {
+    final RecordDefinitionImpl requestRecordDefinition = businessApplication
+      .getRequestRecordDefinition();
+    for (final FieldDefinition fieldDefinition : requestRecordDefinition.getFields()) {
+      final String parameterName = fieldDefinition.getName();
+      String value = HttpServletUtils.getParameter(parameterName);
+      final boolean jobParameter = businessApplication.isJobParameter(parameterName);
+      final boolean requestParameter = businessApplication.isRequestParameter(parameterName);
+      boolean hasValue = Property.hasValue(value);
+      if (fieldDefinition.getDataType() == DataTypes.BOOLEAN) {
+        if ("on".equals(value)) {
+          value = "true";
+        } else {
+          value = "false";
+        }
+        hasValue = true;
+      }
+      if (!hasValue && jobParameter) {
+        final Object defaultValue = fieldDefinition.getDefaultValue();
+        if (Property.hasValue(defaultValue)) {
+          value = fieldDefinition.toString(defaultValue);
+          hasValue = true;
+        }
+      }
+      if (hasValue) {
+        if (jobParameter) {
+          businessApplicationParameters.put(parameterName, value);
+        } else if (requestParameter) {
+          if (fieldDefinition.getDataType() != DataTypes.BOOLEAN
+            || Property.hasValue(HttpServletUtils.getParameter(parameterName))) {
+            parameterErrors.add(Arrays.asList(parameterName, value,
+              "Cannot be specified on a job. It can only be specified as a field in the input data."));
+          }
+        }
+      } else {
+        if (jobParameter && !requestParameter && fieldDefinition.isRequired()) {
+          parameterErrors.add(Arrays.asList(parameterName, value, "Required"));
+        }
+      }
+    }
   }
 
 }

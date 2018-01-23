@@ -861,10 +861,12 @@ public class BusinessApplication extends BaseObjectWithProperties
     for (final FieldDefinition field : requestRecordDefinition.getFields()) {
       final String parameterName = field.getName();
       Object parameterValue = parameters.get(parameterName);
-      if (parameterValue == null && !"resultDataContentType".equals(parameterName)) {
-        parameterValue = field.getDefaultValue();
+      if (!"resultDataContentType".equals(parameterName)) {
+        if (parameterValue == null) {
+          parameterValue = field.getDefaultValue();
+        }
+        parameterValue = field.validate(parameterValue);
       }
-      parameterValue = field.validate(parameterValue);
       try {
         final Method method = this.requestFieldMethodMap.get(parameterName);
         if (method == null) {
