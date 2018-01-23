@@ -1,7 +1,0 @@
-[
-  {
-    "name": "bsoe.soeServiceURL",
-    "type": "string",
-    "value": "http://delivery.apps.gov.bc.ca/pub/soe/reportGenerate.do"
-  }
-]

@@ -151,7 +151,6 @@
   <modules>
     <module>cpf-app-war</module>
     <module>cpf-worker-war</module>
-<!--     <module>bsoe</module> -->
   </modules>
 
   <profiles>
