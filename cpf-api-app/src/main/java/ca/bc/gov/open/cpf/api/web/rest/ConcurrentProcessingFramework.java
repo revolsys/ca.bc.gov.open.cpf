@@ -2277,7 +2277,7 @@ public class ConcurrentProcessingFramework {
         field = new DoubleField(name, required, defaultValue);
       } else if (dataType.equals(DataTypes.BOOLEAN)) {
         field = new CheckBoxField(name, required, defaultValue);
-      } else if (dataType.equals(DataTypes.INTEGER)) {
+      } else if (dataType.equals(DataTypes.BIG_INTEGER)) {
         field = new BigIntegerField(name, required, defaultValue);
       } else if (dataType.equals(DataTypes.DECIMAL)) {
         field = new BigDecimalField(name, required, defaultValue);

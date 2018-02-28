@@ -55,14 +55,14 @@ public class PKCS1EncodedKeySpec {
    * --
    * RSAPrivateKey ::= SEQUENCE {
    *   version           Version,
-   *   modulus           INTEGER,  -- n
-   *   publicExponent    INTEGER,  -- e
-   *   privateExponent   INTEGER,  -- d
-   *   prime1            INTEGER,  -- p
-   *   prime2            INTEGER,  -- q
-   *   exponent1         INTEGER,  -- d mod (p-1)
-   *   exponent2         INTEGER,  -- d mod (q-1)
-   *   coefficient       INTEGER,  -- (inverse of q) mod p
+   *   modulus           BIG_INTEGER,  -- n
+   *   publicExponent    BIG_INTEGER,  -- e
+   *   privateExponent   BIG_INTEGER,  -- d
+   *   prime1            BIG_INTEGER,  -- p
+   *   prime2            BIG_INTEGER,  -- q
+   *   exponent1         BIG_INTEGER,  -- d mod (p-1)
+   *   exponent2         BIG_INTEGER,  -- d mod (q-1)
+   *   coefficient       BIG_INTEGER,  -- (inverse of q) mod p
    *   otherPrimeInfos   OtherPrimeInfos OPTIONAL
    * }
    * </pre>

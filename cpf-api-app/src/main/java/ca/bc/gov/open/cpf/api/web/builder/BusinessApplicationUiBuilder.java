@@ -127,8 +127,8 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
       PathName.newPathName("/Buffer"));
     final GeometryFactory factory = GeometryFactory.fixed2d(3005, 1000.0, 1000.0);
     recordDefinition.setGeometryFactory(factory);
-    recordDefinition.addField("sequenceNumber", DataTypes.INTEGER);
-    recordDefinition.addField("resultNumber", DataTypes.INTEGER);
+    recordDefinition.addField("sequenceNumber", DataTypes.INT);
+    recordDefinition.addField("resultNumber", DataTypes.INT);
     recordDefinition.addField("title", DataTypes.STRING);
     recordDefinition.addField("buffer", DataTypes.DOUBLE);
     recordDefinition.addField("geometry", DataTypes.GEOMETRY);
