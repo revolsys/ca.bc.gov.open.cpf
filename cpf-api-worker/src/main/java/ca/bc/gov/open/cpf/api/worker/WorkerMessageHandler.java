@@ -260,10 +260,13 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
             jarFile.deleteOnExit();
             final WorkerHttpClient httpClient = this.scheduler.getHttpClient();
             httpClient.getResource(jarPath, jarFile);
-
-            urls.add(FileUtil.toUrl(jarFile));
+            if (jarFile.length() > 0) {
+              urls.add(FileUtil.toUrl(jarFile));
+            } else {
+              log.error("Empty jar file " + jarPath);
+            }
           } catch (final Throwable e) {
-            throw new RuntimeException("Unable to download jar file " + jarPath, e);
+            log.error("Unable to download jar file " + jarPath, e);
           }
         }
         final ClassLoader parentClassLoader = getClass().getClassLoader();

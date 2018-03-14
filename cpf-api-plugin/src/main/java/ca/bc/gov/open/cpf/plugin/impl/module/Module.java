@@ -33,6 +33,8 @@ public interface Module {
 
   void addModuleError(String error);
 
+  void addModuleError(String error, Throwable e);
+
   void clearModuleError();
 
   void destroy();
