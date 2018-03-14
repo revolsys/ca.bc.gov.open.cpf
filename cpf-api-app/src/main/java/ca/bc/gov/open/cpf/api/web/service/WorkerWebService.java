@@ -202,9 +202,12 @@ public class WorkerWebService {
           final InputStream in = UrlUtil.getInputStream(url);
           final OutputStream out = response.getOutputStream()) {
           FileUtil.copy(in, out);
+        } catch (final IllegalArgumentException e) {
+          module.addModuleError("Error loading jar " + jarIndex + ": " + url, e);
         }
       }
     }
+
   }
 
   @RequestMapping(value = {
