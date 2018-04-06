@@ -120,7 +120,7 @@ public class GeometryValidatorPlugin {
       double clearanceScaleFactor;
       double clearanceTolerance;
       if (this.resultScaleFactorXy == 0) {
-        if (geometryFactory.getCoordinateSystem() instanceof GeographicCoordinateSystem) {
+        if (geometryFactory.getHorizontalCoordinateSystem() instanceof GeographicCoordinateSystem) {
           clearanceTolerance = .1;
           clearanceScaleFactor = 10000000;
         } else {
