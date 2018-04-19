@@ -79,6 +79,7 @@ import com.revolsys.datatype.DataType;
 import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.cs.CoordinateSystem;
 import com.revolsys.geometry.cs.epsg.EpsgCoordinateSystems;
+import com.revolsys.geometry.cs.epsg.EpsgId;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
@@ -149,7 +150,8 @@ public class ClassLoaderModule implements Module {
   private final AppLog log;
 
   private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems
-    .getCoordinateSystems(Arrays.asList(4326, 4269, 3005, 26907, 26908, 26909, 26910, 26911));
+    .getCoordinateSystems(Arrays.asList(EpsgId.WGS84, EpsgId.NAD83, 3005, EpsgId.nad83Utm(7),
+      EpsgId.nad83Utm(8), EpsgId.nad83Utm(9), EpsgId.nad83Utm(10), EpsgId.nad83Utm(11)));
 
   private boolean enabled = false;
 
@@ -227,6 +229,7 @@ public class ClassLoaderModule implements Module {
     addModuleError(message, null);
   }
 
+  @Override
   public void addModuleError(String message, final Throwable e) {
     if (Property.hasValue(message)) {
       this.log.error("Unable to initialize module " + getName() + ":\n  " + message, e);
@@ -773,9 +776,9 @@ public class ClassLoaderModule implements Module {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       this.log.warn(message + " srid must be >= 0");
-      srid = geometryFactory.getCoordinateSystemId();
+      srid = geometryFactory.getHorizontalCoordinateSystemId();
     } else if (srid == 0) {
-      srid = geometryFactory.getCoordinateSystemId();
+      srid = geometryFactory.getHorizontalCoordinateSystemId();
     }
     int axisCount = geometryConfiguration.numAxis();
     if (axisCount == 0) {
@@ -1646,7 +1649,9 @@ public class ClassLoaderModule implements Module {
     this.businessApplicationNames = Collections.emptyList();
     this.permissionsByGroupName = null;
     this.groupNamesToDelete = null;
-    this.businessApplicationRegistry.clearModuleToAppCache();
+    if (this.businessApplicationRegistry != null) {
+      this.businessApplicationRegistry.clearModuleToAppCache();
+    }
     for (final String businessApplicationName : names) {
       closeAppLogAppender(this.name + "." + businessApplicationName);
     }

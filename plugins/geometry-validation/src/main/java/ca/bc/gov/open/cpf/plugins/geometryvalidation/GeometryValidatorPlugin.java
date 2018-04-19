@@ -86,7 +86,7 @@ public class GeometryValidatorPlugin {
     } else {
       final GeometryFactory sourceGeometryFactory = this.geometry.getGeometryFactory();
       if (this.resultSrid == 0) {
-        this.resultSrid = sourceGeometryFactory.getCoordinateSystemId();
+        this.resultSrid = sourceGeometryFactory.getHorizontalCoordinateSystemId();
       }
       if (this.resultNumAxis == 0) {
         this.resultNumAxis = sourceGeometryFactory.getAxisCount();

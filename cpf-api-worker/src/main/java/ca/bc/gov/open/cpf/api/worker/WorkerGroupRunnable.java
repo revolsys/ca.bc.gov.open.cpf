@@ -607,7 +607,7 @@ public class WorkerGroupRunnable implements Runnable {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = parameters.getInteger("resultSrid",
-              geometryFactory.getCoordinateSystemId());
+              geometryFactory.getHorizontalCoordinateSystemId());
             final int axisCount = parameters.getInteger("resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",
@@ -617,7 +617,7 @@ public class WorkerGroupRunnable implements Runnable {
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
-            if (geometry.getCoordinateSystemId() == 0) {
+            if (geometry.getHorizontalCoordinateSystemId() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }

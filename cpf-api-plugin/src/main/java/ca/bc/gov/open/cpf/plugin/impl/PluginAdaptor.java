@@ -40,6 +40,7 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.collection.map.Maps;
+import com.revolsys.geometry.cs.epsg.EpsgId;
 import com.revolsys.geometry.model.BoundingBox;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryCollection;
@@ -130,7 +131,7 @@ public class PluginAdaptor {
         final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
           new com.vividsolutions.jts.geom.PrecisionModel(
             com.vividsolutions.jts.geom.PrecisionModel.FLOATING),
-          4326);
+          EpsgId.WGS84);
         if (com.vividsolutions.jts.geom.LineString.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
@@ -341,7 +342,7 @@ public class PluginAdaptor {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = Maps.getInteger(this.parameters, "resultSrid",
-              geometryFactory.getCoordinateSystemId());
+              geometryFactory.getHorizontalCoordinateSystemId());
             final int axisCount = Maps.getInteger(this.parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(this.parameters, "resultScaleFactorXy",
@@ -351,7 +352,7 @@ public class PluginAdaptor {
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
-            if (geometry.getCoordinateSystemId() == 0) {
+            if (geometry.getHorizontalCoordinateSystemId() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }

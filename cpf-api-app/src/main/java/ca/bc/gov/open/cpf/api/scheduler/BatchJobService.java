@@ -219,7 +219,7 @@ public class BatchJobService implements ModuleEventListener {
         if (parameterValue instanceof Geometry) {
 
           geometry = (Geometry)parameterValue;
-          if (geometry.getCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
+          if (geometry.getHorizontalCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
             final int srid = Integer.parseInt(sridString);
             final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3d(srid);
             geometry = sourceGeometryFactory.geometry(geometry);
@@ -251,7 +251,7 @@ public class BatchJobService implements ModuleEventListener {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
-        if (geometry.getCoordinateSystemId() == 0) {
+        if (geometry.getHorizontalCoordinateSystemId() == 0) {
           throw new IllegalArgumentException("does not have a coordinate system (SRID) specified");
         }
         if (validateGeometry == true) {
@@ -661,7 +661,7 @@ public class BatchJobService implements ModuleEventListener {
       return null;
     } else {
       final int srid = Maps.getInteger(parameters, "resultSrid",
-        geometryFactory.getCoordinateSystemId());
+        geometryFactory.getHorizontalCoordinateSystemId());
       final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
         geometryFactory.getAxisCount());
       final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",

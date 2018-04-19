@@ -269,7 +269,7 @@ public class BusinessApplication extends BaseObjectWithProperties
     Integer firstSrid = null;
     Integer defaultValue = Property.getInteger(this, "srid");
     for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
-      final int srid = coordinateSystem.getCoordinateSystemId();
+      final int srid = coordinateSystem.getHorizontalCoordinateSystemId();
       if (firstSrid == null || srid == 3005) {
         firstSrid = srid;
       }
@@ -327,7 +327,7 @@ public class BusinessApplication extends BaseObjectWithProperties
     Integer firstSrid = null;
     Integer defaultValue = Property.getInteger(this, "resultSrid");
     for (final CoordinateSystem coordinateSystem : this.coordinateSystems) {
-      final int srid = coordinateSystem.getCoordinateSystemId();
+      final int srid = coordinateSystem.getHorizontalCoordinateSystemId();
       if (firstSrid == null || srid == 3005) {
         firstSrid = 3005;
       }
