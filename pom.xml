@@ -260,31 +260,6 @@
           <artifactId>maven-archetype-plugin</artifactId>
           <version>2.1</version>
         </plugin>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>com.mycila</groupId>
-                    <artifactId>license-maven-plugin</artifactId>
-                    <versionRange>[2.9,)</versionRange>
-                    <goals>
-                      <goal>format</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -466,6 +441,7 @@
     <module>plugins/geometry-validation</module>
     <module>plugins/mandelbrot</module>
     <module>plugins/map-tile</module>
+    <module>lifecycle-mapping</module>
   </modules>
 
   <profiles>
@@ -575,10 +551,8 @@
                     <licenseMerge>apache_2_0|ASF 2.0</licenseMerge>
                     <licenseMerge>bsd_2|The BSD License</licenseMerge>
                     <licenseMerge>bsd_2|BSD License</licenseMerge>
-                    <licenseMerge>cddl_1_0|Common Development and Distribution License (CDDL)
-                      v1.0</licenseMerge>
-                    <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)
-                      Version 1.0</licenseMerge>
+                    <licenseMerge>cddl_1_0|Common Development and Distribution License (CDDL) v1.0</licenseMerge>
+                    <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
                     <licenseMerge>epl_1|Eclipse Public License - v 1.0</licenseMerge>
                     <licenseMerge>lgpl_2_1|LGPL 2.1</licenseMerge>
                     <licenseMerge>lgpl_2_1|GNU Lesser General Public License</licenseMerge>
@@ -594,6 +568,45 @@
             </executions>
           </plugin>
         </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>only-eclipse</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+            <plugin>
+              <groupId>org.eclipse.m2e</groupId>
+              <artifactId>lifecycle-mapping</artifactId>
+              <version>1.0.0</version>
+              <configuration>
+                <lifecycleMappingMetadata>
+                  <pluginExecutions>
+                    <pluginExecution>
+                      <pluginExecutionFilter>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <versionRange>[2.9,)</versionRange>
+                        <goals>
+                          <goal>format</goal>
+                        </goals>
+                      </pluginExecutionFilter>
+                      <action>
+                        <ignore />
+                      </action>
+                    </pluginExecution>
+                  </pluginExecutions>
+                </lifecycleMappingMetadata>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
       </build>
     </profile>
   </profiles>
@@ -636,4 +649,3 @@
     <gpg.skip>true</gpg.skip>
   </properties>
 </project>
-
