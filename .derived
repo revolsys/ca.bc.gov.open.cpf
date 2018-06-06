@@ -1,0 +1,11 @@
+cpf-api-app
+cpf-api-client
+cpf-api-plugin
+cpf-api-worker
+cpf-archetype-plugin
+cpf-archetype-web
+cpf-security-openid
+cpf-war-app
+cpf-war-worker
+plugins
+target
