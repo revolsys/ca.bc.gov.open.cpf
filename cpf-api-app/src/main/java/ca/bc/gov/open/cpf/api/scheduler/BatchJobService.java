@@ -863,6 +863,9 @@ public class BatchJobService implements ModuleEventListener {
                 if (groupsToSchedule != null) {
                   groupsToSchedule.remove(businessApplicationName);
                 }
+                if (this.scheduler != null) {
+                  this.scheduler.clearBusinessApplication(businessApplicationName);
+                }
                 this.dataAccessObject.clearBatchJobs(businessApplicationName);
               } else if (action.equals(ModuleEvent.START)) {
                 this.dataAccessObject.clearBatchJobs(businessApplicationName);
