@@ -864,7 +864,7 @@ public class BatchJobService implements ModuleEventListener {
         final Module module = event.getModule();
         final String moduleName = module.getName();
         synchronized (module) {
-          final List<String> businessApplicationNames = module.getBusinessApplicationNames();
+          final List<String> businessApplicationNames = event.getBusinessApplicationNames();
           for (final String businessApplicationName : businessApplicationNames) {
             synchronized (businessApplicationName.intern()) {
               if (action.equals(ModuleEvent.STOP)) {
