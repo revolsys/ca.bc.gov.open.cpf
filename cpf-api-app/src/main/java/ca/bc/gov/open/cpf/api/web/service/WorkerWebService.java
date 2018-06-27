@@ -332,6 +332,7 @@ public class WorkerWebService {
                 in);
             }
             batchJob.removeGroup(group);
+            this.batchJobService.updateBatchJob(batchJob);
             final BusinessApplication businessApplication = group.getBusinessApplication();
             final String moduleName = businessApplication.getModuleName();
             final long executionTime = this.statisticsService.updateGroupStatistics(group,

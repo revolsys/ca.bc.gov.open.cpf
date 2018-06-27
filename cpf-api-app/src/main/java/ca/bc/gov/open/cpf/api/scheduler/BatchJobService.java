@@ -337,6 +337,8 @@ public class BatchJobService implements ModuleEventListener {
 
   private File appLogDirectory;
 
+  private BatchJobUpdator jobUpdator = new BatchJobUpdator();
+
   protected void addPreProcessedJobId(final Identifier batchJobId) {
     synchronized (this.preprocesedJobIds) {
       this.preprocesedJobIds.add(batchJobId);
@@ -416,6 +418,10 @@ public class BatchJobService implements ModuleEventListener {
     if (this.scheduler != null) {
       this.scheduler.getIn().writeDisconnect();
       this.scheduler = null;
+    }
+    if (this.jobUpdator != null) {
+      this.jobUpdator.stop();
+      this.jobUpdator = null;
     }
     this.securityServiceFactory = null;
     this.userClassBaseUrls.clear();
@@ -740,28 +746,31 @@ public class BatchJobService implements ModuleEventListener {
             if (worker == null || moduleStartTime == -1 || !module.isStarted()) {
               scheduleGroup(group);
             } else {
-              response.put("workerId", workerId);
-              response.put("moduleName", moduleName);
-              response.put("moduleTime", moduleStartTime);
-              response.put("businessApplicationName", businessApplicationName);
-              response.put("logLevel", businessApplication.getLogLevel());
+              try {
+                response.put("workerId", workerId);
+                response.put("moduleName", moduleName);
+                response.put("moduleTime", moduleStartTime);
+                response.put("businessApplicationName", businessApplicationName);
+                response.put("logLevel", businessApplication.getLogLevel());
 
-              group.setExecutionStartTime(System.currentTimeMillis());
-              final String groupId = group.getId();
-              final Identifier batchJobId = group.getBatchJobId();
-              final String baseId = group.getBaseId();
+                group.setExecutionStartTime(System.currentTimeMillis());
+                final String groupId = group.getId();
+                final Identifier batchJobId = group.getBatchJobId();
+                final String baseId = group.getBaseId();
 
-              response.put("batchJobId", batchJobId);
-              response.put("baseId", baseId);
-              response.put("groupId", groupId);
-              response.put("applicationParameters", group.getBusinessApplicationParameterMap());
-              if (businessApplication.isPerRequestResultData()) {
-                response.put("resultDataContentType", group.getResultDataContentType());
+                response.put("batchJobId", batchJobId);
+                response.put("baseId", baseId);
+                response.put("groupId", groupId);
+                response.put("applicationParameters", group.getBusinessApplicationParameterMap());
+                if (businessApplication.isPerRequestResultData()) {
+                  response.put("resultDataContentType", group.getResultDataContentType());
+                }
+                final AppLog log = businessApplication.getLog();
+                log.info("Start\tGroup execution\tgroupId=" + groupId + "\tworkerId=" + workerId);
+                response.put("consumerKey", group.getconsumerKey());
+              } finally {
+                worker.addExecutingGroup(moduleName, moduleStartTime, group);
               }
-              final AppLog log = businessApplication.getLog();
-              log.info("Start\tGroup execution\tgroupId=" + groupId + "\tworkerId=" + workerId);
-              response.put("consumerKey", group.getconsumerKey());
-              worker.addExecutingGroup(moduleName, moduleStartTime, group);
             }
           }
         }
@@ -1768,6 +1777,10 @@ public class BatchJobService implements ModuleEventListener {
     } catch (final URISyntaxException e) {
       throw new IllegalArgumentException(jobUrl + " is not a valid URI", e);
     }
+  }
+
+  public void updateBatchJob(final BatchJob batchJob) {
+    this.jobUpdator.updateJob(batchJob);
   }
 
   public void updateBatchJobExecutionGroupFromResponse(final Worker worker, final BatchJob batchJob,

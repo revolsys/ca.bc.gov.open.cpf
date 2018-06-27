@@ -18,6 +18,7 @@ package ca.bc.gov.open.cpf.api.scheduler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -36,7 +37,6 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.SetQueue;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.identifier.Identifier;
@@ -164,9 +164,23 @@ public class BatchJobScheduler extends ThreadPoolExecutor
 
   private int getScheduledGroupCount(final String businessApplicationName) {
     synchronized (this.scheduledGroupsByBusinessApplication) {
-      final int groupCount = CollectionUtil
-        .getCollectionSize(this.scheduledGroupsByBusinessApplication, businessApplicationName);
-      return groupCount;
+      final Collection<BatchJobRequestExecutionGroup> values = this.scheduledGroupsByBusinessApplication
+        .get(businessApplicationName);
+      if (values == null) {
+        return 0;
+      } else {
+        int count = 0;
+        for (final Iterator<BatchJobRequestExecutionGroup> iterator = values.iterator(); iterator
+          .hasNext();) {
+          final BatchJobRequestExecutionGroup group = iterator.next();
+          if (group.isCancelled()) {
+            iterator.remove();
+          } else {
+            count++;
+          }
+        }
+        return count;
+      }
     }
   }
 

@@ -17,6 +17,7 @@ package ca.bc.gov.open.cpf.api.worker;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.Resource;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 
 @WebListener
@@ -524,8 +526,12 @@ public class WorkerScheduler extends ThreadPoolExecutor
           }
         }
       } catch (final Throwable t) {
-        addExecutingGroupsMessage();
-        logError("Unable to get group", t);
+        if (Exceptions.isException(t, ConnectException.class)) {
+          return false;
+        } else {
+          addExecutingGroupsMessage();
+          logError("Unable to get group", t);
+        }
       }
     }
     return false;
