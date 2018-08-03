@@ -21,7 +21,7 @@ package ca.bc.gov.open.cpf.plugin.api;
  * to another worker for execution.</p>
  *
  * <p>This could be used if the connection to the database was unavailable at that time or if
- * some other resource was temprarily unnavailble.</p>
+ * some other resource was temporarily unavailable.</p>
  */
 public class RecoverableException extends RuntimeException {
   private static final long serialVersionUID = 1L;
