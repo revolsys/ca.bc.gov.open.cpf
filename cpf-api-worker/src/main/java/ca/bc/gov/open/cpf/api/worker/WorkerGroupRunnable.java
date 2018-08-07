@@ -356,11 +356,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List<MapEx>
    * logRecords List<MapEx>
    * groupExecutionTime long
@@ -455,8 +455,10 @@ public class WorkerGroupRunnable implements Runnable {
             + "/groups/" + this.groupId + "/error";
           final HttpResponse errorResponse = this.httpClient.postResource(errorPath, Tsv.MIME_TYPE,
             this.errorFile);
-          if (errorResponse.getStatusLine().getStatusCode() != 200) {
-            this.log.error("Error writing errors:\n" + FileUtil.getString(this.errorFile));
+          final StatusLine statusLine = errorResponse.getStatusLine();
+          if (statusLine.getStatusCode() != 200) {
+            this.log.error("Error writing errors:\nresponse=" + statusLine + "\nerror="
+              + FileUtil.getString(this.errorFile));
             this.scheduler.addFailedGroup(this.groupId);
           }
           HttpClientUtils.closeQuietly(errorResponse);

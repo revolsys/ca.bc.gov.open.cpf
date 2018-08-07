@@ -68,9 +68,12 @@ public class DatabaseJobController extends AbstractJobController {
 
   @Override
   public List<MapEx> getFiles(final Identifier jobId, final String path) {
-    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
-    query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
+    final Query query = new Query(BatchJobFile.BATCH_JOB_FILE) //
+      .setWhereCondition(Q.and(//
+        Q.equal(BatchJobFile.BATCH_JOB_ID, jobId), //
+        Q.equal(BatchJobFile.FILE_TYPE, path) //
+      ))
+      .addOrderBy(BatchJobFile.SEQUENCE_NUMBER);
     final List<MapEx> files = new ArrayList<>();
     try (
       RecordReader records = this.recordStore.getRecords(query)) {
