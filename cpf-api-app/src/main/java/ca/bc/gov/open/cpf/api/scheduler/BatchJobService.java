@@ -932,17 +932,16 @@ public class BatchJobService implements ModuleEventListener {
     this.dataAccessObject.write(result);
   }
 
-  protected com.revolsys.io.Writer<Record> newStructuredResultWriter(final BatchJob batchJob,
+  private com.revolsys.io.Writer<Record> newStructuredResultWriter(final BatchJob batchJob,
     final Identifier batchJobId, final BusinessApplication application,
-    final File structuredResultFile, final RecordDefinition resultRecordDefinition,
-    final String resultFormat) {
+    final com.revolsys.spring.resource.Resource resource,
+    final RecordDefinition resultRecordDefinition, final String resultFormat) {
     final Map<String, ? extends Object> businessApplicationParameters = batchJob
       .getBusinessApplicationParameters();
     final GeometryFactory geometryFactory = getGeometryFactory(
       resultRecordDefinition.getGeometryFactory(), businessApplicationParameters);
     final String title = "Job " + batchJobId + " Result";
 
-    final PathResource resource = new PathResource(structuredResultFile);
     return newStructuredResultWriter(resource, application, resultRecordDefinition, resultFormat,
       title, geometryFactory);
   }
@@ -1097,34 +1096,20 @@ public class BatchJobService implements ModuleEventListener {
    */
   protected void postProcessCreateErrorResults(final AppLog log, final BatchJob batchJob,
     final Identifier batchJobId) {
-    if (!batchJob.isCancelled()) {
-      final List<MapEx> files = this.jobController.getFiles(batchJobId, JobController.GROUP_ERRORS);
-      if (!files.isEmpty()) {
-        final File errorFile = FileUtil.newTempFile("errors", ".csv");
-        try {
-          try (
-            MapWriter errorWriter = MapWriter.newMapWriter(errorFile)) {
-            for (final MapEx errorFileProperties : files) {
-              final int sequenceNumber = errorFileProperties.getInteger("sequenceNumber");
-              try (
-                MapReader errorReader = this.jobController.getGroupErrorReader(batchJobId,
-                  sequenceNumber)) {
-                for (final MapEx error : errorReader) {
-                  errorWriter.write(error);
-                }
-              }
-            }
-          }
-          if (!batchJob.isCancelled()) {
-            newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE,
-              errorFile, 0);
-          }
-        } catch (final Throwable e) {
-          throw new RuntimeException("Unable to save errors", e);
-        } finally {
-          Transaction.afterCommit(errorFile::delete);
-        }
+    final File errorFile = FileUtil.newTempFile("errors", ".csv");
+    try {
+      try (
+        MapWriter errorWriter = MapWriter.newMapWriter(errorFile)) {
+        writeErrorResults(log, batchJob, batchJobId, errorWriter);
       }
+      if (!batchJob.isCancelled()) {
+        newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE, errorFile,
+          0);
+      }
+    } catch (final Throwable e) {
+      throw new RuntimeException("Unable to save errors", e);
+    } finally {
+      Transaction.afterCommit(errorFile::delete);
     }
   }
 
@@ -1139,47 +1124,13 @@ public class BatchJobService implements ModuleEventListener {
     final AppLog log, final BatchJob batchJob, final Identifier batchJobId) {
     if (!batchJob.isCancelled()) {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-
-      final RecordDefinition resultRecordDefinition = businessApplication
-        .getResultRecordDefinition();
-
       final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
       final File structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
 
-      boolean hasResults = false;
       try {
-        try (
-          com.revolsys.io.Writer<Record> structuredResultWriter = newStructuredResultWriter(
-            batchJob, batchJobId, businessApplication, structuredResultFile, resultRecordDefinition,
-            resultFormat)) {
-          structuredResultWriter.open();
-          final Map<String, Object> defaultProperties = new HashMap<>(
-            structuredResultWriter.getProperties());
-          final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
-          if (numSubmittedGroups > 0) {
-            for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
-              try (
-                final MapReader resultDataReader = this.jobController
-                  .getGroupResultReader(batchJobId, sequenceNumber);) {
-                if (resultDataReader != null) {
-                  for (final MapEx resultData : resultDataReader) {
-                    if (batchJob.isCancelled()) {
-                      return;
-                    } else {
-                      postProcessWriteStructuredResult(structuredResultWriter,
-                        resultRecordDefinition, defaultProperties, resultData);
-                      hasResults = true;
-                    }
-                  }
-                }
-              } catch (final Throwable e) {
-                throw new RuntimeException("Unable to read results. batchJobId=" + batchJobId + "\t"
-                  + " <= SEQUENCE_NUMBER = " + sequenceNumber, e);
-              }
-            }
-          }
-        }
-        if (hasResults && !batchJob.isCancelled()) {
+        final PathResource resource = new PathResource(structuredResultFile);
+        if (writeStructuredResults(businessApplication, log, batchJob, batchJobId, resource)
+          && !batchJob.isCancelled()) {
           newBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
             structuredResultFile, 1);
         }
@@ -1831,6 +1782,70 @@ public class BatchJobService implements ModuleEventListener {
     if (waitTime > 0) {
       Logs.error(logClass, "Waiting " + waitTime / 1000 + " seconds for tablespace error");
       ThreadUtil.pause(waitTime);
+    }
+  }
+
+  public void writeErrorResults(final AppLog log, final BatchJob batchJob,
+    final Identifier batchJobId, final MapWriter errorWriter) {
+    if (!batchJob.isCancelled()) {
+      final List<MapEx> files = this.jobController.getFiles(batchJobId, JobController.GROUP_ERRORS);
+      if (!files.isEmpty()) {
+        for (final MapEx errorFileProperties : files) {
+          final int sequenceNumber = errorFileProperties.getInteger("sequenceNumber");
+          try (
+            MapReader errorReader = this.jobController.getGroupErrorReader(batchJobId,
+              sequenceNumber)) {
+            for (final MapEx error : errorReader) {
+              errorWriter.write(error);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public boolean writeStructuredResults(final BusinessApplication businessApplication,
+    final AppLog log, final BatchJob batchJob, final Identifier batchJobId,
+    final com.revolsys.spring.resource.Resource resource) {
+    if (batchJob.isCancelled()) {
+      return false;
+    } else {
+      final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+      final RecordDefinition resultRecordDefinition = businessApplication
+        .getResultRecordDefinition();
+      boolean hasResults = false;
+      try (
+        com.revolsys.io.Writer<Record> structuredResultWriter = newStructuredResultWriter(batchJob,
+          batchJobId, businessApplication, resource, resultRecordDefinition, resultFormat)) {
+        structuredResultWriter.open();
+        final Map<String, Object> defaultProperties = new HashMap<>(
+          structuredResultWriter.getProperties());
+        final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
+        if (numSubmittedGroups > 0) {
+          for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
+            try (
+              final MapReader resultDataReader = this.jobController.getGroupResultReader(batchJobId,
+                sequenceNumber);) {
+              if (resultDataReader != null) {
+                for (final MapEx resultData : resultDataReader) {
+                  if (batchJob.isCancelled()) {
+                    return false;
+                  } else {
+                    postProcessWriteStructuredResult(structuredResultWriter, resultRecordDefinition,
+                      defaultProperties, resultData);
+                    hasResults = true;
+                  }
+                }
+              }
+            } catch (final Throwable e) {
+              throw new RuntimeException("Unable to read results. batchJobId=" + batchJobId + "\t"
+                + ", SEQUENCE_NUMBER = " + sequenceNumber, e);
+            }
+          }
+        }
+      }
+      return hasResults;
     }
   }
 }

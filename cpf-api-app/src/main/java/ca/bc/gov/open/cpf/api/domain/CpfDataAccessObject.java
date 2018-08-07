@@ -250,14 +250,12 @@ public class CpfDataAccessObject implements Transactionable {
     final Query query = Query.equal(this.userGroupRecordDefinition, UserGroup.MODULE_NAME,
       moduleName);
     int i = 0;
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       for (final Record userGroup : reader) {
         deleteUserGroup(userGroup);
         i++;
       }
-    } finally {
-      reader.close();
     }
     return i;
   }
@@ -371,22 +369,18 @@ public class CpfDataAccessObject implements Transactionable {
       BatchJobResult.BATCH_JOB_ID, batchJobId);
     query.setFieldNames(BatchJobResult.ALL_EXCEPT_BLOB);
     query.addOrderBy(BatchJobResult.SEQUENCE_NUMBER, true);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       return reader.toList();
-    } finally {
-      reader.close();
     }
   }
 
   public List<Record> getBatchJobsForUser(final String consumerKey) {
     final Query query = Query.equal(this.batchJobRecordDefinition, BatchJob.USER_ID, consumerKey);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       return reader.toList();
-    } finally {
-      reader.close();
     }
   }
 
@@ -398,11 +392,9 @@ public class CpfDataAccessObject implements Transactionable {
     final Query query = Query.and(this.batchJobRecordDefinition, filter);
 
     query.addOrderBy(BatchJob.BATCH_JOB_ID, false);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       return reader.toList();
-    } finally {
-      reader.close();
     }
   }
 
@@ -430,11 +422,9 @@ public class CpfDataAccessObject implements Transactionable {
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     final Query query = Query.and(this.configPropertyRecordDefinition, filter);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       return reader.toList();
-    } finally {
-      reader.close();
     }
   }
 
@@ -445,11 +435,9 @@ public class CpfDataAccessObject implements Transactionable {
     filter.put(ConfigProperty.MODULE_NAME, moduleName);
     filter.put(ConfigProperty.COMPONENT_NAME, componentName);
     final Query query = Query.and(this.configPropertyRecordDefinition, filter);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       return reader.toList();
-    } finally {
-      reader.close();
     }
   }
 
@@ -481,16 +469,14 @@ public class CpfDataAccessObject implements Transactionable {
       Q.lessThan(this.batchJobRecordDefinition.getField(BatchJob.WHEN_STATUS_CHANGED),
         keepUntilTimestamp));
     query.setWhereCondition(and);
-    final Reader<Record> batchJobs = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> batchJobs = this.recordStore.getRecords(query)) {
       final List<Identifier> batchJobIds = new ArrayList<>();
       for (final Record batchJob : batchJobs) {
         final Identifier batchJobId = batchJob.getIdentifier(BatchJob.BATCH_JOB_ID);
         batchJobIds.add(batchJobId);
       }
       return batchJobIds;
-    } finally {
-      batchJobs.close();
     }
   }
 
@@ -539,11 +525,9 @@ public class CpfDataAccessObject implements Transactionable {
       };
       final Or or = new Or(conditions);
       final Query query = new Query(UserAccount.USER_ACCOUNT, or);
-      final Reader<Record> reader = this.recordStore.getRecords(query);
-      try {
+      try (
+        final Reader<Record> reader = this.recordStore.getRecords(query)) {
         return Lists.toArray(reader, 20);
-      } finally {
-        reader.close();
       }
     } else {
       return Collections.emptyList();
@@ -587,22 +571,18 @@ public class CpfDataAccessObject implements Transactionable {
     filter.put(UserGroupPermission.USER_GROUP_ID, userGroup.getIdentifier());
     filter.put(UserGroupPermission.MODULE_NAME, moduleName);
     final Query query = Query.and(this.userGroupPermissionRecordDefinition, filter);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       return reader.toList();
-    } finally {
-      reader.close();
     }
   }
 
   public List<Record> getUserGroupsForModule(final String moduleName) {
     final Query query = Query.equal(this.userGroupRecordDefinition, UserGroup.MODULE_NAME,
       moduleName);
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       return reader.toList();
-    } finally {
-      reader.close();
     }
   }
 
@@ -612,12 +592,10 @@ public class CpfDataAccessObject implements Transactionable {
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
     query.setWhereCondition(Q.equal("X.USER_ACCOUNT_ID", userAccount.getIdentifier().getLong(0)));
-    final Reader<Record> reader = this.recordStore.getRecords(query);
-    try {
+    try (
+      final Reader<Record> reader = this.recordStore.getRecords(query)) {
       final List<Record> groups = reader.toList();
       return new LinkedHashSet<>(groups);
-    } finally {
-      reader.close();
     }
   }
 
