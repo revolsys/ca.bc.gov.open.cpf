@@ -49,9 +49,6 @@ import javax.servlet.annotation.WebListener;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-import org.apache.log4j.rolling.FixedWindowRollingPolicy;
-import org.apache.log4j.rolling.RollingFileAppender;
-import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
 import org.glassfish.tyrus.client.ClientManager;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
@@ -408,7 +405,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
-  @SuppressWarnings("deprecation")
   private void initLogging() {
     final Logger logger = Logger.getRootLogger();
     logger.removeAllAppenders();
@@ -420,22 +416,9 @@ public class WorkerScheduler extends ThreadPoolExecutor
       appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
       logger.addAppender(appender);
     } else {
-      final String baseFileName = rootDirectory + "/" + "worker_" + this.id.replaceAll(":", "_");
-      final String activeFileName = baseFileName + ".log";
-      final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-      rollingPolicy.setActiveFileName(activeFileName);
-      final String fileNamePattern = baseFileName + ".%i.log";
-      rollingPolicy.setFileNamePattern(fileNamePattern);
-
-      final RollingFileAppender appender = new RollingFileAppender();
-
-      appender.setFile(activeFileName);
-      appender.setRollingPolicy(rollingPolicy);
-      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-      appender.rollover();
-      logger.addAppender(appender);
+      final String id = this.id.replaceAll(":", "-");
+      ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-" + id, "cpf-worker-all");
+      ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-app-" + id, "cpf-worker");
     }
   }
 

@@ -39,6 +39,8 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.rolling.FixedWindowRollingPolicy;
 import org.apache.log4j.rolling.RollingFileAppender;
@@ -126,6 +128,26 @@ public class ClassLoaderModule implements Module {
     "application/vnd.google-earth.kmz", "application/x-geo+json", "application/x-shp",
     "application/x-shp+zip", "application/xhtml+xml", "text/csv", "text/html",
     "text/tab-separated-values", "text/x-wkt", "text/xml");
+
+  @SuppressWarnings("deprecation")
+  public static void addAppender(final org.apache.log4j.Logger logger, final String baseFileName,
+    final String name) {
+    final String activeFileName = baseFileName + ".log";
+    final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+    rollingPolicy.setActiveFileName(activeFileName);
+    final String fileNamePattern = baseFileName + ".%i.log";
+    rollingPolicy.setFileNamePattern(fileNamePattern);
+
+    final RollingFileAppender appender = new RollingFileAppender();
+    appender.setName(name);
+    appender.setFile(activeFileName);
+    appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+    appender.setRollingPolicy(rollingPolicy);
+    appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
+    appender.activateOptions();
+    appender.rollover();
+    logger.addAppender(appender);
+  }
 
   private GenericApplicationContext applicationContext;
 
@@ -955,34 +977,26 @@ public class ClassLoaderModule implements Module {
     }
     final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
     synchronized (logger) {
-      logger.removeAllAppenders();
+
       final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
         logger.setAdditivity(true);
       } else {
         logger.setAdditivity(false);
-
+        for (final String appenderName : Arrays.asList("cpf-master-all", "cpf-worker-all")) {
+          final Logger rootLogger = Logger.getRootLogger();
+          final Appender appender = rootLogger.getAppender(appenderName);
+          if (appender != null) {
+            logger.addAppender(appender);
+          }
+        }
         File logDirectory = FileUtil.getDirectory(rootDirectory, this.name);
         if (isApp) {
           logDirectory = FileUtil.getDirectory(logDirectory, businessApplicationName);
         }
 
         final String baseFileName = logDirectory + "/" + fileName;
-        final String activeFileName = baseFileName + ".log";
-        final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-        rollingPolicy.setActiveFileName(activeFileName);
-        final String fileNamePattern = baseFileName + ".%i.log";
-        rollingPolicy.setFileNamePattern(fileNamePattern);
-
-        final RollingFileAppender appender = new RollingFileAppender();
-        appender.setName(businessApplicationName);
-        appender.setFile(activeFileName);
-        appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-        appender.setRollingPolicy(rollingPolicy);
-        appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-        appender.activateOptions();
-        appender.rollover();
-        logger.addAppender(appender);
+        addAppender(logger, baseFileName, businessApplicationName);
       }
     }
   }
