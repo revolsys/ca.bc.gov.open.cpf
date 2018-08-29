@@ -27,6 +27,8 @@ import java.util.Set;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
+import javax.websocket.CloseReason.CloseCode;
+import javax.websocket.CloseReason.CloseCodes;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -228,7 +230,10 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
       @Override
       public boolean onDisconnect(final CloseReason closeReason) {
         if (WorkerMessageHandler.this.running) {
-          return handleError("Connection error: " + closeReason.getReasonPhrase(), null);
+          final int code = closeReason.getCloseCode().getCode();
+          final CloseCode closeCode = CloseCodes.getCloseCode(code);
+          final String reason = closeCode + " " + closeReason.getReasonPhrase();
+          return handleError("Connection error: " + reason, null);
         } else {
           return false;
         }
