@@ -112,7 +112,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private long lastPingTime;
 
-  private final long maxTimeBetweenPings = 5 * 60;
+  private final long maxTimeBetweenPings = 2 * 60 * 1000;
 
   private final int maxTimeout = 60;
 
@@ -448,16 +448,16 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   public boolean processNextTask() {
-    if (System.currentTimeMillis() > this.lastPingTime + this.maxTimeBetweenPings * 1000) {
+    final long time = System.currentTimeMillis();
+    final long nextPingTime = this.lastPingTime + this.maxTimeBetweenPings;
+    if (time > nextPingTime) {
       addExecutingGroupsMessage();
     }
     if (!isRunning()) {
       return false;
     }
-    final long time = System.currentTimeMillis();
     if (this.taskCount.get() >= getMaximumPoolSize()) {
       addExecutingGroupsMessage();
-      this.lastPingTime = time;
       return false;
     } else {
       try {

@@ -187,56 +187,49 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     config.put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
     config.put(ClientProperties.RECONNECT_HANDLER, new ReconnectHandler() {
 
-      @Override
-      public long getDelay() {
-        return WorkerMessageHandler.this.reconnectDelay;
-      }
-
-      public boolean handleError(final String message, final Exception exception) {
-        final long time = System.currentTimeMillis();
-        if (WorkerMessageHandler.this.reconnectDelay < 60) {
-          WorkerMessageHandler.this.reconnectDelay += 10;
-        }
-        final int oneHour = 60 * 60 * 1000;
-        if (WorkerMessageHandler.this.lastErrorTimestamp < WorkerMessageHandler.this.lastConnectTimestamp
-          || WorkerMessageHandler.this.lastErrorTimestamp + oneHour < time) {
-          Logs.error(WorkerMessageHandler.class, message, exception);
-        }
-        WorkerMessageHandler.this.lastErrorTimestamp = time;
-        new Thread(() -> {
-          synchronized (this) {
-            try {
-              wait(WorkerMessageHandler.this.reconnectDelay * 1000);
-            } catch (final InterruptedException e) {
+      public boolean handleMessage(final String message, final Exception exception) {
+        if (WorkerMessageHandler.this.running) {
+          final long time = System.currentTimeMillis();
+          if (WorkerMessageHandler.this.reconnectDelay < 60) {
+            WorkerMessageHandler.this.reconnectDelay += 10;
+          }
+          final int oneHour = 60 * 60 * 1000;
+          if (WorkerMessageHandler.this.lastErrorTimestamp < WorkerMessageHandler.this.lastConnectTimestamp
+            || WorkerMessageHandler.this.lastErrorTimestamp + oneHour < time) {
+            if (exception == null) {
+              Logs.info(WorkerMessageHandler.class, message);
+            } else {
+              Logs.error(WorkerMessageHandler.class, message, exception);
             }
           }
-          if (WorkerMessageHandler.this.running) {
-            connect();
-          }
-        }).start();
+          WorkerMessageHandler.this.lastErrorTimestamp = time;
+          new Thread(() -> {
+            synchronized (this) {
+              try {
+                wait(WorkerMessageHandler.this.reconnectDelay * 1000);
+              } catch (final InterruptedException e) {
+              }
+            }
+            if (WorkerMessageHandler.this.running) {
+              connect();
+            }
+          }).start();
+        }
         return false;
       }
 
       @Override
       public boolean onConnectFailure(final Exception exception) {
-        if (WorkerMessageHandler.this.running) {
-          final String message = "Connection Error: " + exception.getMessage();
-          return handleError(message, exception);
-        } else {
-          return false;
-        }
+        final String message = "Master disconnected " + exception.getMessage();
+        return handleMessage(message, exception);
       }
 
       @Override
       public boolean onDisconnect(final CloseReason closeReason) {
-        if (WorkerMessageHandler.this.running) {
-          final int code = closeReason.getCloseCode().getCode();
-          final CloseCode closeCode = CloseCodes.getCloseCode(code);
-          final String reason = closeCode + " " + closeReason.getReasonPhrase();
-          return handleError("Connection error: " + reason, null);
-        } else {
-          return false;
-        }
+        final int code = closeReason.getCloseCode().getCode();
+        final CloseCode closeCode = CloseCodes.getCloseCode(code);
+        final String reason = closeCode + " " + closeReason.getReasonPhrase();
+        return handleMessage("Master disconnected " + reason, null);
       }
     });
   }
@@ -418,7 +411,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     this.lastConnectTimestamp = System.currentTimeMillis();
     this.reconnectDelay = 0;
     this.messageSender.setSession(session);
-    Logs.info(this, "Connected to server: " + this.webSocketUrl);
+    Logs.info(this, "Master connected " + this.webSocketUrl);
   }
 
   public void sendMessage(final MapEx message) {

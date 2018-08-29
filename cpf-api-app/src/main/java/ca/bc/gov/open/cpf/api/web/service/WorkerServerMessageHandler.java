@@ -15,8 +15,6 @@
  */
 package ca.bc.gov.open.cpf.api.web.service;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -196,22 +194,16 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnClose
   public void onClose(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
+    String message = "Worker disconnected " + workerId + " (" + workerStartTime + ")";
+    Logs.info(this, message);
     this.batchJobService.setWorkerDisconnected(workerId, workerStartTime, session);
   }
 
   @OnError
-  public void onError(final Session session, final Throwable e) {
-    if (e instanceof SocketTimeoutException) {
-      Logs.warn(this, "Websocket timeout: " + session);
-      try {
-        session.close();
-      } catch (final IOException ioe) {
-        Logs.error(this, "Error closing: " + session, e);
-
-      }
-    } else {
-      Logs.error(this, "Websocket error: " + session, e);
-    }
+  public void onError(@PathParam("workerId") final String workerId,
+    @PathParam("startTime") final long workerStartTime, final Session session, final Throwable e) {
+    String message = "Worker error " + workerId + " (" + workerStartTime + ")";
+    Logs.error(this, message, e);
   }
 
   @OnMessage
@@ -235,6 +227,8 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnOpen
   public void onOpen(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
+    String message = "Worker connected " + workerId + " (" + workerStartTime + ")";
+    Logs.info(this, message);
     if (this.businessApplicationRegistry == null) {
       final WebApplicationContext wac = (WebApplicationContext)ContextLoader
         .getCurrentWebApplicationContext()
