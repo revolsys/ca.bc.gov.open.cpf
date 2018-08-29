@@ -815,14 +815,16 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public Worker getWorkerByKey(final String workerKey) {
-    synchronized (this.workersByKey) {
+    synchronized (this.workersById) {
       final Worker worker = this.workersByKey.get(workerKey);
       return worker;
     }
   }
 
   public List<Worker> getWorkers() {
-    return new ArrayList<>(this.workersByKey.values());
+    synchronized (this.workersById) {
+      return new ArrayList<>(this.workersByKey.values());
+    }
   }
 
   @PostConstruct
@@ -1260,31 +1262,28 @@ public class BatchJobService implements ModuleEventListener {
   public void resetHungWorkers() {
     final Timestamp lastIdleTime = new Timestamp(
       System.currentTimeMillis() - this.maxWorkerWaitTime * 2);
-    ArrayList<String> workerIds;
     synchronized (this.workersById) {
-      workerIds = new ArrayList<>(this.workersById.keySet());
-    }
-    for (final String workerId : workerIds) {
-      if (!this.connectedWorkerCounts.containsKey(workerId)) {
-        Worker worker = getWorker(workerId);
-        if (worker != null) {
-          final Timestamp workerTimestamp = worker.getLastConnectTime();
-          if (workerTimestamp == null || workerTimestamp.before(lastIdleTime)) {
-            synchronized (this.workersById) {
+      final ArrayList<String> workerIds = new ArrayList<>(this.workersById.keySet());
+      for (final String workerId : workerIds) {
+        if (!this.connectedWorkerCounts.containsKey(workerId)) {
+          Worker worker = getWorker(workerId);
+          if (worker != null) {
+            final Timestamp workerTimestamp = worker.getLastConnectTime();
+            if (workerTimestamp == null || workerTimestamp.before(lastIdleTime)) {
               worker = this.workersById.remove(workerId);
               this.workersByKey.remove(worker.getKey());
-            }
-            final Map<String, BatchJobRequestExecutionGroup> groupsById = worker
-              .getExecutingGroupsById();
-            if (groupsById != null) {
-              synchronized (groupsById) {
-                for (final BatchJobRequestExecutionGroup group : new ArrayList<>(
-                  groupsById.values())) {
-                  final String groupId = group.getId();
-                  Logs.debug(this, "Rescheduling group " + groupId + " from worker " + workerId);
-                  worker.removeExecutingGroup(groupId);
-                  group.resetId();
-                  rescheduleGroup(group);
+              final Map<String, BatchJobRequestExecutionGroup> groupsById = worker
+                .getExecutingGroupsById();
+              if (groupsById != null) {
+                synchronized (groupsById) {
+                  for (final BatchJobRequestExecutionGroup group : new ArrayList<>(
+                    groupsById.values())) {
+                    final String groupId = group.getId();
+                    Logs.debug(this, "Rescheduling group " + groupId + " from worker " + workerId);
+                    worker.removeExecutingGroup(groupId);
+                    group.resetId();
+                    rescheduleGroup(group);
+                  }
                 }
               }
             }
@@ -1292,6 +1291,7 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
     }
+
   }
 
   /**
@@ -1606,52 +1606,49 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setWorkerConnected(final String workerId, final long workerStartTime,
     final Session session) {
-    synchronized (this.connectedWorkerCounts) {
+    synchronized (this.workersById) {
       Maps.addCount(this.connectedWorkerCounts, workerId);
 
-      synchronized (this.workersById) {
-        Worker worker = this.workersById.get(workerId);
-        if (worker == null || worker.getStartTime() != workerStartTime) {
-          worker = new Worker(workerId, workerStartTime);
-          worker.setSession(session);
-          this.workersById.put(workerId, worker);
-          this.workersByKey.put(worker.getKey(), worker);
-          for (final Module module : this.businessApplicationRegistry.getModules()) {
-            if (module.isStarted()) {
-              final MapEx message = new LinkedHashMapEx();
-              message.put("type", "moduleStart");
+      Worker worker = this.workersById.get(workerId);
+      if (worker == null || worker.getStartTime() != workerStartTime) {
+        worker = new Worker(workerId, workerStartTime);
+        worker.setSession(session);
+        this.workersById.put(workerId, worker);
+        this.workersByKey.put(worker.getKey(), worker);
+        for (final Module module : this.businessApplicationRegistry.getModules()) {
+          if (module.isStarted()) {
+            final MapEx message = new LinkedHashMapEx();
+            message.put("type", "moduleStart");
 
-              final String name = module.getName();
-              message.put("moduleName", name);
+            final String name = module.getName();
+            message.put("moduleName", name);
 
-              final long startedTime = module.getStartedTime();
-              message.put("moduleTime", startedTime);
+            final long startedTime = module.getStartedTime();
+            message.put("moduleTime", startedTime);
 
-              final int jarCount = module.getJarCount();
-              message.put("moduleJarCount", jarCount);
+            final int jarCount = module.getJarCount();
+            message.put("moduleJarCount", jarCount);
 
-              worker.sendMessage(message);
-            }
+            worker.sendMessage(message);
           }
         }
-        final long time = System.currentTimeMillis();
-        final Timestamp lastConnectTime = new Timestamp(time);
-        worker.setLastConnectTime(lastConnectTime);
+      } else {
+        worker.setSession(session);
       }
+      final long time = System.currentTimeMillis();
+      final Timestamp lastConnectTime = new Timestamp(time);
+      worker.setLastConnectTime(lastConnectTime);
     }
   }
 
   public void setWorkerConnectTime(final String workerId, final long workerStartTime) {
-    synchronized (this.connectedWorkerCounts) {
-      synchronized (this.workersById) {
-        final Worker worker = this.workersById.get(workerId);
-        if (worker != null) {
-          if (worker.getStartTime() == workerStartTime) {
-            final long time = System.currentTimeMillis();
-            final Timestamp lastConnectTime = new Timestamp(time);
-            worker.setLastConnectTime(lastConnectTime);
-          }
-
+    synchronized (this.workersById) {
+      final Worker worker = this.workersById.get(workerId);
+      if (worker != null) {
+        if (worker.getStartTime() == workerStartTime) {
+          final long time = System.currentTimeMillis();
+          final Timestamp lastConnectTime = new Timestamp(time);
+          worker.setLastConnectTime(lastConnectTime);
         }
       }
     }
@@ -1659,7 +1656,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setWorkerDisconnected(final String workerId, final long workerStartTime,
     final Session session) {
-    synchronized (this.connectedWorkerCounts) {
+    synchronized (this.workersById) {
       Integer count = this.connectedWorkerCounts.get(workerId);
       if (count != null) {
         count = count - 1;
@@ -1670,13 +1667,10 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
 
-      synchronized (this.workersById) {
-        final Worker worker = this.workersById.get(workerId);
-        if (worker != null) {
-          this.workersByKey.remove(worker.getKey());
-          if (worker.getSession() == session) {
-            worker.setSession(null);
-          }
+      final Worker worker = this.workersById.get(workerId);
+      if (worker != null) {
+        if (worker.isSession(session)) {
+          worker.setSession(null);
         }
       }
     }

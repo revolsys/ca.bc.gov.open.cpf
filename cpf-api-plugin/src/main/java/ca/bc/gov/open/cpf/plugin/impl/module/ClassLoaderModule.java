@@ -88,6 +88,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.logging.log4j.WrappedAppender;
 import com.revolsys.open.compiler.annotation.Documentation;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.property.FieldProperties;
@@ -964,7 +965,6 @@ public class ClassLoaderModule implements Module {
     return getBusinessApplication(businessApplicationName) != null;
   }
 
-  @SuppressWarnings("deprecation")
   private void initAppLogAppender(final String businessApplicationName) {
     final String fileName;
     String logName = this.name;
@@ -987,7 +987,7 @@ public class ClassLoaderModule implements Module {
           final Logger rootLogger = Logger.getRootLogger();
           final Appender appender = rootLogger.getAppender(appenderName);
           if (appender != null) {
-            logger.addAppender(appender);
+            logger.addAppender(new WrappedAppender(appender));
           }
         }
         File logDirectory = FileUtil.getDirectory(rootDirectory, this.name);

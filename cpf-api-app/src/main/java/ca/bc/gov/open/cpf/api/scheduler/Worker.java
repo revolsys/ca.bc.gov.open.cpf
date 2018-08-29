@@ -15,6 +15,8 @@
  */
 package ca.bc.gov.open.cpf.api.scheduler;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +34,7 @@ import com.revolsys.identifier.Identifier;
 import com.revolsys.util.Property;
 import com.revolsys.websocket.json.JsonAsyncSender;
 
-public class Worker {
+public class Worker implements Closeable {
   private final Map<String, BatchJobRequestExecutionGroup> executingGroupsById = new TreeMap<>();
 
   private final Map<String, Set<BatchJobRequestExecutionGroup>> executingGroupsIdByModule = new TreeMap<>();
@@ -43,11 +45,9 @@ public class Worker {
 
   private final Map<String, WorkerModuleState> moduleStates = new TreeMap<>();
 
-  private Session session;
-
   private final long startTime;
 
-  private JsonAsyncSender messageSender;
+  private final JsonAsyncSender messageSender = new JsonAsyncSender();
 
   private final String key;
 
@@ -102,6 +102,11 @@ public class Worker {
     }
   }
 
+  @Override
+  public void close() throws IOException {
+    this.messageSender.close();
+  }
+
   public BatchJobRequestExecutionGroup getExecutingGroup(final String groupId) {
     final String[] ids = groupId.split("-");
     final String baseId = ids[0] + "-" + ids[1];
@@ -149,12 +154,12 @@ public class Worker {
     }
   }
 
-  public Session getSession() {
-    return this.session;
-  }
-
   public long getStartTime() {
     return this.startTime;
+  }
+
+  public boolean isSession(final Session session) {
+    return this.messageSender.isSession(session);
   }
 
   public BatchJobRequestExecutionGroup removeExecutingGroup(final String groupId) {
@@ -174,10 +179,7 @@ public class Worker {
   }
 
   public synchronized void sendMessage(final MapEx message) {
-    final JsonAsyncSender sender = this.messageSender;
-    if (sender != null) {
-      sender.sendMessage(message);
-    }
+    this.messageSender.sendMessage(message);
   }
 
   public void setLastConnectTime(final Timestamp lastConnectTime) {
@@ -185,23 +187,14 @@ public class Worker {
   }
 
   public boolean setMessageResult(final MapEx message) {
-    final JsonAsyncSender messageSender = this.messageSender;
-    if (messageSender != null) {
-      return messageSender.setResult(message);
-    }
-    return false;
+    return this.messageSender.setResult(message);
   }
 
   public synchronized void setSession(final Session session) {
-    this.session = session;
-    final JsonAsyncSender messageSender = this.messageSender;
     if (session == null) {
-      this.messageSender = null;
+      this.messageSender.clearSession();
     } else {
-      this.messageSender = new JsonAsyncSender(session);
-    }
-    if (messageSender != null) {
-      messageSender.close();
+      this.messageSender.setSession(session);
     }
   }
 

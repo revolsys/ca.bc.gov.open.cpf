@@ -60,38 +60,36 @@ public class WorkerConfigPropertyLoader extends BeanConfigurrer implements Confi
     final String moduleName, final String componentName) {
     try {
       final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
-      if (messageSender != null) {
-        final MapEx message = new LinkedHashMapEx("type", "moduleConfigLoad");
-        message.put("moduleName", moduleName);
-        message.put("environmentName", environmentName);
-        message.put("componentName", componentName);
-        return messageSender.sendAndWait(message, new AsyncResult<MapEx>() {
-          @Override
-          public <V> V getResult(final MapEx result) {
-            final Map<String, Object> configProperties = new HashMap<>();
-            final List<Map<String, Object>> configPropertyList = (List<Map<String, Object>>)result
-              .get("properties");
-            for (final Map<String, Object> configProperty : configPropertyList) {
-              final String name = (String)configProperty.get("PROPERTY_NAME");
-              if (Property.hasValue(name)) {
-                final String stringValue = (String)configProperty.get("PROPERTY_VALUE");
-                if (Property.hasValue(stringValue)) {
-                  final String type = (String)configProperty.get("PROPERTY_VALUE_TYPE");
-                  final DataType dataType = DataTypes.getDataType(type);
-                  Object value = stringValue;
-                  if (dataType != null) {
-                    value = dataType.toObject(stringValue);
-                  }
-                  configProperties.put(name, value);
-                } else {
-                  configProperties.put(name, null);
+      final MapEx message = new LinkedHashMapEx("type", "moduleConfigLoad");
+      message.put("moduleName", moduleName);
+      message.put("environmentName", environmentName);
+      message.put("componentName", componentName);
+      return messageSender.sendAndWait(message, new AsyncResult<MapEx>() {
+        @Override
+        public <V> V getResult(final MapEx result) {
+          final Map<String, Object> configProperties = new HashMap<>();
+          final List<Map<String, Object>> configPropertyList = (List<Map<String, Object>>)result
+            .get("properties");
+          for (final Map<String, Object> configProperty : configPropertyList) {
+            final String name = (String)configProperty.get("PROPERTY_NAME");
+            if (Property.hasValue(name)) {
+              final String stringValue = (String)configProperty.get("PROPERTY_VALUE");
+              if (Property.hasValue(stringValue)) {
+                final String type = (String)configProperty.get("PROPERTY_VALUE_TYPE");
+                final DataType dataType = DataTypes.getDataType(type);
+                Object value = stringValue;
+                if (dataType != null) {
+                  value = dataType.toObject(stringValue);
                 }
+                configProperties.put(name, value);
+              } else {
+                configProperties.put(name, null);
               }
             }
-            return (V)configProperties;
           }
-        });
-      }
+          return (V)configProperties;
+        }
+      });
     } catch (final Throwable e) {
       Logs.error(this, "Unable to get config properties for " + moduleName, e);
     }
