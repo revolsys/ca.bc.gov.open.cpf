@@ -126,8 +126,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
       this.webSocketUrl = webServiceUrl.replaceFirst("http", "ws") + workerPath + "/message";
       try {
         final URI webSocketUri = new URI(this.webSocketUrl);
-        final Session session = this.client.connectToServer(this, webSocketUri);
-        session.setMaxIdleTimeout(10 * 60 * 1000);
+        this.client.connectToServer(this, webSocketUri);
         return;
       } catch (final URISyntaxException e) {
         Logs.error(this, "cpfClient.webServiceUrl not valid", e);
