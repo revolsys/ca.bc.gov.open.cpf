@@ -96,6 +96,8 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
 
   private final long startTime = System.currentTimeMillis();
 
+  private boolean connected;
+
   public WorkerMessageHandler(final WorkerScheduler scheduler) {
     this.scheduler = scheduler;
     this.configPropertyLoader = new WorkerConfigPropertyLoader(scheduler, this);
@@ -133,12 +135,14 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
       try {
         final URI webSocketUri = new URI(this.webSocketUrl);
         this.client.connectToServer(this, webSocketUri);
+        this.connected = true;
         return;
       } catch (final URISyntaxException e) {
         Logs.error(this, "cpfClient.webServiceUrl not valid", e);
         return;
       } catch (final Throwable e) {
-        if (first && System.currentTimeMillis() > this.startTime + 30 * 1000) {
+        // Don't log within 1 minute of the server starting up
+        if (first && System.currentTimeMillis() > this.startTime + 60 * 1000) {
           first = false;
           if (this.running) {
             waitTime = 60;
@@ -198,8 +202,8 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     config.put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
     config.put(ClientProperties.RECONNECT_HANDLER, new ReconnectHandler() {
 
-      public boolean handleMessage(final String message, final Exception exception) {
-        if (WorkerMessageHandler.this.running) {
+      private boolean handleMessage(final String message, final Exception exception) {
+        if (WorkerMessageHandler.this.running && WorkerMessageHandler.this.connected) {
           final long time = System.currentTimeMillis();
           if (WorkerMessageHandler.this.reconnectDelay < 60) {
             WorkerMessageHandler.this.reconnectDelay += 10;
@@ -231,7 +235,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
 
       @Override
       public boolean onConnectFailure(final Exception exception) {
-        final String message = "Master disconnected " + exception.getMessage();
+        final String message = "Master error " + exception.getMessage();
         return handleMessage(message, exception);
       }
 
