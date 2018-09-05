@@ -94,6 +94,8 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
 
   private String webSocketUrl;
 
+  private final long startTime = System.currentTimeMillis();
+
   public WorkerMessageHandler(final WorkerScheduler scheduler) {
     this.scheduler = scheduler;
     this.configPropertyLoader = new WorkerConfigPropertyLoader(scheduler, this);
@@ -122,6 +124,8 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
   }
 
   public void connect() {
+    boolean first = true;
+    int waitTime = 5;
     while (this.running) {
       final String workerPath = this.scheduler.getWorkerPath();
       final String webServiceUrl = this.scheduler.getWebServiceUrl();
@@ -132,13 +136,20 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
         return;
       } catch (final URISyntaxException e) {
         Logs.error(this, "cpfClient.webServiceUrl not valid", e);
+        return;
       } catch (final Throwable e) {
-        Logs.error(this, "Cannot connect to server: " + this.webSocketUrl, e);
+        if (first && System.currentTimeMillis() > this.startTime + 30 * 1000) {
+          first = false;
+          if (this.running) {
+            waitTime = 60;
+            Logs.error(this, "Cannot connect to server: " + this.webSocketUrl, e);
+          }
+        }
       }
       try {
         synchronized (this) {
           // Wait 1 minutes before trying again
-          wait(1000 * 60);
+          wait(1000 * waitTime);
         }
       } catch (final InterruptedException e) {
       }

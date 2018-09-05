@@ -112,7 +112,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private long lastPingTime;
 
-  private final long maxTimeBetweenPings = 2 * 60 * 1000;
+  private final long maxTimeBetweenPings = 60 * 1000;
 
   private final int maxTimeout = 60;
 
