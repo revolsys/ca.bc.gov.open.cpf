@@ -89,7 +89,6 @@ import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.logging.log4j.WrappedAppender;
-import com.revolsys.open.compiler.annotation.Documentation;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
@@ -510,14 +509,15 @@ public class ClassLoaderModule implements Module {
       final String description = pluginAnnotation.description();
       businessApplication.setDescription(description);
 
-      final Documentation detailedDescriptionAnnotation = pluginClass
-        .getAnnotation(Documentation.class);
-      if (detailedDescriptionAnnotation != null) {
-        final String detailedDescription = detailedDescriptionAnnotation.value();
-        if (Property.hasValue(detailedDescription)) {
-          businessApplication.setDetailedDescription(detailedDescription);
-        }
-      }
+      // final RetainJavaDocComment detailedDescriptionAnnotation = pluginClass
+      // .getAnnotation(RetainJavaDocComment.class);
+      // if (detailedDescriptionAnnotation != null) {
+      // final String detailedDescription =
+      // detailedDescriptionAnnotation.value();
+      // if (Property.hasValue(detailedDescription)) {
+      // businessApplication.setDetailedDescription(detailedDescription);
+      // }
+      // }
       final String title = pluginAnnotation.title();
       if (title != null && title.trim().length() > 0) {
         businessApplication.setTitle(title);
