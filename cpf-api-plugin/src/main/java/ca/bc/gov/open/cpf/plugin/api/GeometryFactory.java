@@ -39,7 +39,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequenceFactory;
 
 /**
- * <p>The CPF provides an extended version of the <a href="http://tsusiatsoftware.net/jts/main.html"/>Java Topology Suite (JTS)</a> GeometryFactory to create JTS geometries. The
+ * <p>The CPF provides an extended version of the <a href="http://tsusiatsoftware.net/jts/main.html">Java Topology Suite (JTS)</a> GeometryFactory to create JTS geometries. The
  * extended version includes support for coordinate system projection, precision model, and controls on the number of axis.</p>
  *
  * <p>The <code>GeometryFactory</code> does not provide a public constructor. <code>GeometryFactory</code> instances can

@@ -648,7 +648,7 @@
     <org.slf4j.version>1.7.21</org.slf4j.version>
     <skipWebDeploy>true</skipWebDeploy>
     <license.skipAggregateAddThirdParty>true</license.skipAggregateAddThirdParty>
-    <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
+    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
     <github.global.server>github</github.global.server>
     <gitHubUser>bcgov</gitHubUser>
     <gitHubProject>cpf</gitHubProject>
