@@ -28,8 +28,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.slf4j.Logger;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -969,10 +969,10 @@ public class BusinessApplication extends BaseObjectWithProperties
     this.log.setLogLevel(logLevel);
     final Level level = Level.toLevel(logLevel);
     final String moduleName = getModuleName();
-    Logger.getLogger(moduleName + "." + this.name).setLevel(level);
+    LoggerFactory.getLogger(moduleName + "." + this.name).setLevel(level);
     // Tempory fix for geocoder logging
-    Logger.getLogger(moduleName + ".ca").setLevel(level);
-    Logger.getLogger(getPackageName()).setLevel(level);
+    LoggerFactory.getLogger(moduleName + ".ca").setLevel(level);
+    LoggerFactory.getLogger(getPackageName()).setLevel(level);
   }
 
   public void setMaxConcurrentRequests(final int maxConcurrentRequests) {

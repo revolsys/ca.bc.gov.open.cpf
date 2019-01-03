@@ -15,8 +15,8 @@
  */
 package ca.bc.gov.open.cpf.plugin.api.log;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.slf4j.Logger;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 
@@ -50,7 +50,7 @@ public class AppLog {
   }
 
   public AppLog(final String name, final String logLevel) {
-    this.log = Logger.getLogger(name);
+    this.log = LoggerFactory.getLogger(name);
     setLogLevel(logLevel);
   }
 
@@ -59,7 +59,7 @@ public class AppLog {
     if (groupId == null || groupId.trim().length() == 0) {
       groupId = String.valueOf(System.currentTimeMillis());
     }
-    this.log = Logger.getLogger(moduleName + "." + businessApplicationName + "." + groupId);
+    this.log = LoggerFactory.getLogger(moduleName + "." + businessApplicationName + "." + groupId);
     setLogLevel(logLevel);
   }
 

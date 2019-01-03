@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -420,7 +420,7 @@ public class PluginAdaptor {
           try {
             final File file = File.createTempFile("cpf", ".out");
             resultData = new FileOutputStream(file);
-            Logger.getLogger(getClass()).info("Writing result to " + file);
+            LoggerFactory.getLogger(getClass()).info("Writing result to " + file);
           } catch (final IOException e) {
             resultData = System.out;
           }

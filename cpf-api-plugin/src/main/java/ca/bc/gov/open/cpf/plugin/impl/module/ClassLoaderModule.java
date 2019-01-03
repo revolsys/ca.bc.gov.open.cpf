@@ -39,12 +39,12 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.rolling.FixedWindowRollingPolicy;
-import org.apache.log4j.rolling.RollingFileAppender;
-import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.Appender;
+import org.slf4j.Logger;
+import org.apache.logging.log4j.PatternLayout;
+import org.apache.logging.log4j.rolling.FixedWindowRollingPolicy;
+import org.apache.logging.log4j.rolling.RollingFileAppender;
+import org.apache.logging.log4j.rolling.SizeBasedTriggeringPolicy;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -141,7 +141,7 @@ public class ClassLoaderModule implements Module {
     final RollingFileAppender appender = new RollingFileAppender();
     appender.setName(name);
     appender.setFile(activeFileName);
-    appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+    appender.setLayout(Logs.newLayout("%d\t%p\t%c\t%m%n"));
     appender.setRollingPolicy(rollingPolicy);
     appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
     appender.activateOptions();
@@ -316,7 +316,7 @@ public class ClassLoaderModule implements Module {
   }
 
   private void closeAppLogAppender(final String name) {
-    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(name);
+    final org.apache.log4j.Logger logger = org.apache.log4j.LoggerFactory.getLogger(name);
     synchronized (logger) {
       logger.removeAllAppenders();
       logger.setAdditivity(true);
@@ -975,7 +975,7 @@ public class ClassLoaderModule implements Module {
     } else {
       fileName = this.name + "_" + this.environmentId;
     }
-    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
+    final org.apache.log4j.Logger logger = org.apache.log4j.LoggerFactory.getLogger(logName);
     synchronized (logger) {
 
       final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();

@@ -36,7 +36,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
@@ -541,7 +541,7 @@ public class WorkerGroupRunnable implements Runnable {
           try {
             final File file = File.createTempFile("cpf", ".out");
             resultData = new FileOutputStream(file);
-            Logger.getLogger(getClass()).info("Writing result to " + file);
+            LoggerFactory.getLogger(getClass()).info("Writing result to " + file);
           } catch (final IOException e) {
             resultData = System.out;
           }

@@ -21,9 +21,9 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.ConsoleAppender;
+import org.slf4j.Logger;
+import org.apache.logging.log4j.PatternLayout;
 
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 
@@ -60,7 +60,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
       new ConsoleAppender().activateOptions();
       final ConsoleAppender appender = new ConsoleAppender();
       appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+      appender.setLayout(Logs.newLayout("%d\t%p\t%c\t%m%n"));
       logger.addAppender(appender);
     } else {
       ClassLoaderModule.addAppender(logger, rootDirectory + "/master", "cpf-master-all");

@@ -46,9 +46,9 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.ConsoleAppender;
+import org.slf4j.Logger;
+import org.apache.logging.log4j.PatternLayout;
 import org.glassfish.tyrus.client.ClientManager;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
@@ -413,7 +413,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
       new ConsoleAppender().activateOptions();
       final ConsoleAppender appender = new ConsoleAppender();
       appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+      appender.setLayout(Logs.newLayout("%d\t%p\t%c\t%m%n"));
       logger.addAppender(appender);
     } else {
       final String id = this.id.replaceAll(":", "-");
