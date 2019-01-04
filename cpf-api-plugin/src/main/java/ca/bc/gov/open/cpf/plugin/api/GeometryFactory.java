@@ -642,7 +642,7 @@ public class GeometryFactory extends com.vividsolutions.jts.geom.GeometryFactory
     if (numberText.length() == 0) {
       return null;
     } else {
-      return new Double(numberText);
+      return Double.valueOf(numberText);
     }
 
   }

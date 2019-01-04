@@ -413,7 +413,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
       final ConsoleAppender appender = ConsoleAppender
         .createDefaultAppenderForLayout(Logs.newLayout("%d\\t%p\\t%c\\t%m%n"));
       appender.start();
-
       logger.addAppender(appender);
     } else {
       final String id = this.id.replaceAll(":", "-");
