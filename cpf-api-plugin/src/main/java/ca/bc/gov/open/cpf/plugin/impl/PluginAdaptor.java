@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.log4j.Logger;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
@@ -52,6 +51,7 @@ import com.revolsys.geometry.model.Polygon;
 import com.revolsys.geometry.model.Polygonal;
 import com.revolsys.geometry.model.Punctual;
 import com.revolsys.io.LazyHttpPostOutputStream;
+import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
@@ -102,19 +102,19 @@ public class PluginAdaptor {
       } else if (LineString.class.isAssignableFrom(typeClass)) {
         value = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
       } else if (Polygon.class.isAssignableFrom(typeClass)) {
-        final BoundingBox boundingBox = GeometryFactory.wgs84().newBoundingBox(-125.0, 53.0, -125.1,
-          53.0);
+        final BoundingBox boundingBox = GeometryFactory.wgs84()
+          .newBoundingBox(-125.0, 53.0, -125.1, 53.0);
         value = boundingBox.toPolygon(10);
       } else if (Lineal.class.isAssignableFrom(typeClass)) {
         final LineString line1 = GeometryFactory.wgs84().lineString(2, -125.0, 53.0, -125.1, 53.0);
         final LineString line2 = GeometryFactory.wgs84().lineString(2, -125.2, 53.0, -125.3, 53.0);
         value = GeometryFactory.wgs84().lineal(line1, line2);
       } else if (Polygonal.class.isAssignableFrom(typeClass)) {
-        final BoundingBox boundingBox = GeometryFactory.wgs84().newBoundingBox(-125.0, 53.0, -125.1,
-          53.0);
+        final BoundingBox boundingBox = GeometryFactory.wgs84()
+          .newBoundingBox(-125.0, 53.0, -125.1, 53.0);
         final Polygon polygon1 = boundingBox.toPolygon(10);
-        final BoundingBox boundingBox2 = GeometryFactory.wgs84().newBoundingBox(-125.2, 53.0,
-          -125.3, 53.0);
+        final BoundingBox boundingBox2 = GeometryFactory.wgs84()
+          .newBoundingBox(-125.2, 53.0, -125.3, 53.0);
         final Polygon polygon2 = boundingBox2.toPolygon(10);
         value = GeometryFactory.wgs84().polygonal(polygon1, polygon2);
       } else if (Point.class.isAssignableFrom(typeClass)) {
@@ -158,7 +158,7 @@ public class PluginAdaptor {
           value = jtsGeometryFactory
             .createMultiLineString(new com.vividsolutions.jts.geom.LineString[] {
               line
-          });
+            });
         } else if (com.vividsolutions.jts.geom.MultiPolygon.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
@@ -420,7 +420,7 @@ public class PluginAdaptor {
           try {
             final File file = File.createTempFile("cpf", ".out");
             resultData = new FileOutputStream(file);
-            Logger.getLogger(getClass()).info("Writing result to " + file);
+            Logs.info(this, "Writing result to " + file);
           } catch (final IOException e) {
             resultData = System.out;
           }

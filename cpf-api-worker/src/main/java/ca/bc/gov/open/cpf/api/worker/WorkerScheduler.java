@@ -46,9 +46,9 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.glassfish.tyrus.client.ClientManager;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
@@ -406,14 +406,14 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   private void initLogging() {
-    final Logger logger = Logger.getRootLogger();
-    logger.removeAllAppenders();
+    final Logger logger = (Logger)LogManager.getRootLogger();
+    Logs.removeAllAppenders();
     final File rootDirectory = this.appLogDirectory;
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      new ConsoleAppender().activateOptions();
-      final ConsoleAppender appender = new ConsoleAppender();
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+      final ConsoleAppender appender = ConsoleAppender
+        .createDefaultAppenderForLayout(Logs.newLayout("%d\\t%p\\t%c\\t%m%n"));
+      appender.start();
+
       logger.addAppender(appender);
     } else {
       final String id = this.id.replaceAll(":", "-");

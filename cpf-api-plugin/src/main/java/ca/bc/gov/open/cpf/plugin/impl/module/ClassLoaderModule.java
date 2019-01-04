@@ -39,12 +39,13 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.rolling.FixedWindowRollingPolicy;
-import org.apache.log4j.rolling.RollingFileAppender;
-import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.appender.rolling.CompositeTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.OnStartupTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -88,6 +89,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.logging.Logs;
 import com.revolsys.logging.log4j.WrappedAppender;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.property.FieldProperties;
@@ -129,23 +131,24 @@ public class ClassLoaderModule implements Module {
     "application/x-shp+zip", "application/xhtml+xml", "text/csv", "text/html",
     "text/tab-separated-values", "text/x-wkt", "text/xml");
 
-  @SuppressWarnings("deprecation")
-  public static void addAppender(final org.apache.log4j.Logger logger, final String baseFileName,
-    final String name) {
+  public static void addAppender(final org.apache.logging.log4j.core.Logger logger,
+    final String baseFileName, final String name) {
     final String activeFileName = baseFileName + ".log";
-    final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-    rollingPolicy.setActiveFileName(activeFileName);
-    final String fileNamePattern = baseFileName + ".%i.log";
-    rollingPolicy.setFileNamePattern(fileNamePattern);
 
-    final RollingFileAppender appender = new RollingFileAppender();
-    appender.setName(name);
-    appender.setFile(activeFileName);
-    appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-    appender.setRollingPolicy(rollingPolicy);
-    appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-    appender.activateOptions();
-    appender.rollover();
+    final RollingFileAppender appender = RollingFileAppender.newBuilder() //
+      .withName(name) //
+      .withFileName(activeFileName)//
+      .withFilePattern(baseFileName + ".%i.log") //
+      .withLayout(Logs.newLayout("%d\t%p\t%c\t%m%n"))//
+      .withPolicy( //
+        CompositeTriggeringPolicy.createPolicy( //
+          OnStartupTriggeringPolicy.createPolicy(1), //
+          SizeBasedTriggeringPolicy.createPolicy("10MB")//
+        )//
+      )//
+      .build();
+    appender.start();
+
     logger.addAppender(appender);
   }
 
@@ -316,10 +319,12 @@ public class ClassLoaderModule implements Module {
   }
 
   private void closeAppLogAppender(final String name) {
-    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(name);
+    final Logger logger = (Logger)LogManager.getLogger(name);
     synchronized (logger) {
-      logger.removeAllAppenders();
-      logger.setAdditivity(true);
+      for (final Appender appender : logger.getAppenders().values()) {
+        logger.removeAppender(appender);
+      }
+      logger.setAdditive(true);
     }
   }
 
@@ -975,17 +980,17 @@ public class ClassLoaderModule implements Module {
     } else {
       fileName = this.name + "_" + this.environmentId;
     }
-    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
+    final Logger logger = (Logger)LogManager.getLogger(logName);
     synchronized (logger) {
 
       final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-        logger.setAdditivity(true);
+        logger.setAdditive(true);
       } else {
-        logger.setAdditivity(false);
+        logger.setAdditive(false);
         for (final String appenderName : Arrays.asList("cpf-master-all", "cpf-worker-all")) {
-          final Logger rootLogger = Logger.getRootLogger();
-          final Appender appender = rootLogger.getAppender(appenderName);
+          final Logger rootLogger = (Logger)LogManager.getRootLogger();
+          final Appender appender = rootLogger.getAppenders().get(appenderName);
           if (appender != null) {
             logger.addAppender(new WrappedAppender(appender));
           }
@@ -996,7 +1001,7 @@ public class ClassLoaderModule implements Module {
         }
 
         final String baseFileName = logDirectory + "/" + fileName;
-        addAppender(logger, baseFileName, businessApplicationName);
+        addAppender(logger, baseFileName, logName);
       }
     }
   }

@@ -28,8 +28,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -47,6 +45,7 @@ import com.revolsys.geometry.cs.CoordinateSystem;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.PathName;
+import com.revolsys.logging.Logs;
 import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
@@ -965,14 +964,13 @@ public class BusinessApplication extends BaseObjectWithProperties
       .parseExpression(this.instantModePermission);
   }
 
-  public void setLogLevel(final String logLevel) {
-    this.log.setLogLevel(logLevel);
-    final Level level = Level.toLevel(logLevel);
+  public void setLogLevel(final String level) {
+    this.log.setLogLevel(level);
     final String moduleName = getModuleName();
-    Logger.getLogger(moduleName + "." + this.name).setLevel(level);
+    Logs.setLevel(moduleName + "." + this.name, level);
     // Tempory fix for geocoder logging
-    Logger.getLogger(moduleName + ".ca").setLevel(level);
-    Logger.getLogger(getPackageName()).setLevel(level);
+    Logs.setLevel(moduleName + ".ca", level);
+    Logs.setLevel(getPackageName(), level);
   }
 
   public void setMaxConcurrentRequests(final int maxConcurrentRequests) {

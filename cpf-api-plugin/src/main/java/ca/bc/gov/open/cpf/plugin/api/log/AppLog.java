@@ -15,10 +15,12 @@
  */
 package ca.bc.gov.open.cpf.plugin.api.log;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+
+import com.revolsys.logging.Logs;
 
 /**
  * <p>The AppLog class is a logging API for use by a {@link BusinessApplicationPlugin} class.
@@ -40,27 +42,35 @@ public void setAppLog(final AppLog appLog) {
  */
 public class AppLog {
 
+  private static String getName(final String moduleName, final String businessApplicationName,
+    String groupId) {
+    if (groupId == null || groupId.trim().length() == 0) {
+      groupId = String.valueOf(System.currentTimeMillis());
+    }
+    final String name = moduleName + "." + businessApplicationName + "." + groupId;
+    return name;
+  }
+
   /** The logging level (ERROR, INFO, WARN, DEBUG). */
   private String logLevel = "ERROR";
 
   private final Logger log;
+
+  private final String name;
 
   public AppLog(final String name) {
     this(name, "ERROR");
   }
 
   public AppLog(final String name, final String logLevel) {
-    this.log = Logger.getLogger(name);
+    this.name = name;
+    this.log = LoggerFactory.getLogger(name);
     setLogLevel(logLevel);
   }
 
-  public AppLog(final String moduleName, final String businessApplicationName, String groupId,
+  public AppLog(final String moduleName, final String businessApplicationName, final String groupId,
     final String logLevel) {
-    if (groupId == null || groupId.trim().length() == 0) {
-      groupId = String.valueOf(System.currentTimeMillis());
-    }
-    this.log = Logger.getLogger(moduleName + "." + businessApplicationName + "." + groupId);
-    setLogLevel(logLevel);
+    this(getName(moduleName, businessApplicationName, groupId), logLevel);
   }
 
   /**
@@ -137,12 +147,11 @@ public class AppLog {
   /**
    * <p>Set the current logging level (ERROR, INFO, DEBUG).</p>
    *
-   * @param logLevel The logging level (ERROR, INFO, DEBUG).
+   * @param level The logging level (ERROR, INFO, DEBUG).
    */
-  public void setLogLevel(final String logLevel) {
-    this.logLevel = logLevel;
-    final Level level = Level.toLevel(logLevel);
-    this.log.setLevel(level);
+  public void setLogLevel(final String level) {
+    this.logLevel = level;
+    Logs.setLevel(this.name, level);
   }
 
   @Override
