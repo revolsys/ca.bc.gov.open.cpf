@@ -48,7 +48,6 @@ import javax.servlet.annotation.WebListener;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.glassfish.tyrus.client.ClientManager;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
@@ -410,10 +409,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
     Logs.removeAllAppenders();
     final File rootDirectory = this.appLogDirectory;
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      final ConsoleAppender appender = ConsoleAppender
-        .createDefaultAppenderForLayout(Logs.newLayout("%d\\t%p\\t%c\\t%m%n"));
-      appender.start();
-      logger.addAppender(appender);
+      Logs.addRootAppender("%d\\t%p\\t%c\\t%m%n");
     } else {
       final String id = this.id.replaceAll(":", "-");
       ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-" + id, "cpf-worker-all");

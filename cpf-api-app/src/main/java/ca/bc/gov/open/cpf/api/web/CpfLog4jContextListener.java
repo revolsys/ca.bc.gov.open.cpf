@@ -23,7 +23,6 @@ import javax.servlet.ServletContextListener;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
 
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 
@@ -54,13 +53,10 @@ public class CpfLog4jContextListener implements ServletContextListener {
         rootDirectory = null;
       }
     }
-    final Logger logger = (Logger)LogManager.getRootLogger();
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      final ConsoleAppender appender = ConsoleAppender
-        .createDefaultAppenderForLayout(Logs.newLayout("%d\t%p\t%c\t%m%n"));
-      appender.start();
-      logger.addAppender(appender);
+      Logs.addRootAppender("%d\t%p\t%c\t%m%n");
     } else {
+      final Logger logger = (Logger)LogManager.getRootLogger();
       ClassLoaderModule.addAppender(logger, rootDirectory + "/master", "cpf-master-all");
       ClassLoaderModule.addAppender(logger, rootDirectory + "/master-app", "cpf-app");
     }
