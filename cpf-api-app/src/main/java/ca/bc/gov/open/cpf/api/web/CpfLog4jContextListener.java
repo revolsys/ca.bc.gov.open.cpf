@@ -24,8 +24,9 @@ import javax.servlet.ServletContextListener;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
-
-import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
+import org.apache.log4j.rolling.FixedWindowRollingPolicy;
+import org.apache.log4j.rolling.RollingFileAppender;
+import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
 
 import com.revolsys.logging.log4j.ContextClassLoaderRepositorySelector;
 import com.revolsys.util.Property;
@@ -37,6 +38,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
     ContextClassLoaderRepositorySelector.remove();
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void contextInitialized(final ServletContextEvent event) {
     final Logger logger = Logger.getRootLogger();
@@ -63,8 +65,22 @@ public class CpfLog4jContextListener implements ServletContextListener {
       appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
       logger.addAppender(appender);
     } else {
-      ClassLoaderModule.addAppender(logger, rootDirectory + "/master", "cpf-master-all");
-      ClassLoaderModule.addAppender(logger, rootDirectory + "/master-app", "cpf-app");
+      final String baseFileName = rootDirectory + "/cpf-app";
+      final String activeFileName = baseFileName + ".log";
+      final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+      rollingPolicy.setActiveFileName(activeFileName);
+      final String fileNamePattern = baseFileName + ".%i.log";
+      rollingPolicy.setFileNamePattern(fileNamePattern);
+
+      final RollingFileAppender appender = new RollingFileAppender();
+
+      appender.setFile(activeFileName);
+      appender.setRollingPolicy(rollingPolicy);
+      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
+      appender.activateOptions();
+      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+      appender.rollover();
+      logger.addAppender(appender);
     }
   }
 }

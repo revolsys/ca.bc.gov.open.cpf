@@ -610,7 +610,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
+    <com.revolsys.open.version>CPF-SNAPSHOT</com.revolsys.open.version>
     <org.springframework.version>4.2.5.RELEASE</org.springframework.version>
     <org.springframework.security.version>4.0.4.RELEASE</org.springframework.security.version>
     <org.apache.httpcomponents.version>4.4.10</org.apache.httpcomponents.version>

@@ -39,8 +39,6 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.rolling.FixedWindowRollingPolicy;
 import org.apache.log4j.rolling.RollingFileAppender;
@@ -53,6 +51,35 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.util.StopWatch;
+
+import com.revolsys.beans.Classes;
+import com.revolsys.collection.ArrayUtil;
+import com.revolsys.collection.map.AttributeMap;
+import com.revolsys.collection.map.MapEx;
+import com.revolsys.collection.map.Maps;
+import com.revolsys.collection.set.Sets;
+import com.revolsys.datatype.DataType;
+import com.revolsys.datatype.DataTypes;
+import com.revolsys.geometry.cs.CoordinateSystem;
+import com.revolsys.geometry.cs.epsg.EpsgCoordinateSystems;
+import com.revolsys.geometry.model.Geometry;
+import com.revolsys.geometry.model.GeometryFactory;
+import com.revolsys.io.FileUtil;
+import com.revolsys.io.IoFactory;
+import com.revolsys.io.map.MapReader;
+import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.record.io.RecordWriterFactory;
+import com.revolsys.record.property.FieldProperties;
+import com.revolsys.record.schema.FieldDefinition;
+import com.revolsys.record.schema.RecordDefinition;
+import com.revolsys.record.schema.RecordDefinitionImpl;
+import com.revolsys.spring.config.AttributesBeanConfigurer;
+import com.revolsys.spring.resource.Resource;
+import com.revolsys.spring.resource.UrlResource;
+import com.revolsys.util.Exceptions;
+import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
+import com.revolsys.util.UrlUtil;
 
 import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
@@ -70,38 +97,6 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
-
-import com.revolsys.beans.Classes;
-import com.revolsys.collection.ArrayUtil;
-import com.revolsys.collection.map.AttributeMap;
-import com.revolsys.collection.map.MapEx;
-import com.revolsys.collection.map.Maps;
-import com.revolsys.collection.set.Sets;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
-import com.revolsys.geometry.cs.CoordinateSystem;
-import com.revolsys.geometry.cs.epsg.EpsgCoordinateSystems;
-import com.revolsys.geometry.cs.epsg.EpsgId;
-import com.revolsys.geometry.model.Geometry;
-import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.io.FileUtil;
-import com.revolsys.io.IoFactory;
-import com.revolsys.io.map.MapReader;
-import com.revolsys.io.map.MapReaderFactory;
-import com.revolsys.logging.log4j.WrappedAppender;
-import com.revolsys.open.compiler.annotation.Documentation;
-import com.revolsys.record.io.RecordWriterFactory;
-import com.revolsys.record.property.FieldProperties;
-import com.revolsys.record.schema.FieldDefinition;
-import com.revolsys.record.schema.RecordDefinition;
-import com.revolsys.record.schema.RecordDefinitionImpl;
-import com.revolsys.spring.config.AttributesBeanConfigurer;
-import com.revolsys.spring.resource.Resource;
-import com.revolsys.spring.resource.UrlResource;
-import com.revolsys.util.Exceptions;
-import com.revolsys.util.JavaBeanUtil;
-import com.revolsys.util.Property;
-import com.revolsys.util.UrlUtil;
 
 public class ClassLoaderModule implements Module {
 
@@ -130,26 +125,6 @@ public class ClassLoaderModule implements Module {
     "application/x-shp+zip", "application/xhtml+xml", "text/csv", "text/html",
     "text/tab-separated-values", "text/x-wkt", "text/xml");
 
-  @SuppressWarnings("deprecation")
-  public static void addAppender(final org.apache.log4j.Logger logger, final String baseFileName,
-    final String name) {
-    final String activeFileName = baseFileName + ".log";
-    final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-    rollingPolicy.setActiveFileName(activeFileName);
-    final String fileNamePattern = baseFileName + ".%i.log";
-    rollingPolicy.setFileNamePattern(fileNamePattern);
-
-    final RollingFileAppender appender = new RollingFileAppender();
-    appender.setName(name);
-    appender.setFile(activeFileName);
-    appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-    appender.setRollingPolicy(rollingPolicy);
-    appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-    appender.activateOptions();
-    appender.rollover();
-    logger.addAppender(appender);
-  }
-
   private GenericApplicationContext applicationContext;
 
   private boolean applicationsLoaded;
@@ -173,8 +148,7 @@ public class ClassLoaderModule implements Module {
   private final AppLog log;
 
   private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems
-    .getCoordinateSystems(Arrays.asList(EpsgId.WGS84, EpsgId.NAD83, 3005, EpsgId.nad83Utm(7),
-      EpsgId.nad83Utm(8), EpsgId.nad83Utm(9), EpsgId.nad83Utm(10), EpsgId.nad83Utm(11)));
+    .getCoordinateSystems(Arrays.asList(4326, 4269, 3005, 26907, 26908, 26909, 26910, 26911));
 
   private boolean enabled = false;
 
@@ -510,14 +484,6 @@ public class ClassLoaderModule implements Module {
       final String description = pluginAnnotation.description();
       businessApplication.setDescription(description);
 
-      final Documentation detailedDescriptionAnnotation = pluginClass
-        .getAnnotation(Documentation.class);
-      if (detailedDescriptionAnnotation != null) {
-        final String detailedDescription = detailedDescriptionAnnotation.value();
-        if (Property.hasValue(detailedDescription)) {
-          businessApplication.setDetailedDescription(detailedDescription);
-        }
-      }
       final String title = pluginAnnotation.title();
       if (title != null && title.trim().length() > 0) {
         businessApplication.setTitle(title);
@@ -799,9 +765,9 @@ public class ClassLoaderModule implements Module {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       this.log.warn(message + " srid must be >= 0");
-      srid = geometryFactory.getHorizontalCoordinateSystemId();
+      srid = geometryFactory.getCoordinateSystemId();
     } else if (srid == 0) {
-      srid = geometryFactory.getHorizontalCoordinateSystemId();
+      srid = geometryFactory.getCoordinateSystemId();
     }
     int axisCount = geometryConfiguration.numAxis();
     if (axisCount == 0) {
@@ -965,6 +931,7 @@ public class ClassLoaderModule implements Module {
     return getBusinessApplication(businessApplicationName) != null;
   }
 
+  @SuppressWarnings("deprecation")
   private void initAppLogAppender(final String businessApplicationName) {
     final String fileName;
     String logName = this.name;
@@ -977,26 +944,34 @@ public class ClassLoaderModule implements Module {
     }
     final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
     synchronized (logger) {
-
+      logger.removeAllAppenders();
       final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
         logger.setAdditivity(true);
       } else {
         logger.setAdditivity(false);
-        for (final String appenderName : Arrays.asList("cpf-master-all", "cpf-worker-all")) {
-          final Logger rootLogger = Logger.getRootLogger();
-          final Appender appender = rootLogger.getAppender(appenderName);
-          if (appender != null) {
-            logger.addAppender(new WrappedAppender(appender));
-          }
-        }
+
         File logDirectory = FileUtil.getDirectory(rootDirectory, this.name);
         if (isApp) {
           logDirectory = FileUtil.getDirectory(logDirectory, businessApplicationName);
         }
 
         final String baseFileName = logDirectory + "/" + fileName;
-        addAppender(logger, baseFileName, businessApplicationName);
+        final String activeFileName = baseFileName + ".log";
+        final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+        rollingPolicy.setActiveFileName(activeFileName);
+        final String fileNamePattern = baseFileName + ".%i.log";
+        rollingPolicy.setFileNamePattern(fileNamePattern);
+
+        final RollingFileAppender appender = new RollingFileAppender();
+        appender.setName(businessApplicationName);
+        appender.setFile(activeFileName);
+        appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
+        appender.setRollingPolicy(rollingPolicy);
+        appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
+        appender.activateOptions();
+        appender.rollover();
+        logger.addAppender(appender);
       }
     }
   }
