@@ -321,13 +321,12 @@ public class JobPreProcessTask {
                 e);
               transaction.setRollbackOnly(e);
               return false;
+            } finally {
+              if (this.errorWriter != null) {
+                this.errorWriter.close();
+                this.jobController.setGroupError(this.batchJobId, 0, this.errorFile);
+              }
             }
-
-            if (this.errorWriter != null) {
-              this.errorWriter.close();
-              this.jobController.setGroupError(this.batchJobId, 0, this.errorFile);
-            }
-
             if (!valid || numSubmittedRequests == numFailedRequests) {
               valid = false;
               if (this.dataAccessObject.setBatchJobRequestsFailed(this.batchJobId,

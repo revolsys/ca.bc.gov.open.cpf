@@ -33,8 +33,6 @@ import com.revolsys.geometry.precision.MinimumClearance;
  * system and precision model. It then checks to see if the geometry
  * {@link Geometry#isSimple()}, {@link Geometry#isValid()}, and calculates the
  * {@link MinimumClearance#getDistance()}.
- *
- * @author Paul Austin <paul.austin@revolsys.com>
  */
 @BusinessApplicationPlugin(name = "GeometryValidator",
     description = "The Geometry Validator takes your input geometry and determines if it is simple, valid, and robust. It will also compute the geometry's minimum clearance. The Validator converts your geometry to a coordinate system of your choice then applies a precision model before analysing it. The definition of terms such as simple, valid, robust, and minimum clearance can be found in the detailed service description.",
