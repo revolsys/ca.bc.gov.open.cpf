@@ -934,7 +934,7 @@ public class BatchJobService implements ModuleEventListener {
     this.dataAccessObject.write(result);
   }
 
-  private com.revolsys.io.Writer<Record> newStructuredResultWriter(final BatchJob batchJob,
+  private RecordWriter newStructuredResultWriter(final BatchJob batchJob,
     final Identifier batchJobId, final BusinessApplication application,
     final com.revolsys.spring.resource.Resource resource,
     final RecordDefinition resultRecordDefinition, final String resultFormat) {
@@ -1810,8 +1810,8 @@ public class BatchJobService implements ModuleEventListener {
         .getResultRecordDefinition();
       boolean hasResults = false;
       try (
-        com.revolsys.io.Writer<Record> structuredResultWriter = newStructuredResultWriter(batchJob,
-          batchJobId, businessApplication, resource, resultRecordDefinition, resultFormat)) {
+        RecordWriter structuredResultWriter = newStructuredResultWriter(batchJob, batchJobId,
+          businessApplication, resource, resultRecordDefinition, resultFormat)) {
         structuredResultWriter.open();
         final Map<String, Object> defaultProperties = new HashMap<>(
           structuredResultWriter.getProperties());
