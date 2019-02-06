@@ -1127,7 +1127,8 @@ public class BatchJobService implements ModuleEventListener {
     if (!batchJob.isCancelled()) {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
       final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
-      final File structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
+      final File resultDirectory = FileUtil.newTempDirectory("job-"+batchJobId, "-result");
+      final File structuredResultFile = new File(resultDirectory,"result" + fileExtension);
 
       try {
         final PathResource resource = new PathResource(structuredResultFile);
@@ -1139,7 +1140,7 @@ public class BatchJobService implements ModuleEventListener {
       } catch (final Throwable e) {
         throw new RuntimeException("Unable to save results", e);
       } finally {
-        FileUtil.delete(structuredResultFile);
+        FileUtil.deleteDirectory(resultDirectory, true);
       }
     }
   }
