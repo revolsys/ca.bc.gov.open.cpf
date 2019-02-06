@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>ca.bc.gov.cpf</groupId>
+    <artifactId>cpf</artifactId>
+    <version>5.1.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>cpf-cargo</artifactId>
+  <packaging>pom</packaging>
+  <name>BCGOV Concurrent Processing Framework Cargo</name>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven2-plugin</artifactId>
+        <version>1.7.1</version>
+        <configuration>
+          <container>
+            <containerId>tomcat9x</containerId>
+            <artifactInstaller>
+              <groupId>org.apache.tomcat</groupId>
+              <artifactId>tomcat</artifactId>
+              <version>9.0.14</version>
+              <type>zip</type>
+            </artifactInstaller>
+          </container>
+
+          <configuration>
+            <type>standalone</type>
+            <properties>
+              <cargo.servlet.port>8030</cargo.servlet.port>
+              <cargo.rmi.port>8031</cargo.rmi.port>
+              <cargo.tomcat.ajp.port>8032</cargo.tomcat.ajp.port>
+              <cargo.process.spawn>true</cargo.process.spawn>
+              <cargo.start.jvmargs>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8039</cargo.start.jvmargs>
+            </properties>
+              <!--   <skip>${skipWebDeploy}</skip> -->
+          </configuration>
+          <deployables>
+            <deployable>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>cpf-app-war</artifactId>
+              <type>war</type>
+            </deployable>
+            <deployable>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>cpf-worker-war</artifactId>
+              <type>war</type>
+            </deployable>
+          </deployables>
+        </configuration>
+
+      </plugin>
+    </plugins>
+  </build>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>cpf-app-war</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>cpf-worker-war</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+  </dependencies>
+</project>
