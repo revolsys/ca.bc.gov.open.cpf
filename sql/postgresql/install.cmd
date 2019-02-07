@@ -68,7 +68,7 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 :createdb
-createdb -h %DB_HOSTNAME% -p %DB_PORT% -U postgres --template template_postgis --tablespace cpf --owner=cpf %DB_NAME%
+createdb -h %DB_HOSTNAME% -p %DB_PORT% -U postgres --template postgres --tablespace cpf --owner=cpf %DB_NAME%
 
 IF %ERRORLEVEL% NEQ 0 (
   echo ERROR: CANNOT CREATE THE DATABASE

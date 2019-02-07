@@ -24,7 +24,6 @@ import java.net.URL;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
@@ -33,6 +32,7 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.protocol.HttpContext;
 
 import com.revolsys.spring.resource.Resource;
+import com.revolsys.util.Exceptions;
 
 @SuppressWarnings("javadoc")
 public class HttpMultipartPost {
@@ -77,7 +77,7 @@ public class HttpMultipartPost {
       try {
         this.requestEntity.addPart(parameterName, new StringBody(parameterValue.toString()));
       } catch (final UnsupportedEncodingException e) {
-        e.printStackTrace();
+        throw Exceptions.wrap(e);
       }
     }
   }
@@ -127,10 +127,8 @@ public class HttpMultipartPost {
       if (statusCode < HttpStatus.SC_BAD_REQUEST) {
         this.responseEntity = this.response.getEntity();
       }
-    } catch (final ClientProtocolException e) {
-      e.printStackTrace();
     } catch (final IOException e) {
-      e.printStackTrace();
+      throw Exceptions.wrap("Error posting: " + this.httppost.getURI(), e);
     }
     return statusCode;
   }

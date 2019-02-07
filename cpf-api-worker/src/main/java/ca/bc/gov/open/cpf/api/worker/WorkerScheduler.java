@@ -17,6 +17,7 @@ package ca.bc.gov.open.cpf.api.worker;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.Resource;
+import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 
 @WebListener
@@ -113,7 +115,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private long lastPingTime;
 
-  private final long maxTimeBetweenPings = 5 * 60;
+  private final long maxTimeBetweenPings = 60 * 1000;
 
   private final int maxTimeout = 60;
 
@@ -463,16 +465,16 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   public boolean processNextTask() {
-    if (System.currentTimeMillis() > this.lastPingTime + this.maxTimeBetweenPings * 1000) {
+    final long time = System.currentTimeMillis();
+    final long nextPingTime = this.lastPingTime + this.maxTimeBetweenPings;
+    if (time > nextPingTime) {
       addExecutingGroupsMessage();
     }
     if (!isRunning()) {
       return false;
     }
-    final long time = System.currentTimeMillis();
     if (this.taskCount.get() >= getMaximumPoolSize()) {
       addExecutingGroupsMessage();
-      this.lastPingTime = time;
       return false;
     } else {
       try {
@@ -510,6 +512,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
               }
             }
           } else {
+            if (this.taskCount.get() == 0) {
+              // Request garbage collection on an idle system
+              System.gc();
+            }
             Logs.debug(this, "No group available");
           }
         }
@@ -524,8 +530,12 @@ public class WorkerScheduler extends ThreadPoolExecutor
           }
         }
       } catch (final Throwable t) {
-        addExecutingGroupsMessage();
-        logError("Unable to get group", t);
+        if (Exceptions.isException(t, ConnectException.class)) {
+          return false;
+        } else {
+          addExecutingGroupsMessage();
+          logError("Unable to get group", t);
+        }
       }
     }
     return false;

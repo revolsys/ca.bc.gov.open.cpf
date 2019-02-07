@@ -15,8 +15,10 @@
  */
 package ca.bc.gov.open.cpf.api.web.rest;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URL;
 import java.sql.Date;
@@ -90,6 +92,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.StringWriter;
+import com.revolsys.io.map.MapWriter;
 import com.revolsys.logging.Logs;
 import com.revolsys.record.ArrayRecord;
 import com.revolsys.record.Record;
@@ -97,6 +100,7 @@ import com.revolsys.record.RecordState;
 import com.revolsys.record.Records;
 import com.revolsys.record.io.RecordWriter;
 import com.revolsys.record.io.RecordWriterFactory;
+import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.tsv.Tsv;
 import com.revolsys.record.schema.FieldDefinition;
@@ -243,6 +247,19 @@ public class ConcurrentProcessingFramework {
    * Construct a new ConcurrentProcessingFramework.
    */
   public ConcurrentProcessingFramework() {
+  }
+
+  private void addBatchJobResultPageInfo(final PageInfo page, final Identifier batchJobIdentifier,
+    final Number sequenceNumber, final String batchJobResultType,
+    final String resultDataContentType, final java.util.Date date) {
+    final PageInfo resultPage = addPage(page, sequenceNumber,
+      "Batch Job " + batchJobIdentifier + " result " + sequenceNumber);
+    resultPage.setAttribute("batchJobResultType", batchJobResultType);
+    resultPage.setAttribute("batchJobResultContentType", resultDataContentType);
+    resultPage.setAttribute("expiryDate", this.batchJobService.getExpiryDate(date));
+    if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
+      resultPage.setAttribute("batchJobExecutionGroupSequenceNumber", sequenceNumber);
+    }
   }
 
   private void addBatchJobStatusLink(final PageInfo page, final Record job) {
@@ -1472,7 +1489,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -2785,15 +2802,60 @@ public class ConcurrentProcessingFramework {
     final BatchJob batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
 
     if (batchJob != null) {
+      final boolean intermediateResults = HttpServletUtils
+        .getBooleanParameter(HttpServletUtils.getRequest(), "intermediate");
       final Record batchJobResult = this.dataAccessObject.getBatchJobResult(batchJobIdentifier,
         resultId);
-      if (batchJobResult != null && DataType.equal(batchJobIdentifier,
-        batchJobResult.getValue(BatchJobResult.BATCH_JOB_ID))) {
-        batchJob.setStatus(this.batchJobService, BatchJobStatus.DOWNLOAD_INITIATED);
-        batchJob.update();
-        this.batchJobService.downloadBatchJobResult(request, response, batchJobIdentifier, resultId,
-          batchJobResult);
-        return;
+      if (batchJobResult != null) {
+        final boolean completed = batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null;
+        if (completed) {
+          batchJob.setStatus(this.batchJobService, BatchJobStatus.DOWNLOAD_INITIATED);
+          batchJob.update();
+        }
+        if (completed || intermediateResults) {
+          this.batchJobService.downloadBatchJobResult(request, response, batchJobIdentifier,
+            resultId, batchJobResult);
+        }
+      } else {
+        final BusinessApplication businessApplication = this.batchJobService
+          .getBusinessApplication(batchJob.getString(BatchJob.BUSINESS_APPLICATION_NAME));
+        if (intermediateResults) {
+          final AppLog appLog = businessApplication.getLog();
+          if (resultId == 0) {
+            final String fileName = "job-" + batchJobIdentifier + "-result-" + resultId + ".csv";
+            response.setHeader("Content-type", Csv.MIME_TYPE);
+            response.setHeader("Cache-Control", "no-cache");
+            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+            try (
+              OutputStream out = response.getOutputStream()) {
+              final OutputStreamResource errorResource = new OutputStreamResource(fileName, out);
+              try (
+                MapWriter errorWriter = MapWriter.newMapWriter(errorResource)) {
+                this.batchJobService.writeErrorResults(appLog, batchJob, batchJobIdentifier,
+                  errorWriter);
+              }
+            }
+            return;
+          } else if (resultId == 1) {
+            if (businessApplication != null && !businessApplication.isPerRequestResultData()) {
+              final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+              final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
+              final String fileName = "job-" + batchJobIdentifier + "-result-" + resultId + "."
+                + fileExtension;
+              response.setHeader("Cache-Control", "no-cache");
+              response.setHeader("Content-type", resultFormat);
+              response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+              try (
+                OutputStream out = new BufferedOutputStream(response.getOutputStream())) {
+                final com.revolsys.spring.resource.Resource resource = new OutputStreamResource(
+                  fileName, out);
+                this.batchJobService.writeStructuredResults(businessApplication, appLog, batchJob,
+                  batchJobIdentifier, resource);
+              }
+              return;
+            }
+          }
+        }
       }
     }
     throw new PageNotFoundException("Batch Job result " + resultId + " does not exist.");
@@ -2841,6 +2903,9 @@ public class ConcurrentProcessingFramework {
     final String consumerKey = getConsumerKey();
     final Identifier batchJobIdentifier = Identifier.newIdentifier(batchJobId);
 
+    final boolean intermediateResults = HttpServletUtils
+      .getBooleanParameter(HttpServletUtils.getRequest(), "intermediate");
+
     final Record batchJob = this.batchJobService.getBatchJob(batchJobIdentifier, consumerKey);
     if (batchJob == null) {
       throw new PageNotFoundException("Batch Job " + batchJobIdentifier + " does not exist.");
@@ -2863,29 +2928,41 @@ public class ConcurrentProcessingFramework {
           parameters);
         return tabs;
       } else {
+        final BusinessApplication businessApplication = this.batchJobService
+          .getBusinessApplication(batchJob.getString(BatchJob.BUSINESS_APPLICATION_NAME));
+
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("batchJobId", batchJobIdentifier);
         final PageInfo page = newRootPageInfo(title);
-        final List<Record> results = this.dataAccessObject.getBatchJobResults(batchJobIdentifier);
-        if (batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null && !results.isEmpty()) {
-          for (final Record batchJobResult : results) {
-            final Number sequenceNumber = batchJobResult.getInteger(BatchJobResult.SEQUENCE_NUMBER);
-            parameters.put("sequenceNumber", sequenceNumber);
-            final PageInfo resultPage = addPage(page, sequenceNumber,
-              "Batch Job " + batchJobIdentifier + " result " + sequenceNumber);
-            final String batchJobResultType = batchJobResult
-              .getValue(BatchJobResult.BATCH_JOB_RESULT_TYPE);
-            resultPage.setAttribute("batchJobResultType", batchJobResultType);
-            resultPage.setAttribute("batchJobResultContentType",
-              batchJobResult.getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE));
-            resultPage.setAttribute("expiryDate", this.batchJobService
-              .getExpiryDate((java.util.Date)batchJobResult.getValue(Common.WHEN_CREATED)));
-            if (batchJobResultType.equals(BatchJobResult.OPAQUE_RESULT_DATA)) {
-              resultPage.setAttribute("batchJobExecutionGroupSequenceNumber",
-                batchJobResult.getValue(BatchJobResult.SEQUENCE_NUMBER));
+        if (intermediateResults && businessApplication != null
+          && !businessApplication.isPerRequestResultData()) {
+          final Date date = new Date(System.currentTimeMillis());
+          addBatchJobResultPageInfo(page, batchJobIdentifier, 0, BatchJobResult.ERROR_RESULT_DATA,
+            Csv.MIME_TYPE, date);
+          final String resultDataContentType = batchJob
+            .getString(BatchJob.RESULT_DATA_CONTENT_TYPE);
+          addBatchJobResultPageInfo(page, batchJobIdentifier, 1,
+            BatchJobResult.STRUCTURED_RESULT_DATA, resultDataContentType, date);
+        } else {
+          if (intermediateResults || batchJob.getValue(BatchJob.COMPLETED_TIMESTAMP) != null) {
+            final List<Record> results = this.dataAccessObject
+              .getBatchJobResults(batchJobIdentifier);
+            for (final Record batchJobResult : results) {
+              final Number sequenceNumber = batchJobResult
+                .getInteger(BatchJobResult.SEQUENCE_NUMBER);
+              final String batchJobResultType = batchJobResult
+                .getValue(BatchJobResult.BATCH_JOB_RESULT_TYPE);
+              final String resultDataContentType = batchJobResult
+                .getValue(BatchJobResult.RESULT_DATA_CONTENT_TYPE);
+              final java.util.Date date = (java.util.Date)batchJobResult
+                .getValue(Common.WHEN_CREATED);
+
+              addBatchJobResultPageInfo(page, batchJobIdentifier, sequenceNumber,
+                batchJobResultType, resultDataContentType, date);
             }
           }
         }
+
         return page;
       }
     }

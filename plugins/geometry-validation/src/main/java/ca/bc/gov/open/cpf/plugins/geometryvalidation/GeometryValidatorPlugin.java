@@ -15,11 +15,6 @@
  */
 package ca.bc.gov.open.cpf.plugins.geometryvalidation;
 
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.Required;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-
 import com.revolsys.geometry.cs.GeographicCoordinateSystem;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
@@ -28,13 +23,16 @@ import com.revolsys.geometry.operation.valid.GeometryValidationError;
 import com.revolsys.geometry.operation.valid.IsValidOp;
 import com.revolsys.geometry.precision.MinimumClearance;
 
+import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
+import ca.bc.gov.open.cpf.plugin.api.Required;
+import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+
 /**
  * The GeometryValidatorPlugin converts the geometry to the requested coordinate
  * system and precision model. It then checks to see if the geometry
  * {@link Geometry#isSimple()}, {@link Geometry#isValid()}, and calculates the
  * {@link MinimumClearance#getDistance()}.
- *
- * @author Paul Austin <paul.austin@revolsys.com>
  */
 @BusinessApplicationPlugin(name = "GeometryValidator",
     description = "The Geometry Validator takes your input geometry and determines if it is simple, valid, and robust. It will also compute the geometry's minimum clearance. The Validator converts your geometry to a coordinate system of your choice then applies a precision model before analysing it. The definition of terms such as simple, valid, robust, and minimum clearance can be found in the detailed service description.",

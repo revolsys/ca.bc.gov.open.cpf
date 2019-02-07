@@ -103,7 +103,7 @@ public class BatchJob extends DelegatingRecord implements Common {
     this.failedRequests = RangeSet.newRangeSet(failedRequestsRange);
     final int groupCount = record.getInteger(NUM_SUBMITTED_GROUPS);
     setGroupCount(groupCount);
-    this.groupsToProcess.remove(this.completedGroups);
+    this.groupsToProcess.removeRange(this.completedGroups);
   }
 
   public synchronized void addCompletedGroup(final long groupSequenceNumber) {
@@ -380,5 +380,4 @@ public class BatchJob extends DelegatingRecord implements Common {
       recordStore.insertRecord(this);
     }
   }
-
 }

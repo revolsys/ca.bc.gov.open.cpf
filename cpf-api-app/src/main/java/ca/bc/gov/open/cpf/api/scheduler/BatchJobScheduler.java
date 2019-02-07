@@ -18,9 +18,10 @@ package ca.bc.gov.open.cpf.api.scheduler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,9 +37,9 @@ import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.SetQueue;
 import com.revolsys.collection.map.Maps;
+import com.revolsys.identifier.Identifier;
 import com.revolsys.logging.Logs;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
@@ -77,7 +78,7 @@ public class BatchJobScheduler extends ThreadPoolExecutor
   @Resource(name = "cpfConfig")
   private CpfConfig config;
 
-  private final Set<BatchJob> queuedJobs = new LinkedHashSet<>();
+  private final Map<Identifier, BatchJob> queuedJobById = new LinkedHashMap<>();
 
   public BatchJobScheduler() {
     super(0, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new NamedThreadFactory());
@@ -92,8 +93,9 @@ public class BatchJobScheduler extends ThreadPoolExecutor
   }
 
   public void clearBusinessApplication(final String businessApplicationName) {
-    synchronized (this.queuedJobs) {
-      for (final Iterator<BatchJob> iterator = this.queuedJobs.iterator(); iterator.hasNext();) {
+    synchronized (this.queuedJobById) {
+      for (final Iterator<BatchJob> iterator = this.queuedJobById.values().iterator(); iterator
+        .hasNext();) {
         final BatchJob batchJob = iterator.next();
         final Object appName = batchJob.getValue(BatchJob.BUSINESS_APPLICATION_NAME);
         if (businessApplicationName.equals(appName)) {
@@ -162,9 +164,23 @@ public class BatchJobScheduler extends ThreadPoolExecutor
 
   private int getScheduledGroupCount(final String businessApplicationName) {
     synchronized (this.scheduledGroupsByBusinessApplication) {
-      final int groupCount = CollectionUtil
-        .getCollectionSize(this.scheduledGroupsByBusinessApplication, businessApplicationName);
-      return groupCount;
+      final Collection<BatchJobRequestExecutionGroup> values = this.scheduledGroupsByBusinessApplication
+        .get(businessApplicationName);
+      if (values == null) {
+        return 0;
+      } else {
+        int count = 0;
+        for (final Iterator<BatchJobRequestExecutionGroup> iterator = values.iterator(); iterator
+          .hasNext();) {
+          final BatchJobRequestExecutionGroup group = iterator.next();
+          if (group.isCancelled()) {
+            iterator.remove();
+          } else {
+            count++;
+          }
+        }
+        return count;
+      }
     }
   }
 
@@ -264,8 +280,9 @@ public class BatchJobScheduler extends ThreadPoolExecutor
             ThreadUtil.pause(60000);
           }
           final BatchJob batchJob = in.read();
-          synchronized (this.queuedJobs) {
-            this.queuedJobs.add(batchJob);
+          synchronized (this.queuedJobById) {
+            final Identifier batchJobId = batchJob.getIdentifier();
+            this.queuedJobById.put(batchJobId, batchJob);
           }
         }
         scheduleQueuedJobs();
@@ -285,8 +302,9 @@ public class BatchJobScheduler extends ThreadPoolExecutor
   }
 
   private void scheduleQueuedJobs() {
-    synchronized (this.queuedJobs) {
-      for (final Iterator<BatchJob> iterator = this.queuedJobs.iterator(); iterator.hasNext();) {
+    synchronized (this.queuedJobById) {
+      for (final Iterator<BatchJob> iterator = this.queuedJobById.values().iterator(); iterator
+        .hasNext();) {
         final BatchJob batchJob = iterator.next();
         final String businessApplicationName = batchJob
           .getValue(BatchJob.BUSINESS_APPLICATION_NAME);

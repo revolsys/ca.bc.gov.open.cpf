@@ -15,7 +15,6 @@
  */
 package ca.bc.gov.open.cpf.api.worker;
 
-import java.util.Collections;
 import java.util.Map;
 
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
@@ -42,15 +41,11 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
   protected Boolean loadActionPermission(final String actionName) {
     try {
       final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
-      if (messageSender == null) {
-        return false;
-      } else {
-        final MapEx message = new LinkedHashMapEx("type", "securityCanAccessResource");
-        message.put("moduleName", this.moduleName);
-        message.put("consumerKey", getUsername());
-        message.put("actionName", actionName);
-        return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("hasAccess"));
-      }
+      final MapEx message = new LinkedHashMapEx("type", "securityCanAccessResource");
+      message.put("moduleName", this.moduleName);
+      message.put("consumerKey", getUsername());
+      message.put("actionName", actionName);
+      return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("hasAccess"));
     } catch (final Throwable e) {
       throw new RuntimeException(
         "Unable to get security action permission for " + getUsername() + " action=" + actionName,
@@ -62,15 +57,11 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
   protected Boolean loadGroupPermission(final String groupName) {
     try {
       final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
-      if (messageSender == null) {
-        return false;
-      } else {
-        final MapEx message = new LinkedHashMapEx("type", "securityIsMemberOfGroup");
-        message.put("moduleName", this.moduleName);
-        message.put("consumerKey", getUsername());
-        message.put("groupName", groupName);
-        return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("memberOfGroup"));
-      }
+      final MapEx message = new LinkedHashMapEx("type", "securityIsMemberOfGroup");
+      message.put("moduleName", this.moduleName);
+      message.put("consumerKey", getUsername());
+      message.put("groupName", groupName);
+      return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("memberOfGroup"));
     } catch (final Throwable e) {
       throw new RuntimeException(
         "Unable to get security group permission for " + getUsername() + " group=" + groupName, e);
@@ -82,17 +73,13 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
     final String resourceId, final String actionName) {
     try {
       final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
-      if (messageSender == null) {
-        return false;
-      } else {
-        final MapEx message = new LinkedHashMapEx("type", "securityCanAccessResource");
-        message.put("moduleName", this.moduleName);
-        message.put("consumerKey", getUsername());
-        message.put("resourceClass", resourceClass);
-        message.put("resourceId", resourceId);
-        message.put("actionName", actionName);
-        return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("hasAccess"));
-      }
+      final MapEx message = new LinkedHashMapEx("type", "securityCanAccessResource");
+      message.put("moduleName", this.moduleName);
+      message.put("consumerKey", getUsername());
+      message.put("resourceClass", resourceClass);
+      message.put("resourceId", resourceId);
+      message.put("actionName", actionName);
+      return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("hasAccess"));
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to get security resource access permission for "
         + getUsername() + " resourcesClass=" + resourceClass + " resourceId=" + resourceId
@@ -104,14 +91,10 @@ public class WorkerSecurityService extends AbstractCachingSecurityService {
   protected Map<String, Object> loadUserAttributes() {
     try {
       final JsonAsyncSender messageSender = this.messageHandler.getMessageSender();
-      if (messageSender == null) {
-        return Collections.emptyMap();
-      } else {
-        final MapEx message = new LinkedHashMapEx("type", "securityCanAccessResource");
-        message.put("moduleName", this.moduleName);
-        message.put("consumerKey", getUsername());
-        return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("attributes"));
-      }
+      final MapEx message = new LinkedHashMapEx("type", "securityCanAccessResource");
+      message.put("moduleName", this.moduleName);
+      message.put("consumerKey", getUsername());
+      return messageSender.sendAndWait(message, new JsonPropertyAsyncResult("attributes"));
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to get user attributes for " + getUsername(), e);
     }

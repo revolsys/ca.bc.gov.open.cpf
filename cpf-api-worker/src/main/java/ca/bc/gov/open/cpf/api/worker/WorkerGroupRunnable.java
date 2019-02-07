@@ -231,8 +231,8 @@ public class WorkerGroupRunnable implements Runnable {
    * errorDebugMessage String
    *
    * pluginExecutionTime long
-   * results List<MapEx>
-   * logRecords List<MapEx>
+   * results List&lt;MapEx&gt;
+   * logRecords List&lt;MapEx&gt;
    * @param resultWriter
    *
    * @param requestRecordDefinition
@@ -361,8 +361,8 @@ public class WorkerGroupRunnable implements Runnable {
    * errorMessage String
    * errorDebugMessage String
   
-   * results List<MapEx>
-   * logRecords List<MapEx>
+   * results List&lt;MapEx&gt;
+   * logRecords List&lt;MapEx&gt;
    * groupExecutionTime long
    * applicationExecutionTime long
    * errorCount long
@@ -371,8 +371,8 @@ public class WorkerGroupRunnable implements Runnable {
   @Override
   public void run() {
     this.log.info("Start\tGroup Execution\t" + this.groupId);
+    final File resultFile = FileUtil.newTempFile("group-" + this.groupId, ".tsv");
     try {
-      final File resultFile = FileUtil.newTempFile("group-" + this.groupId, ".tsv");
       final StopWatch groupStopWatch = new StopWatch("Group");
       groupStopWatch.start();
       final Long moduleTime = this.groupIdMap.getLong("moduleTime");
@@ -450,17 +450,26 @@ public class WorkerGroupRunnable implements Runnable {
         final TsvWriter errorWriter = this.errorWriter;
         this.errorWriter = null;
         if (errorWriter != null) {
-          errorWriter.close();
-          final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-            + "/groups/" + this.groupId + "/error";
-          final HttpResponse errorResponse = this.httpClient.postResource(errorPath, Tsv.MIME_TYPE,
-            this.errorFile);
-          if (errorResponse.getStatusLine().getStatusCode() != 200) {
-            this.log.error("Error writing errors:\n" + FileUtil.getString(this.errorFile));
-            this.scheduler.addFailedGroup(this.groupId);
+          try {
+            errorWriter.close();
+            final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+              + "/groups/" + this.groupId + "/error";
+            final HttpResponse errorResponse = this.httpClient.postResource(errorPath,
+              Tsv.MIME_TYPE, this.errorFile);
+            try {
+              final StatusLine statusLine = errorResponse.getStatusLine();
+              if (statusLine.getStatusCode() != 200) {
+                this.log.error("Error writing errors:\nresponse=" + statusLine + "\nerror="
+                  + FileUtil.getString(this.errorFile));
+                this.scheduler.addFailedGroup(this.groupId);
+              }
+            } finally {
+              HttpClientUtils.closeQuietly(errorResponse);
+            }
+          } finally {
+            FileUtil.delete(this.errorFile);
+            this.errorFile = null;
           }
-          HttpClientUtils.closeQuietly(errorResponse);
-          this.errorFile = null;
         }
         if (resultFile.exists()) {
           final Map<String, Object> parameters = new HashMap<>();
@@ -479,17 +488,27 @@ public class WorkerGroupRunnable implements Runnable {
           }
         }
       }
-    } catch (
-
-    final Throwable e) {
+    } catch (final Throwable e) {
       Logs.error(this, "Error processing group " + this.moduleName + "."
         + this.businessApplicationName + " is not loaded groupId=" + this.groupId, e);
       this.log.error("Unable to process group " + this.groupId, e);
       this.scheduler.addFailedGroup(this.groupId);
     } finally {
-      this.scheduler.removeExecutingGroupId(this.groupId);
-      this.log.info("End\tGroup execution\t" + this.groupId);
-      FileUtil.delete(this.errorFile);
+      try {
+        this.scheduler.removeExecutingGroupId(this.groupId);
+        this.log.info("End\tGroup execution\t" + this.groupId);
+        final TsvWriter errorWriter = this.errorWriter;
+        this.errorWriter = null;
+        if (errorWriter != null) {
+          errorWriter.close();
+        }
+      } finally {
+        try {
+          FileUtil.delete(this.errorFile);
+        } finally {
+          FileUtil.delete(resultFile);
+        }
+      }
     }
   }
 

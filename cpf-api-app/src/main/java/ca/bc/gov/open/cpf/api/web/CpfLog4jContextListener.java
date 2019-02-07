@@ -38,6 +38,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
     ContextClassLoaderRepositorySelector.remove();
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void contextInitialized(final ServletContextEvent event) {
     final Logger logger = Logger.getRootLogger();

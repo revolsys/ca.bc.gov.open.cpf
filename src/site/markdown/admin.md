@@ -1951,12 +1951,22 @@ be rolled over once they reach 10MB. The last 7 log files will be retained with 
       log file for any errors.</td>
     </tr>
     <tr>
-      <td><code>cpf-app.log</code></td>
+      <td><code>master.log</code></td>
+      <td>All Log messages on the master.
+      New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .{1-7}.log (e.g. .1.log).</td>
+    </tr>
+    <tr>
+      <td><code>master-app.log</code></td>
       <td>Log messages for components on the master not related to a module or a business application.
       New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .{1-7}.log (e.g. .1.log).</td>
     </tr>
     <tr>
-      <td><code>worker_{environmentName}_{hostName}_{port}_{contextPath}.log</code></td>
+      <td><code>worker-{environmentName}-{hostName}-{port}-{contextPath}.log</code></td>
+      <td>Log messages on the worker.
+      New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .{1-7}.log (e.g. .1.log).</td>
+    </tr>
+    <tr>
+      <td><code>worker-app-{environmentName}-{hostName}-{port}-{contextPath}.log</code></td>
       <td>Log messages for components on the worker not related to a module or a business application.
       New log file created on module restart or if &gt; 10MB. Previous 7 log files retained with extensions .{1-7}.log (e.g. .1.log).</td>
     </tr>

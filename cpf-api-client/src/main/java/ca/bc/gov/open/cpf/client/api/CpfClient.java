@@ -48,6 +48,7 @@ import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ByteArrayResource;
 import com.revolsys.spring.resource.Resource;
 import com.revolsys.util.Property;
+import com.revolsys.util.UrlUtil;
 
 /**
  * <p>
@@ -122,6 +123,13 @@ public class CpfClient implements BaseCloseable {
   public CpfClient(String url, final String consumerKey, final String consumerSecret) {
     url = url.replaceAll("(/ws)?/*$", "");
     this.httpClientPool = new CpfHttpClientPool(url, consumerKey, consumerSecret, 1);
+  }
+
+  private String addIntermediate(String resultUrl, final boolean intermediate) {
+    if (intermediate) {
+      resultUrl = UrlUtil.getUrl(resultUrl, Collections.singletonMap("intermediate", intermediate));
+    }
+    return resultUrl;
   }
 
   /**
@@ -976,11 +984,9 @@ public class CpfClient implements BaseCloseable {
         final String resultType = (String)resultFile.get("batchJobResultType");
         if ("errorResultData".equals(resultType)) {
           final String resultUrl = (String)resultFile.get("resourceUri");
-          final MapReader reader = httpClient.getMapReader("error", resultUrl);
-          try {
+          try (
+            final MapReader reader = httpClient.getMapReader("error", resultUrl)) {
             return (List)reader.toList();
-          } finally {
-            reader.close();
           }
         }
       }
@@ -1017,6 +1023,18 @@ public class CpfClient implements BaseCloseable {
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
+  }
+
+  /**
+   * <p>Get the list of result file descriptions for a completed job. See {@link #getJobResultFileList(String, long, boolean)}.
+   *
+   * @param jobIdUrl The job id URL.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be
+   * completed.
+   * @return The list of maps that describe each of the result files.
+   */
+  public List<Map<String, Object>> getJobResultFileList(final String jobIdUrl, final long maxWait) {
+    return getJobResultFileList(jobIdUrl, maxWait, false);
   }
 
   /**
@@ -1081,16 +1099,19 @@ public class CpfClient implements BaseCloseable {
    * @param jobIdUrl The job id URL.
    * @param maxWait The maximum number of milliseconds to wait for the job to be
    * completed.
+   * @param intermediate True if partial results for running jobs should be returned.
    * @return The list of maps that describe each of the result files.
    */
   @SuppressWarnings("unchecked")
-  public List<Map<String, Object>> getJobResultFileList(final String jobIdUrl, final long maxWait) {
+  public List<Map<String, Object>> getJobResultFileList(final String jobIdUrl, final long maxWait,
+    final boolean intermediate) {
     final CpfHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      if (isJobCompleted(jobIdUrl, maxWait)) {
-        final String resultsUrl = jobIdUrl + "results/";
+      if (intermediate || isJobCompleted(jobIdUrl, maxWait)) {
+        final String resultsUrl = addIntermediate(jobIdUrl + "results/", intermediate);
         final Map<String, Object> jobResults = httpClient.getJsonResource(resultsUrl);
-        return (List<Map<String, Object>>)jobResults.get("resources");
+        return (List<Map<String, Object>>)jobResults.getOrDefault("resources",
+          Collections.emptyList());
       } else {
         throw new IllegalStateException("Job results have not yet been created");
       }
@@ -1141,6 +1162,18 @@ public class CpfClient implements BaseCloseable {
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
+  }
+
+  /**
+   * <p>Get the list of structured data results for a job. See {@link #getJobStructuredResults(String, long, boolean)}.
+   *
+   * @param jobIdUrl The job id (URL) of the job.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
+   * @return The list of results.
+   */
+  public List<Map<String, Object>> getJobStructuredResults(final String jobIdUrl,
+    final long maxWait) {
+    return getJobStructuredResults(jobIdUrl, maxWait, false);
   }
 
   /**
@@ -1207,30 +1240,14 @@ public class CpfClient implements BaseCloseable {
    *
    * @param jobIdUrl The job id (URL) of the job.
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
+   * @param intermediate True if partial results for running jobs should be returned.
    * @return The list of results.
    */
-  @SuppressWarnings({
-    "unchecked", "rawtypes"
-  })
   public List<Map<String, Object>> getJobStructuredResults(final String jobIdUrl,
-    final long maxWait) {
-    final CpfHttpClient httpClient = this.httpClientPool.getClient();
-    try {
-      for (final Map<String, Object> resultFile : getJobResultFileList(jobIdUrl, maxWait)) {
-        final String resultType = (String)resultFile.get("batchJobResultType");
-        if ("structuredResultData".equals(resultType)) {
-          final String resultUrl = (String)resultFile.get("resourceUri");
-          try (
-            final MapReader reader = httpClient.getMapReader(resultUrl)) {
-            return (List)reader.toList();
-          }
-        }
-      }
-      throw new IllegalStateException("Cannot find structured result file for " + jobIdUrl);
-    } finally {
-      this.httpClientPool.releaseClient(httpClient);
-    }
-
+    final long maxWait, final boolean intermediate) {
+    final List<Map<String, Object>> results = new ArrayList<>();
+    processJobStructuredResults(jobIdUrl, maxWait, intermediate, results::add);
+    return results;
   }
 
   /**
@@ -1447,29 +1464,46 @@ public class CpfClient implements BaseCloseable {
    * @return The number of error results processed.
    */
   public int processJobErrorResults(final String jobIdUrl, final long maxWait,
+    final boolean intermediate, final Callback<Map<String, Object>> callback) {
+    return processJobResults(jobIdUrl, maxWait, intermediate, "errorResultData", callback);
+  }
+
+  /**
+   * <p>Process the list of error results for a completed job. See {@link #processJobErrorResults(String, long, boolean,Callback)}
+   *
+   * @param jobIdUrl The job id (URL) of the job.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
+   * @param callback The call back in the client application that will be called for each error record.
+   * @return The number of error results processed.
+   */
+  public int processJobErrorResults(final String jobIdUrl, final long maxWait,
+    final Callback<Map<String, Object>> callback) {
+    return processJobErrorResults(jobIdUrl, maxWait, false, callback);
+  }
+
+  private int processJobResults(final String jobIdUrl, final long maxWait,
+    final boolean intermediate, final String expectedResultType,
     final Callback<Map<String, Object>> callback) {
     final CpfHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      final List<Map<String, Object>> jobResultFileList = getJobResultFileList(jobIdUrl, maxWait);
-      if (jobResultFileList.isEmpty()) {
-        throw new IllegalStateException("Cannot find error result file for " + jobIdUrl);
-      } else {
-        int i = 0;
-        for (final Map<String, Object> resultFile : jobResultFileList) {
-          final String resultType = (String)resultFile.get("batchJobResultType");
-          if ("errorResultData".equals(resultType)) {
-            final String resultUrl = (String)resultFile.get("resourceUri");
-            try (
-              final MapReader reader = httpClient.getMapReader(resultUrl)) {
-              for (final Map<String, Object> object : reader) {
-                callback.process(object);
-                i++;
-              }
+      final List<Map<String, Object>> jobResultFileList = getJobResultFileList(jobIdUrl, maxWait,
+        intermediate);
+      int i = 0;
+      for (final Map<String, Object> resultFile : jobResultFileList) {
+        final String resultType = (String)resultFile.get("batchJobResultType");
+        if (expectedResultType.equals(resultType)) {
+          final String resultUrl = addIntermediate((String)resultFile.get("resourceUri"),
+            intermediate);
+          try (
+            final MapReader reader = httpClient.getMapReader(resultUrl)) {
+            for (final Map<String, Object> object : reader) {
+              callback.process(object);
+              i++;
             }
           }
         }
-        return i;
       }
+      return i;
     } finally {
       this.httpClientPool.releaseClient(httpClient);
     }
@@ -1515,36 +1549,26 @@ public class CpfClient implements BaseCloseable {
    *
    * @param jobIdUrl The job id (URL) of the job.
    * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
+   * @param intermediate True if partial results for running jobs should be returned.
+   * @param callback The call back in the client application that will be called for each result record.
+   * @return The number of results processed.
+   */
+  public int processJobStructuredResults(final String jobIdUrl, final long maxWait,
+    final boolean intermediate, final Callback<Map<String, Object>> callback) {
+    return processJobResults(jobIdUrl, maxWait, intermediate, "structuredResultData", callback);
+  }
+
+  /**
+   * <p>Process the list of structured data results for a completed job. See {@link #processJobStructuredResults(String, long, boolean, Callback)}.
+   *
+   * @param jobIdUrl The job id (URL) of the job.
+   * @param maxWait The maximum number of milliseconds to wait for the job to be completed.
    * @param callback The call back in the client application that will be called for each result record.
    * @return The number of results processed.
    */
   public int processJobStructuredResults(final String jobIdUrl, final long maxWait,
     final Callback<Map<String, Object>> callback) {
-    final CpfHttpClient httpClient = this.httpClientPool.getClient();
-    try {
-      final List<Map<String, Object>> jobResultFileList = getJobResultFileList(jobIdUrl, maxWait);
-      if (jobResultFileList.isEmpty()) {
-        throw new IllegalStateException("Cannot find structured result file for " + jobIdUrl);
-      } else {
-        int i = 0;
-        for (final Map<String, Object> resultFile : jobResultFileList) {
-          final String resultType = (String)resultFile.get("batchJobResultType");
-          if ("structuredResultData".equals(resultType)) {
-            final String resultUrl = (String)resultFile.get("resourceUri");
-            try (
-              final MapReader reader = httpClient.getMapReader(resultUrl)) {
-              for (final Map<String, Object> object : reader) {
-                callback.process(object);
-                i++;
-              }
-            }
-          }
-        }
-        return i;
-      }
-    } finally {
-      this.httpClientPool.releaseClient(httpClient);
-    }
+    return processJobStructuredResults(jobIdUrl, maxWait, false, callback);
   }
 
   /**

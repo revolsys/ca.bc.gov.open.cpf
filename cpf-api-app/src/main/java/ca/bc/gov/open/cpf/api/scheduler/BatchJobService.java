@@ -64,29 +64,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.StopWatch;
 
-import ca.bc.gov.open.cpf.api.controller.CpfConfig;
-import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
-import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
-import ca.bc.gov.open.cpf.api.domain.Common;
-import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
-import ca.bc.gov.open.cpf.api.domain.UserAccount;
-import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
-import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
-import ca.bc.gov.open.cpf.api.web.controller.JobController;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
-import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
-import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
-
 import com.revolsys.collection.list.Lists;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
@@ -133,6 +110,29 @@ import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Dates;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
+
+import ca.bc.gov.open.cpf.api.controller.CpfConfig;
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.Common;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.domain.UserAccount;
+import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
+import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
+import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
+import ca.bc.gov.open.cpf.api.web.controller.JobController;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
+import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 public class BatchJobService implements ModuleEventListener {
   private static final String CONTENT_TYPE_JSON = MediaType.APPLICATION_JSON.toString();
@@ -337,6 +337,8 @@ public class BatchJobService implements ModuleEventListener {
 
   private File appLogDirectory;
 
+  private BatchJobUpdator jobUpdator = new BatchJobUpdator();
+
   protected void addPreProcessedJobId(final Identifier batchJobId) {
     synchronized (this.preprocesedJobIds) {
       this.preprocesedJobIds.add(batchJobId);
@@ -416,6 +418,10 @@ public class BatchJobService implements ModuleEventListener {
     if (this.scheduler != null) {
       this.scheduler.getIn().writeDisconnect();
       this.scheduler = null;
+    }
+    if (this.jobUpdator != null) {
+      this.jobUpdator.stop();
+      this.jobUpdator = null;
     }
     this.securityServiceFactory = null;
     this.userClassBaseUrls.clear();
@@ -740,28 +746,31 @@ public class BatchJobService implements ModuleEventListener {
             if (worker == null || moduleStartTime == -1 || !module.isStarted()) {
               scheduleGroup(group);
             } else {
-              response.put("workerId", workerId);
-              response.put("moduleName", moduleName);
-              response.put("moduleTime", moduleStartTime);
-              response.put("businessApplicationName", businessApplicationName);
-              response.put("logLevel", businessApplication.getLogLevel());
+              try {
+                response.put("workerId", workerId);
+                response.put("moduleName", moduleName);
+                response.put("moduleTime", moduleStartTime);
+                response.put("businessApplicationName", businessApplicationName);
+                response.put("logLevel", businessApplication.getLogLevel());
 
-              group.setExecutionStartTime(System.currentTimeMillis());
-              final String groupId = group.getId();
-              final Identifier batchJobId = group.getBatchJobId();
-              final String baseId = group.getBaseId();
+                group.setExecutionStartTime(System.currentTimeMillis());
+                final String groupId = group.getId();
+                final Identifier batchJobId = group.getBatchJobId();
+                final String baseId = group.getBaseId();
 
-              response.put("batchJobId", batchJobId);
-              response.put("baseId", baseId);
-              response.put("groupId", groupId);
-              response.put("applicationParameters", group.getBusinessApplicationParameterMap());
-              if (businessApplication.isPerRequestResultData()) {
-                response.put("resultDataContentType", group.getResultDataContentType());
+                response.put("batchJobId", batchJobId);
+                response.put("baseId", baseId);
+                response.put("groupId", groupId);
+                response.put("applicationParameters", group.getBusinessApplicationParameterMap());
+                if (businessApplication.isPerRequestResultData()) {
+                  response.put("resultDataContentType", group.getResultDataContentType());
+                }
+                final AppLog log = businessApplication.getLog();
+                log.info("Start\tGroup execution\tgroupId=" + groupId + "\tworkerId=" + workerId);
+                response.put("consumerKey", group.getconsumerKey());
+              } finally {
+                worker.addExecutingGroup(moduleName, moduleStartTime, group);
               }
-              final AppLog log = businessApplication.getLog();
-              log.info("Start\tGroup execution\tgroupId=" + groupId + "\tworkerId=" + workerId);
-              response.put("consumerKey", group.getconsumerKey());
-              worker.addExecutingGroup(moduleName, moduleStartTime, group);
             }
           }
         }
@@ -806,14 +815,16 @@ public class BatchJobService implements ModuleEventListener {
   }
 
   public Worker getWorkerByKey(final String workerKey) {
-    synchronized (this.workersByKey) {
+    synchronized (this.workersById) {
       final Worker worker = this.workersByKey.get(workerKey);
       return worker;
     }
   }
 
   public List<Worker> getWorkers() {
-    return new ArrayList<>(this.workersByKey.values());
+    synchronized (this.workersById) {
+      return new ArrayList<>(this.workersByKey.values());
+    }
   }
 
   @PostConstruct
@@ -855,13 +866,16 @@ public class BatchJobService implements ModuleEventListener {
         final Module module = event.getModule();
         final String moduleName = module.getName();
         synchronized (module) {
-          final List<String> businessApplicationNames = module.getBusinessApplicationNames();
+          final List<String> businessApplicationNames = event.getBusinessApplicationNames();
           for (final String businessApplicationName : businessApplicationNames) {
             synchronized (businessApplicationName.intern()) {
               if (action.equals(ModuleEvent.STOP)) {
                 final NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = this.groupsToSchedule;
                 if (groupsToSchedule != null) {
                   groupsToSchedule.remove(businessApplicationName);
+                }
+                if (this.scheduler != null) {
+                  this.scheduler.clearBusinessApplication(businessApplicationName);
                 }
                 this.dataAccessObject.clearBatchJobs(businessApplicationName);
               } else if (action.equals(ModuleEvent.START)) {
@@ -920,17 +934,16 @@ public class BatchJobService implements ModuleEventListener {
     this.dataAccessObject.write(result);
   }
 
-  protected com.revolsys.io.Writer<Record> newStructuredResultWriter(final BatchJob batchJob,
+  private RecordWriter newStructuredResultWriter(final BatchJob batchJob,
     final Identifier batchJobId, final BusinessApplication application,
-    final File structuredResultFile, final RecordDefinition resultRecordDefinition,
-    final String resultFormat) {
+    final com.revolsys.spring.resource.Resource resource,
+    final RecordDefinition resultRecordDefinition, final String resultFormat) {
     final Map<String, ? extends Object> businessApplicationParameters = batchJob
       .getBusinessApplicationParameters();
     final GeometryFactory geometryFactory = getGeometryFactory(
       resultRecordDefinition.getGeometryFactory(), businessApplicationParameters);
     final String title = "Job " + batchJobId + " Result";
 
-    final PathResource resource = new PathResource(structuredResultFile);
     return newStructuredResultWriter(resource, application, resultRecordDefinition, resultFormat,
       title, geometryFactory);
   }
@@ -1085,34 +1098,20 @@ public class BatchJobService implements ModuleEventListener {
    */
   protected void postProcessCreateErrorResults(final AppLog log, final BatchJob batchJob,
     final Identifier batchJobId) {
-    if (!batchJob.isCancelled()) {
-      final List<MapEx> files = this.jobController.getFiles(batchJobId, JobController.GROUP_ERRORS);
-      if (!files.isEmpty()) {
-        final File errorFile = FileUtil.newTempFile("errors", ".csv");
-        try {
-          try (
-            MapWriter errorWriter = MapWriter.newMapWriter(errorFile)) {
-            for (final MapEx errorFileProperties : files) {
-              final int sequenceNumber = errorFileProperties.getInteger("sequenceNumber");
-              try (
-                MapReader errorReader = this.jobController.getGroupErrorReader(batchJobId,
-                  sequenceNumber)) {
-                for (final MapEx error : errorReader) {
-                  errorWriter.write(error);
-                }
-              }
-            }
-          }
-          if (!batchJob.isCancelled()) {
-            newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE,
-              errorFile, 0);
-          }
-        } catch (final Throwable e) {
-          throw new RuntimeException("Unable to save errors", e);
-        } finally {
-          Transaction.afterCommit(errorFile::delete);
-        }
+    final File errorFile = FileUtil.newTempFile("errors", ".csv");
+    try {
+      try (
+        MapWriter errorWriter = MapWriter.newMapWriter(errorFile)) {
+        writeErrorResults(log, batchJob, batchJobId, errorWriter);
       }
+      if (!batchJob.isCancelled()) {
+        newBatchJobResult(batchJobId, BatchJobResult.ERROR_RESULT_DATA, Csv.MIME_TYPE, errorFile,
+          0);
+      }
+    } catch (final Throwable e) {
+      throw new RuntimeException("Unable to save errors", e);
+    } finally {
+      Transaction.afterCommit(errorFile::delete);
     }
   }
 
@@ -1127,54 +1126,21 @@ public class BatchJobService implements ModuleEventListener {
     final AppLog log, final BatchJob batchJob, final Identifier batchJobId) {
     if (!batchJob.isCancelled()) {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
-
-      final RecordDefinition resultRecordDefinition = businessApplication
-        .getResultRecordDefinition();
-
       final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
-      final File structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
+      final File resultDirectory = FileUtil.newTempDirectory("job-"+batchJobId, "-result");
+      final File structuredResultFile = new File(resultDirectory,"result." + fileExtension);
 
-      boolean hasResults = false;
       try {
-        try (
-          com.revolsys.io.Writer<Record> structuredResultWriter = newStructuredResultWriter(
-            batchJob, batchJobId, businessApplication, structuredResultFile, resultRecordDefinition,
-            resultFormat)) {
-          structuredResultWriter.open();
-          final Map<String, Object> defaultProperties = new HashMap<>(
-            structuredResultWriter.getProperties());
-          final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
-          if (numSubmittedGroups > 0) {
-            for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
-              try (
-                final MapReader resultDataReader = this.jobController
-                  .getGroupResultReader(batchJobId, sequenceNumber);) {
-                if (resultDataReader != null) {
-                  for (final MapEx resultData : resultDataReader) {
-                    if (batchJob.isCancelled()) {
-                      return;
-                    } else {
-                      postProcessWriteStructuredResult(structuredResultWriter,
-                        resultRecordDefinition, defaultProperties, resultData);
-                      hasResults = true;
-                    }
-                  }
-                }
-              } catch (final Throwable e) {
-                throw new RuntimeException("Unable to read results. batchJobId=" + batchJobId + "\t"
-                  + " <= SEQUENCE_NUMBER = " + sequenceNumber, e);
-              }
-            }
-          }
-        }
-        if (hasResults && !batchJob.isCancelled()) {
+        final PathResource resource = new PathResource(structuredResultFile);
+        if (writeStructuredResults(businessApplication, log, batchJob, batchJobId, resource)
+          && !batchJob.isCancelled()) {
           newBatchJobResult(batchJobId, BatchJobResult.STRUCTURED_RESULT_DATA, resultFormat,
             structuredResultFile, 1);
         }
       } catch (final Throwable e) {
         throw new RuntimeException("Unable to save results", e);
       } finally {
-        FileUtil.delete(structuredResultFile);
+        FileUtil.deleteDirectory(resultDirectory, true);
       }
     }
   }
@@ -1297,31 +1263,28 @@ public class BatchJobService implements ModuleEventListener {
   public void resetHungWorkers() {
     final Timestamp lastIdleTime = new Timestamp(
       System.currentTimeMillis() - this.maxWorkerWaitTime * 2);
-    ArrayList<String> workerIds;
     synchronized (this.workersById) {
-      workerIds = new ArrayList<>(this.workersById.keySet());
-    }
-    for (final String workerId : workerIds) {
-      if (!this.connectedWorkerCounts.containsKey(workerId)) {
-        Worker worker = getWorker(workerId);
-        if (worker != null) {
-          final Timestamp workerTimestamp = worker.getLastConnectTime();
-          if (workerTimestamp == null || workerTimestamp.before(lastIdleTime)) {
-            synchronized (this.workersById) {
+      final ArrayList<String> workerIds = new ArrayList<>(this.workersById.keySet());
+      for (final String workerId : workerIds) {
+        if (!this.connectedWorkerCounts.containsKey(workerId)) {
+          Worker worker = getWorker(workerId);
+          if (worker != null) {
+            final Timestamp workerTimestamp = worker.getLastConnectTime();
+            if (workerTimestamp == null || workerTimestamp.before(lastIdleTime)) {
               worker = this.workersById.remove(workerId);
               this.workersByKey.remove(worker.getKey());
-            }
-            final Map<String, BatchJobRequestExecutionGroup> groupsById = worker
-              .getExecutingGroupsById();
-            if (groupsById != null) {
-              synchronized (groupsById) {
-                for (final BatchJobRequestExecutionGroup group : new ArrayList<>(
-                  groupsById.values())) {
-                  final String groupId = group.getId();
-                  Logs.debug(this, "Rescheduling group " + groupId + " from worker " + workerId);
-                  worker.removeExecutingGroup(groupId);
-                  group.resetId();
-                  rescheduleGroup(group);
+              final Map<String, BatchJobRequestExecutionGroup> groupsById = worker
+                .getExecutingGroupsById();
+              if (groupsById != null) {
+                synchronized (groupsById) {
+                  for (final BatchJobRequestExecutionGroup group : new ArrayList<>(
+                    groupsById.values())) {
+                    final String groupId = group.getId();
+                    Logs.debug(this, "Rescheduling group " + groupId + " from worker " + workerId);
+                    worker.removeExecutingGroup(groupId);
+                    group.resetId();
+                    rescheduleGroup(group);
+                  }
                 }
               }
             }
@@ -1329,6 +1292,7 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
     }
+
   }
 
   /**
@@ -1643,52 +1607,49 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setWorkerConnected(final String workerId, final long workerStartTime,
     final Session session) {
-    synchronized (this.connectedWorkerCounts) {
+    synchronized (this.workersById) {
       Maps.addCount(this.connectedWorkerCounts, workerId);
 
-      synchronized (this.workersById) {
-        Worker worker = this.workersById.get(workerId);
-        if (worker == null || worker.getStartTime() != workerStartTime) {
-          worker = new Worker(workerId, workerStartTime);
-          worker.setSession(session);
-          this.workersById.put(workerId, worker);
-          this.workersByKey.put(worker.getKey(), worker);
-          for (final Module module : this.businessApplicationRegistry.getModules()) {
-            if (module.isStarted()) {
-              final MapEx message = new LinkedHashMapEx();
-              message.put("type", "moduleStart");
+      Worker worker = this.workersById.get(workerId);
+      if (worker == null || worker.getStartTime() != workerStartTime) {
+        worker = new Worker(workerId, workerStartTime);
+        worker.setSession(session);
+        this.workersById.put(workerId, worker);
+        this.workersByKey.put(worker.getKey(), worker);
+        for (final Module module : this.businessApplicationRegistry.getModules()) {
+          if (module.isStarted()) {
+            final MapEx message = new LinkedHashMapEx();
+            message.put("type", "moduleStart");
 
-              final String name = module.getName();
-              message.put("moduleName", name);
+            final String name = module.getName();
+            message.put("moduleName", name);
 
-              final long startedTime = module.getStartedTime();
-              message.put("moduleTime", startedTime);
+            final long startedTime = module.getStartedTime();
+            message.put("moduleTime", startedTime);
 
-              final int jarCount = module.getJarCount();
-              message.put("moduleJarCount", jarCount);
+            final int jarCount = module.getJarCount();
+            message.put("moduleJarCount", jarCount);
 
-              worker.sendMessage(message);
-            }
+            worker.sendMessage(message);
           }
         }
-        final long time = System.currentTimeMillis();
-        final Timestamp lastConnectTime = new Timestamp(time);
-        worker.setLastConnectTime(lastConnectTime);
+      } else {
+        worker.setSession(session);
       }
+      final long time = System.currentTimeMillis();
+      final Timestamp lastConnectTime = new Timestamp(time);
+      worker.setLastConnectTime(lastConnectTime);
     }
   }
 
   public void setWorkerConnectTime(final String workerId, final long workerStartTime) {
-    synchronized (this.connectedWorkerCounts) {
-      synchronized (this.workersById) {
-        final Worker worker = this.workersById.get(workerId);
-        if (worker != null) {
-          if (worker.getStartTime() == workerStartTime) {
-            final long time = System.currentTimeMillis();
-            final Timestamp lastConnectTime = new Timestamp(time);
-            worker.setLastConnectTime(lastConnectTime);
-          }
-
+    synchronized (this.workersById) {
+      final Worker worker = this.workersById.get(workerId);
+      if (worker != null) {
+        if (worker.getStartTime() == workerStartTime) {
+          final long time = System.currentTimeMillis();
+          final Timestamp lastConnectTime = new Timestamp(time);
+          worker.setLastConnectTime(lastConnectTime);
         }
       }
     }
@@ -1696,7 +1657,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void setWorkerDisconnected(final String workerId, final long workerStartTime,
     final Session session) {
-    synchronized (this.connectedWorkerCounts) {
+    synchronized (this.workersById) {
       Integer count = this.connectedWorkerCounts.get(workerId);
       if (count != null) {
         count = count - 1;
@@ -1707,13 +1668,10 @@ public class BatchJobService implements ModuleEventListener {
         }
       }
 
-      synchronized (this.workersById) {
-        final Worker worker = this.workersById.get(workerId);
-        if (worker != null) {
-          this.workersByKey.remove(worker.getKey());
-          if (worker.getSession() == session) {
-            worker.setSession(null);
-          }
+      final Worker worker = this.workersById.get(workerId);
+      if (worker != null) {
+        if (worker.isSession(session)) {
+          worker.setSession(null);
         }
       }
     }
@@ -1767,6 +1725,10 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
+  public void updateBatchJob(final BatchJob batchJob) {
+    this.jobUpdator.updateJob(batchJob);
+  }
+
   public void updateBatchJobExecutionGroupFromResponse(final Worker worker, final BatchJob batchJob,
     final BatchJobRequestExecutionGroup group, final InputStream in) {
     final String groupId = group.getId();
@@ -1815,6 +1777,70 @@ public class BatchJobService implements ModuleEventListener {
     if (waitTime > 0) {
       Logs.error(logClass, "Waiting " + waitTime / 1000 + " seconds for tablespace error");
       ThreadUtil.pause(waitTime);
+    }
+  }
+
+  public void writeErrorResults(final AppLog log, final BatchJob batchJob,
+    final Identifier batchJobId, final MapWriter errorWriter) {
+    if (!batchJob.isCancelled()) {
+      final List<MapEx> files = this.jobController.getFiles(batchJobId, JobController.GROUP_ERRORS);
+      if (!files.isEmpty()) {
+        for (final MapEx errorFileProperties : files) {
+          final int sequenceNumber = errorFileProperties.getInteger("sequenceNumber");
+          try (
+            MapReader errorReader = this.jobController.getGroupErrorReader(batchJobId,
+              sequenceNumber)) {
+            for (final MapEx error : errorReader) {
+              errorWriter.write(error);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public boolean writeStructuredResults(final BusinessApplication businessApplication,
+    final AppLog log, final BatchJob batchJob, final Identifier batchJobId,
+    final com.revolsys.spring.resource.Resource resource) {
+    if (batchJob.isCancelled()) {
+      return false;
+    } else {
+      final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
+
+      final RecordDefinition resultRecordDefinition = businessApplication
+        .getResultRecordDefinition();
+      boolean hasResults = false;
+      try (
+        RecordWriter structuredResultWriter = newStructuredResultWriter(batchJob, batchJobId,
+          businessApplication, resource, resultRecordDefinition, resultFormat)) {
+        structuredResultWriter.open();
+        final Map<String, Object> defaultProperties = new HashMap<>(
+          structuredResultWriter.getProperties());
+        final Integer numSubmittedGroups = batchJob.getInteger(BatchJob.NUM_SUBMITTED_GROUPS);
+        if (numSubmittedGroups > 0) {
+          for (int sequenceNumber = 1; sequenceNumber <= numSubmittedGroups; sequenceNumber++) {
+            try (
+              final MapReader resultDataReader = this.jobController.getGroupResultReader(batchJobId,
+                sequenceNumber);) {
+              if (resultDataReader != null) {
+                for (final MapEx resultData : resultDataReader) {
+                  if (batchJob.isCancelled()) {
+                    return false;
+                  } else {
+                    postProcessWriteStructuredResult(structuredResultWriter, resultRecordDefinition,
+                      defaultProperties, resultData);
+                    hasResults = true;
+                  }
+                }
+              }
+            } catch (final Throwable e) {
+              throw new RuntimeException("Unable to read results. batchJobId=" + batchJobId + "\t"
+                + ", SEQUENCE_NUMBER = " + sequenceNumber, e);
+            }
+          }
+        }
+      }
+      return hasResults;
     }
   }
 }

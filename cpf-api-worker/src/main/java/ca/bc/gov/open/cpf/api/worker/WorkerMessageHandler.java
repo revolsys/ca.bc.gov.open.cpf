@@ -16,7 +16,6 @@
 package ca.bc.gov.open.cpf.api.worker;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -27,6 +26,9 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.websocket.ClientEndpoint;
+import javax.websocket.CloseReason;
+import javax.websocket.CloseReason.CloseCode;
+import javax.websocket.CloseReason.CloseCodes;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -34,6 +36,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientManager.ReconnectHandler;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.auth.AuthConfig;
 import org.glassfish.tyrus.client.auth.AuthConfig.Builder;
@@ -69,7 +72,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
 
   private final Set<String> loadedModuleNames = new HashSet<>();
 
-  private JsonAsyncSender messageSender;
+  private final JsonAsyncSender messageSender = new JsonAsyncSender();
 
   private final List<String> includedModuleNames = new ArrayList<>();
 
@@ -83,10 +86,19 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
 
   private ClientManager client;
 
-  private Session session;
+  private long lastConnectTimestamp = 0;
+
+  private long lastErrorTimestamp = 0;
+
+  private int reconnectDelay = 0;
+
+  private String webSocketUrl;
+
+  private final long startTime = System.currentTimeMillis();
+
+  private boolean connected;
 
   public WorkerMessageHandler(final WorkerScheduler scheduler) {
-    super();
     this.scheduler = scheduler;
     this.configPropertyLoader = new WorkerConfigPropertyLoader(scheduler, this);
     final BusinessApplicationRegistry businessApplicationRegistry = scheduler
@@ -99,18 +111,12 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
   @Override
   public void close() {
     this.running = false;
-    if (this.session != null) {
-      try {
-        this.session.close();
-      } catch (final IOException e) {
-      }
-      this.session = null;
-    }
+    this.messageSender.close();
+
     if (this.client != null) {
       this.client.shutdown();
       this.client = null;
     }
-    this.messageSender = null;
     if (this.tempDir != null) {
       if (!FileUtil.deleteDirectory(this.tempDir)) {
         Logs.error(this, "Unable to delete jar cache " + this.tempDir);
@@ -120,29 +126,36 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
   }
 
   public void connect() {
-    if (this.session == null) {
-      while (this.running) {
-        final String workerPath = this.scheduler.getWorkerPath();
-        final String webServiceUrl = this.scheduler.getWebServiceUrl();
-        final String webSocketUrl = webServiceUrl.replaceFirst("http", "ws") + workerPath
-          + "/message";
-        try {
-          final URI webSocketUri = new URI(webSocketUrl);
-          this.session = this.client.connectToServer(this, webSocketUri);
-          Logs.info(this, "Connected to server: " + webSocketUri);
-          return;
-        } catch (final URISyntaxException e) {
-          Logs.error(this, "cpfClient.webServiceUrl not valid", e);
-        } catch (final Throwable e) {
-          Logs.error(this, "Cannot connect to server: " + webSocketUrl, e);
-        }
-        try {
-          synchronized (this) {
-            // Wait 1 minutes before trying again
-            wait(1000 * 60);
+    boolean first = true;
+    int waitTime = 5;
+    while (this.running) {
+      final String workerPath = this.scheduler.getWorkerPath();
+      final String webServiceUrl = this.scheduler.getWebServiceUrl();
+      this.webSocketUrl = webServiceUrl.replaceFirst("http", "ws") + workerPath + "/message";
+      try {
+        final URI webSocketUri = new URI(this.webSocketUrl);
+        this.client.connectToServer(this, webSocketUri);
+        this.connected = true;
+        return;
+      } catch (final URISyntaxException e) {
+        Logs.error(this, "cpfClient.webServiceUrl not valid", e);
+        return;
+      } catch (final Throwable e) {
+        // Don't log within 1 minute of the server starting up
+        if (first && System.currentTimeMillis() > this.startTime + 60 * 1000) {
+          first = false;
+          if (this.running) {
+            waitTime = 60;
+            Logs.error(this, "Cannot connect to server: " + this.webSocketUrl, e);
           }
-        } catch (final InterruptedException e) {
         }
+      }
+      try {
+        synchronized (this) {
+          // Wait 1 minutes before trying again
+          wait(1000 * waitTime);
+        }
+      } catch (final InterruptedException e) {
       }
     }
   }
@@ -187,6 +200,53 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
       .build();
     config.put(ClientProperties.AUTH_CONFIG, authConfig);
     config.put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
+    config.put(ClientProperties.RECONNECT_HANDLER, new ReconnectHandler() {
+
+      private boolean handleMessage(final String message, final Exception exception) {
+        if (WorkerMessageHandler.this.running && WorkerMessageHandler.this.connected) {
+          final long time = System.currentTimeMillis();
+          if (WorkerMessageHandler.this.reconnectDelay < 60) {
+            WorkerMessageHandler.this.reconnectDelay += 10;
+          }
+          final int oneHour = 60 * 60 * 1000;
+          if (WorkerMessageHandler.this.lastErrorTimestamp < WorkerMessageHandler.this.lastConnectTimestamp
+            || WorkerMessageHandler.this.lastErrorTimestamp + oneHour < time) {
+            if (exception == null) {
+              Logs.info(WorkerMessageHandler.class, message);
+            } else {
+              Logs.error(WorkerMessageHandler.class, message, exception);
+            }
+          }
+          WorkerMessageHandler.this.lastErrorTimestamp = time;
+          new Thread(() -> {
+            synchronized (this) {
+              try {
+                wait(WorkerMessageHandler.this.reconnectDelay * 1000);
+              } catch (final InterruptedException e) {
+              }
+            }
+            if (WorkerMessageHandler.this.running) {
+              connect();
+            }
+          }).start();
+        }
+        return false;
+      }
+
+      @Override
+      public boolean onConnectFailure(final Exception exception) {
+        final String message = "Master error " + exception.getMessage();
+        return handleMessage(message, exception);
+      }
+
+      @Override
+      public boolean onDisconnect(final CloseReason closeReason) {
+        final int code = closeReason.getCloseCode().getCode();
+        final CloseCode closeCode = CloseCodes.getCloseCode(code);
+        final String reason = closeCode + " " + closeReason.getReasonPhrase();
+        return handleMessage("Master disconnected " + reason, null);
+      }
+    });
   }
 
   @Override
@@ -336,7 +396,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
 
   @OnClose
   public void onClose(final Session session) {
-    this.messageSender = null;
+    this.messageSender.clearSession();
   }
 
   @OnError
@@ -357,22 +417,20 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
       this.scheduler.cancelGroup(message);
     } else {
       final JsonAsyncSender messageSender = getMessageSender();
-      if (messageSender != null) {
-        messageSender.setResult(message);
-      }
+      messageSender.setResult(message);
     }
   }
 
   @OnOpen
   public void onOpen(final Session session) {
-    this.messageSender = new JsonAsyncSender(session);
+    this.lastConnectTimestamp = System.currentTimeMillis();
+    this.reconnectDelay = 0;
+    this.messageSender.setSession(session);
+    Logs.info(this, "Master connected " + this.webSocketUrl);
   }
 
   public void sendMessage(final MapEx message) {
-    final JsonAsyncSender messageSender = getMessageSender();
-    if (messageSender != null) {
-      messageSender.sendMessage(message);
-    }
+    this.messageSender.sendMessage(message);
   }
 
   public void setModuleNames(final List<String> moduleNames) {
