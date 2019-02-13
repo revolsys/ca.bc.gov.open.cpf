@@ -1128,7 +1128,7 @@ public class BatchJobService implements ModuleEventListener {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
       final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
       final File resultDirectory = FileUtil.newTempDirectory("job-" + batchJobId, "-result");
-      final File structuredResultFile = new File(resultDirectory, "result" + fileExtension);
+      final File structuredResultFile = new File(resultDirectory, "result." + fileExtension);
 
       try {
         final PathResource resource = new PathResource(structuredResultFile);
