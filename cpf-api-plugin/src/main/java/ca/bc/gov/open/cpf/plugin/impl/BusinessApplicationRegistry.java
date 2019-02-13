@@ -43,6 +43,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 
 import com.revolsys.collection.list.Lists;
 import com.revolsys.comparator.IgnoreCaseStringComparator;
+import com.revolsys.io.CloseableResourceProxy;
 import com.revolsys.logging.Logs;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
@@ -93,6 +94,10 @@ public final class BusinessApplicationRegistry
   private boolean useModuleControlThread = true;
 
   private String environmentId = "master";
+
+  private final CloseableResourceProxy<IBusinessApplicationPluginExecutor> executor = CloseableResourceProxy
+    .newProxy(() -> new BusinessApplicationPluginExecutor(this),
+      IBusinessApplicationPluginExecutor.class);
 
   public BusinessApplicationRegistry() {
     this(true);
@@ -161,6 +166,7 @@ public final class BusinessApplicationRegistry
           Logs.error(this, "Unable to stop " + module.getName(), e);
         }
       }
+      this.executor.close();
 
     } finally {
       if (this.moduleControlThread != null) {
@@ -275,6 +281,24 @@ public final class BusinessApplicationRegistry
 
   public String getEnvironmentId() {
     return this.environmentId;
+  }
+
+  /**
+   * Get a proxy reference to the default executor.
+   *
+   * Make sure the instance is closed after use.
+   *
+   * <pre>
+   * try (IBusinessApplicationPluginExecutor executor = registry.getExecutor()) {
+   *   executor.execute(parameters);
+   * }
+   * </pre>
+   *
+   * @see CloseableResourceProxy
+   * @return The instance
+   */
+  public IBusinessApplicationPluginExecutor getInstance() {
+    return this.executor.getResource();
   }
 
   public File getLogDirectory() {

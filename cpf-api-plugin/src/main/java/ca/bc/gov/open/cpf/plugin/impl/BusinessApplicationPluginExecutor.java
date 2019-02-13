@@ -34,6 +34,7 @@ import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityService;
 import ca.bc.gov.open.cpf.plugin.impl.security.MockSecurityServiceFactory;
 import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
+import com.revolsys.io.CloseableResourceProxy;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.schema.RecordDefinition;
@@ -44,6 +45,27 @@ import com.revolsys.record.schema.RecordDefinition;
  * business application without deploying it to the CPF.
  */
 public class BusinessApplicationPluginExecutor implements IBusinessApplicationPluginExecutor {
+  private static CloseableResourceProxy<IBusinessApplicationPluginExecutor> INSTANCE = CloseableResourceProxy
+    .newProxy(BusinessApplicationPluginExecutor::new, IBusinessApplicationPluginExecutor.class);
+
+  /**
+   * Get a proxy reference to the default executor.
+   *
+   * Make sure the instance is closed after use.
+   *
+   * <pre>
+   * try (IBusinessApplicationPluginExecutor executor = BusinessApplicationPluginExecutor.getInstance()) {
+   *   executor.execute(parameters);
+   * }
+   * </pre>
+   *
+   * @see CloseableResourceProxy
+   * @return The instance
+   */
+  public static IBusinessApplicationPluginExecutor getInstance() {
+    return INSTANCE.getResource();
+  }
+
   private BusinessApplicationRegistry businessApplicationRegistry;
 
   private String consumerKey = "cpftest";
@@ -52,15 +74,18 @@ public class BusinessApplicationPluginExecutor implements IBusinessApplicationPl
 
   private Map<String, Object> testParameters = new HashMap<>();
 
+  private final boolean ownsRegistry;
+
   public BusinessApplicationPluginExecutor() {
     final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     final ModuleLoader moduleLoader = new ClassLoaderModuleLoader(classLoader);
     this.businessApplicationRegistry = new BusinessApplicationRegistry(false, moduleLoader);
+    this.ownsRegistry = true;
   }
 
-  public BusinessApplicationPluginExecutor(
-    final BusinessApplicationRegistry businessApplicationRegistry) {
+  BusinessApplicationPluginExecutor(final BusinessApplicationRegistry businessApplicationRegistry) {
     this.businessApplicationRegistry = businessApplicationRegistry;
+    this.ownsRegistry = false;
   }
 
   @Override
@@ -70,10 +95,13 @@ public class BusinessApplicationPluginExecutor implements IBusinessApplicationPl
 
   @Override
   public void close() {
-    if (this.businessApplicationRegistry != null) {
-      this.businessApplicationRegistry.destroy();
-      this.businessApplicationRegistry = null;
+    if (this.ownsRegistry) {
+      if (this.businessApplicationRegistry != null) {
+        this.businessApplicationRegistry.destroy();
+      }
     }
+    this.businessApplicationRegistry = null;
+    this.testParameters.clear();
   }
 
   /**
