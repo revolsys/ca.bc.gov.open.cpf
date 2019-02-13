@@ -43,7 +43,7 @@ import com.revolsys.record.schema.RecordDefinition;
  * {@link BusinessApplicationPlugin} with the CPF. This can be used to test the
  * business application without deploying it to the CPF.
  */
-public class BusinessApplicationPluginExecutor {
+public class BusinessApplicationPluginExecutor implements IBusinessApplicationPluginExecutor {
   private BusinessApplicationRegistry businessApplicationRegistry;
 
   private String consumerKey = "cpftest";
@@ -63,10 +63,12 @@ public class BusinessApplicationPluginExecutor {
     this.businessApplicationRegistry = businessApplicationRegistry;
   }
 
+  @Override
   public void addTestParameter(final String name, final Object value) {
     this.testParameters.put(name, value);
   }
 
+  @Override
   public void close() {
     if (this.businessApplicationRegistry != null) {
       this.businessApplicationRegistry.destroy();
@@ -83,6 +85,7 @@ public class BusinessApplicationPluginExecutor {
    * @param inputParameters The input parameters to the business application.
    * @return The result parameters from the business application.
    */
+  @Override
   public Map<String, Object> execute(final String businessApplicationName,
     final Map<String, ? extends Object> inputParameters) {
     final Object sequenceNumber = inputParameters.get("sequenceNumber");
@@ -133,6 +136,7 @@ public class BusinessApplicationPluginExecutor {
    * @param resultData The output stream that the plug-in can use to write the
    *          result data to.
    */
+  @Override
   public void execute(final String businessApplicationName,
     final Map<String, ? extends Object> inputParameters, final String resultDataContentType,
     final OutputStream resultData) {
@@ -173,6 +177,7 @@ public class BusinessApplicationPluginExecutor {
    * @param inputDataUrl The URL to the opaque input data.
    * @return The result parameters from the business application.
    */
+  @Override
   public Map<String, Object> execute(final String businessApplicationName,
     final Map<String, ? extends Object> jobParameters, final URL inputDataUrl) {
     final StopWatch stopWatch = new StopWatch();
@@ -221,6 +226,7 @@ public class BusinessApplicationPluginExecutor {
    * @param resultData The output stream that the plug-in can use to write the
    *          result data to.
    */
+  @Override
   public void execute(final String businessApplicationName,
     final Map<String, ? extends Object> jobParameters, final URL inputDataUrl,
     final String resultDataContentType, final OutputStream resultData) {
@@ -267,6 +273,7 @@ public class BusinessApplicationPluginExecutor {
    * @param inputParameters The input parameters to the business application.
    * @return The result parameters from the business application.
    */
+  @Override
   public List<Map<String, Object>> executeList(final String businessApplicationName,
     final Map<String, Object> inputParameters) {
     final StopWatch stopWatch = new StopWatch();
@@ -307,10 +314,12 @@ public class BusinessApplicationPluginExecutor {
     return businessApplication;
   }
 
+  @Override
   public BusinessApplicationRegistry getBusinessApplicationRegistry() {
     return this.businessApplicationRegistry;
   }
 
+  @Override
   public String getConsumerKey() {
     return this.consumerKey;
   }
@@ -358,6 +367,7 @@ public class BusinessApplicationPluginExecutor {
     return Json.toRecord(recordDefinition, jsonString);
   }
 
+  @Override
   public MockSecurityService getSecurityService(final String businessApplicationName) {
     final BusinessApplication application = getBusinessApplication(businessApplicationName);
     if (application != null) {
@@ -368,16 +378,19 @@ public class BusinessApplicationPluginExecutor {
     return null;
   }
 
+  @Override
   public boolean hasResultsList(final String businessApplicationName) {
     final PluginAdaptor plugin = getPlugin(businessApplicationName);
     final BusinessApplication businessApplication = plugin.getApplication();
     return businessApplication.getResultListProperty() != null;
   }
 
+  @Override
   public void setConsumerKey(final String consumerKey) {
     this.consumerKey = consumerKey;
   }
 
+  @Override
   public void setTestModeEnabled(final String businessApplicationName, final boolean enabled) {
     if (enabled) {
       this.testParameters.put("cpfPluginTest", Boolean.TRUE);
@@ -389,6 +402,7 @@ public class BusinessApplicationPluginExecutor {
     }
   }
 
+  @Override
   public void setTestParameters(final Map<String, Object> testParameters) {
     this.testParameters = new HashMap<>(testParameters);
   }
