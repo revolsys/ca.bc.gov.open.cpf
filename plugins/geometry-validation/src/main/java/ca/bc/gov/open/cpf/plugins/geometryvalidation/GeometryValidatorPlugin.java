@@ -15,12 +15,13 @@
  */
 package ca.bc.gov.open.cpf.plugins.geometryvalidation;
 
+import org.jeometry.coordinatesystem.model.GeographicCoordinateSystem;
+
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.Required;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 
-import com.revolsys.geometry.cs.GeographicCoordinateSystem;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.geometry.model.Point;
