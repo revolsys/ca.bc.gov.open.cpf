@@ -15,7 +15,8 @@
  */
 package ca.bc.gov.open.cpf.api.scheduler;
 
-import com.revolsys.logging.Logs;
+import org.jeometry.common.logging.Logs;
+
 import com.revolsys.parallel.channel.ClosedException;
 
 public class LoadJobIdsToScheduleFromDatabase implements Runnable {

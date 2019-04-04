@@ -36,6 +36,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.jeometry.common.logging.Logs;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
@@ -57,7 +58,6 @@ import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.map.MapReader;
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.tsv.Tsv;

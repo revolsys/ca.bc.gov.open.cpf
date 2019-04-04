@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.jeometry.common.logging.Logs;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
@@ -46,7 +47,6 @@ import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.io.map.MapWriter;
-import com.revolsys.logging.Logs;
 import com.revolsys.record.FieldValueInvalidException;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.MapReaderRecordReader;

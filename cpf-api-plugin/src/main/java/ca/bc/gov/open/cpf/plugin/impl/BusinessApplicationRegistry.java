@@ -30,6 +30,7 @@ import java.util.TreeMap;
 
 import javax.annotation.PreDestroy;
 
+import org.jeometry.common.logging.Logs;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
@@ -44,7 +45,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 import com.revolsys.collection.list.Lists;
 import com.revolsys.comparator.IgnoreCaseStringComparator;
 import com.revolsys.io.CloseableResourceProxy;
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
 import com.vividsolutions.jts.geom.Geometry;

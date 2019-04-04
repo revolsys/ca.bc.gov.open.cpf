@@ -23,10 +23,10 @@ import javax.servlet.ServletContextListener;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+import org.jeometry.common.logging.Logs;
 
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 
-import com.revolsys.logging.Logs;
 import com.revolsys.util.Property;
 
 public class CpfLog4jContextListener implements ServletContextListener {

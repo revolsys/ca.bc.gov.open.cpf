@@ -19,11 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.jeometry.common.logging.Logs;
+
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserAccount;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
 
-import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
 import com.revolsys.record.Records;
 import com.revolsys.transaction.Propagation;

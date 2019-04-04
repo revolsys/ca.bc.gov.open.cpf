@@ -23,12 +23,12 @@ import java.io.OutputStream;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 
+import org.jeometry.common.exception.Exceptions;
+
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.DefaultValue;
 import ca.bc.gov.open.cpf.plugin.api.JobParameter;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-
-import com.revolsys.util.Exceptions;
 
 @BusinessApplicationPlugin(perRequestResultData = true, numRequestsPerWorker = 1,
     resultDataContentTypes = {

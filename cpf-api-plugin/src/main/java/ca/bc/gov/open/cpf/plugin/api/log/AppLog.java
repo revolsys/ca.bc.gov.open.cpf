@@ -15,12 +15,11 @@
  */
 package ca.bc.gov.open.cpf.plugin.api.log;
 
+import org.jeometry.common.logging.Logs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-
-import com.revolsys.logging.Logs;
 
 /**
  * <p>The AppLog class is a logging API for use by a {@link BusinessApplicationPlugin} class.

@@ -30,6 +30,7 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import org.jeometry.common.logging.Logs;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
@@ -48,7 +49,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.websocket.json.JsonDecoder;

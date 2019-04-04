@@ -17,9 +17,10 @@ package ca.bc.gov.open.cpf.plugin.impl.module;
 
 import java.util.Map;
 
+import org.jeometry.common.logging.Logs;
+
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.ClosedException;

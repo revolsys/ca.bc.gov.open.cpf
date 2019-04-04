@@ -22,10 +22,11 @@ import java.sql.ResultSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.jeometry.common.logging.Logs;
+
 import com.revolsys.beans.PropertyChangeSupport;
 import com.revolsys.beans.PropertyChangeSupportProxy;
 import com.revolsys.jdbc.io.DataSourceImpl;
-import com.revolsys.logging.Logs;
 import com.revolsys.util.Property;
 
 public class CpfConfig implements PropertyChangeSupportProxy {

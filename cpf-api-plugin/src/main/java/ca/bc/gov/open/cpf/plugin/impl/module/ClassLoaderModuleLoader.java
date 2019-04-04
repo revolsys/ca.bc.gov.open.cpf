@@ -24,12 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.jeometry.common.logging.Logs;
+
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.PathUtil;
-import com.revolsys.logging.Logs;
 import com.revolsys.spring.ClassLoaderFactoryBean;
 import com.revolsys.util.Property;
 
