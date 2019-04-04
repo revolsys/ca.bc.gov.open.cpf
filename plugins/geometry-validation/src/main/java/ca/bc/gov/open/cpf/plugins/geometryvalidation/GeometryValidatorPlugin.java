@@ -15,8 +15,6 @@
  */
 package ca.bc.gov.open.cpf.plugins.geometryvalidation;
 
-import org.jeometry.coordinatesystem.model.GeographicCoordinateSystem;
-
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.Required;
@@ -119,7 +117,7 @@ public class GeometryValidatorPlugin {
       double clearanceScaleFactor;
       double clearanceTolerance;
       if (this.resultScaleFactorXy == 0) {
-        if (geometryFactory.getHorizontalCoordinateSystem() instanceof GeographicCoordinateSystem) {
+        if (geometryFactory.isGeographics()) {
           clearanceTolerance = .1;
           clearanceScaleFactor = 10000000;
         } else {
