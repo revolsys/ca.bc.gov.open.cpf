@@ -15,13 +15,13 @@
  */
 package ca.bc.gov.open.cpf.plugins.test;
 
+import org.jeometry.common.math.MathUtil;
+
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.DefaultValue;
 import ca.bc.gov.open.cpf.plugin.api.JobParameter;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-
-import com.revolsys.util.MathUtil;
 
 @BusinessApplicationPlugin(description = "Fails randomly", numRequestsPerWorker = 10)
 public class RandomFailure {

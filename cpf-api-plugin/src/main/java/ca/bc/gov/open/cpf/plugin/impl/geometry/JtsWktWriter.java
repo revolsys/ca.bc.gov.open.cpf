@@ -18,7 +18,8 @@ package ca.bc.gov.open.cpf.plugin.impl.geometry;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.revolsys.util.number.Doubles;
+import org.jeometry.common.number.Doubles;
+
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;

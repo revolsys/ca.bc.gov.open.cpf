@@ -37,6 +37,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.jeometry.common.logging.Logs;
+import org.jeometry.common.math.MathUtil;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
@@ -66,7 +67,6 @@ import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
-import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 
 public class WorkerGroupRunnable implements Runnable {

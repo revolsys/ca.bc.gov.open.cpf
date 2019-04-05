@@ -688,7 +688,7 @@ class Base64 {
     }
   }
 
-  /** Doubles our buffer. */
+  /** DoubleDataType our buffer. */
   private void resizeBuf() {
     if (this.buf == null) {
       this.buf = new byte[8192];

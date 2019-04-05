@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import org.apache.commons.beanutils.BeanUtils;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.common.logging.Logs;
+import org.jeometry.common.math.MathUtil;
 import org.jeometry.coordinatesystem.model.systems.EpsgId;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -59,7 +60,6 @@ import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.Booleans;
-import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Coordinate;
