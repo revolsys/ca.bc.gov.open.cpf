@@ -36,8 +36,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.jeometry.common.datatype.DataType;
+import org.jeometry.common.datatype.DataTypes;
 import org.jeometry.common.logging.Logs;
-import org.jeometry.common.math.MathUtil;
+import org.jeometry.common.math.Randoms;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
@@ -52,9 +54,8 @@ import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.collection.range.RangeSet;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.Geometry;
+import com.revolsys.geometry.model.GeometryDataTypes;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
@@ -165,9 +166,9 @@ public class WorkerGroupRunnable implements Runnable {
         if (testMaxTime < testMinTime) {
           testMaxTime = testMinTime + 10;
         }
-        executionTime = MathUtil.randomRange(testMinTime, testMaxTime);
+        executionTime = Randoms.randomRange(testMinTime, testMaxTime);
       } else {
-        executionTime = MathUtil.randomGaussian(testMeanTime, testStandardDeviation);
+        executionTime = Randoms.randomGaussian(testMeanTime, testStandardDeviation);
       }
       if (testMinTime >= 0 && executionTime < testMinTime) {
         executionTime = testMinTime;
@@ -201,7 +202,7 @@ public class WorkerGroupRunnable implements Runnable {
         if (testMode) {
           final double meanNumResults = Maps.getDouble(testParameters, "cpfMeanNumResults", 3.0);
           final int numResults = (int)Math
-            .round(MathUtil.randomGaussian(meanNumResults, meanNumResults / 5));
+            .round(Randoms.randomGaussian(meanNumResults, meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
             writeResult(resultWriter, plugin, parameters, customizationProperties,
               requestSequenceNumber, i, testMode);
@@ -617,7 +618,7 @@ public class WorkerGroupRunnable implements Runnable {
           if (value instanceof com.vividsolutions.jts.geom.Geometry) {
             final com.vividsolutions.jts.geom.Geometry jtsGeometry = (com.vividsolutions.jts.geom.Geometry)value;
             final String wkt = DataTypes.toString(jtsGeometry);
-            value = DataTypes.GEOMETRY.toObject(wkt);
+            value = GeometryDataTypes.GEOMETRY.toObject(wkt);
           }
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;

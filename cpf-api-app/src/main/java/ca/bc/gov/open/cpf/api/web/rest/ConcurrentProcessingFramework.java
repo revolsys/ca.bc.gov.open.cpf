@@ -45,6 +45,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.datatype.DataType;
+import org.jeometry.common.datatype.DataTypes;
+import org.jeometry.common.date.Dates;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.common.logging.Logs;
 import org.springframework.expression.EvaluationContext;
@@ -86,8 +89,6 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.NamedLinkedHashMapEx;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
@@ -160,9 +161,9 @@ import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.ui.web.utils.MultipartFileResource;
 import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
-import com.revolsys.util.Dates;
 import com.revolsys.util.HtmlElem;
 import com.revolsys.util.Property;
+import com.revolsys.util.RsCoreDataTypes;
 import com.revolsys.util.Strings;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -2217,7 +2218,7 @@ public class ConcurrentProcessingFramework {
       inputDataContentType.setDefaultValue(businessApplication.getDefaultInputDataContentType());
       requestAttributes.add(0, inputDataContentType);
 
-      final FieldDefinition inputData = new FieldDefinition("inputData", DataTypes.FILE, false,
+      final FieldDefinition inputData = new FieldDefinition("inputData", RsCoreDataTypes.FILE, false,
         "The multi-part file containing the input data.");
       inputData.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(1, inputData);

@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.date.Dates;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -46,7 +47,6 @@ import com.revolsys.ui.html.serializer.key.KeySerializer;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.ui.web.config.Page;
 import com.revolsys.ui.web.exception.PageNotFoundException;
-import com.revolsys.util.Dates;
 
 @Controller
 public class BatchJobResultUiBuilder extends CpfUiBuilder {

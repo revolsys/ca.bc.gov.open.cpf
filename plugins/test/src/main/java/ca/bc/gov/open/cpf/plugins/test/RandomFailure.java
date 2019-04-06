@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.plugins.test;
 
-import org.jeometry.common.math.MathUtil;
+import org.jeometry.common.math.Randoms;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.DefaultValue;
@@ -31,7 +31,7 @@ public class RandomFailure {
   private int value;
 
   public void execute() {
-    this.value = (int)Math.round(MathUtil.randomRange(0, this.max));
+    this.value = (int)Math.round(Randoms.randomRange(0, this.max));
     final int mod = this.value % 3;
     if (mod == 0) {
 

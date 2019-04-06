@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
-import com.revolsys.io.PathName;
+import org.jeometry.common.io.PathName;
 
 public interface BatchJobFile {
   PathName BATCH_JOB_FILE = PathName.newPathName("/CPF/CPF_BATCH_JOB_FILES");

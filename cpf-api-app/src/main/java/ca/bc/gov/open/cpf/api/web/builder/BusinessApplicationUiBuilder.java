@@ -27,6 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.jeometry.common.datatype.DataType;
+import org.jeometry.common.datatype.DataTypes;
+import org.jeometry.common.io.PathName;
 import org.jeometry.common.logging.Logs;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,10 +47,8 @@ import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 import com.revolsys.collection.list.Lists;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
+import com.revolsys.geometry.model.GeometryDataTypes;
 import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.io.PathName;
 import com.revolsys.record.ArrayRecord;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.ListRecordReader;
@@ -100,7 +101,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     recordDefinition.setGeometryFactory(factory);
     recordDefinition.addField("title", DataTypes.STRING);
     recordDefinition.addField("buffer", DataTypes.DOUBLE);
-    recordDefinition.addField("geometry", DataTypes.GEOMETRY);
+    recordDefinition.addField("geometry", GeometryDataTypes.GEOMETRY);
 
     final List<Record> objects = new ArrayList<>();
 
@@ -131,7 +132,7 @@ public class BusinessApplicationUiBuilder extends CpfUiBuilder {
     recordDefinition.addField("resultNumber", DataTypes.INT);
     recordDefinition.addField("title", DataTypes.STRING);
     recordDefinition.addField("buffer", DataTypes.DOUBLE);
-    recordDefinition.addField("geometry", DataTypes.GEOMETRY);
+    recordDefinition.addField("geometry", GeometryDataTypes.GEOMETRY);
 
     final List<Record> objects = new ArrayList<>();
 

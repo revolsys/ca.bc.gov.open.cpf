@@ -21,6 +21,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.jeometry.common.date.Dates;
 import org.jeometry.common.logging.Logs;
 
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
@@ -29,7 +30,6 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import com.revolsys.identifier.Identifier;
 import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.Transaction;
-import com.revolsys.util.Dates;
 
 /**
  * Periodically delete Batch Jobs older than the specified number of days, along

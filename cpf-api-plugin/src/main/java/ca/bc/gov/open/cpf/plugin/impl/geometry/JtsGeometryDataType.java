@@ -15,9 +15,10 @@
  */
 package ca.bc.gov.open.cpf.plugin.impl.geometry;
 
+import org.jeometry.common.datatype.AbstractDataType;
+
 import ca.bc.gov.open.cpf.plugin.api.GeometryFactory;
 
-import com.revolsys.datatype.AbstractDataType;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class JtsGeometryDataType extends AbstractDataType {

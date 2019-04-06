@@ -6,12 +6,12 @@ import java.sql.ResultSet;
 
 import javax.sql.DataSource;
 
+import org.jeometry.common.datatype.DataType;
+import org.jeometry.common.datatype.DataTypes;
 import org.jeometry.common.logging.Logs;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.jdbc.JdbcUtils;
 import com.revolsys.spring.config.BeanConfigurrer;
 import com.revolsys.util.Property;

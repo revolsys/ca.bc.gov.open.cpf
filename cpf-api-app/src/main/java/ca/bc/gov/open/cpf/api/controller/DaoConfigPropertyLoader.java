@@ -21,12 +21,13 @@ import java.util.Map;
 
 import javax.annotation.PreDestroy;
 
+import org.jeometry.common.datatype.DataType;
+import org.jeometry.common.datatype.DataTypes;
+
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.record.Record;
 
 public class DaoConfigPropertyLoader implements ConfigPropertyLoader {

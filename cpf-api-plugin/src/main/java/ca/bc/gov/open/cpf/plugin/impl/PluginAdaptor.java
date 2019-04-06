@@ -36,7 +36,7 @@ import java.util.Map.Entry;
 import org.apache.commons.beanutils.BeanUtils;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.common.logging.Logs;
-import org.jeometry.common.math.MathUtil;
+import org.jeometry.common.math.Randoms;
 import org.jeometry.coordinatesystem.model.systems.EpsgId;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -252,9 +252,9 @@ public class PluginAdaptor {
         if (maxTime < minTime) {
           maxTime = minTime + 10;
         }
-        executionTime = MathUtil.randomRange(minTime, maxTime);
+        executionTime = Randoms.randomRange(minTime, maxTime);
       } else {
-        executionTime = MathUtil.randomGaussian(meanTime, standardDeviation);
+        executionTime = Randoms.randomGaussian(meanTime, standardDeviation);
       }
       if (minTime >= 0 && executionTime < minTime) {
         executionTime = minTime;
@@ -288,7 +288,7 @@ public class PluginAdaptor {
           final double meanNumResults = Maps.getDouble(this.testParameters, "cpfMeanNumResults",
             3.0);
           final int numResults = (int)Math
-            .round(MathUtil.randomGaussian(meanNumResults, meanNumResults / 5));
+            .round(Randoms.randomGaussian(meanNumResults, meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
             final Map<String, Object> result = getResult(this.plugin, true, testMode);
             this.results.add(result);

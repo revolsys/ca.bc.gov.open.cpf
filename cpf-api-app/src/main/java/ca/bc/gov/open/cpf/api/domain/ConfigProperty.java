@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
-import com.revolsys.io.PathName;
+import org.jeometry.common.io.PathName;
 
 public interface ConfigProperty extends Common {
   String COMPONENT_NAME = "COMPONENT_NAME";

@@ -18,7 +18,7 @@ package ca.bc.gov.open.cpf.api.domain;
 import java.util.Arrays;
 import java.util.List;
 
-import com.revolsys.io.PathName;
+import org.jeometry.common.io.PathName;
 
 /**
  * The BatchJobResult is a result file generated after the execution of a
