@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.plugin.impl.geometry;
 
-import org.jeometry.common.datatype.AbstractDataType;
+import org.jeometry.common.data.type.AbstractDataType;
 
 import ca.bc.gov.open.cpf.plugin.api.GeometryFactory;
 

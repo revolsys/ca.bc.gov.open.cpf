@@ -39,8 +39,7 @@ public class LoadJobIdsToScheduleFromDatabase implements Runnable {
       this.batchJobService.scheduleFromDatabase();
     } catch (final ClosedException e) {
     } catch (final Throwable e) {
-      Logs.error(LoadJobIdsToScheduleFromDatabase.class, "Unable to schedule from database",
-        e);
+      Logs.error(LoadJobIdsToScheduleFromDatabase.class, "Unable to schedule from database", e);
     } finally {
       this.running = false;
     }

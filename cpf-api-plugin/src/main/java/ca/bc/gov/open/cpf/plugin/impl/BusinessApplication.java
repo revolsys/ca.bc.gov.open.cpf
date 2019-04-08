@@ -28,8 +28,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
-import org.jeometry.common.datatype.DataType;
-import org.jeometry.common.datatype.DataTypes;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
 import org.jeometry.common.io.PathName;
 import org.jeometry.common.logging.Logs;
 import org.jeometry.coordinatesystem.model.CoordinateSystem;

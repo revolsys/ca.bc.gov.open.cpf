@@ -22,6 +22,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.data.identifier.Identifier;
+
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.scheduler.JobPreProcessTask;
@@ -29,7 +31,6 @@ import ca.bc.gov.open.cpf.api.scheduler.PreProcessGroup;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.map.MapEx;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.map.MapReader;
 
 public interface JobController {

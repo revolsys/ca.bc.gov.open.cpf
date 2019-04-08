@@ -36,8 +36,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.jeometry.common.datatype.DataType;
-import org.jeometry.common.datatype.DataTypes;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
 import org.jeometry.common.logging.Logs;
 import org.jeometry.common.math.Randoms;
 import org.springframework.util.StopWatch;
@@ -356,11 +356,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
+  
    * results List&lt;MapEx&gt;
    * logRecords List&lt;MapEx&gt;
    * groupExecutionTime long

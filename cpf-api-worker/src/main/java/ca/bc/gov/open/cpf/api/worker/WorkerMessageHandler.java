@@ -40,11 +40,11 @@ import org.glassfish.tyrus.client.ClientManager.ReconnectHandler;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.auth.AuthConfig;
 import org.glassfish.tyrus.client.auth.AuthConfig.Builder;
-import org.jeometry.common.exception.Exceptions;
-import org.jeometry.common.logging.Logs;
 import org.glassfish.tyrus.client.auth.AuthenticationException;
 import org.glassfish.tyrus.client.auth.Authenticator;
 import org.glassfish.tyrus.client.auth.Credentials;
+import org.jeometry.common.exception.Exceptions;
+import org.jeometry.common.logging.Logs;
 
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;

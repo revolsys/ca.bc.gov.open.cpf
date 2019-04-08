@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.jeometry.common.data.identifier.Identifier;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.common.logging.Logs;
 
@@ -35,7 +36,6 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.RecordReader;
 import com.revolsys.record.query.Q;

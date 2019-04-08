@@ -45,8 +45,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jeometry.common.datatype.DataType;
-import org.jeometry.common.datatype.DataTypes;
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
 import org.jeometry.common.date.Dates;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.common.logging.Logs;
@@ -90,7 +91,6 @@ import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.NamedLinkedHashMapEx;
 import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactory;
@@ -1490,7 +1490,7 @@ public class ConcurrentProcessingFramework {
    * <p>In addition to the standard parameters listed in the API each business
    * application has additional job and request parameters. Invoke the specification mode of this
    * resource should be consulted to get the full list of supported parameters. </p>
-
+  
    * <p class="note">NOTE: The instant resource does not support opaque input data.</p>
    *
    * @param businessApplicationName The name of the business application.
@@ -2218,8 +2218,8 @@ public class ConcurrentProcessingFramework {
       inputDataContentType.setDefaultValue(businessApplication.getDefaultInputDataContentType());
       requestAttributes.add(0, inputDataContentType);
 
-      final FieldDefinition inputData = new FieldDefinition("inputData", RsCoreDataTypes.FILE, false,
-        "The multi-part file containing the input data.");
+      final FieldDefinition inputData = new FieldDefinition("inputData", RsCoreDataTypes.FILE,
+        false, "The multi-part file containing the input data.");
       inputData.setProperty(BusinessApplication.JOB_PARAMETER, true);
       requestAttributes.add(1, inputData);
 

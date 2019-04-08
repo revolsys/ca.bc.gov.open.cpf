@@ -22,6 +22,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.data.identifier.Identifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,7 +32,6 @@ import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatusChange;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.ui.web.annotation.ColumnSortOrder;
 import com.revolsys.ui.web.annotation.RequestMapping;
@@ -82,7 +82,8 @@ public class BatchJobStatusChangeUiBuilder extends CpfUiBuilder {
         BatchJobStatusChange.JOB_STATUS, //
         BatchJobStatusChange.WHEN_CREATED, //
         BatchJobStatusChange.WHO_CREATED
-      }, columnSortOrder = @ColumnSortOrder(value = BatchJobStatusChange.WHEN_CREATED, ascending = false))
+      }, columnSortOrder = @ColumnSortOrder(value = BatchJobStatusChange.WHEN_CREATED,
+          ascending = false))
   @ResponseBody
   public Object moduleAppJobList(final HttpServletRequest request,
     final HttpServletResponse response, @PathVariable("moduleName") final String moduleName,

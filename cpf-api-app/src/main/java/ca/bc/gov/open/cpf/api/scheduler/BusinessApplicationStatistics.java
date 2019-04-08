@@ -25,12 +25,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.jeometry.common.data.identifier.Identifier;
 import org.jeometry.common.date.Dates;
 import org.jeometry.common.io.PathName;
 import org.springframework.util.StopWatch;
 
 import com.revolsys.collection.set.Sets;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.util.Property;
 
 public class BusinessApplicationStatistics {

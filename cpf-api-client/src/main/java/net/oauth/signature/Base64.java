@@ -267,8 +267,8 @@ class Base64 {
    *         alphabet or if the byte array is empty; false, otherwise
    */
   public static boolean isArrayByteBase64(final byte[] arrayOctet) {
-    for (int i = 0; i < arrayOctet.length; i++) {
-      if (!isBase64(arrayOctet[i]) && !isWhiteSpace(arrayOctet[i])) {
+    for (final byte element : arrayOctet) {
+      if (!isBase64(element) && !isWhiteSpace(element)) {
         return false;
       }
     }

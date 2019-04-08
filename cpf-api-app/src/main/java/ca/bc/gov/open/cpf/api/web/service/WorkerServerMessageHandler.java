@@ -194,7 +194,7 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnClose
   public void onClose(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
-    String message = "Worker disconnected " + workerId + " (" + workerStartTime + ")";
+    final String message = "Worker disconnected " + workerId + " (" + workerStartTime + ")";
     Logs.info(this, message);
     this.batchJobService.setWorkerDisconnected(workerId, workerStartTime, session);
   }
@@ -202,7 +202,7 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnError
   public void onError(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session, final Throwable e) {
-    String message = "Worker error " + workerId + " (" + workerStartTime + ")";
+    final String message = "Worker error " + workerId + " (" + workerStartTime + ")";
     Logs.error(this, message, e);
   }
 
@@ -227,7 +227,7 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnOpen
   public void onOpen(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
-    String message = "Worker connected " + workerId + " (" + workerStartTime + ")";
+    final String message = "Worker connected " + workerId + " (" + workerStartTime + ")";
     Logs.info(this, message);
     if (this.businessApplicationRegistry == null) {
       final WebApplicationContext wac = (WebApplicationContext)ContextLoader

@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.jeometry.common.datatype.DataType;
-import org.jeometry.common.datatype.DataTypes;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
 import org.jeometry.common.io.PathName;
 import org.jeometry.common.logging.Logs;
 import org.springframework.stereotype.Controller;

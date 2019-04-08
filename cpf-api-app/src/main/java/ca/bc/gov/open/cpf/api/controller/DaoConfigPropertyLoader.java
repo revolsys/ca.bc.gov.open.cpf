@@ -21,8 +21,8 @@ import java.util.Map;
 
 import javax.annotation.PreDestroy;
 
-import org.jeometry.common.datatype.DataType;
-import org.jeometry.common.datatype.DataTypes;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;

@@ -18,12 +18,12 @@ package ca.bc.gov.open.cpf.api.scheduler;
 import java.io.File;
 import java.util.Map;
 
+import org.jeometry.common.data.identifier.Identifier;
+
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.web.controller.FileJobController;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
-
-import com.revolsys.identifier.Identifier;
 
 public class FilePreProcessGroup extends PreProcessGroup {
   public FilePreProcessGroup(final JobPreProcessTask preProcess,

@@ -35,8 +35,8 @@ import com.revolsys.gis.grid.RectangularMapTile;
     description = "The Map Tile by Tile Id service returns the polygon boundary for the map tile specified by the tile name.")
 public class MapTileByTileId {
   private static final Polygon DEFAULT_POLYGON = com.revolsys.geometry.model.GeometryFactory.wgs84()
-    .polygon(com.revolsys.geometry.model.GeometryFactory.wgs84().linearRing(2, -121.0, 50, -120, 50,
-      -120, 51, -121, 51, -121, 50));
+    .polygon(com.revolsys.geometry.model.GeometryFactory.wgs84()
+      .linearRing(2, -121.0, 50, -120, 50, -120, 51, -121, 51, -121, 50));
 
   private String mapTileId = "92j";
 

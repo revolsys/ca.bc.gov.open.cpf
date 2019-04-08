@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.jeometry.common.data.identifier.Identifier;
 import org.jeometry.common.logging.Logs;
 import org.springframework.util.StopWatch;
 
@@ -40,7 +41,6 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.Reader;
@@ -242,7 +242,7 @@ public class JobPreProcessTask {
                             requestRecordDefinition, mapReader)) {
 
                           for (final Iterator<Record> iterator = inputDataReader
-                            .iterator(); iterator.hasNext();) {
+                              .iterator(); iterator.hasNext();) {
                             numSubmittedRequests++;
                             try {
                               final Record inputDataRecord = iterator.next();

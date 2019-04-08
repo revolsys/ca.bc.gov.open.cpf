@@ -25,11 +25,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.jeometry.common.datatype.DataTypes;
-import org.jeometry.common.logging.Logs;
-
 import java.util.Set;
+
+import org.jeometry.common.data.type.DataTypes;
+import org.jeometry.common.logging.Logs;
 
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;

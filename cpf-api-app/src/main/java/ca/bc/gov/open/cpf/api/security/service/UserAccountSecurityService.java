@@ -69,7 +69,7 @@ public class UserAccountSecurityService {
             }
           }
         } catch (final Throwable t) {
-          Logs.error(UserAccountSecurityService.class, 
+          Logs.error(UserAccountSecurityService.class,
             "Unable to load authorities for user " + userAccount.getValue(UserAccount.CONSUMER_KEY),
             t);
         }
