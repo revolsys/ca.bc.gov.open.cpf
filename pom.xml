@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 >
@@ -322,6 +321,11 @@
         <version>1.9.3</version>
       </dependency>
       <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.11</version>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>jcl-over-slf4j</artifactId>
         <version>${org.slf4j.version}</version>
@@ -492,7 +496,7 @@
     <module>cpf-api-client</module>
     <module>cpf-api-app</module>
     <module>cpf-api-worker</module>
-<!--     <module>cpf-security-openid</module> -->
+    <!-- <module>cpf-security-openid</module> -->
     <module>cpf-war-app</module>
     <module>cpf-war-worker</module>
     <module>cpf-archetype-plugin</module>
@@ -612,7 +616,8 @@
                     <licenseMerge>bsd_2|The BSD License</licenseMerge>
                     <licenseMerge>bsd_2|BSD License</licenseMerge>
                     <licenseMerge>cddl_1_0|Common Development and Distribution License (CDDL) v1.0</licenseMerge>
-                    <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
+                    <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)
+                      Version 1.0</licenseMerge>
                     <licenseMerge>epl_1|Eclipse Public License - v 1.0</licenseMerge>
                     <licenseMerge>lgpl_2_1|LGPL 2.1</licenseMerge>
                     <licenseMerge>lgpl_2_1|GNU Lesser General Public License</licenseMerge>

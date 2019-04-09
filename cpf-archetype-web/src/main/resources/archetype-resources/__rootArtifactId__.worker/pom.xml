@@ -14,6 +14,26 @@
   <version>${version}</version>
   <name>CPF Worker WAR</name>
 
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.2.2</version>
+        <configuration>
+          <overlays>
+            <overlay>
+              <!-- Overlay the project war first -->
+            </overlay>
+            <overlay>
+              <groupId>ca.bc.gov.open.cpf</groupId>
+              <artifactId>cpf-war-worker</artifactId>
+            </overlay>
+          </overlays>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>

@@ -161,7 +161,7 @@ public abstract class PreProcessGroup {
     if (this.writer == null) {
       this.groupFile = newGroupFile();
       this.writer = new CsvRecordWriter(this.recordDefinition,
-        FileUtil.newUtf8Writer(this.groupFile), Tsv.FIELD_SEPARATOR, true, false);
+        FileUtil.newUtf8Writer(this.groupFile), Tsv.FIELD_SEPARATOR, true, true);
     }
     return this.writer;
   }
