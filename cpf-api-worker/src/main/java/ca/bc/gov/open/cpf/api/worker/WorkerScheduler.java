@@ -396,7 +396,11 @@ public class WorkerScheduler extends ThreadPoolExecutor
         }
         if (key.startsWith("cpfWorker.")) {
           key = key.substring(10);
-          Property.setSimple(this, key, value);
+          if ("appLogDirectory".equals(key)) {
+            setAppLogDirectory(new File(value.toString()));
+          } else {
+            Property.setSimple(this, key, value);
+          }
         }
       }
     } catch (final Throwable e) {
