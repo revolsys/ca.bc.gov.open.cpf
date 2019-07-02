@@ -117,7 +117,7 @@ public class GeometryValidatorPlugin {
       double clearanceScaleFactor;
       double clearanceTolerance;
       if (this.resultScaleFactorXy == 0) {
-        if (geometryFactory.isGeographics()) {
+        if (geometryFactory.isGeographic()) {
           clearanceTolerance = .1;
           clearanceScaleFactor = 10000000;
         } else {

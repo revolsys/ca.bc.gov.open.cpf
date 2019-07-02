@@ -15,11 +15,12 @@
  */
 package ca.bc.gov.open.cpf.plugin.api.log;
 
-import org.jeometry.common.logging.Logs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+
+import com.revolsys.log.LogAppender;
 
 /**
  * <p>The AppLog class is a logging API for use by a {@link BusinessApplicationPlugin} class.
@@ -150,7 +151,7 @@ public class AppLog {
    */
   public void setLogLevel(final String level) {
     this.logLevel = level;
-    Logs.setLevel(this.name, level);
+    LogAppender.setLevel(this.name, level);
   }
 
   @Override

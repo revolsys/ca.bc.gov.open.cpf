@@ -23,10 +23,10 @@ import javax.servlet.ServletContextListener;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import org.jeometry.common.logging.Logs;
 
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 
+import com.revolsys.log.LogAppender;
 import com.revolsys.util.Property;
 
 public class CpfLog4jContextListener implements ServletContextListener {
@@ -37,7 +37,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
 
   @Override
   public void contextInitialized(final ServletContextEvent event) {
-    Logs.removeAllAppenders();
+    LogAppender.removeAllAppenders();
     final ServletContext context = event.getServletContext();
     String cpfLogDirectory = context.getInitParameter("cpfLogDirectory");
     if (!Property.hasValue(cpfLogDirectory)) {
@@ -54,7 +54,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
       }
     }
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      Logs.addRootAppender("%d\t%p\t%c\t%m%n");
+      LogAppender.addRootAppender("%d\t%p\t%c\t%m%n");
     } else {
       final Logger logger = (Logger)LogManager.getRootLogger();
       ClassLoaderModule.addAppender(logger, rootDirectory + "/master", "cpf-master-all");

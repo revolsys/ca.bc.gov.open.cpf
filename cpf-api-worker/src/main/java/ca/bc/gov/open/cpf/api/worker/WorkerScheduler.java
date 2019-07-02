@@ -61,6 +61,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
+import com.revolsys.log.LogAppender;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
@@ -410,10 +411,10 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   private void initLogging() {
     final Logger logger = (Logger)LogManager.getRootLogger();
-    Logs.removeAllAppenders();
+    LogAppender.removeAllAppenders();
     final File rootDirectory = this.appLogDirectory;
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      Logs.addRootAppender("%d\\t%p\\t%c\\t%m%n");
+      LogAppender.addRootAppender("%d\\t%p\\t%c\\t%m%n");
     } else {
       final String id = this.id.replaceAll(":", "-");
       ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-" + id, "cpf-worker-all");

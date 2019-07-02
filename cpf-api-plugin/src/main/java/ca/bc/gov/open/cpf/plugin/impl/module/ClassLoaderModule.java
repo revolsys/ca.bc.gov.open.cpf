@@ -49,8 +49,6 @@ import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
 import org.jeometry.common.data.type.DataType;
 import org.jeometry.common.data.type.DataTypes;
 import org.jeometry.common.exception.Exceptions;
-import org.jeometry.common.logging.Logs;
-import org.jeometry.common.logging.log4j.WrappedAppender;
 import org.jeometry.coordinatesystem.model.CoordinateSystem;
 import org.jeometry.coordinatesystem.model.systems.EpsgCoordinateSystems;
 import org.jeometry.coordinatesystem.model.systems.EpsgId;
@@ -79,6 +77,7 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
+import ca.bc.gov.open.cpf.plugin.impl.log.WrappedAppender;
 
 import com.revolsys.beans.Classes;
 import com.revolsys.collection.ArrayUtil;
@@ -92,6 +91,7 @@ import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.log.LogAppender;
 import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
@@ -139,7 +139,7 @@ public class ClassLoaderModule implements Module {
       .withName(name) //
       .withFileName(activeFileName)//
       .withFilePattern(baseFileName + ".%i.log") //
-      .withLayout(Logs.newLayout("%d\t%p\t%c\t%m%n"))//
+      .withLayout(LogAppender.newLayout("%d\t%p\t%c\t%m%n"))//
       .withPolicy( //
         CompositeTriggeringPolicy.createPolicy( //
           OnStartupTriggeringPolicy.createPolicy(1), //

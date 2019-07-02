@@ -323,7 +323,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.11</version>
+        <version>1.12</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -377,10 +377,6 @@
             <artifactId>pdfbox</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>xtiff-jai</groupId>
-            <artifactId>xtiff-jai</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>com.akiban</groupId>
             <artifactId>akiban-sql-parser</artifactId>
           </exclusion>
@@ -391,14 +387,6 @@
           <exclusion>
             <groupId>java3d</groupId>
             <artifactId>vecmath</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_codec</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.apache.xbean</groupId>
@@ -593,7 +581,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>license-maven-plugin</artifactId>
-            <version>1.16</version>
+            <version>1.19</version>
             <executions>
               <execution>
                 <phase>deploy</phase>
