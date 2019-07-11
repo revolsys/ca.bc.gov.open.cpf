@@ -43,7 +43,7 @@ public class ThreadTest {
 
   private final Resource inputDataResource = new PathResource("src/data/NTS-250000-by-name.csv");
 
-  private BusinessApplicationPluginExecutor executor = new BusinessApplicationPluginExecutor();
+  private BusinessApplicationPluginExecutor executor;
 
   private final Channel<Boolean> startChannel = new Channel<>(new Buffer<Boolean>(this.numThreads));
 
@@ -54,7 +54,6 @@ public class ThreadTest {
   private List<MapEx> testData = new ArrayList<>();
 
   public ThreadTest() {
-    this.executor.setTestModeEnabled(this.businessApplicationName, Boolean.TRUE);
   }
 
   public String getBusinessApplicationName() {
@@ -75,30 +74,35 @@ public class ThreadTest {
   }
 
   public void run() {
-    if (this.inputDataResource.exists()) {
-      this.testData = MapReader.newMapReader(this.inputDataResource).toList();
-    } else {
-      this.testData.add(new LinkedHashMapEx());
-    }
-    for (int i = 0; i < this.numThreads; i++) {
-      final ThreadTestRunnable runnable = new ThreadTestRunnable(this, i);
-      final Thread thread = new Thread(runnable, "Runner " + i);
-      thread.start();
-    }
-    waitForAllThreadsToStart();
-    waitForAllThreadsToStop();
-    this.executor.close();
-    this.executor = null;
-    this.testData.clear();
-    System.gc();
-    System.gc();
-    System.gc();
-    System.gc();
-    System.gc();
-    synchronized (this) {
-      try {
-        wait();
-      } catch (final InterruptedException e) {
+    try (
+      BusinessApplicationPluginExecutor executor = new BusinessApplicationPluginExecutor()) {
+      this.executor = executor;
+      this.executor.setTestModeEnabled(this.businessApplicationName, Boolean.TRUE);
+      if (this.inputDataResource.exists()) {
+        this.testData = MapReader.newMapReader(this.inputDataResource).toList();
+      } else {
+        this.testData.add(new LinkedHashMapEx());
+      }
+      for (int i = 0; i < this.numThreads; i++) {
+        final ThreadTestRunnable runnable = new ThreadTestRunnable(this, i);
+        final Thread thread = new Thread(runnable, "Runner " + i);
+        thread.start();
+      }
+      waitForAllThreadsToStart();
+      waitForAllThreadsToStop();
+      this.executor.close();
+      this.executor = null;
+      this.testData.clear();
+      System.gc();
+      System.gc();
+      System.gc();
+      System.gc();
+      System.gc();
+      synchronized (this) {
+        try {
+          wait();
+        } catch (final InterruptedException e) {
+        }
       }
     }
   }

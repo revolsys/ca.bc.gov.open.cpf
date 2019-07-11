@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
-import com.revolsys.io.PathName;
+import org.jeometry.common.io.PathName;
 
 public interface BatchJobStatusChange extends Common {
   PathName BATCH_JOB_STATUS_CHANGE = PathName.newPathName("/CPF/CPF_BATCH_JOB_STATUS_CHANGE");

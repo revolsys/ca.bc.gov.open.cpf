@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.logging.Logs;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
@@ -39,14 +41,12 @@ import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.io.map.MapWriter;
-import com.revolsys.logging.Logs;
 import com.revolsys.record.FieldValueInvalidException;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.MapReaderRecordReader;
@@ -242,7 +242,7 @@ public class JobPreProcessTask {
                             requestRecordDefinition, mapReader)) {
 
                           for (final Iterator<Record> iterator = inputDataReader
-                            .iterator(); iterator.hasNext();) {
+                              .iterator(); iterator.hasNext();) {
                             numSubmittedRequests++;
                             try {
                               final Record inputDataRecord = iterator.next();
@@ -321,13 +321,12 @@ public class JobPreProcessTask {
                 e);
               transaction.setRollbackOnly(e);
               return false;
+            } finally {
+              if (this.errorWriter != null) {
+                this.errorWriter.close();
+                this.jobController.setGroupError(this.batchJobId, 0, this.errorFile);
+              }
             }
-
-            if (this.errorWriter != null) {
-              this.errorWriter.close();
-              this.jobController.setGroupError(this.batchJobId, 0, this.errorFile);
-            }
-
             if (!valid || numSubmittedRequests == numFailedRequests) {
               valid = false;
               if (this.dataAccessObject.setBatchJobRequestsFailed(this.batchJobId,

@@ -4,9 +4,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jeometry.common.data.identifier.Code;
+import org.jeometry.common.date.Dates;
+
 import com.revolsys.record.Record;
-import com.revolsys.record.code.Code;
-import com.revolsys.util.Dates;
 
 public enum DurationType implements Code {
   DAY, HOUR, MONTH, YEAR;

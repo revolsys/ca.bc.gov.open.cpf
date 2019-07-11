@@ -59,6 +59,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
+import org.jeometry.common.date.Dates;
+import org.jeometry.common.logging.Logs;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -92,19 +97,15 @@ import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.collection.map.NamedLinkedHashMapEx;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.geometry.operation.valid.IsValidOp;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoConstants;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.io.map.MapWriterFactory;
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.ClosedException;
 import com.revolsys.parallel.channel.NamedChannelBundle;
@@ -130,7 +131,6 @@ import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.utils.HttpServletUtils;
-import com.revolsys.util.Dates;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 
@@ -247,7 +247,7 @@ public class BatchJobService implements ModuleEventListener {
             throw new IllegalArgumentException("invalid WKT geometry", t);
           }
         }
-        if (geometryFactory != GeometryFactory.DEFAULT_3D) {
+        if (geometryFactory.isHasHorizontalCoordinateSystem()) {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
@@ -934,7 +934,7 @@ public class BatchJobService implements ModuleEventListener {
     this.dataAccessObject.write(result);
   }
 
-  private com.revolsys.io.Writer<Record> newStructuredResultWriter(final BatchJob batchJob,
+  private RecordWriter newStructuredResultWriter(final BatchJob batchJob,
     final Identifier batchJobId, final BusinessApplication application,
     final com.revolsys.spring.resource.Resource resource,
     final RecordDefinition resultRecordDefinition, final String resultFormat) {
@@ -1127,7 +1127,8 @@ public class BatchJobService implements ModuleEventListener {
     if (!batchJob.isCancelled()) {
       final String resultFormat = batchJob.getValue(BatchJob.RESULT_DATA_CONTENT_TYPE);
       final String fileExtension = IoFactory.fileExtensionByMediaType(resultFormat);
-      final File structuredResultFile = FileUtil.newTempFile("result", "." + fileExtension);
+      final File resultDirectory = FileUtil.newTempDirectory("job-" + batchJobId, "-result");
+      final File structuredResultFile = new File(resultDirectory, "result." + fileExtension);
 
       try {
         final PathResource resource = new PathResource(structuredResultFile);
@@ -1139,7 +1140,7 @@ public class BatchJobService implements ModuleEventListener {
       } catch (final Throwable e) {
         throw new RuntimeException("Unable to save results", e);
       } finally {
-        FileUtil.delete(structuredResultFile);
+        FileUtil.deleteDirectory(resultDirectory, true);
       }
     }
   }
@@ -1810,8 +1811,8 @@ public class BatchJobService implements ModuleEventListener {
         .getResultRecordDefinition();
       boolean hasResults = false;
       try (
-        com.revolsys.io.Writer<Record> structuredResultWriter = newStructuredResultWriter(batchJob,
-          batchJobId, businessApplication, resource, resultRecordDefinition, resultFormat)) {
+        RecordWriter structuredResultWriter = newStructuredResultWriter(batchJob, batchJobId,
+          businessApplication, resource, resultRecordDefinition, resultFormat)) {
         structuredResultWriter.open();
         final Map<String, Object> defaultProperties = new HashMap<>(
           structuredResultWriter.getProperties());

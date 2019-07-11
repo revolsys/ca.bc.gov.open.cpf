@@ -46,10 +46,11 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 import org.glassfish.tyrus.client.ClientManager;
+import org.jeometry.common.exception.Exceptions;
+import org.jeometry.common.logging.Logs;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -60,12 +61,11 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.logging.Logs;
+import com.revolsys.log.LogAppender;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.Resource;
-import com.revolsys.util.Exceptions;
 import com.revolsys.util.Property;
 
 @WebListener
@@ -397,7 +397,11 @@ public class WorkerScheduler extends ThreadPoolExecutor
         }
         if (key.startsWith("cpfWorker.")) {
           key = key.substring(10);
-          Property.setSimple(this, key, value);
+          if ("appLogDirectory".equals(key)) {
+            setAppLogDirectory(new File(value.toString()));
+          } else {
+            Property.setSimple(this, key, value);
+          }
         }
       }
     } catch (final Throwable e) {
@@ -406,15 +410,11 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   private void initLogging() {
-    final Logger logger = Logger.getRootLogger();
-    logger.removeAllAppenders();
+    final Logger logger = (Logger)LogManager.getRootLogger();
+    LogAppender.removeAllAppenders();
     final File rootDirectory = this.appLogDirectory;
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      new ConsoleAppender().activateOptions();
-      final ConsoleAppender appender = new ConsoleAppender();
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-      logger.addAppender(appender);
+      LogAppender.addRootAppender("%d\\t%p\\t%c\\t%m%n");
     } else {
       final String id = this.id.replaceAll(":", "-");
       ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-" + id, "cpf-worker-all");

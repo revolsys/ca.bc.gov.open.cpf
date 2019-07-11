@@ -33,14 +33,15 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.logging.Logs;
+
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
 import com.revolsys.collection.SetQueue;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.identifier.Identifier;
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;

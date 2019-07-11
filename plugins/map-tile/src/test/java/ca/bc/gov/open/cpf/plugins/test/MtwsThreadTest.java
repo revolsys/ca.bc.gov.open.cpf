@@ -43,7 +43,7 @@ public class MtwsThreadTest {
     test.run();
   }
 
-  private BusinessApplicationPluginExecutor executor = new BusinessApplicationPluginExecutor();
+  private BusinessApplicationPluginExecutor executor;
 
   private final Channel<Boolean> startChannel = new Channel<>(new Buffer<Boolean>(NUM_THREADS));
 
@@ -75,27 +75,31 @@ public class MtwsThreadTest {
   }
 
   public void run() {
-    this.testData = MapReader.newMapReader(inputDataResource).toList();
-    for (int i = 0; i < NUM_THREADS; i++) {
-      final MtwsThreadTestRunnable runnable = new MtwsThreadTestRunnable(this, i);
-      final Thread thread = new Thread(runnable, "Runner " + i);
-      thread.start();
-    }
+    try (
+      BusinessApplicationPluginExecutor executor = new BusinessApplicationPluginExecutor()) {
+      this.executor = executor;
+      this.testData = MapReader.newMapReader(inputDataResource).toList();
+      for (int i = 0; i < NUM_THREADS; i++) {
+        final MtwsThreadTestRunnable runnable = new MtwsThreadTestRunnable(this, i);
+        final Thread thread = new Thread(runnable, "Runner " + i);
+        thread.start();
+      }
 
-    waitForAllThreadsToStart();
-    waitForAllThreadsToStop();
-    this.executor.close();
-    this.executor = null;
-    this.testData.clear();
-    System.gc();
-    System.gc();
-    System.gc();
-    System.gc();
-    System.gc();
-    synchronized (this) {
-      try {
-        wait();
-      } catch (final InterruptedException e) {
+      waitForAllThreadsToStart();
+      waitForAllThreadsToStop();
+      this.executor.close();
+      this.executor = null;
+      this.testData.clear();
+      System.gc();
+      System.gc();
+      System.gc();
+      System.gc();
+      System.gc();
+      synchronized (this) {
+        try {
+          wait();
+        } catch (final InterruptedException e) {
+        }
       }
     }
   }

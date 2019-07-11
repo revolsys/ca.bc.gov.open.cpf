@@ -39,7 +39,7 @@ public class JdbcDatabaseMetaData {
       final DatabaseMetaData metaData = connection.getMetaData();
       this.databaseProductName = metaData.getDatabaseProductName();
     } catch (final SQLException e) {
-      JdbcUtils.getException(this.dataSource, null, "Get MetaData", null, e);
+      JdbcUtils.getException(this.dataSource, "Get MetaData", null, e);
     }
   }
 

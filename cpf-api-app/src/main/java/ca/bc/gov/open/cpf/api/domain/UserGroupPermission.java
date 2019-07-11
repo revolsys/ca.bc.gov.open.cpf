@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
-import com.revolsys.io.PathName;
+import org.jeometry.common.io.PathName;
 
 public interface UserGroupPermission extends Common {
   String RESOURCE_CLASS = "RESOURCE_CLASS";

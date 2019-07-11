@@ -30,6 +30,7 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import org.jeometry.common.logging.Logs;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
@@ -48,7 +49,6 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
 import com.revolsys.ui.web.annotation.RequestMapping;
 import com.revolsys.websocket.json.JsonDecoder;
@@ -194,7 +194,7 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnClose
   public void onClose(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
-    String message = "Worker disconnected " + workerId + " (" + workerStartTime + ")";
+    final String message = "Worker disconnected " + workerId + " (" + workerStartTime + ")";
     Logs.info(this, message);
     this.batchJobService.setWorkerDisconnected(workerId, workerStartTime, session);
   }
@@ -202,7 +202,7 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnError
   public void onError(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session, final Throwable e) {
-    String message = "Worker error " + workerId + " (" + workerStartTime + ")";
+    final String message = "Worker error " + workerId + " (" + workerStartTime + ")";
     Logs.error(this, message, e);
   }
 
@@ -227,7 +227,7 @@ public class WorkerServerMessageHandler implements ModuleEventListener {
   @OnOpen
   public void onOpen(@PathParam("workerId") final String workerId,
     @PathParam("startTime") final long workerStartTime, final Session session) {
-    String message = "Worker connected " + workerId + " (" + workerStartTime + ")";
+    final String message = "Worker connected " + workerId + " (" + workerStartTime + ")";
     Logs.info(this, message);
     if (this.businessApplicationRegistry == null) {
       final WebApplicationContext wac = (WebApplicationContext)ContextLoader

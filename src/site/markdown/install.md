@@ -204,7 +204,7 @@ created for each installation that contains the configuration for that environme
 Create the maven project using the following maven archetype commands. Replace any parameters
 with the correct values for your environment.
 
-> **NOTE:** Java 1.8.0 and Maven 3.3+ must be install. JAVA_HOME and M2_HOME must be set and the
+> **NOTE:** Java 11 and Maven 3.6+ must be install. JAVA_HOME and M2_HOME must be set and the
 > bin directories from both must be in the PATH.
 
 **UNIX/Mac**

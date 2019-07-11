@@ -21,13 +21,14 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.exception.Exceptions;
+
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.record.io.format.tsv.Tsv;
-import com.revolsys.util.Exceptions;
 
 public abstract class AbstractJobController implements JobController {
 

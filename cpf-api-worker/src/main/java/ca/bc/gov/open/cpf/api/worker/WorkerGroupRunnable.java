@@ -36,7 +36,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.log4j.Logger;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
+import org.jeometry.common.logging.Logs;
+import org.jeometry.common.math.Randoms;
 import org.springframework.util.StopWatch;
 
 import ca.bc.gov.open.cpf.plugin.api.RecoverableException;
@@ -51,14 +54,12 @@ import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.collection.range.RangeSet;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.geometry.model.Geometry;
+import com.revolsys.geometry.model.GeometryDataTypes;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.LazyHttpPostOutputStream;
 import com.revolsys.io.map.MapReader;
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.tsv.Tsv;
@@ -67,7 +68,6 @@ import com.revolsys.record.property.FieldProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
-import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 
 public class WorkerGroupRunnable implements Runnable {
@@ -166,9 +166,9 @@ public class WorkerGroupRunnable implements Runnable {
         if (testMaxTime < testMinTime) {
           testMaxTime = testMinTime + 10;
         }
-        executionTime = MathUtil.randomRange(testMinTime, testMaxTime);
+        executionTime = Randoms.randomRange(testMinTime, testMaxTime);
       } else {
-        executionTime = MathUtil.randomGaussian(testMeanTime, testStandardDeviation);
+        executionTime = Randoms.randomGaussian(testMeanTime, testStandardDeviation);
       }
       if (testMinTime >= 0 && executionTime < testMinTime) {
         executionTime = testMinTime;
@@ -202,7 +202,7 @@ public class WorkerGroupRunnable implements Runnable {
         if (testMode) {
           final double meanNumResults = Maps.getDouble(testParameters, "cpfMeanNumResults", 3.0);
           final int numResults = (int)Math
-            .round(MathUtil.randomGaussian(meanNumResults, meanNumResults / 5));
+            .round(Randoms.randomGaussian(meanNumResults, meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
             writeResult(resultWriter, plugin, parameters, customizationProperties,
               requestSequenceNumber, i, testMode);
@@ -231,8 +231,8 @@ public class WorkerGroupRunnable implements Runnable {
    * errorDebugMessage String
    *
    * pluginExecutionTime long
-   * results List<MapEx>
-   * logRecords List<MapEx>
+   * results List&lt;MapEx&gt;
+   * logRecords List&lt;MapEx&gt;
    * @param resultWriter
    *
    * @param requestRecordDefinition
@@ -356,13 +356,13 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-
+  
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-
-   * results List<MapEx>
-   * logRecords List<MapEx>
+  
+   * results List&lt;MapEx&gt;
+   * logRecords List&lt;MapEx&gt;
    * groupExecutionTime long
    * applicationExecutionTime long
    * errorCount long
@@ -371,8 +371,8 @@ public class WorkerGroupRunnable implements Runnable {
   @Override
   public void run() {
     this.log.info("Start\tGroup Execution\t" + this.groupId);
+    final File resultFile = FileUtil.newTempFile("group-" + this.groupId, ".tsv");
     try {
-      final File resultFile = FileUtil.newTempFile("group-" + this.groupId, ".tsv");
       final StopWatch groupStopWatch = new StopWatch("Group");
       groupStopWatch.start();
       final Long moduleTime = this.groupIdMap.getLong("moduleTime");
@@ -450,19 +450,26 @@ public class WorkerGroupRunnable implements Runnable {
         final TsvWriter errorWriter = this.errorWriter;
         this.errorWriter = null;
         if (errorWriter != null) {
-          errorWriter.close();
-          final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
-            + "/groups/" + this.groupId + "/error";
-          final HttpResponse errorResponse = this.httpClient.postResource(errorPath, Tsv.MIME_TYPE,
-            this.errorFile);
-          final StatusLine statusLine = errorResponse.getStatusLine();
-          if (statusLine.getStatusCode() != 200) {
-            this.log.error("Error writing errors:\nresponse=" + statusLine + "\nerror="
-              + FileUtil.getString(this.errorFile));
-            this.scheduler.addFailedGroup(this.groupId);
+          try {
+            errorWriter.close();
+            final String errorPath = "/worker/workers/" + this.workerId + "/jobs/" + this.batchJobId
+              + "/groups/" + this.groupId + "/error";
+            final HttpResponse errorResponse = this.httpClient.postResource(errorPath,
+              Tsv.MIME_TYPE, this.errorFile);
+            try {
+              final StatusLine statusLine = errorResponse.getStatusLine();
+              if (statusLine.getStatusCode() != 200) {
+                this.log.error("Error writing errors:\nresponse=" + statusLine + "\nerror="
+                  + FileUtil.getString(this.errorFile));
+                this.scheduler.addFailedGroup(this.groupId);
+              }
+            } finally {
+              HttpClientUtils.closeQuietly(errorResponse);
+            }
+          } finally {
+            FileUtil.delete(this.errorFile);
+            this.errorFile = null;
           }
-          HttpClientUtils.closeQuietly(errorResponse);
-          this.errorFile = null;
         }
         if (resultFile.exists()) {
           final Map<String, Object> parameters = new HashMap<>();
@@ -481,17 +488,28 @@ public class WorkerGroupRunnable implements Runnable {
           }
         }
       }
-    } catch (
-
-    final Throwable e) {
+    } catch (final Throwable e) {
       Logs.error(this, "Error processing group " + this.moduleName + "."
         + this.businessApplicationName + " is not loaded groupId=" + this.groupId, e);
       this.log.error("Unable to process group " + this.groupId, e);
       this.scheduler.addFailedGroup(this.groupId);
     } finally {
-      this.scheduler.removeExecutingGroupId(this.groupId);
-      this.log.info("End\tGroup execution\t" + this.groupId);
-      FileUtil.delete(this.errorFile);
+      try {
+        this.scheduler.removeExecutingGroupId(this.groupId);
+        this.log.info("End\tGroup execution\t" + this.groupId);
+        FileUtil.delete(this.errorFile);
+        final TsvWriter errorWriter = this.errorWriter;
+        this.errorWriter = null;
+        if (errorWriter != null) {
+          errorWriter.close();
+        }
+      } finally {
+        try {
+          FileUtil.delete(this.errorFile);
+        } finally {
+          FileUtil.delete(resultFile);
+        }
+      }
     }
   }
 
@@ -541,7 +559,7 @@ public class WorkerGroupRunnable implements Runnable {
           try {
             final File file = File.createTempFile("cpf", ".out");
             resultData = new FileOutputStream(file);
-            Logger.getLogger(getClass()).info("Writing result to " + file);
+            Logs.info(this, "Writing result to " + file);
           } catch (final IOException e) {
             resultData = System.out;
           }
@@ -600,7 +618,7 @@ public class WorkerGroupRunnable implements Runnable {
           if (value instanceof com.vividsolutions.jts.geom.Geometry) {
             final com.vividsolutions.jts.geom.Geometry jtsGeometry = (com.vividsolutions.jts.geom.Geometry)value;
             final String wkt = DataTypes.toString(jtsGeometry);
-            value = DataTypes.GEOMETRY.toObject(wkt);
+            value = GeometryDataTypes.GEOMETRY.toObject(wkt);
           }
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;

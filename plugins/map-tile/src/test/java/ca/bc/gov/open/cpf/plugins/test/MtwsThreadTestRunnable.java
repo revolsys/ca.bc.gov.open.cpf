@@ -17,9 +17,9 @@ package ca.bc.gov.open.cpf.plugins.test;
 
 import java.util.Map;
 
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
+import org.jeometry.common.logging.Logs;
 
-import com.revolsys.logging.Logs;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationPluginExecutor;
 
 public class MtwsThreadTestRunnable implements Runnable {
   private final MtwsThreadTest test;

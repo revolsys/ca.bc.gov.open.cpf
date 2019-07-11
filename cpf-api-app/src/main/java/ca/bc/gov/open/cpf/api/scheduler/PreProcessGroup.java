@@ -20,14 +20,15 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.data.type.DataType;
+
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.datatype.DataType;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.RecordWriter;
@@ -90,16 +91,32 @@ public abstract class PreProcessGroup {
   }
 
   public void cancel() {
-    if (this.groupFile != null) {
-      FileUtil.delete(this.groupFile);
+    closeWriter();
+    deleteFile();
+  }
+
+  private void closeWriter() {
+    final RecordWriter writer = this.writer;
+    if (writer != null) {
+      this.writer = null;
+      writer.close();
     }
   }
 
   public void commit() {
-    this.writer.close();
+    closeWriter();
     final Identifier batchJobId = getBatchJobId();
     this.jobController.setGroupInput(batchJobId, this.groupSequenceNumber, Csv.MIME_TYPE,
       this.groupFile);
+    deleteFile();
+  }
+
+  private void deleteFile() {
+    final File groupFile = this.groupFile;
+    if (groupFile != null) {
+      this.groupFile = null;
+      FileUtil.delete(groupFile);
+    }
   }
 
   public BatchJob getBatchJob() {
@@ -144,7 +161,7 @@ public abstract class PreProcessGroup {
     if (this.writer == null) {
       this.groupFile = newGroupFile();
       this.writer = new CsvRecordWriter(this.recordDefinition,
-        FileUtil.newUtf8Writer(this.groupFile), Tsv.FIELD_SEPARATOR, true, false);
+        FileUtil.newUtf8Writer(this.groupFile), Tsv.FIELD_SEPARATOR, true, true);
     }
     return this.writer;
   }
@@ -173,17 +190,17 @@ public abstract class PreProcessGroup {
     }
     if (parameterValue == null) {
       if (field.isRequired()) {
-        this.preProcess.addRequestError(sequenceNumber, ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
-          ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " " + parameterName,
-          null);
+        this.preProcess.addRequestError(sequenceNumber,
+          ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription(),
+          ErrorCode.MISSING_REQUIRED_PARAMETER.getDescription() + " " + parameterName, null);
         return false;
       }
     } else if (!jobParameter) {
       try {
         field.validate(parameterValue);
       } catch (final IllegalArgumentException e) {
-        this.preProcess.addRequestError(sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
-          e.getMessage(), null);
+        this.preProcess.addRequestError(sequenceNumber,
+          ErrorCode.INVALID_PARAMETER_VALUE.getDescription(), e.getMessage(), null);
         return false;
       }
       try {
@@ -193,7 +210,8 @@ public abstract class PreProcessGroup {
       } catch (final IllegalArgumentException e) {
         final StringWriter errorOut = new StringWriter();
         e.printStackTrace(new PrintWriter(errorOut));
-        this.preProcess.addRequestError(sequenceNumber, ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
+        this.preProcess.addRequestError(sequenceNumber,
+          ErrorCode.INVALID_PARAMETER_VALUE.getDescription(),
           ErrorCode.INVALID_PARAMETER_VALUE.getDescription() + " " + parameterName + " "
             + e.getMessage(),
           errorOut.toString());

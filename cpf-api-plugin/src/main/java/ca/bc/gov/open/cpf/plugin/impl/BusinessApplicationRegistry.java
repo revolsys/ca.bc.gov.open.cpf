@@ -30,6 +30,7 @@ import java.util.TreeMap;
 
 import javax.annotation.PreDestroy;
 
+import org.jeometry.common.logging.Logs;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
@@ -43,7 +44,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ModuleLoader;
 
 import com.revolsys.collection.list.Lists;
 import com.revolsys.comparator.IgnoreCaseStringComparator;
-import com.revolsys.logging.Logs;
+import com.revolsys.io.CloseableResourceProxy;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.channel.store.Buffer;
 import com.vividsolutions.jts.geom.Geometry;
@@ -71,6 +72,8 @@ public final class BusinessApplicationRegistry
     new JtsGeometryDataType("JtsMultiPolygon", MultiPolygon.class);
   }
 
+  private boolean open = true;
+
   private final Map<String, Module> modulesByName = new TreeMap<>();
 
   private Map<String, String> moduleNamesByBusinessApplicationName;
@@ -93,6 +96,10 @@ public final class BusinessApplicationRegistry
   private boolean useModuleControlThread = true;
 
   private String environmentId = "master";
+
+  private final CloseableResourceProxy<IBusinessApplicationPluginExecutor> executor = CloseableResourceProxy
+    .newProxy(() -> new BusinessApplicationPluginExecutor(this),
+      IBusinessApplicationPluginExecutor.class);
 
   public BusinessApplicationRegistry() {
     this(true);
@@ -144,37 +151,41 @@ public final class BusinessApplicationRegistry
   @SuppressWarnings("deprecation")
   @PreDestroy
   public void destroy() {
-    try {
-      if (this.moduleControlChannel != null) {
-        this.moduleControlChannel.writeDisconnect();
-      }
-      if (this.moduleControlThread != null) {
-        this.moduleControlThread.interrupt();
-      }
-
-      this.useModuleControlThread = false;
-      final List<Module> modules = getModules();
-      for (final Module module : modules) {
-        try {
-          module.stop();
-        } catch (final Throwable e) {
-          Logs.error(this, "Unable to stop " + module.getName(), e);
-        }
-      }
-
-    } finally {
-      if (this.moduleControlThread != null) {
-        final long maxWait = System.currentTimeMillis() + 5000;
-        while (this.moduleControlThread.isAlive() && System.currentTimeMillis() < maxWait) {
-          this.moduleControlThread.stop();
-        }
-      }
-      this.configPropertyLoader = null;
+    if (this.open) {
+      this.open = false;
       this.listeners.clear();
-      this.moduleControlChannel = null;
-      this.moduleControlThread = null;
-      this.moduleLoaders.clear();
-      this.modulesByName.clear();
+      try {
+        if (this.moduleControlChannel != null) {
+          this.moduleControlChannel.writeDisconnect();
+        }
+        if (this.moduleControlThread != null) {
+          this.moduleControlThread.interrupt();
+        }
+
+        this.useModuleControlThread = false;
+        final List<Module> modules = getModules();
+        for (final Module module : modules) {
+          try {
+            module.stop();
+          } catch (final Throwable e) {
+            Logs.error(this, "Unable to stop " + module.getName(), e);
+          }
+        }
+        this.executor.close();
+
+      } finally {
+        if (this.moduleControlThread != null) {
+          final long maxWait = System.currentTimeMillis() + 5000;
+          while (this.moduleControlThread.isAlive() && System.currentTimeMillis() < maxWait) {
+            this.moduleControlThread.stop();
+          }
+        }
+        this.configPropertyLoader = null;
+        this.moduleControlChannel = null;
+        this.moduleControlThread = null;
+        this.moduleLoaders.clear();
+        this.modulesByName.clear();
+      }
     }
   }
 
@@ -277,6 +288,24 @@ public final class BusinessApplicationRegistry
     return this.environmentId;
   }
 
+  /**
+   * Get a proxy reference to the default executor.
+   *
+   * Make sure the instance is closed after use.
+   *
+   * <pre>
+   * try (IBusinessApplicationPluginExecutor executor = registry.getExecutor()) {
+   *   executor.execute(parameters);
+   * }
+   * </pre>
+   *
+   * @see CloseableResourceProxy
+   * @return The instance
+   */
+  public IBusinessApplicationPluginExecutor getInstance() {
+    return this.executor.getResource();
+  }
+
   public File getLogDirectory() {
     return this.logDirectory;
   }
@@ -356,25 +385,35 @@ public final class BusinessApplicationRegistry
   }
 
   public void moduleEvent(final Module module, final String action) {
-    final ModuleEvent event = new ModuleEvent(module, action);
-    for (final ModuleEventListener listener : this.listeners) {
-      try {
-        listener.moduleChanged(event);
-      } catch (final Throwable t) {
-        Logs.error(BusinessApplicationRegistry.class, "Error invoking listener", t);
+    if (this.open) {
+      final ModuleEvent event = new ModuleEvent(module, action);
+      for (final ModuleEventListener listener : this.listeners) {
+        if (!this.open) {
+          return;
+        }
+        try {
+          listener.moduleChanged(event);
+        } catch (final Throwable t) {
+          Logs.error(BusinessApplicationRegistry.class, "Error invoking listener", t);
+        }
       }
     }
   }
 
   public void moduleEvent(final Module module, final String action,
     final List<String> businessApplicationNames) {
-    final ModuleEvent event = new ModuleEvent(module, action);
-    event.setBusinessApplicationNames(businessApplicationNames);
-    for (final ModuleEventListener listener : this.listeners) {
-      try {
-        listener.moduleChanged(event);
-      } catch (final Throwable t) {
-        Logs.error(BusinessApplicationRegistry.class, "Error invoking listener", t);
+    if (this.open) {
+      final ModuleEvent event = new ModuleEvent(module, action);
+      event.setBusinessApplicationNames(businessApplicationNames);
+      for (final ModuleEventListener listener : this.listeners) {
+        if (!this.open) {
+          return;
+        }
+        try {
+          listener.moduleChanged(event);
+        } catch (final Throwable t) {
+          Logs.error(BusinessApplicationRegistry.class, "Error invoking listener", t);
+        }
       }
     }
   }

@@ -173,7 +173,7 @@ public class CpfClient implements BaseCloseable {
   public void cancelJob(final String jobUrl) {
     final CpfHttpClient httpClient = this.httpClientPool.getClient();
     try {
-      httpClient.postResource(jobUrl + "/cancel");
+      httpClient.postResource(jobUrl + "cancel");
     } catch (final IOException e) {
       throw new RuntimeException("Unable to cancel job " + jobUrl, e);
     } finally {

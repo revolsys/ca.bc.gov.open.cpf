@@ -15,7 +15,8 @@
  */
 package ca.bc.gov.open.cpf.api.scheduler;
 
-import com.revolsys.logging.Logs;
+import org.jeometry.common.logging.Logs;
+
 import com.revolsys.parallel.channel.ClosedException;
 
 public class LoadJobIdsToScheduleFromDatabase implements Runnable {
@@ -38,8 +39,7 @@ public class LoadJobIdsToScheduleFromDatabase implements Runnable {
       this.batchJobService.scheduleFromDatabase();
     } catch (final ClosedException e) {
     } catch (final Throwable e) {
-      Logs.error(LoadJobIdsToScheduleFromDatabase.class, "Unable to schedule from database",
-        e);
+      Logs.error(LoadJobIdsToScheduleFromDatabase.class, "Unable to schedule from database", e);
     } finally {
       this.running = false;
     }

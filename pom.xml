@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 >
@@ -10,7 +9,7 @@
   <packaging>pom</packaging>
   <name>Concurrent Processing Framework</name>
   <description>The parent module of the Concurrent Processing Framework Library.</description>
-  <version>5.1.0-SNAPSHOT</version>
+  <version>6.0.0-SNAPSHOT</version>
   <inceptionYear>2008</inceptionYear>
   <url>https://bcgov.github.io/cpf/</url>
 
@@ -101,11 +100,33 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>3.5.4</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>11</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.0</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <release>11</release>
           <debug>true</debug>
           <parameters>true</parameters>
           <compilerArgument>-parameters</compilerArgument>
@@ -132,7 +153,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.1.1</version>
         <configuration>
           <archive>
             <manifestEntries>
@@ -150,7 +171,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-install-plugin</artifactId>
-        <version>2.3.1</version>
+        <version>3.0.0-M1</version>
         <configuration>
           <createChecksum>true</createChecksum>
         </configuration>
@@ -158,7 +179,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>2.8.2</version>
+        <version>3.0.0-M1</version>
         <configuration>
           <deployAtEnd>true</deployAtEnd>
         </configuration>
@@ -166,7 +187,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.2</version>
+        <version>3.0.1</version>
         <configuration>
           <includePom>true</includePom>
         </configuration>
@@ -216,7 +237,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
-        <version>3.4</version>
+        <version>3.7.1</version>
         <executions>
           <execution>
             <id>attach-descriptor</id>
@@ -229,7 +250,7 @@
           <dependency>
             <groupId>org.apache.maven.doxia</groupId>
             <artifactId>doxia-module-markdown</artifactId>
-            <version>1.6</version>
+            <version>1.8</version>
           </dependency>
           <dependency>
             <groupId>lt.velykis.maven.skins</groupId>
@@ -244,14 +265,14 @@
           <dependency>
             <groupId>net.trajano.wagon</groupId>
             <artifactId>wagon-git</artifactId>
-            <version>2.0.2</version>
+            <version>2.0.4</version>
           </dependency>
         </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.5</version>
+        <version>1.6</version>
         <executions>
           <execution>
             <id>sign-artifacts</id>
@@ -261,6 +282,15 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <generateBackupPoms>false</generateBackupPoms>
+          <rulesUri>file:${session.executionRootDirectory}/version-rules.xml</rulesUri>
+        </configuration>
       </plugin>
     </plugins>
 
@@ -277,7 +307,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-archetype-plugin</artifactId>
-          <version>2.1</version>
+          <version>3.0.1</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -288,7 +318,28 @@
       <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
-        <version>1.8.3</version>
+        <version>1.9.3</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.12</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>${org.slf4j.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>commons-logging</artifactId>
+            <groupId>commons-logging</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${org.slf4j.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>
@@ -326,10 +377,6 @@
             <artifactId>pdfbox</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>xtiff-jai</groupId>
-            <artifactId>xtiff-jai</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>com.akiban</groupId>
             <artifactId>akiban-sql-parser</artifactId>
           </exclusion>
@@ -340,14 +387,6 @@
           <exclusion>
             <groupId>java3d</groupId>
             <artifactId>vecmath</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_codec</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.apache.xbean</groupId>
@@ -394,14 +433,9 @@
         <version>2.7.2</version>
       </dependency>
       <dependency>
-        <groupId>xml-apis</groupId>
-        <artifactId>xml-apis</artifactId>
-        <version>1.4.01</version>
-      </dependency>
-      <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
-        <version>3.1.0</version>
+        <version>4.0.1</version>
         <scope>provided</scope>
       </dependency>
     </dependencies>
@@ -412,7 +446,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.9</version>
+        <version>3.0.0</version>
         <configuration>
           <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
         </configuration>
@@ -450,7 +484,7 @@
     <module>cpf-api-client</module>
     <module>cpf-api-app</module>
     <module>cpf-api-worker</module>
-<!--     <module>cpf-security-openid</module> -->
+    <!-- <module>cpf-security-openid</module> -->
     <module>cpf-war-app</module>
     <module>cpf-war-worker</module>
     <module>cpf-archetype-plugin</module>
@@ -470,7 +504,7 @@
           <plugin>
             <groupId>org.codehaus.cargo</groupId>
             <artifactId>cargo-maven2-plugin</artifactId>
-            <version>1.5.0</version>
+            <version>1.7.1</version>
             <executions>
               <execution>
                 <id>redeploy</id>
@@ -482,7 +516,7 @@
             </executions>
             <configuration>
               <container>
-                <containerId>tomcat8x</containerId>
+                <containerId>tomcat9x</containerId>
                 <type>remote</type>
               </container>
               <configuration>
@@ -517,7 +551,7 @@
           <plugin>
             <groupId>com.mycila</groupId>
             <artifactId>license-maven-plugin</artifactId>
-            <version>2.9</version>
+            <version>3.0</version>
             <inherited>false</inherited>
             <configuration>
               <aggregate>true</aggregate>
@@ -547,7 +581,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>license-maven-plugin</artifactId>
-            <version>1.8</version>
+            <version>2.0.0</version>
             <executions>
               <execution>
                 <phase>deploy</phase>
@@ -570,7 +604,8 @@
                     <licenseMerge>bsd_2|The BSD License</licenseMerge>
                     <licenseMerge>bsd_2|BSD License</licenseMerge>
                     <licenseMerge>cddl_1_0|Common Development and Distribution License (CDDL) v1.0</licenseMerge>
-                    <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
+                    <licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL)
+                      Version 1.0</licenseMerge>
                     <licenseMerge>epl_1|Eclipse Public License - v 1.0</licenseMerge>
                     <licenseMerge>lgpl_2_1|LGPL 2.1</licenseMerge>
                     <licenseMerge>lgpl_2_1|GNU Lesser General Public License</licenseMerge>
@@ -611,14 +646,14 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
-    <org.springframework.version>4.2.5.RELEASE</org.springframework.version>
-    <org.springframework.security.version>4.0.4.RELEASE</org.springframework.security.version>
+    <org.springframework.version>5.1.6.RELEASE</org.springframework.version>
+    <org.springframework.security.version>5.1.5.RELEASE</org.springframework.security.version>
     <org.apache.httpcomponents.version>4.4.10</org.apache.httpcomponents.version>
     <org.apache.httpcomponents.httpmime.version>4.5.6</org.apache.httpcomponents.httpmime.version>
-    <org.slf4j.version>1.7.21</org.slf4j.version>
+    <org.slf4j.version>1.7.26</org.slf4j.version>
     <skipWebDeploy>true</skipWebDeploy>
     <license.skipAggregateAddThirdParty>true</license.skipAggregateAddThirdParty>
-    <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
+    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
     <github.global.server>github</github.global.server>
     <gitHubUser>bcgov</gitHubUser>
     <gitHubProject>cpf</gitHubProject>
