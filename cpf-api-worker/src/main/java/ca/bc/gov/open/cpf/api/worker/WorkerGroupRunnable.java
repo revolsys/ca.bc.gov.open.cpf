@@ -356,11 +356,11 @@ public class WorkerGroupRunnable implements Runnable {
    * <h2>Fields</h2>
    * batchJobId long
    * groupId long
-  
+
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
-  
+
    * results List&lt;MapEx&gt;
    * logRecords List&lt;MapEx&gt;
    * groupExecutionTime long

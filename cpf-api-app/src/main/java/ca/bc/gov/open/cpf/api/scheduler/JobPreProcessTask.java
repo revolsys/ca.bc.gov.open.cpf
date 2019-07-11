@@ -242,7 +242,7 @@ public class JobPreProcessTask {
                             requestRecordDefinition, mapReader)) {
 
                           for (final Iterator<Record> iterator = inputDataReader
-                              .iterator(); iterator.hasNext();) {
+                            .iterator(); iterator.hasNext();) {
                             numSubmittedRequests++;
                             try {
                               final Record inputDataRecord = iterator.next();
