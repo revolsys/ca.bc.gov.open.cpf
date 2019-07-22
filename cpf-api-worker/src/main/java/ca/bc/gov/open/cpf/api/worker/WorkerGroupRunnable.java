@@ -360,7 +360,11 @@ public class WorkerGroupRunnable implements Runnable {
    * errorCode String
    * errorMessage String
    * errorDebugMessage String
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> branch '6.0.x' of git@github.com:revolsys/ca.bc.gov.open.cpf.git
    * results List&lt;MapEx&gt;
    * logRecords List&lt;MapEx&gt;
    * groupExecutionTime long

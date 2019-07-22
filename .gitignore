@@ -23,3 +23,5 @@ db.properties
 *.log
 /log
 /logs
+
+jenkins-tag-build
