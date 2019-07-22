@@ -1443,7 +1443,7 @@ public class ClassLoaderModule implements Module {
           final Class<?> returnType = method.getReturnType();
           final DataType dataType;
           if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(returnType)) {
-            final String className = Classes.className(returnType);
+            final String className = returnType.getSimpleName();
             dataType = DataTypes.getDataType(className);
           } else {
             dataType = DataTypes.getDataType(returnType);
