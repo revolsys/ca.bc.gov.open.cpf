@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>ca.bc.gov.cpf</groupId>
-  <artifactId>cpf</artifactId>
+  <artifactId>cpf-bcgov</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Concurrent Processing Framework</name>
   <version>6.0.0-SNAPSHOT</version>
@@ -22,19 +22,6 @@
   </developers>
 
   <contributors>
-    <contributor>
-      <name>Bob Nicholson</name>
-      <email>Bob.Nicholson@gov.bc.ca</email>
-      <organization>The Province of British Columbia</organization>
-      <organizationUrl>http://www.gov.bc.ca</organizationUrl>
-      <roles>
-        <role>businessAnalyst</role>
-      </roles>
-      <timezone>PST</timezone>
-      <properties>
-        <phoneNumber>+1 (250) 387-3966</phoneNumber>
-      </properties>
-    </contributor>
     <contributor>
       <name>Michael Ross</name>
       <email>Michael.RA.Ross@gov.bc.ca</email>
@@ -179,8 +166,8 @@
   </build>
 
   <modules>
-    <module>cpf-app-war</module>
-    <module>cpf-worker-war</module>
+    <module>cpf-bcgov-app-war</module>
+    <module>cpf-bcgov-worker-war</module>
   </modules>
 
   <profiles>
