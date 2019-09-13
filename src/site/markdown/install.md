@@ -18,10 +18,13 @@ and one on a central integration test server.
 ### Requirements
 
 The CPF requires a database to store the CPF configuration, Job requests and Job results. The
-following databases are currently supported.
+following databases are currently supported. 
 
-* PostgreSQL 9.1+
-* Oracle 10g, 11g, or 12c 
+* PostgreSQL 11.5+
+* Oracle 12c+
+
+
+**NOTE:** Older versions may work but haven't been recently tested.
 
 A developer may also require additional databases for use by their plug-in. They must deliver all
 required SQL scripts and instructions on how to install these databases.
@@ -145,10 +148,10 @@ container (Apached Tomcat) on each developer's workstation and one on a central 
 The CPF applications are deployed to a J2EE application server or servlet container. To deploy to a
 J2EE Servlet container the individual wars are deployed to the J2EE Servlet container.
 
-Deployment is currently supported on [Apache Tomcat > 8.x](http://tomcat.apache.org). CPF may work
+Deployment is currently supported on [Apache Tomcat > 9.5.x](http://tomcat.apache.org). CPF may work
 withother J2EE Servlet or application containers but this has not been tested.
 
-For Tomcat 8.x you will need to add a user account in the manager-script role to deploy the web
+For Tomcat 9.5.x you will need to add a user account in the manager-script role to deploy the web
 applications to the tomcat contained. If a user does not exist edit the `tomcat-users.xml`
 file in the tomcat conf directory.
 
@@ -372,7 +375,7 @@ a maven repository.
 </entry>
 ```
 
-### Deploy to Tomcat 8
+### Deploy to Tomcat 9.5
 
 The plug-in project web services &amp; scheduler war and worker war files can be deployed to a
 Tomcat 8 server.
@@ -384,3 +387,4 @@ mvn -P tomcat8Deploy,localhost clean install
 ```
 
 If you created multiple profiles use the profile name of the server you wish to deploy to.
+
