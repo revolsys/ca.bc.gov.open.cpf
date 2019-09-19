@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
     http://maven.apache.org/POM/4.0.0
     http://maven.apache.org/maven-v4_0_0.xsd
-"
->
+">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>ca.bc.gov.open.cpf</groupId>
@@ -81,7 +79,8 @@
               <useStandardDocletOptions>false</useStandardDocletOptions>
               <additionalparam>
                 -d ${project.build.directory}/site/java-api
-                -doctitle "CPF Client Java API"
+                -doctitle "CPF Client Java
+                API"
               </additionalparam>
             </configuration>
             <goals>
@@ -103,7 +102,7 @@
             <configuration>
               <outputDirectory>${basedir}/target/</outputDirectory>
               <resources>
-                <!--  copy javascript and css files from the java API -->
+                <!-- copy javascript and css files from the java API -->
                 <resource>
                   <targetPath>javascript-api</targetPath>
                   <directory>target/site/java-api/</directory>
@@ -141,7 +140,7 @@
             <configuration>
               <directory>${project.build.directory}/javascript-api</directory>
               <srcDir>${basedir}/src/main/js</srcDir>
-            <template>${basedir}/src/main/javascriptdoc</template>
+              <template>${basedir}/src/main/javascriptdoc</template>
             </configuration>
             <goals>
               <goal>jsdoc</goal>
@@ -162,8 +161,8 @@
           <groupId>org.codehaus.woodstox</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>commons-jexl</artifactId>
-          <groupId>commons-jexl</groupId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-jexl3</artifactId>
         </exclusion>
         <exclusion>
           <artifactId>commons-logging</artifactId>
@@ -173,11 +172,11 @@
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpmime</artifactId>     
+      <artifactId>httpmime</artifactId>
     </dependency>
   </dependencies>
-  
+
   <properties>
-   <docTitle>CPF Client JavaScript API</docTitle>
+    <docTitle>CPF Client JavaScript API</docTitle>
   </properties>
 </project>

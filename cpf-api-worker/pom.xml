@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="
     http://maven.apache.org/POM/4.0.0
     http://maven.apache.org/maven-v4_0_0.xsd
-  "
->
+  ">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>ca.bc.gov.open.cpf</groupId>
@@ -30,8 +28,8 @@
       <scope>compile</scope>
       <exclusions>
         <exclusion>
-          <artifactId>commons-jexl</artifactId>
-          <groupId>commons-jexl</groupId>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-jexl3</artifactId>
         </exclusion>
         <exclusion>
           <artifactId>commons-cli</artifactId>
