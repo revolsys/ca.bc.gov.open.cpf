@@ -7,6 +7,8 @@ accessed directly in a web browser. JavaScript is not supported at this time.
 ### Security
 Access to the REST web service API is limited to authorized users.
 
+Clients must use one of the approved [Authentication](reference/authentication.md) mechanisms.
+
 ### Direct Web Browser Access
 The [REST Web Service API](cpf-api-app/rest-api/) can be accessed directly using a web browser.
 In this mode the service returns styled HTML pages and forms that canbe used without any programming.

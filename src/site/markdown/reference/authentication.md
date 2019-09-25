@@ -24,3 +24,11 @@ responsibility for any access to CPF using their consumer key and consumer secre
 Assuming the application was deployed to localhost with SSL encryption enabled using the /cpf
 context path. The following root URL [https://localhost/cpf](https://localhost/cpf) can be used in
 a Java or other programming language client or server side application to access the CPF web services. 
+
+### HTTP Digest
+
+[HTTP Digest](https://tools.ietf.org/html/rfc2617#section-3) authentication can also be used. 
+
+Assuming the application was deployed to localhost with SSL encryption enabled using the /cpf
+context path. The following root URL [https://localhost/cpf](https://localhost/cpf) can be used in
+a Java or other programming language client or server side application to access the CPF web services. 
