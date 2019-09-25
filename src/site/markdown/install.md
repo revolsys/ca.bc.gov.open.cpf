@@ -156,7 +156,7 @@ container (Apached Tomcat) on each developer's workstation and one on a central 
 The CPF applications are deployed to a J2EE application server or servlet container. To deploy to a
 J2EE Servlet container the individual wars are deployed to the J2EE Servlet container.
 
-Deployment is currently supported on [Apache Tomcat > 9.0.x](http://tomcat.apache.org). CPF may work
+Deployment is currently supported on [Apache Tomcat > 9.0.x](https://tomcat.apache.org). CPF may work
 withother J2EE Servlet or application containers but this has not been tested.
 
 For Tomcat 9.0.x you will need to add a user account in the manager-script role to deploy the web

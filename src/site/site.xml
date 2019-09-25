@@ -4,15 +4,15 @@
   xsi:schemaLocation="http://maven.apache.org/DECORATION/1.6.0 http://maven.apache.org/xsd/decoration-1.6.0.xsd"
 >
   <skin>
-    <groupId>lt.velykis.maven.skins</groupId>
+    <groupId>io.github.devacfr.maven.skins</groupId>
     <artifactId>reflow-maven-skin</artifactId>
-    <version>1.1.1</version>
+    <version>2.0.2</version>
   </skin>
 
   <custom>
     <reflowSkin>
       <protocolRelativeURLs>true</protocolRelativeURLs>
-      <absoluteResourceURL>${siteUrl}</absoluteResourceURL>
+      <absoluteResourceURL>https://revolsys.github.io/cpf/</absoluteResourceURL>
       <bottomNav maxSpan="0">
         <column>Home</column>
       </bottomNav>
@@ -21,7 +21,7 @@
           <![CDATA[
           <span class="color-highlight">CPF</span>]]>
         </name>
-        <href>${siteUrl}</href>
+        <href>https://revolsys.github.io/cpf/</href>
       </brand>
       <highlightJs>true</highlightJs>
       <skinAttribution>false</skinAttribution>
@@ -67,7 +67,7 @@
     <name><![CDATA[
       <span class="color-highlight">Concurrent Processing Framework</span>
       ]]></name>
-    <href>${siteUrl}</href>
+    <href>https://revolsys.github.io/cpf/</href>
   </bannerLeft>
  -->
   <bannerRight>
@@ -85,7 +85,7 @@
     <breadcrumbs>
       <item
         name="CPF"
-        href="${siteUrl}" />
+        href="https://revolsys.github.io/cpf/" />
     </breadcrumbs>
 
     <menu
@@ -154,10 +154,10 @@
     >
       <item
         name="GitHub Project"
-        href="${gitHubUrl}" />
+        href="https://github.com/revolsys/cpf/" />
       <item
         name="Issues (GitHub)"
-        href="${gitHubUrl}/issues/" />
+        href="https://github.com/revolsys/cpf/issues/" />
     </menu>
 
     <menu

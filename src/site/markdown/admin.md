@@ -371,7 +371,7 @@ The following table summarizes the fields used for business applications.
 
 ##### Permission Strings
 Permissions are defined using a
-[Spring Security Expression](http://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html)
+[Spring Security Expression](https://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html)
 that if evaluated to true will grant the user permission.
 
 The simplest permission is uses the `hasRole` function to see if the user is a member of a CPF
@@ -396,7 +396,7 @@ hasRole('BCGOV_INTERNAL') or hasRole('BCGOV_BUSINESS')
 ```
 
 The `hasRoleRegex` will allow users who have a CPF group that matches the
-[Java regular expression](http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).
+[Java regular expression](https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html).
 The following example matches all CPF groups that start with BCGOV
 
 ```
@@ -701,7 +701,7 @@ Configuration properties can be edited using the following steps.
 
 This section describes the configuration properties used for the CPF master web application and CPF workers.
 
-The CPF uses [Java Properties](http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html#load(java.io.Reader)) files
+The CPF uses [Java Properties](https://docs.oracle.com/javase/7/docs/api/java/util/Properties.html#load(java.io.Reader)) files
 for bootstrap configuration of the CPF master web application and CPF workers. In the properties
 files use '=' not ':' between the keys and values and escape any ':' characters in property values using '\:'.
 Properties with a tick in the 'Admin App' column can also be defined using the admin application.
@@ -1036,8 +1036,8 @@ can be used for end-users or developers.
 Each CPF user account has a consumer key (User identifier) and consumer secret (Password/signing key).
 These are used by the user when authenticating using one of the following two authentication mechanisms.
 
-* [HTTP Digest Access Authentication](http://tools.ietf.org/html/rfc2617) - Supported by most web browsers.
-* [OAuth 1.0](http://tools.ietf.org/html/rfc5849) - Supported by the CPF Java API for direct application access to the CPF.
+* [HTTP Digest Access Authentication](https://tools.ietf.org/html/rfc2617) - Supported by most web browsers.
+* [OAuth 1.0](https://tools.ietf.org/html/rfc5849) - Supported by the CPF Java API for direct application access to the CPF.
 
 The CPF is installed with the following two accounts defined.
 
@@ -1470,7 +1470,7 @@ CPF modules can use User Group Permissions to grant permissions for users who ar
 a group permission to perform an action on a resource. Permissions are granted to a User Group for a
 Module. Cross module permissions are not supported. User group permissions grant the group
 permission to perform an action (Action Name) on a resource (Resource Class + Resource Id). For
-example `view` (Action Name) the `reportUrl` (Resource Class) `http://reports.com/demoReport.json` (Resource Id).
+example `view` (Action Name) the `reportUrl` (Resource Class) `https://reports.com/demoReport.json` (Resource Id).
 
 > **NOTE:** NOTE: CPF itself does not use user group permissions. Each CPF module can decide if &amp;
 how they use user group permissions. Consult the module's readme file for details on the supported
@@ -1885,7 +1885,7 @@ For example:
 ```
 
 Log entries may also have a
-<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace()">java stack trace</a>,
+<a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Throwable.html#printStackTrace()">java stack trace</a>,
 shown on multiple lines. For example.
 
 ```

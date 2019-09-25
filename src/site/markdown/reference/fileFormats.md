@@ -3,7 +3,7 @@ The table below shows the file formats supported by the CPF web service for web 
 structured input data, and structured result data. Click the 'view' links below to download a sample
 of the resource in the each file format.
 
-The CPF requires that <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
+The CPF requires that <a href="https://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
 encoding be used for all text files. This includes the text in a .dbf file for a .shpz archive,
 unless a .cpg file is provided in the .shpz archive.
 
@@ -26,7 +26,7 @@ unless a .cpg file is provided in the .shpz archive.
       <td><img src="../images/cross.png" alt="No" /></td>
       <td><img src="../images/tick.png" alt="Yes" /><br /> <a href="input/input.csv" >view</a></td>
       <td><img src="../images/tick.png" alt="Yes" /><br /> <a href="result/result.csv" >view</a></td>
-      <td>A <a href="http://tools.ietf.org/html/rfc4180">Comma-Separated Values</a> file with a header line containing the field labels and one line for each feature record.</td>
+      <td>A <a href="https://tools.ietf.org/html/rfc4180">Comma-Separated Values</a> file with a header line containing the field labels and one line for each feature record.</td>
     </tr>
     <tr id="dbf">
       <td>dbf</td>
@@ -36,7 +36,7 @@ unless a .cpg file is provided in the .shpz archive.
         <a href="input/input.dbf" >view</a></td>
       <td><img src="../images/tick.png" alt="Yes" /><br />
         <a href="result/result.dbf" >view</a></td>
-      <td><p>A <a href="http://en.wikipedia.org/wiki/DBase">DBase</a> file containing the attribution.</p>
+      <td><p>A <a href="https://en.wikipedia.org/wiki/DBase">DBase</a> file containing the attribution.</p>
       <p>Each feature record is one record in the DBase file.</p></td>
     </tr>
     <tr id="geojson">
@@ -92,7 +92,7 @@ unless a .cpg file is provided in the .shpz archive.
         <a href="input/input.json" >view</a></td>
       <td><img src="../images/tick.png" alt="Yes" /><br />
         <a href="result/result.json" >view</a></td>
-      <td><a href="http://www.json.org/">JavaScript Object Notation
+      <td><a href="https://www.json.org/">JavaScript Object Notation
         (JSON)</a>. The geomark info is wrapped in a JSON object with one
         attribute for each geomark attributes. The resource links are a a JSON
         list with one JSON object per link.</td>
@@ -131,10 +131,8 @@ unless a .cpg file is provided in the .shpz archive.
             international standard</a> maintained by the <a
             href="http:/www.opengeospatial.org/">Open Geospatial Consortium,
             Inc. (OGC)</a>.
-        </p>
-        
-        <p>The KMZ is a Zip file with a single kml document. Typically named doc.kml.</p>
-        
+        </p>        
+        <p>The KMZ is a Zip file with a single kml document. Typically named doc.kml.</p>       
         <p>Each feature record will be encoded using a Placemark with the
           geomark's attributes as ExtendedData. If there are more than one
           record the Placemarks will be wrapped in a Document element, otherwise
@@ -152,7 +150,7 @@ unless a .cpg file is provided in the .shpz archive.
         <p>
           developed by ESRI for ArcMap which is a multi-file GIS format that
           <a href="http:/en.wikipedia.org/wiki/Shapefile">ESRI Shapefile</a>
-          uses <a href="http://en.wikipedia.org/wiki/DBase">DBase</a> file for the attribution and a prj file for the coordinate
+          uses <a href="https://en.wikipedia.org/wiki/DBase">DBase</a> file for the attribution and a prj file for the coordinate
           system. Due to the multi-file nature the shp, dbf, shx and prj files
           are compressed into a ZIP file for download or upload.
         </p>
@@ -178,7 +176,7 @@ unless a .cpg file is provided in the .shpz archive.
         <a href="input/input.xml" >view</a></td>
       <td><img src="../images/tick.png" alt="Yes" /><br />
         <a href="result/result.xml" >view</a></td>
-      <td><a href="http://www.w3.org/XML/">Extensible Markup Language
+      <td><a href="https://www.w3.org/XML/">Extensible Markup Language
         (XML)</a>. The geomark info is wrapped in the GeomarkInfo XML tag with one
         XML tag for each geomark attributes. Each resource link is contained in
         a resourceLink XML tag with one XML tag for each resource link
