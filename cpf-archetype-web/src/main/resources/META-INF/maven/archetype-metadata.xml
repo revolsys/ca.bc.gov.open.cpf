@@ -9,6 +9,7 @@
   name="cpf-archetype-web"
 >
   <requiredProperties>
+    <requiredProperty key="cpfVersion" />
     <requiredProperty key="modulePrefix" />
     <requiredProperty key="databaseVendor" />
     <requiredProperty key="databasePassword" />

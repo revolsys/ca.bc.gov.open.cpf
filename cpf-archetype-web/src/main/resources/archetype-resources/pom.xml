@@ -21,6 +21,6 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <ca.bc.gov.open.cpf.version>5.0.2-SNAPSHOT</ca.bc.gov.open.cpf.version>
+    <ca.bc.gov.open.cpf.version>${cpfVersion}</ca.bc.gov.open.cpf.version>
   </properties>
 </project>
