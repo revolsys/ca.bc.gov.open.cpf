@@ -84,10 +84,7 @@ Edit the `db.properties` file.
 |`DB_NAME`               |`cpf`        |The PostgreSQL database name or Oracle TNSNAME, tnsnames.ora must be configured.|
 |`CPF_PASSWORD`          |`cpf_0wn3r`  |The password to create the CPF database account with.|
 |`PROXY_CPF_WEB_PASSWORD`|`c0ncurr3n7` |The password to create the PROXY_CPF_WEB database account with.|
-|`TABLESPACE_DIR`        |```
-/data/postgres/cpf
-c:\data\postgres\cpf
-```|The directory to create the database tablespace in. The directory must exist on the server and the PostgreSQL or Oracle process must have write permissions on this directory.|
+|`TABLESPACE_DIR`        |`/data/postgres/cpf`|The directory to create the database tablespace in. The directory must exist on the server and the PostgreSQL or Oracle process must have write permissions on this directory.|
 
 For PostgreSQL, to avoid needing to enter in the passwords for each SQL command create a `~/.pgpass`
 on UNIX or `%APPDATA%\postgresql\pgpass.conf` file on Windows. Set the permissions so that only you
@@ -179,10 +176,7 @@ The CPF requires directories to be created on the server. The following director
 |------------------------------|----------|-----------------|-----------|
 |`/apps/cpf/config`            |`rw`      |`r`              |The directory containing the CPF configuration file for the database URL, username and password.|
 |`/apps/cpf/log`               |`r`       |`rw`             |The directory to store the CPF logs.|
-|```
-/apps/cpf/repository
-/home/{username}/.m2/repository
-```                            |`rw`      |`rw`             |The local Maven repository cache. If the J2EE server is on the developers workstation use the user's local maven repository cache.|
+|`/apps/cpf/repository,/home/{username}/.m2/repository` |`rw`      |`rw`  |The local Maven repository cache. If the J2EE server is on the developers workstation use the user's local maven repository cache.|
 
 
 Create the directories using the following commands. Make sure the directory permissions are set
@@ -307,7 +301,7 @@ mvn ^
   -DgroupId=com.mycompany ^
   -DartifactId=cpf ^
   -Dversion=1.0.0-SNAPSHOT ^
-  -DcpfVersion=%CPF_VERSION% \
+  -DcpfVersion=%CPF_VERSION% ^
   -DmodulePrefix=cpf ^
   -DdatabaseVendor=postgresql ^
   -DdatabasePassword=c0ncurr3n7 ^
