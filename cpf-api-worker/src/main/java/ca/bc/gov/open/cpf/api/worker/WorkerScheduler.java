@@ -495,10 +495,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
               }
             }
           } else {
-            if (this.taskCount.get() == 0) {
-              // Request garbage collection on an idle system
-              System.gc();
-            }
             Logs.debug(this, "No group available");
           }
         }
