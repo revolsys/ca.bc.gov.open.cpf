@@ -11,16 +11,19 @@
   <bean
     id="cpfJobPreProcess"
     class="ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess"
+    destroy-method="destroy"
    />
 
   <bean
     id="cpfJobScheduler"
     class="ca.bc.gov.open.cpf.api.scheduler.BatchJobScheduler"
+    destroy-method="destroy"
  />
 
 
   <bean
     id="cpfJobPostProcess"
     class="ca.bc.gov.open.cpf.api.scheduler.BatchJobPostProcess"
+    destroy-method="destroy"
   />
 </beans>

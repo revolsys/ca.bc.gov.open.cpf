@@ -21,9 +21,11 @@
     p:password="DUMMY_VALUE_MUST_BE_SET_IN_CONFIG"
     lazy-init="true"
   >
-    <map>
-      <entry key="maxPoolSize" value="50" />
-    </map>
+    <property name="config">
+      <map>
+        <entry key="maxPoolSize" value="50" />
+      </map>
+    </property>
   </bean>
 
   <bean

@@ -66,6 +66,7 @@ import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.Resource;
+import com.revolsys.ui.web.servlet.listener.DriverManagerCleanupListener;
 import com.revolsys.util.Property;
 
 @WebListener
@@ -121,8 +122,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
   private final AtomicInteger taskCount = new AtomicInteger();
 
   private String password = "DUMMY_VALUE_MUST_BE_SET_IN_CONFIG";
-
-  private boolean running;
 
   private WorkerSecurityServiceFactory securityServiceFactory;
 
@@ -243,9 +242,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   @PreDestroy
   public void destroy() {
-    if (this.running) {
-      this.running = false;
-    }
+    WorkerRunning.stop();
+    shutdown();
     final WorkerMessageHandler messageHandler = this.messageHandler;
     this.messageHandler = null;
     if (messageHandler != null) {
@@ -271,6 +269,11 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
     this.httpClient = null;
     shutdownNow();
+    try {
+      awaitTermination(30, TimeUnit.SECONDS);
+    } catch (final InterruptedException e) {
+    }
+    DriverManagerCleanupListener.cleanupDrivers();
   }
 
   @Override
@@ -423,7 +426,7 @@ public class WorkerScheduler extends ThreadPoolExecutor
   }
 
   public boolean isRunning() {
-    return this.running;
+    return WorkerRunning.isRunning();
   }
 
   public void logError(final String message) {
@@ -530,7 +533,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
   public void run() {
     Logs.info(this, "Started");
     try {
-      this.running = true;
       while (isRunning()) {
         try {
           if (processNextTask()) {

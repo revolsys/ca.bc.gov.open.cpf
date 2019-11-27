@@ -98,6 +98,13 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
 
   private boolean connected;
 
+  private final Object reconnectSync = new Object();
+
+  private final Thread reconnectThread = new Thread(this::reconnectRunnable,
+    "cpf-worker-reconnect");
+
+  private boolean reconnect;
+
   public WorkerMessageHandler(final WorkerScheduler scheduler) {
     this.scheduler = scheduler;
     this.configPropertyLoader = new WorkerConfigPropertyLoader(scheduler, this);
@@ -106,12 +113,16 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     businessApplicationRegistry.addModuleEventListener(this);
     businessApplicationRegistry.setConfigPropertyLoader(this.configPropertyLoader);
     initConnection();
+    this.reconnectThread.start();
   }
 
   @Override
   public void close() {
     this.running = false;
     this.messageSender.close();
+    synchronized (this.reconnectSync) {
+      this.reconnectSync.notifyAll();
+    }
 
     if (this.client != null) {
       this.client.shutdown();
@@ -128,7 +139,7 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
   public void connect() {
     boolean first = true;
     int waitTime = 5;
-    while (this.running) {
+    while (isRunning()) {
       final String workerPath = this.scheduler.getWorkerPath();
       final String webServiceUrl = this.scheduler.getWebServiceUrl();
       this.webSocketUrl = webServiceUrl.replaceFirst("http", "ws") + workerPath + "/message";
@@ -144,8 +155,8 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
         // Don't log within 1 minute of the server starting up
         if (first && System.currentTimeMillis() > this.startTime + 60 * 1000) {
           first = false;
-          if (this.running) {
-            waitTime = 60;
+          if (isRunning()) {
+            waitTime = 30;
             Logs.error(this, "Cannot connect to server: " + this.webSocketUrl, e);
           }
         }
@@ -218,17 +229,10 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
             }
           }
           WorkerMessageHandler.this.lastErrorTimestamp = time;
-          new Thread(() -> {
-            synchronized (this) {
-              try {
-                wait(WorkerMessageHandler.this.reconnectDelay * 1000);
-              } catch (final InterruptedException e) {
-              }
-            }
-            if (WorkerMessageHandler.this.running) {
-              connect();
-            }
-          }).start();
+          synchronized (WorkerMessageHandler.this.reconnectSync) {
+            WorkerMessageHandler.this.reconnect = true;
+            WorkerMessageHandler.this.reconnectSync.notifyAll();
+          }
         }
         return false;
       }
@@ -247,6 +251,15 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
         return handleMessage("Master disconnected " + reason, null);
       }
     });
+  }
+
+  public boolean isRunning() {
+    if (this.running) {
+      if (!WorkerRunning.isRunning()) {
+        close();
+      }
+    }
+    return this.running;
   }
 
   @Override
@@ -427,6 +440,29 @@ public class WorkerMessageHandler implements ModuleEventListener, BaseCloseable 
     this.reconnectDelay = 0;
     this.messageSender.setSession(session);
     Logs.info(this, "Master connected " + this.webSocketUrl);
+  }
+
+  private void reconnectRunnable() {
+    while (isRunning()) {
+      synchronized (this.reconnectSync) {
+        try {
+          this.reconnectSync.wait();
+        } catch (final InterruptedException e) {
+        }
+        if (this.reconnect && isRunning()) {
+          synchronized (this.reconnectSync) {
+            try {
+              this.reconnectSync.wait(this.reconnectDelay * 1000);
+            } catch (final InterruptedException e) {
+            }
+          }
+          if (isRunning()) {
+            connect();
+          }
+        }
+        this.reconnect = false;
+      }
+    }
   }
 
   public void sendMessage(final MapEx message) {

@@ -28,13 +28,16 @@ public class BatchJobUpdator implements Runnable {
           this.jobs.wait();
         } catch (final InterruptedException e) {
           this.running = false;
-          return null;
         }
       }
-      final Iterator<BatchJob> iterator = this.jobs.iterator();
-      final BatchJob job = iterator.next();
-      iterator.remove();
-      return job;
+      if (this.running) {
+        final Iterator<BatchJob> iterator = this.jobs.iterator();
+        final BatchJob job = iterator.next();
+        iterator.remove();
+        return job;
+      } else {
+        return null;
+      }
     }
   }
 

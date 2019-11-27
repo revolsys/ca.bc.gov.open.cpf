@@ -77,6 +77,14 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     }
   }
 
+  public void destroy() {
+    shutdown();
+    try {
+      awaitTermination(30, TimeUnit.SECONDS);
+    } catch (final InterruptedException e) {
+    }
+  }
+
   @Override
   public void execute(final Runnable command) {
     if (command != null) {
