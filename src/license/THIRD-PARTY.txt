@@ -25,7 +25,7 @@ Lists of 96 third-party dependencies.
      (apache_2_0) Commons FileUpload (commons-fileupload:commons-fileupload:1.2.2 - http://commons.apache.org/fileupload/)
      (apache_2_0) Commons IO (commons-io:commons-io:2.3 - http://commons.apache.org/io/)
      (apache_2_0) Commons JEXL (commons-jexl:commons-jexl:1.1 - http://jakarta.apache.org/commons/jexl/)
-     (Unknown license) Javassist (javassist:javassist:3.8.0.GA - http://www.javassist.org/)
+     (Unknown license) Javassist (javassist:javassist:3.8.1.GA - http://www.javassist.org/)
      (cddl_1_0) JavaBeans Activation Framework (JAF) (javax.activation:activation:1.1 - http://java.sun.com/products/javabeans/jaf/index.jsp)
      (cddl_1_0) JSR-250 Common Annotations for the JavaTM Platform (javax.annotation:jsr250-api:1.0 - http://jcp.org/aboutJava/communityprocess/final/jsr250/index.html)
      (cddl_1_0) JavaMail API (javax.mail:mail:1.4 - https://glassfish.dev.java.net/javaee5/mail/)
