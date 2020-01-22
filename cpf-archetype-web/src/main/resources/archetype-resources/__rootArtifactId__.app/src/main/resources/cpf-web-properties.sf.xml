@@ -30,7 +30,7 @@
 
     <entry key="mavenRepository.repositoryLocations">
       <list>
-        <value>http://repo1.maven.org/maven2/</value>
+        <value>https://repo1.maven.org/maven2/</value>
       </list>
     </entry>
   </util:map>
