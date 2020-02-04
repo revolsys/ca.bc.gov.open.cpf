@@ -75,7 +75,7 @@ Use the links in the following table to view the Plug-in API documentation or do
   </thead>
   <tbody>
     <tr>
-      <td>Plug-in Java (6+)</td>
+      <td>Plug-in Java (11+)</td>
       <td><a href="java-api">API Docs</a></td>
       <td><a href="../../lib/cpf-api-plugin-${project.version}.jar">Download</a></td>
     </tr>

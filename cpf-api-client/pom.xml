@@ -71,17 +71,16 @@
               <subpackages>ca.bc.gov.open.cpf.client.api</subpackages>
               <doclet>com.revolsys.doclet.client.ClientDoclet</doclet>
               <docletArtifact>
-                <groupId>com.revolsys.open</groupId>
-                <artifactId>com.revolsys.open.doclet</artifactId>
-                <version>${com.revolsys.open.version}</version>
+                <groupId>ca.bc.gov.open.cpf</groupId>
+                <artifactId>cpf-doclet</artifactId>
+                <version>${project.version}</version>
               </docletArtifact>
 
               <useStandardDocletOptions>false</useStandardDocletOptions>
-              <additionalparam>
-                -d ${project.build.directory}/site/java-api
-                -doctitle "CPF Client Java
-                API"
-              </additionalparam>
+              <additionalOptions>
+                <additionalOption>-d ${project.build.directory}/site/java-api</additionalOption>
+                <additionalOption>-doctitle "CPF Client Java API"</additionalOption>
+              </additionalOptions>
             </configuration>
             <goals>
               <goal>javadoc</goal>

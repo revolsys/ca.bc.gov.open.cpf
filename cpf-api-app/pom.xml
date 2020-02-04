@@ -50,18 +50,18 @@
             <configuration>
               <name>rest-api</name>
               <subpackages>ca.bc.gov.open.cpf.api.web.rest</subpackages>
-              <doclet>com.revolsys.doclet.rest.RestDoclet</doclet>
+              <doclet>ca.bc.gov.open.cpf.doclet.rest.RestDoclet</doclet>
               <docletArtifact>
-                <groupId>com.revolsys.open</groupId>
-                <artifactId>com.revolsys.open.doclet</artifactId>
-                <version>${com.revolsys.open.version}</version>
+                <groupId>ca.bc.gov.open.cpf</groupId>
+                <artifactId>cpf-doclet</artifactId>
+                <version>${project.version}</version>
               </docletArtifact>
 
               <useStandardDocletOptions>false</useStandardDocletOptions>
-              <additionalparam>
-                -d ${project.build.directory}/site/rest-api
-                -doctitle "Client REST API"
-              </additionalparam>
+              <additionalOptions>
+                <additionalOption>-d ${project.build.directory}/site/rest-api</additionalOption>
+                <additionalOption>-doctitle "Client REST API"</additionalOption>
+              </additionalOptions>
             </configuration>
             <goals>
               <goal>javadoc</goal>
