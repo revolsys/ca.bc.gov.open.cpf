@@ -20,16 +20,6 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>3.2.3</version>
         <configuration>
-          <overlays>
-            <overlay>
-              <!-- Overlay the project war first -->
-            </overlay>
-            <overlay>
-              <id>revolsys</id>
-              <groupId>com.revolsys.open</groupId>
-              <artifactId>war-overlay</artifactId>
-            </overlay>
-          </overlays>
           <webResources>
             <resource>
               <directory>../cpf-api-client/target</directory>
@@ -72,9 +62,18 @@
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>war-overlay</artifactId>
+      <artifactId>com.revolsys.open.web</artifactId>
       <version>${com.revolsys.open.version}</version>
-      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet.jsp.jstl</groupId>
+      <artifactId>javax.servlet.jsp.jstl-api</artifactId>
+      <version>1.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.taglibs</groupId>
+      <artifactId>taglibs-standard-impl</artifactId>
+      <version>1.2.5</version>
     </dependency>
     <dependency>
       <groupId>xerces</groupId>

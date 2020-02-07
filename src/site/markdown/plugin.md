@@ -321,9 +321,9 @@ The following file shows an example of this file.
   xmlns:p="http://www.springframework.org/schema/p"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/util
-    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    https://www.springframework.org/schema/util/spring-util.xsd
   "
 >
   <util:list id="beanImports">
@@ -425,9 +425,9 @@ Finally the demoDataSource bean will be injected into the `dataSource` property 
   xmlns:p="http://www.springframework.org/schema/p"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/util
-    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    https://www.springframework.org/schema/util/spring-util.xsd
   "
 >
   <util:list id="beanImports">

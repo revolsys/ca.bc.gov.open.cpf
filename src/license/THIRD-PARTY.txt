@@ -16,7 +16,6 @@ Lists of 96 third-party dependencies.
      (apache_2_0) RS Oracle (com.revolsys.open:com.revolsys.open.oracle:TRUNK-SNAPSHOT - http://revolsys.github.com/com.revolsys.open/com.revolsys.open.oracle/)
      (apache_2_0) RS PostgreSQL (com.revolsys.open:com.revolsys.open.postgresql:TRUNK-SNAPSHOT - http://www.revolsys.com)
      (apache_2_0) RS Web (com.revolsys.open:com.revolsys.open.web:TRUNK-SNAPSHOT - http://revolsys.github.com/com.revolsys.open/com.revolsys.open.web/)
-     (apache_2_0) Web Application Overlay (com.revolsys.open:war-overlay:TRUNK-SNAPSHOT - http://revolsys.github.com/com.revolsys.open/war-overlay/)
      (lgpl_2_1) JTS Topology Suite (com.vividsolutions:jts:1.13 - http://sourceforge.net/projects/jts-topo-suite)
      (apache_2_0) Commons BeanUtils (commons-beanutils:commons-beanutils:1.8.3 - http://commons.apache.org/beanutils/)
      (apache_2_0) Commons CLI (commons-cli:commons-cli:1.2 - http://commons.apache.org/cli/)
