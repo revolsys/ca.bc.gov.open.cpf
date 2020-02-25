@@ -337,7 +337,7 @@ public class PluginAdaptor {
         } else {
           if (value instanceof Geometry) {
             Geometry geometry = (Geometry)value;
-            GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
+            GeometryFactory geometryFactory = field.getGeometryFactory();
             if (geometryFactory == GeometryFactory.DEFAULT_3D) {
               geometryFactory = geometry.getGeometryFactory();
             }

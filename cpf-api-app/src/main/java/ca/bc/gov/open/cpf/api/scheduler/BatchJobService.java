@@ -214,7 +214,7 @@ public class BatchJobService implements ModuleEventListener {
     final Class<?> dataClass = dataType.getJavaClass();
     if (Geometry.class.isAssignableFrom(dataClass)) {
       if (parameterValue != null) {
-        final GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
+        final GeometryFactory geometryFactory = field.getGeometryFactory();
         Geometry geometry;
         if (parameterValue instanceof Geometry) {
 

@@ -79,7 +79,6 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import ca.bc.gov.open.cpf.plugin.impl.log.WrappedAppender;
 
-import com.revolsys.beans.Classes;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.MapEx;
@@ -1392,7 +1391,7 @@ public class ClassLoaderModule implements Module {
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
-              field.setProperty(FieldProperties.GEOMETRY_FACTORY, geometryFactory);
+              field.setGeometryFactory(geometryFactory);
               field.setProperty(FieldProperties.VALIDATE_GEOMETRY, validateGeometry);
             } else if (geometryConfiguration != null) {
               throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
@@ -1470,7 +1469,7 @@ public class ClassLoaderModule implements Module {
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
-              field.setProperty(FieldProperties.GEOMETRY_FACTORY, geometryFactory);
+              field.setGeometryFactory(geometryFactory);
               field.setProperty(FieldProperties.VALIDATE_GEOMETRY, validateGeometry);
             } else if (geometryConfiguration != null) {
               throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
