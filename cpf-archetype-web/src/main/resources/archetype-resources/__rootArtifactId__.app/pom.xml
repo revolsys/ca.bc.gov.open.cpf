@@ -43,7 +43,7 @@
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.${databaseVendor}</artifactId>
+      <artifactId>revolsys-${databaseVendor}</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
   </dependencies>

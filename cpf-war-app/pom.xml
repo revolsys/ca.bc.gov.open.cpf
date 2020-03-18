@@ -62,7 +62,7 @@
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.web</artifactId>
+      <artifactId>revolsys-web</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
     <dependency>

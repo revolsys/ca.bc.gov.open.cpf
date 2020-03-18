@@ -153,7 +153,7 @@
   <dependencies>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.core</artifactId>
+      <artifactId>revolsys-core</artifactId>
       <exclusions>
         <exclusion>
           <artifactId>woodstox-core-asl</artifactId>

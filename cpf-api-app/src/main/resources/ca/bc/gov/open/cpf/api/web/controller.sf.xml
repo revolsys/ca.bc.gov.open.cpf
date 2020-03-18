@@ -53,6 +53,9 @@
       key="csv"
       value="text/csv" />
     <entry
+      key="geopackage"
+      value="application/geopackage+vnd.sqlite3" />
+    <entry
       key="geojson"
       value="application/vnd.geo+json" />
     <entry

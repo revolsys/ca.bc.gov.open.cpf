@@ -18,7 +18,7 @@
   <dependencies>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.core</artifactId>
+      <artifactId>revolsys-core</artifactId>
     </dependency>
     <dependency>
       <groupId>ca.bc.gov.open.cpf</groupId>
@@ -67,17 +67,17 @@
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.oracle</artifactId>
+      <artifactId>revolsys-oracle</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.postgresql</artifactId>
+      <artifactId>revolsys-postgresql</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.web</artifactId>
+      <artifactId>revolsys-web</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
 

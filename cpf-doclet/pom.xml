@@ -13,7 +13,7 @@
   <dependencies>
     <dependency>
       <groupId>com.revolsys.open</groupId>
-      <artifactId>com.revolsys.open.core</artifactId>
+      <artifactId>revolsys-core</artifactId>
       <version>${com.revolsys.open.version}</version>
     </dependency>
   </dependencies>
