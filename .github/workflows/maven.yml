@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - dev/6.0.x
 
 jobs:
   java_ci:

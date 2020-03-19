@@ -774,16 +774,6 @@
   </profiles>
 
   <distributionManagement>
-    <repository>
-      <id>sonatype-nexus-staging</id>
-      <name>sonatype-releases</name>
-      <url>https://oss.sonatype.org/content/repositories/releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>sonatype-snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
     <site>
       <id>cpf-gh-pages</id>
       <name>Deployment through GitHub's site deployment plugin</name>

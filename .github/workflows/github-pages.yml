@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - dev/6.0.x
 
 jobs:
   ghpages:
@@ -13,4 +14,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Deploy Github Pages
-      run: git push origin `git subtree split --prefix src/docs master`:gh-pages --force
+      run: mvn site:deploy
