@@ -791,13 +791,6 @@
     </site>
   </distributionManagement>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>jsdoctk2</id>
-      <url>file:///${project.parent.basedir}/src/repository</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
