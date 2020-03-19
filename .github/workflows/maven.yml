@@ -65,3 +65,8 @@ jobs:
       run: mvn -B install
       working-directory: ./cpf
 
+#### Deploy site cpf ####
+    - name: Deploy Github Pages
+      run: mvn -B site:site site:deploy
+      working-directory: ./cpf
+      
