@@ -1,0 +1,142 @@
+properties([
+  parameters([
+    string(
+      name: 'versionBase',
+      defaultValue: '6.0',
+      description: 'The base version number with Major.Minor (e.g. 2.1)',
+      trim: true
+    ),
+    string(
+      name: 'versionPatch',
+      defaultValue: '0',
+      description: 'The version number patch (e.g. 0 or 1)',
+      trim: true
+    )
+  ])
+])
+
+def versionNumber="${versionBase}.${versionPatch}"
+def dependencyBranch="cpf/${versionBase}.x"
+def version="${versionNumber}-SNAPSHOT"
+def versionPrefix="0.CPF"
+
+def checkoutBranch(pullUrl, branchName) {
+  deleteDir()
+  checkout([
+    $class: 'GitSCM',
+    branches: [[name: branchName]],
+    doGenerateSubmoduleConfigurations: false,
+    extensions: [],
+    gitTool: 'Default',
+    submoduleCfg: [],
+    userRemoteConfigs: [[url: pullUrl]]
+  ])
+}
+
+def setVersion(projectVersion) {
+  withMaven(jdk: 'openjdk-11', maven: 'm3') {
+    sh "mvn versions:set -DnewVersion='${projectVersion}' -DgenerateBackupPoms=false"
+  }
+}
+
+def setDependencyVersions(version, versionPrefix) {
+  sh "sed -i 's/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${versionPrefix}-${version}<\\/org.jeometry.version>/g' pom.xml"
+  sh "sed -i 's/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${versionPrefix}-${version}<\\/com.revolsys.open.version>/g' pom.xml"
+
+// Remove modules not required by cpf
+  sh "sed -i 's/<module>com.revolsys.open.fgdb<\\/module>//g' pom.xml"
+  sh "sed -i 's/<module>com.revolsys.open.gdal<\\/module>//g' pom.xml"
+  sh "sed -i 's/<module>revolsys-geopackage<\\/module>//g' pom.xml"
+  sh "sed -i 's/<module>com.revolsys.open.maki<\\/module>//g' pom.xml"
+  sh "sed -i 's/<module>com.revolsys.open.swing<\\/module>//g' pom.xml"
+}
+
+def pushGithubBranch(pushUrl, branchName) {
+  if (pushUrl) {
+    sh "git remote add projectOrigin ${pushUrl}"
+    sh "git push -u projectOrigin -f ${branchName}"
+  }
+}
+
+def tagVersion(pushUrl, projectVersion) {
+  sh """
+git tag -f -a ${projectVersion} -m "Version ${projectVersion}"
+git push -f ${pushUrl} ${projectVersion}
+  """
+}
+
+def checkoutPushVersionTag(folderName, pullUrl, pullBranchName, pushUrl, pushBranchName, version, projectVersion, versionPrefix) {
+  dir(folderName) {
+    checkoutBranch(pullUrl, pullBranchName)
+    sh "git checkout -B ${pushBranchName}"
+    setVersion(projectVersion)
+    setDependencyVersions(version, versionPrefix)
+    sh "git commit --allow-empty -a -m 'Version ${projectVersion}'"
+    pushGithubBranch(pushUrl, pushBranchName)
+    tagVersion(pushUrl, projectVersion)
+  }
+}
+
+node ('master') {
+  def gogsGitUrl='https://gogs.data.gov.bc.ca/pauldaustin/cpf.git'
+
+  stage ('Initialize') {
+     sh '''
+git config --global user.email "paul.austin@revolsys.com"
+git config --global user.name "Paul Austin"
+     '''
+  }
+
+  stage ('Jeometry') {
+    checkoutPushVersionTag(
+      'jeometry',
+      'ssh://git@github.com/jeometry-org/jeometry.git',
+      'master',
+      'ssh://git@github.com/revolsys/cpf-jeometry.git',
+      "${dependencyBranch}",
+      "${version}",
+      "${versionPrefix}-${version}",
+      "${versionPrefix}"
+    )
+  }
+
+  stage ('Revolsys') {
+    checkoutPushVersionTag(
+      'revolsys',
+      'ssh://git@github.com/revolsys/com.revolsys.open.git',
+      'master',
+      'ssh://git@github.com/revolsys/cpf-revolsys.git',
+      "${dependencyBranch}",
+      "${version}",
+      "${versionPrefix}-${version}",
+      "${versionPrefix}"
+    )
+  }
+
+  stage ('Cpf') {
+    checkoutPushVersionTag(
+      'cpf',
+      'ssh://git@github.com/revolsys/cpf.git',
+      "dev/${versionBase}.x",
+      'ssh://git@github.com/revolsys/cpf.git',
+      "snapshot/${versionBase}.x",
+      "${version}",
+      "${version}",
+      "${versionPrefix}"
+    )
+  }
+
+  stage ('Cpf BCGOV') {
+    dir('cpf-bcgov') {
+      checkoutBranch('ssh://git@github.com/revolsys/cpf.git', "dev/bcgov-${versionBase}.x")
+      sh "git checkout -B snapshot/bcgov-${versionBase}.x"
+      setVersion("${version}")
+      setDependencyVersions("${version}", "${versionPrefix}")
+      sh "git commit --allow-empty -a -m 'Version ${version}'"
+      pushGithubBranch('ssh://git@github.com/revolsys/cpf.git', "snapshot/bcgov-${versionBase}.x")
+      tagVersion('ssh://git@github.com/revolsys/cpf.git', "bcgov-${version}")
+    }
+    
+  }
+}
+

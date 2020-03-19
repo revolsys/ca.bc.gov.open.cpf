@@ -1,0 +1,134 @@
+// parameters
+// ----------
+// environment
+// branch
+// gitTag
+
+def checkoutBranch(url, branchName) {
+  deleteDir()
+  checkout([
+    $class: 'GitSCM',
+    branches: [[name: branchName]],
+    doGenerateSubmoduleConfigurations: false,
+    extensions: [],
+    gitTool: 'Default',
+    submoduleCfg: [],
+    userRemoteConfigs: [[url: url]]
+  ])
+}
+
+def setVersion(version, versionPrefix) {
+  sh "git checkout -B version-${version}"
+  withMaven(jdk: 'openjdk-11', maven: 'm3') {
+    sh "mvn versions:set -DnewVersion='${version}' -DgenerateBackupPoms=false"
+  }
+  sh "sed -i 's/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${versionPrefix}-JEOMETRY-${gitTag}<\\/org.jeometry.version>/g' pom.xml"
+  sh "sed -i 's/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${versionPrefix}-REVOLSYS-${gitTag}<\\/com.revolsys.open.version>/g' pom.xml"
+}
+
+def tagVersion(projectVersion) {
+  sh """
+git commit -a -m "Version ${projectVersion}"
+git tag -f -a ${projectVersion} -m "Version ${projectVersion}"
+git push -f origin ${projectVersion}
+  """
+}
+
+def checkoutVersionTagBuild(folderName, url, branchName, version, versionPrefix) {
+  dir(folderName) {
+    checkoutBranch(url, branchName);
+    setVersion(version, versionPrefix);
+    tagVersion(version);
+    mavenDeploy()
+  }
+}
+
+def mavenDeploy() {
+  def artifactoryServer = Artifactory.server 'prod'
+
+  def mavenRuntime = Artifactory.newMavenBuild()
+  mavenRuntime.tool = 'm3' 
+  mavenRuntime.deployer releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local', server: artifactoryServer
+  mavenRuntime.resolver releaseRepo: 'repo', snapshotRepo: 'repo', server: artifactoryServer
+  mavenRuntime.deployer.deployArtifacts = false
+  
+  def buildInfo = Artifactory.newBuildInfo()
+
+  mavenRuntime.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo
+  mavenRuntime.deployer.deployArtifacts buildInfo
+  artifactoryServer.publishBuildInfo buildInfo
+}
+
+node ('master') {
+  def versionPrefix="CPF"
+  def environmentName="${environment}"
+
+  stage ('Initialize') {
+     sh '''
+git config --global user.email "paul.austin@revolsys.com"
+git config --global user.name "Paul Austin"
+     '''
+  }
+
+  stage ('Jeometry') {
+    def gitUrl = 'ssh://git@github.com/bcgov/cpf.git';
+    def branchName = 'jeometry-${branch}';
+    if (environmentName == 'dev') {
+      gitUrl='ssh://git@github.com/jeometry-org/jeometry.git';
+      branchName='${branch}';
+    }
+    checkoutVersionTagBuild(
+      'jeometry',
+      "${gitUrl}",
+      "${branchName}",
+      "${versionPrefix}-JEOMETRY-${gitTag}",
+      "${versionPrefix}"
+    );
+  }
+
+  stage ('Revolsys') {
+    def gitUrl = 'ssh://git@github.com/bcgov/cpf.git';
+    def branchName = 'revolsys-${branch}';
+    if (environmentName == 'dev') {
+      gitUrl='ssh://git@github.com/revolsys/com.revolsys.open.git';
+      branchName='${branch}';
+    }
+    checkoutVersionTagBuild(
+      'revolsys',
+      "${gitUrl}",
+      "${branchName}",
+      "${versionPrefix}-REVOLSYS-${gitTag}",
+      "${versionPrefix}"
+    );
+  }
+
+  stage ('CPF') {
+    def gitUrl = 'ssh://git@github.com/bcgov/cpf.git';
+    def branchName = '${cpfBranch}';
+    if (environmentName == 'dev') {
+      gitUrl='ssh://git@github.com/revolsys/cpf.git';
+    }
+    checkoutVersionTagBuild(
+      'cpf',
+      "${gitUrl}",
+      "${branchName}",
+      "${gitTag}",
+      "${versionPrefix}"
+    );
+  }
+
+  stage ('CPF-BCGOV') {
+    def gitUrl = 'ssh://git@github.com/bcgov/cpf.git';
+    def branchName = 'bcgov-${cpfBranch}';
+    if (environmentName == 'dev') {
+      gitUrl='ssh://git@github.com/revolsys/cpf.git';
+    }
+    checkoutVersionTagBuild(
+      'cpf',
+      "${gitUrl}",
+      "${branchName}",
+      "${gitTag}",
+      "${versionPrefix}"
+    );
+  }
+}

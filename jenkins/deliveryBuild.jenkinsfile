@@ -1,0 +1,126 @@
+properties([
+  parameters([
+    string(
+      name: 'versionBase',
+      defaultValue: '6.0',
+      description: 'The base version number with Major.Minor (e.g. 6.0)',
+      trim: true
+    ),
+    string(
+      name: 'versionPatch',
+      defaultValue: '0',
+      description: 'The version number patch (e.g. 0 or 1)',
+      trim: true
+    )
+  ])
+])
+
+def appServer='phecda.dmz'
+def versionNumber="${versionBase}.${versionPatch}"
+def version="${versionNumber}-SNAPSHOT"
+def versionPrefix="0.CPF"
+
+def checkoutBranch(pullUrl, branchName) {
+  deleteDir()
+  checkout([
+    $class: 'GitSCM',
+    branches: [[name: branchName]],
+    doGenerateSubmoduleConfigurations: false,
+    extensions: [],
+    gitTool: 'Default',
+    submoduleCfg: [],
+    userRemoteConfigs: [[url: pullUrl]]
+  ])
+}
+
+def mavenDeploy() {
+  def artifactoryServer = Artifactory.server 'prod'
+
+  def mavenRuntime = Artifactory.newMavenBuild()
+  mavenRuntime.tool = 'm3' 
+  mavenRuntime.deployer releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local', server: artifactoryServer
+  mavenRuntime.resolver releaseRepo: 'repo', snapshotRepo: 'repo', server: artifactoryServer
+  mavenRuntime.deployer.deployArtifacts = false
+  
+  def buildInfo = Artifactory.newBuildInfo()
+
+  env.JAVA_HOME = '$JENKINS_HOME/tools/ojdk'
+  mavenRuntime.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo, opts: '-B'
+  mavenRuntime.deployer.deployArtifacts buildInfo
+  artifactoryServer.publishBuildInfo buildInfo
+}
+
+def checkoutBuild(folderName, pullUrl, branchName) {
+  dir(folderName) {
+    checkoutBranch(pullUrl, branchName);
+    mavenDeploy()
+  }
+}
+
+node ('master') {
+    
+  stage ('Deploy Configuration') {
+    dir('config') {
+      deleteDir()
+      checkout([
+        $class: 'GitSCM',
+        branches: [[name: 'master']],
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: [],
+        userRemoteConfigs: [[
+          credentialsId: '607141bd-ef34-4e80-8e7e-1134b7c77176',
+          url: 'https://gogs.data.gov.bc.ca/cpf/cpf-config-snapshot.git'
+        ]]
+      ])
+      sh """
+ls -l 
+ssh app@${appServer} "rm -rf /apps/config/cpf/*"
+scp -r cpf.properties app@${appServer}:/apps/config/cpf/
+      """
+      deleteDir()
+    }
+  }
+
+  stage ('Jeometry') {
+    checkoutBuild(
+      'jeometry',
+      'https://github.com/revolsys/cpf-jeometry.git',
+      "refs/tags/${versionPrefix}-${version}"
+    );
+  }
+
+  stage ('Revolsys') {
+    checkoutBuild(
+      'revolsys',
+      'https://github.com/revolsys/cpf-revolsys.git',
+      "refs/tags/${versionPrefix}-${version}"
+    );
+  }
+
+  stage ('CPF') {
+    checkoutBuild(
+      'cpf',
+      'https://github.com/revolsys/cpf.git',
+      "refs/tags/${version}"
+    );
+  }
+
+  stage ('CPF BCGOV') {
+    checkoutBuild(
+      'cpf-bcgov',
+      'https://github.com/revolsys/cpf.git',
+      "refs/tags/bcgov-${version}"
+    );
+  }
+
+  stage ('Deploy to Application Server') {
+    sh """
+ssh app@${appServer} "rm -rf /apps/ocicat/webapps/pub#cpf*"
+scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-app-war/target/cpf-bcgov-app-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf.war
+scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-worker-war/target/cpf-bcgov-worker-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf-worker.war
+"""
+  }
+
+}
