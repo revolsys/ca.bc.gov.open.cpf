@@ -52,17 +52,17 @@ jobs:
 
 #### Build jeometry ####
     - name: Build jeometry
-      run: mvn -B install
+      run: mvn -B install -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dgpg.skip=true -DskipTests
       working-directory: ./jeometry
 
 #### Build revolsys ####
     - name: Build revolsys
-      run: mvn -B install
+      run: mvn -B install -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dgpg.skip=true -DskipTests
       working-directory: ./revolsys
 
 #### Build cpf ####
     - name: Build cpf
-      run: mvn -B install
+      run: mvn -B install -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dgpg.skip=true -DskipTests
       working-directory: ./cpf
 
 #### Deploy site cpf ####
@@ -71,6 +71,7 @@ jobs:
         mvn -B site:site site:stage
         cd target/staging
         git checkout -B gh-pages
+        echo > .gitignore
         git add . 
         git config --global user.name "Paul Austin"
         git config --global user.email "paul.austin@revolsys.com"
