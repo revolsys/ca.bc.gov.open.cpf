@@ -68,10 +68,11 @@ jobs:
 #### Deploy site cpf ####
     - name: Buid Site & Deploy Github Pages
       run: |
-        mvn -B site:site site:stage
+        mvn -B site:site
+        mvn -B site:stage
         cd target/staging
+        git init
         git checkout -B gh-pages
-        echo > .gitignore
         git add . 
         git config --global user.name "Paul Austin"
         git config --global user.email "paul.austin@revolsys.com"
