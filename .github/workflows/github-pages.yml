@@ -1,0 +1,16 @@
+name: Docs
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  ghpages:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy Github Pages
+      run: git push origin `git subtree split --prefix src/docs master`:gh-pages --force
