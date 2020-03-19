@@ -51,7 +51,6 @@ import org.jeometry.common.data.type.DataTypes;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.coordinatesystem.model.CoordinateSystem;
 import org.jeometry.coordinatesystem.model.systems.EpsgCoordinateSystems;
-import org.jeometry.coordinatesystem.model.systems.EpsgId;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -61,7 +60,24 @@ import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.util.StopWatch;
 
-import com.revolsys.beans.Classes;
+import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
+import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+import ca.bc.gov.open.cpf.plugin.api.DefaultValue;
+import ca.bc.gov.open.cpf.plugin.api.GeometryConfiguration;
+import ca.bc.gov.open.cpf.plugin.api.JobParameter;
+import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
+import ca.bc.gov.open.cpf.plugin.api.Required;
+import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+import ca.bc.gov.open.cpf.plugin.api.ResultList;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
+import ca.bc.gov.open.cpf.plugin.impl.log.WrappedAppender;
+
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.MapEx;
@@ -85,23 +101,6 @@ import com.revolsys.spring.resource.UrlResource;
 import com.revolsys.util.JavaBeanUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
-
-import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.DefaultValue;
-import ca.bc.gov.open.cpf.plugin.api.GeometryConfiguration;
-import ca.bc.gov.open.cpf.plugin.api.JobParameter;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.Required;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-import ca.bc.gov.open.cpf.plugin.api.ResultList;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
-import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 public class ClassLoaderModule implements Module {
 
@@ -972,7 +971,9 @@ public class ClassLoaderModule implements Module {
     }
     final Logger logger = (Logger)LogManager.getLogger(logName);
     synchronized (logger) {
-      logger.removeAllAppenders();
+      for (final Appender appender : logger.getAppenders().values()) {
+        logger.removeAppender(appender);
+      }
       final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
         logger.setAdditive(true);

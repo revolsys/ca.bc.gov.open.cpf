@@ -412,7 +412,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
-  @SuppressWarnings("deprecation")
   private void initLogging() {
     final Logger logger = (Logger)LogManager.getRootLogger();
     LogAppender.removeAllAppenders();
@@ -420,22 +419,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
       LogAppender.addRootAppender("%d\\t%p\\t%c\\t%m%n");
     } else {
-      final String baseFileName = rootDirectory + "/" + "worker_" + this.id.replaceAll(":", "_");
-      final String activeFileName = baseFileName + ".log";
-      final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-      rollingPolicy.setActiveFileName(activeFileName);
-      final String fileNamePattern = baseFileName + ".%i.log";
-      rollingPolicy.setFileNamePattern(fileNamePattern);
-
-      final RollingFileAppender appender = new RollingFileAppender();
-
-      appender.setFile(activeFileName);
-      appender.setRollingPolicy(rollingPolicy);
-      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-      appender.rollover();
-      logger.addAppender(appender);
+      final String id = this.id.replaceAll(":", "-");
+      ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-" + id, "cpf-worker-all");
     }
   }
 
