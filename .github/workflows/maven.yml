@@ -66,7 +66,16 @@ jobs:
       working-directory: ./cpf
 
 #### Deploy site cpf ####
-    - name: Deploy Github Pages
-      run: mvn -B site:site site:deploy
+    - name: Buid Site & Deploy Github Pages
+      run: |
+        mvn -B site:site site:stage
+        cd target/staging
+        git checkout -B gh-pages
+        git add . 
+        git config --global user.name "Paul Austin"
+        git config --global user.email "paul.austin@revolsys.com"
+        git comit -m "Docs"
+        git remote add origin git@github.com:${{github.repository}}.git
+        git push origin gh-pages:gh-pages --force
       working-directory: ./cpf
       
