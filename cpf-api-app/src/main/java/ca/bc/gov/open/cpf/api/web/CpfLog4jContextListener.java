@@ -35,6 +35,7 @@ public class CpfLog4jContextListener implements ServletContextListener {
   public void contextDestroyed(final ServletContextEvent event) {
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void contextInitialized(final ServletContextEvent event) {
     LogAppender.removeAllAppenders();

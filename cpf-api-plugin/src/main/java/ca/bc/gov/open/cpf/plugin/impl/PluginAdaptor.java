@@ -39,9 +39,6 @@ import org.jeometry.common.logging.Logs;
 import org.jeometry.common.math.Randoms;
 import org.jeometry.coordinatesystem.model.systems.EpsgId;
 
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
-
 import com.revolsys.collection.map.Maps;
 import com.revolsys.geometry.model.BoundingBox;
 import com.revolsys.geometry.model.Geometry;
@@ -64,6 +61,9 @@ import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
+
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 public class PluginAdaptor {
 
@@ -131,7 +131,7 @@ public class PluginAdaptor {
         final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
           new com.vividsolutions.jts.geom.PrecisionModel(
             com.vividsolutions.jts.geom.PrecisionModel.FLOATING),
-          EpsgId.WGS84);
+          4326);
         if (com.vividsolutions.jts.geom.LineString.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
@@ -342,7 +342,7 @@ public class PluginAdaptor {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = Maps.getInteger(this.parameters, "resultSrid",
-              geometryFactory.getHorizontalCoordinateSystemId());
+              geometryFactory.getCoordinateSystemId());
             final int axisCount = Maps.getInteger(this.parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(this.parameters, "resultScaleFactorXy",
@@ -352,7 +352,7 @@ public class PluginAdaptor {
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
-            if (geometry.getHorizontalCoordinateSystemId() == 0) {
+            if (geometry.getCoordinateSystemId() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }

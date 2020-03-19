@@ -327,6 +327,7 @@ public class JobPreProcessTask {
                 this.jobController.setGroupError(this.batchJobId, 0, this.errorFile);
               }
             }
+
             if (!valid || numSubmittedRequests == numFailedRequests) {
               valid = false;
               if (this.dataAccessObject.setBatchJobRequestsFailed(this.batchJobId,
