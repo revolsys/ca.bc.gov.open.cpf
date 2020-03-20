@@ -82,7 +82,7 @@ node ('master') {
 
   stage ('Initialize') {
      sh '''
-git config --global user.email "paul.austin@revolsys.com"
+git config --global user.email "445537+pauldaustin@users.noreply.github.com"
 git config --global user.name "Paul Austin"
      '''
   }
