@@ -75,9 +75,8 @@ jobs:
         git checkout -B gh-pages
         git add . 
         git config --global user.name "${{github.actor}}"
-        git config --global user.email "paul.austin@revolsys.com"
+        git config --global user.email "${{github.actor}}@users.noreply.github.com"
         git commit -a -m "Docs"
-        git remote add origin https://github.com/${{github.repository}}.git
-        git push origin gh-pages:gh-pages --force
+        git push -f https://github.com/${{github.repository}}.git gh-pages
       working-directory: ./cpf
       

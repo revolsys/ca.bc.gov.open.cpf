@@ -58,7 +58,7 @@ jobs:
         VERSION_BASE=${GITHUB_REF/refs\/heads\/release\//}-RELEASE
         VERSION=${VERSION_BASE}-CPF-JEOMETRY
         git config --global user.name "${{github.actor}}"
-        git config --global user.email "paul.austin@revolsys.com"
+        git config --global user.email "${{github.actor}}@users.noreply.github.com"
         git rm -rf .github
         mvn -B versions:set -DnewVersion="${VERSION}" -DgenerateBackupPoms=false
         git commit -a -m "Version ${VERSION}"
@@ -76,7 +76,7 @@ jobs:
         JEOMETRY_VERSION=${VERSION_BASE}-CPF-JEOMETRY
         VERSION=${VERSION_BASE}-CPF-REVOLSYS
         git config --global user.name "${{github.actor}}"
-        git config --global user.email "paul.austin@revolsys.com"
+        git config --global user.email "${{github.actor}}@users.noreply.github.com"
         git rm -rf .github
         mvn -B versions:set -DnewVersion="${VERSION}" -DgenerateBackupPoms=false
         sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
@@ -96,7 +96,7 @@ jobs:
         REVOLSYS_VERSION=${VERSION_BASE}-CPF-REVOLSYS
         VERSION=${VERSION_BASE}
         git config --global user.name "${{github.actor}}"
-        git config --global user.email "paul.austin@revolsys.com"
+        git config --global user.email "${{github.actor}}@users.noreply.github.com"
         git rm -rf .github
         mvn -B versions:set -DnewVersion="${VERSION}" -DgenerateBackupPoms=false
         sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
