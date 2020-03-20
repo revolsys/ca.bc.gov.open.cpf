@@ -57,7 +57,7 @@ jobs:
       run: |
         VERSION_BASE=${GITHUB_REF/refs\/heads\/release\//}-RELEASE
         VERSION=${VERSION_BASE}-CPF-JEOMETRY
-        git config --global user.name "Paul Austin"
+        git config --global user.name "${{github.actor}}"
         git config --global user.email "paul.austin@revolsys.com"
         git rm -rf .github
         mvn -B versions:set -DnewVersion="${VERSION}" -DgenerateBackupPoms=false
@@ -75,7 +75,7 @@ jobs:
         VERSION_BASE=${GITHUB_REF/refs\/heads\/release\//}-RELEASE
         JEOMETRY_VERSION=${VERSION_BASE}-CPF-JEOMETRY
         VERSION=${VERSION_BASE}-CPF-REVOLSYS
-        git config --global user.name "Paul Austin"
+        git config --global user.name "${{github.actor}}"
         git config --global user.email "paul.austin@revolsys.com"
         git rm -rf .github
         mvn -B versions:set -DnewVersion="${VERSION}" -DgenerateBackupPoms=false
@@ -95,7 +95,7 @@ jobs:
         JEOMETRY_VERSION=${VERSION_BASE}-CPF-JEOMETRY
         REVOLSYS_VERSION=${VERSION_BASE}-CPF-REVOLSYS
         VERSION=${VERSION_BASE}
-        git config --global user.name "Paul Austin"
+        git config --global user.name "${{github.actor}}"
         git config --global user.email "paul.austin@revolsys.com"
         git rm -rf .github
         mvn -B versions:set -DnewVersion="${VERSION}" -DgenerateBackupPoms=false
