@@ -122,17 +122,24 @@ jobs:
       run: mvn -B install -Dmaven.javadoc.skip=true
       working-directory: ./cpf
 
+#### Maven settings ####
+    - name: maven-settings-xml-action
+      uses: whelk-io/maven-settings-xml-action@v4
+      with:
+        repositories: '[{"id": "github", "url": "https://maven.pkg.github.com/pauldaustin/gba"}]'
+        servers: '[{ "id": "github", "username": "pauldaustin", "password": "${{ secrets.GITHUB_TOKEN}}" }]'
+    
 #### Deploy jeometry ####
     - name: Deploy jeometry
-      run: mvn -B deploy -DaltDeploymentRepository=github::https://token:${{secrets.GITHUB_TOKEN}}@maven.pkg.github.com/${{github.repository}}
+      run: mvn -B deploy -DaltDeploymentRepository=github::https://maven.pkg.github.com/pauldaustin/gba
       working-directory: ./jeometry
       
 #### Deploy revolsys ####
     - name: Deploy revolsys
-      run: mvn -B deploy -DaltDeploymentRepository=github::https://token:${{secrets.GITHUB_TOKEN}}@maven.pkg.github.com/${{github.repository}}
+      run: mvn -B deploy -DaltDeploymentRepository=github::https://maven.pkg.github.com/pauldaustin/gba
       working-directory: ./revolsys
 
 #### Deploy cpf ####
     - name: Deploy cpf
-      run: mvn -B deploy -DaltDeploymentRepository=github::https://token:${{secrets.GITHUB_TOKEN}}@maven.pkg.github.com/${{github.repository}}
+      run: mvn -B deploy -DaltDeploymentRepository=github::https://maven.pkg.github.com/pauldaustin/gba
       working-directory: ./cpf
