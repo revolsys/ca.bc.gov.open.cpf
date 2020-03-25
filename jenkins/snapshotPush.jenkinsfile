@@ -46,7 +46,7 @@ def setDependencyVersions(version, versionPrefix) {
 // Remove modules not required by cpf
   sh "sed -i 's/<module>com.revolsys.open.fgdb<\\/module>//g' pom.xml"
   sh "sed -i 's/<module>com.revolsys.open.gdal<\\/module>//g' pom.xml"
-  sh "sed -i 's/<module>revolsys-geopackage<\\/module>//g' pom.xml"
+  sh "sed -i 's/<module>com.revolsys.open.geopackage<\\/module>//g' pom.xml"
   sh "sed -i 's/<module>com.revolsys.open.maki<\\/module>//g' pom.xml"
   sh "sed -i 's/<module>com.revolsys.open.swing<\\/module>//g' pom.xml"
 }

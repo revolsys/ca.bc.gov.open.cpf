@@ -1,0 +1,79 @@
+properties([
+  parameters([
+    string(
+      name: 'versionBase',
+      defaultValue: '6.0',
+      description: 'The base version number with Major.Minor (e.g. 6.0)',
+      trim: true
+    ),
+    string(
+      name: 'versionPatch',
+      defaultValue: '0',
+      description: 'The version number patch (e.g. 0 or 1)',
+      trim: true
+    )
+  ])
+])
+
+def releaseSnapshot(folderName, url, versionPrefix) {
+  dir(folderName) {
+    def baseVersion = "${versionPrefix}-${versionBase}.${versionPatch}";
+    def releaseVersion = "${baseVersion}-RELEASE";
+    checkoutTag(url, "${baseVersion}-SNAPSHOT");
+    deleteDir()
+    checkout([
+      $class: 'GitSCM',
+      branches: [[name: "refs/tags/${tagName}"]],
+      doGenerateSubmoduleConfigurations: false,
+      extensions: [],
+      gitTool: 'Default',
+      submoduleCfg: [],
+      userRemoteConfigs: [[url: url]]
+    ])
+  
+    sh """
+git config --global user.email "445537+pauldaustin@users.noreply.github.com"
+git config --global user.name "Paul Austin"
+git checkout -B ${releaseVersion}
+find . -name pom.xml -exec sed -i 's/-SNAPSHOT/-RELEASE/g' {} \;
+git commit -a -m "Version ${releaseVersion}"
+git tag -f -a ${releaseVersion} -m "Version ${releaseVersion}"
+git push -f origin ${releaseVersion}
+    """
+  }
+}
+
+node ('master') {
+
+  stage ('Jeometry') {
+    releaseSnapshot(
+      'jeometry',
+      'ssh://git@github.com/revolsys/cpf-jeometry.git',
+      '0.CPF-'
+    );
+  }
+
+  stage ('Revolsys') {
+    releaseSnapshot(
+      'revolsys',
+      'ssh://git@github.com/revolsys/cpf-revolsys.git',
+      '0.CPF-'
+    );
+  }
+
+  stage ('CPF') {
+    releaseSnapshot(
+      'cpf',
+      'ssh://git@github.com/revolsys/cpf.git',
+      ''
+    );
+  }
+
+  stage ('CPF-BCGOV') {
+    releaseSnapshot(
+      'bcgov-cpf',
+      'ssh://git@github.com/revolsys/cpf.git',
+      "bcgov-"
+    );
+  }
+}
