@@ -19,7 +19,6 @@ def releaseSnapshot(folderName, url, versionPrefix) {
   dir(folderName) {
     def baseVersion = "${versionPrefix}-${versionBase}.${versionPatch}";
     def releaseVersion = "${baseVersion}-RELEASE";
-    checkoutTag(url, "${baseVersion}-SNAPSHOT");
     deleteDir()
     checkout([
       $class: 'GitSCM',
