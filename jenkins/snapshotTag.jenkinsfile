@@ -22,7 +22,7 @@ def releaseSnapshot(folderName, url, versionPrefix) {
     deleteDir()
     checkout([
       $class: 'GitSCM',
-      branches: [[name: "refs/tags/${tagName}"]],
+      branches: [[name: "refs/tags/${baseVersion}-SNAPSHOT"]],
       doGenerateSubmoduleConfigurations: false,
       extensions: [],
       gitTool: 'Default',
