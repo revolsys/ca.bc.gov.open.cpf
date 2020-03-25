@@ -11,11 +11,15 @@ properties([
       defaultValue: '0',
       description: 'The version number patch (e.g. 0 or 1)',
       trim: true
+    ),
+    choice(
+      name: 'versionSuffix',
+      choices: ['-RELEASE', '-SNAPSHOT'],
+      description: 'The version suffix'
     )
   ])
 ])
 
-def appServer='phecda.dmz'
 def versionNumber="${versionBase}.${versionPatch}"
 def version="${versionNumber}-SNAPSHOT"
 def versionPrefix="0.CPF"
@@ -91,38 +95,6 @@ node ('master') {
       'https://github.com/revolsys/cpf.git',
       "refs/tags/bcgov-${version}"
     );
-  }
-
-  stage ('Deploy Configuration') {
-    dir('config') {
-      deleteDir()
-      checkout([
-        $class: 'GitSCM',
-        branches: [[name: 'master']],
-        doGenerateSubmoduleConfigurations: false,
-        extensions: [],
-        gitTool: 'Default',
-        submoduleCfg: [],
-        userRemoteConfigs: [[
-          credentialsId: '607141bd-ef34-4e80-8e7e-1134b7c77176',
-          url: 'https://gogs.data.gov.bc.ca/cpf/cpf-config-snapshot.git'
-        ]]
-      ])
-      sh """
-ls -l
-ssh app@${appServer} "rm -rf /apps/config/cpf/*"
-scp -r cpf.properties app@${appServer}:/apps/config/cpf/
-      """
-      deleteDir()
-    }
-  }
-
-  stage ('Deploy to Application Server') {
-    sh """
-ssh app@${appServer} "rm -rf /apps/ocicat/webapps/pub#cpf*"
-scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-app-war/target/cpf-bcgov-app-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf.war
-scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-worker-war/target/cpf-bcgov-worker-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf-worker.war
-"""
   }
 
 }
