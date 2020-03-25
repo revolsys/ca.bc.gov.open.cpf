@@ -17,7 +17,7 @@ properties([
 
 def releaseSnapshot(folderName, url, versionPrefix) {
   dir(folderName) {
-    def baseVersion = "${versionPrefix}-${versionBase}.${versionPatch}";
+    def baseVersion = "${versionPrefix}${versionBase}.${versionPatch}";
     def releaseVersion = "${baseVersion}-RELEASE";
     deleteDir()
     checkout([
