@@ -47,7 +47,7 @@ def mavenDeploy() {
   if (fileExists('$JENKINS_HOME/tools/ojdk')) {
     env.JAVA_HOME = '$JENKINS_HOME/tools/ojdk'
   }
-  mavenRuntime.run pom: 'pom.xml', goals: 'clean install', buildInfo: buildInfo, opts: '-B'
+  mavenRuntime.run pom: 'pom.xml', goals: 'clean install -B', buildInfo: buildInfo
   mavenRuntime.deployer.deployArtifacts buildInfo
   artifactoryServer.publishBuildInfo buildInfo
 }
