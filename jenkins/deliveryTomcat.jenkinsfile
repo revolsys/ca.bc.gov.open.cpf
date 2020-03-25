@@ -1,0 +1,55 @@
+properties([
+  parameters([
+    string(
+      name: 'versionBase',
+      defaultValue: '6.0',
+      description: 'The base version number with Major.Minor (e.g. 6.0)',
+      trim: true
+    ),
+    string(
+      name: 'versionPatch',
+      defaultValue: '0',
+      description: 'The version number patch (e.g. 0 or 1)',
+      trim: true
+    )
+  ])
+])
+
+def appServer='phecda.dmz'
+def version="${versionBase}.${versionPatch}-SNAPSHOT"
+
+node ('master') {
+
+  stage ('Deploy Configuration') {
+    dir('config') {
+      deleteDir()
+      checkout([
+        $class: 'GitSCM',
+        branches: [[name: 'master']],
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: [],
+        userRemoteConfigs: [[
+          credentialsId: '607141bd-ef34-4e80-8e7e-1134b7c77176',
+          url: 'https://gogs.data.gov.bc.ca/cpf/cpf-config-snapshot.git'
+        ]]
+      ])
+      sh """
+ls -l
+ssh app@${appServer} "rm -rf /apps/config/cpf/*"
+scp -r cpf.properties app@${appServer}:/apps/config/cpf/
+      """
+      deleteDir()
+    }
+  }
+
+  stage ('Deploy to Application Server') {
+    sh """
+ssh app@${appServer} "rm -rf /apps/ocicat/webapps/pub#cpf*"
+scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-app-war/target/cpf-bcgov-app-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf.war
+scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-worker-war/target/cpf-bcgov-worker-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf-worker.war
+"""
+  }
+
+}
