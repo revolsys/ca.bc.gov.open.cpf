@@ -51,7 +51,6 @@ import org.jeometry.common.data.type.DataTypes;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.coordinatesystem.model.CoordinateSystem;
 import org.jeometry.coordinatesystem.model.systems.EpsgCoordinateSystems;
-import org.jeometry.coordinatesystem.model.systems.EpsgId;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -79,7 +78,6 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import ca.bc.gov.open.cpf.plugin.impl.log.WrappedAppender;
 
-import com.revolsys.beans.Classes;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.MapEx;
@@ -175,8 +173,7 @@ public class ClassLoaderModule implements Module {
   private final AppLog log;
 
   private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems
-    .getCoordinateSystems(Arrays.asList(EpsgId.WGS84, EpsgId.NAD83, 3005, EpsgId.nad83Utm(7),
-      EpsgId.nad83Utm(8), EpsgId.nad83Utm(9), EpsgId.nad83Utm(10), EpsgId.nad83Utm(11)));
+    .getCoordinateSystems(Arrays.asList(4326, 4269, 3005, 26907, 26908, 26909, 26910, 26911));
 
   private boolean enabled = false;
 
@@ -514,15 +511,6 @@ public class ClassLoaderModule implements Module {
       final String description = pluginAnnotation.description();
       businessApplication.setDescription(description);
 
-      // final RetainJavaDocComment detailedDescriptionAnnotation = pluginClass
-      // .getAnnotation(RetainJavaDocComment.class);
-      // if (detailedDescriptionAnnotation != null) {
-      // final String detailedDescription =
-      // detailedDescriptionAnnotation.value();
-      // if (Property.hasValue(detailedDescription)) {
-      // businessApplication.setDetailedDescription(detailedDescription);
-      // }
-      // }
       final String title = pluginAnnotation.title();
       if (title != null && title.trim().length() > 0) {
         businessApplication.setTitle(title);
@@ -804,9 +792,9 @@ public class ClassLoaderModule implements Module {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       this.log.warn(message + " srid must be >= 0");
-      srid = geometryFactory.getHorizontalCoordinateSystemId();
+      srid = geometryFactory.getCoordinateSystemId();
     } else if (srid == 0) {
-      srid = geometryFactory.getHorizontalCoordinateSystemId();
+      srid = geometryFactory.getCoordinateSystemId();
     }
     int axisCount = geometryConfiguration.numAxis();
     if (axisCount == 0) {
@@ -970,6 +958,7 @@ public class ClassLoaderModule implements Module {
     return getBusinessApplication(businessApplicationName) != null;
   }
 
+  @SuppressWarnings("deprecation")
   private void initAppLogAppender(final String businessApplicationName) {
     final String fileName;
     String logName = this.name;
@@ -982,7 +971,9 @@ public class ClassLoaderModule implements Module {
     }
     final Logger logger = (Logger)LogManager.getLogger(logName);
     synchronized (logger) {
-
+      for (final Appender appender : logger.getAppenders().values()) {
+        logger.removeAppender(appender);
+      }
       final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
         logger.setAdditive(true);
@@ -1392,7 +1383,7 @@ public class ClassLoaderModule implements Module {
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
-              field.setProperty(FieldProperties.GEOMETRY_FACTORY, geometryFactory);
+              field.setGeometryFactory(geometryFactory);
               field.setProperty(FieldProperties.VALIDATE_GEOMETRY, validateGeometry);
             } else if (geometryConfiguration != null) {
               throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
@@ -1470,7 +1461,7 @@ public class ClassLoaderModule implements Module {
                 businessApplication.setGeometryFactory(geometryFactory);
                 validateGeometry = geometryConfiguration.validate();
               }
-              field.setProperty(FieldProperties.GEOMETRY_FACTORY, geometryFactory);
+              field.setGeometryFactory(geometryFactory);
               field.setProperty(FieldProperties.VALIDATE_GEOMETRY, validateGeometry);
             } else if (geometryConfiguration != null) {
               throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()

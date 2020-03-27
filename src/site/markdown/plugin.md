@@ -75,7 +75,7 @@ Use the links in the following table to view the Plug-in API documentation or do
   </thead>
   <tbody>
     <tr>
-      <td>Plug-in Java (6+)</td>
+      <td>Plug-in Java (11+)</td>
       <td><a href="java-api">API Docs</a></td>
       <td><a href="../../lib/cpf-api-plugin-${project.version}.jar">Download</a></td>
     </tr>
@@ -321,9 +321,9 @@ The following file shows an example of this file.
   xmlns:p="http://www.springframework.org/schema/p"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/util
-    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    https://www.springframework.org/schema/util/spring-util.xsd
   "
 >
   <util:list id="beanImports">
@@ -425,9 +425,9 @@ Finally the demoDataSource bean will be injected into the `dataSource` property 
   xmlns:p="http://www.springframework.org/schema/p"
   xsi:schemaLocation="
     http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/util
-    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    https://www.springframework.org/schema/util/spring-util.xsd
   "
 >
   <util:list id="beanImports">

@@ -69,29 +69,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.StopWatch;
 
-import ca.bc.gov.open.cpf.api.controller.CpfConfig;
-import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
-import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
-import ca.bc.gov.open.cpf.api.domain.Common;
-import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
-import ca.bc.gov.open.cpf.api.domain.UserAccount;
-import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
-import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
-import ca.bc.gov.open.cpf.api.web.controller.JobController;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
-import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
-import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
-
 import com.revolsys.collection.list.Lists;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
@@ -133,6 +110,29 @@ import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
+
+import ca.bc.gov.open.cpf.api.controller.CpfConfig;
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.Common;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.domain.UserAccount;
+import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
+import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
+import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
+import ca.bc.gov.open.cpf.api.web.controller.JobController;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
+import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 public class BatchJobService implements ModuleEventListener {
   private static final String CONTENT_TYPE_JSON = MediaType.APPLICATION_JSON.toString();
@@ -214,12 +214,12 @@ public class BatchJobService implements ModuleEventListener {
     final Class<?> dataClass = dataType.getJavaClass();
     if (Geometry.class.isAssignableFrom(dataClass)) {
       if (parameterValue != null) {
-        final GeometryFactory geometryFactory = field.getProperty(FieldProperties.GEOMETRY_FACTORY);
+        final GeometryFactory geometryFactory = field.getGeometryFactory();
         Geometry geometry;
         if (parameterValue instanceof Geometry) {
 
           geometry = (Geometry)parameterValue;
-          if (geometry.getHorizontalCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
+          if (geometry.getCoordinateSystemId() == 0 && Property.hasValue(sridString)) {
             final int srid = Integer.parseInt(sridString);
             final GeometryFactory sourceGeometryFactory = GeometryFactory.floating3d(srid);
             geometry = sourceGeometryFactory.geometry(geometry);
@@ -251,7 +251,7 @@ public class BatchJobService implements ModuleEventListener {
           geometry = geometryFactory.geometry(geometry);
         }
         final Boolean validateGeometry = field.getProperty(FieldProperties.VALIDATE_GEOMETRY);
-        if (geometry.getHorizontalCoordinateSystemId() == 0) {
+        if (geometry.getCoordinateSystemId() == 0) {
           throw new IllegalArgumentException("does not have a coordinate system (SRID) specified");
         }
         if (validateGeometry == true) {
@@ -667,7 +667,7 @@ public class BatchJobService implements ModuleEventListener {
       return null;
     } else {
       final int srid = Maps.getInteger(parameters, "resultSrid",
-        geometryFactory.getHorizontalCoordinateSystemId());
+        geometryFactory.getCoordinateSystemId());
       final int axisCount = Maps.getInteger(parameters, "resultNumAxis",
         geometryFactory.getAxisCount());
       final double scaleXY = Maps.getDouble(parameters, "resultScaleFactorXy",

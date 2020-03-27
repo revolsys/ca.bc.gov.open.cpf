@@ -50,7 +50,6 @@ import com.revolsys.collection.map.Maps;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.Reader;
 import com.revolsys.io.Writer;
-import com.revolsys.jdbc.JdbcUtils;
 import com.revolsys.jdbc.io.JdbcRecordStore;
 import com.revolsys.record.Record;
 import com.revolsys.record.RecordState;
@@ -776,7 +775,7 @@ public class CpfDataAccessObject implements Transactionable {
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
-      return JdbcUtils.executeUpdate(jdbcRecordStore, sql, now, now, now, username,
+      return jdbcRecordStore.executeUpdate(sql, now, now, now, username,
         batchJobId.getLong(0)) == 1;
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
@@ -798,7 +797,7 @@ public class CpfDataAccessObject implements Transactionable {
       + "WHO_UPDATED = ? "//
       + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
     final Timestamp now = new Timestamp(System.currentTimeMillis());
-    final boolean result = JdbcUtils.executeUpdate(jdbcRecordStore, sql, numSubmittedRequests,
+    final boolean result = jdbcRecordStore.executeUpdate(sql, numSubmittedRequests,
       numFailedRequests, groupSize, numGroups, now, now, now, getUsername(),
       batchJobId.getLong(0)) == 1;
     return result;
@@ -875,7 +874,7 @@ public class CpfDataAccessObject implements Transactionable {
     final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET USER_ID = ? WHERE USER_ID = ?";
     try {
-      return JdbcUtils.executeUpdate(jdbcRecordStore, sql, newUserId, oldUserId);
+      return jdbcRecordStore.executeUpdate(sql, newUserId, oldUserId);
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to change jobs for user rename", e);
     }
