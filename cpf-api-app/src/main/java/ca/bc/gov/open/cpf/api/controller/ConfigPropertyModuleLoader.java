@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.jeometry.common.data.type.DataTypes;
+import org.jeometry.common.logging.Logs;
+
 import ca.bc.gov.open.cpf.api.domain.ConfigProperty;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.domain.UserGroup;
@@ -40,9 +43,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.io.map.MapReader;
-import com.revolsys.logging.Logs;
 import com.revolsys.maven.MavenRepository;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.json.Json;

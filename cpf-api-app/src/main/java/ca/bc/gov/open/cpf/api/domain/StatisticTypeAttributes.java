@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StatisticTypeAttributes {
-  private final static Map<String, String> units = new HashMap<String, String>() {
+  private final static Map<String, String> units = new HashMap<>() {
     private static final long serialVersionUID = 1L;
 
     {
@@ -36,7 +36,7 @@ public class StatisticTypeAttributes {
     }
   };
 
-  private final static Map<String, Double> divisor = new HashMap<String, Double>() {
+  private final static Map<String, Double> divisor = new HashMap<>() {
     private static final long serialVersionUID = 1L;
 
     {

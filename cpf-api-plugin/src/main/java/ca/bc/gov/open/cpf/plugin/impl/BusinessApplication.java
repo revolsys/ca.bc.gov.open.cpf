@@ -28,19 +28,24 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
+import org.jeometry.common.io.PathName;
+import org.jeometry.coordinatesystem.model.CoordinateSystem;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
+import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
+import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+
 import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
-import com.revolsys.geometry.cs.CoordinateSystem;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.io.PathName;
+import com.revolsys.log.LogAppender;
 import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
@@ -48,12 +53,6 @@ import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.Property;
-
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 /**
  * The BusinessApplication describes a business application which can be invoked
@@ -965,14 +964,13 @@ public class BusinessApplication extends BaseObjectWithProperties
       .parseExpression(this.instantModePermission);
   }
 
-  public void setLogLevel(final String logLevel) {
-    this.log.setLogLevel(logLevel);
-    final Level level = Level.toLevel(logLevel);
+  public void setLogLevel(final String level) {
+    this.log.setLogLevel(level);
     final String moduleName = getModuleName();
-    Logger.getLogger(moduleName + "." + this.name).setLevel(level);
+    LogAppender.setLevel(moduleName + "." + this.name, level);
     // Tempory fix for geocoder logging
-    Logger.getLogger(moduleName + ".ca").setLevel(level);
-    Logger.getLogger(getPackageName()).setLevel(level);
+    LogAppender.setLevel(moduleName + ".ca", level);
+    LogAppender.setLevel(getPackageName(), level);
   }
 
   public void setMaxConcurrentRequests(final int maxConcurrentRequests) {

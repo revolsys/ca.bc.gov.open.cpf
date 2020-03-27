@@ -27,10 +27,11 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.logging.Logs;
+
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 
-import com.revolsys.identifier.Identifier;
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.parallel.ThreadUtil;
 import com.revolsys.parallel.channel.Channel;
@@ -73,6 +74,14 @@ public abstract class AbstractBatchJobChannelProcess extends ThreadPoolExecutor
     synchronized (this.scheduledIds) {
       this.scheduledIds.notifyAll();
       this.taskCount--;
+    }
+  }
+
+  public void destroy() {
+    shutdown();
+    try {
+      awaitTermination(30, TimeUnit.SECONDS);
+    } catch (final InterruptedException e) {
     }
   }
 

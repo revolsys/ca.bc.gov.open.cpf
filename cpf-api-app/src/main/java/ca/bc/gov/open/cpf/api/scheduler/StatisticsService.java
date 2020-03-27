@@ -31,12 +31,13 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.logging.Logs;
+
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.Reader;
-import com.revolsys.logging.Logs;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.process.BaseInProcess;
 import com.revolsys.record.Record;

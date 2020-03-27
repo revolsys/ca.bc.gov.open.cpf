@@ -155,8 +155,7 @@ public class ConfigPropertyModule extends ClassLoaderModule {
               clearModuleError();
 
               final ClassLoader classLoader = getClassLoader();
-              final List<URL> configUrls = ModuleLoader.getConfigUrls(classLoader,
-                false);
+              final List<URL> configUrls = ModuleLoader.getConfigUrls(classLoader, false);
               if (configUrls.size() == 1) {
                 final URL configUrl = configUrls.get(0);
                 setConfigUrl(configUrl);

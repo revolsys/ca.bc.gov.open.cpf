@@ -18,10 +18,13 @@ and one on a central integration test server.
 ### Requirements
 
 The CPF requires a database to store the CPF configuration, Job requests and Job results. The
-following databases are currently supported.
+following databases are currently supported. 
 
-* PostgreSQL 9.1+
-* Oracle 10g, 11g, or 12c 
+* PostgreSQL 11.5+
+* Oracle 12c+
+
+
+**NOTE:** Older versions may work but haven't been recently tested.
 
 A developer may also require additional databases for use by their plug-in. They must deliver all
 required SQL scripts and instructions on how to install these databases.
@@ -63,6 +66,12 @@ The database install scripts use the db.properties configuration file for databa
 and configuration parameters. Copy the db-sample.properties file from the postgresql or oracle
 directory to use as a template.
 
+```
+cd postgresql # or cd oracle
+cp db-sample.properties db.properties
+chmod 600 db.properties
+```
+
 > **NOTE:** Change permissions on the `db.properties` so that only you have read/write permissions on
 > the file to keep the passwords secret.
 
@@ -75,15 +84,13 @@ Edit the `db.properties` file.
 |`DB_NAME`               |`cpf`        |The PostgreSQL database name or Oracle TNSNAME, tnsnames.ora must be configured.|
 |`CPF_PASSWORD`          |`cpf_0wn3r`  |The password to create the CPF database account with.|
 |`PROXY_CPF_WEB_PASSWORD`|`c0ncurr3n7` |The password to create the PROXY_CPF_WEB database account with.|
-|`TABLESPACE_DIR`        |```
-/data/postgres/cpf
-c:\data\postgres\cpf
-```|The directory to create the database tablespace in. The directory must exist on the server and the PostgreSQL or Oracle process must have write permissions on this directory.|
+|`TABLESPACE_DIR`        |`/data/postgres/cpf`|The directory to create the database tablespace in. The directory must exist on the server and the PostgreSQL or Oracle process must have write permissions on this directory.|
 
 For PostgreSQL, to avoid needing to enter in the passwords for each SQL command create a `~/.pgpass`
 on UNIX or `%APPDATA%\postgresql\pgpass.conf` file on Windows. Set the permissions so that only you
 can read/write the `pgpass.conf` file. The file can be deleted after installation if required. The
-file should look something like this.
+file should look something like this. Change the last item on the two lines to be the password for
+those users.
 
 ```
 localhost:5432:*:postgres:postgres
@@ -113,6 +120,7 @@ prompted to enter this in the script.
 ```bash
 DB_VENDOR={postgresql|oracle}
 cd cpf/sql/${DB_VENDOR}
+chmod 755 install.sh
 ./install.sh
 ```
 
@@ -145,10 +153,10 @@ container (Apached Tomcat) on each developer's workstation and one on a central 
 The CPF applications are deployed to a J2EE application server or servlet container. To deploy to a
 J2EE Servlet container the individual wars are deployed to the J2EE Servlet container.
 
-Deployment is currently supported on [Apache Tomcat > 8.x](http://tomcat.apache.org). CPF may work
+Deployment is currently supported on [Apache Tomcat > 9.0.x](https://tomcat.apache.org). CPF may work
 withother J2EE Servlet or application containers but this has not been tested.
 
-For Tomcat 8.x you will need to add a user account in the manager-script role to deploy the web
+For Tomcat 9.0.x you will need to add a user account in the manager-script role to deploy the web
 applications to the tomcat contained. If a user does not exist edit the `tomcat-users.xml`
 file in the tomcat conf directory.
 
@@ -168,10 +176,7 @@ The CPF requires directories to be created on the server. The following director
 |------------------------------|----------|-----------------|-----------|
 |`/apps/cpf/config`            |`rw`      |`r`              |The directory containing the CPF configuration file for the database URL, username and password.|
 |`/apps/cpf/log`               |`r`       |`rw`             |The directory to store the CPF logs.|
-|```
-/apps/cpf/repository
-/home/{username}/.m2/repository
-```                            |`rw`      |`rw`             |The local Maven repository cache. If the J2EE server is on the developers workstation use the user's local maven repository cache.|
+|`/apps/cpf/repository,/home/{username}/.m2/repository` |`rw`      |`rw`  |The local Maven repository cache. If the J2EE server is on the developers workstation use the user's local maven repository cache.|
 
 
 Create the directories using the following commands. Make sure the directory permissions are set
@@ -195,6 +200,55 @@ md \apps\cpf\log
 md \apps\cpf\repository
 ```
 
+### Update maven settings.xml to use the CPF maven repository
+
+Edit ~/.m2/settings.xml to include the cpf-artifactory profile
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<settings
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
+  xmlns="http://maven.apache.org/SETTINGS/1.1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+  <profiles>
+
+    <profile>
+      <id>cpf-artifactory</id>
+       <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>cpf-release-local</id>
+          <name>cpf-release-local</name>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <url>https://open.revolsys.com/artifactory/cpf-release-local</url>
+        </repository>
+        <repository>
+          <id>cpf-snapshot-local</id>
+          <name>cpf-snapshot-local</name>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <url>https://open.revolsys.com/artifactory/cpf-snapshot-local</url>
+        </repository>
+      </repositories>
+    </profile>
+
+  </profiles>
+</settings>
+
+```
+
 ### Create a CPF web application project
 
 The CPF application can be configured to connect to different types of database and be configured or
@@ -204,23 +258,25 @@ created for each installation that contains the configuration for that environme
 Create the maven project using the following maven archetype commands. Replace any parameters
 with the correct values for your environment.
 
-> **NOTE:** Java 1.8.0 and Maven 3.3+ must be install. JAVA_HOME and M2_HOME must be set and the
+> **NOTE:** Java 11 and Maven 3.6+ must be install. JAVA_HOME and M2_HOME must be set and the
 > bin directories from both must be in the PATH.
 
 **UNIX/Mac**
 
 ```bash
-CPF_VERSION=5.0.2-SNAPSHOT
+CPF_VERSION=6.0.0-SNAPSHOT
 cd ~/projects
 mvn \
   archetype:generate \
+  -DarchTypeCatalog=cpf-release-local,cpf-snapshot-local,remote,local \
   -DinteractiveMode=false \
   -DarchetypeGroupId=ca.bc.gov.open.cpf \
   -DarchetypeArtifactId=cpf-archetype-web \
   -DarchetypeVersion=${CPF_VERSION} \
   -DgroupId=com.mycompany \
-  -DartifactId=cpf* \
+  -DartifactId=cpf \
   -Dversion=1.0.0-SNAPSHOT \
+  -DcpfVersion=${CPF_VERSION} \
   -DmodulePrefix=cpf \
   -DdatabaseVendor=postgresql \
   -DdatabasePassword=c0ncurr3n7 \
@@ -233,10 +289,11 @@ mvn \
 **Windows**
 
 ```winbatch
-set CPF_VERSION=5.0.2-SNAPSHOT
+set CPF_VERSION=6.0.0-SNAPSHOT
 cd %HOMEDRIVE%%HOMEPATH%\projects
 mvn ^
   archetype:generate ^
+  -DarchTypeCatalog=cpf-release-local,cpf-snapshot-local,remote,local ^
   -DinteractiveMode=false ^
   -DarchetypeGroupId=ca.bc.gov.open.cpf ^
   -DarchetypeArtifactId=cpf-archetype-web ^
@@ -244,6 +301,7 @@ mvn ^
   -DgroupId=com.mycompany ^
   -DartifactId=cpf ^
   -Dversion=1.0.0-SNAPSHOT ^
+  -DcpfVersion=%CPF_VERSION% ^
   -DmodulePrefix=cpf ^
   -DdatabaseVendor=postgresql ^
   -DdatabasePassword=c0ncurr3n7 ^
@@ -260,6 +318,7 @@ mvn ^
 |Parameter               |Description|
 |------------------------|-----------|
 |`archetypeVersion`      |The most recent version of the CPF framework.|
+|`cpfVersion`      |The most recent version of the CPF framework.|
 |`groupId`               |The maven group identifier. This should be your company name if deploying within your development environment.|
 |`artifactId`            |The base maven artifact identifier used for the maven modules created in the project.|
 |`version`               |The version identifier you’d like to give to your plug-in.|
@@ -372,15 +431,16 @@ a maven repository.
 </entry>
 ```
 
-### Deploy to Tomcat 8
+### Deploy to Tomcat 9.0
 
 The plug-in project web services &amp; scheduler war and worker war files can be deployed to a
-Tomcat 8 server.
+Tomcat 9 server.
 
 Use the following command to compile and deploy to Tomcat.
 
 ```
-mvn -P tomcat8Deploy,localhost clean install
+mvn -P tomcat9Deploy,localhost clean install
 ```
 
 If you created multiple profiles use the profile name of the server you wish to deploy to.
+

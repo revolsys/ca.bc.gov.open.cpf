@@ -392,8 +392,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
 
     final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
-      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName) && configProperty
-        .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME)
+        .equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
       getRecordStore().deleteRecord(configProperty);
       redirectPage("moduleList");
       return;
@@ -418,8 +419,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
 
     final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
-      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName) && configProperty
-        .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME)
+        .equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
       return newObjectEditPage(configProperty, "module");
     }
     throw new PageNotFoundException();
@@ -467,8 +469,9 @@ public class ConfigPropertyUiBuilder extends CpfUiBuilder {
 
     final Record configProperty = loadObject(configPropertyId);
     if (configProperty != null
-      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName) && configProperty
-        .getValue(ConfigProperty.COMPONENT_NAME).equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
+      && configProperty.getValue(ConfigProperty.MODULE_NAME).equals(moduleName)
+      && configProperty.getValue(ConfigProperty.COMPONENT_NAME)
+        .equals(ConfigProperty.MODULE_BEAN_PROPERTY)) {
       final TabElementContainer tabs = new TabElementContainer();
       addObjectViewPage(tabs, configProperty, "module");
       return tabs;

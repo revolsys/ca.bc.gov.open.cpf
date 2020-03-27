@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.api.domain;
 
-import com.revolsys.io.PathName;
+import org.jeometry.common.io.PathName;
 
 public interface UserGroupAccountXref extends Common {
   PathName USER_GROUP_ACCOUNT_XREF = PathName.newPathName("/CPF/CPF_USER_GROUP_ACCOUNT_XREF");

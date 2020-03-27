@@ -27,6 +27,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.data.type.DataTypes;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -38,7 +39,6 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobPreProcess;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobScheduler;
 import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 
-import com.revolsys.datatype.DataTypes;
 import com.revolsys.jdbc.io.DataSourceImpl;
 import com.revolsys.record.Record;
 import com.revolsys.record.query.And;

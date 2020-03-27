@@ -9,3 +9,4 @@ cpf-war-app
 cpf-war-worker
 plugins
 target
+tests

@@ -27,10 +27,11 @@ import java.util.TreeMap;
 
 import javax.websocket.Session;
 
+import org.jeometry.common.data.identifier.Identifier;
+
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.util.Property;
 import com.revolsys.websocket.json.JsonAsyncSender;
 

@@ -16,8 +16,8 @@ following rules.
   portion, a period ('.') for decimal numbers, and the digits (0-9) for the fractional part. For
   example -1234.56789.
 * Booleans use the values true and false.
-* Geometries can be encoded using OGC [Well-Known Text](http://en.wikipedia.org/wiki/Well-known_text) (WKT)
-  or PostGIS [Extended-WKT](http://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT) (EWKT).
+* Geometries can be encoded using OGC [Well-Known Text](https://en.wikipedia.org/wiki/Well-known_text) (WKT)
+  or PostGIS [Extended-WKT](https://postgis.net/docs/manual-2.0/using_postgis_dbmanagement.html#EWKB_EWKT) (EWKT).
   For example <code>SRID=4326;POINT(-124 50)</code>.
 
 Internally the CPF converts all values to the string encoded form.

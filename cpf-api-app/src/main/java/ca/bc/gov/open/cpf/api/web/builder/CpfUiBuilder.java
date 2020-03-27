@@ -27,6 +27,8 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.io.PathName;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -49,8 +51,6 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
-import com.revolsys.identifier.Identifier;
-import com.revolsys.io.PathName;
 import com.revolsys.record.Record;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.spring.security.MethodSecurityExpressionRoot;

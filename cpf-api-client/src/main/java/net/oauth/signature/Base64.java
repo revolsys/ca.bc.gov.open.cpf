@@ -100,11 +100,11 @@ class Base64 {
   // some state be preserved between calls of encode() and decode().
 
   /*
-   * Tests a given byte array to see if it contains only valid characters within
-   * the Base64 alphabet.
+   * Tests a given byte array to see if it contains only valid characters within the Base64
+   * alphabet.
    * @param arrayOctet byte array to test
-   * @return <code>true</code> if any byte is a valid character in the Base64
-   * alphabet; false herwise
+   * @return <code>true</code> if any byte is a valid character in the Base64 alphabet; false
+   * herwise
    */
   private static boolean containsBase64Byte(final byte[] arrayOctet) {
     for (final byte element : arrayOctet) {
@@ -267,8 +267,8 @@ class Base64 {
    *         alphabet or if the byte array is empty; false, otherwise
    */
   public static boolean isArrayByteBase64(final byte[] arrayOctet) {
-    for (int i = 0; i < arrayOctet.length; i++) {
-      if (!isBase64(arrayOctet[i]) && !isWhiteSpace(arrayOctet[i])) {
+    for (final byte element : arrayOctet) {
+      if (!isBase64(element) && !isWhiteSpace(element)) {
         return false;
       }
     }
@@ -688,7 +688,7 @@ class Base64 {
     }
   }
 
-  /** Doubles our buffer. */
+  /** DoubleDataType our buffer. */
   private void resizeBuf() {
     if (this.buf == null) {
       this.buf = new byte[8192];

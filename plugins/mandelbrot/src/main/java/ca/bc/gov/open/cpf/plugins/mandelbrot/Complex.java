@@ -15,7 +15,7 @@
  */
 package ca.bc.gov.open.cpf.plugins.mandelbrot;
 
-import com.revolsys.util.number.Doubles;
+import org.jeometry.common.number.Doubles;
 
 public class Complex {
   public static Complex plus(final Complex a, final Complex b) {

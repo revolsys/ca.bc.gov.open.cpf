@@ -53,16 +53,16 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
+import org.jeometry.common.exception.Exceptions;
+import org.jeometry.common.logging.Logs;
 
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
-import com.revolsys.logging.Logs;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.io.format.json.JsonParser;
 import com.revolsys.spring.resource.InputStreamResource;
-import com.revolsys.util.Exceptions;
 import com.revolsys.util.UrlUtil;
 
 @SuppressWarnings("javadoc")

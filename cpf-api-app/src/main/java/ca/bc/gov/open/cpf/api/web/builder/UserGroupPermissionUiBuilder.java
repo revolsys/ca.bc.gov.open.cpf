@@ -23,6 +23,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.data.identifier.Identifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,7 +36,6 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
 
-import com.revolsys.identifier.Identifier;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
 import com.revolsys.ui.html.fields.TextField;

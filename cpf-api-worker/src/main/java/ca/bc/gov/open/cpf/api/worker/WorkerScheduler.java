@@ -46,13 +46,11 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.rolling.FixedWindowRollingPolicy;
-import org.apache.log4j.rolling.RollingFileAppender;
-import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 import org.glassfish.tyrus.client.ClientManager;
+import org.jeometry.common.exception.Exceptions;
+import org.jeometry.common.logging.Logs;
 
 import ca.bc.gov.open.cpf.client.httpclient.HttpStatusCodeException;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
@@ -63,12 +61,12 @@ import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.Maps;
-import com.revolsys.logging.Logs;
+import com.revolsys.log.LogAppender;
 import com.revolsys.parallel.NamedThreadFactory;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.spring.resource.ClassPathResource;
 import com.revolsys.spring.resource.Resource;
-import com.revolsys.util.Exceptions;
+import com.revolsys.ui.web.servlet.listener.DriverManagerCleanupListener;
 import com.revolsys.util.Property;
 
 @WebListener
@@ -124,8 +122,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
   private final AtomicInteger taskCount = new AtomicInteger();
 
   private String password = "DUMMY_VALUE_MUST_BE_SET_IN_CONFIG";
-
-  private boolean running;
 
   private WorkerSecurityServiceFactory securityServiceFactory;
 
@@ -246,9 +242,8 @@ public class WorkerScheduler extends ThreadPoolExecutor
 
   @PreDestroy
   public void destroy() {
-    if (this.running) {
-      this.running = false;
-    }
+    WorkerRunning.stop();
+    shutdown();
     final WorkerMessageHandler messageHandler = this.messageHandler;
     this.messageHandler = null;
     if (messageHandler != null) {
@@ -274,6 +269,11 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
     this.httpClient = null;
     shutdownNow();
+    try {
+      awaitTermination(30, TimeUnit.SECONDS);
+    } catch (final InterruptedException e) {
+    }
+    DriverManagerCleanupListener.cleanupDrivers();
   }
 
   @Override
@@ -400,7 +400,11 @@ public class WorkerScheduler extends ThreadPoolExecutor
         }
         if (key.startsWith("cpfWorker.")) {
           key = key.substring(10);
-          Property.setSimple(this, key, value);
+          if ("appLogDirectory".equals(key)) {
+            setAppLogDirectory(new File(value.toString()));
+          } else {
+            Property.setSimple(this, key, value);
+          }
         }
       }
     } catch (final Throwable e) {
@@ -408,39 +412,21 @@ public class WorkerScheduler extends ThreadPoolExecutor
     }
   }
 
-  @SuppressWarnings("deprecation")
   private void initLogging() {
-    final Logger logger = Logger.getRootLogger();
-    logger.removeAllAppenders();
+    final Logger logger = (Logger)LogManager.getRootLogger();
+    LogAppender.removeAllAppenders();
     final File rootDirectory = this.appLogDirectory;
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      new ConsoleAppender().activateOptions();
-      final ConsoleAppender appender = new ConsoleAppender();
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-      logger.addAppender(appender);
+      LogAppender.addRootAppender("%d\\t%p\\t%c\\t%m%n");
     } else {
-      final String baseFileName = rootDirectory + "/" + "worker_" + this.id.replaceAll(":", "_");
-      final String activeFileName = baseFileName + ".log";
-      final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-      rollingPolicy.setActiveFileName(activeFileName);
-      final String fileNamePattern = baseFileName + ".%i.log";
-      rollingPolicy.setFileNamePattern(fileNamePattern);
-
-      final RollingFileAppender appender = new RollingFileAppender();
-
-      appender.setFile(activeFileName);
-      appender.setRollingPolicy(rollingPolicy);
-      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-      appender.rollover();
-      logger.addAppender(appender);
+      final String id = this.id.replaceAll(":", "-");
+      ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-" + id, "cpf-worker-all");
+      ClassLoaderModule.addAppender(logger, rootDirectory + "/worker-app-" + id, "cpf-worker");
     }
   }
 
   public boolean isRunning() {
-    return this.running;
+    return WorkerRunning.isRunning();
   }
 
   public void logError(final String message) {
@@ -512,10 +498,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
               }
             }
           } else {
-            if (this.taskCount.get() == 0) {
-              // Request garbage collection on an idle system
-              System.gc();
-            }
             Logs.debug(this, "No group available");
           }
         }
@@ -551,7 +533,6 @@ public class WorkerScheduler extends ThreadPoolExecutor
   public void run() {
     Logs.info(this, "Started");
     try {
-      this.running = true;
       while (isRunning()) {
         try {
           if (processNextTask()) {

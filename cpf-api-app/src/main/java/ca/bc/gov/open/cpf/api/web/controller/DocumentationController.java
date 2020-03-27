@@ -31,8 +31,8 @@ import org.springframework.web.context.support.WebApplicationObjectSupport;
 import org.springframework.web.servlet.HandlerMapping;
 
 import com.revolsys.spring.resource.Resource;
-import com.revolsys.spring.resource.ServletContextResource;
 import com.revolsys.ui.web.annotation.RequestMapping;
+import com.revolsys.ui.web.servlet.ServletContextResource;
 import com.revolsys.util.Property;
 
 @Controller

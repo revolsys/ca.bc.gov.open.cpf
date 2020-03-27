@@ -39,10 +39,19 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.rolling.FixedWindowRollingPolicy;
-import org.apache.log4j.rolling.RollingFileAppender;
-import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.appender.rolling.CompositeTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.OnStartupTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
+import org.jeometry.common.data.type.DataType;
+import org.jeometry.common.data.type.DataTypes;
+import org.jeometry.common.exception.Exceptions;
+import org.jeometry.coordinatesystem.model.CoordinateSystem;
+import org.jeometry.coordinatesystem.model.systems.EpsgCoordinateSystems;
+import org.jeometry.coordinatesystem.model.systems.EpsgId;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -51,35 +60,6 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.util.StopWatch;
-
-import com.revolsys.beans.Classes;
-import com.revolsys.collection.ArrayUtil;
-import com.revolsys.collection.map.AttributeMap;
-import com.revolsys.collection.map.MapEx;
-import com.revolsys.collection.map.Maps;
-import com.revolsys.collection.set.Sets;
-import com.revolsys.datatype.DataType;
-import com.revolsys.datatype.DataTypes;
-import com.revolsys.geometry.cs.CoordinateSystem;
-import com.revolsys.geometry.cs.epsg.EpsgCoordinateSystems;
-import com.revolsys.geometry.model.Geometry;
-import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.io.FileUtil;
-import com.revolsys.io.IoFactory;
-import com.revolsys.io.map.MapReader;
-import com.revolsys.io.map.MapReaderFactory;
-import com.revolsys.record.io.RecordWriterFactory;
-import com.revolsys.record.property.FieldProperties;
-import com.revolsys.record.schema.FieldDefinition;
-import com.revolsys.record.schema.RecordDefinition;
-import com.revolsys.record.schema.RecordDefinitionImpl;
-import com.revolsys.spring.config.AttributesBeanConfigurer;
-import com.revolsys.spring.resource.Resource;
-import com.revolsys.spring.resource.UrlResource;
-import com.revolsys.util.Exceptions;
-import com.revolsys.util.JavaBeanUtil;
-import com.revolsys.util.Property;
-import com.revolsys.util.UrlUtil;
 
 import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
@@ -97,6 +77,32 @@ import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
 import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
+import ca.bc.gov.open.cpf.plugin.impl.log.WrappedAppender;
+
+import com.revolsys.beans.Classes;
+import com.revolsys.collection.ArrayUtil;
+import com.revolsys.collection.map.AttributeMap;
+import com.revolsys.collection.map.MapEx;
+import com.revolsys.collection.map.Maps;
+import com.revolsys.collection.set.Sets;
+import com.revolsys.geometry.model.Geometry;
+import com.revolsys.geometry.model.GeometryFactory;
+import com.revolsys.io.FileUtil;
+import com.revolsys.io.IoFactory;
+import com.revolsys.io.map.MapReader;
+import com.revolsys.io.map.MapReaderFactory;
+import com.revolsys.log.LogAppender;
+import com.revolsys.record.io.RecordWriterFactory;
+import com.revolsys.record.property.FieldProperties;
+import com.revolsys.record.schema.FieldDefinition;
+import com.revolsys.record.schema.RecordDefinition;
+import com.revolsys.record.schema.RecordDefinitionImpl;
+import com.revolsys.spring.config.AttributesBeanConfigurer;
+import com.revolsys.spring.resource.Resource;
+import com.revolsys.spring.resource.UrlResource;
+import com.revolsys.util.JavaBeanUtil;
+import com.revolsys.util.Property;
+import com.revolsys.util.UrlUtil;
 
 public class ClassLoaderModule implements Module {
 
@@ -125,6 +131,27 @@ public class ClassLoaderModule implements Module {
     "application/x-shp+zip", "application/xhtml+xml", "text/csv", "text/html",
     "text/tab-separated-values", "text/x-wkt", "text/xml");
 
+  public static void addAppender(final org.apache.logging.log4j.core.Logger logger,
+    final String baseFileName, final String name) {
+    final String activeFileName = baseFileName + ".log";
+
+    final RollingFileAppender appender = RollingFileAppender.newBuilder() //
+      .withName(name) //
+      .withFileName(activeFileName)//
+      .withFilePattern(baseFileName + ".%i.log") //
+      .withLayout(LogAppender.newLayout("%d\t%p\t%c\t%m%n"))//
+      .withPolicy( //
+        CompositeTriggeringPolicy.createPolicy( //
+          OnStartupTriggeringPolicy.createPolicy(1), //
+          SizeBasedTriggeringPolicy.createPolicy("10MB")//
+        )//
+      )//
+      .build();
+    appender.start();
+
+    logger.addAppender(appender);
+  }
+
   private GenericApplicationContext applicationContext;
 
   private boolean applicationsLoaded;
@@ -148,7 +175,8 @@ public class ClassLoaderModule implements Module {
   private final AppLog log;
 
   private final List<CoordinateSystem> coordinateSystems = EpsgCoordinateSystems
-    .getCoordinateSystems(Arrays.asList(4326, 4269, 3005, 26907, 26908, 26909, 26910, 26911));
+    .getCoordinateSystems(Arrays.asList(EpsgId.WGS84, EpsgId.NAD83, 3005, EpsgId.nad83Utm(7),
+      EpsgId.nad83Utm(8), EpsgId.nad83Utm(9), EpsgId.nad83Utm(10), EpsgId.nad83Utm(11)));
 
   private boolean enabled = false;
 
@@ -291,10 +319,12 @@ public class ClassLoaderModule implements Module {
   }
 
   private void closeAppLogAppender(final String name) {
-    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(name);
+    final Logger logger = (Logger)LogManager.getLogger(name);
     synchronized (logger) {
-      logger.removeAllAppenders();
-      logger.setAdditivity(true);
+      for (final Appender appender : logger.getAppenders().values()) {
+        logger.removeAppender(appender);
+      }
+      logger.setAdditive(true);
     }
   }
 
@@ -484,6 +514,15 @@ public class ClassLoaderModule implements Module {
       final String description = pluginAnnotation.description();
       businessApplication.setDescription(description);
 
+      // final RetainJavaDocComment detailedDescriptionAnnotation = pluginClass
+      // .getAnnotation(RetainJavaDocComment.class);
+      // if (detailedDescriptionAnnotation != null) {
+      // final String detailedDescription =
+      // detailedDescriptionAnnotation.value();
+      // if (Property.hasValue(detailedDescription)) {
+      // businessApplication.setDetailedDescription(detailedDescription);
+      // }
+      // }
       final String title = pluginAnnotation.title();
       if (title != null && title.trim().length() > 0) {
         businessApplication.setTitle(title);
@@ -765,9 +804,9 @@ public class ClassLoaderModule implements Module {
     int srid = geometryConfiguration.srid();
     if (srid < 0) {
       this.log.warn(message + " srid must be >= 0");
-      srid = geometryFactory.getCoordinateSystemId();
+      srid = geometryFactory.getHorizontalCoordinateSystemId();
     } else if (srid == 0) {
-      srid = geometryFactory.getCoordinateSystemId();
+      srid = geometryFactory.getHorizontalCoordinateSystemId();
     }
     int axisCount = geometryConfiguration.numAxis();
     if (axisCount == 0) {
@@ -931,7 +970,6 @@ public class ClassLoaderModule implements Module {
     return getBusinessApplication(businessApplicationName) != null;
   }
 
-  @SuppressWarnings("deprecation")
   private void initAppLogAppender(final String businessApplicationName) {
     final String fileName;
     String logName = this.name;
@@ -942,36 +980,28 @@ public class ClassLoaderModule implements Module {
     } else {
       fileName = this.name + "_" + this.environmentId;
     }
-    final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(logName);
+    final Logger logger = (Logger)LogManager.getLogger(logName);
     synchronized (logger) {
-      logger.removeAllAppenders();
+
       final File rootDirectory = this.businessApplicationRegistry.getAppLogDirectory();
       if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-        logger.setAdditivity(true);
+        logger.setAdditive(true);
       } else {
-        logger.setAdditivity(false);
-
+        logger.setAdditive(false);
+        for (final String appenderName : Arrays.asList("cpf-master-all", "cpf-worker-all")) {
+          final Logger rootLogger = (Logger)LogManager.getRootLogger();
+          final Appender appender = rootLogger.getAppenders().get(appenderName);
+          if (appender != null) {
+            logger.addAppender(new WrappedAppender(appender));
+          }
+        }
         File logDirectory = FileUtil.getDirectory(rootDirectory, this.name);
         if (isApp) {
           logDirectory = FileUtil.getDirectory(logDirectory, businessApplicationName);
         }
 
         final String baseFileName = logDirectory + "/" + fileName;
-        final String activeFileName = baseFileName + ".log";
-        final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-        rollingPolicy.setActiveFileName(activeFileName);
-        final String fileNamePattern = baseFileName + ".%i.log";
-        rollingPolicy.setFileNamePattern(fileNamePattern);
-
-        final RollingFileAppender appender = new RollingFileAppender();
-        appender.setName(businessApplicationName);
-        appender.setFile(activeFileName);
-        appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-        appender.setRollingPolicy(rollingPolicy);
-        appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-        appender.activateOptions();
-        appender.rollover();
-        logger.addAppender(appender);
+        addAppender(logger, baseFileName, logName);
       }
     }
   }
@@ -1413,7 +1443,7 @@ public class ClassLoaderModule implements Module {
           final Class<?> returnType = method.getReturnType();
           final DataType dataType;
           if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(returnType)) {
-            final String className = Classes.className(returnType);
+            final String className = returnType.getSimpleName();
             dataType = DataTypes.getDataType(className);
           } else {
             dataType = DataTypes.getDataType(returnType);

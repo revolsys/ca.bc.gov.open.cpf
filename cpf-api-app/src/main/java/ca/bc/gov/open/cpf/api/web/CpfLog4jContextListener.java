@@ -21,28 +21,23 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.rolling.FixedWindowRollingPolicy;
-import org.apache.log4j.rolling.RollingFileAppender;
-import org.apache.log4j.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 
-import com.revolsys.logging.log4j.ContextClassLoaderRepositorySelector;
+import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
+
+import com.revolsys.log.LogAppender;
 import com.revolsys.util.Property;
 
 public class CpfLog4jContextListener implements ServletContextListener {
 
   @Override
   public void contextDestroyed(final ServletContextEvent event) {
-    ContextClassLoaderRepositorySelector.remove();
   }
 
-  @SuppressWarnings("deprecation")
   @Override
   public void contextInitialized(final ServletContextEvent event) {
-    final Logger logger = Logger.getRootLogger();
-    logger.removeAllAppenders();
+    LogAppender.removeAllAppenders();
     final ServletContext context = event.getServletContext();
     String cpfLogDirectory = context.getInitParameter("cpfLogDirectory");
     if (!Property.hasValue(cpfLogDirectory)) {
@@ -59,28 +54,11 @@ public class CpfLog4jContextListener implements ServletContextListener {
       }
     }
     if (rootDirectory == null || !(rootDirectory.exists() || rootDirectory.mkdirs())) {
-      new ConsoleAppender().activateOptions();
-      final ConsoleAppender appender = new ConsoleAppender();
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-      logger.addAppender(appender);
+      LogAppender.addRootAppender("%d\t%p\t%c\t%m%n");
     } else {
-      final String baseFileName = rootDirectory + "/cpf-app";
-      final String activeFileName = baseFileName + ".log";
-      final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
-      rollingPolicy.setActiveFileName(activeFileName);
-      final String fileNamePattern = baseFileName + ".%i.log";
-      rollingPolicy.setFileNamePattern(fileNamePattern);
-
-      final RollingFileAppender appender = new RollingFileAppender();
-
-      appender.setFile(activeFileName);
-      appender.setRollingPolicy(rollingPolicy);
-      appender.setTriggeringPolicy(new SizeBasedTriggeringPolicy(1024 * 1024 * 10));
-      appender.activateOptions();
-      appender.setLayout(new PatternLayout("%d\t%p\t%c\t%m%n"));
-      appender.rollover();
-      logger.addAppender(appender);
+      final Logger logger = (Logger)LogManager.getRootLogger();
+      ClassLoaderModule.addAppender(logger, rootDirectory + "/master", "cpf-master-all");
+      ClassLoaderModule.addAppender(logger, rootDirectory + "/master-app", "cpf-app");
     }
   }
 }

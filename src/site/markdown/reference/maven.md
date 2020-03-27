@@ -1,15 +1,15 @@
 ## Maven
 
-The CPF is developed using the [Apache Maven build tool](http://maven.apache.org/). All CPF plug-ins
+The CPF is developed using the [Apache Maven build tool](https://maven.apache.org/). All CPF plug-ins
 must be developed using Maven as it manages the dependencies between the CPF components and external
 libraries. Developers must have an understanding of developing applications using Maven.
 
 Maven 3.0.x is required and can be downloaded from the following sites.
 
-* [Maven Command line tools](http://maven.apache.org/)
-* [Eclipse Maven plug-in](http://eclipse.org/m2e/)
+* [Maven Command line tools](https://maven.apache.org/)
+* [Eclipse Maven plug-in](https://eclipse.org/m2e/)
 
-See [Maven: The Complete Reference](http://www.sonatype.com/books/mvnref-book/reference/)
+See [Maven: The Complete Reference](https://www.sonatype.com/books/mvnref-book/reference/)
 for details on developing with Maven.
 
 ### Dependency Version Properties
@@ -20,9 +20,9 @@ to specify the version. In a multi-module project the property should be put in 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+  xmlns="https://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd"
 >
   :
   <dependencies>
@@ -73,7 +73,7 @@ In these cases Include the following in the pom.xml for each version property. R
 </project>
 ```
 
-The [CodeHaus Versions Maven Plugin](http://mojo.codehaus.org/versions-maven-plugin/update-properties-mojo.html)
+The [CodeHaus Versions Maven Plugin](https://mojo.codehaus.org/versions-maven-plugin/update-properties-mojo.html)
 can update the -SNAPSHOT or .RC* dependency to the release version.
   
 mvn org.codehaus.mojo:versions-maven-plugin:2.0:use-releases -DgenerateBackupPoms=false

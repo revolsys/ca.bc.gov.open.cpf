@@ -30,6 +30,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.logging.Logs;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,9 +55,7 @@ import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 import com.revolsys.collection.map.MapEx;
 import com.revolsys.collection.map.NamedLinkedHashMapEx;
 import com.revolsys.collection.range.RangeSet;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
-import com.revolsys.logging.Logs;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.spring.resource.InputStreamResource;

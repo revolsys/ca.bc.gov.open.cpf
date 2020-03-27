@@ -15,18 +15,17 @@
  */
 package ca.bc.gov.open.cpf.plugins.geometryvalidation;
 
-import com.revolsys.geometry.cs.GeographicCoordinateSystem;
+import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
+import ca.bc.gov.open.cpf.plugin.api.Required;
+import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
 import com.revolsys.geometry.model.Point;
 import com.revolsys.geometry.operation.valid.GeometryValidationError;
 import com.revolsys.geometry.operation.valid.IsValidOp;
 import com.revolsys.geometry.precision.MinimumClearance;
-
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.Required;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 
 /**
  * The GeometryValidatorPlugin converts the geometry to the requested coordinate
@@ -84,7 +83,7 @@ public class GeometryValidatorPlugin {
     } else {
       final GeometryFactory sourceGeometryFactory = this.geometry.getGeometryFactory();
       if (this.resultSrid == 0) {
-        this.resultSrid = sourceGeometryFactory.getCoordinateSystemId();
+        this.resultSrid = sourceGeometryFactory.getHorizontalCoordinateSystemId();
       }
       if (this.resultNumAxis == 0) {
         this.resultNumAxis = sourceGeometryFactory.getAxisCount();
@@ -118,7 +117,7 @@ public class GeometryValidatorPlugin {
       double clearanceScaleFactor;
       double clearanceTolerance;
       if (this.resultScaleFactorXy == 0) {
-        if (geometryFactory.getCoordinateSystem() instanceof GeographicCoordinateSystem) {
+        if (geometryFactory.isGeographic()) {
           clearanceTolerance = .1;
           clearanceScaleFactor = 10000000;
         } else {

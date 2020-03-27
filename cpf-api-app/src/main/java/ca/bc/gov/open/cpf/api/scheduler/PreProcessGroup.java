@@ -20,14 +20,15 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Map;
 
+import org.jeometry.common.data.identifier.Identifier;
+import org.jeometry.common.data.type.DataType;
+
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.api.web.controller.JobController;
 import ca.bc.gov.open.cpf.client.api.ErrorCode;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.datatype.DataType;
-import com.revolsys.identifier.Identifier;
 import com.revolsys.io.FileUtil;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.RecordWriter;
@@ -160,7 +161,7 @@ public abstract class PreProcessGroup {
     if (this.writer == null) {
       this.groupFile = newGroupFile();
       this.writer = new CsvRecordWriter(this.recordDefinition,
-        FileUtil.newUtf8Writer(this.groupFile), Tsv.FIELD_SEPARATOR, true, false);
+        FileUtil.newUtf8Writer(this.groupFile), Tsv.FIELD_SEPARATOR, true, true);
     }
     return this.writer;
   }

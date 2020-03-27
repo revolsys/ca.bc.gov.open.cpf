@@ -34,7 +34,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.log4j.Logger;
+import org.jeometry.common.exception.Exceptions;
+import org.jeometry.common.logging.Logs;
+import org.jeometry.common.math.Randoms;
+import org.jeometry.coordinatesystem.model.systems.EpsgId;
+
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.collection.map.Maps;
 import com.revolsys.geometry.model.BoundingBox;
@@ -54,15 +60,10 @@ import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.Booleans;
-import com.revolsys.util.Exceptions;
-import com.revolsys.util.MathUtil;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
-
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 public class PluginAdaptor {
 
@@ -130,7 +131,7 @@ public class PluginAdaptor {
         final com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory = new com.vividsolutions.jts.geom.GeometryFactory(
           new com.vividsolutions.jts.geom.PrecisionModel(
             com.vividsolutions.jts.geom.PrecisionModel.FLOATING),
-          4326);
+          EpsgId.WGS84);
         if (com.vividsolutions.jts.geom.LineString.class.isAssignableFrom(typeClass)) {
           final PackedCoordinateSequence.Double points = new PackedCoordinateSequence.Double(
             new double[] {
@@ -251,9 +252,9 @@ public class PluginAdaptor {
         if (maxTime < minTime) {
           maxTime = minTime + 10;
         }
-        executionTime = MathUtil.randomRange(minTime, maxTime);
+        executionTime = Randoms.randomRange(minTime, maxTime);
       } else {
-        executionTime = MathUtil.randomGaussian(meanTime, standardDeviation);
+        executionTime = Randoms.randomGaussian(meanTime, standardDeviation);
       }
       if (minTime >= 0 && executionTime < minTime) {
         executionTime = minTime;
@@ -287,7 +288,7 @@ public class PluginAdaptor {
           final double meanNumResults = Maps.getDouble(this.testParameters, "cpfMeanNumResults",
             3.0);
           final int numResults = (int)Math
-            .round(MathUtil.randomGaussian(meanNumResults, meanNumResults / 5));
+            .round(Randoms.randomGaussian(meanNumResults, meanNumResults / 5));
           for (int i = 0; i < numResults; i++) {
             final Map<String, Object> result = getResult(this.plugin, true, testMode);
             this.results.add(result);
@@ -341,7 +342,7 @@ public class PluginAdaptor {
               geometryFactory = geometry.getGeometryFactory();
             }
             final int srid = Maps.getInteger(this.parameters, "resultSrid",
-              geometryFactory.getCoordinateSystemId());
+              geometryFactory.getHorizontalCoordinateSystemId());
             final int axisCount = Maps.getInteger(this.parameters, "resultNumAxis",
               geometryFactory.getAxisCount());
             final double scaleXY = Maps.getDouble(this.parameters, "resultScaleFactorXy",
@@ -351,7 +352,7 @@ public class PluginAdaptor {
 
             geometryFactory = GeometryFactory.fixed(srid, axisCount, scaleXY, scaleXY, scaleZ);
             geometry = geometryFactory.geometry(geometry);
-            if (geometry.getCoordinateSystemId() == 0) {
+            if (geometry.getHorizontalCoordinateSystemId() == 0) {
               throw new IllegalArgumentException(
                 "Geometry does not have a coordinate system (SRID) specified");
             }
@@ -419,7 +420,7 @@ public class PluginAdaptor {
           try {
             final File file = File.createTempFile("cpf", ".out");
             resultData = new FileOutputStream(file);
-            Logger.getLogger(getClass()).info("Writing result to " + file);
+            Logs.info(this, "Writing result to " + file);
           } catch (final IOException e) {
             resultData = System.out;
           }

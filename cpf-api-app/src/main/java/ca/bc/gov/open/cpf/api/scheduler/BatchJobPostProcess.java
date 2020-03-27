@@ -20,11 +20,12 @@ import java.beans.PropertyChangeEvent;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.jeometry.common.data.identifier.Identifier;
+
 import ca.bc.gov.open.cpf.api.controller.CpfConfig;
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
 
-import com.revolsys.identifier.Identifier;
 import com.revolsys.util.Property;
 
 public class BatchJobPostProcess extends AbstractBatchJobChannelProcess {

@@ -30,9 +30,9 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.protocol.HttpContext;
+import org.jeometry.common.exception.Exceptions;
 
 import com.revolsys.spring.resource.Resource;
-import com.revolsys.util.Exceptions;
 
 @SuppressWarnings("javadoc")
 public class HttpMultipartPost {

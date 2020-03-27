@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import org.jeometry.common.logging.Logs;
 
-import com.revolsys.logging.Logs;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
 
 public interface ModuleLoader {
   static List<URL> getConfigUrls(final ClassLoader classLoader,

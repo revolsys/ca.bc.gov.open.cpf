@@ -19,11 +19,11 @@ import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jeometry.common.data.identifier.Identifier;
+
 import ca.bc.gov.open.cpf.api.domain.BatchJob;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
-
-import com.revolsys.identifier.Identifier;
 
 public class BatchJobRequestExecutionGroup {
 
