@@ -45,11 +45,21 @@ scp -r cpf.properties app@${appServer}:/apps/config/cpf/
   }
 
   stage ('Deploy to Application Server') {
-    sh """
+    dir('deploy') {
+      deleteDir()
+      env.JAVA_HOME = "${tool 'jdk11'}"
+      withMaven(jdk: 'jdk11', maven: 'm3') {
+        sh "mvn -Dartifact=ca.bc.gov.cpf:cpf-bcgov-app-war:${version}:war -DoutputDirectory=. dependency:copy"
+        sh "mvn -Dartifact=ca.bc.gov.cpf:cpf-bcgov-worker-war:${version}:war -DoutputDirectory=. dependency:copy"
+      }
+      sh """
 ssh app@${appServer} "rm -rf /apps/ocicat/webapps/pub#cpf*"
-scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-app-war/target/cpf-bcgov-app-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf.war
-scp -r $WORKSPACE/cpf-bcgov/cpf-bcgov-worker-war/target/cpf-bcgov-worker-war-${version}.war app@${appServer}:/apps/cpfcat/webapps/pub#cpf-worker.war
-"""
+scp cpf-bcgov-app-war-${version}.war app@${appServer}:/apps/ocicat/webapps/pub#cpf.war
+scp cpf-bcgov-worker-war-${version}.war app@${appServer}:/apps/ocicat/webapps/pub#cpf-worker.war
+      """
+      deleteDir()
+    }
+
   }
 
 }
