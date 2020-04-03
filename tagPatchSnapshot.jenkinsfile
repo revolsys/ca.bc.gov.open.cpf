@@ -76,7 +76,7 @@ node ('master') {
     tagSnapshot(
       'cpf',
       'ssh://git@github.com/revolsys/cpf.git',
-      "${versionBase}.x"
+      "${versionBase}.x",
       "${version}",
       "${dependencyVersion}"
     )
@@ -86,7 +86,7 @@ node ('master') {
     tagSnapshot(
       'cpf-bcgov',
       'ssh://git@github.com/revolsys/cpf.git',
-      "bcgov-${versionBase}.x"
+      "bcgov-${versionBase}.x",
       "${version}",
       "${dependencyVersion}"
     )
