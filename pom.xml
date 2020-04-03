@@ -9,7 +9,7 @@
   <artifactId>cpf-bcgov</artifactId>
   <packaging>pom</packaging>
   <name>BCGOV Concurrent Processing Framework</name>
-  <version>6.0.x-SNAPSHOT</version>
+  <version>6.0.1-SNAPSHOT</version>
 
   <developers>
     <developer>
