@@ -94,7 +94,7 @@ node ('master') {
       'cpf-bcgov',
       'ssh://git@github.com/revolsys/cpf.git',
       "bcgov-${versionBase}.x",
-      "${version}",
+      "bcgov-${version}",
       "${dependencyVersion}"
     )
     
