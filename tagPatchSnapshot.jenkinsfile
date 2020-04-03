@@ -20,7 +20,7 @@ def version="${versionNumber}-SNAPSHOT"
 def versionPrefix="0.CPF"
 def dependencyVersion="${versionPrefix}-${version}"
 
-def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersion) {
+def tagSnapshot(folderName, gitUrl, branchName, projectVersion, tagName, dependencyVersion) {
   dir(folderName) {
     deleteDir()
     withCredentials([
@@ -49,7 +49,7 @@ git config --global user.email "445537+pauldaustin@users.noreply.github.com"
 git config --global user.name "Paul Austin"
 git config --local credential.helper "!p() { echo username=\\$GIT_USERNAME; echo password=\\$GIT_PASSWORD; }; p"
 git commit --allow-empty -a -m 'Version ${projectVersion}'
-git tag -f -a ${projectVersion} -m "Version ${projectVersion}"
+git tag -f -a ${tagName} -m "Version ${projectVersion}"
 git push -f ${gitUrl} ${projectVersion}
         """
       }
@@ -65,6 +65,7 @@ node ('master') {
       'ssh://git@github.com/revolsys/cpf-jeometry.git',
       "cpf/${versionBase}.x",
       "${dependencyVersion}",
+      "${dependencyVersion}",
       "${dependencyVersion}"
     )
   }
@@ -74,6 +75,7 @@ node ('master') {
       'revolsys',
       'ssh://git@github.com/revolsys/cpf-revolsys.git',
       "cpf/${versionBase}.x",
+      "${dependencyVersion}",
       "${dependencyVersion}",
       "${dependencyVersion}"
     )
@@ -85,6 +87,7 @@ node ('master') {
       'ssh://git@github.com/revolsys/cpf.git',
       "${versionBase}.x",
       "${version}",
+      "${version}",
       "${dependencyVersion}"
     )
   }
@@ -95,6 +98,7 @@ node ('master') {
       'ssh://git@github.com/revolsys/cpf.git',
       "bcgov-${versionBase}.x",
       "${version}",
+      "bcgov-${version}",
       "${dependencyVersion}"
     )
     
