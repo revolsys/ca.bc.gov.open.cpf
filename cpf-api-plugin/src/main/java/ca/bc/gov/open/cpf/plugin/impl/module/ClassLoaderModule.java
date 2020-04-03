@@ -79,7 +79,6 @@ import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
 import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 import ca.bc.gov.open.cpf.plugin.impl.log.WrappedAppender;
 
-import com.revolsys.beans.Classes;
 import com.revolsys.collection.ArrayUtil;
 import com.revolsys.collection.map.AttributeMap;
 import com.revolsys.collection.map.MapEx;
@@ -114,11 +113,12 @@ public class ClassLoaderModule implements Module {
 
   protected static final String STARTED = "Started";
 
-  @SuppressWarnings("unchecked")
   private static final Class<? extends Annotation>[] STANDARD_METHOD_EXCLUDE_ANNOTATIONS = ArrayUtil
     .newArray(JobParameter.class, RequestParameter.class, Required.class);
 
-  private static final Map<String, Class<?>[]> STANDARD_METHODS = new HashMap<>();
+  public static final Map<String, Class<?>> STANDARD_PARAMETERS = new HashMap<>();
+
+  public static final String[] STANDARD_PARAMETER_NAMES;
 
   protected static final String STOPPED = "Stopped";
 
@@ -130,6 +130,19 @@ public class ClassLoaderModule implements Module {
     "application/vnd.google-earth.kmz", "application/x-geo+json", "application/x-shp",
     "application/x-shp+zip", "application/xhtml+xml", "text/csv", "text/html",
     "text/tab-separated-values", "text/x-wkt", "text/xml");
+
+  static {
+    STANDARD_PARAMETERS.put("inputDataUrl", URL.class);
+    STANDARD_PARAMETERS.put("inputDataContentType", String.class);
+    STANDARD_PARAMETERS.put("resultSrid", Integer.TYPE);
+    STANDARD_PARAMETERS.put("resultNumAxis", Integer.TYPE);
+    STANDARD_PARAMETERS.put("resultScaleFactorXy", Double.TYPE);
+    STANDARD_PARAMETERS.put("resultScaleFactorZ", Double.TYPE);
+    STANDARD_PARAMETERS.put("resultData", OutputStream.class);
+    STANDARD_PARAMETERS.put("resultContentType", String.class);
+    STANDARD_PARAMETER_NAMES = (String[])new ArrayList<>(STANDARD_PARAMETERS.keySet())
+      .toArray(new String[STANDARD_PARAMETERS.size()]);
+  }
 
   public static void addAppender(final org.apache.logging.log4j.core.Logger logger,
     final String baseFileName, final String name) {
@@ -198,30 +211,6 @@ public class ClassLoaderModule implements Module {
     // Prime the JTS Geometry factory
     ca.bc.gov.open.cpf.plugin.api.GeometryFactory.getFactory();
 
-    STANDARD_METHODS.put("setInputDataUrl", new Class<?>[] {
-      URL.class
-    });
-    STANDARD_METHODS.put("setInputDataContentType", new Class<?>[] {
-      String.class
-    });
-    STANDARD_METHODS.put("setResultSrid", new Class<?>[] {
-      Integer.TYPE
-    });
-    STANDARD_METHODS.put("setResultNumAxis", new Class<?>[] {
-      Integer.TYPE
-    });
-    STANDARD_METHODS.put("setResultScaleFactorXy", new Class<?>[] {
-      Double.TYPE
-    });
-    STANDARD_METHODS.put("setResultScaleFactorZ", new Class<?>[] {
-      Double.TYPE
-    });
-    STANDARD_METHODS.put("setResultData", new Class<?>[] {
-      OutputStream.class
-    });
-    STANDARD_METHODS.put("setResultContentType", new Class<?>[] {
-      String.class
-    });
   }
 
   private boolean started = false;
@@ -287,26 +276,24 @@ public class ClassLoaderModule implements Module {
     resourcePermissionsByGroupName.put(groupName, new HashSet<>(resourcePermissions));
   }
 
-  private void checkStandardMethod(final Method method, final Class<?>[] standardMethodParameters) {
+  private void checkStandardMethod(final Method method, final Class<?> standardParameterClass) {
     final Class<?> pluginClass = method.getDeclaringClass();
     final String pluginClassName = pluginClass.getName();
     final String methodName = method.getName();
     final Class<?>[] methodParameters = method.getParameterTypes();
-    if (methodParameters.length != standardMethodParameters.length) {
-      throw new IllegalArgumentException(pluginClassName + "." + methodName
-        + " must have the parameters " + Arrays.toString(standardMethodParameters));
+    if (methodParameters.length != 1) {
+      throw new IllegalArgumentException(
+        pluginClassName + "." + methodName + " must have the parameters " + standardParameterClass);
     }
-    for (int i = 0; i < standardMethodParameters.length; i++) {
-      final Class<?> parameter1 = standardMethodParameters[i];
-      final Class<?> parameter2 = methodParameters[i];
-      if (parameter1 != parameter2) {
-        throw new IllegalArgumentException(pluginClassName + "." + methodName
-          + " must have the parameters " + Arrays.toString(standardMethodParameters));
-      }
+    final Class<?> parameter1 = standardParameterClass;
+    final Class<?> parameter2 = methodParameters[0];
+    if (parameter1 != parameter2) {
+      throw new IllegalArgumentException(
+        pluginClassName + "." + methodName + " must have the parameters " + standardParameterClass);
+    }
 
-    }
     for (final Class<? extends Annotation> annotationClass : STANDARD_METHOD_EXCLUDE_ANNOTATIONS) {
-      if (!method.isAnnotationPresent(annotationClass)) {
+      if (method.isAnnotationPresent(annotationClass)) {
         throw new IllegalArgumentException(pluginClassName + "." + methodName
           + " standard method must not have annotation " + annotationClass);
       }
@@ -1291,11 +1278,13 @@ public class ClassLoaderModule implements Module {
     }
     final boolean requestParameter = requestParameterAnnotation != null;
     final boolean jobParameter = jobParameterAnnotation != null;
-    if (requestParameter || jobParameter) {
-      final Class<?>[] parameterTypes = method.getParameterTypes();
-      final Class<?>[] standardMethodParameters = STANDARD_METHODS.get(methodName);
-      if (standardMethodParameters == null) {
-        if (methodName.startsWith("set") && parameterTypes.length == 1) {
+    final Class<?>[] parameterTypes = method.getParameterTypes();
+    if (methodName.startsWith("set") && parameterTypes.length == 1) {
+      final String parameterName = methodName.substring(3, 4).toLowerCase()
+        + methodName.substring(4);
+      final Class<?> standardParameterType = STANDARD_PARAMETERS.get(parameterName);
+      if (standardParameterType == null) {
+        if (requestParameter || jobParameter) {
           String description;
           int length;
           int scale;
@@ -1317,8 +1306,6 @@ public class ClassLoaderModule implements Module {
             minValue = jobParameterAnnotation.minValue();
             maxValue = jobParameterAnnotation.maxValue();
           }
-          final String parameterName = methodName.substring(3, 4).toLowerCase()
-            + methodName.substring(4);
           final boolean required = method.getAnnotation(Required.class) != null;
           final AllowedValues allowedValuesMetadata = method.getAnnotation(AllowedValues.class);
           String[] allowedValues = {};
@@ -1404,12 +1391,21 @@ public class ClassLoaderModule implements Module {
             businessApplication.addRequestField(index, field, method);
           }
         } else {
-          throw new IllegalArgumentException(pluginClass.getName() + "." + method.getName()
-            + " has the " + RequestParameter.class.getName() + " or " + JobParameter.class.getName()
-            + " annotation but is not a setXXX(value) method");
+
         }
       } else {
-        checkStandardMethod(method, standardMethodParameters);
+        checkStandardMethod(method, standardParameterType);
+        businessApplication.addStandardMethod(parameterName, method);
+      }
+    } else {
+      if (method.isAnnotationPresent(JobParameter.class)) {
+        throw new IllegalArgumentException(
+          pluginClass.getName() + "." + method.getName() + " has the "
+            + JobParameter.class.getName() + " annotation but is not a setXXX(value) method");
+      } else if (method.isAnnotationPresent(RequestParameter.class)) {
+        throw new IllegalArgumentException(
+          pluginClass.getName() + "." + method.getName() + " has the "
+            + RequestParameter.class.getName() + " annotation but is not a setXXX(value) method");
       }
     }
   }

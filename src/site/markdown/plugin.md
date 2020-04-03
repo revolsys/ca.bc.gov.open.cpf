@@ -556,12 +556,12 @@ public void setResultNumAxis(final int resultNumAxis) {
   this.resultNumAxis = resultNumAxis;
 }
 
-public void setResultScaleXy(final double resultScaleXy) {
-  this.resultScaleXy = resultScaleXy;
+public void setResultScaleFactorXy(final double resultScaleFactorXy) {
+  this.resultScaleFactorXy = resultScaleFactorXy;
 }
 
-public void setResultScaleZ(final double resultScaleZ) {
-  this.resultScaleZ = resultScaleZ;
+public void setResultScaleFactorZ(final double resultScaleFactorZ) {
+  this.resultScaleFactorZ = resultScaleFactorZ;
 }
 
 public void setResultSrid(final int resultSrid) {
