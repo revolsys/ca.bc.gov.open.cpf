@@ -40,7 +40,7 @@ def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersio
       ])
       
       withMaven(jdk: 'openjdk-11', maven: 'm3') {
-      sh """
+        sh """
 mvn versions:set -DnewVersion='${projectVersion}' -DgenerateBackupPoms=false
 sed -i 's/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${dependencyVersion}<\\/org.jeometry.version>/g' pom.xml
 sed -i 's/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${dependencyVersion}<\\/com.revolsys.open.version>/g' pom.xml
@@ -50,7 +50,8 @@ git config --local credential.helper "!p() { echo username=\\$GIT_USERNAME; echo
 git commit --allow-empty -a -m 'Version ${projectVersion}'
 git tag -f -a ${projectVersion} -m "Version ${projectVersion}"
 git push -f ${pushUrl} ${projectVersion}
-      """
+        """
+      }
     }
   }
 }
