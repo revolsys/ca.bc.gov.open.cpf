@@ -1,0 +1,95 @@
+properties([
+  parameters([
+    string(
+      name: 'versionBase',
+      defaultValue: '6.0',
+      description: 'The base version number with Major.Minor (e.g. 2.1)',
+      trim: true
+    ),
+    string(
+      name: 'versionPatch',
+      defaultValue: '0',
+      description: 'The version number patch (e.g. 0 or 1)',
+      trim: true
+    )
+  ])
+])
+
+def versionNumber="${versionBase}.${versionPatch}"
+def branc="cpf/${versionBase}.x"
+def version="${versionNumber}-SNAPSHOT"
+def versionPrefix="0.CPF"
+def dependencyVersion="${versionPrefix}-${version}"
+
+def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersion) {
+  dir(folderName) {
+    deleteDir()
+
+    checkout([
+      $class: 'GitSCM',
+      branches: [[name: branchName]],
+      doGenerateSubmoduleConfigurations: false,
+      extensions: [],
+      gitTool: 'Default',
+      submoduleCfg: [],
+      userRemoteConfigs: [[url: gitUrl]]
+    ])
+    
+    withMaven(jdk: 'openjdk-11', maven: 'm3') {
+    sh """
+mvn versions:set -DnewVersion='${projectVersion}' -DgenerateBackupPoms=false
+sed -i 's/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${dependencyVersion}<\\/org.jeometry.version>/g' pom.xml
+sed -i 's/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${dependencyVersion}<\\/com.revolsys.open.version>/g' pom.xml
+git config --global user.email "445537+pauldaustin@users.noreply.github.com"
+git config --global user.name "Paul Austin"
+git commit --allow-empty -a -m 'Version ${projectVersion}'
+git tag -f -a ${projectVersion} -m "Version ${projectVersion}"
+git push -f ${pushUrl} ${projectVersion}
+    """
+    }
+  }
+}
+
+node ('master') {
+
+  stage ('jeometry') {
+    tagSnapshot(
+      'jeometry',
+      'ssh://git@github.com/jeometry-org/cpf-jeometry.git',
+      "cpf/${versionBase}.x",
+      "${dependencyVersion}",
+      "${dependencyVersion}"
+    )
+  }
+
+  stage ('revolsys') {
+    tagSnapshot(
+      'revolsys',
+      'ssh://git@github.com/revolsys/cpf-revolsys.git',
+      "cpf/${versionBase}.x",
+      "${dependencyVersion}",
+      "${dependencyVersion}"
+    )
+  }
+
+  stage ('cpf') {
+    tagSnapshot(
+      'cpf',
+      'ssh://git@github.com/revolsys/cpf.git',
+      "${versionBase}.x"
+      "${version}",
+      "${dependencyVersion}"
+    )
+  }
+
+  stage ('cpf-bcgov') {
+    tagSnapshot(
+      'cpf-bcgov',
+      'ssh://git@github.com/revolsys/cpf.git',
+      "bcgov-${versionBase}.x"
+      "${version}",
+      "${dependencyVersion}"
+    )
+    
+  }
+}
