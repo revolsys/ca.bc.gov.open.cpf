@@ -1,0 +1,97 @@
+properties([
+  parameters([
+    string(
+      name: 'versionBase',
+      defaultValue: '6.0',
+      description: 'The base version number with Major.Minor (e.g. 6.0)',
+      trim: true
+    ),
+    string(
+      name: 'versionPatch',
+      description: 'The version number patch (e.g. 0 or 1)',
+      trim: true
+    ),
+    choice(
+      name: 'versionSuffix',
+      choices: ['-SNAPSHOT', '-RELEASE', '-RC'],
+      description: 'The version suffix'
+    )
+  ])
+])
+
+def versionNumber="${versionBase}.${versionPatch}"
+def version="${versionNumber}${versionSuffix}"
+def versionPrefix="0.CPF"
+
+def checkoutBranch(url, branchName) {
+  deleteDir()
+  checkout([
+    $class: 'GitSCM',
+    branches: [[name: branchName]],
+    doGenerateSubmoduleConfigurations: false,
+    extensions: [],
+    gitTool: 'Default',
+    submoduleCfg: [],
+    userRemoteConfigs: [[url: url]]
+  ])
+}
+
+def mavenDeploy() {
+  def artifactoryServer = Artifactory.server 'prod'
+
+  def mavenRuntime = Artifactory.newMavenBuild()
+  mavenRuntime.tool = 'm3'
+  mavenRuntime.deployer releaseRepo: 'libs-release-local', snapshotRepo: 'libs-snapshot-local', server: artifactoryServer
+  mavenRuntime.resolver releaseRepo: 'repo', snapshotRepo: 'repo', server: artifactoryServer
+  mavenRuntime.deployer.deployArtifacts = false
+
+  def buildInfo = Artifactory.newBuildInfo()
+
+  env.JAVA_HOME = "${tool 'ojdk'}"
+  mavenRuntime.run pom: 'pom.xml', goals: 'clean install -B', buildInfo: buildInfo
+  mavenRuntime.deployer.deployArtifacts buildInfo
+  artifactoryServer.publishBuildInfo buildInfo
+}
+
+def checkoutBuild(folderName, pullUrl, branchName) {
+  dir(folderName) {
+    checkoutBranch(pullUrl, branchName);
+    mavenDeploy()
+  }
+}
+
+node ('master') {
+
+  stage ('Jeometry') {
+    checkoutBuild(
+      'jeometry',
+      'https://github.com/revolsys/cpf-jeometry.git',
+      "refs/tags/${versionPrefix}-${version}"
+    );
+  }
+
+  stage ('Revolsys') {
+    checkoutBuild(
+      'revolsys',
+      'https://github.com/revolsys/cpf-revolsys.git',
+      "refs/tags/${versionPrefix}-${version}"
+    );
+  }
+
+  stage ('CPF') {
+    checkoutBuild(
+      'cpf',
+      'https://github.com/revolsys/cpf.git',
+      "refs/tags/${version}"
+    );
+  }
+
+  stage ('CPF BCGOV') {
+    checkoutBuild(
+      'cpf-bcgov',
+      'https://github.com/revolsys/cpf.git',
+      "refs/tags/bcgov-${version}"
+    );
+  }
+
+}
