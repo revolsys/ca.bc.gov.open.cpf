@@ -41,6 +41,7 @@ def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersio
       
       withMaven(jdk: 'jdk11', maven: 'm3') {
         sh """
+git checkout -B "snapshot-branch-${projectVersion}"
 mvn versions:set -DnewVersion='${projectVersion}' -DgenerateBackupPoms=false
 sed -i 's/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${dependencyVersion}<\\/org.jeometry.version>/g' pom.xml
 sed -i 's/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${dependencyVersion}<\\/com.revolsys.open.version>/g' pom.xml
