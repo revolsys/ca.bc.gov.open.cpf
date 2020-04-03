@@ -61,7 +61,7 @@ node ('master') {
   stage ('jeometry') {
     tagSnapshot(
       'jeometry',
-      'ssh://git@github.com/jeometry-org/cpf-jeometry.git',
+      'ssh://git@github.com/revolsys/cpf-jeometry.git',
       "cpf/${versionBase}.x",
       "${dependencyVersion}",
       "${dependencyVersion}"
