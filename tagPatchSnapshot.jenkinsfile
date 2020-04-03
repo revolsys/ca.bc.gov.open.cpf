@@ -24,7 +24,7 @@ def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersio
   dir(folderName) {
     deleteDir()
     withCredentials([
-      usernamePassword(credentialsId: 'githib-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
+      usernamePassword(credentialsId: 'github-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
     ]) {
       checkout([
         $class: 'GitSCM',
@@ -34,7 +34,7 @@ def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersio
         gitTool: 'Default',
         submoduleCfg: [],
         userRemoteConfigs: [[
-          credentialsId: 'githib-jenkins',
+          credentialsId: 'github-jenkins',
           url: gitUrl
         ]]
       ])
