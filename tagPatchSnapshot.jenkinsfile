@@ -8,7 +8,6 @@ properties([
     ),
     string(
       name: 'versionPatch',
-      defaultValue: '0',
       description: 'The version number patch (e.g. 0 or 1)',
       trim: true
     )
@@ -24,28 +23,35 @@ def dependencyVersion="${versionPrefix}-${version}"
 def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersion) {
   dir(folderName) {
     deleteDir()
-
-    checkout([
-      $class: 'GitSCM',
-      branches: [[name: branchName]],
-      doGenerateSubmoduleConfigurations: false,
-      extensions: [],
-      gitTool: 'Default',
-      submoduleCfg: [],
-      userRemoteConfigs: [[url: gitUrl]]
-    ])
-    
-    withMaven(jdk: 'openjdk-11', maven: 'm3') {
-    sh """
+    withCredentials([
+      xusernamePassword(credentialsId: 'githib-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
+    ]) {
+      sh """
+      checkout([
+        $class: 'GitSCM',
+        branches: [[name: branchName]],
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: [],
+        userRemoteConfigs: [[
+          credentialsId: 'githib-jenkins',
+          url: gitUrl
+        ]]
+      ])
+      
+      withMaven(jdk: 'openjdk-11', maven: 'm3') {
+      sh """
 mvn versions:set -DnewVersion='${projectVersion}' -DgenerateBackupPoms=false
 sed -i 's/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${dependencyVersion}<\\/org.jeometry.version>/g' pom.xml
 sed -i 's/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${dependencyVersion}<\\/com.revolsys.open.version>/g' pom.xml
 git config --global user.email "445537+pauldaustin@users.noreply.github.com"
 git config --global user.name "Paul Austin"
+git config --local credential.helper "!p() { echo username=\\$GIT_USERNAME; echo password=\\$GIT_PASSWORD; }; p"
 git commit --allow-empty -a -m 'Version ${projectVersion}'
 git tag -f -a ${projectVersion} -m "Version ${projectVersion}"
 git push -f ${pushUrl} ${projectVersion}
-    """
+      """
     }
   }
 }
