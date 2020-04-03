@@ -39,7 +39,7 @@ def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersio
         ]]
       ])
       
-      withMaven(jdk: 'openjdk-11', maven: 'm3') {
+      withMaven(jdk: 'jdk11', maven: 'm3') {
         sh """
 mvn versions:set -DnewVersion='${projectVersion}' -DgenerateBackupPoms=false
 sed -i 's/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${dependencyVersion}<\\/org.jeometry.version>/g' pom.xml
