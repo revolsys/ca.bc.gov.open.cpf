@@ -50,7 +50,7 @@ git config --global user.name "Paul Austin"
 git config --local credential.helper "!p() { echo username=\\$GIT_USERNAME; echo password=\\$GIT_PASSWORD; }; p"
 git commit --allow-empty -a -m 'Version ${projectVersion}'
 git tag -f -a ${tagName} -m "Version ${projectVersion}"
-git push -f ${gitUrl} ${projectVersion}
+git push -f ${gitUrl} ${tagName}
         """
       }
     }
