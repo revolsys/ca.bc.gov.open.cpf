@@ -26,7 +26,6 @@ def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersio
     withCredentials([
       xusernamePassword(credentialsId: 'githib-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
     ]) {
-      sh """
       checkout([
         $class: 'GitSCM',
         branches: [[name: branchName]],
