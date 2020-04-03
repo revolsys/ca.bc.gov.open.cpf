@@ -24,7 +24,7 @@ def tagSnapshot(folderName, gitUrl, branchName, projectVersion, dependencyVersio
   dir(folderName) {
     deleteDir()
     withCredentials([
-      xusernamePassword(credentialsId: 'githib-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
+      usernamePassword(credentialsId: 'githib-jenkins', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
     ]) {
       checkout([
         $class: 'GitSCM',
