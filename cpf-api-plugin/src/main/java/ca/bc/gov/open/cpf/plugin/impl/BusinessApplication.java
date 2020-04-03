@@ -35,6 +35,13 @@ import org.jeometry.coordinatesystem.model.CoordinateSystem;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
+import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
+import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
+import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+
 import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.geometry.model.Geometry;
@@ -856,6 +863,14 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public void pluginSetParameters(final Object plugin,
     final Map<String, ? extends Object> parameters) {
+    for (String parameterName : ClassLoaderModule.STANDARD_PARAMETER_NAMES) {
+      Object parameterValue = parameters.get(parameterName);
+      if (parameterValue != null) {
+        Class<?> standardParameterClass = ClassLoaderModule.STANDARD_PARAMETERS.get(parameterName);
+        parameterValue = DataTypes.toObject(standardParameterClass, parameterValue);
+        pluginSetParameterValue(plugin, parameterName, parameterValue);
+      }
+    }
     final RecordDefinitionImpl requestRecordDefinition = getRequestRecordDefinition();
     for (final FieldDefinition field : requestRecordDefinition.getFields()) {
       final String parameterName = field.getName();
@@ -866,26 +881,30 @@ public class BusinessApplication extends BaseObjectWithProperties
         }
         parameterValue = field.validate(parameterValue);
       }
-      try {
-        final Method method = this.requestFieldMethodMap.get(parameterName);
-        if (method == null) {
-        } else {
-          method.invoke(plugin, parameterValue);
-        }
-      } catch (final InvocationTargetException e) {
-        final Throwable cause = e.getCause();
-        if (cause instanceof RuntimeException) {
-          throw (RuntimeException)cause;
-        } else if (cause instanceof Error) {
-          throw (Error)cause;
-        } else {
-          throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set",
-            cause);
-        }
-      } catch (final Throwable t) {
-        throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set",
-          t);
+      pluginSetParameterValue(plugin, parameterName, parameterValue);
+    }
+  }
+
+  private void pluginSetParameterValue(final Object plugin, final String parameterName,
+    Object parameterValue) throws Error {
+    try {
+      final Method method = this.requestFieldMethodMap.get(parameterName);
+      if (method == null) {
+      } else {
+        method.invoke(plugin, parameterValue);
       }
+    } catch (final InvocationTargetException e) {
+      final Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException)cause;
+      } else if (cause instanceof Error) {
+        throw (Error)cause;
+      } else {
+        throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set",
+          cause);
+      }
+    } catch (final Throwable t) {
+      throw new IllegalArgumentException(this.name + "." + parameterName + " could not be set", t);
     }
   }
 
@@ -1032,5 +1051,9 @@ public class BusinessApplication extends BaseObjectWithProperties
   @Override
   public String toString() {
     return this.name;
+  }
+
+  public void addStandardMethod(String parameterName, Method method) {
+    requestFieldMethodMap.put(parameterName, method);
   }
 }

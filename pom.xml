@@ -8,7 +8,7 @@
   <packaging>pom</packaging>
   <name>Concurrent Processing Framework</name>
   <description>The parent module of the Concurrent Processing Framework Library.</description>
-  <version>6.1.0-SNAPSHOT</version>
+  <version>6.1.x-SNAPSHOT</version>
   <inceptionYear>2008</inceptionYear>
   <url>https://revolsys.github.io/cpf/</url>
 

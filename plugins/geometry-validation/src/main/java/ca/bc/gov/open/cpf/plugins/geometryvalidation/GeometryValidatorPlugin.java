@@ -251,10 +251,10 @@ public class GeometryValidatorPlugin {
   /**
    * Get the scale factor used to round the x, y coordinates.
    *
-   * @param resultScaleXy The scale factor used to round the x, y coordinates.
+   * @param resultScaleFactorXy The scale factor used to round the x, y coordinates.
    */
-  public void setResultScaleFactorXy(final double resultScaleXy) {
-    this.resultScaleFactorXy = resultScaleXy;
+  public void setResultScaleFactorXy(final double resultScaleFactorXy) {
+    this.resultScaleFactorXy = resultScaleFactorXy;
   }
 
   /**
@@ -262,8 +262,8 @@ public class GeometryValidatorPlugin {
    *
    * @param resultScaleZ The scale factor used to round the z coordinates.
    */
-  public void setResultScaleFactorZ(final double resultScaleZ) {
-    this.resultScaleFactorZ = resultScaleZ;
+  public void setResultScaleFactorZ(final double setResultScaleFactorZ) {
+    this.resultScaleFactorZ = setResultScaleFactorZ;
   }
 
   /**
