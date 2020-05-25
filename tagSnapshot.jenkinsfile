@@ -124,6 +124,7 @@ git push -f ssh://git@github.com/revolsys/cpf ${FULL_VERSION}
         def TAG="${versionBase}.${versionPatch}-BCGOV-SNAPSHOT"
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
+sed -i "s/<ca.bc.gov.open.cpf.version>.*<\\/ca.bc.gov.open.cpf.version>/<ca.bc.gov.open.cpf.version>${FULL_VERSION}<\\/ca.bc.gov.open.cpf.version>/g" pom.xml
 git commit -a -m "Version ${FULL_VERSION}"
 git tag -f "${TAG}"
 git push -f ssh://git@github.com/revolsys/cpf ${TAG}
