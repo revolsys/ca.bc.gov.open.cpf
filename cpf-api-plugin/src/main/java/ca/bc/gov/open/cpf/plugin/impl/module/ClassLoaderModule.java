@@ -128,7 +128,7 @@ public class ClassLoaderModule implements Module {
     "application/vnd.geo+json", "application/vnd.google-earth.kml+xml",
     "application/vnd.google-earth.kmz", "application/x-geo+json", "application/x-shp",
     "application/x-shp+zip", "application/xhtml+xml", "text/csv", "text/html",
-    "text/tab-separated-values", "text/x-wkt", "text/xml");
+    "text/tab-separated-values", "text/x-wkt", "text/xml", "application/geopackage+vnd.sqlite3");
 
   static {
     STANDARD_PARAMETERS.put("inputDataUrl", URL.class);
@@ -139,7 +139,7 @@ public class ClassLoaderModule implements Module {
     STANDARD_PARAMETERS.put("resultScaleFactorZ", Double.TYPE);
     STANDARD_PARAMETERS.put("resultData", OutputStream.class);
     STANDARD_PARAMETERS.put("resultContentType", String.class);
-    STANDARD_PARAMETER_NAMES = (String[])new ArrayList<>(STANDARD_PARAMETERS.keySet())
+    STANDARD_PARAMETER_NAMES = new ArrayList<>(STANDARD_PARAMETERS.keySet())
       .toArray(new String[STANDARD_PARAMETERS.size()]);
   }
 

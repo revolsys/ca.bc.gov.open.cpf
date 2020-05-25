@@ -511,7 +511,7 @@ to return multiple results from a single request.
 The CPF includes spatial support for structured input data and result data files.
 This enables plug-ins to define job parameters, request parameters and result attributes to use
 [Java Topology Suite](http://tsusiatsoftware.net/jts/main.html) (JTS) Geometry objects.
-The CPF reads the input data files (e.g. ESRI Shapefile in a Zip file) and converts the values into
+The CPF reads the input data files (e.g. Shapefile (ESRI) in a Zip file) and converts the values into
 JTS Geometry objects for processing by the business application. After processing the JTS Geometry
 objects are converted back into the requested output spatial file format. The CPF also handles
 projection of the geometries if required.

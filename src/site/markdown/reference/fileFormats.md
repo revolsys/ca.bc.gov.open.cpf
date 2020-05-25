@@ -149,12 +149,12 @@ unless a .cpg file is provided in the .shpz archive.
       <td>
         <p>
           developed by ESRI for ArcMap which is a multi-file GIS format that
-          <a href="https://en.wikipedia.org/wiki/Shapefile">ESRI Shapefile</a>
+          <a href="https://en.wikipedia.org/wiki/Shapefile">Shapefile (ESRI)</a>
           uses <a href="https://en.wikipedia.org/wiki/DBase">DBase</a> file for the attribution and a prj file for the coordinate
           system. Due to the multi-file nature the shp, dbf, shx and prj files
           are compressed into a ZIP file for download or upload.
         </p>
-        <p>Each feature record is one record in the ESRI shapefile.</p>
+        <p>Each feature record is one record in the Shapefile.</p>
       </td>
     </tr>
     <tr id="xhtml">

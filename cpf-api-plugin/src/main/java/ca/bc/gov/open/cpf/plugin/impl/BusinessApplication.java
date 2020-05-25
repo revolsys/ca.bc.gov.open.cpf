@@ -55,12 +55,6 @@ import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.Property;
 
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
-
 /**
  * The BusinessApplication describes a business application which can be invoked
  * via the CPF. It contains all the metadata to generate a capabilities document
@@ -215,7 +209,7 @@ public class BusinessApplication extends BaseObjectWithProperties
    */
   private final Set<String> resultDataContentTypes = new LinkedHashSet<>();
 
-  private final Map<String, String> resultDataFileExtensions = new LinkedHashMap<>();
+  private final Map<String, String> resultDataFileExtensions = new TreeMap<>();
 
   private final Map<String, String> resultFileExtensionToContentType = new LinkedHashMap<>();
 
@@ -460,6 +454,10 @@ public class BusinessApplication extends BaseObjectWithProperties
       this.resultFieldMap.put(index, field);
       this.resultFieldMethodMap.put(fieldName, method);
     }
+  }
+
+  public void addStandardMethod(final String parameterName, final Method method) {
+    this.requestFieldMethodMap.put(parameterName, method);
   }
 
   /**
@@ -863,10 +861,11 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public void pluginSetParameters(final Object plugin,
     final Map<String, ? extends Object> parameters) {
-    for (String parameterName : ClassLoaderModule.STANDARD_PARAMETER_NAMES) {
+    for (final String parameterName : ClassLoaderModule.STANDARD_PARAMETER_NAMES) {
       Object parameterValue = parameters.get(parameterName);
       if (parameterValue != null) {
-        Class<?> standardParameterClass = ClassLoaderModule.STANDARD_PARAMETERS.get(parameterName);
+        final Class<?> standardParameterClass = ClassLoaderModule.STANDARD_PARAMETERS
+          .get(parameterName);
         parameterValue = DataTypes.toObject(standardParameterClass, parameterValue);
         pluginSetParameterValue(plugin, parameterName, parameterValue);
       }
@@ -886,7 +885,7 @@ public class BusinessApplication extends BaseObjectWithProperties
   }
 
   private void pluginSetParameterValue(final Object plugin, final String parameterName,
-    Object parameterValue) throws Error {
+    final Object parameterValue) throws Error {
     try {
       final Method method = this.requestFieldMethodMap.get(parameterName);
       if (method == null) {
@@ -1051,9 +1050,5 @@ public class BusinessApplication extends BaseObjectWithProperties
   @Override
   public String toString() {
     return this.name;
-  }
-
-  public void addStandardMethod(String parameterName, Method method) {
-    requestFieldMethodMap.put(parameterName, method);
   }
 }
