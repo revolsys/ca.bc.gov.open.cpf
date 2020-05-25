@@ -43,7 +43,6 @@ git config --global user.email "pauldaustin@users.noreply.github.com"
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 git commit -a -m "Version ${FULL_VERSION}"
-git fetch --unshallow origin
 git tag -f "${FULL_VERSION}"
 git push -f https://github.com/revolsys/cpf-jeometry ${FULL_VERSION}
       """
@@ -71,7 +70,6 @@ git push -f https://github.com/revolsys/cpf-jeometry ${FULL_VERSION}
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
 git commit -a -m "Version ${FULL_VERSION}"
-git fetch --unshallow origin
 git tag -f "${FULL_VERSION}"
 git push -f https://github.com/revolsys/cpf-revolsys ${FULL_VERSION}
       """
