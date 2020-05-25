@@ -2,8 +2,8 @@ properties([
   parameters([
     string(
       name: 'versionBase',
-      defaultValue: '6.0',
-      description: 'The base version number with Major.Minor (e.g. 6.0)',
+      defaultValue: '6.1',
+      description: 'The base version number with Major.Minor (e.g. 6.1)',
       trim: true
     ),
     string(
@@ -13,15 +13,11 @@ properties([
     ),
     choice(
       name: 'versionSuffix',
-      choices: ['-SNAPSHOT', '-RELEASE', '-RC'],
+      choices: ['SNAPSHOT', 'RELEASE', 'RC'],
       description: 'The version suffix'
     )
   ])
 ])
-
-def versionNumber="${versionBase}.${versionPatch}"
-def version="${versionNumber}${versionSuffix}"
-def versionPrefix="0.CPF"
 
 def checkoutBranch(url, branchName) {
   deleteDir()
@@ -66,7 +62,7 @@ node ('master') {
     checkoutBuild(
       'jeometry',
       'https://github.com/revolsys/cpf-jeometry.git',
-      "refs/tags/${versionPrefix}-${version}"
+      "refs/tags/0.CPF-${versionBase}.${versionPatch}-${versionSuffix}"
     );
   }
 
@@ -74,7 +70,7 @@ node ('master') {
     checkoutBuild(
       'revolsys',
       'https://github.com/revolsys/cpf-revolsys.git',
-      "refs/tags/${versionPrefix}-${version}"
+      "refs/tags/0.CPF-${versionBase}.${versionPatch}-${versionSuffix}"
     );
   }
 
@@ -82,7 +78,7 @@ node ('master') {
     checkoutBuild(
       'cpf',
       'https://github.com/revolsys/cpf.git',
-      "refs/tags/${version}"
+      "refs/tags/${versionBase}.${versionPatch}-${versionSuffix}"
     );
   }
 
@@ -90,7 +86,7 @@ node ('master') {
     checkoutBuild(
       'cpf-bcgov',
       'https://github.com/revolsys/cpf.git',
-      "refs/tags/bcgov-${version}"
+      "refs/tags/${versionBase}.${versionPatch}-BCGOV-${versionSuffix}"
     );
   }
 
