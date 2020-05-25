@@ -26,7 +26,7 @@ git config --global user.email "pauldaustin@users.noreply.github.com"
   }
 
   stage ('jeometry') {
-    dir('jeometry) {
+    dir('jeometry') {
       deleteDir()
       checkout([
         userRemoteConfigs: [[url: 'ssh://git@github.com/jeometry-org/jeometry.git']],
@@ -52,7 +52,7 @@ git push -f https://github.com/revolsys/cpf-jeometry ${FULL_VERSION}
   }
 
   stage ('revolsys') {
-    dir('revolsys) {
+    dir('revolsys') {
       deleteDir()
       checkout([
         userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/com.revolsys.open.git']],
@@ -80,7 +80,7 @@ git push -f https://github.com/revolsys/cpf-revolsys ${FULL_VERSION}
   }
 
   stage ('cpf') {
-    dir('cpf) {
+    dir('cpf') {
       deleteDir()
       checkout([
         userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
@@ -109,7 +109,7 @@ git push -f https://github.com/revolsys/cpf ${FULL_VERSION}
   }
 
   stage ('cpf-bcgov') {
-    dir('cpf-bcgov) {
+    dir('cpf-bcgov') {
       deleteDir()
       checkout([
         userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
