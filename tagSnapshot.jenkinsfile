@@ -15,7 +15,7 @@ properties([
   ])
 ])
 
-def version="${versionBase}.${versionPatch}.${versionNumber}-SNAPSHOT"
+def version="${versionBase}.${versionPatch}-SNAPSHOT"
 
 node ('master') {
   stage ('Initialize') {
