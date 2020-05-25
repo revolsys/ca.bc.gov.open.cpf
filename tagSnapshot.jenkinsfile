@@ -39,7 +39,7 @@ git config --global user.email "pauldaustin@users.noreply.github.com"
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        def FULL_VERSION="${version}-CPF-JEOMETRY"
+        def FULL_VERSION="${versionBase}.${versionPatch}-CPF-JEOMETRY-SNAPSHOT"
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 git commit -a -m "Version ${FULL_VERSION}"
@@ -64,8 +64,8 @@ git push -f ssh://git@github.com/revolsys/cpf-jeometry ${FULL_VERSION}
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        def FULL_VERSION="${version}-CPF-REVOLSYS"
-        def JEOMETRY_VERSION="${version}-CPF-JEOMETRY"
+        def FULL_VERSION="${versionBase}.${versionPatch}-CPF-REVOLSYS-SNAPSHOT"
+        def JEOMETRY_VERSION="${versionBase}.${versionPatch}-CPF-JEOMETRY-SNAPSHOT"
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
@@ -91,9 +91,9 @@ git push -f ssh://git@github.com/revolsys/cpf-revolsys ${FULL_VERSION}
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        def FULL_VERSION="${version}-CPF-REVOLSYS"
-        def JEOMETRY_VERSION="${version}-CPF-JEOMETRY"
-        def REVOLSYS_VERSION="${version}-CPF-REVOLSYS"
+        def FULL_VERSION="${versionBase}.${versionPatch}-SNAPSHOT"
+        def JEOMETRY_VERSION="${versionBase}.${versionPatch}-CPF-JEOMETRY-SNAPSHOT"
+        def REVOLSYS_VERSION="${versionBase}.${versionPatch}-CPF-REVOLSYS-SNAPSHOT"
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
@@ -120,7 +120,7 @@ git push -f ssh://git@github.com/revolsys/cpf ${FULL_VERSION}
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        def FULL_VERSION="${version}-CPF-BCGOV"
+        def FULL_VERSION="${versionBase}.${versionPatch}-CPF-BCGOV-SNAPSHOT"
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 git commit -a -m "Version ${FULL_VERSION}"
