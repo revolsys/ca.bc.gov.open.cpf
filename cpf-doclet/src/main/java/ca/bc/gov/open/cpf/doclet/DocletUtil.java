@@ -38,8 +38,7 @@ public class DocletUtil {
   private static final Map<String, String> PACKAGE_URLS = new LinkedHashMap<>();
 
   static {
-    addPackageUrl("java.", "http://docs.oracle.com/javase/8/docs/api/");
-    addPackageUrl("com.revolsys.jts.", "http://tsusiatsoftware.net/jts/javadoc/");
+    addPackageUrl("java.", "https://docs.oracle.com/en/java/javase/11/docs/api/");
   }
 
   public static void addPackageUrl(final String packagePrefix, final String url) {

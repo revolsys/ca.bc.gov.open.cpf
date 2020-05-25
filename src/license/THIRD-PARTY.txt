@@ -1,12 +1,12 @@
 
 Lists of 96 third-party dependencies.
      (Public Domain) AOP alliance (aopalliance:aopalliance:1.0 - http://aopalliance.sourceforge.net)
-     (apache_2_0) Concurrent Processing Framework Application Java API (ca.bc.gov.open.cpf:cpf-api-app:6.0.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-app/)
-     (apache_2_0) Concurrent Processing Framework Client Java API (ca.bc.gov.open.cpf:cpf-api-client:6.0.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-client/)
-     (apache_2_0) Concurrent Processing Framework Business Application Plugin API (ca.bc.gov.open.cpf:cpf-api-plugin:6.0.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-plugin/)
-     (apache_2_0) Concurrent Processing Framework API Worker (ca.bc.gov.open.cpf:cpf-api-worker:6.0.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-worker/)
-     (apache_2_0) Concurrent Processing Framework Base WAR Web Application (ca.bc.gov.open.cpf:cpf-war-app:6.0.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-war-app/)
-     (apache_2_0) Concurrent Processing Framework Base WAR Worker (ca.bc.gov.open.cpf:cpf-war-worker:6.0.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-war-worker/)
+     (apache_2_0) Concurrent Processing Framework Application Java API (ca.bc.gov.open.cpf:cpf-api-app:6.1.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-app/)
+     (apache_2_0) Concurrent Processing Framework Client Java API (ca.bc.gov.open.cpf:cpf-api-client:6.1.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-client/)
+     (apache_2_0) Concurrent Processing Framework Business Application Plugin API (ca.bc.gov.open.cpf:cpf-api-plugin:6.1.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-plugin/)
+     (apache_2_0) Concurrent Processing Framework API Worker (ca.bc.gov.open.cpf:cpf-api-worker:6.1.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-api-worker/)
+     (apache_2_0) Concurrent Processing Framework Base WAR Web Application (ca.bc.gov.open.cpf:cpf-war-app:6.1.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-war-app/)
+     (apache_2_0) Concurrent Processing Framework Base WAR Worker (ca.bc.gov.open.cpf:cpf-war-worker:6.1.x-SNAPSHOT - https://bcgov.github.io/cpf/cpf-war-worker/)
      (apache_2_0) Akiban SQL Parser (com.akiban:akiban-sql-parser:1.0.16 - https://launchpad.net/akiban-sql-parser/)
      (apache_2_0) guice (com.google.inject:guice:2.0 - http://code.google.com/p/google-guice/guice/)
      (New BSD license) Protocol Buffer Java API (com.google.protobuf:protobuf-java:2.5.0 - http://code.google.com/p/protobuf)
