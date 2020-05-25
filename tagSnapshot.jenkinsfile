@@ -39,7 +39,7 @@ git config --global user.email "pauldaustin@users.noreply.github.com"
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        sh '''    
+        sh """
 FULL_VERSION=${version}-CPF-JEOMETRY
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 git commit -a -m "Version ${FULL_VERSION}"
@@ -65,7 +65,7 @@ git push -f https://github.com/revolsys/cpf-jeometry ${FULL_VERSION}
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        sh '''    
+        sh """
 FULL_VERSION=${version}-CPF-REVOLSYS
 JEOMETRY_VERSION=${version}-CPF-JEOMETRY
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
@@ -93,7 +93,7 @@ git push -f https://github.com/revolsys/cpf-revolsys ${FULL_VERSION}
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        sh '''    
+        sh """
 FULL_VERSION=${version}-CPF-REVOLSYS
 JEOMETRY_VERSION=${version}-CPF-JEOMETRY
 REVOLSYS_VERSION=${version}-CPF-REVOLSYS
@@ -122,7 +122,7 @@ git push -f https://github.com/revolsys/cpf ${FULL_VERSION}
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        sh '''    
+        sh """
 FULL_VERSION=${version}-CPF-BCGOV
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 git commit -a -m "Version ${FULL_VERSION}"
