@@ -120,12 +120,13 @@ git push -f ssh://git@github.com/revolsys/cpf ${FULL_VERSION}
       ])
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
-        def FULL_VERSION="${versionBase}.${versionPatch}-BCGOV-SNAPSHOT"
+        def FULL_VERSION="${versionBase}.${versionPatch}-SNAPSHOT"
+        def TAG="${versionBase}.${versionPatch}-BCGOV-SNAPSHOT"
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 git commit -a -m "Version ${FULL_VERSION}"
-git tag -f "${FULL_VERSION}"
-git push -f ssh://git@github.com/revolsys/cpf ${FULL_VERSION}
+git tag -f "${TAG}"
+git push -f ssh://git@github.com/revolsys/cpf ${TAG}
       """
       }
     }
