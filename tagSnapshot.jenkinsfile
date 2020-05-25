@@ -1,0 +1,136 @@
+properties([
+  parameters([
+    string(
+      name: 'versionBase',
+      defaultValue: '6.0',
+      description: 'The base version number with Major.Minor (e.g. 6.0)',
+      trim: true
+    ),
+    string(
+      name: 'versionPatch',
+      defaultValue: '0',
+      description: 'The version number patch (e.g. 0 or 1)',
+      trim: true
+    )
+  ])
+])
+
+def version="${versionBase}.${versionPatch}.${versionNumber}-SNAPSHOT"
+
+node ('master') {
+  stage ('Initialize') {
+     sh '''
+git config --global user.name "$Paul Austin"
+git config --global user.email "pauldaustin@users.noreply.github.com"
+     '''
+  }
+
+  stage ('jeometry') {
+    dir('jeometry) {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/jeometry-org/jeometry.git']],
+        branches: [[name: 'master']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      env.JAVA_HOME = "${tool 'jdk11'}"
+      withMaven(jdk: 'jdk11', maven: 'm3') {
+        sh '''    
+FULL_VERSION=${version}-CPF-JEOMETRY
+mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
+git commit -a -m "Version ${FULL_VERSION}"
+git fetch --unshallow origin
+git tag -f "${FULL_VERSION}"
+git push -f https://github.com/revolsys/cpf-jeometry ${FULL_VERSION}
+      """
+      }
+    }
+  }
+
+  stage ('revolsys') {
+    dir('revolsys) {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/com.revolsys.open.git']],
+        branches: [[name: 'master']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      env.JAVA_HOME = "${tool 'jdk11'}"
+      withMaven(jdk: 'jdk11', maven: 'm3') {
+        sh '''    
+FULL_VERSION=${version}-CPF-REVOLSYS
+JEOMETRY_VERSION=${version}-CPF-JEOMETRY
+mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
+sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
+git commit -a -m "Version ${FULL_VERSION}"
+git fetch --unshallow origin
+git tag -f "${FULL_VERSION}"
+git push -f https://github.com/revolsys/cpf-revolsys ${FULL_VERSION}
+      """
+      }
+    }
+  }
+
+  stage ('cpf') {
+    dir('cpf) {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
+        branches: [[name: '6.1.x']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      env.JAVA_HOME = "${tool 'jdk11'}"
+      withMaven(jdk: 'jdk11', maven: 'm3') {
+        sh '''    
+FULL_VERSION=${version}-CPF-REVOLSYS
+JEOMETRY_VERSION=${version}-CPF-JEOMETRY
+REVOLSYS_VERSION=${version}-CPF-REVOLSYS
+mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
+sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
+sed -i "s/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${REVOLSYS_VERSION}<\\/com.revolsys.open.version>/g" pom.xml
+git commit -a -m "Version ${FULL_VERSION}"
+git tag -f "${FULL_VERSION}"
+git push -f https://github.com/revolsys/cpf ${FULL_VERSION}
+      """
+      }
+    }
+  }
+
+  stage ('cpf-bcgov') {
+    dir('cpf-bcgov) {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
+        branches: [[name: 'bcgov-6.1.x']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      env.JAVA_HOME = "${tool 'jdk11'}"
+      withMaven(jdk: 'jdk11', maven: 'm3') {
+        sh '''    
+FULL_VERSION=${version}-CPF-BCGOV
+mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
+git commit -a -m "Version ${FULL_VERSION}"
+git tag -f "${FULL_VERSION}"
+git push -f https://github.com/revolsys/cpf ${FULL_VERSION}
+      """
+      }
+    }
+  }
+
+}
