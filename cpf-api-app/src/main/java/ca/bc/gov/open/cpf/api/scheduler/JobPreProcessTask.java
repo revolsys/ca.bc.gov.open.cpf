@@ -228,7 +228,7 @@ public class JobPreProcessTask {
                       "Media type not supported:" + inputContentType);
                   } else {
                     PreProcessGroup group = null;
-                    final InputStreamResource resource = new InputStreamResource("in",
+                    final InputStreamResource resource = new InputStreamResource("input",
                       inputDataStream);
                     try (
                       final MapReader mapReader = factory.newMapReader(resource)) {
@@ -242,7 +242,7 @@ public class JobPreProcessTask {
                             requestRecordDefinition, mapReader)) {
 
                           for (final Iterator<Record> iterator = inputDataReader
-                              .iterator(); iterator.hasNext();) {
+                            .iterator(); iterator.hasNext();) {
                             numSubmittedRequests++;
                             try {
                               final Record inputDataRecord = iterator.next();
