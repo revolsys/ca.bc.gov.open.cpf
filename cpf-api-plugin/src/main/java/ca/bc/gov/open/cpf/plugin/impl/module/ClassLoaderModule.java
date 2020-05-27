@@ -152,6 +152,7 @@ public class ClassLoaderModule implements Module {
       .withFileName(activeFileName)//
       .withFilePattern(baseFileName + ".%i.log") //
       .withLayout(LogAppender.newLayout("%d\t%p\t%c\t%m%n"))//
+      .withImmediateFlush(true) //
       .withPolicy( //
         CompositeTriggeringPolicy.createPolicy( //
           OnStartupTriggeringPolicy.createPolicy(1), //
@@ -946,7 +947,6 @@ public class ClassLoaderModule implements Module {
     return getBusinessApplication(businessApplicationName) != null;
   }
 
-  @SuppressWarnings("deprecation")
   private void initAppLogAppender(final String businessApplicationName) {
     final String fileName;
     String logName = this.name;
