@@ -108,8 +108,7 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   private BatchJob addBatchJob(final Record record, final Identifier batchJobId) {
-    BatchJob batchJob;
-    batchJob = new BatchJob(record);
+    final BatchJob batchJob = new BatchJob(record);
     for (final String fieldName : Arrays.asList(BatchJob.BUSINESS_APPLICATION_PARAMS,
       BatchJob.PROPERTIES, BatchJob.COMPLETED_GROUP_RANGE, BatchJob.COMPLETED_GROUP_RANGE,
       BatchJob.FAILED_REQUEST_RANGE)) {
@@ -128,6 +127,11 @@ public class CpfDataAccessObject implements Transactionable {
         }
       }
     }
+    cacheBatchJob(batchJob, batchJobId);
+    return batchJob;
+  }
+
+  private void cacheBatchJob(final BatchJob batchJob, final Identifier batchJobId) {
     if (!batchJob.isCancelled()) {
       synchronized (this.batchJobById) {
         this.batchJobById.put(batchJobId, batchJob);
@@ -136,7 +140,6 @@ public class CpfDataAccessObject implements Transactionable {
         Maps.addToSet(this.batchJobIdsByBusinessApplication, businessApplicationName, batchJobId);
       }
     }
-    return batchJob;
   }
 
   public BatchJob clearBatchJob(final Identifier batchJobId) {
@@ -646,9 +649,7 @@ public class CpfDataAccessObject implements Transactionable {
     record.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
 
     final BatchJob batchJob = new BatchJob(record);
-    if (!batchJob.isCancelled()) {
-      this.batchJobById.put(batchJobId, batchJob);
-    }
+    cacheBatchJob(batchJob, batchJobId);
     return batchJob;
   }
 
