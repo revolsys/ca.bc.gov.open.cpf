@@ -1396,7 +1396,24 @@ public class BatchJobService implements ModuleEventListener {
       for (final Identifier batchJobId : batchJobIds) {
         getAppLog(businessApplicationName).info("Schedule from database\tbatchJobId=" + batchJobId);
         final BatchJob batchJob = getBatchJob(batchJobId);
-        scheduleJob(batchJob);
+        synchronized (batchJob) {
+          if (batchJob.isStatus(BatchJobStatus.PROCESSING)) {
+            if (batchJob.isCompleted()) {
+              try (
+                Transaction transaction = this.dataAccessObject
+                  .newTransaction(Propagation.REQUIRES_NEW)) {
+                batchJob.setStatus(this, BatchJobStatus.PROCESSING, BatchJobStatus.PROCESSED);
+                try {
+                  postProcess(batchJobId);
+                } catch (final Throwable e) {
+                  throw transaction.setRollbackOnly(e);
+                }
+              }
+            } else {
+              scheduleJob(batchJob);
+            }
+          }
+        }
       }
     }
   }

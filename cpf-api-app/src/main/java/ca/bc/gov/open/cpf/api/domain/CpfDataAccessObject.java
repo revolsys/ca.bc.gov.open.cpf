@@ -337,12 +337,7 @@ public class CpfDataAccessObject implements Transactionable {
     final Query query = new Query(this.batchJobRecordDefinition);
     query.setFieldNames(BatchJob.BATCH_JOB_ID);
     // TODO move to scheduling groups
-    String where;
-    if (this.recordStore.getRecordStoreType().equals("Oracle")) {
-      where = "JOB_STATUS IN ( 'processing') AND NUM_SUBMITTED_GROUPS > 0 AND (COMPLETED_GROUP_RANGE IS NULL OR (NUM_SUBMITTED_GROUPS <> 1 AND (DBMS_LOB.GETLENGTH(COMPLETED_GROUP_RANGE) <> LENGTH(concat('1~', NUM_SUBMITTED_GROUPS)) OR TO_CHAR(COMPLETED_GROUP_RANGE) <> concat('1~', NUM_SUBMITTED_GROUPS)) )) AND BUSINESS_APPLICATION_NAME = ?";
-    } else {
-      where = "JOB_STATUS IN ( 'processing') AND NUM_SUBMITTED_GROUPS > 0 AND (COMPLETED_GROUP_RANGE IS NULL OR (NUM_SUBMITTED_GROUPS <> 1 AND COMPLETED_GROUP_RANGE <> concat('1~', NUM_SUBMITTED_GROUPS))) AND BUSINESS_APPLICATION_NAME = ?";
-    }
+    final String where = "JOB_STATUS IN ( 'processing') AND BUSINESS_APPLICATION_NAME = ?";
     query.setWhereCondition(Q.sql(where, businessApplicationName));
     query.addOrderBy(BatchJob.LAST_SCHEDULED_TIMESTAMP, true);
     query.addOrderBy(BatchJob.BATCH_JOB_ID, true);
