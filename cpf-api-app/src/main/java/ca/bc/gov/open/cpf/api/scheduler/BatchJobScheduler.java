@@ -105,9 +105,10 @@ public class BatchJobScheduler extends ThreadPoolExecutor
             iterator.remove();
           }
         }
-        synchronized (businessApplicationName) {
+        synchronized (this.scheduledGroupsByBusinessApplication) {
           this.scheduledGroupsByBusinessApplication.remove(businessApplicationName);
         }
+        return;
       } catch (final ConcurrentModificationException e) {
       }
     }
@@ -218,8 +219,8 @@ public class BatchJobScheduler extends ThreadPoolExecutor
       final BatchJobRequestExecutionGroup group = batchJob.getNextGroup(businessApplication);
       if (group != null) {
         final String businessApplicationName = group.getBusinessApplicationName();
-        synchronized (this.scheduledGroupsByBusinessApplication) {
-          if (!group.isCancelled()) {
+        if (!group.isCancelled()) {
+          synchronized (this.scheduledGroupsByBusinessApplication) {
             Maps.addToSet(this.scheduledGroupsByBusinessApplication, businessApplicationName,
               group);
           }
