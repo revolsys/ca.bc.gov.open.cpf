@@ -38,11 +38,11 @@ git config --global user.email "pauldaustin@users.noreply.github.com"
         gitTool: 'Default',
         submoduleCfg: []
       ])
-      git reset --hard HEAD~1
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
         def FULL_VERSION="0.CPF-${versionBase}.${versionPatch}-RELEASE"
         sh """
+git reset --hard HEAD~1
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 git commit -a -m "Version ${FULL_VERSION}"
 git tag -f "${FULL_VERSION}"
@@ -64,12 +64,12 @@ git push -f ssh://git@github.com/revolsys/cpf-jeometry ${FULL_VERSION}
         gitTool: 'Default',
         submoduleCfg: []
       ])
-      git reset --hard HEAD~1
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
         def FULL_VERSION="0.CPF-${versionBase}.${versionPatch}-RELEASE"
         def JEOMETRY_VERSION="0.CPF-${versionBase}.${versionPatch}-RELEASE"
         sh """
+git reset --hard HEAD~1
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
 git commit -a -m "Version ${FULL_VERSION}"
@@ -92,13 +92,13 @@ git push -f ssh://git@github.com/revolsys/cpf-revolsys ${FULL_VERSION}
         gitTool: 'Default',
         submoduleCfg: []
       ])
-      git reset --hard HEAD~1
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
         def FULL_VERSION="${versionBase}.${versionPatch}-RELEASE"
         def JEOMETRY_VERSION="0.CPF-${versionBase}.${versionPatch}-RELEASE"
         def REVOLSYS_VERSION="0.CPF-${versionBase}.${versionPatch}-RELEASE"
         sh """
+git reset --hard HEAD~1
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
 sed -i "s/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${REVOLSYS_VERSION}<\\/com.revolsys.open.version>/g" pom.xml
@@ -122,12 +122,12 @@ git push -f ssh://git@github.com/revolsys/cpf ${FULL_VERSION}
         gitTool: 'Default',
         submoduleCfg: []
       ])
-      git reset --hard HEAD~1
       env.JAVA_HOME = "${tool 'jdk11'}"
       withMaven(jdk: 'jdk11', maven: 'm3') {
         def FULL_VERSION="${versionBase}.${versionPatch}-RELEASE"
         def TAG="${versionBase}.${versionPatch}-BCGOV-RELEASE"
         sh """
+git reset --hard HEAD~1
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 sed -i "s/<ca.bc.gov.open.cpf.version>.*<\\/ca.bc.gov.open.cpf.version>/<ca.bc.gov.open.cpf.version>${FULL_VERSION}<\\/ca.bc.gov.open.cpf.version>/g" pom.xml
 git commit -a -m "Version ${FULL_VERSION}"
