@@ -129,9 +129,12 @@ public class CpfDataAccessObject implements Transactionable {
       }
     }
     if (!batchJob.isCancelled()) {
-      this.batchJobById.put(batchJobId, batchJob);
-      final String businessApplicationName = batchJob.getString(BatchJob.BUSINESS_APPLICATION_NAME);
-      Maps.addToSet(this.batchJobIdsByBusinessApplication, businessApplicationName, batchJobId);
+      synchronized (this.batchJobById) {
+        this.batchJobById.put(batchJobId, batchJob);
+        final String businessApplicationName = batchJob
+          .getString(BatchJob.BUSINESS_APPLICATION_NAME);
+        Maps.addToSet(this.batchJobIdsByBusinessApplication, businessApplicationName, batchJobId);
+      }
     }
     return batchJob;
   }

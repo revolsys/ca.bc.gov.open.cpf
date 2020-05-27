@@ -69,6 +69,29 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.StopWatch;
 
+import ca.bc.gov.open.cpf.api.controller.CpfConfig;
+import ca.bc.gov.open.cpf.api.domain.BatchJob;
+import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
+import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
+import ca.bc.gov.open.cpf.api.domain.Common;
+import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
+import ca.bc.gov.open.cpf.api.domain.UserAccount;
+import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
+import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
+import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
+import ca.bc.gov.open.cpf.api.web.controller.JobController;
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
+import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
+import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
+import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
+import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
+import ca.bc.gov.open.cpf.plugin.impl.module.Module;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
+import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
+import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
+
 import com.revolsys.collection.list.Lists;
 import com.revolsys.collection.map.LinkedHashMapEx;
 import com.revolsys.collection.map.MapEx;
@@ -110,29 +133,6 @@ import com.revolsys.transaction.Transaction;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
-
-import ca.bc.gov.open.cpf.api.controller.CpfConfig;
-import ca.bc.gov.open.cpf.api.domain.BatchJob;
-import ca.bc.gov.open.cpf.api.domain.BatchJobResult;
-import ca.bc.gov.open.cpf.api.domain.BatchJobStatus;
-import ca.bc.gov.open.cpf.api.domain.Common;
-import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
-import ca.bc.gov.open.cpf.api.domain.UserAccount;
-import ca.bc.gov.open.cpf.api.security.service.AuthorizationService;
-import ca.bc.gov.open.cpf.api.security.service.AuthorizationServiceUserSecurityServiceFactory;
-import ca.bc.gov.open.cpf.api.web.controller.DatabaseJobController;
-import ca.bc.gov.open.cpf.api.web.controller.JobController;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
-import ca.bc.gov.open.cpf.plugin.impl.BusinessApplicationRegistry;
-import ca.bc.gov.open.cpf.plugin.impl.ConfigPropertyLoader;
-import ca.bc.gov.open.cpf.plugin.impl.PluginAdaptor;
-import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEvent;
-import ca.bc.gov.open.cpf.plugin.impl.module.ModuleEventListener;
-import ca.bc.gov.open.cpf.plugin.impl.security.SecurityServiceFactory;
 
 public class BatchJobService implements ModuleEventListener {
   private static final String CONTENT_TYPE_JSON = MediaType.APPLICATION_JSON.toString();
@@ -299,6 +299,9 @@ public class BatchJobService implements ModuleEventListener {
 
   private NamedChannelBundle<BatchJobRequestExecutionGroup> groupsToSchedule = new NamedChannelBundle<>();
 
+  // private final Map<String, Set<BatchJobRequestExecutionGroup>>
+  // scheduledGroups = new HashMap<>();
+
   /** The class used to send email. */
   private JavaMailSender mailSender;
 
@@ -378,6 +381,14 @@ public class BatchJobService implements ModuleEventListener {
 
         group.resetId();
         rescheduleGroup(group);
+      }
+    }
+  }
+
+  private void cancelGroups(final Collection<BatchJobRequestExecutionGroup> groups) {
+    if (groups != null) {
+      for (final BatchJobRequestExecutionGroup group : groups) {
+        group.cancel();
       }
     }
   }
@@ -729,6 +740,9 @@ public class BatchJobService implements ModuleEventListener {
           }
         }
       } catch (final ClosedException e) {
+        if (this.running) {
+          Logs.error(this, "Groups to schedule unexpectedly closed");
+        }
       }
       if (this.running && group != null && !group.isCancelled()) {
         final BusinessApplication businessApplication = group.getBusinessApplication();
@@ -746,6 +760,7 @@ public class BatchJobService implements ModuleEventListener {
             if (worker == null || moduleStartTime == -1 || !module.isStarted()) {
               scheduleGroup(group);
             } else {
+              // Maps.addToSet(this.scheduledGroups, moduleName, group);
               try {
                 response.put("workerId", workerId);
                 response.put("moduleName", moduleName);
@@ -878,6 +893,11 @@ public class BatchJobService implements ModuleEventListener {
                   this.scheduler.clearBusinessApplication(businessApplicationName);
                 }
                 this.dataAccessObject.clearBatchJobs(businessApplicationName);
+                final long moduleStartTime = module.getStartedTime();
+                final String moduleNameAndTime = moduleName + ":" + moduleStartTime;
+                for (final Worker worker : this.workersById.values()) {
+                  worker.cancelExecutingGroups(moduleNameAndTime);
+                }
               } else if (action.equals(ModuleEvent.START)) {
                 this.dataAccessObject.clearBatchJobs(businessApplicationName);
                 resetProcessingBatchJobs(moduleName, businessApplicationName);
@@ -1312,12 +1332,14 @@ public class BatchJobService implements ModuleEventListener {
       if (groupsToSchedule != null) {
         final Collection<BatchJobRequestExecutionGroup> groups = groupsToSchedule
           .remove(moduleName);
-        if (groups != null) {
-          for (final BatchJobRequestExecutionGroup group : groups) {
-            group.cancel();
-          }
-        }
+        cancelGroups(groups);
       }
+
+      // final Collection<BatchJobRequestExecutionGroup> groups =
+      // this.scheduledGroups
+      // .remove(moduleName);
+      // cancelGroups(groups);
+
       final int numCleanedStatus = this.dataAccessObject
         .updateBatchJobProcessedStatus(businessApplicationName);
       if (numCleanedStatus > 0) {
