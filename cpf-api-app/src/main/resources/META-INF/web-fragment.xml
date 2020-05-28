@@ -17,7 +17,7 @@
   </ordering>
   
   <listener>
-    <listener-class>ca.bc.gov.open.cpf.api.web.CpfLog4jContextListener</listener-class>
+    <listener-class>ca.bc.gov.open.cpf.api.web.CpfLoggingContextListener</listener-class>
   </listener>
 
   <listener>

@@ -29,7 +29,7 @@ import com.revolsys.util.Property;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
-public class CpfLog4jContextListener implements ServletContextListener {
+public class CpfLoggingContextListener implements ServletContextListener {
 
   @Override
   public void contextDestroyed(final ServletContextEvent event) {
