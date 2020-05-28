@@ -151,23 +151,22 @@ public class ClassLoaderModule implements Module {
     final LoggerContext context = logger.getLoggerContext();
 
     final FixedWindowRollingPolicy rollingPolicy = new FixedWindowRollingPolicy();
+    rollingPolicy.setContext(context);
     final String rollingFileName = baseFileName + ".%i.log";
     rollingPolicy.setFileNamePattern(rollingFileName);
     rollingPolicy.setMaxIndex(3);
-    rollingPolicy.setContext(context);
 
     final SizeBasedTriggeringPolicy<ILoggingEvent> triggeringPolicy = new SizeBasedTriggeringPolicy<>();
+    triggeringPolicy.setContext(context);
     final FileSize fileSize = FileSize.valueOf("10mb");
     triggeringPolicy.setMaxFileSize(fileSize);
-    triggeringPolicy.setContext(context);
     triggeringPolicy.start();
 
     final PatternLayout layout = LogbackUtil.newLayout(context, "%d\t%p\t%c\t%m%n");
-    layout.setContext(context);
     layout.start();
 
     final RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<>();
-
+    appender.setContext(context);
     appender.setLayout(layout);
     appender.setName(name);
     appender.setImmediateFlush(true);
@@ -175,7 +174,6 @@ public class ClassLoaderModule implements Module {
     appender.setFile(activeFileName);
     appender.setRollingPolicy(rollingPolicy);
     appender.setTriggeringPolicy(triggeringPolicy);
-    appender.setContext(context);
 
     rollingPolicy.setParent(appender);
     rollingPolicy.start();
