@@ -2,8 +2,8 @@ properties([
   parameters([
     string(
       name: 'versionBase',
-      defaultValue: '6.0',
-      description: 'The base version number with Major.Minor (e.g. 2.1)',
+      defaultValue: '6.1',
+      description: 'The base version number with Major.Minor (e.g. 6.1)',
       trim: true
     ),
     string(
