@@ -279,18 +279,11 @@ public class BatchJob extends DelegatingRecord implements Common {
   }
 
   public synchronized boolean isCompleted() {
-    if (this.completedGroups.isEmpty()) {
+    final int numSubmittedGroups = getNumSubmittedGroups();
+    if (numSubmittedGroups < 1) {
       return false;
     } else {
-      final int numSubmittedGroups = getNumSubmittedGroups();
-      final int from = (Integer)this.completedGroups.getFrom();
-      final int to = (Integer)this.completedGroups.getTo();
-      final int size = this.completedGroups.size();
-      if (from == 1 && to == numSubmittedGroups && size == numSubmittedGroups) {
-        return true;
-      } else {
-        return false;
-      }
+      return this.completedGroups.equalsRange(1, numSubmittedGroups);
     }
   }
 

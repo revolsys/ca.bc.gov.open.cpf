@@ -221,14 +221,14 @@ CPF application. These must be approved prior to delivering to the Ministry.
 All plug-ins must either be available in the [Maven central repository](https://search.maven.org/).
 Or a private repository that the CPF is configured to access.
 
-If any of the dependencies include dependencies to logging frameworks such as LOG4J, SLF4J and
+If any of the dependencies include dependencies to logging frameworks such as Logback, LOG4J, SLF4J and
 especially commons-logging these must be
 [excluded](https://maven.apache.org/guides/introduction/introduction-to-optional-and-excludes-dependencies.html#Dependency_Exclusions)
 from those dependencies. This ensures that carefully controlled versions of these files are used.
-The CPF internally uses SLF4J as the logging API with a LOG4J binding to perform the actual logging
+The CPF internally uses SLF4J as the logging API with a Logback binding to perform the actual logging
 and a bridge so that commons logging is logged via SLF4J. It is recommended for plug-ins to use
-SLF4J for logging in their module. Plug-ins must not include a `log4j.xml`
-file in their Jar file. A `log4j.xml` file can however be included in `src/test/resources` for
+SLF4J for logging in their module. Plug-ins must not include a `log4j.xml`, or `log4j2.xml`, or `logback.xml`
+file in their Jar file. They can however be included in `src/test/resources` for
 testing the plug-in.
 
 Any dependencies that are included in the CPF application itself must be marked with a scope of
@@ -685,8 +685,7 @@ The preferred approach is for business application plug-ins to use the
 [AppLog](cpf-api-plugin/java-api//#ca.bc.gov.open.cpf.plugin.api.log.AppLog) class for logging to
 have the messages appear in the appropriate log file.
 
-The plug-in The plug-in may also use [slf4j](https://www.slf4j.org/) (preferred) or
-[log4j](https://logging.apache.org/log4j/) or with the following logger name sub trees.
+The plug-in The plug-in may also use [slf4j](https://www.slf4j.org/) (preferred) with the following logger name sub trees.
 
 * Loggers below `{ModuleName}.{BusinessApplicationName}` (e.g. `DEMO.demoApp`).
 * Loggers below the [BusinessApplicationPlugin.packageName](cpf-api-plugin/java-api//#ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin.packageName)
