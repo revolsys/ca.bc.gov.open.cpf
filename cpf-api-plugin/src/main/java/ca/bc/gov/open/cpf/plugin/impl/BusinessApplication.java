@@ -39,6 +39,7 @@ import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
 import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.impl.log.LogbackUtil;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
@@ -46,7 +47,6 @@ import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.log.LogAppender;
 import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
@@ -985,10 +985,10 @@ public class BusinessApplication extends BaseObjectWithProperties
   public void setLogLevel(final String level) {
     this.log.setLogLevel(level);
     final String moduleName = getModuleName();
-    LogAppender.setLevel(moduleName + "." + this.name, level);
+    LogbackUtil.setLevel(moduleName + "." + this.name, level);
     // Tempory fix for geocoder logging
-    LogAppender.setLevel(moduleName + ".ca", level);
-    LogAppender.setLevel(getPackageName(), level);
+    LogbackUtil.setLevel(moduleName + ".ca", level);
+    LogbackUtil.setLevel(getPackageName(), level);
   }
 
   public void setMaxConcurrentRequests(final int maxConcurrentRequests) {
