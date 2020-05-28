@@ -27,11 +27,6 @@ import com.revolsys.geometry.operation.valid.GeometryValidationError;
 import com.revolsys.geometry.operation.valid.IsValidOp;
 import com.revolsys.geometry.precision.MinimumClearance;
 
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.Required;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-
 /**
  * The GeometryValidatorPlugin converts the geometry to the requested coordinate
  * system and precision model. It then checks to see if the geometry

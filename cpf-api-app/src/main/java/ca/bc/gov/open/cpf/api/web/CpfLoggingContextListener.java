@@ -21,9 +21,9 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import ca.bc.gov.open.cpf.plugin.impl.log.LogbackUtil;
 import ca.bc.gov.open.cpf.plugin.impl.module.ClassLoaderModule;
 
+import com.revolsys.log.LogbackUtil;
 import com.revolsys.util.Property;
 
 import ch.qos.logback.classic.Level;
