@@ -764,7 +764,7 @@ public class CpfDataAccessObject implements Transactionable {
     }
   }
 
-  public boolean setBatchJobFailed(final Identifier batchJobId) {
+  public boolean setBatchJobFailed(final BatchJob batchJob) {
     final JdbcRecordStore jdbcRecordStore = (JdbcRecordStore)this.recordStore;
 
     final String sql = "UPDATE CPF.CPF_BATCH_JOBS SET " + "COMPLETED_REQUEST_RANGE = null, "//
@@ -774,8 +774,18 @@ public class CpfDataAccessObject implements Transactionable {
     try {
       final Timestamp now = new Timestamp(System.currentTimeMillis());
       final String username = getUsername();
-      return jdbcRecordStore.executeUpdate(sql, now, now, now, username,
-        batchJobId.getLong(0)) == 1;
+      final Long batchJobId = batchJob.getIdentifier().getLong(0);
+      final int updateCount = jdbcRecordStore.executeUpdate(sql, now, now, now, username,
+        batchJobId);
+      batchJob.setValue(BatchJob.JOB_STATUS, BatchJobStatus.RESULTS_CREATED);
+      batchJob.setValue(BatchJob.COMPLETED_REQUEST_RANGE, null);
+      batchJob.setValue(BatchJob.FAILED_REQUEST_RANGE,
+        "1~" + batchJob.getValue(BatchJob.NUM_SUBMITTED_REQUESTS));
+      batchJob.setValue(BatchJob.COMPLETED_TIMESTAMP, now);
+      batchJob.setValue(BatchJob.WHEN_STATUS_CHANGED, now);
+      batchJob.setValue(BatchJob.WHEN_UPDATED, now);
+      batchJob.setValue(BatchJob.WHO_UPDATED, username);
+      return updateCount == 1;
     } catch (final Throwable e) {
       throw new RuntimeException("Unable to set started status", e);
     }
@@ -793,12 +803,13 @@ public class CpfDataAccessObject implements Transactionable {
       + "LAST_SCHEDULED_TIMESTAMP = ?, "//
       + "WHEN_STATUS_CHANGED = ?, "//
       + "WHEN_UPDATED = ?, "//
-      + "WHO_UPDATED = ? "//
-      + "WHERE JOB_STATUS IN ('creatingRequests') AND BATCH_JOB_ID = ?";
+      + "WHO_UPDATED = ?  "//
+      + "WHERE JOB_STATUS = ('creatingRequests', 'processed') AND BATCH_JOB_ID = ?";
     final Timestamp now = new Timestamp(System.currentTimeMillis());
+    final String username = getUsername();
+    final Long id = batchJobId.getLong(0);
     final boolean result = jdbcRecordStore.executeUpdate(sql, numSubmittedRequests,
-      numFailedRequests, groupSize, numGroups, now, now, now, getUsername(),
-      batchJobId.getLong(0)) == 1;
+      numFailedRequests, groupSize, numGroups, now, now, now, username, id) == 1;
     return result;
   }
 

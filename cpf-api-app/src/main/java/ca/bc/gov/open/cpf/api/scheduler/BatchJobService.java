@@ -116,6 +116,7 @@ import com.revolsys.record.io.RecordWriterFactory;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.html.XhtmlMapWriter;
 import com.revolsys.record.io.format.json.Json;
+import com.revolsys.record.io.format.json.JsonObject;
 import com.revolsys.record.io.format.kml.Kml22Constants;
 import com.revolsys.record.io.format.tsv.Tsv;
 import com.revolsys.record.io.format.tsv.TsvWriter;
@@ -979,10 +980,12 @@ public class BatchJobService implements ModuleEventListener {
     } else {
       final RecordWriter recordWriter = writerFactory.newRecordWriter(resultRecordDefinition,
         resource);
+      final JsonObject fileFormatProperties = this.config.getFileFormatProperties(resultFormat);
+      recordWriter.setProperties(fileFormatProperties);
       recordWriter.setProperty(Kml22Constants.STYLE_URL_PROPERTY,
-        this.getBaseUrl() + "/kml/defaultStyle.kml#default");
+        getBaseUrl() + "/kml/defaultStyle.kml#default");
       recordWriter.setProperty(IoConstants.TITLE_PROPERTY, title);
-      recordWriter.setProperty("htmlCssStyleUrl", this.getBaseUrl() + "/css/default.css");
+      recordWriter.setProperty("htmlCssStyleUrl", getBaseUrl() + "/css/default.css");
 
       recordWriter.setProperty(IoConstants.GEOMETRY_FACTORY, geometryFactory);
       recordWriter.setProperties(application.getProperties());
