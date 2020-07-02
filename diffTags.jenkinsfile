@@ -1,0 +1,99 @@
+properties([
+  parameters([
+    string(
+      name: 'originalVersion',
+      description: 'The original version number (e.g. 6.1.1-RELEASE)',
+      trim: true
+    ),
+    string(
+      name: 'newVersion',
+      description: 'The original version number (e.g. 6.1.2-RELEASE)',
+      trim: true
+    )
+  ])
+])
+
+node ('master') {
+  stage ('Initialize') {
+     sh '''
+git config --global user.name "$Paul Austin"
+git config --global user.email "pauldaustin@users.noreply.github.com"
+     '''
+  }
+
+  stage ('jeometry') {
+    dir('jeometry') {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/jeometry-org/jeometry.git']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      sh """
+echo "jeometry: 0.CPF-${originalVersion} -> 0.CPF-${newVersion}"
+git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
+      """
+    }
+  }
+
+  stage ('revolsys') {
+    dir('revolsys') {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/com.revolsys.open.git']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      sh """
+echo "revolsys: 0.CPF-${originalVersion} -> 0.CPF-${newVersion}"
+git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
+      """
+    }
+  }
+
+  stage ('cpf') {
+    dir('cpf') {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      sh """
+echo "cpf: ${originalVersion} -> ${newVersion}"
+git diff ${originalVersion} ${newVersion}
+      """
+    }
+  }
+
+  stage ('cpf-bcgov') {
+    dir('cpf-bcgov') {
+      deleteDir()
+      checkout([
+        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
+        $class: 'GitSCM',
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        gitTool: 'Default',
+        submoduleCfg: []
+      ])
+      def bcOriginal = originalVersion.replace('-', '-BCGOV-')
+      def bcNew = newVersion.replace('-', '-BCGOV-')
+      sh """
+echo "jeometry: ${bcOriginal} -> ${bcNew}"
+git diff ${bcOriginal} ${bcNew}
+      """
+      }
+    }
+  }
+
+}
