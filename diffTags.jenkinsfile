@@ -92,7 +92,6 @@ git diff ${originalVersion} ${newVersion}
 echo "jeometry: ${bcOriginal} -> ${bcNew}"
 git diff ${bcOriginal} ${bcNew}
       """
-      }
     }
   }
 
