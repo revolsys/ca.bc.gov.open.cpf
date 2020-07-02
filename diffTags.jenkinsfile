@@ -24,15 +24,9 @@ git config --global user.email "pauldaustin@users.noreply.github.com"
   stage ('jeometry') {
     dir('jeometry') {
       deleteDir()
-      checkout([
-        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf-jeometry.git']],
-        $class: 'GitSCM',
-        doGenerateSubmoduleConfigurations: false,
-        extensions: [],
-        gitTool: 'Default',
-        submoduleCfg: []
-      ])
       sh """
+git clone https://github.com/revolsys/cpf-jeometry.git
+cd cpf-jeometry
 git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
       """
     }
@@ -41,15 +35,8 @@ git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
   stage ('revolsys') {
     dir('revolsys') {
       deleteDir()
-      checkout([
-        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf-revolsys.git']],
-        $class: 'GitSCM',
-        doGenerateSubmoduleConfigurations: false,
-        extensions: [],
-        gitTool: 'Default',
-        submoduleCfg: []
-      ])
-      sh """
+git clone https://github.com/revolsys/cpf-revolsys.git
+cd cpf-revolsys
 git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
       """
     }
@@ -58,32 +45,17 @@ git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
   stage ('cpf') {
     dir('cpf') {
       deleteDir()
-      checkout([
-        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
-        $class: 'GitSCM',
-        doGenerateSubmoduleConfigurations: false,
-        extensions: [],
-        gitTool: 'Default',
-        submoduleCfg: []
-      ])
       sh """
+git clone https://github.com/revolsys/cpf.git
+cd cpf
 git diff ${originalVersion} ${newVersion}
       """
     }
   }
 
   stage ('cpf-bcgov') {
-    dir('cpf-bcgov') {
-      deleteDir()
-      checkout([
-        userRemoteConfigs: [[url: 'ssh://git@github.com/revolsys/cpf.git']],
-        $class: 'GitSCM',
-        doGenerateSubmoduleConfigurations: false,
-        extensions: [],
-        gitTool: 'Default',
-        submoduleCfg: []
-      ])
-      def bcOriginal = originalVersion.replace('-', '-BCGOV-')
+    dir('cpf/cpf') {
+     def bcOriginal = originalVersion.replace('-', '-BCGOV-')
       def bcNew = newVersion.replace('-', '-BCGOV-')
       sh """
 git diff ${bcOriginal} ${bcNew}
