@@ -35,6 +35,7 @@ git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
   stage ('revolsys') {
     dir('revolsys') {
       deleteDir()
+      sh """
 git clone https://github.com/revolsys/cpf-revolsys.git
 cd cpf-revolsys
 git diff 0.CPF-${originalVersion} 0.CPF-${newVersion}
