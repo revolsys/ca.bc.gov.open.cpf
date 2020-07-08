@@ -1,0 +1,10 @@
+.project
+.DS_Store
+
+/config/cpf.properties
+/config/postgres.env
+/config/db.properties
+/database/sql/*.log
+/database/sql/db.properties
+/logs/*/*
+/web/webapps/*

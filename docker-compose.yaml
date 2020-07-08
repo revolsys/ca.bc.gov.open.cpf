@@ -1,0 +1,33 @@
+version: '3'
+services:
+  database:
+    image: "postgres:12"
+    env_file:
+      - config/postgres.env
+    ports:
+      - 27354:5432 # 273 is CPF on a phone keypad
+    volumes:
+# The following 3 lines are only required when running for the first time
+      - ./database/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./database/sql:/apps/cpf/sql:rw
+      - ./config/db.properties:/apps/cpf/sql/db.properties
+      - database_data:/var/lib/postgresql/data
+  web:
+    image: "tomcat:9-jdk11-adoptopenjdk-hotspot"
+    ports:
+      - 27380:8080
+# uncomment the next two lines to enable JPDA debugger on port 27300
+#      - 27300:8000
+#    entrypoint: /usr/local/tomcat/bin/start-jpda.sh
+    links:
+      - database
+    volumes:
+      - ./web/bin/cpf-start.sh:/usr/local/tomcat/bin/cpf-start.sh
+      - ./config/cpf.properties:/apps/config/cpf/cpf.properties
+      - ./logs/cpf:/apps/logs/cpf
+      - ./web/maven-repository:/apps/cpf/repository
+      - ./web/webapps:/usr/local/tomcat/webapps
+      - ./logs/tomcat:/usr/local/tomcat/logs
+
+volumes:
+  database_data:
