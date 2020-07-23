@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import org.jeometry.common.collection.map.LruMap;
 import org.jeometry.common.data.identifier.Identifier;
 import org.jeometry.common.data.type.DataType;
 import org.jeometry.common.data.type.DataTypes;
@@ -45,7 +46,6 @@ import ca.bc.gov.open.cpf.api.scheduler.DurationType;
 import ca.bc.gov.open.cpf.plugin.impl.module.ResourcePermission;
 
 import com.revolsys.collection.list.Lists;
-import com.revolsys.collection.map.LruMap;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.Reader;
