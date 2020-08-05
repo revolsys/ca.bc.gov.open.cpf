@@ -307,7 +307,8 @@ public class BusinessApplication extends BaseObjectWithProperties
     resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
     resultNumAxis.addAllowedValue(2, "2D");
     resultNumAxis.addAllowedValue(3, "3D");
-    Integer defaultValue = Property.getInteger(this, "resultNumAxis", 2);
+    final int resultAxisCount = this.geometryFactory.getAxisCount();
+    Integer defaultValue = Property.getInteger(this, "resultNumAxis", resultAxisCount);
     if (defaultValue < 2) {
       defaultValue = 2;
     } else if (defaultValue > 3) {

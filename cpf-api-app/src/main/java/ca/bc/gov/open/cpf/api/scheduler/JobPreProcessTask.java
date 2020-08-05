@@ -43,13 +43,13 @@ import ca.bc.gov.open.cpf.plugin.impl.log.AppLogUtil;
 
 import com.revolsys.io.FileUtil;
 import com.revolsys.io.IoFactory;
-import com.revolsys.io.Reader;
 import com.revolsys.io.map.MapReader;
 import com.revolsys.io.map.MapReaderFactory;
 import com.revolsys.io.map.MapWriter;
 import com.revolsys.record.FieldValueInvalidException;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.MapReaderRecordReader;
+import com.revolsys.record.io.RecordReader;
 import com.revolsys.record.io.format.csv.Csv;
 import com.revolsys.record.io.format.csv.CsvMapWriter;
 import com.revolsys.record.io.format.tsv.Tsv;
@@ -237,7 +237,7 @@ public class JobPreProcessTask {
                           "Media type not supported: " + inputContentType);
                       } else {
                         try (
-                          final Reader<Record> inputDataReader = new MapReaderRecordReader(
+                          final RecordReader inputDataReader = new MapReaderRecordReader(
                             requestRecordDefinition, mapReader)) {
 
                           for (final Iterator<Record> iterator = inputDataReader
