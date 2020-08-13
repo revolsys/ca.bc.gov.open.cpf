@@ -105,9 +105,12 @@ public abstract class PreProcessGroup {
 
   public void commit() {
     closeWriter();
-    final Identifier batchJobId = getBatchJobId();
-    this.jobController.setGroupInput(batchJobId, this.groupSequenceNumber, Csv.MIME_TYPE,
-      this.groupFile);
+    final File groupFile = this.groupFile;
+    if (groupFile != null) {
+      final Identifier batchJobId = getBatchJobId();
+      this.jobController.setGroupInput(batchJobId, this.groupSequenceNumber, Csv.MIME_TYPE,
+        this.groupFile);
+    }
     deleteFile();
   }
 

@@ -252,6 +252,14 @@
                 <constructor-arg value="Concurrent Processing Framework Application Java API" />
               </bean>
             </entry>
+            <entry key="applicationCommit">
+              <bean
+                class="com.revolsys.util.ManifestUtil"
+                factory-method="getScmCommit"
+              >
+                <constructor-arg value="Concurrent Processing Framework Application Java API" />
+              </bean>
+            </entry>
             <entry
               key="cssUrls"
               value-ref="cpfCssUrls" />

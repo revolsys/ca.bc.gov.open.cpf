@@ -37,6 +37,9 @@
     <property name="properties">
       <map>
         <entry
+          key="clobAsString"
+          value="true" />
+        <entry
           key="label"
           value="CPF" />
         <entry key="typeRecordDefinitionProperties">

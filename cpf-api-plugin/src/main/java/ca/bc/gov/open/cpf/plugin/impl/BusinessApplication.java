@@ -46,7 +46,7 @@ import com.revolsys.collection.CollectionUtil;
 import com.revolsys.collection.map.Maps;
 import com.revolsys.geometry.model.Geometry;
 import com.revolsys.geometry.model.GeometryFactory;
-import com.revolsys.log.LogAppender;
+import com.revolsys.log.LogbackUtil;
 import com.revolsys.properties.BaseObjectWithProperties;
 import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
@@ -54,12 +54,6 @@ import com.revolsys.record.schema.RecordDefinitionImpl;
 import com.revolsys.util.Booleans;
 import com.revolsys.util.CaseConverter;
 import com.revolsys.util.Property;
-
-import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
-import ca.bc.gov.open.cpf.plugin.api.RequestParameter;
-import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.impl.module.Module;
 
 /**
  * The BusinessApplication describes a business application which can be invoked
@@ -215,7 +209,7 @@ public class BusinessApplication extends BaseObjectWithProperties
    */
   private final Set<String> resultDataContentTypes = new LinkedHashSet<>();
 
-  private final Map<String, String> resultDataFileExtensions = new LinkedHashMap<>();
+  private final Map<String, String> resultDataFileExtensions = new TreeMap<>();
 
   private final Map<String, String> resultFileExtensionToContentType = new LinkedHashMap<>();
 
@@ -313,7 +307,8 @@ public class BusinessApplication extends BaseObjectWithProperties
     resultNumAxis.setProperty(BusinessApplication.JOB_PARAMETER, true);
     resultNumAxis.addAllowedValue(2, "2D");
     resultNumAxis.addAllowedValue(3, "3D");
-    Integer defaultValue = Property.getInteger(this, "resultNumAxis", 2);
+    final int resultAxisCount = this.geometryFactory.getAxisCount();
+    Integer defaultValue = Property.getInteger(this, "resultNumAxis", resultAxisCount);
     if (defaultValue < 2) {
       defaultValue = 2;
     } else if (defaultValue > 3) {
@@ -460,6 +455,10 @@ public class BusinessApplication extends BaseObjectWithProperties
       this.resultFieldMap.put(index, field);
       this.resultFieldMethodMap.put(fieldName, method);
     }
+  }
+
+  public void addStandardMethod(final String parameterName, final Method method) {
+    this.requestFieldMethodMap.put(parameterName, method);
   }
 
   /**
@@ -863,10 +862,11 @@ public class BusinessApplication extends BaseObjectWithProperties
 
   public void pluginSetParameters(final Object plugin,
     final Map<String, ? extends Object> parameters) {
-    for (String parameterName : ClassLoaderModule.STANDARD_PARAMETER_NAMES) {
+    for (final String parameterName : ClassLoaderModule.STANDARD_PARAMETER_NAMES) {
       Object parameterValue = parameters.get(parameterName);
       if (parameterValue != null) {
-        Class<?> standardParameterClass = ClassLoaderModule.STANDARD_PARAMETERS.get(parameterName);
+        final Class<?> standardParameterClass = ClassLoaderModule.STANDARD_PARAMETERS
+          .get(parameterName);
         parameterValue = DataTypes.toObject(standardParameterClass, parameterValue);
         pluginSetParameterValue(plugin, parameterName, parameterValue);
       }
@@ -886,7 +886,7 @@ public class BusinessApplication extends BaseObjectWithProperties
   }
 
   private void pluginSetParameterValue(final Object plugin, final String parameterName,
-    Object parameterValue) throws Error {
+    final Object parameterValue) throws Error {
     try {
       final Method method = this.requestFieldMethodMap.get(parameterName);
       if (method == null) {
@@ -986,10 +986,10 @@ public class BusinessApplication extends BaseObjectWithProperties
   public void setLogLevel(final String level) {
     this.log.setLogLevel(level);
     final String moduleName = getModuleName();
-    LogAppender.setLevel(moduleName + "." + this.name, level);
+    LogbackUtil.setLevel(moduleName + "." + this.name, level);
     // Tempory fix for geocoder logging
-    LogAppender.setLevel(moduleName + ".ca", level);
-    LogAppender.setLevel(getPackageName(), level);
+    LogbackUtil.setLevel(moduleName + ".ca", level);
+    LogbackUtil.setLevel(getPackageName(), level);
   }
 
   public void setMaxConcurrentRequests(final int maxConcurrentRequests) {
@@ -1051,9 +1051,5 @@ public class BusinessApplication extends BaseObjectWithProperties
   @Override
   public String toString() {
     return this.name;
-  }
-
-  public void addStandardMethod(String parameterName, Method method) {
-    requestFieldMethodMap.put(parameterName, method);
   }
 }

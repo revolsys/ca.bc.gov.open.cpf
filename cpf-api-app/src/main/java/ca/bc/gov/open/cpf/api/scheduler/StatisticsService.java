@@ -37,10 +37,10 @@ import org.jeometry.common.logging.Logs;
 import ca.bc.gov.open.cpf.api.domain.CpfDataAccessObject;
 import ca.bc.gov.open.cpf.plugin.impl.BusinessApplication;
 
-import com.revolsys.io.Reader;
 import com.revolsys.parallel.channel.Channel;
 import com.revolsys.parallel.process.BaseInProcess;
 import com.revolsys.record.Record;
+import com.revolsys.record.io.RecordReader;
 import com.revolsys.record.io.format.json.Json;
 import com.revolsys.record.query.Query;
 import com.revolsys.record.schema.RecordStore;
@@ -151,7 +151,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
     query.addOrderBy(BusinessApplicationStatistics.START_TIMESTAMP, true);
 
     try (
-      final Reader<Record> reader = this.recordStore.getRecords(query)) {
+      final RecordReader reader = this.recordStore.getRecords(query)) {
       for (final Record statisticsRecord : reader) {
         boolean delete = false;
         final Date startTime = statisticsRecord

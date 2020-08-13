@@ -37,7 +37,9 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.jeometry.common.exception.Exceptions;
 import org.jeometry.common.logging.Logs;
 import org.jeometry.common.math.Randoms;
-import org.jeometry.coordinatesystem.model.systems.EpsgId;
+
+import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
+import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 import com.revolsys.collection.map.Maps;
 import com.revolsys.geometry.model.BoundingBox;
@@ -61,9 +63,6 @@ import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
-
-import ca.bc.gov.open.cpf.plugin.api.log.AppLog;
-import ca.bc.gov.open.cpf.plugin.api.security.SecurityService;
 
 public class PluginAdaptor {
 
