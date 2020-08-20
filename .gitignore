@@ -16,6 +16,10 @@ hs_err_pid*
 
 db.properties
 *.log
+*.pyc
 /log
 /logs
 
+.vscode
+.pydevproject
+.pytest_cache
