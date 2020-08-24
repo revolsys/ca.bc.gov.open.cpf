@@ -46,6 +46,7 @@ class Job(object):
         self.client = client;
         self.url = url;
         self.status_response = {}
+        self.id = re.sub('.+/', '', re.sub('/$', '', url))
 
     def cancel(self):
         url = self.url + 'cancel'
