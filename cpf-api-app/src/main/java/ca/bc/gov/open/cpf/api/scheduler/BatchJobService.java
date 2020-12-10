@@ -1243,7 +1243,7 @@ public class BatchJobService implements ModuleEventListener {
         .and(Q.equal(BatchJob.NUM_SUBMITTED_REQUESTS, 0)) //
       ;
       final Query query = new Query(BatchJob.BATCH_JOB, where);
-      query.setFieldNames(BatchJob.BATCH_JOB_ID);
+      query.select(BatchJob.BATCH_JOB_ID);
       for (final Record job : this.recordStore.getRecords(query)) {
         final Identifier jobId = job.getIdentifier();
         preProcess(jobId);
@@ -1268,7 +1268,7 @@ public class BatchJobService implements ModuleEventListener {
         .and(Q.equal(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName)) //
       ;
       final Query query = new Query(BatchJob.BATCH_JOB, where);
-      query.setFieldNames(BatchJob.BATCH_JOB_ID);
+      query.select(BatchJob.BATCH_JOB_ID);
       for (final Record job : this.recordStore.getRecords(query)) {
         final Identifier jobId = job.getIdentifier();
         postProcess(jobId);

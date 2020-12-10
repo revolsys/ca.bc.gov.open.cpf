@@ -38,7 +38,7 @@ import ca.bc.gov.open.cpf.api.scheduler.BatchJobService;
 import com.revolsys.collection.list.Lists;
 import com.revolsys.record.Record;
 import com.revolsys.record.io.format.xml.XmlWriter;
-import com.revolsys.record.query.And;
+import com.revolsys.record.query.Condition;
 import com.revolsys.record.query.Q;
 import com.revolsys.record.query.Query;
 import com.revolsys.ui.html.serializer.key.ActionFormKeySerializer;
@@ -95,7 +95,7 @@ public class BatchJobResultUiBuilder extends CpfUiBuilder {
   }
 
   public Record getBatchJobResult(final Identifier batchJobId, final Integer sequenceNumber) {
-    final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
+    final Condition where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
       Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
     final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
     final Record batchJobResult = getRecordStore().getRecords(query).getFirst();

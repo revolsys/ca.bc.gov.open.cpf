@@ -108,7 +108,7 @@ public class FileJobController extends AbstractJobController {
   @Override
   public List<MapEx> getFiles(final Identifier jobId, final String path) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.setFieldNames(BatchJobFile.SEQUENCE_NUMBER);
+    query.select(BatchJobFile.SEQUENCE_NUMBER);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     final List<MapEx> sequenceNumbers = new ArrayList<>();

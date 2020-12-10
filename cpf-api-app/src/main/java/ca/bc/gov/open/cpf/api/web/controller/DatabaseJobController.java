@@ -56,7 +56,7 @@ public class DatabaseJobController extends AbstractJobController {
   protected String getFileContentType(final Identifier jobId, final String path,
     final int sequenceNumber) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.setFieldNames(BatchJobFile.CONTENT_TYPE);
+    query.select(BatchJobFile.CONTENT_TYPE);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
@@ -101,7 +101,7 @@ public class DatabaseJobController extends AbstractJobController {
   @Override
   protected long getFileSize(final Identifier jobId, final String path, final int sequenceNumber) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.setFieldNames(BatchJobFile.DATA);
+    query.select(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
@@ -121,7 +121,7 @@ public class DatabaseJobController extends AbstractJobController {
   protected InputStream getFileStream(final Identifier jobId, final String path,
     final int sequenceNumber) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.setFieldNames(BatchJobFile.DATA);
+    query.select(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));
@@ -141,7 +141,7 @@ public class DatabaseJobController extends AbstractJobController {
   protected InputStream getFileStream(final Identifier jobId, final String path,
     final int sequenceNumber, final long fromIndex, final long toIndex) {
     final Query query = new Query(BatchJobFile.BATCH_JOB_FILE);
-    query.setFieldNames(BatchJobFile.DATA);
+    query.select(BatchJobFile.DATA);
     query.and(Q.equal(BatchJobFile.BATCH_JOB_ID, jobId));
     query.and(Q.equal(BatchJobFile.FILE_TYPE, path));
     query.and(Q.equal(BatchJobFile.SEQUENCE_NUMBER, sequenceNumber));

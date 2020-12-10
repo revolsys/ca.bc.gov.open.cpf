@@ -472,7 +472,7 @@ public class UserGroupUiBuilder extends CpfUiBuilder implements UserGroup {
       final Map<String, Object> parameters = new HashMap<>();
 
       final Query query = new Query();
-      query.setFieldNames(USER_GROUP_NAME, MODULE_NAME, DESCRIPTION, ACTIVE_IND,
+      query.select(USER_GROUP_NAME, MODULE_NAME, DESCRIPTION, ACTIVE_IND,
         "X.WHEN_CREATED as \"GROUP_XREF_WHEN_CREATED\"");
       query.setFromClause("CPF.CPF_USER_GROUPS T"
         + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");

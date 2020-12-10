@@ -315,11 +315,13 @@ public class CpfDataAccessObject implements Transactionable {
 
   public List<Identifier> getBatchJobIds(final String businessApplicationName,
     final String jobStatus) {
-    final Map<String, Object> filter = new LinkedHashMap<>();
-    filter.put(BatchJob.BUSINESS_APPLICATION_NAME, businessApplicationName);
-    filter.put(BatchJob.JOB_STATUS, jobStatus);
-    final Query query = Query.and(this.batchJobRecordDefinition, filter);
-    query.setFieldNames(BatchJob.BATCH_JOB_ID);
+    final Query query = this.batchJobRecordDefinition//
+      .newQuery()
+      .and(
+        this.batchJobRecordDefinition.equal(BatchJob.BUSINESS_APPLICATION_NAME,
+          businessApplicationName),
+        this.batchJobRecordDefinition.equal(BatchJob.JOB_STATUS, jobStatus))
+      .select(BatchJob.BATCH_JOB_ID);
     final RecordReader batchJobs = this.recordStore.getRecords(query);
     try {
       final List<Identifier> batchJobIds = new ArrayList<>();
@@ -334,8 +336,9 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   public List<Identifier> getBatchJobIdsToSchedule(final String businessApplicationName) {
-    final Query query = new Query(this.batchJobRecordDefinition);
-    query.setFieldNames(BatchJob.BATCH_JOB_ID);
+    final Query query = this.batchJobRecordDefinition//
+      .newQuery()
+      .select(BatchJob.BATCH_JOB_ID);
     // TODO move to scheduling groups
     final String where = "JOB_STATUS IN ( 'processing') AND BUSINESS_APPLICATION_NAME = ?";
     query.setWhereCondition(Q.sql(where, businessApplicationName));
@@ -358,7 +361,7 @@ public class CpfDataAccessObject implements Transactionable {
   }
 
   public Record getBatchJobResult(final Identifier batchJobId, final long sequenceNumber) {
-    final And where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
+    final Condition where = Q.and(Q.equal(BatchJobResult.BATCH_JOB_ID, batchJobId),
       Q.equal(BatchJobResult.SEQUENCE_NUMBER, sequenceNumber));
     final Query query = new Query(BatchJobResult.BATCH_JOB_RESULT, where);
     return this.recordStore.getRecords(query).getFirst();
@@ -367,7 +370,7 @@ public class CpfDataAccessObject implements Transactionable {
   public List<Record> getBatchJobResults(final Identifier batchJobId) {
     final Query query = Query.equal(this.batchJobResultRecordDefinition,
       BatchJobResult.BATCH_JOB_ID, batchJobId);
-    query.setFieldNames(BatchJobResult.ALL_EXCEPT_BLOB);
+    query.select(BatchJobResult.ALL_EXCEPT_BLOB);
     query.addOrderBy(BatchJobResult.SEQUENCE_NUMBER, true);
     try (
       final RecordReader reader = this.recordStore.getRecords(query)) {
@@ -462,7 +465,7 @@ public class CpfDataAccessObject implements Transactionable {
    */
   public List<Identifier> getOldBatchJobIds(final Timestamp keepUntilTimestamp) {
     final Query query = new Query(this.batchJobRecordDefinition);
-    query.setFieldNames(BatchJob.BATCH_JOB_ID);
+    query.select(BatchJob.BATCH_JOB_ID);
     final And and = new And(
       new In(BatchJob.JOB_STATUS, BatchJobStatus.RESULTS_CREATED, BatchJobStatus.DOWNLOAD_INITIATED,
         BatchJobStatus.CANCELLED),

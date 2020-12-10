@@ -427,7 +427,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
         final Identifier userGroupId = userGroup.getIdentifier();
         final Condition equal = Q.equal(UserGroupAccountXref.USER_GROUP_ID, userGroupId);
         final Query query = new Query();
-        query.setFieldNames(CONSUMER_KEY, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND,
+        query.select(CONSUMER_KEY, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND,
           "X.WHEN_CREATED as \"GROUP_XREF_WHEN_CREATED\"");
         query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
           + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
