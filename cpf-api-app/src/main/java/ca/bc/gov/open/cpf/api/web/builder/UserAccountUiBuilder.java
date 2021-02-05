@@ -429,7 +429,7 @@ public class UserAccountUiBuilder extends CpfUiBuilder implements UserAccount {
         final Query query = new Query();
         query.select(CONSUMER_KEY, USER_ACCOUNT_CLASS, USER_NAME, ACTIVE_IND,
           "X.WHEN_CREATED as \"GROUP_XREF_WHEN_CREATED\"");
-        query.setFromClause("CPF.CPF_USER_ACCOUNTS T"
+        query.setFrom("CPF.CPF_USER_ACCOUNTS T"
           + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_ACCOUNT_ID = X.USER_ACCOUNT_ID");
         query.setWhereCondition(equal);
         final RecordStore recordStore = getRecordStore();

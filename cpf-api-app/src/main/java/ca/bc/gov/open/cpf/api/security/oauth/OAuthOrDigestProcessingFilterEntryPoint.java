@@ -45,11 +45,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jeometry.coordinatesystem.util.Md5;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.NonceExpiredException;
-
-import com.revolsys.util.Md5;
 
 public class OAuthOrDigestProcessingFilterEntryPoint extends DigestAuthenticationEntryPoint {
 

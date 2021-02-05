@@ -21,12 +21,12 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.jeometry.coordinatesystem.util.Hex;
+
 import ca.bc.gov.open.cpf.plugin.api.AllowedValues;
 import ca.bc.gov.open.cpf.plugin.api.BusinessApplicationPlugin;
 import ca.bc.gov.open.cpf.plugin.api.JobParameter;
 import ca.bc.gov.open.cpf.plugin.api.ResultAttribute;
-
-import com.revolsys.util.Hex;
 
 @BusinessApplicationPlugin(perRequestInputData = true, numRequestsPerWorker = 1,
     instantModePermission = "denyAll",

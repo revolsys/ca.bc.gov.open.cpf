@@ -564,7 +564,7 @@ public class CpfDataAccessObject implements Transactionable {
     filter.put(UserGroupPermission.RESOURCE_ID, resourceId);
     filter.put(UserGroupPermission.ACTION_NAME, actionName);
     final Query query = Query.and(this.userGroupPermissionRecordDefinition, filter);
-    query.setFromClause("CPF.CPF_USER_GROUP_PERMISSIONS T"
+    query.setFrom("CPF.CPF_USER_GROUP_PERMISSIONS T"
       + " JOIN CPF.CPF_USER_GROUPS G ON T.USER_GROUP_ID = G.USER_GROUP_ID");
     return this.recordStore.getRecords(query).getFirst();
   }
@@ -591,7 +591,7 @@ public class CpfDataAccessObject implements Transactionable {
 
   public Set<Record> getUserGroupsForUserAccount(final Record userAccount) {
     final Query query = new Query(UserGroup.USER_GROUP);
-    query.setFromClause("CPF.CPF_USER_GROUPS T"
+    query.setFrom("CPF.CPF_USER_GROUPS T"
       + " JOIN CPF.CPF_USER_GROUP_ACCOUNT_XREF X ON T.USER_GROUP_ID = X.USER_GROUP_ID");
 
     query.setWhereCondition(Q.equal("X.USER_ACCOUNT_ID", userAccount.getIdentifier().getLong(0)));
