@@ -138,7 +138,7 @@ public class BatchJob extends DelegatingRecord implements Common {
       final Identifier batchJobId = getIdentifier();
       batchJobService.getDataAccessObject().clearBatchJob(batchJobId);
       try (
-        Transaction transaction = batchJobService.newTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = batchJobService.newTransaction()) {
         setStatus(batchJobService, BatchJobStatus.CANCELLED);
       }
 
@@ -166,7 +166,7 @@ public class BatchJob extends DelegatingRecord implements Common {
       this.groupsToProcess.clear();
       this.scheduledGroups.clear();
       try (
-        Transaction transaction = batchJobService.newTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = batchJobService.newTransaction()) {
         update();
       }
       return true;

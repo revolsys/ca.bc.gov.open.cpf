@@ -66,7 +66,7 @@ public class DatabasePreProcessGroup extends PreProcessGroup {
   @Override
   protected File newGroupFile() {
     final CpfDataAccessObject dataAccessObject = getDataAccessObject();
-    this.transaction = dataAccessObject.newTransaction(Propagation.REQUIRES_NEW);
+    this.transaction = dataAccessObject.newTransaction();
     return FileUtil.newTempFile(getBatchJobId() + "-group", ".tsv");
   }
 }

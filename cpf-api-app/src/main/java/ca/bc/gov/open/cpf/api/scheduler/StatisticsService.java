@@ -124,7 +124,7 @@ public class StatisticsService extends BaseInProcess<Map<String, ? extends Objec
 
   protected void collateAllStatistics() {
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try {
         final Map<String, Map<String, BusinessApplicationStatistics>> statisticsByAppAndId = new HashMap<>();
 

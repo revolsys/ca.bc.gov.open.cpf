@@ -128,9 +128,9 @@ import com.revolsys.record.schema.FieldDefinition;
 import com.revolsys.record.schema.RecordDefinition;
 import com.revolsys.record.schema.RecordStore;
 import com.revolsys.spring.resource.PathResource;
-import com.revolsys.transaction.Propagation;
 import com.revolsys.transaction.SendToChannelAfterCommit;
 import com.revolsys.transaction.Transaction;
+import com.revolsys.transaction.TransactionOption;
 import com.revolsys.ui.web.utils.HttpServletUtils;
 import com.revolsys.util.Property;
 import com.revolsys.util.UrlUtil;
@@ -876,7 +876,7 @@ public class BatchJobService implements ModuleEventListener {
   @Override
   public void moduleChanged(final ModuleEvent event) {
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try {
         final String action = event.getAction();
         final Module module = event.getModule();
@@ -993,8 +993,8 @@ public class BatchJobService implements ModuleEventListener {
     }
   }
 
-  public Transaction newTransaction(final Propagation propagation) {
-    return this.dataAccessObject.newTransaction(propagation);
+  public Transaction newTransaction(final TransactionOption... options) {
+    return this.dataAccessObject.newTransaction(options);
   }
 
   public void postProcess(final Identifier batchJobId) {
@@ -1007,7 +1007,7 @@ public class BatchJobService implements ModuleEventListener {
     final long lastChangedTime) {
     AppLog log = null;
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try (
         RecordWriter writer = this.recordStore.newRecordWriter();) {
         final BatchJob batchJob = getBatchJob(batchJobId);
@@ -1356,7 +1356,7 @@ public class BatchJobService implements ModuleEventListener {
   public void scheduleFromDatabase() {
     if (this.dataAccessObject != null) {
       try (
-        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = this.dataAccessObject.newTransaction()) {
         try {
           for (final Module module : this.businessApplicationRegistry.getModules()) {
             if (module.isStarted()) {
@@ -1375,7 +1375,7 @@ public class BatchJobService implements ModuleEventListener {
 
   public void scheduleFromDatabase(final String jobStatus) {
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try {
         for (final Module module : this.businessApplicationRegistry.getModules()) {
           if (module.isEnabled()) {
@@ -1403,8 +1403,7 @@ public class BatchJobService implements ModuleEventListener {
           if (batchJob.isStatus(BatchJobStatus.PROCESSING)) {
             if (batchJob.isCompleted()) {
               try (
-                Transaction transaction = this.dataAccessObject
-                  .newTransaction(Propagation.REQUIRES_NEW)) {
+                Transaction transaction = this.dataAccessObject.newTransaction()) {
                 batchJob.setStatus(this, BatchJobStatus.PROCESSING, BatchJobStatus.PROCESSED);
                 try {
                   postProcess(batchJobId);
@@ -1425,7 +1424,7 @@ public class BatchJobService implements ModuleEventListener {
     final String jobStatus) {
     final AppLog log = getAppLog(businessApplicationName);
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try {
         final List<Identifier> batchJobIds = this.dataAccessObject
           .getBatchJobIds(businessApplicationName, jobStatus);

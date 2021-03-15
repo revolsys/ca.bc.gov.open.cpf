@@ -330,7 +330,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
     synchronized (this.modulesByName) {
       initConfig();
       try (
-        Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+        Transaction transaction = this.dataAccessObject.newTransaction()) {
         try {
           final Map<String, Module> modulesToDelete = new HashMap<>(this.modulesByName);
           final Map<String, Module> modulesToUnload = new HashMap<>(this.modulesByName);
@@ -471,7 +471,7 @@ public class ConfigPropertyModuleLoader implements ModuleLoader {
   public void setMavenModuleConfigProperties(final String moduleName, final String mavenModuleId,
     final Boolean enabled) {
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try {
         final String environmentName = ConfigProperty.DEFAULT;
         final String componentName = ConfigProperty.MODULE_CONFIG;

@@ -43,7 +43,7 @@ public class RemoveOldBatchJobs {
 
   public void removeOldJobs() {
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try {
         final int dayInMilliseconds = 1000 * 60 * 60 * 24;
 

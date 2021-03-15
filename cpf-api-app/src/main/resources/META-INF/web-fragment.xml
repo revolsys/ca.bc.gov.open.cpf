@@ -26,7 +26,7 @@
 
   <filter>
     <filter-name>transactionFilter</filter-name>
-    <filter-class>com.revolsys.ui.web.servlet.TransactionFilter</filter-class>
+    <filter-class>ca.bc.gov.open.cpf.api.web.TransactionFilter</filter-class>
   </filter>
 
   <filter>

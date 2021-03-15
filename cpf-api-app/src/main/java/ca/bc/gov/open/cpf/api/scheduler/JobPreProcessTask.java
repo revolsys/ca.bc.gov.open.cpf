@@ -170,7 +170,7 @@ public class JobPreProcessTask {
 
     try (
       final Transaction transaction = this.dataAccessObject
-        .newTransaction(Propagation.REQUIRES_NEW)) {
+        .newTransaction()) {
       try {
         final StopWatch stopWatch = new StopWatch();
         stopWatch.start();

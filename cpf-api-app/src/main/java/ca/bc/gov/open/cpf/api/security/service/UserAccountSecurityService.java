@@ -45,7 +45,7 @@ public class UserAccountSecurityService {
 
   public List<String> getGroupNames(final Record userAccount) {
     try (
-      Transaction transaction = this.dataAccessObject.newTransaction(Propagation.REQUIRES_NEW)) {
+      Transaction transaction = this.dataAccessObject.newTransaction()) {
       try {
         final List<String> groupNames = new ArrayList<>();
         try {
