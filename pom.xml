@@ -333,7 +333,7 @@
       <dependency>
         <groupId>com.revolsys.open</groupId>
         <artifactId>revolsys-core</artifactId>
-        <version>${com.revolsys.open.version}</version>
+        <version>${revolsys.version}</version>
         <exclusions>
           <exclusion>
             <groupId>com.google.protobuf</groupId>
@@ -763,7 +763,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <com.revolsys.open.version>TRUNK-SNAPSHOT</com.revolsys.open.version>
+    <revolsys.version>MAIN-SNAPSHOT</revolsys.version>
     <org.springframework.version>5.3.3</org.springframework.version>
     <org.springframework.security.version>5.3.4.RELEASE</org.springframework.security.version>
     <org.apache.httpcomponents.version>4.5.13</org.apache.httpcomponents.version>

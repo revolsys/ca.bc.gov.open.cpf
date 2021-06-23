@@ -14,7 +14,7 @@
     <dependency>
       <groupId>com.revolsys.open</groupId>
       <artifactId>revolsys-core</artifactId>
-      <version>${com.revolsys.open.version}</version>
+      <version>${revolsys.version}</version>
     </dependency>
   </dependencies>
 </project>

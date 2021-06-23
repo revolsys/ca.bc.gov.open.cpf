@@ -67,17 +67,17 @@
     <dependency>
       <groupId>com.revolsys.open</groupId>
       <artifactId>revolsys-oracle</artifactId>
-      <version>${com.revolsys.open.version}</version>
+      <version>${revolsys.version}</version>
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
       <artifactId>revolsys-postgresql</artifactId>
-      <version>${com.revolsys.open.version}</version>
+      <version>${revolsys.version}</version>
     </dependency>
     <dependency>
       <groupId>com.revolsys.open</groupId>
       <artifactId>revolsys-web</artifactId>
-      <version>${com.revolsys.open.version}</version>
+      <version>${revolsys.version}</version>
     </dependency>
 
     <dependency>
