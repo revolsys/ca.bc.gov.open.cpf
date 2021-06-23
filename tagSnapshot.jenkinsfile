@@ -97,7 +97,7 @@ git push -f ssh://git@github.com/revolsys/cpf-revolsys ${FULL_VERSION}
         sh """
 mvn -B versions:set -DnewVersion="${FULL_VERSION}" -DgenerateBackupPoms=false
 sed -i "s/<org.jeometry.version>.*<\\/org.jeometry.version>/<org.jeometry.version>${JEOMETRY_VERSION}<\\/org.jeometry.version>/g" pom.xml
-sed -i "s/<com.revolsys.open.version>.*<\\/com.revolsys.open.version>/<com.revolsys.open.version>${REVOLSYS_VERSION}<\\/com.revolsys.open.version>/g" pom.xml
+sed -i "s/<revolsys.version>.*<\\/revolsys.version>/<revolsys.version>${REVOLSYS_VERSION}<\\/revolsys.version>/g" pom.xml
 git commit -a -m "Version ${FULL_VERSION}"
 git tag -f "${FULL_VERSION}"
 git push -f ssh://git@github.com/revolsys/cpf ${FULL_VERSION}
